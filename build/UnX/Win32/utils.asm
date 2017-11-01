@@ -16,22 +16,22 @@ _BSS	ENDS
 CONST	SEGMENT
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 	ORG $+3
-$SG147821 DB	'SteamAPI_ISteamClient_GetISteamUtils_Detour', 00H
-$SG147822 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
+$SG147830 DB	'SteamAPI_ISteamClient_GetISteamUtils_Detour', 00H
+$SG147831 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ','
 	DB	00H, ' ', 00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG147827 DB	'SteamUtils007', 00H
+$SG147836 DB	'SteamUtils007', 00H
 	ORG $+2
-$SG147828 DB	'SteamUtils009', 00H
+$SG147837 DB	'SteamUtils009', 00H
 	ORG $+2
-$SG147829 DB	'SteamUtils008', 00H
+$SG147838 DB	'SteamUtils008', 00H
 	ORG $+2
-$SG147830 DB	'SteamUtils006', 00H
+$SG147839 DB	'SteamUtils006', 00H
 	ORG $+2
-$SG147831 DB	'SteamUtils005', 00H
+$SG147840 DB	'SteamUtils005', 00H
 	ORG $+2
-$SG147836 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
+$SG147845 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
 	DB	'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 's', 00H, 't', 00H, 'e'
 	DB	00H, 'd', 00H, ' ', 00H, 'u', 00H, 'n', 00H, 'e', 00H, 'x', 00H
 	DB	'p', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' '
@@ -40,23 +40,23 @@ $SG147836 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
 	DB	00H, 's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, '(', 00H
 	DB	'%', 00H, 'h', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG147852 DB	'SK_SteamWrapper_WrappedClient_GetISteamUtils', 00H
+$SG147861 DB	'SK_SteamWrapper_WrappedClient_GetISteamUtils', 00H
 	ORG $+3
-$SG147853 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
+$SG147862 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ','
 	DB	00H, ' ', 00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG147858 DB	'SteamUtils007', 00H
+$SG147867 DB	'SteamUtils007', 00H
 	ORG $+2
-$SG147859 DB	'SteamUtils009', 00H
+$SG147868 DB	'SteamUtils009', 00H
 	ORG $+2
-$SG147860 DB	'SteamUtils008', 00H
+$SG147869 DB	'SteamUtils008', 00H
 	ORG $+2
-$SG147861 DB	'SteamUtils006', 00H
+$SG147870 DB	'SteamUtils006', 00H
 	ORG $+2
-$SG147862 DB	'SteamUtils005', 00H
+$SG147871 DB	'SteamUtils005', 00H
 	ORG $+2
-$SG147867 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
+$SG147876 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
 	DB	'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 's', 00H, 't', 00H, 'e'
 	DB	00H, 'd', 00H, ' ', 00H, 'u', 00H, 'n', 00H, 'e', 00H, 'x', 00H
 	DB	'p', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' '
@@ -1188,6 +1188,8 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\steam\utils.cpp
 
+; 284  : }
+
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -1295,8 +1297,6 @@ _<_Val_2>$ = 24						; size = 4
 	test	edx, edx
 	je	SHORT $LN54@Buynode
 ; File c:\users\andon\source\repos\specialk\src\steam\utils.cpp
-
-; 284  : }
 
 	mov	ecx, DWORD PTR _<_Val_1>$[ebp]
 	mov	ecx, DWORD PTR [ecx]
@@ -5329,8 +5329,8 @@ _pchVersion$ = 16					; size = 4
 	mov	esi, DWORD PTR _pchVersion$[ebp]
 	je	SHORT $LN2@SK_SteamWr
 	push	esi
-	push	OFFSET $SG147852
-	push	OFFSET $SG147853
+	push	OFFSET $SG147861
+	push	OFFSET $SG147862
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -5366,27 +5366,27 @@ $LN2@SK_SteamWr:
 
 	push	edi
 	mov	edi, DWORD PTR __imp__lstrcmpA@8
-	push	OFFSET $SG147858
+	push	OFFSET $SG147867
 	push	esi
 	call	edi
 	test	eax, eax
 	je	SHORT $LN6@SK_SteamWr
-	push	OFFSET $SG147859
+	push	OFFSET $SG147868
 	push	esi
 	call	edi
 	test	eax, eax
 	je	SHORT $LN6@SK_SteamWr
-	push	OFFSET $SG147860
+	push	OFFSET $SG147869
 	push	esi
 	call	edi
 	test	eax, eax
 	je	SHORT $LN6@SK_SteamWr
-	push	OFFSET $SG147861
+	push	OFFSET $SG147870
 	push	esi
 	call	edi
 	test	eax, eax
 	je	SHORT $LN6@SK_SteamWr
-	push	OFFSET $SG147862
+	push	OFFSET $SG147871
 	push	esi
 	call	edi
 	test	eax, eax
@@ -5402,7 +5402,7 @@ $LN2@SK_SteamWr:
 	cmp	BYTE PTR ?first@?BD@??SK_SteamWrapper_WrappedClient_GetISteamUtils@@YAPAVISteamUtils@@PAVISteamClient@@HPBD@Z@4_NA, 0
 	je	SHORT $LN9@SK_SteamWr
 	push	esi
-	push	OFFSET $SG147867
+	push	OFFSET $SG147876
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5700,8 +5700,8 @@ _pchVersion$ = 16					; size = 4
 	mov	esi, DWORD PTR _pchVersion$[ebp]
 	je	SHORT $LN2@SteamAPI_I
 	push	esi
-	push	OFFSET $SG147821
-	push	OFFSET $SG147822
+	push	OFFSET $SG147830
+	push	OFFSET $SG147831
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -5738,27 +5738,27 @@ $LN2@SteamAPI_I:
 
 	push	edi
 	mov	edi, DWORD PTR __imp__lstrcmpA@8
-	push	OFFSET $SG147827
+	push	OFFSET $SG147836
 	push	esi
 	call	edi
 	test	eax, eax
 	je	SHORT $LN6@SteamAPI_I
-	push	OFFSET $SG147828
+	push	OFFSET $SG147837
 	push	esi
 	call	edi
 	test	eax, eax
 	je	SHORT $LN6@SteamAPI_I
-	push	OFFSET $SG147829
+	push	OFFSET $SG147838
 	push	esi
 	call	edi
 	test	eax, eax
 	je	SHORT $LN6@SteamAPI_I
-	push	OFFSET $SG147830
+	push	OFFSET $SG147839
 	push	esi
 	call	edi
 	test	eax, eax
 	je	SHORT $LN6@SteamAPI_I
-	push	OFFSET $SG147831
+	push	OFFSET $SG147840
 	push	esi
 	call	edi
 	test	eax, eax
@@ -5774,7 +5774,7 @@ $LN2@SteamAPI_I:
 	cmp	BYTE PTR ?first@?BD@??SteamAPI_ISteamClient_GetISteamUtils_Detour@@YAPAVISteamUtils@@PAVISteamClient@@HPBD@Z@4_NA, 0
 	je	SHORT $LN9@SteamAPI_I
 	push	esi
-	push	OFFSET $SG147836
+	push	OFFSET $SG147845
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH

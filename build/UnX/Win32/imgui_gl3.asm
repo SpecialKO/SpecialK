@@ -30,25 +30,25 @@ _BSS	SEGMENT
 ?g_ElementsHandle@@3IA DD 01H DUP (?)			; g_ElementsHandle
 _BSS	ENDS
 CONST	SEGMENT
-$SG99246 DB	'#version 330', 0aH, 'uniform mat4 ProjMtx;', 0aH, 'in ve'
+$SG99248 DB	'#version 330', 0aH, 'uniform mat4 ProjMtx;', 0aH, 'in ve'
 	DB	'c2 Position;', 0aH, 'in vec2 UV;', 0aH, 'in vec4 Color;', 0aH
 	DB	'out vec2 Frag_UV;', 0aH, 'out vec4 Frag_Color;', 0aH, 'void m'
 	DB	'ain()', 0aH, '{', 0aH, 09H, 'Frag_UV = UV;', 0aH, 09H, 'Frag_'
 	DB	'Color = Color;', 0aH, 09H, 'gl_Position = ProjMtx * vec4(Posi'
 	DB	'tion.xy,0,1);', 0aH, '}', 0aH, 00H
-$SG99250 DB	'Position', 00H
+$SG99252 DB	'Position', 00H
 	ORG $+3
-$SG99247 DB	'#version 330', 0aH, 'uniform sampler2D Texture;', 0aH, 'i'
+$SG99249 DB	'#version 330', 0aH, 'uniform sampler2D Texture;', 0aH, 'i'
 	DB	'n vec2 Frag_UV;', 0aH, 'in vec4 Frag_Color;', 0aH, 'out vec4 '
 	DB	'Out_Color;', 0aH, 'void main()', 0aH, '{', 0aH, 09H, 'Out_Col'
 	DB	'or = Frag_Color * texture( Texture, Frag_UV.st);', 0aH, '}', 0aH
 	DB	00H
 	ORG $+1
-$SG99248 DB	'Texture', 00H
-$SG99249 DB	'ProjMtx', 00H
-$SG99251 DB	'UV', 00H
+$SG99250 DB	'Texture', 00H
+$SG99251 DB	'ProjMtx', 00H
+$SG99253 DB	'UV', 00H
 	ORG $+1
-$SG99252 DB	'Color', 00H
+$SG99254 DB	'Color', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	??0ImVec2@@QAE@MM@Z				; ImVec2::ImVec2
@@ -708,7 +708,7 @@ _vertex_shader$ = -4					; size = 4
 ; 229  :   const GLchar *vertex_shader =
 ; 230  :       "#version 330\n"
 
-	mov	DWORD PTR _vertex_shader$[ebp], OFFSET $SG99246
+	mov	DWORD PTR _vertex_shader$[ebp], OFFSET $SG99248
 
 ; 231  :       "uniform mat4 ProjMtx;\n"
 ; 232  :       "in vec2 Position;\n"
@@ -726,7 +726,7 @@ _vertex_shader$ = -4					; size = 4
 ; 244  :   const GLchar* fragment_shader =
 ; 245  :       "#version 330\n"
 
-	mov	DWORD PTR _fragment_shader$[ebp], OFFSET $SG99247
+	mov	DWORD PTR _fragment_shader$[ebp], OFFSET $SG99249
 
 ; 246  :       "uniform sampler2D Texture;\n"
 ; 247  :       "in vec2 Frag_UV;\n"
@@ -803,34 +803,34 @@ _vertex_shader$ = -4					; size = 4
 ; 266  : 
 ; 267  :   g_AttribLocationTex      = glGetUniformLocation (g_ShaderHandle, "Texture" );
 
-	push	OFFSET $SG99248
+	push	OFFSET $SG99250
 	push	DWORD PTR ?g_ShaderHandle@@3HA
 	call	DWORD PTR ___glewGetUniformLocation
 
 ; 268  :   g_AttribLocationProjMtx  = glGetUniformLocation (g_ShaderHandle, "ProjMtx" );
 
-	push	OFFSET $SG99249
+	push	OFFSET $SG99251
 	push	DWORD PTR ?g_ShaderHandle@@3HA
 	mov	DWORD PTR ?g_AttribLocationTex@@3HA, eax
 	call	DWORD PTR ___glewGetUniformLocation
 
 ; 269  :   g_AttribLocationPosition = glGetAttribLocation  (g_ShaderHandle, "Position");
 
-	push	OFFSET $SG99250
+	push	OFFSET $SG99252
 	push	DWORD PTR ?g_ShaderHandle@@3HA
 	mov	DWORD PTR ?g_AttribLocationProjMtx@@3HA, eax
 	call	DWORD PTR ___glewGetAttribLocation
 
 ; 270  :   g_AttribLocationUV       = glGetAttribLocation  (g_ShaderHandle, "UV"      );
 
-	push	OFFSET $SG99251
+	push	OFFSET $SG99253
 	push	DWORD PTR ?g_ShaderHandle@@3HA
 	mov	DWORD PTR ?g_AttribLocationPosition@@3HA, eax
 	call	DWORD PTR ___glewGetAttribLocation
 
 ; 271  :   g_AttribLocationColor    = glGetAttribLocation  (g_ShaderHandle, "Color"   );
 
-	push	OFFSET $SG99252
+	push	OFFSET $SG99254
 	push	DWORD PTR ?g_ShaderHandle@@3HA
 	mov	DWORD PTR ?g_AttribLocationUV@@3HA, eax
 	call	DWORD PTR ___glewGetAttribLocation

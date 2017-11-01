@@ -9,6 +9,49 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
+PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
+PUBLIC	_LIBID_ATLLib
+PUBLIC	_IID_IAxWinAmbientDispatchEx
+PUBLIC	?SK_DXGI_use_factory1@@3_NA			; SK_DXGI_use_factory1
+PUBLIC	?SK_DXGI_factory_init@@3_NA			; SK_DXGI_factory_init
+PUBLIC	?__dxgi_ready@@3JC				; __dxgi_ready
+PUBLIC	_IID_IInternalConnection
+PUBLIC	___pobjMapEntryFirst
+PUBLIC	___pobjMapEntryLast
+PUBLIC	?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA	; ATL::_pPerfRegFunc
+PUBLIC	?_pPerfUnRegFunc@ATL@@3P6AJXZA			; ATL::_pPerfUnRegFunc
+PUBLIC	?_AtlRegisterPerUser@ATL@@3_NA			; ATL::_AtlRegisterPerUser
+PUBLIC	?bAlwaysAllowFullscreen@@3_NA			; bAlwaysAllowFullscreen
+PUBLIC	?_pModule@ATL@@3PAVCComModule@1@A		; ATL::_pModule
+PUBLIC	?bFlipMode@@3_NA				; bFlipMode
+PUBLIC	?bWait@@3_NA					; bWait
+PUBLIC	?SK_DXGI_preferred_adapter@@3HA			; SK_DXGI_preferred_adapter
+PUBLIC	?SK_D3D11_init_tid@@3JC				; SK_D3D11_init_tid
+PUBLIC	?SK_D3D11_ansel_tid@@3JC			; SK_D3D11_ansel_tid
+PUBLIC	?pfnChangeDisplaySettingsA@@3PAXA		; pfnChangeDisplaySettingsA
+PUBLIC	?ChangeDisplaySettingsA_Original@@3P6GJPAU_devicemodeA@@K@ZA ; ChangeDisplaySettingsA_Original
+PUBLIC	_CLSID_Registrar
+PUBLIC	?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory_Import
+PUBLIC	?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory1_Import
+PUBLIC	?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA ; CreateDXGIFactory2_Import
+PUBLIC	?dwRenderThread@@3KA				; dwRenderThread
+PUBLIC	?hWndRender@@3PAUHWND__@@A			; hWndRender
+PUBLIC	_IID_IRegistrar
+PUBLIC	?PresentSwapChain_Original_Pre@@3P6GJPAUIDXGISwapChain@@II@ZA ; PresentSwapChain_Original_Pre
+PUBLIC	?chDirSep@ATL@@3_WB				; ATL::chDirSep
+PUBLIC	?chRightBracket@ATL@@3_WB			; ATL::chRightBracket
+PUBLIC	?chLeftBracket@ATL@@3_WB			; ATL::chLeftBracket
+PUBLIC	?chQuote@ATL@@3_WB				; ATL::chQuote
+PUBLIC	?chEquals@ATL@@3_WB				; ATL::chEquals
+PUBLIC	?szStringVal@ATL@@3QB_WB			; ATL::szStringVal
+PUBLIC	?multiszStringVal@ATL@@3QB_WB			; ATL::multiszStringVal
+PUBLIC	?szDwordVal@ATL@@3QB_WB				; ATL::szDwordVal
+PUBLIC	?szBinaryVal@ATL@@3QB_WB			; ATL::szBinaryVal
+PUBLIC	?szValToken@ATL@@3QB_WB				; ATL::szValToken
+PUBLIC	?szForceRemove@ATL@@3QB_WB			; ATL::szForceRemove
+PUBLIC	?szNoRemove@ATL@@3QB_WB				; ATL::szNoRemove
+PUBLIC	?szDelete@ATL@@3QB_WB				; ATL::szDelete
+PUBLIC	_IID_IDocHostUIHandlerDispatch
 PUBLIC	?CreateSwapChain_Original@@3P6GJPAUIDXGIFactory@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@ZA ; CreateSwapChain_Original
 PUBLIC	?Present_GuardBytes@@3PAEA			; Present_GuardBytes
 PUBLIC	?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA	; Present_Target
@@ -36,50 +79,52 @@ PUBLIC	?cegD3D11@@3PAVDirect3D11Renderer@CEGUI@@A	; cegD3D11
 PUBLIC	_IID_IAxWinHostWindowLic
 PUBLIC	?SK_achv_popup@@3PAVWindow@CEGUI@@A		; SK_achv_popup
 PUBLIC	_IID_IAxWinAmbientDispatch
-PUBLIC	?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory_Import
-PUBLIC	?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory1_Import
-PUBLIC	?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA ; CreateDXGIFactory2_Import
-PUBLIC	?dwRenderThread@@3KA				; dwRenderThread
-PUBLIC	?hWndRender@@3PAUHWND__@@A			; hWndRender
-PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
-PUBLIC	_LIBID_ATLLib
-PUBLIC	_IID_IAxWinAmbientDispatchEx
-PUBLIC	?SK_DXGI_use_factory1@@3_NA			; SK_DXGI_use_factory1
-PUBLIC	?SK_DXGI_factory_init@@3_NA			; SK_DXGI_factory_init
-PUBLIC	?__dxgi_ready@@3JC				; __dxgi_ready
-PUBLIC	_IID_IInternalConnection
-PUBLIC	___pobjMapEntryFirst
-PUBLIC	___pobjMapEntryLast
-PUBLIC	?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA	; ATL::_pPerfRegFunc
-PUBLIC	?_pPerfUnRegFunc@ATL@@3P6AJXZA			; ATL::_pPerfUnRegFunc
-PUBLIC	?_AtlRegisterPerUser@ATL@@3_NA			; ATL::_AtlRegisterPerUser
-PUBLIC	?bAlwaysAllowFullscreen@@3_NA			; bAlwaysAllowFullscreen
-PUBLIC	?bFlipMode@@3_NA				; bFlipMode
-PUBLIC	?bWait@@3_NA					; bWait
-PUBLIC	?SK_DXGI_preferred_adapter@@3HA			; SK_DXGI_preferred_adapter
-PUBLIC	?_pModule@ATL@@3PAVCComModule@1@A		; ATL::_pModule
-PUBLIC	?SK_D3D11_init_tid@@3JC				; SK_D3D11_init_tid
-PUBLIC	?SK_D3D11_ansel_tid@@3JC			; SK_D3D11_ansel_tid
-PUBLIC	?pfnChangeDisplaySettingsA@@3PAXA		; pfnChangeDisplaySettingsA
-PUBLIC	?ChangeDisplaySettingsA_Original@@3P6GJPAU_devicemodeA@@K@ZA ; ChangeDisplaySettingsA_Original
-PUBLIC	_CLSID_Registrar
-PUBLIC	_IID_IRegistrar
-PUBLIC	?PresentSwapChain_Original_Pre@@3P6GJPAUIDXGISwapChain@@II@ZA ; PresentSwapChain_Original_Pre
-PUBLIC	?chDirSep@ATL@@3_WB				; ATL::chDirSep
-PUBLIC	?chRightBracket@ATL@@3_WB			; ATL::chRightBracket
-PUBLIC	?chLeftBracket@ATL@@3_WB			; ATL::chLeftBracket
-PUBLIC	?chQuote@ATL@@3_WB				; ATL::chQuote
-PUBLIC	?chEquals@ATL@@3_WB				; ATL::chEquals
-PUBLIC	?szStringVal@ATL@@3QB_WB			; ATL::szStringVal
-PUBLIC	?multiszStringVal@ATL@@3QB_WB			; ATL::multiszStringVal
-PUBLIC	?szDwordVal@ATL@@3QB_WB				; ATL::szDwordVal
-PUBLIC	?szBinaryVal@ATL@@3QB_WB			; ATL::szBinaryVal
-PUBLIC	?szValToken@ATL@@3QB_WB				; ATL::szValToken
-PUBLIC	?szForceRemove@ATL@@3QB_WB			; ATL::szForceRemove
-PUBLIC	?szNoRemove@ATL@@3QB_WB				; ATL::szNoRemove
-PUBLIC	?szDelete@ATL@@3QB_WB				; ATL::szDelete
-PUBLIC	_IID_IDocHostUIHandlerDispatch
+;	COMDAT ?_pAtlModule@ATL@@3PAVCAtlModule@1@A
 _BSS	SEGMENT
+?_pAtlModule@ATL@@3PAVCAtlModule@1@A DD 01H DUP (?)	; ATL::_pAtlModule
+_BSS	ENDS
+_BSS	SEGMENT
+?SK_DXGI_use_factory1@@3_NA DB 01H DUP (?)		; SK_DXGI_use_factory1
+	ALIGN	4
+
+?SK_DXGI_factory_init@@3_NA DB 01H DUP (?)		; SK_DXGI_factory_init
+	ALIGN	4
+
+?__dxgi_ready@@3JC DD 01H DUP (?)			; __dxgi_ready
+_BSS	ENDS
+;	COMDAT ?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA
+_BSS	SEGMENT
+?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA DD 01H DUP (?) ; ATL::_pPerfRegFunc
+_BSS	ENDS
+;	COMDAT ?_pPerfUnRegFunc@ATL@@3P6AJXZA
+_BSS	SEGMENT
+?_pPerfUnRegFunc@ATL@@3P6AJXZA DD 01H DUP (?)		; ATL::_pPerfUnRegFunc
+_BSS	ENDS
+;	COMDAT ?_AtlRegisterPerUser@ATL@@3_NA
+_BSS	SEGMENT
+?_AtlRegisterPerUser@ATL@@3_NA DB 01H DUP (?)		; ATL::_AtlRegisterPerUser
+_BSS	ENDS
+;	COMDAT ?_pModule@ATL@@3PAVCComModule@1@A
+_BSS	SEGMENT
+?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
+_BSS	ENDS
+_BSS	SEGMENT
+?bFlipMode@@3_NA DB 01H DUP (?)				; bFlipMode
+	ALIGN	4
+
+?bWait@@3_NA DB	01H DUP (?)				; bWait
+	ALIGN	4
+
+?SK_D3D11_init_tid@@3JC DD 01H DUP (?)			; SK_D3D11_init_tid
+?SK_D3D11_ansel_tid@@3JC DD 01H DUP (?)			; SK_D3D11_ansel_tid
+?pfnChangeDisplaySettingsA@@3PAXA DD 01H DUP (?)	; pfnChangeDisplaySettingsA
+?ChangeDisplaySettingsA_Original@@3P6GJPAU_devicemodeA@@K@ZA DD 01H DUP (?) ; ChangeDisplaySettingsA_Original
+?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA DD 01H DUP (?) ; CreateDXGIFactory_Import
+?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA DD 01H DUP (?) ; CreateDXGIFactory1_Import
+?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA DD 01H DUP (?) ; CreateDXGIFactory2_Import
+?dwRenderThread@@3KA DD 01H DUP (?)			; dwRenderThread
+?hWndRender@@3PAUHWND__@@A DD 01H DUP (?)		; hWndRender
+?PresentSwapChain_Original_Pre@@3P6GJPAUIDXGISwapChain@@II@ZA DD 01H DUP (?) ; PresentSwapChain_Original_Pre
 ?CreateSwapChain_Original@@3P6GJPAUIDXGIFactory@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@ZA DD 01H DUP (?) ; CreateSwapChain_Original
 ?Present_GuardBytes@@3PAEA DB 010H DUP (?)		; Present_GuardBytes
 ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA DD 01H DUP (?) ; Present_Target
@@ -111,56 +156,49 @@ _BSS	SEGMENT
 ?cegD3D11@@3PAVDirect3D11Renderer@CEGUI@@A DD 01H DUP (?) ; cegD3D11
 ?__cegui_frames_drawn@@3KC DD 01H DUP (?)		; __cegui_frames_drawn
 ?SK_achv_popup@@3PAVWindow@CEGUI@@A DD 01H DUP (?)	; SK_achv_popup
-?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA DD 01H DUP (?) ; CreateDXGIFactory_Import
-?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA DD 01H DUP (?) ; CreateDXGIFactory1_Import
-?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA DD 01H DUP (?) ; CreateDXGIFactory2_Import
-?dwRenderThread@@3KA DD 01H DUP (?)			; dwRenderThread
-?hWndRender@@3PAUHWND__@@A DD 01H DUP (?)		; hWndRender
 _BSS	ENDS
-;	COMDAT ?_pAtlModule@ATL@@3PAVCAtlModule@1@A
-_BSS	SEGMENT
-?_pAtlModule@ATL@@3PAVCAtlModule@1@A DD 01H DUP (?)	; ATL::_pAtlModule
-_BSS	ENDS
-_BSS	SEGMENT
-?SK_DXGI_use_factory1@@3_NA DB 01H DUP (?)		; SK_DXGI_use_factory1
-	ALIGN	4
-
-?SK_DXGI_factory_init@@3_NA DB 01H DUP (?)		; SK_DXGI_factory_init
-	ALIGN	4
-
-?__dxgi_ready@@3JC DD 01H DUP (?)			; __dxgi_ready
-_BSS	ENDS
-;	COMDAT ?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA
-_BSS	SEGMENT
-?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA DD 01H DUP (?) ; ATL::_pPerfRegFunc
-_BSS	ENDS
-;	COMDAT ?_pPerfUnRegFunc@ATL@@3P6AJXZA
-_BSS	SEGMENT
-?_pPerfUnRegFunc@ATL@@3P6AJXZA DD 01H DUP (?)		; ATL::_pPerfUnRegFunc
-_BSS	ENDS
-;	COMDAT ?_AtlRegisterPerUser@ATL@@3_NA
-_BSS	SEGMENT
-?_AtlRegisterPerUser@ATL@@3_NA DB 01H DUP (?)		; ATL::_AtlRegisterPerUser
-_BSS	ENDS
-_BSS	SEGMENT
-?bFlipMode@@3_NA DB 01H DUP (?)				; bFlipMode
-	ALIGN	4
-
-?bWait@@3_NA DB	01H DUP (?)				; bWait
-_BSS	ENDS
-;	COMDAT ?_pModule@ATL@@3PAVCComModule@1@A
-_BSS	SEGMENT
-?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
-_BSS	ENDS
-_BSS	SEGMENT
-	ALIGN	4
-
-?SK_D3D11_init_tid@@3JC DD 01H DUP (?)			; SK_D3D11_init_tid
-?SK_D3D11_ansel_tid@@3JC DD 01H DUP (?)			; SK_D3D11_ansel_tid
-?pfnChangeDisplaySettingsA@@3PAXA DD 01H DUP (?)	; pfnChangeDisplaySettingsA
-?ChangeDisplaySettingsA_Original@@3P6GJPAU_devicemodeA@@K@ZA DD 01H DUP (?) ; ChangeDisplaySettingsA_Original
-?PresentSwapChain_Original_Pre@@3P6GJPAUIDXGISwapChain@@II@ZA DD 01H DUP (?) ; PresentSwapChain_Original_Pre
-_BSS	ENDS
+;	COMDAT _IID_IAxWinAmbientDispatch
+CONST	SEGMENT
+_IID_IAxWinAmbientDispatch DD 0b6ea2051H
+	DW	048aH
+	DW	011d1H
+	DB	082H
+	DB	0b9H
+	DB	00H
+	DB	0c0H
+	DB	04fH
+	DB	0b9H
+	DB	094H
+	DB	02eH
+CONST	ENDS
+;	COMDAT _IID_IAxWinHostWindowLic
+CONST	SEGMENT
+_IID_IAxWinHostWindowLic DD 03935bda8H
+	DW	04ed9H
+	DW	0495cH
+	DB	086H
+	DB	050H
+	DB	0e0H
+	DB	01fH
+	DB	0c1H
+	DB	0e3H
+	DB	08aH
+	DB	04bH
+CONST	ENDS
+;	COMDAT _IID_IAxWinHostWindow
+CONST	SEGMENT
+_IID_IAxWinHostWindow DD 0b6ea2050H
+	DW	048aH
+	DW	011d1H
+	DB	082H
+	DB	0b9H
+	DB	00H
+	DB	0c0H
+	DB	04fH
+	DB	0b9H
+	DB	094H
+	DB	02eH
+CONST	ENDS
 ;	COMDAT _IID_IDocHostUIHandlerDispatch
 CONST	SEGMENT
 _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
@@ -177,35 +215,35 @@ _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG211857			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG211484			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG211855		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG211482		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG211853		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG211480		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG211851		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG211478		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG211849		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG211476		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG211847		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG211474		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG211845		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG211472		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG211843		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG211470		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -255,6 +293,12 @@ _CLSID_Registrar DD 044ec053aH
 	DB	091H
 	DB	0d3H
 CONST	ENDS
+_DATA	SEGMENT
+?bAlwaysAllowFullscreen@@3_NA DB 01H			; bAlwaysAllowFullscreen
+	ORG $+3
+?SK_DXGI_preferred_adapter@@3HA DD 0ffffffffH		; SK_DXGI_preferred_adapter
+?__gui_reset@@3KC DD 01H				; __gui_reset
+_DATA	ENDS
 ;	COMDAT ___pobjMapEntryLast
 ATL$__z	SEGMENT
 ___pobjMapEntryLast DD 00H
@@ -305,757 +349,60 @@ _LIBID_ATLLib DD 044ec0535H
 	DB	091H
 	DB	0d3H
 CONST	ENDS
-;	COMDAT _IID_IAxWinAmbientDispatch
 CONST	SEGMENT
-_IID_IAxWinAmbientDispatch DD 0b6ea2051H
-	DW	048aH
-	DW	011d1H
-	DB	082H
-	DB	0b9H
-	DB	00H
-	DB	0c0H
-	DB	04fH
-	DB	0b9H
-	DB	094H
-	DB	02eH
-CONST	ENDS
-;	COMDAT _IID_IAxWinHostWindowLic
-CONST	SEGMENT
-_IID_IAxWinHostWindowLic DD 03935bda8H
-	DW	04ed9H
-	DW	0495cH
-	DB	086H
-	DB	050H
-	DB	0e0H
-	DB	01fH
-	DB	0c1H
-	DB	0e3H
-	DB	08aH
-	DB	04bH
-CONST	ENDS
-_DATA	SEGMENT
-?__gui_reset@@3KC DD 01H				; __gui_reset
-?bAlwaysAllowFullscreen@@3_NA DB 01H			; bAlwaysAllowFullscreen
-	ORG $+3
-?SK_DXGI_preferred_adapter@@3HA DD 0ffffffffH		; SK_DXGI_preferred_adapter
-_DATA	ENDS
-;	COMDAT _IID_IAxWinHostWindow
-CONST	SEGMENT
-_IID_IAxWinHostWindow DD 0b6ea2050H
-	DW	048aH
-	DW	011d1H
-	DB	082H
-	DB	0b9H
-	DB	00H
-	DB	0c0H
-	DB	04fH
-	DB	0b9H
-	DB	094H
-	DB	02eH
-CONST	ENDS
-CONST	SEGMENT
-$SG357385 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
-	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
-	DB	00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H, 'r', 00H, 'H', 00H
-	DB	'w', 00H, 'n', 00H, 'd', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-$SG357386 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-$SG352494 DB	00H
-$SG352635 DB	00H
-$SG357387 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
-	DB	00H, 00H, 00H
-$SG366604 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
-	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
-	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'S', 00H, 'e', 00H, 't', 00H
-	DB	'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r'
-	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'a', 00H
-	DB	't', 00H, 'e', 00H, 00H, 00H
-$SG352637 DB	00H
-$SG352639 DB	00H
-$SG357388 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357389 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG366605 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
-	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
-	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'G', 00H, 'e', 00H, 't', 00H
-	DB	'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r'
-	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'a', 00H
-	DB	't', 00H, 'e', 00H, 00H, 00H
-$SG352641 DB	00H
-$SG352643 DB	00H
-$SG366606 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
-	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
-	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'R', 00H, 'e', 00H, 's', 00H
-	DB	'i', 00H, 'z', 00H, 'e', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f'
-	DB	00H, 'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
-$SG366607 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
-	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
-	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'R', 00H, 'e', 00H, 's', 00H
-	DB	'i', 00H, 'z', 00H, 'e', 00H, 'T', 00H, 'a', 00H, 'r', 00H, 'g'
-	DB	00H, 'e', 00H, 't', 00H, 00H, 00H
-$SG352645 DB	00H
-$SG352647 DB	00H
-$SG366610 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
-	DB	'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, ':', 00H, ':'
-	DB	00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'i', 00H, 's', 00H
-	DB	'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'M', 00H, 'o', 00H, 'd'
-	DB	00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 00H, 00H
-$SG366611 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
-	DB	'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, ':', 00H, ':'
-	DB	00H, 'F', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'C', 00H, 'l', 00H
-	DB	'o', 00H, 's', 00H, 'e', 00H, 's', 00H, 't', 00H, 'M', 00H, 'a'
-	DB	00H, 't', 00H, 'c', 00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H
-	DB	'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 00H, 00H
-$SG352657 DB	00H
-?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-$SG366612 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
-	DB	'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, ':', 00H, ':'
-	DB	00H, 'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'F', 00H, 'o', 00H
-	DB	'r', 00H, 'V', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'n', 00H, 'k'
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG353308 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
-	DB	'e', 00H, 00H, 00H
-$SG353310 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
-	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
-	DB	00H, 'd', 00H, '-', 00H, 'O', 00H, 'n', 00H, 'l', 00H, 'y', 00H
-	DB	00H, 00H
-$SG353312 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
-	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
-	DB	00H, 'd', 00H, '/', 00H, 'W', 00H, 'r', 00H, 'i', 00H, 't', 00H
-	DB	'e', 00H, 00H, 00H
-	ORG $+2
-$SG353314 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
-	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
-	DB	00H, 'd', 00H, '-', 00H, 'O', 00H, 'n', 00H, 'l', 00H, 'y', 00H
-	DB	' ', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'p'
-	DB	00H, 'y', 00H, '-', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'W', 00H
-	DB	'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, ')', 00H, 00H, 00H
-$SG353316 DB	'N', 00H, 'o', 00H, ' ', 00H, 'A', 00H, 'c', 00H, 'c', 00H
-	DB	'e', 00H, 's', 00H, 's', 00H, 00H, 00H
-$SG353318 DB	'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '-', 00H, 'O', 00H
-	DB	'n', 00H, 'l', 00H, 'y', 00H, 00H, 00H
-$SG353320 DB	'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '/', 00H, 'W', 00H
-	DB	'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG200745 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
-	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG357419 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357418 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
-	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
-	DB	00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H, 'r', 00H, 'C', 00H
-	DB	'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 's', 00H, 'i', 00H, 't'
-	DB	00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG353322 DB	' ', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '-', 00H
-	DB	'O', 00H, 'n', 00H, 'l', 00H, 'y', 00H, ' ', 00H, 'o', 00H, 'r'
-	DB	00H, ' ', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H, '-', 00H
-	DB	'o', 00H, 'n', 00H, '-', 00H, 'W', 00H, 'r', 00H, 'i', 00H, 't'
-	DB	00H, 'e', 00H, 00H, 00H
-$SG357420 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
-	DB	00H, 00H, 00H
-$SG353324 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
-	DB	'N', 00H, 00H, 00H
-$SG357421 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357422 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG200839 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
-	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG357423 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
-	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, '-', 00H, ' ', 00H
-	DB	' ', 00H, '<', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
-	DB	00H, 't', 00H, 'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H
-	DB	'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o'
-	DB	00H, 'r', 00H, 'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H
-	DB	's', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, '_'
-	DB	00H, 'O', 00H, 'r', 00H, 'i', 00H, 'g', 00H, 'i', 00H, 'n', 00H
-	DB	'a', 00H, 'l', 00H, ' ', 00H, '(', 00H, ' ', 00H, 'T', 00H, 'h'
-	DB	00H, 'i', 00H, 's', 00H, ',', 00H, ' ', 00H, 'p', 00H, 'D', 00H
-	DB	'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, ',', 00H, ' '
-	DB	00H, '&', 00H, 'n', 00H, 'e', 00H, 'w', 00H, '_', 00H, 'd', 00H
-	DB	'e', 00H, 's', 00H, 'c', 00H, '1', 00H, ',', 00H, ' ', 00H, 'p'
-	DB	00H, 'R', 00H, 'e', 00H, 's', 00H, 't', 00H, 'r', 00H, 'i', 00H
-	DB	'c', 00H, 't', 00H, 'T', 00H, 'o', 00H, 'O', 00H, 'u', 00H, 't'
-	DB	00H, 'p', 00H, 'u', 00H, 't', 00H, ',', 00H, ' ', 00H, 'p', 00H
-	DB	'p', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h'
-	DB	00H, 'a', 00H, 'i', 00H, 'n', 00H, ' ', 00H, ')', 00H, ' ', 00H
-	DB	'>', 00H, 00H, 00H
-$SG353356 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a'
-	DB	00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG353359 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
-	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
-	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '1', 00H, 00H, 00H
-	ORG $+2
-$SG353362 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
-	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
-	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG353365 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
-	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
-	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '3', 00H, 00H, 00H
-	ORG $+2
-$SG353368 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
-	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
-	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '4', 00H, 00H, 00H
-	ORG $+2
-$SG200792 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG353371 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
-	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
-	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '5', 00H, 00H, 00H
-	ORG $+2
-$SG355483 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, 00H, 00H
-$SG355484 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG357475 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '!', 00H, '!', 00H, '!', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
-	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'O', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ':'
-	DB	00H, ' ', 00H, '(', 00H, 'U', 00H, 's', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, ' '
-	DB	00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'e', 00H, 'a', 00H
-	DB	'd', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' ', 00H, '''', 00H, '%'
-	DB	00H, 's', 00H, '''', 00H, ')', 00H, ' ', 00H, '!', 00H, '!', 00H
-	DB	'!', 00H, 00H, 00H
-	ORG $+2
-$SG356517 DB	'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'i', 00H, 's', 00H
-	DB	'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'M', 00H, 'o', 00H, 'd'
-	DB	00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, 00H, 00H
-$SG356519 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357476 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '!', 00H, '!', 00H, '!', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
-	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'O', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ':'
-	DB	00H, ' ', 00H, '(', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	'd', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, ' '
-	DB	00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'e', 00H, 'a', 00H
-	DB	'd', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' ', 00H, '''', 00H, '%'
-	DB	00H, 's', 00H, '''', 00H, ')', 00H, ' ', 00H, '!', 00H, '!', 00H
-	DB	'!', 00H, 00H, 00H
-	ORG $+2
-$SG356521 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357477 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '!', 00H, '!', 00H, '!', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
-	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'O', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ' '
-	DB	00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	',', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'r'
-	DB	00H, 'n', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H
-	DB	'%', 00H, 's', 00H, '''', 00H, ' ', 00H, '!', 00H, '!', 00H, '!'
-	DB	00H, 00H, 00H
-$SG356522 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357485 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
-	DB	't', 00H, 'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, '2', 00H, '_'
-	DB	00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H
-	DB	'd', 00H, 'e', 00H, ':', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'o'
-	DB	00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'f', 00H
-	DB	'o', 00H, 'r', 00H, ' ', 00H, 'm', 00H, 'a', 00H, 't', 00H, 'c'
-	DB	00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'N', 00H
-	DB	'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'G', 00H, 'P'
-	DB	00H, 'U', 00H, ' ', 00H, 'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H
-	DB	'%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' '
-	DB	00H, 00H, 00H
-$SG357488 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, '!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')'
-	DB	00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG357489 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
-	DB	'e', 00H, '!', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, ' '
-	DB	00H, 'M', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h', 00H, ' ', 00H
-	DB	'F', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H, ')', 00H, 0aH
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG357558 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
-	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG357497 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
-	DB	't', 00H, 'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, '1', 00H, '_'
-	DB	00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H
-	DB	'd', 00H, 'e', 00H, ':', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'o'
-	DB	00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'f', 00H
-	DB	'o', 00H, 'r', 00H, ' ', 00H, 'm', 00H, 'a', 00H, 't', 00H, 'c'
-	DB	00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'N', 00H
-	DB	'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'G', 00H, 'P'
-	DB	00H, 'U', 00H, ' ', 00H, 'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H
-	DB	'%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' '
-	DB	00H, 00H, 00H
-$SG357500 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, '!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')'
-	DB	00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG357501 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
-	DB	'e', 00H, '!', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, ' '
-	DB	00H, 'M', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h', 00H, ' ', 00H
-	DB	'F', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H, ')', 00H, 0aH
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG353462 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
-	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG355485 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'I', 00H, 'D', 00H
-	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
-	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, ':', 00H
-	DB	':', 00H, 'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n'
-	DB	00H, 't', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H
-	DB	')', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'r'
-	DB	00H, 'n', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'n', 00H, 'o', 00H
-	DB	'n', 00H, '-', 00H, 'S', 00H, '_', 00H, 'O', 00H, 'K', 00H, ' '
-	DB	00H, '(', 00H, '%', 00H, 's', 00H, ' ', 00H, ':', 00H, ':', 00H
-	DB	' ', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG355488 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '(', 00H, '*', 00H, ')', 00H, ' ', 00H, '>', 00H, '>', 00H
-	DB	' ', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'o', 00H, 'n'
-	DB	00H, ' ', 00H, 'F', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'R', 00H
-	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'a', 00H, 'l', 00H, ':'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG353440 DB	'{', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'i', 00H, 'd', 00H, '-', 00H, 'F', 00H, 'a', 00H, 'c', 00H, 't'
-	DB	00H, 'o', 00H, 'r', 00H, 'y', 00H, '-', 00H, 'U', 00H, 'U', 00H
-	DB	'I', 00H, 'D', 00H, '}', 00H, 00H, 00H
-	ORG $+2
-$SG356518 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O'
-	DB	00H, 'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG356520 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'i', 00H, ',', 00H, ' ', 00H, '%', 00H, '0', 00H, '2', 00H, 'x'
-	DB	00H, ',', 00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H, 'M', 00H
-	DB	'o', 00H, 'd', 00H, 'e', 00H, 's', 00H, '=', 00H, '%', 00H, 'l'
-	DB	00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H
-	DB	')', 00H, 00H, 00H
-$SG200886 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG357549 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
-	DB	't', 00H, 'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, '_', 00H, 'O'
-	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
-	DB	'e', 00H, ':', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'o', 00H, 'k'
-	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'f', 00H, 'o', 00H
-	DB	'r', 00H, ' ', 00H, 'm', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h'
-	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'N', 00H, 'V', 00H
-	DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U'
-	DB	00H, ' ', 00H, 'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H, '%', 00H
-	DB	's', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' ', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG357552 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, '!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')'
-	DB	00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG357553 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
-	DB	'e', 00H, '!', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, ' '
-	DB	00H, 'M', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h', 00H, ' ', 00H
-	DB	'F', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H, ')', 00H, 0aH
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG357559 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
-	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG357555 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'D', 00H, 'e', 00H, 'd', 00H, 'i', 00H, 'c', 00H, 'a', 00H
-	DB	't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'V', 00H, 'i', 00H, 'd'
-	DB	00H, 'e', 00H, 'o', 00H, ':', 00H, ' ', 00H, '%', 00H, 'z', 00H
-	DB	'u', 00H, ' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, ',', 00H, ' '
-	DB	00H, 'D', 00H, 'e', 00H, 'd', 00H, 'i', 00H, 'c', 00H, 'a', 00H
-	DB	't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'S', 00H, 'y', 00H, 's'
-	DB	00H, 't', 00H, 'e', 00H, 'm', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'z', 00H, 'u', 00H, ' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, ','
-	DB	00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'r', 00H, 'e', 00H
-	DB	'd', 00H, ' ', 00H, 'S', 00H, 'y', 00H, 's', 00H, 't', 00H, 'e'
-	DB	00H, 'm', 00H, ':', 00H, ' ', 00H, '%', 00H, 'z', 00H, 'u', 00H
-	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 00H, 00H
-	ORG $+2
-$SG353465 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
-	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '1'
-	DB	00H, 00H, 00H
-$SG356536 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '>', 00H
-	DB	'>', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'm'
-	DB	00H, 'o', 00H, 'd', 00H, 'e', 00H, 's', 00H, ' ', 00H, '(', 00H
-	DB	'%', 00H, 'l', 00H, 'i', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 'm'
-	DB	00H, 'o', 00H, 'v', 00H, 'e', 00H, 'd', 00H, ')', 00H, 00H, 00H
-	ORG $+2
-$SG353468 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
-	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '2'
-	DB	00H, 00H, 00H
-$SG353471 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
-	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '3'
-	DB	00H, 00H, 00H
-$SG356566 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG356564 DB	'F', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'C', 00H, 'l', 00H
-	DB	'o', 00H, 's', 00H, 'e', 00H, 's', 00H, 't', 00H, 'M', 00H, 'a'
-	DB	00H, 't', 00H, 'c', 00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H
-	DB	'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG356565 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O'
-	DB	00H, 'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG356567 DB	'%', 00H, 'l', 00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'l', 00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u'
-	DB	00H, 00H, 00H
-$SG356568 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356569 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG356571 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'R', 00H, 'e', 00H
-	DB	'f', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'O'
-	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
-	DB	'e', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 'q', 00H, 'u'
-	DB	00H, 'e', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
-	DB	' ', 00H, '%', 00H, 'f', 00H, ',', 00H, ' ', 00H, 'U', 00H, 's'
-	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'l', 00H, 'i', 00H, ')', 00H, 00H, 00H
-$SG200933 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG356573 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'S', 00H, 'c', 00H
-	DB	'a', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
-	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
-	DB	'e', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 'q', 00H, 'u'
-	DB	00H, 'e', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
-	DB	' ', 00H, '%', 00H, 's', 00H, ',', 00H, ' ', 00H, 'U', 00H, 's'
-	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	's', 00H, ')', 00H, 00H, 00H
-	ORG $+2
-$SG353507 DB	'{', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'i', 00H, 'd', 00H, '-', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
-	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, '-', 00H, 'U', 00H, 'U', 00H
-	DB	'I', 00H, 'D', 00H, '}', 00H, 00H, 00H
-	ORG $+2
-$SG352489 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
-	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-$SG352490 DB	'logs\CEGUI.log', 00H
-	ORG $+1
-$SG352491 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 'C', 00H
-	DB	'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H, 'l', 00H, 'o'
-	DB	00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG356588 DB	'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'F', 00H, 'o', 00H
-	DB	'r', 00H, 'V', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'n', 00H, 'k'
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-	ORG $+2
-$SG352492 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
-	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-$SG356589 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O'
-	DB	00H, 'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG352493 DB	'[Special K] ---- Log File Moved ----', 00H
-	ORG $+3
-$SG356590 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG356591 DB	'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, 00H, 00H
-	ORG $+2
-$SG352495 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
-	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-$SG356592 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356593 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG356619 DB	'S', 00H, 'e', 00H, 't', 00H, 'F', 00H, 'u', 00H, 'l', 00H
-	DB	'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n'
-	DB	00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, 00H, 00H
-$SG356620 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
-	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
-	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG356621 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG356622 DB	'{', 00H, ' ', 00H, 'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H
-	DB	's', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n', 00H, ' '
-	DB	00H, '}', 00H, 00H, 00H
-	ORG $+2
-$SG356623 DB	'{', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H
-	DB	'o', 00H, 'w', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG356624 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
-	DB	'h', 00H, 00H, 00H
-$SG356625 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356626 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG356628 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
-	DB	' ', 00H, '1', 00H, '.', 00H, '5', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'T', 00H, 'e', 00H
-	DB	'a', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
-	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
-	DB	'e', 00H, ':', 00H, ' ', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 'a'
-	DB	00H, 'b', 00H, 'l', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG200980 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
-	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG356631 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
-	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
-	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
-	DB	'e', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 'q', 00H, 'u'
-	DB	00H, 'e', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
-	DB	' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w'
-	DB	00H, 'e', 00H, 'd', 00H, ',', 00H, ' ', 00H, 'U', 00H, 's', 00H
-	DB	'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, 'F', 00H, 'u'
-	DB	00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e', 00H
-	DB	'e', 00H, 'n', 00H, ')', 00H, 00H, 00H
-	ORG $+2
-$SG356633 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
-	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
-	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
-	DB	'e', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 'q', 00H, 'u'
-	DB	00H, 'e', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
-	DB	' ', 00H, 'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c'
-	DB	00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n', 00H, ',', 00H, ' ', 00H
-	DB	'U', 00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' '
-	DB	00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H
-	DB	'e', 00H, 'd', 00H, ')', 00H, 00H, 00H
-	ORG $+2
-$SG356636 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
-	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
-	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
-	DB	'e', 00H, ' ', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, ' '
-	DB	00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
-	DB	't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'F', 00H, 'u', 00H, 'l'
-	DB	00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e', 00H
-	DB	'e', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'w', 00H, 'i', 00H, 't'
-	DB	00H, 'c', 00H, 'h', 00H, 00H, 00H
-$SG356638 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
-	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
-	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
-	DB	'e', 00H, ' ', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, ' '
-	DB	00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
-	DB	't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n'
-	DB	00H, 'd', 00H, 'o', 00H, 'w', 00H, 'e', 00H, 'd', 00H, ' ', 00H
-	DB	'S', 00H, 'w', 00H, 'i', 00H, 't', 00H, 'c', 00H, 'h', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG356694 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG356639 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
-	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, '-', 00H, ' ', 00H
-	DB	' ', 00H, '<', 00H, ' ', 00H, 'S', 00H, 'e', 00H, 't', 00H, 'F'
-	DB	00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H
-	DB	'e', 00H, 'e', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, '_', 00H, 'O', 00H, 'r', 00H, 'i', 00H, 'g', 00H
-	DB	'i', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H, '(', 00H, 'T'
-	DB	00H, 'h', 00H, 'i', 00H, 's', 00H, ',', 00H, ' ', 00H, 'F', 00H
-	DB	'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e'
-	DB	00H, 'e', 00H, 'n', 00H, ',', 00H, ' ', 00H, 'p', 00H, 'T', 00H
-	DB	'a', 00H, 'r', 00H, 'g', 00H, 'e', 00H, 't', 00H, ')', 00H, ' '
-	DB	00H, '>', 00H, 00H, 00H
-	ORG $+2
-$SG201027 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
-	DB	00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG356692 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'e', 00H
-	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's'
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-	ORG $+2
-$SG356693 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
-	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
-	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG356695 DB	'%', 00H, 'l', 00H, 'u', 00H, ',', 00H, '%', 00H, 'l', 00H
-	DB	'u', 00H, ',', 00H, '%', 00H, 'l', 00H, 'u', 00H, ',', 00H, 'f'
-	DB	00H, 'm', 00H, 't', 00H, '=', 00H, '%', 00H, 'l', 00H, 'u', 00H
-	DB	',', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '8', 00H, 'X'
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG356696 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356697 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG352609 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
-	DB	'P', 00H, 'A', 00H, 'R', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_'
-	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, 00H, 00H
-	ORG $+2
-$SG356700 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'B', 00H, 'u', 00H
-	DB	'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'C', 00H, 'o'
-	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'O', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ':'
-	DB	00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'b', 00H
-	DB	'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H
-	DB	00H
-$SG356702 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
-	DB	' ', 00H, '1', 00H, '.', 00H, '5', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'T', 00H, 'e', 00H
-	DB	'a', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
-	DB	00H, 'p', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ':', 00H
-	DB	' ', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l'
-	DB	00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG352610 DB	'%ws', 00H
-$SG352611 DB	'CEGUI/datafiles', 00H
-$SG352612 DB	'/schemes/', 00H
-	ORG $+2
-$SG352613 DB	'schemes', 00H
-$SG352614 DB	'/imagesets/', 00H
-$SG356711 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
-	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, '-', 00H, ' ', 00H
-	DB	' ', 00H, '<', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'i'
-	DB	00H, 'z', 00H, 'e', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H
-	DB	'e', 00H, 'r', 00H, 's', 00H, '_', 00H, 'O', 00H, 'r', 00H, 'i'
-	DB	00H, 'g', 00H, 'i', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H
-	DB	'(', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'i', 00H, 's', 00H, ','
-	DB	00H, ' ', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H
-	DB	'r', 00H, 'C', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 't', 00H, ','
-	DB	00H, ' ', 00H, 'W', 00H, 'i', 00H, 'd', 00H, 't', 00H, 'h', 00H
-	DB	',', 00H, ' ', 00H, 'H', 00H, 'e', 00H, 'i', 00H, 'g', 00H, 'h'
-	DB	00H, 't', 00H, ',', 00H, ' ', 00H, 'N', 00H, 'e', 00H, 'w', 00H
-	DB	'F', 00H, 'o', 00H, 'r', 00H, 'm', 00H, 'a', 00H, 't', 00H, ','
-	DB	00H, ' ', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H
-	DB	'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'l', 00H, 'a'
-	DB	00H, 'g', 00H, 's', 00H, ' ', 00H, ')', 00H, ' ', 00H, '>', 00H
-	DB	00H, 00H
-$SG352615 DB	'imagesets', 00H
-	ORG $+2
-$SG352616 DB	'/fonts/', 00H
-$SG352617 DB	'fonts', 00H
-	ORG $+2
-$SG352618 DB	'/layouts/', 00H
-	ORG $+2
-$SG352619 DB	'layouts', 00H
-$SG352620 DB	'/looknfeel/', 00H
-$SG352621 DB	'looknfeels', 00H
-	ORG $+1
-$SG352622 DB	'/lua_scripts/', 00H
-	ORG $+2
-$SG352623 DB	'lua_scripts', 00H
-$SG352624 DB	'/xml_schemas/', 00H
-	ORG $+2
-$SG352625 DB	'schemas', 00H
-$SG352626 DB	'/animations/', 00H
-	ORG $+3
-$SG201074 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG352627 DB	'animations', 00H
-	ORG $+1
-$SG352628 DB	'imagesets', 00H
-	ORG $+2
-$SG352629 DB	'fonts', 00H
-	ORG $+2
-$SG352630 DB	'schemes', 00H
-$SG352631 DB	'looknfeels', 00H
-	ORG $+1
-$SG201079 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG352256 DB	'/animations/', 00H
+$SG352265 DB	00H
+$SG352267 DB	00H
+$SG352269 DB	00H
+$SG352257 DB	'animations', 00H
+$SG352271 DB	00H
+$SG352258 DB	'imagesets', 00H
+$SG352273 DB	00H
+$SG352275 DB	00H
+$SG200706 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
+$SG352277 DB	00H
+$SG352287 DB	00H
+$SG352259 DB	'fonts', 00H
+?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+$SG352124 DB	00H
+$SG352260 DB	'schemes', 00H
+$SG352261 DB	'looknfeels', 00H
+	ORG $+1
+$SG352262 DB	'layouts', 00H
+$SG352263 DB	'lua_scripts', 00H
+$SG352264 DB	'animations', 00H
+	ORG $+1
+$SG352266 DB	'VanillaSkin.scheme', 00H
+	ORG $+1
+$SG352268 DB	'TaharezLook.scheme', 00H
+	ORG $+1
+$SG352270 DB	'DejaVuSans-10-NoScale.font', 00H
+	ORG $+1
+$SG352272 DB	'DejaVuSans-12-NoScale.font', 00H
+	ORG $+1
+$SG352274 DB	'Jura-18-NoScale.font', 00H
+	ORG $+3
+$SG352276 DB	'Jura-13-NoScale.font', 00H
+	ORG $+3
+$SG352278 DB	'Jura-10-NoScale.font', 00H
+	ORG $+3
+$SG352281 DB	'SchemaDefaultResourceGroup', 00H
+	ORG $+1
+$SG352282 DB	'schemas', 00H
+$SG352283 DB	'SchemaDefaultResourceGroup', 00H
+	ORG $+1
+$SG352285 DB	'root', 00H
+	ORG $+3
+$SG352286 DB	'DefaultWindow', 00H
 	ORG $+2
-$SG352632 DB	'layouts', 00H
-$SG352633 DB	'lua_scripts', 00H
-$SG352634 DB	'animations', 00H
-	ORG $+1
-$SG352636 DB	'VanillaSkin.scheme', 00H
-	ORG $+1
-$SG352638 DB	'TaharezLook.scheme', 00H
-	ORG $+1
-$SG352640 DB	'DejaVuSans-10-NoScale.font', 00H
-	ORG $+1
-$SG352642 DB	'DejaVuSans-12-NoScale.font', 00H
-	ORG $+1
-$SG352644 DB	'Jura-18-NoScale.font', 00H
-	ORG $+3
-$SG352646 DB	'Jura-13-NoScale.font', 00H
-	ORG $+3
-$SG352648 DB	'Jura-10-NoScale.font', 00H
-	ORG $+3
-$SG352651 DB	'SchemaDefaultResourceGroup', 00H
-	ORG $+1
-$SG352652 DB	'schemas', 00H
-$SG352653 DB	'SchemaDefaultResourceGroup', 00H
-	ORG $+1
-$SG352655 DB	'root', 00H
-	ORG $+3
-$SG352656 DB	'DefaultWindow', 00H
-	ORG $+2
-$SG352658 DB	'Achievements.layout', 00H
-$SG356761 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG352288 DB	'Achievements.layout', 00H
+$SG356395 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'e', 00H
+	DB	'T', 00H, 'a', 00H, 'r', 00H, 'g', 00H, 'e', 00H, 't', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, 00H, 00H
+$SG356393 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -1069,18 +416,15 @@ $SG356761 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, 'e', 00H, 't', 00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a'
 	DB	00H, 'm', 00H, 'e', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's', 00H
 	DB	')', 00H, ' ', 00H, '>', 00H, 00H, 00H
-$SG356763 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'e', 00H
-	DB	'T', 00H, 'a', 00H, 'r', 00H, 'g', 00H, 'e', 00H, 't', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, 00H, 00H
-$SG356764 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
+$SG356396 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
 	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
 	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG356765 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+$SG356397 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG356766 DB	'{', 00H, ' ', 00H, '(', 00H, '%', 00H, 'l', 00H, 'u', 00H
+$SG356399 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356398 DB	'{', 00H, ' ', 00H, '(', 00H, '%', 00H, 'l', 00H, 'u', 00H
 	DB	'x', 00H, '%', 00H, 'l', 00H, 'u', 00H, '@', 00H, '%', 00H, '3'
 	DB	00H, '.', 00H, '1', 00H, 'f', 00H, ' ', 00H, 'H', 00H, 'z', 00H
 	DB	')', 00H, ',', 00H, 'f', 00H, 'm', 00H, 't', 00H, '=', 00H, '%'
@@ -1091,23 +435,26 @@ $SG356766 DB	'{', 00H, ' ', 00H, '(', 00H, '%', 00H, 'l', 00H, 'u', 00H
 	DB	00H, 's', 00H, '=', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H
 	DB	'2', 00H, 'x', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG356767 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356768 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356400 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357793 DB	'(', 00H, '*', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a', 00H
+$SG357425 DB	'(', 00H, '*', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a', 00H
 	DB	'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '2', 00H, ')', 00H, '-'
 	DB	00H, '>', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'e', 00H
 	DB	's', 00H, 'c', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG357797 DB	'(', 00H, '*', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a', 00H
+$SG200753 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG357429 DB	'(', 00H, '*', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a', 00H
 	DB	'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '1', 00H, ')', 00H, '-'
 	DB	00H, '>', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'e', 00H
 	DB	's', 00H, 'c', 00H, '1', 00H, 00H, 00H
 	ORG $+2
-$SG356774 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356406 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'R', 00H, 'e', 00H
 	DB	'f', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'O'
@@ -1117,17 +464,20 @@ $SG356774 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	' ', 00H, '%', 00H, 'f', 00H, ',', 00H, ' ', 00H, 'U', 00H, 's'
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'l', 00H, 'i', 00H, ')', 00H, 00H, 00H
-$SG201126 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
-	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG357800 DB	'(', 00H, '*', 00H, 'p', 00H, 'p', 00H, 'A', 00H, 'd', 00H
+$SG357432 DB	'(', 00H, '*', 00H, 'p', 00H, 'p', 00H, 'A', 00H, 'd', 00H
 	DB	'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, ')', 00H, '-'
 	DB	00H, '>', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'e', 00H
 	DB	's', 00H, 'c', 00H, 00H, 00H
-$SG357814 DB	' ', 00H, '[', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
-	DB	't', 00H, 'e', 00H, ']', 00H, 00H, 00H
-$SG356776 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG354359 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'B', 00H
+	DB	'a', 00H, 'c', 00H, 'k', 00H, ' ', 00H, 'b', 00H, 'u', 00H, 'f'
+	DB	00H, 'f', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'u', 00H, 'n', 00H
+	DB	'a', 00H, 'v', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'a', 00H, 'b'
+	DB	00H, 'l', 00H, 'e', 00H, '!', 00H, ' ', 00H, '*', 00H, '*', 00H
+	DB	'*', 00H, 00H, 00H
+	ORG $+2
+$SG356408 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'S', 00H, 'c', 00H
 	DB	'a', 00H, 'n', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'e', 00H, ' '
@@ -1137,17 +487,9 @@ $SG356776 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	':', 00H, ' ', 00H, '%', 00H, 's', 00H, ',', 00H, ' ', 00H, 'U'
 	DB	00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H
 	DB	'%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357815 DB	0aH, 00H, 00H, 00H
-$SG354729 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'B', 00H
-	DB	'a', 00H, 'c', 00H, 'k', 00H, ' ', 00H, 'b', 00H, 'u', 00H, 'f'
-	DB	00H, 'f', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'u', 00H, 'n', 00H
-	DB	'a', 00H, 'v', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'a', 00H, 'b'
-	DB	00H, 'l', 00H, 'e', 00H, '!', 00H, ' ', 00H, '*', 00H, '*', 00H
-	DB	'*', 00H, 00H, 00H
-	ORG $+2
-$SG356778 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357446 DB	' ', 00H, '[', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+	DB	't', 00H, 'e', 00H, ']', 00H, 00H, 00H
+$SG356410 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'S', 00H, 'c', 00H
 	DB	'a', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
@@ -1158,13 +500,10 @@ $SG356778 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG357811 DB	' ', 00H, '<', 00H, 'S', 00H, 'o', 00H, 'f', 00H, 't', 00H
+$SG357443 DB	' ', 00H, '<', 00H, 'S', 00H, 'o', 00H, 'f', 00H, 't', 00H
 	DB	'w', 00H, 'a', 00H, 'r', 00H, 'e', 00H, '>', 00H, 00H, 00H
-$SG201173 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG357803 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'A', 00H, 's', 00H
+$SG357447 DB	0aH, 00H, 00H, 00H
+$SG357435 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'A', 00H, 's', 00H
 	DB	's', 00H, 'e', 00H, 'r', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
 	DB	00H, ' ', 00H, 'f', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'Z', 00H, 'e', 00H, 'r', 00H, 'o', 00H, '-'
@@ -1172,7 +511,18 @@ $SG357803 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'A', 00H, 's', 00H
 	DB	' ', 00H, 'a', 00H, 'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e'
 	DB	00H, 'r', 00H, ' ', 00H, 'n', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG357805 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG354363 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H
+	DB	'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H, 'n', 00H, 'o'
+	DB	00H, 't', 00H, ' ', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'r', 00H
+	DB	'y', 00H, ' ', 00H, 'I', 00H, 'D', 00H, '3', 00H, 'D', 00H, '1'
+	DB	00H, '1', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H
+	DB	'e', 00H, '1', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 't', 00H, 'e'
+	DB	00H, 'r', 00H, 'f', 00H, 'a', 00H, 'c', 00H, 'e', 00H, '!', 00H
+	DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, 00H, 00H
+	ORG $+2
+$SG357437 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '>', 00H, '>', 00H, ' ', 00H, '(', 00H, 'H', 00H, 'o', 00H
 	DB	's', 00H, 't', 00H, ' ', 00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l'
@@ -1191,21 +541,11 @@ $SG357805 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H, '''', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, ' ', 00H, '<', 00H, '<', 00H, 0aH
 	DB	00H, 00H, 00H
-$SG357847 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
+$SG200800 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
+	DB	00H
 	ORG $+2
-$SG354733 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H
-	DB	'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H, 'n', 00H, 'o'
-	DB	00H, 't', 00H, ' ', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'r', 00H
-	DB	'y', 00H, ' ', 00H, 'I', 00H, 'D', 00H, '3', 00H, 'D', 00H, '1'
-	DB	00H, '1', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H
-	DB	'e', 00H, '1', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 't', 00H, 'e'
-	DB	00H, 'r', 00H, 'f', 00H, 'a', 00H, 'c', 00H, 'e', 00H, '!', 00H
-	DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, 00H, 00H
-	ORG $+2
-$SG357806 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357438 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '@', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 't', 00H
 	DB	'u', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'A'
@@ -1216,7 +556,23 @@ $SG357806 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, '%', 00H, '0', 00H, '8', 00H, 'X', 00H, ':', 00H, '%', 00H
 	DB	'0', 00H, '8', 00H, 'X', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG356783 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG354366 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H
+	DB	'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'D', 00H, 'e'
+	DB	00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H
+	DB	'n', 00H, 't', 00H, 'e', 00H, 'x', 00H, 't', 00H, 'S', 00H, 't'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, '(', 00H, '.', 00H
+	DB	'.', 00H, '.', 00H, ')', 00H, ' ', 00H, 'f', 00H, 'a', 00H, 'i'
+	DB	00H, 'l', 00H, 'e', 00H, 'd', 00H, '!', 00H, ' ', 00H, '*', 00H
+	DB	'*', 00H, '*', 00H, 00H, 00H
+	ORG $+2
+$SG357444 DB	' ', 00H, '<', 00H, 'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H
+	DB	'w', 00H, 'a', 00H, 'r', 00H, 'e', 00H, '>', 00H, 00H, 00H
+$SG357479 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG356415 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -1232,24 +588,7 @@ $SG356783 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'e', 00H, 'r', 00H, 's', 00H, ')', 00H, ' ', 00H, '>', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG354736 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H
-	DB	'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'D', 00H, 'e'
-	DB	00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H
-	DB	'n', 00H, 't', 00H, 'e', 00H, 'x', 00H, 't', 00H, 'S', 00H, 't'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, '(', 00H, '.', 00H
-	DB	'.', 00H, '.', 00H, ')', 00H, ' ', 00H, 'f', 00H, 'a', 00H, 'i'
-	DB	00H, 'l', 00H, 'e', 00H, 'd', 00H, '!', 00H, ' ', 00H, '*', 00H
-	DB	'*', 00H, '*', 00H, 00H, 00H
-	ORG $+2
-$SG357812 DB	' ', 00H, '<', 00H, 'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H
-	DB	'w', 00H, 'a', 00H, 'r', 00H, 'e', 00H, '>', 00H, 00H, 00H
-$SG357848 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG356787 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356419 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -1263,18 +602,27 @@ $SG356787 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, 'e', 00H, 't', 00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a'
 	DB	00H, 'm', 00H, 'e', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's', 00H
 	DB	')', 00H, ' ', 00H, '>', 00H, 00H, 00H
-$SG357846 DB	'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H, 'd', 00H
+$SG357478 DB	'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H, 'd', 00H
 	DB	'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's', 00H, '1'
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG357849 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357850 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357480 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG357481 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357482 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357851 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG366710 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ':'
+	DB	00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H
+	DB	'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h'
+	DB	00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
+$SG357483 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -1289,44 +637,36 @@ $SG357851 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, ')', 00H, ' ', 00H, '>', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG367078 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
-	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ':'
-	DB	00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H
-	DB	'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h'
-	DB	00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
-$SG367081 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG366713 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '1'
 	DB	00H, ':', 00H, ':', 00H, 'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H
 	DB	'A', 00H, 'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r'
 	DB	00H, 's', 00H, '1', 00H, 00H, 00H
 	ORG $+2
-$SG367082 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG366714 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ':'
 	DB	00H, ':', 00H, 'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H
 	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG357875 DB	'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H, 'd', 00H
-	DB	'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, 00H, 00H
-$SG367087 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG366719 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2'
 	DB	00H, ':', 00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C'
 	DB	00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H
 	DB	'r', 00H, 'H', 00H, 'w', 00H, 'n', 00H, 'd', 00H, 00H, 00H
-$SG357876 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG367088 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG357507 DB	'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H, 'd', 00H
+	DB	'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, 00H, 00H
+$SG366720 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2'
 	DB	00H, ':', 00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C'
 	DB	00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H
 	DB	'r', 00H, 'C', 00H, 'o', 00H, 'r', 00H, 'e', 00H, 'W', 00H, 'i'
 	DB	00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 00H, 00H
-$SG367089 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG366721 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2'
 	DB	00H, ':', 00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C'
@@ -1334,17 +674,23 @@ $SG367089 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'r', 00H, 'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 's'
 	DB	00H, 'i', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG357877 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+$SG357508 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357509 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
 	DB	'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG357878 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357879 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357510 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357511 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357880 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG200847 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG357512 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -1358,13 +704,12 @@ $SG357880 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	',', 00H, ' ', 00H, 'p', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a'
 	DB	00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, ')', 00H, ' ', 00H
 	DB	'>', 00H, 00H, 00H
-$SG201220 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG200204 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG199831 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG357905 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG357538 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357537 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
@@ -1372,17 +717,17 @@ $SG357905 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
-$SG357906 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357907 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
+$SG357539 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
 	DB	'h', 00H, 00H, 00H
-$SG357908 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357909 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357540 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357541 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357911 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357567 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357543 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -1395,7 +740,7 @@ $SG357911 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, ',', 00H, ' ', 00H, 'p', 00H, 'p', 00H, 'F', 00H, 'a', 00H
 	DB	'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ')', 00H, ' '
 	DB	00H, '>', 00H, 00H, 00H
-$SG357934 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG357566 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
@@ -1403,17 +748,27 @@ $SG357934 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '1', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
-$SG357935 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357936 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
+$SG357568 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
 	DB	'h', 00H, 00H, 00H
-$SG357937 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357938 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG212160 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG357569 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG212161 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG357570 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357941 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG212162 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG212163 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG212164 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG357573 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'b'
@@ -1424,9 +779,12 @@ $SG357941 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'n', 00H, ' ', 00H, 'V', 00H, 'i', 00H, 's', 00H, 't', 00H
 	DB	'a', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG212533 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG212534 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG357943 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG212165 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG212166 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG357575 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -1440,22 +798,14 @@ $SG357943 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ')'
 	DB	00H, ' ', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG212535 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
+$SG212167 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG212168 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
 	ORG $+2
-$SG212536 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
+$SG212169 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
 	ORG $+2
-$SG212537 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG212538 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG212539 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG352828 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG352458 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 't', 00H, 'o'
@@ -1469,21 +819,12 @@ $SG352828 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'i', 00H, 'n', 00H, ' ', 00H, 'n', 00H, 'e', 00H, 'x', 00H, 't'
 	DB	00H, ' ', 00H, 'f', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'.', 00H, 00H, 00H
-$SG212540 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG212541 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
-	ORG $+2
-$SG212542 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG212543 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG212170 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG212544 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG212171 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG357967 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357966 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG357598 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
@@ -1491,23 +832,20 @@ $SG357966 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
-$SG357968 DB	'0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X', 00H
+$SG199902 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG357599 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357600 DB	'0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X', 00H
 	DB	',', 00H, ' ', 00H, '%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%'
 	DB	00H, 'p', 00H, 'h', 00H, 00H, 00H
-$SG357969 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357970 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357601 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357602 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG200275 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG352862 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
-	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
-	DB	00H, 'L', 00H, 'I', 00H, 'N', 00H, 'G', 00H, '_', 00H, 'U', 00H
-	DB	'N', 00H, 'S', 00H, 'P', 00H, 'E', 00H, 'C', 00H, 'I', 00H, 'F'
-	DB	00H, 'I', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-$SG357973 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357605 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'b'
@@ -1518,11 +856,12 @@ $SG357973 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'o', 00H, 'n', 00H, ' ', 00H, 'V', 00H, 'i', 00H, 's', 00H
 	DB	't', 00H, 'a', 00H, '/', 00H, '7', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, 00H, 00H
-$SG358002 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
-	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
-	DB	00H, 't', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H
-	DB	'c', 00H, 'e', 00H, 00H, 00H
-$SG357975 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG352492 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
+	DB	00H, 'L', 00H, 'I', 00H, 'N', 00H, 'G', 00H, '_', 00H, 'U', 00H
+	DB	'N', 00H, 'S', 00H, 'P', 00H, 'E', 00H, 'C', 00H, 'I', 00H, 'F'
+	DB	00H, 'I', 00H, 'E', 00H, 'D', 00H, 00H, 00H
+$SG357607 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -1536,45 +875,44 @@ $SG357975 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'i', 00H, 'd', 00H, ',', 00H, ' ', 00H, 'p', 00H, 'p', 00H, 'F'
 	DB	00H, 'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H
 	DB	')', 00H, ' ', 00H, '>', 00H, 00H, 00H
-$SG352860 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352490 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'L', 00H, 'I', 00H, 'N', 00H, 'G', 00H, '_', 00H, 'C', 00H
 	DB	'E', 00H, 'N', 00H, 'T', 00H, 'E', 00H, 'R', 00H, 'E', 00H, 'D'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG352864 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352494 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'L', 00H, 'I', 00H, 'N', 00H, 'G', 00H, '_', 00H, 'S', 00H
 	DB	'T', 00H, 'R', 00H, 'E', 00H, 'T', 00H, 'C', 00H, 'H', 00H, 'E'
 	DB	00H, 'D', 00H, 00H, 00H
-$SG352866 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+$SG352496 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
 	DB	'N', 00H, 00H, 00H
-$SG352873 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352503 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'N', 00H, 'L', 00H, 'I', 00H, 'N', 00H, 'E', 00H, '_', 00H
 	DB	'O', 00H, 'R', 00H, 'D', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'U'
 	DB	00H, 'N', 00H, 'S', 00H, 'P', 00H, 'E', 00H, 'C', 00H, 'I', 00H
 	DB	'F', 00H, 'I', 00H, 'E', 00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG352881 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+$SG352511 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
 	DB	'N', 00H, 00H, 00H
-$SG358005 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+$SG357634 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 't', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H
 	DB	'c', 00H, 'e', 00H, 00H, 00H
-$SG352875 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352505 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'N', 00H, 'L', 00H, 'I', 00H, 'N', 00H, 'E', 00H, '_', 00H
 	DB	'O', 00H, 'R', 00H, 'D', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'P'
 	DB	00H, 'R', 00H, 'O', 00H, 'G', 00H, 'R', 00H, 'E', 00H, 'S', 00H
 	DB	'S', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 00H, 00H
 	ORG $+2
-$SG357996 DB	'DXGID3D10CreateDevice', 00H
-	ORG $+2
-$SG352888 DB	'D', 00H, 'i', 00H, 's', 00H, 'c', 00H, 'a', 00H, 'r', 00H
-	DB	'd', 00H, ' ', 00H, ' ', 00H, '(', 00H, 'B', 00H, 'i', 00H, 't'
-	DB	00H, 'B', 00H, 'l', 00H, 't', 00H, ')', 00H, 00H, 00H
-$SG352877 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG357637 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
+	DB	00H, 't', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H
+	DB	'c', 00H, 'e', 00H, 00H, 00H
+$SG352507 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'N', 00H, 'L', 00H, 'I', 00H, 'N', 00H, 'E', 00H, '_', 00H
 	DB	'O', 00H, 'R', 00H, 'D', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'U'
@@ -1582,7 +920,9 @@ $SG352877 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'I', 00H, 'E', 00H, 'L', 00H, 'D', 00H, '_', 00H, 'F', 00H, 'I'
 	DB	00H, 'R', 00H, 'S', 00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG352879 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG357628 DB	'DXGID3D10CreateDevice', 00H
+	ORG $+2
+$SG352509 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'N', 00H, 'L', 00H, 'I', 00H, 'N', 00H, 'E', 00H, '_', 00H
 	DB	'O', 00H, 'R', 00H, 'D', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'L'
@@ -1590,14 +930,14 @@ $SG352879 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'I', 00H, 'E', 00H, 'L', 00H, 'D', 00H, '_', 00H, 'F', 00H, 'I'
 	DB	00H, 'R', 00H, 'S', 00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG358003 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+$SG357635 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
 	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
 	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
 	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG358004 DB	'(', 00H, 'H', 00H, 'M', 00H, 'O', 00H, 'D', 00H, 'U', 00H
+$SG357636 DB	'(', 00H, 'H', 00H, 'M', 00H, 'O', 00H, 'D', 00H, 'U', 00H
 	DB	'L', 00H, 'E', 00H, ' ', 00H, 'h', 00H, 'M', 00H, 'o', 00H, 'd'
 	DB	00H, 'u', 00H, 'l', 00H, 'e', 00H, ',', 00H, ' ', 00H, 'I', 00H
 	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
@@ -1615,12 +955,10 @@ $SG358004 DB	'(', 00H, 'H', 00H, 'M', 00H, 'O', 00H, 'D', 00H, 'U', 00H
 	DB	' ', 00H, '*', 00H, 'p', 00H, 'p', 00H, 'D', 00H, 'e', 00H, 'v'
 	DB	00H, 'i', 00H, 'c', 00H, 'e', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG352890 DB	'S', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'n', 00H
-	DB	't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '('
-	DB	00H, 'B', 00H, 'i', 00H, 't', 00H, 'B', 00H, 'l', 00H, 't', 00H
-	DB	')', 00H, 00H, 00H
-	ORG $+2
-$SG358006 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG352518 DB	'D', 00H, 'i', 00H, 's', 00H, 'c', 00H, 'a', 00H, 'r', 00H
+	DB	'd', 00H, ' ', 00H, ' ', 00H, '(', 00H, 'B', 00H, 'i', 00H, 't'
+	DB	00H, 'B', 00H, 'l', 00H, 't', 00H, ')', 00H, 00H, 00H
+$SG357638 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
@@ -1628,35 +966,43 @@ $SG358006 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG352892 DB	'D', 00H, 'i', 00H, 's', 00H, 'c', 00H, 'a', 00H, 'r', 00H
+$SG352520 DB	'S', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'n', 00H
+	DB	't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '('
+	DB	00H, 'B', 00H, 'i', 00H, 't', 00H, 'B', 00H, 'l', 00H, 't', 00H
+	DB	')', 00H, 00H, 00H
+	ORG $+2
+$SG352522 DB	'D', 00H, 'i', 00H, 's', 00H, 'c', 00H, 'a', 00H, 'r', 00H
 	DB	'd', 00H, ' ', 00H, ' ', 00H, '(', 00H, 'F', 00H, 'l', 00H, 'i'
 	DB	00H, 'p', 00H, ')', 00H, 00H, 00H
-$SG352894 DB	'S', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'n', 00H
+$SG352524 DB	'S', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'n', 00H
 	DB	't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '('
 	DB	00H, 'F', 00H, 'l', 00H, 'i', 00H, 'p', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG352896 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
-	DB	'N', 00H, 00H, 00H
-$SG200322 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG199949 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG352902 DB	00H, 00H
+$SG352526 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+	DB	'N', 00H, 00H, 00H
+$SG352532 DB	00H, 00H
 	ORG $+2
-$SG352904 DB	'N', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'P', 00H, 'r', 00H
+$SG352534 DB	'N', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'P', 00H, 'r', 00H
 	DB	'e', 00H, ' ', 00H, 'R', 00H, 'o', 00H, 't', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'd', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG352906 DB	'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'w', 00H, ' ', 00H
+$SG352536 DB	'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'w', 00H, ' ', 00H
 	DB	'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r'
 	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 'e', 00H, ' ', 00H, 'S', 00H, 'w', 00H, 'i', 00H, 't'
 	DB	00H, 'c', 00H, 'h', 00H, 0aH, 00H, 00H, 00H
-$SG358028 DB	'DXGID3D10CreateLayeredDevice', 00H
-	ORG $+3
-$SG352908 DB	'G', 00H, 'D', 00H, 'I', 00H, ' ', 00H, 'C', 00H, 'o', 00H
+$SG352538 DB	'G', 00H, 'D', 00H, 'I', 00H, ' ', 00H, 'C', 00H, 'o', 00H
 	DB	'm', 00H, 'p', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'b', 00H, 'l'
 	DB	00H, 'e', 00H, 0aH, 00H, 00H, 00H
-$SG352910 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+$SG357660 DB	'DXGID3D10CreateLayeredDevice', 00H
+	ORG $+3
+$SG352544 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c', 00H
+	DB	'y', 00H, ' ', 00H, 'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'a'
+	DB	00H, 'b', 00H, 'l', 00H, 'e', 00H, 0aH, 00H, 00H, 00H
+$SG352540 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
 	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
 	DB	'G', 00H, '_', 00H, 'R', 00H, 'E', 00H, 'S', 00H, 'T', 00H, 'R'
@@ -1664,13 +1010,13 @@ $SG352910 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'C', 00H, 'O', 00H, 'N', 00H, 'T', 00H, 'E', 00H, 'N', 00H, 'T'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG358034 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+$SG357666 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 't', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H
 	DB	'r', 00H, 'e', 00H, 'd', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i'
 	DB	00H, 'c', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG352912 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+$SG352542 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
 	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
 	DB	'G', 00H, '_', 00H, 'R', 00H, 'E', 00H, 'S', 00H, 'T', 00H, 'R'
@@ -1679,21 +1025,13 @@ $SG352912 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	00H, 'S', 00H, 'O', 00H, 'U', 00H, 'R', 00H, 'C', 00H, 'E', 00H
 	DB	'_', 00H, 'D', 00H, 'R', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 'R'
 	DB	00H, 0aH, 00H, 00H, 00H
-$SG352914 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c', 00H
-	DB	'y', 00H, ' ', 00H, 'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'a'
-	DB	00H, 'b', 00H, 'l', 00H, 'e', 00H, 0aH, 00H, 00H, 00H
-$SG358035 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
-	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG358036 DB	'(', 00H, 'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H
-	DB	'W', 00H, 'N', 00H, '5', 00H, ' ', 00H, 'U', 00H, 'n', 00H, 'k'
-	DB	00H, 'n', 00H, 'o', 00H, 'w', 00H, 'n', 00H, ')', 00H, 00H, 00H
+$SG357669 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
+	DB	00H, 't', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H
+	DB	'r', 00H, 'e', 00H, 'd', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i'
+	DB	00H, 'c', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG352916 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+$SG352546 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
 	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
 	DB	'G', 00H, '_', 00H, 'F', 00H, 'O', 00H, 'R', 00H, 'E', 00H, 'G'
@@ -1701,18 +1039,23 @@ $SG352916 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'L', 00H, 'A', 00H, 'Y', 00H, 'E', 00H, 'R', 00H, 0aH, 00H, 00H
 	DB	00H
 	ORG $+2
-$SG358037 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
-	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
-	DB	00H, 't', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H
-	DB	'r', 00H, 'e', 00H, 'd', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i'
-	DB	00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG357667 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
+	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG357668 DB	'(', 00H, 'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H
+	DB	'W', 00H, 'N', 00H, '5', 00H, ' ', 00H, 'U', 00H, 'n', 00H, 'k'
+	DB	00H, 'n', 00H, 'o', 00H, 'w', 00H, 'n', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG358056 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
-	DB	'D', 00H, '1', 00H, '0', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L'
-	DB	00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H
-	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'S'
-	DB	00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
-$SG358038 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG352548 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
+	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
+	DB	'G', 00H, '_', 00H, 'Y', 00H, 'U', 00H, 'V', 00H, '_', 00H, 'V'
+	DB	00H, 'I', 00H, 'D', 00H, 'E', 00H, 'O', 00H, 0aH, 00H, 00H, 00H
+$SG357670 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
@@ -1720,49 +1063,51 @@ $SG358038 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG352938 DB	00H, 00H
-	ORG $+2
-$SG352918 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
-	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
-	DB	'G', 00H, '_', 00H, 'Y', 00H, 'U', 00H, 'V', 00H, '_', 00H, 'V'
-	DB	00H, 'I', 00H, 'D', 00H, 'E', 00H, 'O', 00H, 0aH, 00H, 00H, 00H
-$SG352920 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+$SG357688 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+	DB	'D', 00H, '1', 00H, '0', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L'
+	DB	00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H
+	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'S'
+	DB	00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
+$SG352550 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
 	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
 	DB	'G', 00H, '_', 00H, 'H', 00H, 'W', 00H, '_', 00H, 'P', 00H, 'R'
 	DB	00H, 'O', 00H, 'T', 00H, 'E', 00H, 'C', 00H, 'T', 00H, 'E', 00H
 	DB	'D', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG352922 DB	'S', 00H, 'u', 00H, 'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H
+$SG352552 DB	'S', 00H, 'u', 00H, 'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H
 	DB	't', 00H, 's', 00H, ' ', 00H, 'T', 00H, 'e', 00H, 'a', 00H, 'r'
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'i', 00H, 'n', 00H
 	DB	' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w'
 	DB	00H, 'e', 00H, 'd', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd', 00H
 	DB	'e', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG358050 DB	'DXGID3D10GetLayeredDeviceSize', 00H
+$SG357682 DB	'DXGID3D10GetLayeredDeviceSize', 00H
 	ORG $+2
-$SG358057 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+$SG352567 DB	'N', 00H, '/', 00H, 'A', 00H, 00H, 00H
+$SG352568 DB	00H, 00H
+	ORG $+2
+$SG352570 DB	' ', 00H, '9', 00H, '_', 00H, '1', 00H, 00H, 00H
+	ORG $+2
+$SG357689 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
 	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
 	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
 	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG352937 DB	'N', 00H, '/', 00H, 'A', 00H, 00H, 00H
-$SG358058 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
+$SG357690 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	' ', 00H, 'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, ' ', 00H, '*'
 	DB	00H, 'p', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H
 	DB	's', 00H, ',', 00H, ' ', 00H, 'U', 00H, 'I', 00H, 'N', 00H, 'T'
 	DB	00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H, 'L', 00H, 'a', 00H
 	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG358059 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+$SG357691 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '1', 00H, '0', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L'
 	DB	00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H
 	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'S'
 	DB	00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
-$SG358060 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357692 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
@@ -1770,50 +1115,46 @@ $SG358060 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG352940 DB	' ', 00H, '9', 00H, '_', 00H, '1', 00H, 00H, 00H
+$SG352572 DB	' ', 00H, '9', 00H, '_', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG352942 DB	' ', 00H, '9', 00H, '_', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG352944 DB	' ', 00H, '9', 00H, '_', 00H, '3', 00H, 00H, 00H
-	ORG $+2
-$SG200369 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG199996 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG352946 DB	' ', 00H, '1', 00H, '0', 00H, '_', 00H, '0', 00H, 00H, 00H
-$SG352948 DB	' ', 00H, '1', 00H, '0', 00H, '_', 00H, '1', 00H, 00H, 00H
-$SG352950 DB	' ', 00H, '1', 00H, '1', 00H, '_', 00H, '0', 00H, 00H, 00H
-$SG358072 DB	'DXGID3D10RegisterLayers', 00H
-$SG352952 DB	' ', 00H, '1', 00H, '1', 00H, '_', 00H, '1', 00H, 00H, 00H
-$SG352954 DB	' ', 00H, '1', 00H, '2', 00H, '_', 00H, '0', 00H, 00H, 00H
-$SG352956 DB	' ', 00H, '1', 00H, '2', 00H, '_', 00H, '1', 00H, 00H, 00H
-$SG358078 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+$SG352574 DB	' ', 00H, '9', 00H, '_', 00H, '3', 00H, 00H, 00H
+	ORG $+2
+$SG352576 DB	' ', 00H, '1', 00H, '0', 00H, '_', 00H, '0', 00H, 00H, 00H
+$SG352578 DB	' ', 00H, '1', 00H, '0', 00H, '_', 00H, '1', 00H, 00H, 00H
+$SG352580 DB	' ', 00H, '1', 00H, '1', 00H, '_', 00H, '0', 00H, 00H, 00H
+$SG352582 DB	' ', 00H, '1', 00H, '1', 00H, '_', 00H, '1', 00H, 00H, 00H
+$SG357704 DB	'DXGID3D10RegisterLayers', 00H
+$SG352584 DB	' ', 00H, '1', 00H, '2', 00H, '_', 00H, '0', 00H, 00H, 00H
+$SG352586 DB	' ', 00H, '1', 00H, '2', 00H, '_', 00H, '1', 00H, 00H, 00H
+$SG357710 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '1', 00H, '0', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i'
 	DB	00H, 's', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'L', 00H, 'a', 00H
 	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
-$SG200416 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
-	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG358079 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+$SG357711 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
 	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
 	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
 	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG358080 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
+$SG357712 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	' ', 00H, 'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, ' ', 00H, '*'
 	DB	00H, 'p', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H
 	DB	's', 00H, ',', 00H, ' ', 00H, 'U', 00H, 'I', 00H, 'N', 00H, 'T'
 	DB	00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H, 'L', 00H, 'a', 00H
 	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG358081 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+$SG357713 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '1', 00H, '0', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i'
 	DB	00H, 's', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'L', 00H, 'a', 00H
 	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
-$SG370403 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG200043 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG358082 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357714 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
@@ -1821,14 +1162,20 @@ $SG358082 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG358092 DB	'DXGIDumpJournal', 00H
-$SG358096 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, 'u', 00H
+$SG357724 DB	'DXGIDumpJournal', 00H
+$SG357728 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, 'u', 00H
 	DB	'm', 00H, 'p', 00H, 'J', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 'n'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG358118 DB	'(', 00H, 'D', 00H, 'W', 00H, 'O', 00H, 'R', 00H, 'D', 00H
-	DB	' ', 00H, 'd', 00H, 'w', 00H, 'U', 00H, 'n', 00H, 'k', 00H, 'n'
-	DB	00H, 'o', 00H, 'w', 00H, 'n', 00H, ')', 00H, 00H, 00H
-$SG370385 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H, 'D', 00H
+$SG370033 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG357729 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
+	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG370018 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H, 'D', 00H
 	DB	' ', 00H, '1', 00H, '1', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'm', 00H
 	DB	'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H, 'i', 00H, 't', 00H, ' '
@@ -1837,35 +1184,30 @@ $SG370385 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H, 'D', 00H
 	DB	00H, 'n', 00H, ' ', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'g', 00H
 	DB	'g', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '<'
 	DB	00H, '<', 00H, 00H, 00H
-$SG355066 DB	'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n', 00H
-	DB	't', 00H, '1', 00H, 00H, 00H
-	ORG $+2
-$SG358097 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
-	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG358098 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
+$SG357730 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	' ', 00H, 'c', 00H, 'h', 00H, 'a', 00H, 'r', 00H, ' ', 00H, '*'
 	DB	00H, 's', 00H, 'z', 00H, 'P', 00H, 'a', 00H, 's', 00H, 's', 00H
 	DB	'T', 00H, 'h', 00H, 'r', 00H, 'o', 00H, 'u', 00H, 'g', 00H, 'h'
 	DB	00H, ')', 00H, 00H, 00H
-$SG370387 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357731 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, 'u', 00H
+	DB	'm', 00H, 'p', 00H, 'J', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 'n'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG357750 DB	'(', 00H, 'D', 00H, 'W', 00H, 'O', 00H, 'R', 00H, 'D', 00H
+	DB	' ', 00H, 'd', 00H, 'w', 00H, 'U', 00H, 'n', 00H, 'k', 00H, 'n'
+	DB	00H, 'o', 00H, 'w', 00H, 'n', 00H, ')', 00H, 00H, 00H
+$SG370020 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG358099 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, 'u', 00H
-	DB	'm', 00H, 'p', 00H, 'J', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 'n'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG200463 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
-	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG358100 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357742 DB	'DXGIReportAdapterConfiguration', 00H
+	ORG $+1
+$SG354696 DB	'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n', 00H
+	DB	't', 00H, '1', 00H, 00H, 00H
+	ORG $+2
+$SG357732 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
@@ -1873,11 +1215,10 @@ $SG358100 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG200510 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
-	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG370397 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG200090 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
+	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG370027 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o'
@@ -1887,35 +1228,30 @@ $SG370397 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	':', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, ')'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG358110 DB	'DXGIReportAdapterConfiguration', 00H
-	ORG $+1
-$SG358116 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'R', 00H, 'e', 00H
+$SG357748 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'R', 00H, 'e', 00H
 	DB	'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, 'A', 00H, 'd', 00H, 'a'
 	DB	00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'C', 00H, 'o', 00H
 	DB	'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H, 'u', 00H, 'r', 00H, 'a'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG370493 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
-	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
-$SG370497 DB	'e', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
-	DB	'%', 00H, 'p', 00H, ',', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'o'
-	DB	00H, 'k', 00H, 'i', 00H, 'e', 00H, '=', 00H, '%', 00H, 'u', 00H
-	DB	0aH, 00H, 00H, 00H
+$SG200137 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
+	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG358117 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+$SG357749 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
 	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
 	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
 	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG358119 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'R', 00H, 'e', 00H
+$SG357751 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'R', 00H, 'e', 00H
 	DB	'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, 'A', 00H, 'd', 00H, 'a'
 	DB	00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'C', 00H, 'o', 00H
 	DB	'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H, 'u', 00H, 'r', 00H, 'a'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG358120 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357752 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
@@ -1923,10 +1259,12 @@ $SG358120 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG370498 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	'!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H, 0aH
-	DB	00H, 00H, 00H
-$SG370490 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370127 DB	'e', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
+	DB	'%', 00H, 'p', 00H, ',', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'o'
+	DB	00H, 'k', 00H, 'i', 00H, 'e', 00H, '=', 00H, '%', 00H, 'u', 00H
+	DB	0aH, 00H, 00H, 00H
+	ORG $+2
+$SG370120 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '$', 00H, ' ', 00H, 'S', 00H, 'p', 00H
 	DB	'a', 00H, 'w', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
@@ -1935,10 +1273,12 @@ $SG370490 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	00H, ' ', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'n', 00H, 'g', 00H
 	DB	'e', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, '.', 00H, '.', 00H, ':', 00H, ' ', 00H, 00H, 00H
-$SG370499 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	'!', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG370494 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370123 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
+	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
+$SG370128 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	'!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H, 0aH
+	DB	00H, 00H, 00H
+$SG370124 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '%', 00H, '%', 00H, ' ', 00H, 'S', 00H
 	DB	'e', 00H, 't', 00H, 't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
@@ -1949,51 +1289,55 @@ $SG370494 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	00H, 'i', 00H, 'o', 00H, 'n', 00H, '.', 00H, ':', 00H, ' ', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG370500 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370129 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	'!', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG370136 DB	' ', 00H, '(', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'a', 00H
+	DB	'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H, ')', 00H, 0aH, 00H, 00H
+	DB	00H
+	ORG $+2
+$SG370130 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'G', 00H, 'P', 00H, 'U', 00H, ' ', 00H, 'S', 00H, 'c', 00H
 	DB	'h', 00H, 'e', 00H, 'd', 00H, 'u', 00H, 'l', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' ', 00H
 	DB	'P', 00H, 'r', 00H, 'e', 00H, '-', 00H, 'E', 00H, 'm', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG370502 DB	' ', 00H, '(', 00H, 'D', 00H, 'M', 00H, 'A', 00H, ' ', 00H
+$SG370132 DB	' ', 00H, '(', 00H, 'D', 00H, 'M', 00H, 'A', 00H, ' ', 00H
 	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, ')'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370504 DB	' ', 00H, '(', 00H, 'G', 00H, 'r', 00H, 'a', 00H, 'p', 00H
+$SG370134 DB	' ', 00H, '(', 00H, 'G', 00H, 'r', 00H, 'a', 00H, 'p', 00H
 	DB	'h', 00H, 'i', 00H, 'c', 00H, 's', 00H, ' ', 00H, 'P', 00H, 'r'
 	DB	00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'v', 00H
 	DB	'e', 00H, ')', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370506 DB	' ', 00H, '(', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'a', 00H
-	DB	'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H, ')', 00H, 0aH, 00H, 00H
-	DB	00H
-	ORG $+2
-$SG370508 DB	' ', 00H, '(', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'g', 00H
+$SG370138 DB	' ', 00H, '(', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'g', 00H
 	DB	'm', 00H, 'e', 00H, 'n', 00H, 't', 00H, ')', 00H, 0aH, 00H, 00H
 	DB	00H
 	ORG $+2
-$SG370510 DB	' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H
+$SG370140 DB	' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	'r', 00H, 'u', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
 	DB	00H, ')', 00H, 0aH, 00H, 00H, 00H
-$SG370512 DB	'U', 00H, 'N', 00H, 'D', 00H, 'E', 00H, 'F', 00H, 'I', 00H
+$SG370142 DB	'U', 00H, 'N', 00H, 'D', 00H, 'E', 00H, 'F', 00H, 'I', 00H
 	DB	'N', 00H, 'E', 00H, 'D', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370513 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370145 DB	0aH, 00H, 00H, 00H
+$SG370143 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H
 	DB	'M', 00H, 'e', 00H, 'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, 00H, 00H
-$SG366418 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG370515 DB	0aH, 00H, 00H, 00H
-$SG370516 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG370146 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-$SG370517 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
+$SG366050 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG370148 DB	0aH, 00H, 00H, 00H
+$SG370147 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'i', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'e', 00H
 	DB	'r', 00H, 'v', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H, '#'
@@ -2006,16 +1350,16 @@ $SG370517 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'M', 00H
 	DB	'i', 00H, 'B', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG366421 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG370518 DB	0aH, 00H, 00H, 00H
-$SG370519 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370149 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'N', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'L', 00H, 'o', 00H
 	DB	'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'M', 00H, 'e', 00H, 'm'
 	DB	00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, ':', 00H, 00H, 00H
-$SG366423 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
+$SG366053 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG370151 DB	0aH, 00H, 00H, 00H
+$SG366055 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
 	DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 's', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a'
@@ -2026,16 +1370,13 @@ $SG366423 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
 	DB	00H, 'r', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG366424 DB	'IDXGISwapChain::Present', 00H
-$SG370521 DB	0aH, 00H, 00H, 00H
-$SG366425 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG370522 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG370152 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-$SG370523 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
+$SG366056 DB	'IDXGISwapChain::Present', 00H
+$SG370153 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'i', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'e', 00H
 	DB	'r', 00H, 'v', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H, '#'
@@ -2048,24 +1389,26 @@ $SG370523 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'M', 00H
 	DB	'i', 00H, 'B', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG370524 DB	0aH, 00H, 00H, 00H
-$SG366431 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG366057 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG357227 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG370154 DB	0aH, 00H, 00H, 00H
+$SG366063 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG200184 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
+	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG356859 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
 	DB	00H, 'i', 00H, 'n', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG358252 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG357884 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG357228 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+$SG356860 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG357229 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
-	DB	00H, 00H, 00H
-$SG358253 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357885 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e'
@@ -2073,11 +1416,10 @@ $SG358253 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'I', 00H, 'F', 00H, 'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r'
 	DB	00H, 'y', 00H, '{', 00H, '1', 00H, '|', 00H, '2', 00H, '}', 00H
 	DB	00H, 00H
-$SG200557 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
-	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG357230 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG358254 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356861 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
+	DB	00H, 00H, 00H
+$SG357886 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
@@ -2085,17 +1427,20 @@ $SG358254 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	00H, 00H
-$SG357231 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356862 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356863 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG358258 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG357890 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG358259 DB	'CreateDXGIFactory', 00H
+$SG357891 DB	'CreateDXGIFactory', 00H
 	ORG $+2
-$SG358260 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG357893 DB	'CreateDXGIFactory1', 00H
+	ORG $+1
+$SG357892 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '0', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -2103,11 +1448,7 @@ $SG358260 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	':', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG358261 DB	'CreateDXGIFactory1', 00H
-	ORG $+1
-$SG358263 DB	'CreateDXGIFactory2', 00H
-	ORG $+1
-$SG358262 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG357894 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '1', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -2115,7 +1456,15 @@ $SG358262 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	'1', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG358264 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG357895 DB	'CreateDXGIFactory2', 00H
+	ORG $+1
+$SG366090 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
+	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'P', 00H, 'r', 00H, 'e', 00H
+	DB	's', 00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
+$SG357898 DB	'CreateDXGIFactory', 00H
+	ORG $+2
+$SG357896 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '3', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -2123,20 +1472,12 @@ $SG358264 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	'2', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG366458 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
-	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
-	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'P', 00H, 'r', 00H, 'e', 00H
-	DB	's', 00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-$SG358266 DB	'CreateDXGIFactory', 00H
+$SG357899 DB	'CreateDXGIFactory', 00H
 	ORG $+2
-$SG358267 DB	'CreateDXGIFactory', 00H
-	ORG $+2
-$SG358268 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG357900 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG358270 DB	'CreateDXGIFactory1', 00H
-	ORG $+1
-$SG355198 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
+$SG354828 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
 	DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 's', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
@@ -2172,9 +1513,12 @@ $SG355198 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
 	DB	' ', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i'
 	DB	00H, 'd', 00H, 'e', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG358271 DB	'CreateDXGIFactory1', 00H
+$SG357902 DB	'CreateDXGIFactory1', 00H
 	ORG $+1
-$SG366463 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG211470 DB	'S', 00H, 00H, 00H
+$SG357903 DB	'CreateDXGIFactory1', 00H
+	ORG $+1
+$SG366095 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'l', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 'v', 00H, 'f', 00H, 't', 00H, 'a', 00H, 'b'
@@ -2187,29 +1531,30 @@ $SG366463 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n', 00H
 	DB	't', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')'
 	DB	00H, '!', 00H, 00H, 00H
-$SG358272 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG357904 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG366466 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+$SG211472 DB	'M', 00H, 00H, 00H
+$SG366098 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
 	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'P', 00H, 'r', 00H, 'e', 00H
 	DB	's', 00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-$SG358274 DB	'CreateDXGIFactory2', 00H
+$SG357906 DB	'CreateDXGIFactory2', 00H
 	ORG $+1
-$SG358275 DB	'CreateDXGIFactory2', 00H
+$SG211474 DB	'D', 00H, 00H, 00H
+$SG357907 DB	'CreateDXGIFactory2', 00H
 	ORG $+1
-$SG211843 DB	'S', 00H, 00H, 00H
-$SG358276 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG357908 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG358277 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
+$SG211476 DB	'B', 00H, 00H, 00H
+$SG357909 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG211845 DB	'M', 00H, 00H, 00H
-$SG358278 DB	00H, 00H
+$SG357910 DB	00H, 00H
 	ORG $+2
-$SG211847 DB	'D', 00H, 00H, 00H
-$SG358279 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG211478 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG357911 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '0', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -2217,13 +1562,26 @@ $SG358279 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	':', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ' '
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG358280 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
+$SG357912 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG358281 DB	00H, 00H
+$SG211480 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
+$SG370201 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'M', 00H, 'e', 00H
+	DB	'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 'B', 00H, 'u', 00H, 'd'
+	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG211849 DB	'B', 00H, 00H, 00H
-$SG358282 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG357913 DB	00H, 00H
+	ORG $+2
+$SG370202 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'M', 00H, 'e', 00H
+	DB	'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 'B', 00H, 'u', 00H, 'd'
+	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, '_', 00H, 'S', 00H, 'h', 00H
+	DB	'u', 00H, 't', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n', 00H, 00H
+	DB	00H
+$SG211482 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+	DB	'v', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG357914 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '1', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -2231,27 +1589,18 @@ $SG358282 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	'1', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ' '
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG370571 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'M', 00H, 'e', 00H
-	DB	'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 'B', 00H, 'u', 00H, 'd'
-	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG358283 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
+$SG357915 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG211851 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG370572 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'M', 00H, 'e', 00H
-	DB	'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 'B', 00H, 'u', 00H, 'd'
-	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, '_', 00H, 'S', 00H, 'h', 00H
-	DB	'u', 00H, 't', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n', 00H, 00H
-	DB	00H
-$SG358284 DB	00H, 00H
+$SG357916 DB	00H, 00H
 	ORG $+2
-$SG211853 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
-	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG211855 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
-	DB	'v', 00H, 'e', 00H, 00H, 00H
+$SG211484 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+	DB	00H, 00H
 	ORG $+2
-$SG358285 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG357922 DB	'PreRenderLimit', 00H
+	ORG $+1
+$SG357924 DB	'BufferCount', 00H
+$SG357917 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '3', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -2259,12 +1608,9 @@ $SG358285 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	'2', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ' '
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG358288 DB	'PresentationInterval', 00H
+$SG357920 DB	'PresentationInterval', 00H
 	ORG $+3
-$SG211857 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG366482 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG366114 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'l', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 'v', 00H, 'f', 00H, 't', 00H, 'a', 00H, 'b'
@@ -2277,33 +1623,33 @@ $SG366482 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, ':', 00H, 'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H
 	DB	'n', 00H, 't', 00H, '1', 00H, ' ', 00H, '(', 00H, '.', 00H, '.'
 	DB	00H, '.', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG358290 DB	'PreRenderLimit', 00H
-	ORG $+1
-$SG358292 DB	'BufferCount', 00H
-$SG366485 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+$SG366117 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
 	DB	00H, 'n', 00H, '1', 00H, ':', 00H, ':', 00H, 'P', 00H, 'r', 00H
 	DB	'e', 00H, 's', 00H, 'e', 00H, 'n', 00H, 't', 00H, '1', 00H, 00H
 	DB	00H
-$SG370585 DB	0aH, 00H, 00H, 00H
-$SG370582 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370212 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H
 	DB	'M', 00H, 'e', 00H, 'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, 00H, 00H
-$SG358294 DB	'UseFlipDiscard', 00H
+$SG357926 DB	'UseFlipDiscard', 00H
 	ORG $+1
-$SG370586 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG370215 DB	0aH, 00H, 00H, 00H
+$SG200231 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
+	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG370216 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 00H, 00H
-$SG200604 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
-	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG370587 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
+$SG366130 DB	'<', 00H, 'N', 00H, 'O', 00H, 'T', 00H, ' ', 00H, 'I', 00H
+	DB	'M', 00H, 'P', 00H, 'L', 00H, 'E', 00H, 'M', 00H, 'E', 00H, 'N'
+	DB	00H, 'T', 00H, 'E', 00H, 'D', 00H, '>', 00H, 00H, 00H
+$SG370217 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'i', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'e'
 	DB	00H, 'r', 00H, 'v', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, '/'
@@ -2315,24 +1661,24 @@ $SG370587 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'M'
 	DB	00H, 'i', 00H, 'B', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG366498 DB	'<', 00H, 'N', 00H, 'O', 00H, 'T', 00H, ' ', 00H, 'I', 00H
-	DB	'M', 00H, 'P', 00H, 'L', 00H, 'E', 00H, 'M', 00H, 'E', 00H, 'N'
-	DB	00H, 'T', 00H, 'E', 00H, 'D', 00H, '>', 00H, 00H, 00H
-$SG370599 DB	0aH, 00H, 00H, 00H
-$SG370602 DB	0aH, 00H, 00H, 00H
-$SG370600 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370229 DB	0aH, 00H, 00H, 00H
+$SG370230 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'N', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'L', 00H, 'o', 00H
 	DB	'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'M', 00H, 'e', 00H, 'm'
 	DB	00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, ':', 00H, 00H, 00H
-$SG370603 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG370232 DB	0aH, 00H, 00H, 00H
+$SG370235 DB	0aH, 00H, 00H, 00H
+$SG370233 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 00H, 00H
-$SG370605 DB	0aH, 00H, 00H, 00H
-$SG370604 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
+$SG356936 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG370234 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'i', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'e'
 	DB	00H, 'r', 00H, 'v', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, '/'
@@ -2344,34 +1690,36 @@ $SG370604 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'M'
 	DB	00H, 'i', 00H, 'B', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG357304 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357303 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG356937 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
+	DB	00H, 00H, 00H
+$SG356935 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
 	DB	00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H, 'r', 00H, 'C', 00H
 	DB	'o', 00H, 'r', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd'
 	DB	00H, 'o', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-$SG357305 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
-	DB	00H, 00H, 00H
-$SG357306 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357307 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356938 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356939 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG370629 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG370259 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG370631 DB	'CreateDXGIFactory', 00H
+$SG370261 DB	'CreateDXGIFactory', 00H
 	ORG $+2
-$SG200651 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG200278 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG370651 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370286 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
+	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+	DB	'-', 00H, 00H, 00H
+	ORG $+2
+$SG370281 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 't', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n'
@@ -2382,38 +1730,32 @@ $SG370651 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	00H, 'a', 00H, 'd', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG370654 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
+$SG370284 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
 	DB	00H, 00H
 	ORG $+2
-$SG370655 DB	't', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 'd', 00H, ' ', 00H
+$SG370285 DB	't', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 'd', 00H, ' ', 00H
 	DB	'o', 00H, 'u', 00H, 't', 00H, ' ', 00H, '(', 00H, 'k', 00H, 'i'
 	DB	00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H
 	DB	'm', 00H, 'a', 00H, 'n', 00H, 'u', 00H, 'a', 00H, 'l', 00H, 'l'
 	DB	00H, 'y', 00H, ')', 00H, '!', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370656 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
-	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
-	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
-	DB	'-', 00H, 00H, 00H
-	ORG $+2
-$SG370657 DB	'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 'd', 00H, 'o', 00H
+$SG370287 DB	'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't'
 	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'i', 00H, 'c', 00H, 's', 00H
 	DB	':', 00H, 00H, 00H
 	ORG $+2
-$SG370658 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG370288 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, 0aH, 00H, 00H, 00H
-$SG370671 DB	0aH, 00H, 00H, 00H
-$SG370659 DB	' ', 00H, 'M', 00H, 'e', 00H, 'm', 00H, 'o', 00H, 'r', 00H
+$SG370289 DB	' ', 00H, 'M', 00H, 'e', 00H, 'm', 00H, 'o', 00H, 'r', 00H
 	DB	'y', 00H, ' ', 00H, 'B', 00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e'
 	DB	00H, 't', 00H, ' ', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'n', 00H
 	DB	'g', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'l'
 	DB	00H, 'u', 00H, ' ', 00H, 't', 00H, 'i', 00H, 'm', 00H, 'e', 00H
 	DB	's', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370663 DB	' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, '%', 00H, 'i', 00H
+$SG370293 DB	' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, '%', 00H, 'i', 00H
 	DB	':', 00H, ' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'B'
 	DB	00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H, ':', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
@@ -2421,57 +1763,715 @@ $SG370663 DB	' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, '%', 00H, 'i', 00H
 	DB	'u', 00H, ' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H
 	DB	00H
 	ORG $+2
-$SG370664 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG370294 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, ' ', 00H, 'B', 00H, 'u'
 	DB	00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H, ':', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-	ORG $+4
-$SG370665 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG370301 DB	0aH, 00H, 00H, 00H
+$SG370295 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'U', 00H, 's'
 	DB	00H, 'a', 00H, 'g', 00H, 'e', 00H, ':', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-	ORG $+4
-$SG370666 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG357018 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG370296 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, ' ', 00H, 'U', 00H, 's'
 	DB	00H, 'a', 00H, 'g', 00H, 'e', 00H, ':', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-	ORG $+4
-$SG370667 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG357019 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
+	DB	00H, 00H, 00H
+$SG370297 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, 0aH, 00H, 00H, 00H
-	ORG $+4
-$SG370668 DB	' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H
+$SG357020 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG370298 DB	' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H
 	DB	'u', 00H, 'm', 00H, ' ', 00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r'
 	DB	00H, ' ', 00H, 'B', 00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e', 00H
 	DB	't', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-	ORG $+4
-$SG370669 DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, 'i', 00H, 'm', 00H
+$SG357021 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG370299 DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, 'i', 00H, 'm', 00H
 	DB	'u', 00H, 'm', 00H, ' ', 00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r'
 	DB	00H, ' ', 00H, 'B', 00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e', 00H
 	DB	't', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-	ORG $+4
-$SG370670 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG366238 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
+	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'R', 00H, 'e', 00H, 's', 00H
+	DB	'i', 00H, 'z', 00H, 'e', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f'
+	DB	00H, 'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
+$SG370300 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, 0aH, 00H, 00H, 00H
-$SG200698 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG200325 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG366239 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
+	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'R', 00H, 'e', 00H, 's', 00H
+	DB	'i', 00H, 'z', 00H, 'e', 00H, 'T', 00H, 'a', 00H, 'r', 00H, 'g'
+	DB	00H, 'e', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG357017 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
+	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
+	DB	00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H, 'r', 00H, 'H', 00H
+	DB	'w', 00H, 'n', 00H, 'd', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
+$SG366236 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
+	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'S', 00H, 'e', 00H, 't', 00H
+	DB	'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r'
+	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'a', 00H
+	DB	't', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG366237 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
+	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'G', 00H, 'e', 00H, 't', 00H
+	DB	'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r'
+	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'a', 00H
+	DB	't', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG366242 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
+	DB	'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, ':', 00H, ':'
+	DB	00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'i', 00H, 's', 00H
+	DB	'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'M', 00H, 'o', 00H, 'd'
+	DB	00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 00H, 00H
+$SG366243 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
+	DB	'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, ':', 00H, ':'
+	DB	00H, 'F', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'C', 00H, 'l', 00H
+	DB	'o', 00H, 's', 00H, 'e', 00H, 's', 00H, 't', 00H, 'M', 00H, 'a'
+	DB	00H, 't', 00H, 'c', 00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H
+	DB	'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG366244 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
+	DB	'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, ':', 00H, ':'
+	DB	00H, 'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'F', 00H, 'o', 00H
+	DB	'r', 00H, 'V', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'n', 00H, 'k'
+	DB	00H, 00H, 00H
+	ORG $+2
+$SG352938 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
+	DB	'e', 00H, 00H, 00H
+$SG352940 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
+	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
+	DB	00H, 'd', 00H, '-', 00H, 'O', 00H, 'n', 00H, 'l', 00H, 'y', 00H
+	DB	00H, 00H
+$SG352942 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
+	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
+	DB	00H, 'd', 00H, '/', 00H, 'W', 00H, 'r', 00H, 'i', 00H, 't', 00H
+	DB	'e', 00H, 00H, 00H
+	ORG $+2
+$SG352944 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
+	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
+	DB	00H, 'd', 00H, '-', 00H, 'O', 00H, 'n', 00H, 'l', 00H, 'y', 00H
+	DB	' ', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'p'
+	DB	00H, 'y', 00H, '-', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'W', 00H
+	DB	'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, ')', 00H, 00H, 00H
+$SG352946 DB	'N', 00H, 'o', 00H, ' ', 00H, 'A', 00H, 'c', 00H, 'c', 00H
+	DB	'e', 00H, 's', 00H, 's', 00H, 00H, 00H
+$SG352948 DB	'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '-', 00H, 'O', 00H
+	DB	'n', 00H, 'l', 00H, 'y', 00H, 00H, 00H
+$SG200372 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
+	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
+$SG352950 DB	'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '/', 00H, 'W', 00H
+	DB	'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG352952 DB	' ', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '-', 00H
+	DB	'O', 00H, 'n', 00H, 'l', 00H, 'y', 00H, ' ', 00H, 'o', 00H, 'r'
+	DB	00H, ' ', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H, '-', 00H
+	DB	'o', 00H, 'n', 00H, '-', 00H, 'W', 00H, 'r', 00H, 'i', 00H, 't'
+	DB	00H, 'e', 00H, 00H, 00H
+$SG357051 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357050 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
+	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
+	DB	00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H, 'r', 00H, 'C', 00H
+	DB	'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 's', 00H, 'i', 00H, 't'
+	DB	00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG352954 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+	DB	'N', 00H, 00H, 00H
+$SG357052 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
+	DB	00H, 00H, 00H
+$SG357053 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357054 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG200466 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
+	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+$SG357055 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
+	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, '-', 00H, ' ', 00H
+	DB	' ', 00H, '<', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
+	DB	00H, 't', 00H, 'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H
+	DB	'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o'
+	DB	00H, 'r', 00H, 'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H
+	DB	's', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, '_'
+	DB	00H, 'O', 00H, 'r', 00H, 'i', 00H, 'g', 00H, 'i', 00H, 'n', 00H
+	DB	'a', 00H, 'l', 00H, ' ', 00H, '(', 00H, ' ', 00H, 'T', 00H, 'h'
+	DB	00H, 'i', 00H, 's', 00H, ',', 00H, ' ', 00H, 'p', 00H, 'D', 00H
+	DB	'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, ',', 00H, ' '
+	DB	00H, '&', 00H, 'n', 00H, 'e', 00H, 'w', 00H, '_', 00H, 'd', 00H
+	DB	'e', 00H, 's', 00H, 'c', 00H, '1', 00H, ',', 00H, ' ', 00H, 'p'
+	DB	00H, 'R', 00H, 'e', 00H, 's', 00H, 't', 00H, 'r', 00H, 'i', 00H
+	DB	'c', 00H, 't', 00H, 'T', 00H, 'o', 00H, 'O', 00H, 'u', 00H, 't'
+	DB	00H, 'p', 00H, 'u', 00H, 't', 00H, ',', 00H, ' ', 00H, 'p', 00H
+	DB	'p', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h'
+	DB	00H, 'a', 00H, 'i', 00H, 'n', 00H, ' ', 00H, ')', 00H, ' ', 00H
+	DB	'>', 00H, 00H, 00H
+$SG352986 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a'
+	DB	00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG352989 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
+	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '1', 00H, 00H, 00H
+	ORG $+2
+$SG352992 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
+	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG352995 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
+	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '3', 00H, 00H, 00H
+	ORG $+2
+$SG200419 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG352998 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
+	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '4', 00H, 00H, 00H
+	ORG $+2
+$SG353001 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
+	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '5', 00H, 00H, 00H
+	ORG $+2
+$SG355113 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, 00H, 00H
+$SG355114 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG357107 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '!', 00H, '!', 00H, '!', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
+	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'O', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ':'
+	DB	00H, ' ', 00H, '(', 00H, 'U', 00H, 's', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, ' '
+	DB	00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'e', 00H, 'a', 00H
+	DB	'd', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' ', 00H, '''', 00H, '%'
+	DB	00H, 's', 00H, '''', 00H, ')', 00H, ' ', 00H, '!', 00H, '!', 00H
+	DB	'!', 00H, 00H, 00H
+	ORG $+2
+$SG356147 DB	'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'i', 00H, 's', 00H
+	DB	'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'M', 00H, 'o', 00H, 'd'
+	DB	00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, 00H, 00H
+$SG356149 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357108 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '!', 00H, '!', 00H, '!', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
+	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'O', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ':'
+	DB	00H, ' ', 00H, '(', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	'd', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, ' '
+	DB	00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'e', 00H, 'a', 00H
+	DB	'd', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' ', 00H, '''', 00H, '%'
+	DB	00H, 's', 00H, '''', 00H, ')', 00H, ' ', 00H, '!', 00H, '!', 00H
+	DB	'!', 00H, 00H, 00H
+	ORG $+2
+$SG356151 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357109 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '!', 00H, '!', 00H, '!', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
+	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'O', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ' '
+	DB	00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	',', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'r'
+	DB	00H, 'n', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H
+	DB	'%', 00H, 's', 00H, '''', 00H, ' ', 00H, '!', 00H, '!', 00H, '!'
+	DB	00H, 00H, 00H
+$SG356152 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG357117 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
+	DB	't', 00H, 'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, '2', 00H, '_'
+	DB	00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H
+	DB	'd', 00H, 'e', 00H, ':', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'o'
+	DB	00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'f', 00H
+	DB	'o', 00H, 'r', 00H, ' ', 00H, 'm', 00H, 'a', 00H, 't', 00H, 'c'
+	DB	00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'N', 00H
+	DB	'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'G', 00H, 'P'
+	DB	00H, 'U', 00H, ' ', 00H, 'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+	DB	'%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' '
+	DB	00H, 00H, 00H
+$SG357120 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, '!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')'
+	DB	00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG357121 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
+	DB	'e', 00H, '!', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, ' '
+	DB	00H, 'M', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h', 00H, ' ', 00H
+	DB	'F', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H, ')', 00H, 0aH
+	DB	00H, 00H, 00H
+	ORG $+2
+$SG200513 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG357129 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
+	DB	't', 00H, 'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, '1', 00H, '_'
+	DB	00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H
+	DB	'd', 00H, 'e', 00H, ':', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'o'
+	DB	00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'f', 00H
+	DB	'o', 00H, 'r', 00H, ' ', 00H, 'm', 00H, 'a', 00H, 't', 00H, 'c'
+	DB	00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'N', 00H
+	DB	'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'G', 00H, 'P'
+	DB	00H, 'U', 00H, ' ', 00H, 'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+	DB	'%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' '
+	DB	00H, 00H, 00H
+$SG357132 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, '!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')'
+	DB	00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG357133 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
+	DB	'e', 00H, '!', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, ' '
+	DB	00H, 'M', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h', 00H, ' ', 00H
+	DB	'F', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H, ')', 00H, 0aH
+	DB	00H, 00H, 00H
+	ORG $+2
+$SG353092 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
+	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG355115 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'I', 00H, 'D', 00H
+	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
+	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, ':', 00H
+	DB	':', 00H, 'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n'
+	DB	00H, 't', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H
+	DB	')', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'r'
+	DB	00H, 'n', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'n', 00H, 'o', 00H
+	DB	'n', 00H, '-', 00H, 'S', 00H, '_', 00H, 'O', 00H, 'K', 00H, ' '
+	DB	00H, '(', 00H, '%', 00H, 's', 00H, ' ', 00H, ':', 00H, ':', 00H
+	DB	' ', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG355118 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '(', 00H, '*', 00H, ')', 00H, ' ', 00H, '>', 00H, '>', 00H
+	DB	' ', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'o', 00H, 'n'
+	DB	00H, ' ', 00H, 'F', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'R', 00H
+	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'a', 00H, 'l', 00H, ':'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG353070 DB	'{', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'i', 00H, 'd', 00H, '-', 00H, 'F', 00H, 'a', 00H, 'c', 00H, 't'
+	DB	00H, 'o', 00H, 'r', 00H, 'y', 00H, '-', 00H, 'U', 00H, 'U', 00H
+	DB	'I', 00H, 'D', 00H, '}', 00H, 00H, 00H
+	ORG $+2
+$SG356148 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O'
+	DB	00H, 'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG356150 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'i', 00H, ',', 00H, ' ', 00H, '%', 00H, '0', 00H, '2', 00H, 'x'
+	DB	00H, ',', 00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H, 'M', 00H
+	DB	'o', 00H, 'd', 00H, 'e', 00H, 's', 00H, '=', 00H, '%', 00H, 'l'
+	DB	00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H
+	DB	')', 00H, 00H, 00H
+$SG357190 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
+	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG357181 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
+	DB	't', 00H, 'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, '_', 00H, 'O'
+	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
+	DB	'e', 00H, ':', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'o', 00H, 'k'
+	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'f', 00H, 'o', 00H
+	DB	'r', 00H, ' ', 00H, 'm', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h'
+	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'N', 00H, 'V', 00H
+	DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U'
+	DB	00H, ' ', 00H, 'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H, '%', 00H
+	DB	's', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' ', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG357184 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, '!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')'
+	DB	00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG357185 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
+	DB	'e', 00H, '!', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, ' '
+	DB	00H, 'M', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h', 00H, ' ', 00H
+	DB	'F', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H, ')', 00H, 0aH
+	DB	00H, 00H, 00H
+	ORG $+2
+$SG357191 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
+	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG357187 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'D', 00H, 'e', 00H, 'd', 00H, 'i', 00H, 'c', 00H, 'a', 00H
+	DB	't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'V', 00H, 'i', 00H, 'd'
+	DB	00H, 'e', 00H, 'o', 00H, ':', 00H, ' ', 00H, '%', 00H, 'z', 00H
+	DB	'u', 00H, ' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, ',', 00H, ' '
+	DB	00H, 'D', 00H, 'e', 00H, 'd', 00H, 'i', 00H, 'c', 00H, 'a', 00H
+	DB	't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'S', 00H, 'y', 00H, 's'
+	DB	00H, 't', 00H, 'e', 00H, 'm', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'z', 00H, 'u', 00H, ' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, ','
+	DB	00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'r', 00H, 'e', 00H
+	DB	'd', 00H, ' ', 00H, 'S', 00H, 'y', 00H, 's', 00H, 't', 00H, 'e'
+	DB	00H, 'm', 00H, ':', 00H, ' ', 00H, '%', 00H, 'z', 00H, 'u', 00H
+	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 00H, 00H
+	ORG $+2
+$SG353095 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
+	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '1'
+	DB	00H, 00H, 00H
+$SG356166 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '>', 00H
+	DB	'>', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'm'
+	DB	00H, 'o', 00H, 'd', 00H, 'e', 00H, 's', 00H, ' ', 00H, '(', 00H
+	DB	'%', 00H, 'l', 00H, 'i', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 'm'
+	DB	00H, 'o', 00H, 'v', 00H, 'e', 00H, 'd', 00H, ')', 00H, 00H, 00H
+	ORG $+2
+$SG353098 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
+	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '2'
+	DB	00H, 00H, 00H
+$SG353101 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
+	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '3'
+	DB	00H, 00H, 00H
+$SG356196 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG356194 DB	'F', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'C', 00H, 'l', 00H
+	DB	'o', 00H, 's', 00H, 'e', 00H, 's', 00H, 't', 00H, 'M', 00H, 'a'
+	DB	00H, 't', 00H, 'c', 00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H
+	DB	'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG356195 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O'
+	DB	00H, 'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG356197 DB	'%', 00H, 'l', 00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'l', 00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u'
+	DB	00H, 00H, 00H
+$SG356198 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356199 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG356201 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'R', 00H, 'e', 00H
+	DB	'f', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'O'
+	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
+	DB	'e', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 'q', 00H, 'u'
+	DB	00H, 'e', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
+	DB	' ', 00H, '%', 00H, 'f', 00H, ',', 00H, ' ', 00H, 'U', 00H, 's'
+	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'l', 00H, 'i', 00H, ')', 00H, 00H, 00H
+$SG200560 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG356203 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'S', 00H, 'c', 00H
+	DB	'a', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
+	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
+	DB	'e', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 'q', 00H, 'u'
+	DB	00H, 'e', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
+	DB	' ', 00H, '%', 00H, 's', 00H, ',', 00H, ' ', 00H, 'U', 00H, 's'
+	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	's', 00H, ')', 00H, 00H, 00H
+	ORG $+2
+$SG353137 DB	'{', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'i', 00H, 'd', 00H, '-', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
+	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, '-', 00H, 'U', 00H, 'U', 00H
+	DB	'I', 00H, 'D', 00H, '}', 00H, 00H, 00H
+	ORG $+2
+$SG352119 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
+	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
+$SG352120 DB	'logs\CEGUI.log', 00H
+	ORG $+1
+$SG356217 DB	'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'F', 00H, 'o', 00H
+	DB	'r', 00H, 'V', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'n', 00H, 'k'
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
+	ORG $+2
+$SG352121 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 'C', 00H
+	DB	'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H, 'l', 00H, 'o'
+	DB	00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG356218 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O'
+	DB	00H, 'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG352122 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
+	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
+$SG356219 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG352123 DB	'[Special K] ---- Log File Moved ----', 00H
+	ORG $+3
+$SG356220 DB	'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, 00H, 00H
+	ORG $+2
+$SG356221 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG352125 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
+	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
+$SG356222 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG356249 DB	'S', 00H, 'e', 00H, 't', 00H, 'F', 00H, 'u', 00H, 'l', 00H
+	DB	'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n'
+	DB	00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, 00H, 00H
+$SG356250 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
+	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
+	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG356251 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG356252 DB	'{', 00H, ' ', 00H, 'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H
+	DB	's', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n', 00H, ' '
+	DB	00H, '}', 00H, 00H, 00H
+	ORG $+2
+$SG356253 DB	'{', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+	DB	'o', 00H, 'w', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG356254 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
+	DB	'h', 00H, 00H, 00H
+$SG356255 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG200607 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
+$SG356256 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG356258 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+	DB	' ', 00H, '1', 00H, '.', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'W', 00H, 'a', 00H
+	DB	'i', 00H, 't', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H, ' '
+	DB	00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H
+	DB	'a', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'I', 00H, 'n', 00H, ' '
+	DB	00H, 'U', 00H, 's', 00H, 'e', 00H, ',', 00H, ' ', 00H, 'S', 00H
+	DB	'k', 00H, 'i', 00H, 'p', 00H, 'p', 00H, 'i', 00H, 'n', 00H, 'g'
+	DB	00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
+$SG356260 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+	DB	' ', 00H, '1', 00H, '.', 00H, '5', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'T', 00H, 'e', 00H
+	DB	'a', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
+	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
+	DB	'e', 00H, ':', 00H, ' ', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 'a'
+	DB	00H, 'b', 00H, 'l', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG356263 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
+	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
+	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
+	DB	'e', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 'q', 00H, 'u'
+	DB	00H, 'e', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
+	DB	' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w'
+	DB	00H, 'e', 00H, 'd', 00H, ',', 00H, ' ', 00H, 'U', 00H, 's', 00H
+	DB	'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, 'F', 00H, 'u'
+	DB	00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e', 00H
+	DB	'e', 00H, 'n', 00H, ')', 00H, 00H, 00H
+	ORG $+2
+$SG356265 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
+	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
+	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
+	DB	'e', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 'q', 00H, 'u'
+	DB	00H, 'e', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
+	DB	' ', 00H, 'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c'
+	DB	00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n', 00H, ',', 00H, ' ', 00H
+	DB	'U', 00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' '
+	DB	00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H
+	DB	'e', 00H, 'd', 00H, ')', 00H, 00H, 00H
+	ORG $+2
+$SG356268 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
+	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
+	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
+	DB	'e', 00H, ' ', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, ' '
+	DB	00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
+	DB	't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'F', 00H, 'u', 00H, 'l'
+	DB	00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e', 00H
+	DB	'e', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'w', 00H, 'i', 00H, 't'
+	DB	00H, 'c', 00H, 'h', 00H, 00H, 00H
+$SG356270 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
+	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
+	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
+	DB	'e', 00H, ' ', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, ' '
+	DB	00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
+	DB	't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n'
+	DB	00H, 'd', 00H, 'o', 00H, 'w', 00H, 'e', 00H, 'd', 00H, ' ', 00H
+	DB	'S', 00H, 'w', 00H, 'i', 00H, 't', 00H, 'c', 00H, 'h', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG356326 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG356271 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
+	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, '-', 00H, ' ', 00H
+	DB	' ', 00H, '<', 00H, ' ', 00H, 'S', 00H, 'e', 00H, 't', 00H, 'F'
+	DB	00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H
+	DB	'e', 00H, 'e', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, '_', 00H, 'O', 00H, 'r', 00H, 'i', 00H, 'g', 00H
+	DB	'i', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H, '(', 00H, 'T'
+	DB	00H, 'h', 00H, 'i', 00H, 's', 00H, ',', 00H, ' ', 00H, 'F', 00H
+	DB	'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e'
+	DB	00H, 'e', 00H, 'n', 00H, ',', 00H, ' ', 00H, 'p', 00H, 'T', 00H
+	DB	'a', 00H, 'r', 00H, 'g', 00H, 'e', 00H, 't', 00H, ')', 00H, ' '
+	DB	00H, '>', 00H, 00H, 00H
+	ORG $+2
+$SG200654 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG356324 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'e', 00H
+	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's'
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
+	ORG $+2
+$SG356325 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
+	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
+	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG356327 DB	'%', 00H, 'l', 00H, 'u', 00H, ',', 00H, '%', 00H, 'l', 00H
+	DB	'u', 00H, ',', 00H, '%', 00H, 'l', 00H, 'u', 00H, ',', 00H, 'f'
+	DB	00H, 'm', 00H, 't', 00H, '=', 00H, '%', 00H, 'l', 00H, 'u', 00H
+	DB	',', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '8', 00H, 'X'
+	DB	00H, 00H, 00H
+	ORG $+2
+$SG356328 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356329 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG352239 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
+	DB	'P', 00H, 'A', 00H, 'R', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_'
+	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, 00H, 00H
+	ORG $+2
+$SG356332 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'B', 00H, 'u', 00H
+	DB	'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'C', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'O', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ':'
+	DB	00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'b', 00H
+	DB	'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H
+	DB	00H
+$SG356334 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+	DB	' ', 00H, '1', 00H, '.', 00H, '5', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'T', 00H, 'e', 00H
+	DB	'a', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
+	DB	00H, 'p', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ':', 00H
+	DB	' ', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l'
+	DB	00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG352240 DB	'%ws', 00H
+$SG352241 DB	'CEGUI/datafiles', 00H
+$SG352242 DB	'/schemes/', 00H
+	ORG $+2
+$SG352243 DB	'schemes', 00H
+$SG352244 DB	'/imagesets/', 00H
+$SG352245 DB	'imagesets', 00H
+	ORG $+2
+$SG352246 DB	'/fonts/', 00H
+$SG352248 DB	'/layouts/', 00H
+	ORG $+2
+$SG356343 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
+	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, '-', 00H, ' ', 00H
+	DB	' ', 00H, '<', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'i'
+	DB	00H, 'z', 00H, 'e', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H
+	DB	'e', 00H, 'r', 00H, 's', 00H, '_', 00H, 'O', 00H, 'r', 00H, 'i'
+	DB	00H, 'g', 00H, 'i', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H
+	DB	'(', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'i', 00H, 's', 00H, ','
+	DB	00H, ' ', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H
+	DB	'r', 00H, 'C', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 't', 00H, ','
+	DB	00H, ' ', 00H, 'W', 00H, 'i', 00H, 'd', 00H, 't', 00H, 'h', 00H
+	DB	',', 00H, ' ', 00H, 'H', 00H, 'e', 00H, 'i', 00H, 'g', 00H, 'h'
+	DB	00H, 't', 00H, ',', 00H, ' ', 00H, 'N', 00H, 'e', 00H, 'w', 00H
+	DB	'F', 00H, 'o', 00H, 'r', 00H, 'm', 00H, 'a', 00H, 't', 00H, ','
+	DB	00H, ' ', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H
+	DB	'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'l', 00H, 'a'
+	DB	00H, 'g', 00H, 's', 00H, ' ', 00H, ')', 00H, ' ', 00H, '>', 00H
+	DB	00H, 00H
+$SG352247 DB	'fonts', 00H
+	ORG $+2
+$SG352249 DB	'layouts', 00H
+$SG352250 DB	'/looknfeel/', 00H
+$SG352251 DB	'looknfeels', 00H
+	ORG $+1
+$SG352252 DB	'/lua_scripts/', 00H
+	ORG $+2
+$SG352253 DB	'lua_scripts', 00H
+$SG200701 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG352254 DB	'/xml_schemas/', 00H
+	ORG $+2
+$SG352255 DB	'schemas', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
@@ -3490,7 +3490,6 @@ EXTRN	_MH_ApplyQueuedEx@4:PROC
 EXTRN	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z:PROC ; SK_CreateDLLHook2
 EXTRN	?SK_CreateVFTableHookEx@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1I@Z:PROC ; SK_CreateVFTableHookEx
 EXTRN	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z:PROC ; SK_CreateVFTableHook2
-EXTRN	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ:PROC	; SK_ApplyQueuedHooks
 EXTRN	?SK_RemoveHook@@YG?AW4MH_STATUS@@PAX@Z:PROC	; SK_RemoveHook
 EXTRN	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ:PROC ; SK_GetCommandProcessor
 EXTRN	?SK_Steam_ClearPopups@@YAXXZ:PROC		; SK_Steam_ClearPopups
@@ -3558,7 +3557,6 @@ EXTRN	?__SK_DLL_Ending@@3JC:DWORD			; __SK_DLL_Ending
 EXTRN	?nvapi_init@@3HA:DWORD				; nvapi_init
 EXTRN	_IID_IDXGIFactory2:BYTE
 EXTRN	??_7type_info@@6B@:QWORD			; type_info::`vftable'
-EXTRN	?D3D11CreateDevice_Import@@3P6GJPAUIDXGIAdapter@@W4D3D_DRIVER_TYPE@@PAUHINSTANCE__@@IPBW4D3D_FEATURE_LEVEL@@IIPAPAUID3D11Device@@PAW44@PAPAUID3D11DeviceContext@@@ZA:DWORD ; D3D11CreateDevice_Import
 EXTRN	?g_pD3D11Dev@@3PAUID3D11Device@@A:DWORD		; g_pD3D11Dev
 EXTRN	?SK_D3D11_Textures@@3VSK_D3D11_TexMgr@@A:BYTE	; SK_D3D11_Textures
 EXTRN	?request_mode_change@@3W4mode_change_request_e@@A:DWORD ; request_mode_change
@@ -3573,6 +3571,7 @@ EXTRN	?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA:DWORD ; LoadLibraryW_O
 EXTRN	?cs_mmio@@3VSK_Thread_HybridSpinlock@@A:DWORD	; cs_mmio
 EXTRN	?SK_DXGI_FullStateCache@@3_NA:BYTE		; SK_DXGI_FullStateCache
 EXTRN	?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A:DWORD ; SK_Inject_AddressManager
+EXTRN	?pfnD3D11CreateDeviceAndSwapChain@@3PAXA:DWORD	; pfnD3D11CreateDeviceAndSwapChain
 EXTRN	?SK_D3D11_need_tex_reset@@3_NA:BYTE		; SK_D3D11_need_tex_reset
 EXTRN	__fltused:DWORD
 EXTRN	__tls_array:DWORD
@@ -3901,27 +3900,27 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?szName@?5??DXGIReportAdapterConfiguration@@YGJK@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGIReportAdapterConfiguration@@YGJK@Z@4PBDB DD FLAT:$SG358110 ; `DXGIReportAdapterConfiguration'::`6'::szName
+?szName@?5??DXGIReportAdapterConfiguration@@YGJK@Z@4PBDB DD FLAT:$SG357742 ; `DXGIReportAdapterConfiguration'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGIDumpJournal@@YGXPBD@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGIDumpJournal@@YGXPBD@Z@4PBDB DD FLAT:$SG358092 ; `DXGIDumpJournal'::`6'::szName
+?szName@?5??DXGIDumpJournal@@YGXPBD@Z@4PBDB DD FLAT:$SG357724 ; `DXGIDumpJournal'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGID3D10RegisterLayers@@YGJPBXI@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGID3D10RegisterLayers@@YGJPBXI@Z@4PBDB DD FLAT:$SG358072 ; `DXGID3D10RegisterLayers'::`6'::szName
+?szName@?5??DXGID3D10RegisterLayers@@YGJPBXI@Z@4PBDB DD FLAT:$SG357704 ; `DXGID3D10RegisterLayers'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGID3D10GetLayeredDeviceSize@@YGKPBXI@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGID3D10GetLayeredDeviceSize@@YGKPBXI@Z@4PBDB DD FLAT:$SG358050 ; `DXGID3D10GetLayeredDeviceSize'::`6'::szName
+?szName@?5??DXGID3D10GetLayeredDeviceSize@@YGKPBXI@Z@4PBDB DD FLAT:$SG357682 ; `DXGID3D10GetLayeredDeviceSize'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGID3D10CreateLayeredDevice@@YGJUUNKNOWN5@@@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGID3D10CreateLayeredDevice@@YGJUUNKNOWN5@@@Z@4PBDB DD FLAT:$SG358028 ; `DXGID3D10CreateLayeredDevice'::`6'::szName
+?szName@?5??DXGID3D10CreateLayeredDevice@@YGJUUNKNOWN5@@@Z@4PBDB DD FLAT:$SG357660 ; `DXGID3D10CreateLayeredDevice'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGID3D10CreateDevice@@YGJPAUHINSTANCE__@@PAUIDXGIFactory@@PAUIDXGIAdapter@@IPAX3@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGID3D10CreateDevice@@YGJPAUHINSTANCE__@@PAUIDXGIFactory@@PAUIDXGIAdapter@@IPAX3@Z@4PBDB DD FLAT:$SG357996 ; `DXGID3D10CreateDevice'::`6'::szName
+?szName@?5??DXGID3D10CreateDevice@@YGJPAUHINSTANCE__@@PAUIDXGIFactory@@PAUIDXGIAdapter@@IPAX3@Z@4PBDB DD FLAT:$SG357628 ; `DXGID3D10CreateDevice'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ??_C@_1BCK@OGPEHLJN@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?$FL?$AA?$EA?$AA?$FN?$AA?5?$AA?5?$AAR?$AAe?$AAt?$AAu?$AAr?$AAn?$AA?3?$AA?5?$AA?$CF?$AAs?$AA?5?$AA?5?$AA?9?$AA?5@
 CONST	SEGMENT
@@ -5531,7 +5530,7 @@ __ehfuncinfo$?SK_DXGI_HookPresent@@YAXPAUIDXGISwapChain@@_N@Z DD 019930522H
 	DD	00H
 	DD	01H
 __ehfuncinfo$?HookDXGI@@YGIPAX@Z DD 019930522H
-	DD	09H
+	DD	0aH
 	DD	FLAT:__unwindtable$?HookDXGI@@YGIPAX@Z
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
@@ -5685,8 +5684,10 @@ __unwindtable$?HookDXGI@@YGIPAX@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?HookDXGI@@YGIPAX@Z$6
 	DD	06H
 	DD	FLAT:__unwindfunclet$?HookDXGI@@YGIPAX@Z$7
-	DD	06H
+	DD	07H
 	DD	FLAT:__unwindfunclet$?HookDXGI@@YGIPAX@Z$8
+	DD	08H
+	DD	FLAT:__unwindfunclet$?HookDXGI@@YGIPAX@Z$9
 __unwindtable$?SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z$0
 	DD	00H
@@ -12037,7 +12038,7 @@ __$EHRec$ = -12						; size = 12
 _pFactory$ = 8						; size = 4
 ?SK_DXGI_HookFactory@@YAXPAUIDXGIFactory@@@Z PROC	; SK_DXGI_HookFactory
 
-; 4983 : {
+; 4984 : {
 
 	npad	2
 	push	ebp
@@ -12050,7 +12051,7 @@ _pFactory$ = 8						; size = 4
 	mov	ecx, 1
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4983 : {
+; 4984 : {
 
 	push	-1
 	push	__ehhandler$?SK_DXGI_HookFactory@@YAXPAUIDXGIFactory@@@Z
@@ -12063,7 +12064,7 @@ _pFactory$ = 8						; size = 4
 	mov	edx, OFFSET ?init@?1??SK_DXGI_HookFactory@@YAXPAUIDXGIFactory@@@Z@4KC
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4983 : {
+; 4984 : {
 
 	sub	esp, 8
 ; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
@@ -12074,31 +12075,31 @@ _pFactory$ = 8						; size = 4
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4986 :   if (InterlockedCompareExchange (&init, TRUE, FALSE))
+; 4987 :   if (InterlockedCompareExchange (&init, TRUE, FALSE))
 
 	test	eax, eax
 	jne	$LN104@SK_DXGI_Ho
 
-; 4987 :   {
-; 4988 :     //WaitForInitDXGI ();
-; 4989 :     return;
-; 4990 :   }
-; 4991 : 
-; 4992 :   //int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
-; 4993 : 
-; 4994 :   //  0 QueryInterface
-; 4995 :   //  1 AddRef
-; 4996 :   //  2 Release
-; 4997 :   //  3 SetPrivateData
-; 4998 :   //  4 SetPrivateDataInterface
-; 4999 :   //  5 GetPrivateData
-; 5000 :   //  6 GetParent
-; 5001 :   //  7 EnumAdapters
-; 5002 :   //  8 MakeWindowAssociation
-; 5003 :   //  9 GetWindowAssociation
-; 5004 :   // 10 CreateSwapChain
-; 5005 :   // 11 CreateSoftwareAdapter
-; 5006 :   DXGI_VIRTUAL_HOOK ( &pFactory,     10,
+; 4988 :   {
+; 4989 :     //WaitForInitDXGI ();
+; 4990 :     return;
+; 4991 :   }
+; 4992 : 
+; 4993 :   //int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
+; 4994 : 
+; 4995 :   //  0 QueryInterface
+; 4996 :   //  1 AddRef
+; 4997 :   //  2 Release
+; 4998 :   //  3 SetPrivateData
+; 4999 :   //  4 SetPrivateDataInterface
+; 5000 :   //  5 GetPrivateData
+; 5001 :   //  6 GetParent
+; 5002 :   //  7 EnumAdapters
+; 5003 :   //  8 MakeWindowAssociation
+; 5004 :   //  9 GetWindowAssociation
+; 5005 :   // 10 CreateSwapChain
+; 5006 :   // 11 CreateSoftwareAdapter
+; 5007 :   DXGI_VIRTUAL_HOOK ( &pFactory,     10,
 
 	push	esi
 	mov	esi, DWORD PTR _pFactory$[ebp]
@@ -12106,7 +12107,7 @@ _pFactory$ = 8						; size = 4
 	push	OFFSET ?DXGIFactory_CreateSwapChain_Override@@YGJPAUIDXGIFactory@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z ; DXGIFactory_CreateSwapChain_Override
 	push	10					; 0000000aH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG367078
+	push	OFFSET $SG366710
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
@@ -12132,7 +12133,7 @@ _pFactory$ = 8						; size = 4
 	mov	DWORD PTR _pFactory1$[ebp], ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5012 :   CComQIPtr <IDXGIFactory1> pFactory1 (pFactory);
+; 5013 :   CComQIPtr <IDXGIFactory1> pFactory1 (pFactory);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], edx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -12142,45 +12143,45 @@ _pFactory$ = 8						; size = 4
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5016 :   if (pFactory1 != nullptr)
+; 5017 :   if (pFactory1 != nullptr)
 
 	je	SHORT $LN3@SK_DXGI_Ho
 
-; 5017 :   {
-; 5018 :     DXGI_VIRTUAL_HOOK ( &pFactory1,     12,
+; 5018 :   {
+; 5019 :     DXGI_VIRTUAL_HOOK ( &pFactory1,     12,
 
 	push	OFFSET ?EnumAdapters1_Original@@3P6GJPAUIDXGIFactory1@@IPAPAUIDXGIAdapter1@@@ZA ; EnumAdapters1_Original
 	push	OFFSET ?EnumAdapters1_Override@@YGJPAUIDXGIFactory1@@IPAPAUIDXGIAdapter1@@@Z ; EnumAdapters1_Override
 	push	12					; 0000000cH
 	push	DWORD PTR [ecx]
-	push	OFFSET $SG367081
+	push	OFFSET $SG366713
 
-; 5019 :                         "IDXGIFactory1::EnumAdapters1",
-; 5020 :                          EnumAdapters1_Override,
-; 5021 :                          EnumAdapters1_Original,
-; 5022 :                          EnumAdapters1_pfn );
-; 5023 :   }
-; 5024 : 
-; 5025 :   else
+; 5020 :                         "IDXGIFactory1::EnumAdapters1",
+; 5021 :                          EnumAdapters1_Override,
+; 5022 :                          EnumAdapters1_Original,
+; 5023 :                          EnumAdapters1_pfn );
+; 5024 :   }
+; 5025 : 
+; 5026 :   else
 
 	jmp	SHORT $LN109@SK_DXGI_Ho
 $LN3@SK_DXGI_Ho:
 
-; 5026 :   {
-; 5027 :     //
-; 5028 :     // EnumAdapters actually calls EnumAdapters1 if the interface
-; 5029 :     //   implements IDXGIFactory1...
-; 5030 :     //
-; 5031 :     //  >> Avoid some nasty recursion and only hook EnumAdapters if the
-; 5032 :     //       interface version is DXGI 1.0.
-; 5033 :     //
-; 5034 :     DXGI_VIRTUAL_HOOK ( &pFactory,     7,
+; 5027 :   {
+; 5028 :     //
+; 5029 :     // EnumAdapters actually calls EnumAdapters1 if the interface
+; 5030 :     //   implements IDXGIFactory1...
+; 5031 :     //
+; 5032 :     //  >> Avoid some nasty recursion and only hook EnumAdapters if the
+; 5033 :     //       interface version is DXGI 1.0.
+; 5034 :     //
+; 5035 :     DXGI_VIRTUAL_HOOK ( &pFactory,     7,
 
 	push	OFFSET ?EnumAdapters_Original@@3P6GJPAUIDXGIFactory@@IPAPAUIDXGIAdapter@@@ZA ; EnumAdapters_Original
 	push	OFFSET ?EnumAdapters_Override@@YGJPAUIDXGIFactory@@IPAPAUIDXGIAdapter@@@Z ; EnumAdapters_Override
 	push	7
 	push	DWORD PTR [esi]
-	push	OFFSET $SG367082
+	push	OFFSET $SG366714
 $LN109@SK_DXGI_Ho:
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -12207,7 +12208,7 @@ $LN109@SK_DXGI_Ho:
 	mov	DWORD PTR _pFactory2$[ebp], ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5055 :   CComQIPtr <IDXGIFactory2> pFactory2 (pFactory);
+; 5056 :   CComQIPtr <IDXGIFactory2> pFactory2 (pFactory);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	pop	esi
@@ -12218,15 +12219,15 @@ $LN109@SK_DXGI_Ho:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5057 :   if ( pFactory2 != nullptr ||
+; 5058 :   if ( pFactory2 != nullptr ||
 
 	jne	SHORT $LN8@SK_DXGI_Ho
 	cmp	DWORD PTR ?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA, ecx ; CreateDXGIFactory2_Import
 	je	SHORT $LN7@SK_DXGI_Ho
 
-; 5058 :        CreateDXGIFactory2_Import != nullptr )
-; 5059 :   {
-; 5060 :     if ( pFactory2 != nullptr ||
+; 5059 :        CreateDXGIFactory2_Import != nullptr )
+; 5060 :   {
+; 5061 :     if ( pFactory2 != nullptr ||
 
 	lea	eax, DWORD PTR _pFactory2$[ebp]
 	push	eax
@@ -12237,50 +12238,50 @@ $LN109@SK_DXGI_Ho:
 	js	SHORT $LN7@SK_DXGI_Ho
 $LN8@SK_DXGI_Ho:
 
-; 5061 :          SUCCEEDED (CreateDXGIFactory1_Import (IID_IDXGIFactory2, (void **)&pFactory2)) )
-; 5062 :     {
-; 5063 :       DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
+; 5062 :          SUCCEEDED (CreateDXGIFactory1_Import (IID_IDXGIFactory2, (void **)&pFactory2)) )
+; 5063 :     {
+; 5064 :       DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
 
 	push	OFFSET ?CreateSwapChainForHwnd_Original@@3P6GJPAUIDXGIFactory2@@PAUIUnknown@@PAUHWND__@@PBUDXGI_SWAP_CHAIN_DESC1@@PBUDXGI_SWAP_CHAIN_FULLSCREEN_DESC@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@ZA ; CreateSwapChainForHwnd_Original
 	push	OFFSET ?DXGIFactory2_CreateSwapChainForHwnd_Override@@YGJPAUIDXGIFactory2@@PAUIUnknown@@PAUHWND__@@PBUDXGI_SWAP_CHAIN_DESC1@@PAUDXGI_SWAP_CHAIN_FULLSCREEN_DESC@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@Z ; DXGIFactory2_CreateSwapChainForHwnd_Override
 	push	15					; 0000000fH
 	push	DWORD PTR [ecx]
-	push	OFFSET $SG367087
+	push	OFFSET $SG366719
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 5064 :                           "IDXGIFactory2::CreateSwapChainForHwnd",
-; 5065 :                            DXGIFactory2_CreateSwapChainForHwnd_Override,
-; 5066 :                                         CreateSwapChainForHwnd_Original,
-; 5067 :                                         CreateSwapChainForHwnd_pfn );
-; 5068 : 
-; 5069 :       DXGI_VIRTUAL_HOOK ( &pFactory2,   16,
+; 5065 :                           "IDXGIFactory2::CreateSwapChainForHwnd",
+; 5066 :                            DXGIFactory2_CreateSwapChainForHwnd_Override,
+; 5067 :                                         CreateSwapChainForHwnd_Original,
+; 5068 :                                         CreateSwapChainForHwnd_pfn );
+; 5069 : 
+; 5070 :       DXGI_VIRTUAL_HOOK ( &pFactory2,   16,
 
 	mov	eax, DWORD PTR _pFactory2$[ebp]
 	push	OFFSET ?CreateSwapChainForCoreWindow_Original@@3P6GJPAUIDXGIFactory2@@PAUIUnknown@@1PBUDXGI_SWAP_CHAIN_DESC1@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@ZA ; CreateSwapChainForCoreWindow_Original
 	push	OFFSET ?DXGIFactory2_CreateSwapChainForCoreWindow_Override@@YGJPAUIDXGIFactory2@@PAUIUnknown@@1PBUDXGI_SWAP_CHAIN_DESC1@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@Z ; DXGIFactory2_CreateSwapChainForCoreWindow_Override
 	push	16					; 00000010H
 	push	DWORD PTR [eax]
-	push	OFFSET $SG367088
+	push	OFFSET $SG366720
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 5070 :                           "IDXGIFactory2::CreateSwapChainForCoreWindow",
-; 5071 :                            DXGIFactory2_CreateSwapChainForCoreWindow_Override,
-; 5072 :                                         CreateSwapChainForCoreWindow_Original,
-; 5073 :                                         CreateSwapChainForCoreWindow_pfn );
-; 5074 : 
-; 5075 :       DXGI_VIRTUAL_HOOK ( &pFactory2,   24,
+; 5071 :                           "IDXGIFactory2::CreateSwapChainForCoreWindow",
+; 5072 :                            DXGIFactory2_CreateSwapChainForCoreWindow_Override,
+; 5073 :                                         CreateSwapChainForCoreWindow_Original,
+; 5074 :                                         CreateSwapChainForCoreWindow_pfn );
+; 5075 : 
+; 5076 :       DXGI_VIRTUAL_HOOK ( &pFactory2,   24,
 
 	mov	eax, DWORD PTR _pFactory2$[ebp]
 	push	OFFSET ?CreateSwapChainForComposition_Original@@3P6GJPAUIDXGIFactory2@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC1@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@ZA ; CreateSwapChainForComposition_Original
 	push	OFFSET ?DXGIFactory2_CreateSwapChainForComposition_Override@@YGJPAUIDXGIFactory2@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC1@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@Z ; DXGIFactory2_CreateSwapChainForComposition_Override
 	push	24					; 00000018H
 	push	DWORD PTR [eax]
-	push	OFFSET $SG367089
+	push	OFFSET $SG366721
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 	mov	ecx, DWORD PTR _pFactory2$[ebp]
 $LN7@SK_DXGI_Ho:
 
-; 5101 : }
+; 5102 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -12302,7 +12303,7 @@ $LN95@SK_DXGI_Ho:
 	mov	eax, DWORD PTR _pFactory1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5101 : }
+; 5102 : }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -12320,7 +12321,7 @@ $LN95@SK_DXGI_Ho:
 $LN104@SK_DXGI_Ho:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5101 : }
+; 5102 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -12574,7 +12575,7 @@ ___$ReturnUdt$ = 8					; size = 4
 _fmt$ = 12						; size = 4
 ?SK_DXGI_FormatToString@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@W4DXGI_FORMAT@@@Z PROC ; SK_DXGI_FormatToString
 
-; 4923 : {
+; 4924 : {
 
 	npad	2
 	push	ebp
@@ -12596,7 +12597,7 @@ _fmt$ = 12						; size = 4
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	17					; 00000011H
-	push	OFFSET $SG366498
+	push	OFFSET $SG366130
 	mov	ecx, esi
 	mov	DWORD PTR $T1[ebp], 0
 
@@ -12619,12 +12620,12 @@ _fmt$ = 12						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4925 :   return L"<NOT IMPLEMENTED>";
+; 4926 :   return L"<NOT IMPLEMENTED>";
 
 	mov	eax, esi
 	pop	esi
 
-; 4926 : }
+; 4927 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -12638,17 +12639,17 @@ _pSwapChain1$ = 8					; size = 4
 _rehook$ = 12						; size = 1
 ?SK_DXGI_HookPresent1@@YAXPAUIDXGISwapChain1@@_N@Z PROC	; SK_DXGI_HookPresent1
 
-; 4867 : {
+; 4868 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 4868 :   static LPVOID vftable_22 = nullptr;
-; 4869 : 
-; 4870 :   void** vftable = *(void***)*&pSwapChain1;
-; 4871 : 
-; 4872 :   if (Present1_Original != nullptr)
+; 4869 :   static LPVOID vftable_22 = nullptr;
+; 4870 : 
+; 4871 :   void** vftable = *(void***)*&pSwapChain1;
+; 4872 : 
+; 4873 :   if (Present1_Original != nullptr)
 
 	mov	eax, DWORD PTR ?Present1_Original@@3P6GJPAUIDXGISwapChain1@@IIPBUDXGI_PRESENT_PARAMETERS@@@ZA ; Present1_Original
 	push	esi
@@ -12658,16 +12659,16 @@ _rehook$ = 12						; size = 1
 	test	eax, eax
 	je	SHORT $LN9@SK_DXGI_Ho
 
-; 4873 :   {
-; 4874 :     //dll_log.Log (L"Rehooking IDXGISwapChain::Present1 (...)");
-; 4875 : 
-; 4876 :     if (rehook)
+; 4874 :   {
+; 4875 :     //dll_log.Log (L"Rehooking IDXGISwapChain::Present1 (...)");
+; 4876 : 
+; 4877 :     if (rehook)
 
 	cmp	BYTE PTR _rehook$[ebp], 0
 	je	SHORT $LN6@SK_DXGI_Ho
 
-; 4877 :     {
-; 4878 :       if (MH_OK == SK_RemoveHook (vftable [22]))
+; 4878 :     {
+; 4879 :       if (MH_OK == SK_RemoveHook (vftable [22]))
 
 	push	DWORD PTR [edi+88]
 	call	?SK_RemoveHook@@YG?AW4MH_STATUS@@PAX@Z	; SK_RemoveHook
@@ -12675,40 +12676,40 @@ _rehook$ = 12						; size = 1
 	jne	SHORT $LN4@SK_DXGI_Ho
 $LN11@SK_DXGI_Ho:
 
-; 4879 :       {
-; 4880 :         Present1_Original = nullptr;
+; 4880 :       {
+; 4881 :         Present1_Original = nullptr;
 
 	mov	DWORD PTR ?Present1_Original@@3P6GJPAUIDXGISwapChain1@@IIPBUDXGI_PRESENT_PARAMETERS@@@ZA, 0 ; Present1_Original
 
-; 4881 :       }
-; 4882 : 
-; 4883 :       else
+; 4882 :       }
+; 4883 : 
+; 4884 :       else
 
 	jmp	SHORT $LN9@SK_DXGI_Ho
 $LN4@SK_DXGI_Ho:
 
-; 4884 :       {
-; 4885 :         dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
+; 4885 :       {
+; 4886 :         dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
 
-	push	OFFSET $SG366482
+	push	OFFSET $SG366114
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 4886 :                       L"IDXGISwapChain1::Present1 (...)!" );
-; 4887 :         if (MH_OK == SK_RemoveHook (vftable_22))
+; 4887 :                       L"IDXGISwapChain1::Present1 (...)!" );
+; 4888 :         if (MH_OK == SK_RemoveHook (vftable_22))
 
 	push	DWORD PTR ?vftable_22@?1??SK_DXGI_HookPresent1@@YAXPAUIDXGISwapChain1@@_N@Z@4PAXA
 	call	?SK_RemoveHook@@YG?AW4MH_STATUS@@PAX@Z	; SK_RemoveHook
 	test	eax, eax
 	je	SHORT $LN11@SK_DXGI_Ho
 
-; 4888 :           Present1_Original = nullptr;
-; 4889 :       }
-; 4890 :     }
-; 4891 :   }
-; 4892 : 
-; 4893 :   if (Present1_Original == nullptr)
+; 4889 :           Present1_Original = nullptr;
+; 4890 :       }
+; 4891 :     }
+; 4892 :   }
+; 4893 : 
+; 4894 :   if (Present1_Original == nullptr)
 
 	mov	eax, DWORD PTR ?Present1_Original@@3P6GJPAUIDXGISwapChain1@@IIPBUDXGI_PRESENT_PARAMETERS@@@ZA ; Present1_Original
 $LN6@SK_DXGI_Ho:
@@ -12716,22 +12717,22 @@ $LN6@SK_DXGI_Ho:
 	jne	SHORT $LN7@SK_DXGI_Ho
 $LN9@SK_DXGI_Ho:
 
-; 4894 :   {
-; 4895 :     DXGI_VIRTUAL_HOOK ( &pSwapChain1, 22,
+; 4895 :   {
+; 4896 :     DXGI_VIRTUAL_HOOK ( &pSwapChain1, 22,
 
 	push	OFFSET ?Present1_Original@@3P6GJPAUIDXGISwapChain1@@IIPBUDXGI_PRESENT_PARAMETERS@@@ZA ; Present1_Original
 	push	OFFSET ?Present1Callback@@YGJPAUIDXGISwapChain1@@IIPBUDXGI_PRESENT_PARAMETERS@@@Z ; Present1Callback
 	push	22					; 00000016H
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366485
+	push	OFFSET $SG366117
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 4896 :                         "IDXGISwapChain1::Present1",
-; 4897 :                          Present1Callback,
-; 4898 :                          Present1_Original,
-; 4899 :                          Present1SwapChain1_pfn );
-; 4900 : 
-; 4901 :     vftable_22 = vftable [22];
+; 4897 :                         "IDXGISwapChain1::Present1",
+; 4898 :                          Present1Callback,
+; 4899 :                          Present1_Original,
+; 4900 :                          Present1SwapChain1_pfn );
+; 4901 : 
+; 4902 :     vftable_22 = vftable [22];
 
 	mov	eax, DWORD PTR [edi+88]
 	mov	DWORD PTR ?vftable_22@?1??SK_DXGI_HookPresent1@@YAXPAUIDXGISwapChain1@@_N@Z@4PAXA, eax
@@ -12739,8 +12740,8 @@ $LN7@SK_DXGI_Ho:
 	pop	edi
 	pop	esi
 
-; 4902 :   }
-; 4903 : }
+; 4903 :   }
+; 4904 : }
 
 	pop	ebp
 	ret	0
@@ -12755,13 +12756,13 @@ _pSwapChain$ = 8					; size = 4
 _rehook$ = 12						; size = 1
 ?SK_DXGI_HookPresentBase@@YAXPAUIDXGISwapChain@@_N@Z PROC ; SK_DXGI_HookPresentBase
 
-; 4811 : {
+; 4812 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 4812 :   if (rehook)
+; 4813 :   if (rehook)
 
 	cmp	BYTE PTR _rehook$[ebp], 0
 	je	SHORT $LN2@SK_DXGI_Ho
@@ -12775,13 +12776,13 @@ _rehook$ = 12						; size = 1
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4816 :     if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE))
+; 4817 :     if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE))
 
 	test	eax, eax
 	jne	SHORT $LN10@SK_DXGI_Ho
 
-; 4817 :     {
-; 4818 :       DXGI_INTERCEPT_EX ( &pSwapChain, 8,
+; 4818 :     {
+; 4819 :       DXGI_INTERCEPT_EX ( &pSwapChain, 8,
 
 	cmp	DWORD PTR ?PresentSwapChain_Original_Pre@@3P6GJPAUIDXGISwapChain@@II@ZA, eax ; PresentSwapChain_Original_Pre
 	jne	SHORT $LN4@SK_DXGI_Ho
@@ -12791,36 +12792,36 @@ _rehook$ = 12						; size = 1
 	push	OFFSET ?PresentCallback_Pre@@YGJPAUIDXGISwapChain@@II@Z ; PresentCallback_Pre
 	push	8
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366458
+	push	OFFSET $SG366090
 	call	?SK_CreateVFTableHookEx@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1I@Z ; SK_CreateVFTableHookEx
 $LN4@SK_DXGI_Ho:
 
-; 4819 :                             "IDXGISwapChain::Present",
-; 4820 :                             PresentCallback_Pre,
-; 4821 :                             PresentSwapChain_Original_Pre,
-; 4822 :                             PresentSwapChain_pfn );
-; 4823 :       MH_ApplyQueuedEx (1);
+; 4820 :                             "IDXGISwapChain::Present",
+; 4821 :                             PresentCallback_Pre,
+; 4822 :                             PresentSwapChain_Original_Pre,
+; 4823 :                             PresentSwapChain_pfn );
+; 4824 :       MH_ApplyQueuedEx (1);
 
 	push	1
 	call	_MH_ApplyQueuedEx@4
 
-; 4862 :   }
-; 4863 : }
+; 4863 :   }
+; 4864 : }
 
 	pop	ebp
 	ret	0
 $LN2@SK_DXGI_Ho:
 
-; 4824 :     }
-; 4825 : 
-; 4826 :     return;
-; 4827 :   }
-; 4828 : 
-; 4829 :   static LPVOID vftable_8  = nullptr;
-; 4830 : 
-; 4831 :   void** vftable = *(void***)*&pSwapChain;
-; 4832 : 
-; 4833 :   if (Present_Original != nullptr)
+; 4825 :     }
+; 4826 : 
+; 4827 :     return;
+; 4828 :   }
+; 4829 : 
+; 4830 :   static LPVOID vftable_8  = nullptr;
+; 4831 : 
+; 4832 :   void** vftable = *(void***)*&pSwapChain;
+; 4833 : 
+; 4834 :   if (Present_Original != nullptr)
 
 	cmp	DWORD PTR ?Present_Original@@3P6GJPAUIDXGISwapChain@@II@ZA, 0 ; Present_Original
 	mov	ecx, DWORD PTR _pSwapChain$[ebp]
@@ -12828,51 +12829,51 @@ $LN2@SK_DXGI_Ho:
 	mov	esi, DWORD PTR [ecx]
 	jne	SHORT $LN15@SK_DXGI_Ho
 
-; 4834 :   {
-; 4835 :     //dll_log.Log (L"Rehooking IDXGISwapChain::Present (...)");
-; 4836 : 
-; 4837 :     if (rehook)
-; 4838 :     {
-; 4839 :       if (MH_OK == SK_RemoveHook (vftable [8]))
-; 4840 :         Present_Original = nullptr;
-; 4841 :       else {
-; 4842 :         dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
-; 4843 :                       L"IDXGISwapChain::Present (...)!" );
-; 4844 :         if (MH_OK == SK_RemoveHook (vftable_8))
-; 4845 :           Present_Original = nullptr;
-; 4846 :       }
-; 4847 :     }
-; 4848 :   }
-; 4849 : 
-; 4850 :   if (Present_Original == nullptr)
-; 4851 :   {
-; 4852 :     Present_Target = (PresentSwapChain_pfn)vftable [8];
+; 4835 :   {
+; 4836 :     //dll_log.Log (L"Rehooking IDXGISwapChain::Present (...)");
+; 4837 : 
+; 4838 :     if (rehook)
+; 4839 :     {
+; 4840 :       if (MH_OK == SK_RemoveHook (vftable [8]))
+; 4841 :         Present_Original = nullptr;
+; 4842 :       else {
+; 4843 :         dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
+; 4844 :                       L"IDXGISwapChain::Present (...)!" );
+; 4845 :         if (MH_OK == SK_RemoveHook (vftable_8))
+; 4846 :           Present_Original = nullptr;
+; 4847 :       }
+; 4848 :     }
+; 4849 :   }
+; 4850 : 
+; 4851 :   if (Present_Original == nullptr)
+; 4852 :   {
+; 4853 :     Present_Target = (PresentSwapChain_pfn)vftable [8];
 
 	mov	eax, DWORD PTR [esi+32]
 
-; 4853 : 
-; 4854 :     DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
+; 4854 : 
+; 4855 :     DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
 
 	push	OFFSET ?Present_Original@@3P6GJPAUIDXGISwapChain@@II@ZA ; Present_Original
 	push	OFFSET ?PresentCallback@@YGJPAUIDXGISwapChain@@II@Z ; PresentCallback
 	push	8
 	mov	DWORD PTR ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA, eax ; Present_Target
 	push	DWORD PTR [ecx]
-	push	OFFSET $SG366466
+	push	OFFSET $SG366098
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 4855 :                         "IDXGISwapChain::Present",
-; 4856 :                          PresentCallback,
-; 4857 :                          Present_Original,
-; 4858 :                          PresentSwapChain_pfn );
-; 4859 : 
-; 4860 :     memcpy (Present_GuardBytes, Present_Target, 16);
+; 4856 :                         "IDXGISwapChain::Present",
+; 4857 :                          PresentCallback,
+; 4858 :                          Present_Original,
+; 4859 :                          PresentSwapChain_pfn );
+; 4860 : 
+; 4861 :     memcpy (Present_GuardBytes, Present_Target, 16);
 
 	mov	eax, DWORD PTR ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA ; Present_Target
 	movups	xmm0, XMMWORD PTR [eax]
 	movups	XMMWORD PTR ?Present_GuardBytes@@3PAEA, xmm0
 
-; 4861 :     vftable_8 = vftable [8];
+; 4862 :     vftable_8 = vftable [8];
 
 	mov	eax, DWORD PTR [esi+32]
 	mov	DWORD PTR ?vftable_8@?1??SK_DXGI_HookPresentBase@@YAXPAUIDXGISwapChain@@_N@Z@4PAXA, eax
@@ -12880,8 +12881,8 @@ $LN15@SK_DXGI_Ho:
 	pop	esi
 $LN10@SK_DXGI_Ho:
 
-; 4862 :   }
-; 4863 : }
+; 4863 :   }
+; 4864 : }
 
 	pop	ebp
 	ret	0
@@ -12895,19 +12896,19 @@ _SyncInterval$ = 12					; size = 4
 _Flags$ = 16						; size = 4
 ?PresentCallback_Pre@@YGJPAUIDXGISwapChain@@II@Z PROC	; PresentCallback_Pre
 
-; 4798 : {
+; 4799 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	edi
 
-; 4799 :   SK_GetCurrentRenderBackend ().present_interval = SyncInterval;
+; 4800 :   SK_GetCurrentRenderBackend ().present_interval = SyncInterval;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 
-; 4800 : 
-; 4801 :   SK_CEGUI_DrawD3D11 (This);
+; 4801 : 
+; 4802 :   SK_CEGUI_DrawD3D11 (This);
 
 	push	DWORD PTR _This$[ebp]
 	mov	edi, DWORD PTR _SyncInterval$[ebp]
@@ -12915,8 +12916,8 @@ _Flags$ = 16						; size = 4
 	call	?SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z ; SK_CEGUI_DrawD3D11
 	add	esp, 4
 
-; 4802 : 
-; 4803 :   return PresentSwapChain_Original_Pre (This, SyncInterval, Flags);
+; 4803 : 
+; 4804 :   return PresentSwapChain_Original_Pre (This, SyncInterval, Flags);
 
 	push	DWORD PTR _Flags$[ebp]
 	push	edi
@@ -12924,7 +12925,7 @@ _Flags$ = 16						; size = 4
 	call	DWORD PTR ?PresentSwapChain_Original_Pre@@3P6GJPAUIDXGISwapChain@@II@ZA ; PresentSwapChain_Original_Pre
 	pop	edi
 
-; 4804 : }
+; 4805 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -12935,72 +12936,72 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_DXGI_PreHook@@YAXXZ PROC				; SK_DXGI_PreHook
 
-; 4729 :   if (! SK_IsInjected ())
+; 4730 :   if (! SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	$LN8@SK_DXGI_Pr
 
-; 4730 :     return;
-; 4731 : 
-; 4732 :   if (SK_GetDLLRole () != DLL_ROLE::DXGI && (! LoadLibraryW (L"dxgi.dll")))
+; 4731 :     return;
+; 4732 : 
+; 4733 :   if (SK_GetDLLRole () != DLL_ROLE::DXGI && (! LoadLibraryW (L"dxgi.dll")))
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	cmp	eax, 1
 	je	SHORT $LN3@SK_DXGI_Pr
-	push	OFFSET $SG366418
+	push	OFFSET $SG366050
 	call	DWORD PTR __imp__LoadLibraryW@4
 	test	eax, eax
 	je	$LN8@SK_DXGI_Pr
 $LN3@SK_DXGI_Pr:
 
-; 4733 :     return;
-; 4734 : 
-; 4735 :   if (! config.injection.global.use_static_addresses)
+; 4734 :     return;
+; 4735 : 
+; 4736 :   if (! config.injection.global.use_static_addresses)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+720, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
 	je	$LN8@SK_DXGI_Pr
 
-; 4736 :     return;
-; 4737 : 
-; 4738 :   extern HRESULT
-; 4739 :   STDMETHODCALLTYPE PresentCallback (IDXGISwapChain *This,
-; 4740 :                                      UINT            SyncInterval,
-; 4741 :                                      UINT            Flags);
-; 4742 : 
-; 4743 :   if (LoadLibraryW (L"dxgi.dll") && Present_Target == nullptr)
+; 4737 :     return;
+; 4738 : 
+; 4739 :   extern HRESULT
+; 4740 :   STDMETHODCALLTYPE PresentCallback (IDXGISwapChain *This,
+; 4741 :                                      UINT            SyncInterval,
+; 4742 :                                      UINT            Flags);
+; 4743 : 
+; 4744 :   if (LoadLibraryW (L"dxgi.dll") && Present_Target == nullptr)
 
-	push	OFFSET $SG366421
+	push	OFFSET $SG366053
 	call	DWORD PTR __imp__LoadLibraryW@4
 	test	eax, eax
 	je	$LN8@SK_DXGI_Pr
 	cmp	DWORD PTR ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA, 0 ; Present_Target
 	jne	$LN8@SK_DXGI_Pr
 
-; 4744 :   {
-; 4745 :     SK_LOG0 ((L" Enabling Static Injection Addresses for DXGI"), L"DXGI Hooks");
+; 4745 :   {
+; 4746 :     SK_LOG0 ((L" Enabling Static Injection Addresses for DXGI"), L"DXGI Hooks");
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN6@SK_DXGI_Pr
-	push	OFFSET $SG366423
+	push	OFFSET $SG366055
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN6@SK_DXGI_Pr:
 
-; 4746 : 
-; 4747 :     Present_Target       = reinterpret_cast <PresentSwapChain_pfn>
+; 4747 : 
+; 4748 :     Present_Target       = reinterpret_cast <PresentSwapChain_pfn>
 
 	mov	ecx, DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
 	push	1
-	push	OFFSET $SG366424
-	push	OFFSET $SG366425
+	push	OFFSET $SG366056
+	push	OFFSET $SG366057
 	call	?getNamedAddress@SK_Inject_AddressCacheRegistry@@QAEIPB_WPBDW4SK_SYS_CPUArch@@@Z ; SK_Inject_AddressCacheRegistry::getNamedAddress
 
-; 4748 :        ( SK_Inject_AddressManager->getNamedAddress (L"dxgi", "IDXGISwapChain::Present") );
-; 4749 : 
-; 4750 :     if (MH_OK == MH_CreateHook (Present_Target, PresentCallback, (LPVOID *)&Present_Original))
+; 4749 :        ( SK_Inject_AddressManager->getNamedAddress (L"dxgi", "IDXGISwapChain::Present") );
+; 4750 : 
+; 4751 :     if (MH_OK == MH_CreateHook (Present_Target, PresentCallback, (LPVOID *)&Present_Original))
 
 	push	OFFSET ?Present_Original@@3P6GJPAUIDXGISwapChain@@II@ZA ; Present_Original
 	push	OFFSET ?PresentCallback@@YGJPAUIDXGISwapChain@@II@Z ; PresentCallback
@@ -13010,49 +13011,49 @@ $LN6@SK_DXGI_Pr:
 	test	eax, eax
 	jne	SHORT $LN7@SK_DXGI_Pr
 
-; 4751 :     {
-; 4752 :                  MH_EnableHook (Present_Target);
+; 4752 :     {
+; 4753 :                  MH_EnableHook (Present_Target);
 
 	push	DWORD PTR ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA ; Present_Target
 	call	_MH_EnableHook@4
 
-; 4753 :       memcpy ( Present_GuardBytes,
+; 4754 :       memcpy ( Present_GuardBytes,
 
 	mov	eax, DWORD PTR ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA ; Present_Target
 	movups	xmm0, XMMWORD PTR [eax]
 
-; 4754 :                                 Present_Target, 16 );
-; 4755 :     }
-; 4756 : 
-; 4757 :     else
-; 4758 :     {
-; 4759 :       Present_Target = nullptr; ZeroMemory (Present_GuardBytes, 16); Present_Original = nullptr;
+; 4755 :                                 Present_Target, 16 );
+; 4756 :     }
+; 4757 : 
+; 4758 :     else
+; 4759 :     {
+; 4760 :       Present_Target = nullptr; ZeroMemory (Present_GuardBytes, 16); Present_Original = nullptr;
 
 	movups	XMMWORD PTR ?Present_GuardBytes@@3PAEA, xmm0
 
-; 4760 :     }
-; 4761 :   }
-; 4762 : }
+; 4761 :     }
+; 4762 :   }
+; 4763 : }
 
 	ret	0
 $LN7@SK_DXGI_Pr:
 	xorps	xmm0, xmm0
 
-; 4754 :                                 Present_Target, 16 );
-; 4755 :     }
-; 4756 : 
-; 4757 :     else
-; 4758 :     {
-; 4759 :       Present_Target = nullptr; ZeroMemory (Present_GuardBytes, 16); Present_Original = nullptr;
+; 4755 :                                 Present_Target, 16 );
+; 4756 :     }
+; 4757 : 
+; 4758 :     else
+; 4759 :     {
+; 4760 :       Present_Target = nullptr; ZeroMemory (Present_GuardBytes, 16); Present_Original = nullptr;
 
 	mov	DWORD PTR ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA, 0 ; Present_Target
 	mov	DWORD PTR ?Present_Original@@3P6GJPAUIDXGISwapChain@@II@ZA, 0 ; Present_Original
 	movups	XMMWORD PTR ?Present_GuardBytes@@3PAEA, xmm0
 $LN8@SK_DXGI_Pr:
 
-; 4760 :     }
-; 4761 :   }
-; 4762 : }
+; 4761 :     }
+; 4762 :   }
+; 4763 : }
 
 	ret	0
 ?SK_DXGI_PreHook@@YAXXZ ENDP				; SK_DXGI_PreHook
@@ -13067,20 +13068,20 @@ _TEXT	SEGMENT
 _finish$ = 8						; size = 4
 ?dxgi_init_callback@@YGXP6GXXZ@Z PROC			; dxgi_init_callback
 
-; 4709 : {
+; 4710 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 4710 :   if (! SK_IsHostAppSKIM ())
+; 4711 :   if (! SK_IsHostAppSKIM ())
 
 	call	?SK_IsHostAppSKIM@@YA_NXZ		; SK_IsHostAppSKIM
 	test	al, al
 	jne	SHORT $LN3@dxgi_init_
 
-; 4711 :   {
-; 4712 :     SK_BootDXGI ();
+; 4712 :   {
+; 4713 :     SK_BootDXGI ();
 
 	call	?SK_BootDXGI@@YAXXZ			; SK_BootDXGI
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -13090,7 +13091,7 @@ _finish$ = 8						; size = 4
 	mov	eax, DWORD PTR ?__dxgi_ready@@3JC	; __dxgi_ready
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4714 :     while (! ReadAcquire (&__dxgi_ready))
+; 4715 :     while (! ReadAcquire (&__dxgi_ready))
 
 	test	eax, eax
 	jne	SHORT $LN3@dxgi_init_
@@ -13098,7 +13099,7 @@ _finish$ = 8						; size = 4
 	mov	esi, DWORD PTR __imp__MsgWaitForMultipleObjectsEx@20
 $LL2@dxgi_init_:
 
-; 4715 :       MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
+; 4716 :       MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
 
 	push	2
 	push	1279					; 000004ffH
@@ -13113,20 +13114,20 @@ $LL2@dxgi_init_:
 	mov	eax, DWORD PTR ?__dxgi_ready@@3JC	; __dxgi_ready
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4714 :     while (! ReadAcquire (&__dxgi_ready))
+; 4715 :     while (! ReadAcquire (&__dxgi_ready))
 
 	test	eax, eax
 	je	SHORT $LL2@dxgi_init_
 	pop	esi
 $LN3@dxgi_init_:
 
-; 4716 :   }
-; 4717 : 
-; 4718 :   finish ();
+; 4717 :   }
+; 4718 : 
+; 4719 :   finish ();
 
 	call	DWORD PTR _finish$[ebp]
 
-; 4719 : }
+; 4720 : }
 
 	pop	ebp
 	ret	4
@@ -13208,7 +13209,7 @@ text$di	SEGMENT
 __Alproxy$1 = -1					; size = 1
 ??__Eold_threads@@YAXXZ PROC				; `dynamic initializer for 'old_threads'', COMDAT
 
-; 4704 : static std::queue <DWORD> old_threads;
+; 4705 : static std::queue <DWORD> old_threads;
 
 	npad	2
 	push	ebp
@@ -13285,7 +13286,7 @@ $LN36@dynamic:
 	mov	eax, DWORD PTR ?old_threads@@3V?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@A
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4704 : static std::queue <DWORD> old_threads;
+; 4705 : static std::queue <DWORD> old_threads;
 
 	push	OFFSET ??__Fold_threads@@YAXXZ		; `dynamic atexit destructor for 'old_threads''
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
@@ -13295,7 +13296,7 @@ $LN36@dynamic:
 	mov	DWORD PTR [eax], OFFSET ?old_threads@@3V?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@A
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4704 : static std::queue <DWORD> old_threads;
+; 4705 : static std::queue <DWORD> old_threads;
 
 	call	_atexit
 	add	esp, 4
@@ -14524,19 +14525,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJIABU_GUID@@PAPAX@Z@@YAPAPAXPAP6GJIABU_GUID@@PAPAX@Z@Z PROC ; static_cast_p2p<void,long __stdcall(unsigned int,_GUID const &,void * *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -14549,19 +14550,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJABU_GUID@@PAPAX@Z@@YAPAPAXPAP6GJABU_GUID@@PAPAX@Z@Z PROC ; static_cast_p2p<void,long __stdcall(_GUID const &,void * *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -14600,7 +14601,7 @@ $T6 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ?SK_HookDXGI@@YGXXZ PROC				; SK_HookDXGI
 
-; 4603 : {
+; 4604 : {
 
 	npad	2
 	push	ebp
@@ -14613,7 +14614,7 @@ __$EHRec$ = -12						; size = 12
 	mov	ecx, 1
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4603 : {
+; 4604 : {
 
 	push	-1
 	push	__ehhandler$?SK_HookDXGI@@YGXXZ
@@ -14626,7 +14627,7 @@ __$EHRec$ = -12						; size = 12
 	mov	edx, OFFSET ?hooked@?1??SK_HookDXGI@@YGXXZ@4KC
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4603 : {
+; 4604 : {
 
 	sub	esp, 28					; 0000001cH
 ; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
@@ -14637,27 +14638,27 @@ __$EHRec$ = -12						; size = 12
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4606 :   if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+; 4607 :   if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
 
 	test	eax, eax
 	jne	$LN3@SK_HookDXG
 
-; 4607 :     return;
-; 4608 : 
-; 4609 : #ifdef _WIN64
-; 4610 :   if (! config.apis.dxgi.d3d11.hook)
-; 4611 :     config.apis.dxgi.d3d12.hook = false;
-; 4612 : #endif
-; 4613 : 
-; 4614 :   if (! config.apis.dxgi.d3d11.hook)
+; 4608 :     return;
+; 4609 : 
+; 4610 : #ifdef _WIN64
+; 4611 :   if (! config.apis.dxgi.d3d11.hook)
+; 4612 :     config.apis.dxgi.d3d12.hook = false;
+; 4613 : #endif
+; 4614 : 
+; 4615 :   if (! config.apis.dxgi.d3d11.hook)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, al
 	je	$LN3@SK_HookDXG
 
-; 4615 :     return;
-; 4616 : 
-; 4617 :   HMODULE hBackend = 
-; 4618 :     (SK_GetDLLRole () & DLL_ROLE::DXGI) ? backend_dll :
+; 4616 :     return;
+; 4617 : 
+; 4618 :   HMODULE hBackend = 
+; 4619 :     (SK_GetDLLRole () & DLL_ROLE::DXGI) ? backend_dll :
 
 	push	ebx
 	push	esi
@@ -14668,28 +14669,28 @@ __$EHRec$ = -12						; size = 12
 	mov	edi, DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A ; backend_dll
 	jmp	SHORT $LN14@SK_HookDXG
 $LN13@SK_HookDXG:
-	push	OFFSET $SG358252
+	push	OFFSET $SG357884
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	edi, eax
 $LN14@SK_HookDXG:
 
-; 4619 :                                             GetModuleHandle (L"dxgi.dll");
-; 4620 : 
+; 4620 :                                             GetModuleHandle (L"dxgi.dll");
 ; 4621 : 
-; 4622 :   dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
+; 4622 : 
+; 4623 :   dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
 
-	push	OFFSET $SG358253
+	push	OFFSET $SG357885
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 4623 :   dll_log.Log (L"[   DXGI   ] ================================");
+; 4624 :   dll_log.Log (L"[   DXGI   ] ================================");
 
-	push	OFFSET $SG358254
+	push	OFFSET $SG357886
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
 
-; 4626 :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
+; 4627 :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -14714,9 +14715,9 @@ $LN14@SK_HookDXG:
 $LN43@SK_HookDXG:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4626 :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
+; 4627 :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
 
-	push	OFFSET $SG358258
+	push	OFFSET $SG357890
 	push	eax
 	call	DWORD PTR __imp___wcsicmp
 	add	esp, 8
@@ -14728,7 +14729,7 @@ $LN43@SK_HookDXG:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4626 :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
+; 4627 :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
 
 	sete	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -14760,7 +14761,7 @@ $LN43@SK_HookDXG:
 $LN53@SK_HookDXG:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4628 :     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph",
+; 4629 :     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph",
 
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -14784,219 +14785,219 @@ $LN53@SK_HookDXG:
 	mov	WORD PTR $T2[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4626 :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
+; 4627 :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
 
 	test	bl, bl
 	je	SHORT $LN6@SK_HookDXG
 
-; 4628 :     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph",
+; 4629 :     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph",
 
-	push	OFFSET $SG358259
+	push	OFFSET $SG357891
 	push	edi
 	call	esi
 	push	eax
-	push	OFFSET $SG358260
+	push	OFFSET $SG357892
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA, eax ; CreateDXGIFactory_Import
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 4629 :       (CreateDXGIFactory_Import =  \
-; 4630 :         (CreateDXGIFactory_pfn)GetProcAddress (hBackend, "CreateDXGIFactory")));
-; 4631 :     dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %ph",
+; 4630 :       (CreateDXGIFactory_Import =  \
+; 4631 :         (CreateDXGIFactory_pfn)GetProcAddress (hBackend, "CreateDXGIFactory")));
+; 4632 :     dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %ph",
 
-	push	OFFSET $SG358261
+	push	OFFSET $SG357893
 	push	edi
 	call	esi
 	push	eax
-	push	OFFSET $SG358262
+	push	OFFSET $SG357894
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA, eax ; CreateDXGIFactory1_Import
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 4632 :       (CreateDXGIFactory1_Import = \
-; 4633 :         (CreateDXGIFactory1_pfn)GetProcAddress (hBackend, "CreateDXGIFactory1")));
-; 4634 :     dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph",
+; 4633 :       (CreateDXGIFactory1_Import = \
+; 4634 :         (CreateDXGIFactory1_pfn)GetProcAddress (hBackend, "CreateDXGIFactory1")));
+; 4635 :     dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph",
 
-	push	OFFSET $SG358263
+	push	OFFSET $SG357895
 	push	edi
 	call	esi
 	push	eax
-	push	OFFSET $SG358264
+	push	OFFSET $SG357896
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA, eax ; CreateDXGIFactory2_Import
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 4635 :       (CreateDXGIFactory2_Import = \
-; 4636 :         (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2")));
-; 4637 :   }
-; 4638 : 
-; 4639 :   else
+; 4636 :       (CreateDXGIFactory2_Import = \
+; 4637 :         (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2")));
+; 4638 :   }
+; 4639 : 
+; 4640 :   else
 
 	jmp	$LN7@SK_HookDXG
 $LN6@SK_HookDXG:
 
-; 4640 :   {
-; 4641 :     if (GetProcAddress (hBackend, "CreateDXGIFactory"))
+; 4641 :   {
+; 4642 :     if (GetProcAddress (hBackend, "CreateDXGIFactory"))
 
-	push	OFFSET $SG358266
+	push	OFFSET $SG357898
 	push	edi
 	call	esi
 	test	eax, eax
 	je	SHORT $LN8@SK_HookDXG
 
-; 4642 :     {
-; 4643 :       SK_CreateDLLHook2 (      L"dxgi.dll",
+; 4643 :     {
+; 4644 :       SK_CreateDLLHook2 (      L"dxgi.dll",
 
 	push	0
 	push	OFFSET ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory_Import
 	push	OFFSET ?CreateDXGIFactory@@YGJABU_GUID@@PAPAX@Z ; CreateDXGIFactory
-	push	OFFSET $SG358267
-	push	OFFSET $SG358268
+	push	OFFSET $SG357899
+	push	OFFSET $SG357900
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN8@SK_HookDXG:
 
-; 4644 :                                 "CreateDXGIFactory",
-; 4645 :                                  CreateDXGIFactory,
-; 4646 :         static_cast_p2p <void> (&CreateDXGIFactory_Import) );
-; 4647 :     }
-; 4648 : 
-; 4649 :     if (GetProcAddress (hBackend, "CreateDXGIFactory1"))
+; 4645 :                                 "CreateDXGIFactory",
+; 4646 :                                  CreateDXGIFactory,
+; 4647 :         static_cast_p2p <void> (&CreateDXGIFactory_Import) );
+; 4648 :     }
+; 4649 : 
+; 4650 :     if (GetProcAddress (hBackend, "CreateDXGIFactory1"))
 
-	push	OFFSET $SG358270
+	push	OFFSET $SG357902
 	push	edi
 	call	esi
 	test	eax, eax
 	je	SHORT $LN9@SK_HookDXG
 
-; 4650 :     {
-; 4651 :       SK_CreateDLLHook2 (      L"dxgi.dll",
+; 4651 :     {
+; 4652 :       SK_CreateDLLHook2 (      L"dxgi.dll",
 
 	push	0
 	push	OFFSET ?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory1_Import
 	push	OFFSET ?CreateDXGIFactory1@@YGJABU_GUID@@PAPAX@Z ; CreateDXGIFactory1
-	push	OFFSET $SG358271
-	push	OFFSET $SG358272
+	push	OFFSET $SG357903
+	push	OFFSET $SG357904
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN9@SK_HookDXG:
 
-; 4652 :                                 "CreateDXGIFactory1",
-; 4653 :                                  CreateDXGIFactory1,
-; 4654 :         static_cast_p2p <void> (&CreateDXGIFactory1_Import) );
-; 4655 :     }
-; 4656 : 
-; 4657 :     if (GetProcAddress (hBackend, "CreateDXGIFactory2"))
+; 4653 :                                 "CreateDXGIFactory1",
+; 4654 :                                  CreateDXGIFactory1,
+; 4655 :         static_cast_p2p <void> (&CreateDXGIFactory1_Import) );
+; 4656 :     }
+; 4657 : 
+; 4658 :     if (GetProcAddress (hBackend, "CreateDXGIFactory2"))
 
-	push	OFFSET $SG358274
+	push	OFFSET $SG357906
 	push	edi
 	call	esi
 	test	eax, eax
 	je	SHORT $LN10@SK_HookDXG
 
-; 4658 :     {
-; 4659 :       SK_CreateDLLHook2 (      L"dxgi.dll",
+; 4659 :     {
+; 4660 :       SK_CreateDLLHook2 (      L"dxgi.dll",
 
 	push	0
 	push	OFFSET ?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA ; CreateDXGIFactory2_Import
 	push	OFFSET ?CreateDXGIFactory2@@YGJIABU_GUID@@PAPAX@Z ; CreateDXGIFactory2
-	push	OFFSET $SG358275
-	push	OFFSET $SG358276
+	push	OFFSET $SG357907
+	push	OFFSET $SG357908
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN10@SK_HookDXG:
 
-; 4660 :                                 "CreateDXGIFactory2",
-; 4661 :                                  CreateDXGIFactory2,
-; 4662 :         static_cast_p2p <void> (&CreateDXGIFactory2_Import) );
-; 4663 :     }
-; 4664 : 
-; 4665 :     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph  %s",
+; 4661 :                                 "CreateDXGIFactory2",
+; 4662 :                                  CreateDXGIFactory2,
+; 4663 :         static_cast_p2p <void> (&CreateDXGIFactory2_Import) );
+; 4664 :     }
+; 4665 : 
+; 4666 :     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph  %s",
 
 	mov	eax, DWORD PTR ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory_Import
-	mov	edx, OFFSET $SG358278
+	mov	edx, OFFSET $SG357910
 	test	eax, eax
-	mov	ecx, OFFSET $SG358277
+	mov	ecx, OFFSET $SG357909
 	cmove	ecx, edx
 	push	ecx
 	push	eax
-	push	OFFSET $SG358279
+	push	OFFSET $SG357911
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 4666 :       (CreateDXGIFactory_Import),
-; 4667 :         (CreateDXGIFactory_Import ? L"{ Hooked }" : L"" ) );
-; 4668 :     dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %ph  %s",
+; 4667 :       (CreateDXGIFactory_Import),
+; 4668 :         (CreateDXGIFactory_Import ? L"{ Hooked }" : L"" ) );
+; 4669 :     dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %ph  %s",
 
 	mov	eax, DWORD PTR ?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory1_Import
-	mov	edx, OFFSET $SG358281
+	mov	edx, OFFSET $SG357913
 	test	eax, eax
-	mov	ecx, OFFSET $SG358280
+	mov	ecx, OFFSET $SG357912
 	cmove	ecx, edx
 	push	ecx
 	push	eax
-	push	OFFSET $SG358282
+	push	OFFSET $SG357914
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 4669 :       (CreateDXGIFactory1_Import),
-; 4670 :         (CreateDXGIFactory1_Import ? L"{ Hooked }" : L"" ) );
-; 4671 :     dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph  %s",
+; 4670 :       (CreateDXGIFactory1_Import),
+; 4671 :         (CreateDXGIFactory1_Import ? L"{ Hooked }" : L"" ) );
+; 4672 :     dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph  %s",
 
 	mov	eax, DWORD PTR ?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA ; CreateDXGIFactory2_Import
-	mov	edx, OFFSET $SG358284
+	mov	edx, OFFSET $SG357916
 	test	eax, eax
-	mov	ecx, OFFSET $SG358283
+	mov	ecx, OFFSET $SG357915
 	cmove	ecx, edx
 	push	ecx
 	push	eax
-	push	OFFSET $SG358285
+	push	OFFSET $SG357917
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 48					; 00000030H
 $LN7@SK_HookDXG:
 
-; 4672 :       (CreateDXGIFactory2_Import),
-; 4673 :         (CreateDXGIFactory2_Import ? L"{ Hooked }" : L"" ) );
-; 4674 :   }
-; 4675 : 
-; 4676 :   if (CreateDXGIFactory1_Import != nullptr)
+; 4673 :       (CreateDXGIFactory2_Import),
+; 4674 :         (CreateDXGIFactory2_Import ? L"{ Hooked }" : L"" ) );
+; 4675 :   }
+; 4676 : 
+; 4677 :   if (CreateDXGIFactory1_Import != nullptr)
 
 	cmp	DWORD PTR ?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA, 0 ; CreateDXGIFactory1_Import
 	je	SHORT $LN11@SK_HookDXG
 
-; 4677 :   {
-; 4678 :     SK_DXGI_use_factory1 = true;
+; 4678 :   {
+; 4679 :     SK_DXGI_use_factory1 = true;
 
 	mov	BYTE PTR ?SK_DXGI_use_factory1@@3_NA, 1	; SK_DXGI_use_factory1
 
-; 4679 :     SK_DXGI_factory_init = true;
+; 4680 :     SK_DXGI_factory_init = true;
 
 	mov	BYTE PTR ?SK_DXGI_factory_init@@3_NA, 1	; SK_DXGI_factory_init
 $LN11@SK_HookDXG:
 
-; 4680 :   }
-; 4681 : 
-; 4682 :   SK_D3D11_InitTextures ();
+; 4681 :   }
+; 4682 : 
+; 4683 :   SK_D3D11_InitTextures ();
 
 	call	?SK_D3D11_InitTextures@@YAXXZ		; SK_D3D11_InitTextures
 
-; 4683 :   SK_D3D11_Init         ();
+; 4684 :   SK_D3D11_Init         ();
 
 	call	?SK_D3D11_Init@@YA_NXZ			; SK_D3D11_Init
 
-; 4684 :   SK_D3D12_Init         ();
+; 4685 :   SK_D3D12_Init         ();
 
 	call	?SK_D3D12_Init@@YA_NXZ			; SK_D3D12_Init
 
-; 4685 : 
-; 4686 :   SK_ICommandProcessor* pCommandProc =
-; 4687 :     SK_GetCommandProcessor ();
+; 4686 : 
+; 4687 :   SK_ICommandProcessor* pCommandProc =
+; 4688 :     SK_GetCommandProcessor ();
 
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 
-; 4688 : 
-; 4689 :   pCommandProc->AddVariable ( "PresentationInterval",
+; 4689 : 
+; 4690 :   pCommandProc->AddVariable ( "PresentationInterval",
 
 	push	20					; 00000014H
 	mov	esi, eax
@@ -15017,13 +15018,13 @@ $LN15@SK_HookDXG:
 $LN16@SK_HookDXG:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG358288
+	push	OFFSET $SG357920
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
 
-; 4690 :           new SK_IVarStub <int> (&config.render.framerate.present_interval));
-; 4691 :   pCommandProc->AddVariable ( "PreRenderLimit",
+; 4691 :           new SK_IVarStub <int> (&config.render.framerate.present_interval));
+; 4692 :   pCommandProc->AddVariable ( "PreRenderLimit",
 
 	push	20					; 00000014H
 	call	??2@YAPAXI@Z				; operator new
@@ -15043,13 +15044,13 @@ $LN17@SK_HookDXG:
 $LN18@SK_HookDXG:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG358290
+	push	OFFSET $SG357922
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
 
-; 4692 :           new SK_IVarStub <int> (&config.render.framerate.pre_render_limit));
-; 4693 :   pCommandProc->AddVariable ( "BufferCount",
+; 4693 :           new SK_IVarStub <int> (&config.render.framerate.pre_render_limit));
+; 4694 :   pCommandProc->AddVariable ( "BufferCount",
 
 	push	20					; 00000014H
 	call	??2@YAPAXI@Z				; operator new
@@ -15069,13 +15070,13 @@ $LN19@SK_HookDXG:
 $LN20@SK_HookDXG:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG358292
+	push	OFFSET $SG357924
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
 
-; 4694 :           new SK_IVarStub <int> (&config.render.framerate.buffer_count));
-; 4695 :   pCommandProc->AddVariable ( "UseFlipDiscard",
+; 4695 :           new SK_IVarStub <int> (&config.render.framerate.buffer_count));
+; 4696 :   pCommandProc->AddVariable ( "UseFlipDiscard",
 
 	push	20					; 00000014H
 	call	??2@YAPAXI@Z				; operator new
@@ -15095,14 +15096,14 @@ $LN21@SK_HookDXG:
 $LN22@SK_HookDXG:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG358294
+	push	OFFSET $SG357926
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
 
-; 4696 :           new SK_IVarStub <bool> (&config.render.framerate.flip_discard));
-; 4697 : 
-; 4698 :   SK_DXGI_BeginHooking ();
+; 4697 :           new SK_IVarStub <bool> (&config.render.framerate.flip_discard));
+; 4698 : 
+; 4699 :   SK_DXGI_BeginHooking ();
 
 	call	?SK_DXGI_BeginHooking@@YAXXZ		; SK_DXGI_BeginHooking
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -15112,14 +15113,14 @@ $LN22@SK_HookDXG:
 	mov	eax, DWORD PTR ?__dxgi_ready@@3JC	; __dxgi_ready
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4700 :   while (! ReadAcquire (&__dxgi_ready))
+; 4701 :   while (! ReadAcquire (&__dxgi_ready))
 
 	test	eax, eax
 	jne	SHORT $LN92@SK_HookDXG
 	mov	esi, DWORD PTR __imp__SleepEx@8
 $LL2@SK_HookDXG:
 
-; 4701 :     SleepEx (100UL, TRUE);
+; 4702 :     SleepEx (100UL, TRUE);
 
 	push	1
 	push	100					; 00000064H
@@ -15131,7 +15132,7 @@ $LL2@SK_HookDXG:
 	mov	eax, DWORD PTR ?__dxgi_ready@@3JC	; __dxgi_ready
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4700 :   while (! ReadAcquire (&__dxgi_ready))
+; 4701 :   while (! ReadAcquire (&__dxgi_ready))
 
 	test	eax, eax
 	je	SHORT $LL2@SK_HookDXG
@@ -15141,7 +15142,7 @@ $LN92@SK_HookDXG:
 	pop	ebx
 $LN3@SK_HookDXG:
 
-; 4702 : }
+; 4703 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -15191,23 +15192,23 @@ _lpDevMode$ = 8						; size = 4
 _dwFlags$ = 12						; size = 4
 ?ChangeDisplaySettingsA_Detour@@YGJPAU_devicemodeA@@K@Z PROC ; ChangeDisplaySettingsA_Detour
 
-; 4576 : {
+; 4577 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 220				; 000000dcH
 
-; 4577 :   static bool called = false;
-; 4578 : 
-; 4579 :   DEVMODEW dev_mode;
-; 4580 :   dev_mode.dmSize = sizeof (DEVMODEW);
+; 4578 :   static bool called = false;
+; 4579 : 
+; 4580 :   DEVMODEW dev_mode;
+; 4581 :   dev_mode.dmSize = sizeof (DEVMODEW);
 
 	mov	eax, 220				; 000000dcH
 	mov	WORD PTR _dev_mode$[ebp+68], ax
 
-; 4581 : 
-; 4582 :   EnumDisplaySettings (nullptr, 0, &dev_mode);
+; 4582 : 
+; 4583 :   EnumDisplaySettings (nullptr, 0, &dev_mode);
 
 	lea	eax, DWORD PTR _dev_mode$[ebp]
 	push	eax
@@ -15215,58 +15216,58 @@ _dwFlags$ = 12						; size = 4
 	push	0
 	call	DWORD PTR __imp__EnumDisplaySettingsW@12
 
-; 4583 : 
-; 4584 :   if (dwFlags != CDS_TEST)
+; 4584 : 
+; 4585 :   if (dwFlags != CDS_TEST)
 
 	cmp	DWORD PTR _dwFlags$[ebp], 2
 	je	SHORT $LN2@ChangeDisp
 
-; 4585 :   {
-; 4586 :     if (called)
+; 4586 :   {
+; 4587 :     if (called)
 
 	cmp	BYTE PTR ?called@?1??ChangeDisplaySettingsA_Detour@@YGJPAU_devicemodeA@@K@Z@4_NA, 0
 	je	SHORT $LN4@ChangeDisp
 
-; 4587 :       ChangeDisplaySettingsA_Original (nullptr, CDS_RESET);
+; 4588 :       ChangeDisplaySettingsA_Original (nullptr, CDS_RESET);
 
 	push	1073741824				; 40000000H
 	push	0
 	call	DWORD PTR ?ChangeDisplaySettingsA_Original@@3P6GJPAU_devicemodeA@@K@ZA ; ChangeDisplaySettingsA_Original
 $LN4@ChangeDisp:
 
-; 4588 : 
-; 4589 :     called = true;
-; 4590 : 
-; 4591 :     return ChangeDisplaySettingsA_Original (lpDevMode, CDS_FULLSCREEN);
+; 4589 : 
+; 4590 :     called = true;
+; 4591 : 
+; 4592 :     return ChangeDisplaySettingsA_Original (lpDevMode, CDS_FULLSCREEN);
 
 	push	4
 
-; 4592 :   }
-; 4593 : 
-; 4594 :   else
-; 4595 :     return ChangeDisplaySettingsA_Original (lpDevMode, dwFlags);
+; 4593 :   }
+; 4594 : 
+; 4595 :   else
+; 4596 :     return ChangeDisplaySettingsA_Original (lpDevMode, dwFlags);
 
 	push	DWORD PTR _lpDevMode$[ebp]
 	mov	BYTE PTR ?called@?1??ChangeDisplaySettingsA_Detour@@YGJPAU_devicemodeA@@K@Z@4_NA, 1
 	call	DWORD PTR ?ChangeDisplaySettingsA_Original@@3P6GJPAU_devicemodeA@@K@ZA ; ChangeDisplaySettingsA_Original
 
-; 4596 : }
+; 4597 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	8
 $LN2@ChangeDisp:
 
-; 4592 :   }
-; 4593 : 
-; 4594 :   else
-; 4595 :     return ChangeDisplaySettingsA_Original (lpDevMode, dwFlags);
+; 4593 :   }
+; 4594 : 
+; 4595 :   else
+; 4596 :     return ChangeDisplaySettingsA_Original (lpDevMode, dwFlags);
 
 	push	2
 	push	DWORD PTR _lpDevMode$[ebp]
 	call	DWORD PTR ?ChangeDisplaySettingsA_Original@@3P6GJPAU_devicemodeA@@K@ZA ; ChangeDisplaySettingsA_Original
 
-; 4596 : }
+; 4597 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -15279,13 +15280,13 @@ _TEXT	SEGMENT
 _dwUnknown$ = 8						; size = 4
 ?DXGIReportAdapterConfiguration@@YGJK@Z PROC		; DXGIReportAdapterConfiguration
 
-; 4559 :                    (dwUnknown) );
+; 4560 :                    (dwUnknown) );
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 4557 : DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
+; 4558 : DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
@@ -15297,8 +15298,8 @@ _dwUnknown$ = 8						; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGIReportAdapterConfiguration@@YGJK@Z@4P6GJK@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGIReport
-	push	OFFSET $SG358116
-	push	OFFSET $SG358117
+	push	OFFSET $SG357748
+	push	OFFSET $SG357749
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15308,9 +15309,9 @@ _dwUnknown$ = 8						; size = 4
 $LN3@DXGIReport:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG358118
-	push	OFFSET $SG358119
-	push	OFFSET $SG358120
+	push	OFFSET $SG357750
+	push	OFFSET $SG357751
+	push	OFFSET $SG357752
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15324,13 +15325,13 @@ _TEXT	SEGMENT
 _szPassThrough$ = 8					; size = 4
 ?DXGIDumpJournal@@YGXPBD@Z PROC				; DXGIDumpJournal
 
-; 4556 :                          (szPassThrough) );
+; 4557 :                          (szPassThrough) );
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 4554 : DXGI_STUB_ (             DXGIDumpJournal,
+; 4555 : DXGI_STUB_ (             DXGIDumpJournal,
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
@@ -15342,8 +15343,8 @@ _szPassThrough$ = 8					; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGIDumpJournal@@YGXPBD@Z@4P6GX0@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGIDumpJo
-	push	OFFSET $SG358096
-	push	OFFSET $SG358097
+	push	OFFSET $SG357728
+	push	OFFSET $SG357729
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15352,9 +15353,9 @@ _szPassThrough$ = 8					; size = 4
 $LN3@DXGIDumpJo:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG358098
-	push	OFFSET $SG358099
-	push	OFFSET $SG358100
+	push	OFFSET $SG357730
+	push	OFFSET $SG357731
+	push	OFFSET $SG357732
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15369,13 +15370,13 @@ _pLayers$ = 8						; size = 4
 _NumLayers$ = 12					; size = 4
 ?DXGID3D10RegisterLayers@@YGJPBXI@Z PROC		; DXGID3D10RegisterLayers
 
-; 4552 :   (pLayers, NumLayers))
+; 4553 :   (pLayers, NumLayers))
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 4550 : DXGI_STUB (HRESULT, DXGID3D10RegisterLayers,
+; 4551 : DXGI_STUB (HRESULT, DXGID3D10RegisterLayers,
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
@@ -15387,8 +15388,8 @@ _NumLayers$ = 12					; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGID3D10RegisterLayers@@YGJPBXI@Z@4P6GJ0I@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGID3D10R
-	push	OFFSET $SG358078
-	push	OFFSET $SG358079
+	push	OFFSET $SG357710
+	push	OFFSET $SG357711
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15398,9 +15399,9 @@ _NumLayers$ = 12					; size = 4
 $LN3@DXGID3D10R:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG358080
-	push	OFFSET $SG358081
-	push	OFFSET $SG358082
+	push	OFFSET $SG357712
+	push	OFFSET $SG357713
+	push	OFFSET $SG357714
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15415,13 +15416,13 @@ _pLayers$ = 8						; size = 4
 _NumLayers$ = 12					; size = 4
 ?DXGID3D10GetLayeredDeviceSize@@YGKPBXI@Z PROC		; DXGID3D10GetLayeredDeviceSize
 
-; 4548 :   (pLayers, NumLayers))
+; 4549 :   (pLayers, NumLayers))
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 4546 : DXGI_STUB (SIZE_T, DXGID3D10GetLayeredDeviceSize,
+; 4547 : DXGI_STUB (SIZE_T, DXGID3D10GetLayeredDeviceSize,
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
@@ -15433,8 +15434,8 @@ _NumLayers$ = 12					; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGID3D10GetLayeredDeviceSize@@YGKPBXI@Z@4P6GK0I@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGID3D10G
-	push	OFFSET $SG358056
-	push	OFFSET $SG358057
+	push	OFFSET $SG357688
+	push	OFFSET $SG357689
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15444,9 +15445,9 @@ _NumLayers$ = 12					; size = 4
 $LN3@DXGID3D10G:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG358058
-	push	OFFSET $SG358059
-	push	OFFSET $SG358060
+	push	OFFSET $SG357690
+	push	OFFSET $SG357691
+	push	OFFSET $SG357692
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15460,13 +15461,13 @@ _TEXT	SEGMENT
 _Unknown$ = 8						; size = 20
 ?DXGID3D10CreateLayeredDevice@@YGJUUNKNOWN5@@@Z PROC	; DXGID3D10CreateLayeredDevice
 
-; 4544 :   (Unknown))
+; 4545 :   (Unknown))
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 4542 : DXGI_STUB (HRESULT, DXGID3D10CreateLayeredDevice,
+; 4543 : DXGI_STUB (HRESULT, DXGID3D10CreateLayeredDevice,
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
@@ -15478,8 +15479,8 @@ _Unknown$ = 8						; size = 20
 	mov	DWORD PTR ?_default_impl@?1??DXGID3D10CreateLayeredDevice@@YGJUUNKNOWN5@@@Z@4P6GJ0@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGID3D10C
-	push	OFFSET $SG358034
-	push	OFFSET $SG358035
+	push	OFFSET $SG357666
+	push	OFFSET $SG357667
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15489,9 +15490,9 @@ _Unknown$ = 8						; size = 20
 $LN3@DXGID3D10C:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG358036
-	push	OFFSET $SG358037
-	push	OFFSET $SG358038
+	push	OFFSET $SG357668
+	push	OFFSET $SG357669
+	push	OFFSET $SG357670
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	movups	xmm0, XMMWORD PTR _Unknown$[ebp]
@@ -15515,13 +15516,13 @@ _unknown$ = 24						; size = 4
 _ppDevice$ = 28						; size = 4
 ?DXGID3D10CreateDevice@@YGJPAUHINSTANCE__@@PAUIDXGIFactory@@PAUIDXGIAdapter@@IPAX3@Z PROC ; DXGID3D10CreateDevice
 
-; 4536 :   (hModule, pFactory, pAdapter, Flags, unknown, ppDevice));
+; 4537 :   (hModule, pFactory, pAdapter, Flags, unknown, ppDevice));
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 4533 : DXGI_STUB (HRESULT, DXGID3D10CreateDevice,
+; 4534 : DXGI_STUB (HRESULT, DXGID3D10CreateDevice,
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
@@ -15533,8 +15534,8 @@ _ppDevice$ = 28						; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGID3D10CreateDevice@@YGJPAUHINSTANCE__@@PAUIDXGIFactory@@PAUIDXGIAdapter@@IPAX3@Z@4P6GJ012I33@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGID3D10C
-	push	OFFSET $SG358002
-	push	OFFSET $SG358003
+	push	OFFSET $SG357634
+	push	OFFSET $SG357635
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15544,9 +15545,9 @@ _ppDevice$ = 28						; size = 4
 $LN3@DXGID3D10C:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG358004
-	push	OFFSET $SG358005
-	push	OFFSET $SG358006
+	push	OFFSET $SG357636
+	push	OFFSET $SG357637
+	push	OFFSET $SG357638
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15589,7 +15590,7 @@ _riid$ = 12						; size = 4
 _ppFactory$ = 16					; size = 4
 ?CreateDXGIFactory2@@YGJIABU_GUID@@PAPAX@Z PROC		; CreateDXGIFactory2
 
-; 4504 : {
+; 4505 : {
 
 	npad	2
 	push	ebp
@@ -15603,9 +15604,9 @@ _ppFactory$ = 16					; size = 4
 	push	esi
 	push	edi
 
-; 4505 :   SK_DXGI_use_factory1 = true;
-; 4506 : 
-; 4507 :   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
+; 4506 :   SK_DXGI_use_factory1 = true;
+; 4507 : 
+; 4508 :   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
 
 	mov	edi, DWORD PTR _riid$[ebp]
 	lea	eax, DWORD PTR _iname$[ebp]
@@ -15614,7 +15615,7 @@ _ppFactory$ = 16					; size = 4
 	mov	BYTE PTR ?SK_DXGI_use_factory1@@3_NA, 1	; SK_DXGI_use_factory1
 	call	?SK_GetDXGIFactoryInterfaceEx@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@ABU_GUID@@@Z ; SK_GetDXGIFactoryInterfaceEx
 
-; 4512 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
+; 4513 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
 
 	push	8192					; 00002000H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -15636,8 +15637,8 @@ $LN7@CreateDXGI:
 	lea	ebx, DWORD PTR [esi+2048]
 	test	esi, esi
 	je	$LN2@CreateDXGI
-	push	OFFSET $SG357966
-	push	OFFSET $SG357967
+	push	OFFSET $SG357598
+	push	OFFSET $SG357599
 	push	esi
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -15651,7 +15652,7 @@ $LN7@CreateDXGI:
 	lea	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4512 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
+; 4513 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
 
 	push	DWORD PTR _ppFactory$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -15661,17 +15662,17 @@ $LN7@CreateDXGI:
 	cmovae	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4512 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
+; 4513 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
 
 	push	eax
 	push	DWORD PTR _Flags$[ebp]
-	push	OFFSET $SG357968
+	push	OFFSET $SG357600
 	push	ebx
 	call	__swprintf
 	push	ebx
 	push	esi
 	lea	eax, DWORD PTR [ebx+2048]
-	push	OFFSET $SG357969
+	push	OFFSET $SG357601
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -15697,12 +15698,12 @@ $LN7@CreateDXGI:
 $LN43@CreateDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4512 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
+; 4513 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
 
 	push	eax
 	lea	eax, DWORD PTR [ebx+2048]
 	push	eax
-	push	OFFSET $SG357970
+	push	OFFSET $SG357602
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -15712,7 +15713,7 @@ $LN43@CreateDXGI:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4512 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
+; 4513 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -15745,7 +15746,7 @@ $LN43@CreateDXGI:
 $LN53@CreateDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4512 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
+; 4513 :   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
@@ -15758,7 +15759,7 @@ $LN2@CreateDXGI:
 	mov	esi, DWORD PTR ?SK_D3D11_init_tid@@3JC	; SK_D3D11_init_tid
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4515 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
+; 4516 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
 
 	mov	ebx, DWORD PTR __imp__GetCurrentThreadId@0
 	call	ebx
@@ -15771,23 +15772,23 @@ $LN2@CreateDXGI:
 	mov	esi, DWORD PTR ?SK_D3D11_ansel_tid@@3JC	; SK_D3D11_ansel_tid
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4515 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
+; 4516 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
 
 	call	ebx
 	cmp	esi, eax
 	je	SHORT $LN3@CreateDXGI
 
-; 4516 :        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
-; 4517 :     WaitForInitDXGI ();
+; 4517 :        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+; 4518 :     WaitForInitDXGI ();
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 $LN3@CreateDXGI:
 
-; 4518 : 
-; 4519 :   SK_DXGI_factory_init = true;
-; 4520 : 
-; 4521 :   // Windows 7 does not have this function -- wrap it with CreateDXGIFactory1
-; 4522 :   if (CreateDXGIFactory2_Import == nullptr)
+; 4519 : 
+; 4520 :   SK_DXGI_factory_init = true;
+; 4521 : 
+; 4522 :   // Windows 7 does not have this function -- wrap it with CreateDXGIFactory1
+; 4523 :   if (CreateDXGIFactory2_Import == nullptr)
 
 	mov	eax, DWORD PTR ?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA ; CreateDXGIFactory2_Import
 	mov	BYTE PTR ?SK_DXGI_factory_init@@3_NA, 1	; SK_DXGI_factory_init
@@ -15795,14 +15796,14 @@ $LN3@CreateDXGI:
 	test	eax, eax
 	jne	SHORT $LN4@CreateDXGI
 
-; 4523 :   {
-; 4524 :     dll_log.Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory1 on Vista/7...");
+; 4524 :   {
+; 4525 :     dll_log.Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory1 on Vista/7...");
 
-	push	OFFSET $SG357973
+	push	OFFSET $SG357605
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 4525 :     return CreateDXGIFactory1 (riid, ppFactory);
+; 4526 :     return CreateDXGIFactory1 (riid, ppFactory);
 
 	mov	ecx, DWORD PTR _ppFactory$[ebp]
 	add	esp, 8
@@ -15813,10 +15814,10 @@ $LN3@CreateDXGI:
 	jmp	SHORT $LN10@CreateDXGI
 $LN4@CreateDXGI:
 
-; 4526 :   }
-; 4527 : 
-; 4528 :   HRESULT    ret;
-; 4529 :   DXGI_CALL (ret, CreateDXGIFactory2_Import (Flags, riid, ppFactory));
+; 4527 :   }
+; 4528 : 
+; 4529 :   HRESULT    ret;
+; 4530 :   DXGI_CALL (ret, CreateDXGIFactory2_Import (Flags, riid, ppFactory));
 
 	mov	ecx, DWORD PTR _ppFactory$[ebp]
 	push	ecx
@@ -15827,7 +15828,7 @@ $LN4@CreateDXGI:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357975
+	push	OFFSET $SG357607
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15863,7 +15864,7 @@ $LN10@CreateDXGI:
 $LN113@CreateDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4531 : }
+; 4532 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -15915,7 +15916,7 @@ _Adapter$ = 12						; size = 4
 _ppAdapter$ = 16					; size = 4
 ?EnumAdapters_Override@@YGJPAUIDXGIFactory@@IPAPAUIDXGIAdapter@@@Z PROC ; EnumAdapters_Override
 
-; 4394 : {
+; 4395 : {
 
 	npad	2
 	push	ebp
@@ -15928,7 +15929,7 @@ _ppAdapter$ = 16					; size = 4
 	sub	esp, 48					; 00000030H
 	push	ebx
 
-; 4395 :   std::wstring iname = SK_GetDXGIFactoryInterface    (This);
+; 4396 :   std::wstring iname = SK_GetDXGIFactoryInterface    (This);
 
 	mov	ebx, DWORD PTR _This$[ebp]
 	lea	eax, DWORD PTR _iname$[ebp]
@@ -15938,7 +15939,7 @@ _ppAdapter$ = 16					; size = 4
 	push	eax
 	call	?SK_GetDXGIFactoryInterface@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUIUnknown@@@Z ; SK_GetDXGIFactoryInterface
 
-; 4397 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
+; 4398 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
 
 	push	8192					; 00002000H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -15970,9 +15971,9 @@ $LN6@EnumAdapte:
 	lea	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4397 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
+; 4398 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
 
-	push	OFFSET $SG357875
+	push	OFFSET $SG357507
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -15980,10 +15981,10 @@ $LN6@EnumAdapte:
 	cmovae	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4397 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
+; 4398 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
 
 	push	eax
-	push	OFFSET $SG357876
+	push	OFFSET $SG357508
 	push	esi
 	call	__swprintf
 	mov	eax, DWORD PTR _Adapter$[ebp]
@@ -15991,14 +15992,14 @@ $LN6@EnumAdapte:
 	push	eax
 	push	ebx
 	lea	eax, DWORD PTR [esi+2048]
-	push	OFFSET $SG357877
+	push	OFFSET $SG357509
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [esi+2048]
 	push	eax
 	push	esi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG357878
+	push	OFFSET $SG357510
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -16025,11 +16026,11 @@ $LN6@EnumAdapte:
 $LN42@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4397 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
+; 4398 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG357879
+	push	OFFSET $SG357511
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -16039,7 +16040,7 @@ $LN42@EnumAdapte:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4397 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
+; 4398 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -16072,18 +16073,18 @@ $LN42@EnumAdapte:
 $LN52@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4397 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
+; 4398 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 $LN2@EnumAdapte:
 
-; 4398 :                        L"%ph, %u, %ph",
-; 4399 :                          This, Adapter, ppAdapter );
-; 4400 : 
-; 4401 :   HRESULT ret;
-; 4402 :   DXGI_CALL (ret, EnumAdapters_Original (This, Adapter, ppAdapter));
+; 4399 :                        L"%ph, %u, %ph",
+; 4400 :                          This, Adapter, ppAdapter );
+; 4401 : 
+; 4402 :   HRESULT ret;
+; 4403 :   DXGI_CALL (ret, EnumAdapters_Original (This, Adapter, ppAdapter));
 
 	push	edi
 	push	DWORD PTR _Adapter$[ebp]
@@ -16093,36 +16094,36 @@ $LN2@EnumAdapte:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357880
+	push	OFFSET $SG357512
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 4403 : 
-; 4404 : #if 0
-; 4405 :   // For games that try to enumerate all adapters until the API returns failure,
-; 4406 :   //   only override valid adapters...
-; 4407 :   if ( SUCCEEDED (ret) &&
-; 4408 :        SK_DXGI_preferred_adapter != -1 &&
-; 4409 :        SK_DXGI_preferred_adapter != Adapter )
-; 4410 :   {
-; 4411 :     IDXGIAdapter* pAdapter = nullptr;
-; 4412 : 
-; 4413 :     if (SUCCEEDED (EnumAdapters_Original (This, SK_DXGI_preferred_adapter, &pAdapter)))
-; 4414 :     {
-; 4415 :       dll_log.Log ( L"[   DXGI   ] (Reported values reflect user override: DXGI Adapter %lu -> %lu)",
-; 4416 :                       Adapter, SK_DXGI_preferred_adapter );
-; 4417 :       Adapter = SK_DXGI_preferred_adapter;
-; 4418 : 
-; 4419 :       if (pAdapter != nullptr)
-; 4420 :         pAdapter->Release ();
-; 4421 :     }
-; 4422 : 
-; 4423 :     ret = EnumAdapters_Original (This, Adapter, ppAdapter);
-; 4424 :   }
-; 4425 : #endif
-; 4426 : 
-; 4427 :   if (SUCCEEDED (ret) && ppAdapter != nullptr && (*ppAdapter) != nullptr)
+; 4404 : 
+; 4405 : #if 0
+; 4406 :   // For games that try to enumerate all adapters until the API returns failure,
+; 4407 :   //   only override valid adapters...
+; 4408 :   if ( SUCCEEDED (ret) &&
+; 4409 :        SK_DXGI_preferred_adapter != -1 &&
+; 4410 :        SK_DXGI_preferred_adapter != Adapter )
+; 4411 :   {
+; 4412 :     IDXGIAdapter* pAdapter = nullptr;
+; 4413 : 
+; 4414 :     if (SUCCEEDED (EnumAdapters_Original (This, SK_DXGI_preferred_adapter, &pAdapter)))
+; 4415 :     {
+; 4416 :       dll_log.Log ( L"[   DXGI   ] (Reported values reflect user override: DXGI Adapter %lu -> %lu)",
+; 4417 :                       Adapter, SK_DXGI_preferred_adapter );
+; 4418 :       Adapter = SK_DXGI_preferred_adapter;
+; 4419 : 
+; 4420 :       if (pAdapter != nullptr)
+; 4421 :         pAdapter->Release ();
+; 4422 :     }
+; 4423 : 
+; 4424 :     ret = EnumAdapters_Original (This, Adapter, ppAdapter);
+; 4425 :   }
+; 4426 : #endif
+; 4427 : 
+; 4428 :   if (SUCCEEDED (ret) && ppAdapter != nullptr && (*ppAdapter) != nullptr)
 
 	test	esi, esi
 	js	SHORT $LN3@EnumAdapte
@@ -16131,8 +16132,8 @@ $LN2@EnumAdapte:
 	cmp	DWORD PTR [edi], 0
 	je	SHORT $LN3@EnumAdapte
 
-; 4428 :   {
-; 4429 :     return EnumAdapters_Common ( This, Adapter, ppAdapter,
+; 4429 :   {
+; 4430 :     return EnumAdapters_Common ( This, Adapter, ppAdapter,
 
 	push	DWORD PTR ?EnumAdapters_Original@@3P6GJPAUIDXGIFactory@@IPAPAUIDXGIAdapter@@@ZA ; EnumAdapters_Original
 	mov	eax, DWORD PTR _Adapter$[ebp]
@@ -16173,7 +16174,7 @@ $LN3@EnumAdapte:
 $LN108@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4434 : }
+; 4435 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -16226,7 +16227,7 @@ _Adapter$ = 12						; size = 4
 _ppAdapter$ = 16					; size = 4
 ?EnumAdapters1_Override@@YGJPAUIDXGIFactory1@@IPAPAUIDXGIAdapter1@@@Z PROC ; EnumAdapters1_Override
 
-; 4350 : {
+; 4351 : {
 
 	npad	2
 	push	ebp
@@ -16239,7 +16240,7 @@ _ppAdapter$ = 16					; size = 4
 	sub	esp, 48					; 00000030H
 	push	ebx
 
-; 4351 :   std::wstring iname = SK_GetDXGIFactoryInterface    (This);
+; 4352 :   std::wstring iname = SK_GetDXGIFactoryInterface    (This);
 
 	mov	ebx, DWORD PTR _This$[ebp]
 	lea	eax, DWORD PTR _iname$[ebp]
@@ -16249,7 +16250,7 @@ _ppAdapter$ = 16					; size = 4
 	push	eax
 	call	?SK_GetDXGIFactoryInterface@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUIUnknown@@@Z ; SK_GetDXGIFactoryInterface
 
-; 4353 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
+; 4354 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
 
 	push	8192					; 00002000H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -16281,9 +16282,9 @@ $LN6@EnumAdapte:
 	lea	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4353 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
+; 4354 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
 
-	push	OFFSET $SG357846
+	push	OFFSET $SG357478
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -16291,10 +16292,10 @@ $LN6@EnumAdapte:
 	cmovae	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4353 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
+; 4354 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
 
 	push	eax
-	push	OFFSET $SG357847
+	push	OFFSET $SG357479
 	push	esi
 	call	__swprintf
 	mov	eax, DWORD PTR _Adapter$[ebp]
@@ -16302,14 +16303,14 @@ $LN6@EnumAdapte:
 	push	eax
 	push	ebx
 	lea	eax, DWORD PTR [esi+2048]
-	push	OFFSET $SG357848
+	push	OFFSET $SG357480
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [esi+2048]
 	push	eax
 	push	esi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG357849
+	push	OFFSET $SG357481
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -16336,11 +16337,11 @@ $LN6@EnumAdapte:
 $LN42@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4353 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
+; 4354 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG357850
+	push	OFFSET $SG357482
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -16350,7 +16351,7 @@ $LN42@EnumAdapte:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4353 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
+; 4354 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -16383,18 +16384,18 @@ $LN42@EnumAdapte:
 $LN52@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4353 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
+; 4354 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 $LN2@EnumAdapte:
 
-; 4354 :                        L"%ph, %u, %ph",
-; 4355 :                          This, Adapter, ppAdapter );
-; 4356 : 
-; 4357 :   HRESULT ret;
-; 4358 :   DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
+; 4355 :                        L"%ph, %u, %ph",
+; 4356 :                          This, Adapter, ppAdapter );
+; 4357 : 
+; 4358 :   HRESULT ret;
+; 4359 :   DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
 
 	push	edi
 	push	DWORD PTR _Adapter$[ebp]
@@ -16404,35 +16405,35 @@ $LN2@EnumAdapte:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357851
+	push	OFFSET $SG357483
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 4359 : 
-; 4360 : #if 0
-; 4361 :   // For games that try to enumerate all adapters until the API returns failure,
-; 4362 :   //   only override valid adapters...
-; 4363 :   if ( SUCCEEDED (ret) &&
-; 4364 :        SK_DXGI_preferred_adapter != -1 &&
-; 4365 :        SK_DXGI_preferred_adapter != Adapter )
-; 4366 :   {
-; 4367 :     IDXGIAdapter1* pAdapter1 = nullptr;
-; 4368 : 
-; 4369 :     if (SUCCEEDED (EnumAdapters1_Original (This, SK_DXGI_preferred_adapter, &pAdapter1))) {
-; 4370 :       dll_log.Log ( L"[   DXGI   ] (Reported values reflect user override: DXGI Adapter %lu -> %lu)",
-; 4371 :                       Adapter, SK_DXGI_preferred_adapter );
-; 4372 :       Adapter = SK_DXGI_preferred_adapter;
-; 4373 : 
-; 4374 :       if (pAdapter1 != nullptr)
-; 4375 :         pAdapter1->Release ();
-; 4376 :     }
-; 4377 : 
-; 4378 :     ret = EnumAdapters1_Original (This, Adapter, ppAdapter);
-; 4379 :   }
-; 4380 : #endif
-; 4381 : 
-; 4382 :   if (SUCCEEDED (ret) && ppAdapter != nullptr && (*ppAdapter) != nullptr) {
+; 4360 : 
+; 4361 : #if 0
+; 4362 :   // For games that try to enumerate all adapters until the API returns failure,
+; 4363 :   //   only override valid adapters...
+; 4364 :   if ( SUCCEEDED (ret) &&
+; 4365 :        SK_DXGI_preferred_adapter != -1 &&
+; 4366 :        SK_DXGI_preferred_adapter != Adapter )
+; 4367 :   {
+; 4368 :     IDXGIAdapter1* pAdapter1 = nullptr;
+; 4369 : 
+; 4370 :     if (SUCCEEDED (EnumAdapters1_Original (This, SK_DXGI_preferred_adapter, &pAdapter1))) {
+; 4371 :       dll_log.Log ( L"[   DXGI   ] (Reported values reflect user override: DXGI Adapter %lu -> %lu)",
+; 4372 :                       Adapter, SK_DXGI_preferred_adapter );
+; 4373 :       Adapter = SK_DXGI_preferred_adapter;
+; 4374 : 
+; 4375 :       if (pAdapter1 != nullptr)
+; 4376 :         pAdapter1->Release ();
+; 4377 :     }
+; 4378 : 
+; 4379 :     ret = EnumAdapters1_Original (This, Adapter, ppAdapter);
+; 4380 :   }
+; 4381 : #endif
+; 4382 : 
+; 4383 :   if (SUCCEEDED (ret) && ppAdapter != nullptr && (*ppAdapter) != nullptr) {
 
 	test	esi, esi
 	js	SHORT $LN3@EnumAdapte
@@ -16441,7 +16442,7 @@ $LN2@EnumAdapte:
 	cmp	DWORD PTR [edi], 0
 	je	SHORT $LN3@EnumAdapte
 
-; 4383 :     return EnumAdapters_Common (This, Adapter, reinterpret_cast <IDXGIAdapter **>  (ppAdapter),
+; 4384 :     return EnumAdapters_Common (This, Adapter, reinterpret_cast <IDXGIAdapter **>  (ppAdapter),
 
 	push	DWORD PTR ?EnumAdapters1_Original@@3P6GJPAUIDXGIFactory1@@IPAPAUIDXGIAdapter1@@@ZA ; EnumAdapters1_Original
 	mov	eax, DWORD PTR _Adapter$[ebp]
@@ -16482,7 +16483,7 @@ $LN3@EnumAdapte:
 $LN108@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4388 : }
+; 4389 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -17083,7 +17084,7 @@ _ppAdapter$ = 16					; size = 4
 _pFunc$ = 20						; size = 4
 ?EnumAdapters_Common@@YGJPAUIDXGIFactory@@IPAPAUIDXGIAdapter@@P6GJ0I1@Z@Z PROC ; EnumAdapters_Common
 
-; 4239 : {
+; 4243 : {
 
 	npad	2
 	push	ebp
@@ -17096,15 +17097,15 @@ _pFunc$ = 20						; size = 4
 	sub	esp, 592				; 00000250H
 	push	esi
 
-; 4240 :   int iver = SK_GetDXGIAdapterInterfaceVer (*ppAdapter);
+; 4244 :   int iver = SK_GetDXGIAdapterInterfaceVer (*ppAdapter);
 
 	mov	esi, DWORD PTR _ppAdapter$[ebp]
 	push	edi
 	push	DWORD PTR [esi]
 	call	?SK_GetDXGIAdapterInterfaceVer@@YAHPAUIUnknown@@@Z ; SK_GetDXGIAdapterInterfaceVer
 
-; 4241 : 
-; 4242 :   DXGI_ADAPTER_DESC desc = { };
+; 4245 : 
+; 4246 :   DXGI_ADAPTER_DESC desc = { };
 
 	push	292					; 00000124H
 	mov	edi, eax
@@ -17114,24 +17115,24 @@ _pFunc$ = 20						; size = 4
 	call	_memset
 	add	esp, 16					; 00000010H
 
-; 4243 : 
-; 4244 :   switch (iver)
+; 4247 : 
+; 4248 :   switch (iver)
 
 	sub	edi, 0
 	je	$LN66@EnumAdapte
 	sub	edi, 1
 	je	SHORT $LN43@EnumAdapte
 
-; 4245 :   {
-; 4246 :     default:
-; 4247 :     case 2:
-; 4248 :     {
-; 4249 :       if (! GetDesc2_Original)
+; 4249 :   {
+; 4250 :     default:
+; 4251 :     case 2:
+; 4252 :     {
+; 4253 :       if (! GetDesc2_Original)
 
 	cmp	DWORD PTR ?GetDesc2_Original@@3P6GJPAUIDXGIAdapter2@@PAUDXGI_ADAPTER_DESC2@@@ZA, 0 ; GetDesc2_Original
 	jne	SHORT $LN43@EnumAdapte
 
-; 4251 :         CComQIPtr <IDXGIAdapter2> pAdapter2 (*ppAdapter);
+; 4255 :         CComQIPtr <IDXGIAdapter2> pAdapter2 (*ppAdapter);
 
 	mov	edx, DWORD PTR [esi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -17163,7 +17164,7 @@ _pFunc$ = 20						; size = 4
 $LN26@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4251 :         CComQIPtr <IDXGIAdapter2> pAdapter2 (*ppAdapter);
+; 4255 :         CComQIPtr <IDXGIAdapter2> pAdapter2 (*ppAdapter);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -17173,30 +17174,26 @@ $LN26@EnumAdapte:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4253 :         if (pAdapter2 != nullptr)
+; 4257 :         if (pAdapter2 != nullptr)
 
 	je	SHORT $LN6@EnumAdapte
 
-; 4254 :         {
-; 4255 :           DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
+; 4258 :         {
+; 4259 :           DXGI_VIRTUAL_HOOK (ppAdapter, 11, "(*pAdapter2)->GetDesc2",
 
 	mov	eax, DWORD PTR [esi]
 	push	OFFSET ?GetDesc2_Original@@3P6GJPAUIDXGIAdapter2@@PAUDXGI_ADAPTER_DESC2@@@ZA ; GetDesc2_Original
 	push	OFFSET ?GetDesc2_Override@@YGJPAUIDXGIAdapter2@@PAUDXGI_ADAPTER_DESC2@@@Z ; GetDesc2_Override
 	push	11					; 0000000bH
 	push	DWORD PTR [eax]
-	push	OFFSET $SG357793
+	push	OFFSET $SG357425
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
-
-; 4256 :             GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
-; 4257 :           SK_ApplyQueuedHooks ();
-
-	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
 	mov	ecx, DWORD PTR _pAdapter2$4[ebp]
 $LN6@EnumAdapte:
 
-; 4258 :         }
-; 4259 :       }
+; 4260 :             GetDesc2_Override, GetDesc2_Original, GetDesc2_pfn);
+; 4261 :         }
+; 4262 :       }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -17214,12 +17211,12 @@ $LN6@EnumAdapte:
 $LN43@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4264 :       if (! GetDesc1_Original)
+; 4267 :       if (! GetDesc1_Original)
 
 	cmp	DWORD PTR ?GetDesc1_Original@@3P6GJPAUIDXGIAdapter1@@PAUDXGI_ADAPTER_DESC1@@@ZA, 0 ; GetDesc1_Original
 	jne	SHORT $LN66@EnumAdapte
 
-; 4266 :         CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
+; 4269 :         CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
 
 	mov	edx, DWORD PTR [esi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -17251,7 +17248,7 @@ $LN43@EnumAdapte:
 $LN47@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4266 :         CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
+; 4269 :         CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -17261,29 +17258,25 @@ $LN47@EnumAdapte:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4268 :         if (pAdapter1 != nullptr)
+; 4271 :         if (pAdapter1 != nullptr)
 
 	je	SHORT $LN9@EnumAdapte
 
-; 4269 :         {
-; 4270 :           DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(*pAdapter1)->GetDesc1",
+; 4272 :         {
+; 4273 :           DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(*pAdapter1)->GetDesc1",
 
 	push	OFFSET ?GetDesc1_Original@@3P6GJPAUIDXGIAdapter1@@PAUDXGI_ADAPTER_DESC1@@@ZA ; GetDesc1_Original
 	push	OFFSET ?GetDesc1_Override@@YGJPAUIDXGIAdapter1@@PAUDXGI_ADAPTER_DESC1@@@Z ; GetDesc1_Override
 	push	10					; 0000000aH
 	push	DWORD PTR [ecx]
-	push	OFFSET $SG357797
+	push	OFFSET $SG357429
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
-
-; 4271 :             GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
-; 4272 :           SK_ApplyQueuedHooks ();
-
-	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
 	mov	ecx, DWORD PTR _pAdapter1$3[ebp]
 $LN9@EnumAdapte:
 
-; 4273 :         }
-; 4274 :       }
+; 4274 :             GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
+; 4275 :         }
+; 4276 :       }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -17301,38 +17294,34 @@ $LN9@EnumAdapte:
 $LN66@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4279 :       if (! GetDesc_Original)
+; 4281 :       if (! GetDesc_Original)
 
 	mov	eax, DWORD PTR ?GetDesc_Original@@3P6GJPAUIDXGIAdapter@@PAUDXGI_ADAPTER_DESC@@@ZA ; GetDesc_Original
 	test	eax, eax
 	jne	SHORT $LN91@EnumAdapte
 
-; 4280 :       {
-; 4281 :         DXGI_VIRTUAL_HOOK (ppAdapter, 8, "(*ppAdapter)->GetDesc",
+; 4282 :       {
+; 4283 :         DXGI_VIRTUAL_HOOK (ppAdapter, 8, "(*ppAdapter)->GetDesc",
 
 	mov	eax, DWORD PTR [esi]
 	push	OFFSET ?GetDesc_Original@@3P6GJPAUIDXGIAdapter@@PAUDXGI_ADAPTER_DESC@@@ZA ; GetDesc_Original
 	push	OFFSET ?GetDesc_Override@@YGJPAUIDXGIAdapter@@PAUDXGI_ADAPTER_DESC@@@Z ; GetDesc_Override
 	push	8
 	push	DWORD PTR [eax]
-	push	OFFSET $SG357800
+	push	OFFSET $SG357432
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 4282 :           GetDesc_Override, GetDesc_Original, GetDesc_pfn);
-; 4283 :         SK_ApplyQueuedHooks ();
-
-	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
-
-; 4284 :       }
-; 4285 : 
-; 4286 :       if (GetDesc_Original)
+; 4284 :           GetDesc_Override, GetDesc_Original, GetDesc_pfn);
+; 4285 :       }
+; 4286 : 
+; 4287 :       if (GetDesc_Original)
 
 	mov	eax, DWORD PTR ?GetDesc_Original@@3P6GJPAUIDXGIAdapter@@PAUDXGI_ADAPTER_DESC@@@ZA ; GetDesc_Original
 	test	eax, eax
 	je	SHORT $LN12@EnumAdapte
 $LN91@EnumAdapte:
 
-; 4287 :         GetDesc_Original (*ppAdapter, &desc);
+; 4288 :         GetDesc_Original (*ppAdapter, &desc);
 
 	lea	ecx, DWORD PTR _desc$[ebp]
 	push	ecx
@@ -17340,11 +17329,11 @@ $LN91@EnumAdapte:
 	call	eax
 $LN12@EnumAdapte:
 
-; 4288 :     }
-; 4289 :   }
-; 4290 : 
-; 4291 :   // Logic to skip Intel and Microsoft adapters and return only AMD / NV
-; 4292 :   if (! lstrlenW (desc.Description))
+; 4289 :     }
+; 4290 :   }
+; 4291 : 
+; 4292 :   // Logic to skip Intel and Microsoft adapters and return only AMD / NV
+; 4293 :   if (! lstrlenW (desc.Description))
 
 	lea	eax, DWORD PTR _desc$[ebp]
 	push	eax
@@ -17352,46 +17341,46 @@ $LN12@EnumAdapte:
 	test	eax, eax
 	jne	SHORT $LN13@EnumAdapte
 
-; 4293 :     dll_log.LogEx (false, L" >> Assertion filed: Zero-length adapter name!\n");
+; 4294 :     dll_log.LogEx (false, L" >> Assertion filed: Zero-length adapter name!\n");
 
-	push	OFFSET $SG357803
+	push	OFFSET $SG357435
 	push	eax
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 $LN13@EnumAdapte:
 
-; 4294 : 
-; 4295 : #ifdef SKIP_INTEL
-; 4296 :   if ((desc.VendorId == Microsoft || desc.VendorId == Intel) && Adapter == 0) {
-; 4297 : #else
-; 4298 :   if (false)
-; 4299 :   {
-; 4300 : #endif
-; 4301 :     // We need to release the reference we were just handed before
-; 4302 :     //   skipping it.
-; 4303 :     (*ppAdapter)->Release ();
-; 4304 : 
-; 4305 :     dll_log.LogEx (false,
-; 4306 :       L"[   DXGI   ] >> (Host Application Tried To Enum Intel or Microsoft Adapter "
-; 4307 :       L"as Adapter 0) -- Skipping Adapter '%s' <<\n", desc.Description);
-; 4308 : 
-; 4309 :     return (pFunc (This, Adapter + 1, ppAdapter));
-; 4310 :   }
-; 4311 : 
-; 4312 :   dll_log.LogEx (true, L"[   DXGI   ]  @ Returned Adapter %lu: '%32s' (LUID: %08X:%08X)",
+; 4295 : 
+; 4296 : #ifdef SKIP_INTEL
+; 4297 :   if ((desc.VendorId == Microsoft || desc.VendorId == Intel) && Adapter == 0) {
+; 4298 : #else
+; 4299 :   if (false)
+; 4300 :   {
+; 4301 : #endif
+; 4302 :     // We need to release the reference we were just handed before
+; 4303 :     //   skipping it.
+; 4304 :     (*ppAdapter)->Release ();
+; 4305 : 
+; 4306 :     dll_log.LogEx (false,
+; 4307 :       L"[   DXGI   ] >> (Host Application Tried To Enum Intel or Microsoft Adapter "
+; 4308 :       L"as Adapter 0) -- Skipping Adapter '%s' <<\n", desc.Description);
+; 4309 : 
+; 4310 :     return (pFunc (This, Adapter + 1, ppAdapter));
+; 4311 :   }
+; 4312 : 
+; 4313 :   dll_log.LogEx (true, L"[   DXGI   ]  @ Returned Adapter %lu: '%32s' (LUID: %08X:%08X)",
 
 	push	DWORD PTR _desc$[ebp+284]
 	lea	eax, DWORD PTR _desc$[ebp]
 	push	DWORD PTR _desc$[ebp+288]
 	push	eax
 	push	DWORD PTR _Adapter$[ebp]
-	push	OFFSET $SG357806
+	push	OFFSET $SG357438
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 4321 :   CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
+; 4322 :   CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
 
 	mov	ecx, DWORD PTR [esi]
 	add	esp, 28					; 0000001cH
@@ -17424,7 +17413,7 @@ $LN13@EnumAdapte:
 $LN70@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4321 :   CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
+; 4322 :   CComQIPtr <IDXGIAdapter1> pAdapter1 (*ppAdapter);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -17434,12 +17423,12 @@ $LN70@EnumAdapte:
 	test	esi, esi
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4323 :   if (pAdapter1 != nullptr)
+; 4324 :   if (pAdapter1 != nullptr)
 
 	je	SHORT $LN19@EnumAdapte
 
-; 4324 :   {
-; 4325 :     DXGI_ADAPTER_DESC1 desc1 = { };
+; 4325 :   {
+; 4326 :     DXGI_ADAPTER_DESC1 desc1 = { };
 
 	push	296					; 00000128H
 	lea	eax, DWORD PTR _desc1$2[ebp]
@@ -17447,8 +17436,8 @@ $LN70@EnumAdapte:
 	push	eax
 	call	_memset
 
-; 4326 : 
-; 4327 :     if (            GetDesc1_Original != nullptr &&
+; 4327 : 
+; 4328 :     if (            GetDesc1_Original != nullptr &&
 
 	mov	eax, DWORD PTR ?GetDesc1_Original@@3P6GJPAUIDXGIAdapter1@@PAUDXGI_ADAPTER_DESC1@@@ZA ; GetDesc1_Original
 	add	esp, 12					; 0000000cH
@@ -17461,50 +17450,50 @@ $LN70@EnumAdapte:
 	test	eax, eax
 	js	SHORT $LN19@EnumAdapte
 
-; 4328 :          SUCCEEDED (GetDesc1_Original (pAdapter1, &desc1)) )
-; 4329 :     {
-; 4330 : #define DXGI_ADAPTER_FLAG_REMOTE   0x1
-; 4331 : #define DXGI_ADAPTER_FLAG_SOFTWARE 0x2
-; 4332 :       if (desc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+; 4329 :          SUCCEEDED (GetDesc1_Original (pAdapter1, &desc1)) )
+; 4330 :     {
+; 4331 : #define DXGI_ADAPTER_FLAG_REMOTE   0x1
+; 4332 : #define DXGI_ADAPTER_FLAG_SOFTWARE 0x2
+; 4333 :       if (desc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
 
 	test	BYTE PTR _desc1$2[ebp+292], 2
 	je	SHORT $LN17@EnumAdapte
 
-; 4333 :         dll_log.LogEx (false, L" <Software>");
+; 4334 :         dll_log.LogEx (false, L" <Software>");
 
-	push	OFFSET $SG357811
+	push	OFFSET $SG357443
 
-; 4334 :       else
+; 4335 :       else
 
 	jmp	SHORT $LN94@EnumAdapte
 $LN17@EnumAdapte:
 
-; 4335 :         dll_log.LogEx (false, L" <Hardware>");
+; 4336 :         dll_log.LogEx (false, L" <Hardware>");
 
-	push	OFFSET $SG357812
+	push	OFFSET $SG357444
 $LN94@EnumAdapte:
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 4336 :       if (desc1.Flags & DXGI_ADAPTER_FLAG_REMOTE)
+; 4337 :       if (desc1.Flags & DXGI_ADAPTER_FLAG_REMOTE)
 
 	test	BYTE PTR _desc1$2[ebp+292], 1
 	je	SHORT $LN19@EnumAdapte
 
-; 4337 :         dll_log.LogEx (false, L" [Remote]");
+; 4338 :         dll_log.LogEx (false, L" [Remote]");
 
-	push	OFFSET $SG357814
+	push	OFFSET $SG357446
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 $LN19@EnumAdapte:
 
-; 4341 :   dll_log.LogEx (false, L"\n");
+; 4342 :   dll_log.LogEx (false, L"\n");
 
-	push	OFFSET $SG357815
+	push	OFFSET $SG357447
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17515,12 +17504,12 @@ $LN19@EnumAdapte:
 	mov	eax, DWORD PTR _pAdapter1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4341 :   dll_log.LogEx (false, L"\n");
+; 4342 :   dll_log.LogEx (false, L"\n");
 
 	add	esp, 12					; 0000000cH
 
-; 4342 : 
-; 4343 :   return S_OK;
+; 4343 : 
+; 4344 :   return S_OK;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	pop	edi
@@ -17540,7 +17529,7 @@ $LN19@EnumAdapte:
 $LN92@EnumAdapte:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4344 : }
+; 4345 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	xor	eax, eax
@@ -17608,7 +17597,7 @@ _ret$1$ = 12						; size = 4
 _pDesc$ = 12						; size = 4
 ?GetDesc_Override@@YGJPAUIDXGIAdapter@@PAUDXGI_ADAPTER_DESC@@@Z PROC ; GetDesc_Override
 
-; 4182 : {
+; 4186 : {
 
 	npad	2
 	push	ebp
@@ -17616,15 +17605,15 @@ _pDesc$ = 12						; size = 4
 	sub	esp, 28					; 0000001cH
 	push	esi
 
-; 4183 : #if 0
-; 4184 :   std::wstring iname = SK_GetDXGIAdapterInterface (This);
-; 4185 : 
-; 4186 :   DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc",L"%ph, %ph", This, pDesc);
-; 4187 : 
-; 4188 :   HRESULT    ret;
-; 4189 :   DXGI_CALL (ret, GetDesc_Original (This, pDesc));
-; 4190 : #else
-; 4191 :   HRESULT ret = GetDesc_Original (This, pDesc);
+; 4187 : #if 0
+; 4188 :   std::wstring iname = SK_GetDXGIAdapterInterface (This);
+; 4189 : 
+; 4190 :   DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc",L"%ph, %ph", This, pDesc);
+; 4191 : 
+; 4192 :   HRESULT    ret;
+; 4193 :   DXGI_CALL (ret, GetDesc_Original (This, pDesc));
+; 4194 : #else
+; 4195 :   HRESULT ret = GetDesc_Original (This, pDesc);
 
 	mov	esi, DWORD PTR _pDesc$[ebp]
 	push	edi
@@ -17633,10 +17622,10 @@ _pDesc$ = 12						; size = 4
 	mov	DWORD PTR $T2[ebp], 0
 	call	DWORD PTR ?GetDesc_Original@@3P6GJPAUIDXGIAdapter@@PAUDXGI_ADAPTER_DESC@@@ZA ; GetDesc_Original
 
-; 4192 : #endif
-; 4193 : 
-; 4194 :   //// OVERRIDE VRAM NUMBER
-; 4195 :   if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
+; 4196 : #endif
+; 4197 : 
+; 4198 :   //// OVERRIDE VRAM NUMBER
+; 4199 :   if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
 	mov	edi, eax
@@ -17646,58 +17635,58 @@ _pDesc$ = 12						; size = 4
 	test	eax, eax
 	jle	SHORT $LN4@GetDesc_Ov
 
-; 4196 :   {
-; 4197 :     dll_log.LogEx ( true,
+; 4200 :   {
+; 4201 :     dll_log.LogEx ( true,
 
 	push	esi
-	push	OFFSET $SG357549
+	push	OFFSET $SG357181
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 4198 :       L" <> GetDesc_Override: Looking for matching NVAPI GPU for %s...: ",
-; 4199 :       pDesc->Description );
-; 4200 : 
-; 4201 :     DXGI_ADAPTER_DESC* match =
-; 4202 :       sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
+; 4202 :       L" <> GetDesc_Override: Looking for matching NVAPI GPU for %s...: ",
+; 4203 :       pDesc->Description );
+; 4204 : 
+; 4205 :     DXGI_ADAPTER_DESC* match =
+; 4206 :       sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
 
 	push	esi
 	call	?FindGPUByDXGIName@NVAPI@sk@@YAPAUDXGI_ADAPTER_DESC@@PB_W@Z ; sk::NVAPI::FindGPUByDXGIName
 	mov	edi, eax
 	add	esp, 20					; 00000014H
 
-; 4203 : 
-; 4204 :     if (match != nullptr)
+; 4207 : 
+; 4208 :     if (match != nullptr)
 
 	test	edi, edi
 	je	SHORT $LN3@GetDesc_Ov
 
-; 4205 :     {
-; 4206 :       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
+; 4209 :     {
+; 4210 :       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
 
 	push	edi
-	push	OFFSET $SG357552
+	push	OFFSET $SG357184
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 4207 :       pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
+; 4211 :       pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
 
 	mov	eax, DWORD PTR [edi+272]
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR [esi+272], eax
 
-; 4208 :     }
-; 4209 : 
-; 4210 :     else
+; 4212 :     }
+; 4213 : 
+; 4214 :     else
 
 	jmp	SHORT $LN46@GetDesc_Ov
 $LN3@GetDesc_Ov:
 
-; 4211 :     {
-; 4212 :       dll_log.LogEx (false, L"Failure! (No Match Found)\n");
+; 4215 :     {
+; 4216 :       dll_log.LogEx (false, L"Failure! (No Match Found)\n");
 
-	push	OFFSET $SG357553
+	push	OFFSET $SG357185
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17706,16 +17695,16 @@ $LN46@GetDesc_Ov:
 	mov	edi, DWORD PTR _ret$1$[ebp]
 $LN4@GetDesc_Ov:
 
-; 4213 :     }
-; 4214 :   }
-; 4215 : 
-; 4216 :   if (config.system.log_level >= 1)
+; 4217 :     }
+; 4218 :   }
+; 4219 : 
+; 4220 :   if (config.system.log_level >= 1)
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 1
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 1
 	jl	SHORT $LN5@GetDesc_Ov
 
-; 4217 :   {
-; 4218 :     dll_log.Log ( L"[   DXGI   ] Dedicated Video: %zu MiB, Dedicated System: %zu MiB, "
+; 4221 :   {
+; 4222 :     dll_log.Log ( L"[   DXGI   ] Dedicated Video: %zu MiB, Dedicated System: %zu MiB, "
 
 	mov	eax, DWORD PTR [esi+280]
 	shr	eax, 20					; 00000014H
@@ -17726,16 +17715,16 @@ $LN4@GetDesc_Ov:
 	mov	eax, DWORD PTR [esi+272]
 	shr	eax, 20					; 00000014H
 	push	eax
-	push	OFFSET $SG357555
+	push	OFFSET $SG357187
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
 $LN5@GetDesc_Ov:
 
-; 4225 :   if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
+; 4229 :   if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
 
 	push	ebx
-	push	OFFSET $SG357558
+	push	OFFSET $SG357190
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	DWORD PTR __imp__lstrcmpW@8
@@ -17753,11 +17742,11 @@ $LN5@GetDesc_Ov:
 ; 3844 : 	return (_Left._Equal(_Right));
 
 	mov	ecx, eax
-	push	OFFSET $SG357559
+	push	OFFSET $SG357191
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4225 :   if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
+; 4229 :   if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
 
 	test	al, al
 	je	SHORT $LN8@GetDesc_Ov
@@ -17799,29 +17788,29 @@ $LN9@GetDesc_Ov:
 $LN19@GetDesc_Ov:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4225 :   if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
+; 4229 :   if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
 
 	test	bl, bl
 	pop	ebx
 	je	SHORT $LN45@GetDesc_Ov
 
-; 4226 :                  SK_GetCallerName () == L"Fallout4.exe"  )
-; 4227 :   {
-; 4228 :     pDesc->DedicatedVideoMemory = pDesc->SharedSystemMemory;
+; 4230 :                  SK_GetCallerName () == L"Fallout4.exe"  )
+; 4231 :   {
+; 4232 :     pDesc->DedicatedVideoMemory = pDesc->SharedSystemMemory;
 
 	mov	eax, DWORD PTR [esi+280]
 	mov	DWORD PTR [esi+272], eax
 $LN45@GetDesc_Ov:
 
-; 4229 :   }
-; 4230 : 
-; 4231 :   return ret;
+; 4233 :   }
+; 4234 : 
+; 4235 :   return ret;
 
 	mov	eax, edi
 	pop	edi
 	pop	esi
 
-; 4232 : }
+; 4236 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -17835,7 +17824,7 @@ _This$ = 8						; size = 4
 _pDesc$ = 12						; size = 4
 ?GetDesc1_Override@@YGJPAUIDXGIAdapter1@@PAUDXGI_ADAPTER_DESC1@@@Z PROC ; GetDesc1_Override
 
-; 4144 : {
+; 4148 : {
 
 	npad	2
 	push	ebp
@@ -17843,25 +17832,25 @@ _pDesc$ = 12						; size = 4
 	push	esi
 	push	edi
 
-; 4145 : #if 0
-; 4146 :   std::wstring iname = SK_GetDXGIAdapterInterface (This);
-; 4147 : 
-; 4148 :   DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc1", L"%ph, %ph", This, pDesc);
-; 4149 : 
-; 4150 :   HRESULT    ret;
-; 4151 :   DXGI_CALL (ret, GetDesc1_Original (This, pDesc));
-; 4152 : #else
-; 4153 :   HRESULT ret = GetDesc1_Original (This, pDesc);
+; 4149 : #if 0
+; 4150 :   std::wstring iname = SK_GetDXGIAdapterInterface (This);
+; 4151 : 
+; 4152 :   DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc1", L"%ph, %ph", This, pDesc);
+; 4153 : 
+; 4154 :   HRESULT    ret;
+; 4155 :   DXGI_CALL (ret, GetDesc1_Original (This, pDesc));
+; 4156 : #else
+; 4157 :   HRESULT ret = GetDesc1_Original (This, pDesc);
 
 	mov	edi, DWORD PTR _pDesc$[ebp]
 	push	edi
 	push	DWORD PTR _This$[ebp]
 	call	DWORD PTR ?GetDesc1_Original@@3P6GJPAUIDXGIAdapter1@@PAUDXGI_ADAPTER_DESC1@@@ZA ; GetDesc1_Original
 
-; 4154 : #endif
-; 4155 : 
-; 4156 :   //// OVERRIDE VRAM NUMBER
-; 4157 :   if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
+; 4158 : #endif
+; 4159 : 
+; 4160 :   //// OVERRIDE VRAM NUMBER
+; 4161 :   if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
 	mov	esi, eax
@@ -17870,69 +17859,69 @@ _pDesc$ = 12						; size = 4
 	test	eax, eax
 	jle	SHORT $LN7@GetDesc1_O
 
-; 4158 :   {
-; 4159 :     dll_log.LogEx ( true,
+; 4162 :   {
+; 4163 :     dll_log.LogEx ( true,
 
 	push	ebx
 	push	edi
-	push	OFFSET $SG357497
+	push	OFFSET $SG357129
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 4160 :       L" <> GetDesc1_Override: Looking for matching NVAPI GPU for %s...: ",
-; 4161 :       pDesc->Description );
-; 4162 : 
-; 4163 :     DXGI_ADAPTER_DESC* match =
-; 4164 :       sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
+; 4164 :       L" <> GetDesc1_Override: Looking for matching NVAPI GPU for %s...: ",
+; 4165 :       pDesc->Description );
+; 4166 : 
+; 4167 :     DXGI_ADAPTER_DESC* match =
+; 4168 :       sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
 
 	push	edi
 	call	?FindGPUByDXGIName@NVAPI@sk@@YAPAUDXGI_ADAPTER_DESC@@PB_W@Z ; sk::NVAPI::FindGPUByDXGIName
 	mov	ebx, eax
 	add	esp, 20					; 00000014H
 
-; 4165 : 
-; 4166 :     if (match != nullptr)
+; 4169 : 
+; 4170 :     if (match != nullptr)
 
 	test	ebx, ebx
 	je	SHORT $LN3@GetDesc1_O
 
-; 4167 :     {
-; 4168 :       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
+; 4171 :     {
+; 4172 :       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
 
 	push	ebx
-	push	OFFSET $SG357500
+	push	OFFSET $SG357132
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 4169 :       pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
+; 4173 :       pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
 
 	mov	eax, DWORD PTR [ebx+272]
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR [edi+272], eax
 
-; 4174 :   }
-; 4175 : 
-; 4176 :   return ret;
+; 4178 :   }
+; 4179 : 
+; 4180 :   return ret;
 
 	mov	eax, esi
 	pop	ebx
 	pop	edi
 	pop	esi
 
-; 4177 : }
+; 4181 : }
 
 	pop	ebp
 	ret	8
 $LN3@GetDesc1_O:
 
-; 4170 :     }
-; 4171 : 
-; 4172 :     else
-; 4173 :       dll_log.LogEx (false, L"Failure! (No Match Found)\n");
+; 4174 :     }
+; 4175 : 
+; 4176 :     else
+; 4177 :       dll_log.LogEx (false, L"Failure! (No Match Found)\n");
 
-	push	OFFSET $SG357501
+	push	OFFSET $SG357133
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17940,16 +17929,16 @@ $LN3@GetDesc1_O:
 	pop	ebx
 $LN7@GetDesc1_O:
 
-; 4174 :   }
-; 4175 : 
-; 4176 :   return ret;
+; 4178 :   }
+; 4179 : 
+; 4180 :   return ret;
 
 	mov	eax, esi
 $LN4@GetDesc1_O:
 	pop	edi
 	pop	esi
 
-; 4177 : }
+; 4181 : }
 
 	pop	ebp
 	ret	8
@@ -17962,7 +17951,7 @@ _This$ = 8						; size = 4
 _pDesc$ = 12						; size = 4
 ?GetDesc2_Override@@YGJPAUIDXGIAdapter2@@PAUDXGI_ADAPTER_DESC2@@@Z PROC ; GetDesc2_Override
 
-; 4107 : {
+; 4111 : {
 
 	npad	2
 	push	ebp
@@ -17970,25 +17959,25 @@ _pDesc$ = 12						; size = 4
 	push	esi
 	push	edi
 
-; 4108 : #if 0
-; 4109 :   std::wstring iname = SK_GetDXGIAdapterInterface (This);
-; 4110 : 
-; 4111 :   DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc2", L"%ph, %ph", This, pDesc);
-; 4112 : 
-; 4113 :   HRESULT    ret;
-; 4114 :   DXGI_CALL (ret, GetDesc2_Original (This, pDesc));
-; 4115 : #else
-; 4116 :   HRESULT ret = GetDesc2_Original (This, pDesc);
+; 4112 : #if 0
+; 4113 :   std::wstring iname = SK_GetDXGIAdapterInterface (This);
+; 4114 : 
+; 4115 :   DXGI_LOG_CALL_I2 (iname.c_str (), L"GetDesc2", L"%ph, %ph", This, pDesc);
+; 4116 : 
+; 4117 :   HRESULT    ret;
+; 4118 :   DXGI_CALL (ret, GetDesc2_Original (This, pDesc));
+; 4119 : #else
+; 4120 :   HRESULT ret = GetDesc2_Original (This, pDesc);
 
 	mov	edi, DWORD PTR _pDesc$[ebp]
 	push	edi
 	push	DWORD PTR _This$[ebp]
 	call	DWORD PTR ?GetDesc2_Original@@3P6GJPAUIDXGIAdapter2@@PAUDXGI_ADAPTER_DESC2@@@ZA ; GetDesc2_Original
 
-; 4117 : #endif
-; 4118 : 
-; 4119 :   //// OVERRIDE VRAM NUMBER
-; 4120 :   if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
+; 4121 : #endif
+; 4122 : 
+; 4123 :   //// OVERRIDE VRAM NUMBER
+; 4124 :   if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
 	mov	esi, eax
@@ -17997,68 +17986,68 @@ _pDesc$ = 12						; size = 4
 	test	eax, eax
 	jle	SHORT $LN7@GetDesc2_O
 
-; 4121 :   {
-; 4122 :     dll_log.LogEx ( true,
+; 4125 :   {
+; 4126 :     dll_log.LogEx ( true,
 
 	push	ebx
 	push	edi
-	push	OFFSET $SG357485
+	push	OFFSET $SG357117
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 4123 :       L" <> GetDesc2_Override: Looking for matching NVAPI GPU for %s...: ",
-; 4124 :       pDesc->Description );
-; 4125 : 
-; 4126 :     DXGI_ADAPTER_DESC* match =
-; 4127 :       sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
+; 4127 :       L" <> GetDesc2_Override: Looking for matching NVAPI GPU for %s...: ",
+; 4128 :       pDesc->Description );
+; 4129 : 
+; 4130 :     DXGI_ADAPTER_DESC* match =
+; 4131 :       sk::NVAPI::FindGPUByDXGIName (pDesc->Description);
 
 	push	edi
 	call	?FindGPUByDXGIName@NVAPI@sk@@YAPAUDXGI_ADAPTER_DESC@@PB_W@Z ; sk::NVAPI::FindGPUByDXGIName
 	mov	ebx, eax
 	add	esp, 20					; 00000014H
 
-; 4128 : 
-; 4129 :     if (match != nullptr)
+; 4132 : 
+; 4133 :     if (match != nullptr)
 
 	test	ebx, ebx
 	je	SHORT $LN3@GetDesc2_O
 
-; 4130 :     {
-; 4131 :       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
+; 4134 :     {
+; 4135 :       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
 
 	push	ebx
-	push	OFFSET $SG357488
+	push	OFFSET $SG357120
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 4132 :       pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
+; 4136 :       pDesc->DedicatedVideoMemory = match->DedicatedVideoMemory;
 
 	mov	eax, DWORD PTR [ebx+272]
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR [edi+272], eax
 
-; 4136 :   }
-; 4137 : 
-; 4138 :   return ret;
+; 4140 :   }
+; 4141 : 
+; 4142 :   return ret;
 
 	mov	eax, esi
 	pop	ebx
 	pop	edi
 	pop	esi
 
-; 4139 : }
+; 4143 : }
 
 	pop	ebp
 	ret	8
 $LN3@GetDesc2_O:
 
-; 4133 :     }
-; 4134 :     else
-; 4135 :       dll_log.LogEx (false, L"Failure! (No Match Found)\n");
+; 4137 :     }
+; 4138 :     else
+; 4139 :       dll_log.LogEx (false, L"Failure! (No Match Found)\n");
 
-	push	OFFSET $SG357489
+	push	OFFSET $SG357121
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -18066,16 +18055,16 @@ $LN3@GetDesc2_O:
 	pop	ebx
 $LN7@GetDesc2_O:
 
-; 4136 :   }
-; 4137 : 
-; 4138 :   return ret;
+; 4140 :   }
+; 4141 : 
+; 4142 :   return ret;
 
 	mov	eax, esi
 $LN4@GetDesc2_O:
 	pop	edi
 	pop	esi
 
-; 4139 : }
+; 4143 : }
 
 	pop	ebp
 	ret	8
@@ -18088,19 +18077,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@XUIDXGIFactory@@@@YAPAPAXPAPAUIDXGIFactory@@@Z PROC ; static_cast_p2p<void,IDXGIFactory>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -18140,7 +18129,7 @@ _riid$ = 8						; size = 4
 _ppFactory$ = 12					; size = 4
 ?CreateDXGIFactory1@@YGJABU_GUID@@PAPAX@Z PROC		; CreateDXGIFactory1
 
-; 4467 : {
+; 4468 : {
 
 	npad	2
 	push	ebp
@@ -18152,21 +18141,21 @@ _ppFactory$ = 12					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 48					; 00000030H
 
-; 4468 :   // For DXGI compliance, do not mix-and-match
-; 4469 :   if ((! SK_DXGI_use_factory1) && (SK_DXGI_factory_init))
+; 4469 :   // For DXGI compliance, do not mix-and-match
+; 4470 :   if ((! SK_DXGI_use_factory1) && (SK_DXGI_factory_init))
 
 	cmp	BYTE PTR ?SK_DXGI_use_factory1@@3_NA, 0	; SK_DXGI_use_factory1
 	jne	SHORT $LN2@CreateDXGI
 	cmp	BYTE PTR ?SK_DXGI_factory_init@@3_NA, 0	; SK_DXGI_factory_init
 	je	SHORT $LN2@CreateDXGI
 
-; 4470 :     return CreateDXGIFactory (riid, ppFactory);
+; 4471 :     return CreateDXGIFactory (riid, ppFactory);
 
 	push	DWORD PTR _ppFactory$[ebp]
 	push	DWORD PTR _riid$[ebp]
 	call	?CreateDXGIFactory@@YGJABU_GUID@@PAPAX@Z ; CreateDXGIFactory
 
-; 4498 : }
+; 4499 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -18177,10 +18166,10 @@ $LN2@CreateDXGI:
 	push	esi
 	push	edi
 
-; 4471 : 
-; 4472 :   SK_DXGI_use_factory1 = true;
-; 4473 : 
-; 4474 :   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
+; 4472 : 
+; 4473 :   SK_DXGI_use_factory1 = true;
+; 4474 : 
+; 4475 :   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
 
 	mov	edi, DWORD PTR _riid$[ebp]
 	lea	eax, DWORD PTR _iname$[ebp]
@@ -18189,7 +18178,7 @@ $LN2@CreateDXGI:
 	mov	BYTE PTR ?SK_DXGI_use_factory1@@3_NA, 1	; SK_DXGI_use_factory1
 	call	?SK_GetDXGIFactoryInterfaceEx@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@ABU_GUID@@@Z ; SK_GetDXGIFactoryInterfaceEx
 
-; 4479 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
+; 4480 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
 
 	push	8192					; 00002000H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -18211,8 +18200,8 @@ $LN8@CreateDXGI:
 	lea	ebx, DWORD PTR [esi+2048]
 	test	esi, esi
 	je	$LN3@CreateDXGI
-	push	OFFSET $SG357934
-	push	OFFSET $SG357935
+	push	OFFSET $SG357566
+	push	OFFSET $SG357567
 	push	esi
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18226,7 +18215,7 @@ $LN8@CreateDXGI:
 	lea	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4479 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
+; 4480 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
 
 	push	DWORD PTR _ppFactory$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18236,16 +18225,16 @@ $LN8@CreateDXGI:
 	cmovae	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4479 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
+; 4480 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
 
 	push	eax
-	push	OFFSET $SG357936
+	push	OFFSET $SG357568
 	push	ebx
 	call	__swprintf
 	push	ebx
 	push	esi
 	lea	eax, DWORD PTR [ebx+2048]
-	push	OFFSET $SG357937
+	push	OFFSET $SG357569
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -18271,12 +18260,12 @@ $LN8@CreateDXGI:
 $LN44@CreateDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4479 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
+; 4480 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
 
 	push	eax
 	lea	eax, DWORD PTR [ebx+2048]
 	push	eax
-	push	OFFSET $SG357938
+	push	OFFSET $SG357570
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18286,7 +18275,7 @@ $LN44@CreateDXGI:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4479 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
+; 4480 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18319,7 +18308,7 @@ $LN44@CreateDXGI:
 $LN54@CreateDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4479 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
+; 4480 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
@@ -18332,7 +18321,7 @@ $LN3@CreateDXGI:
 	mov	esi, DWORD PTR ?SK_D3D11_init_tid@@3JC	; SK_D3D11_init_tid
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4482 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
+; 4483 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
 
 	mov	ebx, DWORD PTR __imp__GetCurrentThreadId@0
 	call	ebx
@@ -18345,23 +18334,23 @@ $LN3@CreateDXGI:
 	mov	esi, DWORD PTR ?SK_D3D11_ansel_tid@@3JC	; SK_D3D11_ansel_tid
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4482 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
+; 4483 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
 
 	call	ebx
 	cmp	esi, eax
 	je	SHORT $LN4@CreateDXGI
 
-; 4483 :        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
-; 4484 :     WaitForInitDXGI ();
+; 4484 :        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+; 4485 :     WaitForInitDXGI ();
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 $LN4@CreateDXGI:
 
-; 4485 : 
-; 4486 :   SK_DXGI_factory_init = true;
-; 4487 : 
-; 4488 :   // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
-; 4489 :   if (CreateDXGIFactory1_Import == nullptr)
+; 4486 : 
+; 4487 :   SK_DXGI_factory_init = true;
+; 4488 : 
+; 4489 :   // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
+; 4490 :   if (CreateDXGIFactory1_Import == nullptr)
 
 	mov	eax, DWORD PTR ?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory1_Import
 	mov	BYTE PTR ?SK_DXGI_factory_init@@3_NA, 1	; SK_DXGI_factory_init
@@ -18369,14 +18358,14 @@ $LN4@CreateDXGI:
 	test	eax, eax
 	jne	SHORT $LN5@CreateDXGI
 
-; 4490 :   {
-; 4491 :     dll_log.Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory on Vista...");
+; 4491 :   {
+; 4492 :     dll_log.Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory on Vista...");
 
-	push	OFFSET $SG357941
+	push	OFFSET $SG357573
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 4492 :     return CreateDXGIFactory (riid, ppFactory);
+; 4493 :     return CreateDXGIFactory (riid, ppFactory);
 
 	mov	ecx, DWORD PTR _ppFactory$[ebp]
 	add	esp, 8
@@ -18387,10 +18376,10 @@ $LN4@CreateDXGI:
 	jmp	SHORT $LN11@CreateDXGI
 $LN5@CreateDXGI:
 
-; 4493 :   }
-; 4494 : 
-; 4495 :   HRESULT    ret;
-; 4496 :   DXGI_CALL (ret, CreateDXGIFactory1_Import (riid, ppFactory));
+; 4494 :   }
+; 4495 : 
+; 4496 :   HRESULT    ret;
+; 4497 :   DXGI_CALL (ret, CreateDXGIFactory1_Import (riid, ppFactory));
 
 	mov	ecx, DWORD PTR _ppFactory$[ebp]
 	push	ecx
@@ -18400,7 +18389,7 @@ $LN5@CreateDXGI:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357943
+	push	OFFSET $SG357575
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18436,7 +18425,7 @@ $LN11@CreateDXGI:
 $LN88@CreateDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4498 : }
+; 4499 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -18492,7 +18481,7 @@ _riid$ = 8						; size = 4
 _ppFactory$ = 12					; size = 4
 ?CreateDXGIFactory@@YGJABU_GUID@@PAPAX@Z PROC		; CreateDXGIFactory
 
-; 4439 : {
+; 4440 : {
 
 	npad	2
 	push	ebp
@@ -18504,19 +18493,19 @@ _ppFactory$ = 12					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 48					; 00000030H
 
-; 4440 :   // For DXGI compliance, do not mix-and-match
-; 4441 :   if (SK_DXGI_use_factory1)
+; 4441 :   // For DXGI compliance, do not mix-and-match
+; 4442 :   if (SK_DXGI_use_factory1)
 
 	cmp	BYTE PTR ?SK_DXGI_use_factory1@@3_NA, 0	; SK_DXGI_use_factory1
 	je	SHORT $LN2@CreateDXGI
 
-; 4442 :     return CreateDXGIFactory1 (riid, ppFactory);
+; 4443 :     return CreateDXGIFactory1 (riid, ppFactory);
 
 	push	DWORD PTR _ppFactory$[ebp]
 	push	DWORD PTR _riid$[ebp]
 	call	?CreateDXGIFactory1@@YGJABU_GUID@@PAPAX@Z ; CreateDXGIFactory1
 
-; 4462 : }
+; 4463 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -18526,15 +18515,15 @@ _ppFactory$ = 12					; size = 4
 $LN2@CreateDXGI:
 	push	esi
 
-; 4443 : 
-; 4444 :   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
+; 4444 : 
+; 4445 :   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
 
 	push	DWORD PTR _riid$[ebp]
 	lea	eax, DWORD PTR _iname$[ebp]
 	push	eax
 	call	?SK_GetDXGIFactoryInterfaceEx@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@ABU_GUID@@@Z ; SK_GetDXGIFactoryInterfaceEx
 
-; 4449 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
+; 4450 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
 
 	push	8192					; 00002000H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -18556,8 +18545,8 @@ $LN7@CreateDXGI:
 	lea	edi, DWORD PTR [esi+2048]
 	test	esi, esi
 	je	$LN3@CreateDXGI
-	push	OFFSET $SG357905
-	push	OFFSET $SG357906
+	push	OFFSET $SG357537
+	push	OFFSET $SG357538
 	push	esi
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18571,7 +18560,7 @@ $LN7@CreateDXGI:
 	lea	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4449 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
+; 4450 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
 
 	push	DWORD PTR _ppFactory$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18581,16 +18570,16 @@ $LN7@CreateDXGI:
 	cmovae	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4449 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
+; 4450 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
 
 	push	eax
-	push	OFFSET $SG357907
+	push	OFFSET $SG357539
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG357908
+	push	OFFSET $SG357540
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -18616,12 +18605,12 @@ $LN7@CreateDXGI:
 $LN42@CreateDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4449 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
+; 4450 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
 
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG357909
+	push	OFFSET $SG357541
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18631,7 +18620,7 @@ $LN42@CreateDXGI:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4449 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
+; 4450 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18664,7 +18653,7 @@ $LN42@CreateDXGI:
 $LN52@CreateDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4449 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
+; 4450 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
@@ -18677,7 +18666,7 @@ $LN3@CreateDXGI:
 	mov	esi, DWORD PTR ?SK_D3D11_init_tid@@3JC	; SK_D3D11_init_tid
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4452 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
+; 4453 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
 
 	mov	edi, DWORD PTR __imp__GetCurrentThreadId@0
 	call	edi
@@ -18690,19 +18679,19 @@ $LN3@CreateDXGI:
 	mov	esi, DWORD PTR ?SK_D3D11_ansel_tid@@3JC	; SK_D3D11_ansel_tid
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4452 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
+; 4453 :   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
 
 	call	edi
 	cmp	esi, eax
 	je	SHORT $LN4@CreateDXGI
 
-; 4453 :        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
-; 4454 :     WaitForInitDXGI ();
+; 4454 :        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+; 4455 :     WaitForInitDXGI ();
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 $LN4@CreateDXGI:
 
-; 4459 :   DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
+; 4460 :   DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
 
 	push	DWORD PTR _ppFactory$[ebp]
 	mov	BYTE PTR ?SK_DXGI_factory_init@@3_NA, 1	; SK_DXGI_factory_init
@@ -18712,7 +18701,7 @@ $LN4@CreateDXGI:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357911
+	push	OFFSET $SG357543
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18722,7 +18711,7 @@ $LN4@CreateDXGI:
 	mov	eax, DWORD PTR _iname$[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4459 :   DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
+; 4460 :   DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
 
 	add	esp, 12					; 0000000cH
 	pop	edi
@@ -18756,7 +18745,7 @@ $LN4@CreateDXGI:
 $LN86@CreateDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4462 : }
+; 4463 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -18872,7 +18861,7 @@ _desc$2$ = 24						; size = 4
 _ppSwapChain$ = 24					; size = 4
 ?DXGIFactory2_CreateSwapChainForComposition_Override@@YGJPAUIDXGIFactory2@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC1@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@Z PROC ; DXGIFactory2_CreateSwapChainForComposition_Override
 
-; 3949 : {
+; 3953 : {
 
 	npad	2
 	push	ebp
@@ -18885,14 +18874,14 @@ _ppSwapChain$ = 24					; size = 4
 	sub	esp, 240				; 000000f0H
 	push	esi
 
-; 3950 :   std::wstring iname = SK_GetDXGIFactoryInterface (This);
+; 3954 :   std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
 	push	DWORD PTR _This$[ebp]
 	lea	eax, DWORD PTR _iname$[ebp]
 	push	eax
 	call	?SK_GetDXGIFactoryInterface@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUIUnknown@@@Z ; SK_GetDXGIFactoryInterface
 
-; 3953 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
+; 3957 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
 
 	push	8192					; 00002000H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -18925,9 +18914,9 @@ $LN6@DXGIFactor:
 	lea	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3953 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
+; 3957 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
 
-	push	OFFSET $SG357418
+	push	OFFSET $SG357050
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -18935,22 +18924,22 @@ $LN6@DXGIFactor:
 	cmovae	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3953 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
+; 3957 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
 
 	push	eax
-	push	OFFSET $SG357419
+	push	OFFSET $SG357051
 	push	esi
 	call	__swprintf
 	push	DWORD PTR _ppSwapChain$[ebp]
 	push	DWORD PTR _pDesc$[ebp]
 	push	DWORD PTR _pDevice$[ebp]
-	push	OFFSET $SG357420
+	push	OFFSET $SG357052
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG357421
+	push	OFFSET $SG357053
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -18976,12 +18965,12 @@ $LN6@DXGIFactor:
 $LN41@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3953 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
+; 3957 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
 
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG357422
+	push	OFFSET $SG357054
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18991,7 +18980,7 @@ $LN41@DXGIFactor:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3953 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
+; 3957 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19019,21 +19008,21 @@ $LN41@DXGIFactor:
 $LN51@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3953 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
+; 3957 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 $LN2@DXGIFactor:
 
-; 3954 :                        L"%ph, %ph, %ph",
-; 3955 :                          pDevice, pDesc, ppSwapChain );
-; 3956 : 
-; 3957 :   HRESULT ret = E_FAIL;
-; 3958 : 
-; 3959 :   assert (pDesc != nullptr);
+; 3958 :                        L"%ph, %ph, %ph",
+; 3959 :                          pDevice, pDesc, ppSwapChain );
 ; 3960 : 
-; 3961 :   DXGI_SWAP_CHAIN_DESC1           new_desc1           = *pDesc;
+; 3961 :   HRESULT ret = E_FAIL;
+; 3962 : 
+; 3963 :   assert (pDesc != nullptr);
+; 3964 : 
+; 3965 :   DXGI_SWAP_CHAIN_DESC1           new_desc1           = *pDesc;
 
 	mov	eax, DWORD PTR _pDesc$[ebp]
 	movups	xmm0, XMMWORD PTR [eax]
@@ -19044,17 +19033,17 @@ $LN2@DXGIFactor:
 	movups	XMMWORD PTR _new_desc1$[ebp+32], xmm0
 	xorps	xmm0, xmm0
 
-; 3962 :   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc = {    };
+; 3966 :   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc = {    };
 
 	movups	XMMWORD PTR _new_fullscreen_desc$[ebp], xmm0
 
-; 3291 :   WaitForInit ();
+; 3295 :   WaitForInit ();
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
 
-; 3292 : 
-; 3293 :   DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
+; 3296 : 
+; 3297 :   DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
 
 	push	60					; 0000003cH
 	lea	eax, DWORD PTR _stub_desc$3[ebp]
@@ -19062,28 +19051,28 @@ $LN2@DXGIFactor:
 	push	eax
 	call	_memset
 
-; 3294 :   bool                 translated = false;
-; 3295 : 
-; 3296 :   if (pDesc1 != nullptr)
-; 3297 :   {
-; 3298 :     if (pDesc == nullptr)
-; 3299 :     {
-; 3300 :       pDesc = &stub_desc;
-; 3301 : 
-; 3302 :       stub_desc.BufferCount                        = pDesc1->BufferCount;
-; 3303 :       stub_desc.BufferUsage                        = pDesc1->BufferUsage;
-; 3304 :       stub_desc.Flags                              = pDesc1->Flags;
-; 3305 :       stub_desc.SwapEffect                         = pDesc1->SwapEffect;
-; 3306 :       stub_desc.SampleDesc.Count                   = pDesc1->SampleDesc.Count;
+; 3298 :   bool                 translated = false;
+; 3299 : 
+; 3300 :   if (pDesc1 != nullptr)
+; 3301 :   {
+; 3302 :     if (pDesc == nullptr)
+; 3303 :     {
+; 3304 :       pDesc = &stub_desc;
+; 3305 : 
+; 3306 :       stub_desc.BufferCount                        = pDesc1->BufferCount;
+; 3307 :       stub_desc.BufferUsage                        = pDesc1->BufferUsage;
+; 3308 :       stub_desc.Flags                              = pDesc1->Flags;
+; 3309 :       stub_desc.SwapEffect                         = pDesc1->SwapEffect;
+; 3310 :       stub_desc.SampleDesc.Count                   = pDesc1->SampleDesc.Count;
 
 	mov	ecx, DWORD PTR _new_desc1$[ebp+16]
 	add	esp, 12					; 0000000cH
 	mov	eax, DWORD PTR _new_desc1$[ebp+28]
 	mov	esi, DWORD PTR _new_desc1$[ebp+44]
 
-; 3307 :       stub_desc.SampleDesc.Quality                 = pDesc1->SampleDesc.Quality;
-; 3308 :       stub_desc.BufferDesc.Format                  = pDesc1->Format;
-; 3309 :       stub_desc.BufferDesc.Height                  = pDesc1->Height;
+; 3311 :       stub_desc.SampleDesc.Quality                 = pDesc1->SampleDesc.Quality;
+; 3312 :       stub_desc.BufferDesc.Format                  = pDesc1->Format;
+; 3313 :       stub_desc.BufferDesc.Height                  = pDesc1->Height;
 
 	mov	edi, DWORD PTR _new_desc1$[ebp+4]
 	mov	DWORD PTR _stub_desc$6$[ebp], ecx
@@ -19096,13 +19085,13 @@ $LN2@DXGIFactor:
 	mov	eax, DWORD PTR _new_desc1$[ebp+36]
 	mov	DWORD PTR _stub_desc$8$[ebp], ecx
 
-; 3310 :       stub_desc.BufferDesc.Width                   = pDesc1->Width;
+; 3314 :       stub_desc.BufferDesc.Width                   = pDesc1->Width;
 
 	mov	ecx, DWORD PTR _new_desc1$[ebp]
 	mov	DWORD PTR _stub_desc$5$[ebp], eax
 	mov	DWORD PTR _stub_desc$10$[ebp], ecx
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	test	eax, eax
 	jne	SHORT $LN127@DXGIFactor
@@ -19185,7 +19174,7 @@ $LN135@DXGIFactor:
 $LN144@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	push	edx
 	mov	edx, DWORD PTR _stub_desc$2$[ebp]
@@ -19205,76 +19194,76 @@ $LN144@DXGIFactor:
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 52					; 00000034H
 
-; 3335 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
-; 3336 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
-; 3337 :       pDesc->BufferDesc.Width,
-; 3338 :       pDesc->BufferDesc.Height,
-; 3339 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3340 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3341 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3342 :           std::numeric_limits <float>::quiet_NaN (),
-; 3343 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
-; 3344 :         L"Unspecified" :
-; 3345 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
-; 3346 :           L"Centered" :
-; 3347 :           L"Stretched",
-; 3348 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
-; 3349 :         L"Unspecified" :
-; 3350 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
-; 3351 :           L"Progressive" :
-; 3352 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
-; 3353 :             L"Interlaced Even" :
-; 3354 :             L"Interlaced Odd",
-; 3355 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
-; 3356 :       pDesc->BufferCount,
-; 3357 :       pDesc->Flags,
-; 3358 :       pDesc->SwapEffect         == 0 ?
-; 3359 :         L"Discard" :
-; 3360 :         pDesc->SwapEffect       == 1 ?
-; 3361 :           L"Sequential" :
-; 3362 :           pDesc->SwapEffect     == 2 ?
-; 3363 :             L"<Unknown>" :
-; 3364 :             pDesc->SwapEffect   == 3 ?
-; 3365 :               L"Flip Sequential" :
-; 3366 :               pDesc->SwapEffect == 4 ?
-; 3367 :                 L"Flip Discard" :
-; 3368 :                 L"<Unknown>" );
-; 3369 : 
-; 3370 :     // Set things up to make the swap chain Alt+Enter friendly
-; 3371 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
+; 3339 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
+; 3340 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
+; 3341 :       pDesc->BufferDesc.Width,
+; 3342 :       pDesc->BufferDesc.Height,
+; 3343 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3344 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3345 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3346 :           std::numeric_limits <float>::quiet_NaN (),
+; 3347 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
+; 3348 :         L"Unspecified" :
+; 3349 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
+; 3350 :           L"Centered" :
+; 3351 :           L"Stretched",
+; 3352 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
+; 3353 :         L"Unspecified" :
+; 3354 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
+; 3355 :           L"Progressive" :
+; 3356 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
+; 3357 :             L"Interlaced Even" :
+; 3358 :             L"Interlaced Odd",
+; 3359 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
+; 3360 :       pDesc->BufferCount,
+; 3361 :       pDesc->Flags,
+; 3362 :       pDesc->SwapEffect         == 0 ?
+; 3363 :         L"Discard" :
+; 3364 :         pDesc->SwapEffect       == 1 ?
+; 3365 :           L"Sequential" :
+; 3366 :           pDesc->SwapEffect     == 2 ?
+; 3367 :             L"<Unknown>" :
+; 3368 :             pDesc->SwapEffect   == 3 ?
+; 3369 :               L"Flip Sequential" :
+; 3370 :               pDesc->SwapEffect == 4 ?
+; 3371 :                 L"Flip Discard" :
+; 3372 :                 L"<Unknown>" );
+; 3373 : 
+; 3374 :     // Set things up to make the swap chain Alt+Enter friendly
+; 3375 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
 
 	cmp	BYTE PTR ?bAlwaysAllowFullscreen@@3_NA, 0 ; bAlwaysAllowFullscreen
 	je	SHORT $LN85@DXGIFactor
 
-; 3372 :     {
-; 3373 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3376 :     {
+; 3377 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 
-; 3374 :       pDesc->Windowed                           = true;
-; 3375 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
+; 3378 :       pDesc->Windowed                           = true;
+; 3379 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
 
 	xor	eax, eax
 	mov	DWORD PTR _stub_desc$12$[ebp], eax
 
-; 3376 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+; 3380 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
 
 	mov	DWORD PTR _stub_desc$13$[ebp], eax
 $LN85@DXGIFactor:
 
-; 3377 :     }
-; 3378 : 
-; 3379 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
+; 3381 :     }
+; 3382 : 
+; 3383 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+752
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
 	je	SHORT $LN87@DXGIFactor
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
 	jne	SHORT $LN87@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN148@DXGIFactor
@@ -19283,18 +19272,18 @@ $LN85@DXGIFactor:
 $LN148@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3383 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3387 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	ecx, edx
 
-; 3384 :         pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3388 :         pDesc->BufferDesc.Height = config.window.res.override.y;
 
 	mov	edi, eax
 	mov	DWORD PTR _stub_desc$10$[ebp], ecx
 $LN87@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN152@DXGIFactor
@@ -19303,48 +19292,48 @@ $LN87@DXGIFactor:
 $LN152@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3399 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3403 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	ecx, edx
 
-; 3400 :       pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3404 :       pDesc->BufferDesc.Height = config.window.res.override.y;
 
 	mov	edi, eax
 	mov	DWORD PTR _stub_desc$10$[ebp], ecx
 $LN89@DXGIFactor:
 
-; 3401 :     }
-; 3402 : 
-; 3403 : 
-; 3404 :     if (config.render.dxgi.safe_fullscreen)
+; 3405 :     }
+; 3406 : 
+; 3407 : 
+; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
 	je	SHORT $LN90@DXGIFactor
 
-; 3405 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 $LN90@DXGIFactor:
 
-; 3406 : 
-; 3407 :     if (request_mode_change == mode_change_request_e::Fullscreen)
+; 3410 : 
+; 3411 :     if (request_mode_change == mode_change_request_e::Fullscreen)
 
 	cmp	DWORD PTR ?request_mode_change@@3W4mode_change_request_e@@A, 1 ; request_mode_change
 	jne	SHORT $LN323@DXGIFactor
 
-; 3408 :     {
-; 3409 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
+; 3412 :     {
+; 3413 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
 
 	push	OFFSET ??_C@_1HA@INGGDHHB@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAU?$AAs?$AAe?$AAr?$AA?9?$AAR?$AAe?$AAq?$AAu?$AAe?$AAs?$AAt?$AAe?$AAd?$AA?5@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3410 :       pDesc->Windowed = FALSE;
+; 3414 :       pDesc->Windowed = FALSE;
 
 	xor	eax, eax
 
-; 3411 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3415 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 	jmp	SHORT $LN91@DXGIFactor
@@ -19352,42 +19341,42 @@ $LN323@DXGIFactor:
 	mov	eax, 1
 $LN91@DXGIFactor:
 
-; 3412 :     }
-; 3413 : 
-; 3414 :     if (config.display.force_fullscreen && pDesc->Windowed)
+; 3416 :     }
+; 3417 : 
+; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
 	je	SHORT $LN92@DXGIFactor
 	test	eax, eax
 	je	SHORT $LN92@DXGIFactor
 
-; 3415 :     {
-; 3416 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3419 :     {
+; 3420 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@HCAIICBG@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3417 :                     L"(Requested: Windowed, Using: Fullscreen)" );
-; 3418 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3421 :                     L"(Requested: Windowed, Using: Fullscreen)" );
+; 3422 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 
-; 3419 :       pDesc->Windowed = FALSE;
+; 3423 :       pDesc->Windowed = FALSE;
 
 	jmp	SHORT $LN94@DXGIFactor
 $LN92@DXGIFactor:
 
-; 3420 :     }
-; 3421 : 
-; 3422 :     else if (config.display.force_windowed)
+; 3424 :     }
+; 3425 : 
+; 3426 :     else if (config.display.force_windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
 	je	SHORT $LN94@DXGIFactor
 
-; 3423 :     {
-; 3424 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3427 :     {
+; 3428 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@LPALCGFK@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
@@ -19395,42 +19384,42 @@ $LN92@DXGIFactor:
 	add	esp, 8
 $LN94@DXGIFactor:
 
-; 3425 :                     L"(Requested: Fullscreen, Using: Windowed)" );
-; 3426 :       pDesc->Windowed = TRUE;
-; 3427 :     }
-; 3428 : 
-; 3429 : #ifdef _WIN64
-; 3430 :     if (! bFlipMode)
-; 3431 :       bFlipMode =
-; 3432 :         ( dxgi_caps.present.flip_sequential && (
-; 3433 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
-; 3434 :             SK_DS3_UseFlipMode ()        ) );
-; 3435 : 
-; 3436 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
-; 3437 :     {
-; 3438 :       if (bFlipMode)
-; 3439 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
-; 3440 :     }
-; 3441 : 
-; 3442 :     else
-; 3443 : #endif
-; 3444 :     {
-; 3445 :       // If forcing flip-model, then force multisampling off
-; 3446 :       if (config.render.framerate.flip_discard)
+; 3429 :                     L"(Requested: Fullscreen, Using: Windowed)" );
+; 3430 :       pDesc->Windowed = TRUE;
+; 3431 :     }
+; 3432 : 
+; 3433 : #ifdef _WIN64
+; 3434 :     if (! bFlipMode)
+; 3435 :       bFlipMode =
+; 3436 :         ( dxgi_caps.present.flip_sequential && (
+; 3437 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
+; 3438 :             SK_DS3_UseFlipMode ()        ) );
+; 3439 : 
+; 3440 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
+; 3441 :     {
+; 3442 :       if (bFlipMode)
+; 3443 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
+; 3444 :     }
+; 3445 : 
+; 3446 :     else
+; 3447 : #endif
+; 3448 :     {
+; 3449 :       // If forcing flip-model, then force multisampling off
+; 3450 :       if (config.render.framerate.flip_discard)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN318@DXGIFactor
 
-; 3447 :       {
-; 3448 :         bFlipMode = dxgi_caps.present.flip_sequential;
+; 3451 :       {
+; 3452 :         bFlipMode = dxgi_caps.present.flip_sequential;
 
 	mov	al, BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+2
 	mov	BYTE PTR ?bFlipMode@@3_NA, al		; bFlipMode
 
-; 3449 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
-; 3450 : 
-; 3451 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
-; 3452 :         switch (pDesc->BufferDesc.Format)
+; 3453 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
+; 3454 : 
+; 3455 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+; 3456 :         switch (pDesc->BufferDesc.Format)
 
 	mov	eax, DWORD PTR _stub_desc$8$[ebp]
 	add	eax, -23				; ffffffe9H
@@ -19442,58 +19431,58 @@ $LN94@DXGIFactor:
 	jmp	DWORD PTR $LN329@DXGIFactor[eax*4]
 $LN96@DXGIFactor:
 
-; 3453 :         {
-; 3454 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-; 3455 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+; 3457 :         {
+; 3458 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 	mov	DWORD PTR _stub_desc$8$[ebp], 87	; 00000057H
 
-; 3456 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@NDGFBELE@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAB?$AA8?$AAG?$AA8?$AAR?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3457 :             break;
+; 3461 :             break;
 
 	jmp	SHORT $LN325@DXGIFactor
 $LN97@DXGIFactor:
 
-; 3458 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+; 3462 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+; 3463 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3464 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@CCHCBLHJ@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAR?$AA8?$AAG?$AA8?$AAB?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3461 :             break;
+; 3465 :             break;
 
 	jmp	SHORT $LN326@DXGIFactor
 $LN98@DXGIFactor:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1KK@LPPCBMFA@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAR?$AAG?$AAB?$AAA?$AA?5?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA2@
 $LN326@DXGIFactor:
 
-; 3462 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
-; 3463 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-; 3464 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3466 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
+; 3467 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+; 3468 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	mov	DWORD PTR _stub_desc$8$[ebp], 28	; 0000001cH
 $LN325@DXGIFactor:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN318@DXGIFactor:
 
-; 3466 :             break;
-; 3467 :         }
-; 3468 :       }
-; 3469 :     }
-; 3470 : 
-; 3471 :     if (       config.render.framerate.buffer_count != -1                  &&
-; 3472 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
+; 3470 :             break;
+; 3471 :         }
+; 3472 :       }
+; 3473 :     }
+; 3474 : 
+; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
+; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	cmp	ecx, -1
@@ -19504,13 +19493,13 @@ $LN318@DXGIFactor:
 	test	eax, eax
 	je	SHORT $LN99@DXGIFactor
 
-; 3473 :          pDesc->BufferCount                         !=  0 )
-; 3474 :     {
-; 3475 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3477 :          pDesc->BufferCount                         !=  0 )
+; 3478 :     {
+; 3479 :       pDesc->BufferCount = config.render.framerate.buffer_count;
 
 	mov	eax, ecx
 
-; 3476 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
+; 3480 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
 
 	push	eax
 	push	OFFSET ??_C@_1GI@GAEBCHMN@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAB?$AAu?$AAf?$AAf?$AAe?$AAr?$AA?5?$AAC?$AAo?$AAu?$AAn?$AAt?$AA?5?$AAO?$AAv@
@@ -19521,18 +19510,18 @@ $LN318@DXGIFactor:
 	add	esp, 12					; 0000000cH
 $LN99@DXGIFactor:
 
-; 3477 :     }
-; 3478 : 
-; 3479 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
+; 3481 :     }
+; 3482 : 
+; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN100@DXGIFactor
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN100@DXGIFactor
 
-; 3480 :     {
-; 3481 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-; 3482 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+; 3484 :     {
+; 3485 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+; 3486 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
 
 	push	OFFSET ??_C@_1FC@PILPBEPG@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAT?$AAe?$AAa?$AAr?$AAi?$AAn?$AAg?$AA?5?$AAO?$AAp?$AAt?$AAi?$AAo?$AAn?$AA?3@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
@@ -19542,10 +19531,10 @@ $LN99@DXGIFactor:
 	add	esp, 8
 $LN100@DXGIFactor:
 
-; 3483 :       pDesc->Windowed = TRUE;
-; 3484 :     }
-; 3485 : 
-; 3486 :     if ( config.render.dxgi.scaling_mode != -1 &&
+; 3487 :       pDesc->Windowed = TRUE;
+; 3488 :     }
+; 3489 : 
+; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
 	cmp	eax, -1
@@ -19553,10 +19542,10 @@ $LN100@DXGIFactor:
 	cmp	DWORD PTR _stub_desc$3[ebp+24], eax
 	je	SHORT $LN101@DXGIFactor
 
-; 3487 :           pDesc->BufferDesc.Scaling      !=
-; 3488 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
-; 3489 :     {
-; 3490 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
+; 3491 :           pDesc->BufferDesc.Scaling      !=
+; 3492 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+; 3493 :     {
+; 3494 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
@@ -19573,20 +19562,20 @@ $LN100@DXGIFactor:
 	add	esp, 16					; 00000010H
 $LN101@DXGIFactor:
 
-; 3491 :                     L"(Requested: %s, Using: %s)",
-; 3492 :                       SK_DXGI_DescribeScalingMode (
-; 3493 :                         pDesc->BufferDesc.Scaling
-; 3494 :                       ),
-; 3495 :                         SK_DXGI_DescribeScalingMode (
-; 3496 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
-; 3497 :                         )
-; 3498 :                   );
-; 3499 : 
-; 3500 :       pDesc->BufferDesc.Scaling =
-; 3501 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
-; 3502 :     }
+; 3495 :                     L"(Requested: %s, Using: %s)",
+; 3496 :                       SK_DXGI_DescribeScalingMode (
+; 3497 :                         pDesc->BufferDesc.Scaling
+; 3498 :                       ),
+; 3499 :                         SK_DXGI_DescribeScalingMode (
+; 3500 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
+; 3501 :                         )
+; 3502 :                   );
 ; 3503 : 
-; 3504 :     if ( config.render.dxgi.scanline_order != -1 &&
+; 3504 :       pDesc->BufferDesc.Scaling =
+; 3505 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+; 3506 :     }
+; 3507 : 
+; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
@@ -19594,10 +19583,10 @@ $LN101@DXGIFactor:
 	cmp	DWORD PTR _stub_desc$3[ebp+20], eax
 	je	SHORT $LN102@DXGIFactor
 
-; 3505 :           pDesc->BufferDesc.ScanlineOrdering      !=
-; 3506 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
-; 3507 :     {
-; 3508 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
+; 3509 :           pDesc->BufferDesc.ScanlineOrdering      !=
+; 3510 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
+; 3511 :     {
+; 3512 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScanlineOrder@@YAPB_WW4DXGI_MODE_SCANLINE_ORDER@@@Z ; SK_DXGI_DescribeScanlineOrder
@@ -19614,20 +19603,20 @@ $LN101@DXGIFactor:
 	add	esp, 16					; 00000010H
 $LN102@DXGIFactor:
 
-; 3509 :                     L"(Requested: %s, Using: %s)",
-; 3510 :                       SK_DXGI_DescribeScanlineOrder (
-; 3511 :                         pDesc->BufferDesc.ScanlineOrdering
-; 3512 :                       ),
-; 3513 :                         SK_DXGI_DescribeScanlineOrder (
-; 3514 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
-; 3515 :                         )
-; 3516 :                   );
-; 3517 : 
-; 3518 :       pDesc->BufferDesc.ScanlineOrdering =
-; 3519 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
-; 3520 :     }
+; 3513 :                     L"(Requested: %s, Using: %s)",
+; 3514 :                       SK_DXGI_DescribeScanlineOrder (
+; 3515 :                         pDesc->BufferDesc.ScanlineOrdering
+; 3516 :                       ),
+; 3517 :                         SK_DXGI_DescribeScanlineOrder (
+; 3518 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+; 3519 :                         )
+; 3520 :                   );
 ; 3521 : 
-; 3522 :     if ( config.render.framerate.refresh_rate != -1 &&
+; 3522 :       pDesc->BufferDesc.ScanlineOrdering =
+; 3523 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
+; 3524 :     }
+; 3525 : 
+; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	cmp	eax, -1
@@ -19636,9 +19625,9 @@ $LN102@DXGIFactor:
 	cmp	edx, eax
 	je	SHORT $LN103@DXGIFactor
 
-; 3523 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
-; 3524 :     {
-; 3525 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
+; 3527 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
+; 3528 :     {
+; 3529 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
 
 	mov	ecx, DWORD PTR _stub_desc$12$[ebp]
 	test	ecx, ecx
@@ -19669,28 +19658,28 @@ $LN155@DXGIFactor:
 	add	esp, 20					; 00000014H
 $LN103@DXGIFactor:
 
-; 3526 :                     L"(Requested: %f, Using: %li)",
-; 3527 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3528 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3529 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3530 :                      std::numeric_limits <float>::quiet_NaN (),
-; 3531 :                         config.render.framerate.refresh_rate
-; 3532 :                   );
-; 3533 : 
-; 3534 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
-; 3535 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
-; 3536 :     }
+; 3530 :                     L"(Requested: %f, Using: %li)",
+; 3531 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3532 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3533 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3534 :                      std::numeric_limits <float>::quiet_NaN (),
+; 3535 :                         config.render.framerate.refresh_rate
+; 3536 :                   );
 ; 3537 : 
-; 3538 :     bWait = bFlipMode && dxgi_caps.present.waitable;
+; 3538 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
+; 3539 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
+; 3540 :     }
+; 3541 : 
+; 3542 :     bWait = bFlipMode && dxgi_caps.present.waitable;
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	je	SHORT $LN141@DXGIFactor
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN141@DXGIFactor
 
-; 3539 : 
-; 3540 :     // We cannot change the swapchain parameters if this is used...
-; 3541 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
+; 3543 : 
+; 3544 :     // We cannot change the swapchain parameters if this is used...
+; 3545 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
 	jle	SHORT $LN141@DXGIFactor
@@ -19700,28 +19689,28 @@ $LN141@DXGIFactor:
 	xor	dl, dl
 $LN327@DXGIFactor:
 
-; 3542 : 
-; 3543 : #ifdef _WIN64
-; 3544 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-; 3545 :     {
-; 3546 :       if (SK_DS3_IsBorderless ())
-; 3547 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-; 3548 :     }
-; 3549 : #endif
-; 3550 : 
-; 3551 :     if (bFlipMode)
+; 3546 : 
+; 3547 : #ifdef _WIN64
+; 3548 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+; 3549 :     {
+; 3550 :       if (SK_DS3_IsBorderless ())
+; 3551 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3552 :     }
+; 3553 : #endif
+; 3554 : 
+; 3555 :     if (bFlipMode)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	BYTE PTR ?bWait@@3_NA, dl		; bWait
 	je	SHORT $LN104@DXGIFactor
 
-; 3552 :     {
-; 3553 :       if (bWait)
+; 3556 :     {
+; 3557 :       if (bWait)
 
 	test	dl, dl
 	je	SHORT $LN106@DXGIFactor
 
-; 3554 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3558 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
 	or	esi, 64					; 00000040H
 $LN106@DXGIFactor:
@@ -19732,7 +19721,7 @@ $LN106@DXGIFactor:
 	cmp	ecx, 3
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3557 :       config.render.framerate.buffer_count =
+; 3561 :       config.render.framerate.buffer_count =
 
 	mov	DWORD PTR $T9[ebp], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -19744,7 +19733,7 @@ $LN106@DXGIFactor:
 	cmovle	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3560 :       if (config.render.framerate.flip_discard &&
+; 3564 :       if (config.render.framerate.flip_discard &&
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	mov	ecx, DWORD PTR [eax]
@@ -19753,26 +19742,26 @@ $LN106@DXGIFactor:
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN107@DXGIFactor
 
-; 3561 :           dxgi_caps.present.flip_discard)
-; 3562 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+; 3565 :           dxgi_caps.present.flip_discard)
+; 3566 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 	mov	eax, 4
 	mov	DWORD PTR _stub_desc$5$[ebp], eax
 
-; 3563 :       else
+; 3567 :       else
 
 	jmp	SHORT $LN109@DXGIFactor
 $LN107@DXGIFactor:
 
-; 3564 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+; 3568 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
 	mov	DWORD PTR _stub_desc$5$[ebp], 3
 	jmp	SHORT $LN109@DXGIFactor
 $LN104@DXGIFactor:
 
-; 3565 :     }
-; 3566 : 
-; 3567 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
+; 3569 :     }
+; 3570 : 
+; 3571 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
 
 	mov	eax, DWORD PTR _stub_desc$5$[ebp]
 	cmp	eax, 4
@@ -19780,16 +19769,16 @@ $LN104@DXGIFactor:
 	cmp	eax, 3
 	je	SHORT $LN109@DXGIFactor
 
-; 3568 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
-; 3569 :     {
-; 3570 :       // Resort to triple-buffering if flip mode is not available
-; 3571 :       if (config.render.framerate.buffer_count > 3)
+; 3572 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
+; 3573 :     {
+; 3574 :       // Resort to triple-buffering if flip mode is not available
+; 3575 :       if (config.render.framerate.buffer_count > 3)
 
 	mov	eax, 3
 
-; 3572 :         config.render.framerate.buffer_count = 3;
-; 3573 : 
-; 3574 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+; 3576 :         config.render.framerate.buffer_count = 3;
+; 3577 : 
+; 3578 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 	mov	DWORD PTR _stub_desc$5$[ebp], 0
 	cmp	ecx, eax
@@ -19797,18 +19786,18 @@ $LN104@DXGIFactor:
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
 $LN109@DXGIFactor:
 
-; 3575 :     }
-; 3576 : 
-; 3577 :     if (config.render.framerate.buffer_count > 0)
+; 3579 :     }
+; 3580 : 
+; 3581 :     if (config.render.framerate.buffer_count > 0)
 
 	mov	eax, DWORD PTR _stub_desc$2$[ebp]
 	test	ecx, ecx
 	cmovg	eax, ecx
 
-; 3578 :       pDesc->BufferCount = config.render.framerate.buffer_count;
-; 3579 : 
-; 3580 :     // We cannot switch modes on a waitable swapchain
-; 3581 :     if (bFlipMode && bWait)
+; 3582 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3583 : 
+; 3584 :     // We cannot switch modes on a waitable swapchain
+; 3585 :     if (bFlipMode && bWait)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	DWORD PTR _stub_desc$2$[ebp], eax
@@ -19816,15 +19805,15 @@ $LN109@DXGIFactor:
 	test	dl, dl
 	je	SHORT $LN112@DXGIFactor
 
-; 3582 :     {
-; 3583 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-; 3584 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3586 :     {
+; 3587 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3588 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	and	esi, -3					; fffffffdH
 	or	esi, 64					; 00000040H
 $LN112@DXGIFactor:
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	xor	eax, eax
 	mov	ecx, OFFSET ??_C@_15BICKNCBF@?$AAN?$AAo?$AA?$AA@
@@ -19849,7 +19838,7 @@ $LN112@DXGIFactor:
 	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+460
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -19864,7 +19853,7 @@ $LN112@DXGIFactor:
 $LN162@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3594 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
+; 3598 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
 
 	mov	eax, DWORD PTR _stub_desc$10$[ebp]
 	cmp	eax, edx
@@ -19880,7 +19869,7 @@ $LN162@DXGIFactor:
 $LN166@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3596 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
+; 3600 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
 
 	cmp	edi, ecx
 	cmova	edi, ecx
@@ -19902,7 +19891,7 @@ $LN114@DXGIFactor:
 $LN170@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3599 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
+; 3603 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
 
 	cmp	eax, edx
 	cmovb	eax, edx
@@ -19917,112 +19906,112 @@ $LN170@DXGIFactor:
 $LN174@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3601 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
+; 3605 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
 
 	cmp	edi, ecx
 	cmovb	edi, ecx
 $LN313@DXGIFactor:
 
-; 3602 :     pDesc->BufferDesc.Height = config.render.dxgi.res.min.y;
-; 3603 : 
-; 3604 : 
-; 3605 :   if (translated)
-; 3606 :   {
-; 3607 :     pDesc1->BufferCount                        = pDesc->BufferCount;
-; 3608 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
+; 3606 :     pDesc->BufferDesc.Height = config.render.dxgi.res.min.y;
+; 3607 : 
+; 3608 : 
+; 3609 :   if (translated)
+; 3610 :   {
+; 3611 :     pDesc1->BufferCount                        = pDesc->BufferCount;
+; 3612 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
 
 	mov	ecx, DWORD PTR _stub_desc$3$[ebp]
 	mov	edx, DWORD PTR _stub_desc$2$[ebp]
 
-; 3614 :     pDesc1->Height                             = pDesc->BufferDesc.Height;
+; 3618 :     pDesc1->Height                             = pDesc->BufferDesc.Height;
 
 	mov	DWORD PTR _new_desc1$[ebp+4], edi
 
-; 3963 : 
-; 3964 :   HWND hWnd = nullptr;
-; 3965 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
-; 3966 : 
 ; 3967 : 
-; 3968 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
+; 3968 :   HWND hWnd = nullptr;
+; 3969 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
+; 3970 : 
+; 3971 : 
+; 3972 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
 
 	mov	edi, DWORD PTR _ppSwapChain$[ebp]
 	push	edi
 	push	DWORD PTR _pRestrictToOutput$[ebp]
 
-; 3608 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
+; 3612 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
 
 	mov	DWORD PTR _new_desc1$[ebp+24], ecx
 
-; 3609 :     pDesc1->Flags                              = pDesc->Flags;
-; 3610 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
+; 3613 :     pDesc1->Flags                              = pDesc->Flags;
+; 3614 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
 
 	mov	ecx, DWORD PTR _stub_desc$5$[ebp]
 
-; 3615 :     pDesc1->Width                              = pDesc->BufferDesc.Width;
+; 3619 :     pDesc1->Width                              = pDesc->BufferDesc.Width;
 
 	mov	DWORD PTR _new_desc1$[ebp], eax
 
-; 3963 : 
-; 3964 :   HWND hWnd = nullptr;
-; 3965 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
-; 3966 : 
 ; 3967 : 
-; 3968 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
+; 3968 :   HWND hWnd = nullptr;
+; 3969 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
+; 3970 : 
+; 3971 : 
+; 3972 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
 
 	lea	eax, DWORD PTR _new_desc1$[ebp]
 
-; 3610 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
+; 3614 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
 
 	mov	DWORD PTR _new_desc1$[ebp+36], ecx
 
-; 3611 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
+; 3615 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
 
 	mov	ecx, DWORD PTR _stub_desc$6$[ebp]
 
-; 3963 : 
-; 3964 :   HWND hWnd = nullptr;
-; 3965 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
-; 3966 : 
 ; 3967 : 
-; 3968 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
+; 3968 :   HWND hWnd = nullptr;
+; 3969 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
+; 3970 : 
+; 3971 : 
+; 3972 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
 
 	push	eax
 	push	DWORD PTR _pDevice$[ebp]
 
-; 3611 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
+; 3615 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
 
 	mov	DWORD PTR _new_desc1$[ebp+16], ecx
 
-; 3612 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
+; 3616 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
 
 	mov	ecx, DWORD PTR _stub_desc$7$[ebp]
 
-; 3963 : 
-; 3964 :   HWND hWnd = nullptr;
-; 3965 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
-; 3966 : 
 ; 3967 : 
-; 3968 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
+; 3968 :   HWND hWnd = nullptr;
+; 3969 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
+; 3970 : 
+; 3971 : 
+; 3972 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
 
 	push	DWORD PTR _This$[ebp]
 
-; 3612 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
+; 3616 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
 
 	mov	DWORD PTR _new_desc1$[ebp+20], ecx
 
-; 3613 :     pDesc1->Format                             = pDesc->BufferDesc.Format;
+; 3617 :     pDesc1->Format                             = pDesc->BufferDesc.Format;
 
 	mov	ecx, DWORD PTR _stub_desc$8$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+28], edx
 	mov	DWORD PTR _new_desc1$[ebp+44], esi
 	mov	DWORD PTR _new_desc1$[ebp+8], ecx
 
-; 3963 : 
-; 3964 :   HWND hWnd = nullptr;
-; 3965 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
-; 3966 : 
 ; 3967 : 
-; 3968 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
+; 3968 :   HWND hWnd = nullptr;
+; 3969 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
+; 3970 : 
+; 3971 : 
+; 3972 :   DXGI_CALL (ret, CreateSwapChainForComposition_Original ( This, pDevice, &new_desc1,
 
 	call	DWORD PTR ?CreateSwapChainForComposition_Original@@3P6GJPAUIDXGIFactory2@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC1@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@ZA ; CreateSwapChainForComposition_Original
 	mov	esi, eax
@@ -20030,15 +20019,15 @@ $LN313@DXGIFactor:
 	mov	DWORD PTR _ret$1$[ebp], esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357423
+	push	OFFSET $SG357055
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 3969 :                                                              pRestrictToOutput, ppSwapChain ));
-; 3970 : 
-; 3971 :   if ( SUCCEEDED (ret)         &&
-; 3972 :        ppSwapChain  != nullptr &&
+; 3973 :                                                              pRestrictToOutput, ppSwapChain ));
+; 3974 : 
+; 3975 :   if ( SUCCEEDED (ret)         &&
+; 3976 :        ppSwapChain  != nullptr &&
 
 	test	esi, esi
 	js	$LN267@DXGIFactor
@@ -20048,7 +20037,7 @@ $LN313@DXGIFactor:
 	test	esi, esi
 	je	$LN322@DXGIFactor
 
-; 3726 :   desc.BufferDesc.Height  = pDesc1->Height;
+; 3730 :   desc.BufferDesc.Height  = pDesc1->Height;
 
 	mov	eax, DWORD PTR _new_desc1$[ebp+4]
 	mov	edi, DWORD PTR _new_desc1$[ebp]
@@ -20063,62 +20052,62 @@ $LN313@DXGIFactor:
 	call	DWORD PTR [eax+4]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	cmp	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 
-; 3744 :   CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
+; 3748 :   CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	je	SHORT $LN190@DXGIFactor
 	call	?SK_CEGUI_QueueResetD3D11@@YAXXZ	; SK_CEGUI_QueueResetD3D11
 	mov	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 $LN190@DXGIFactor:
 
-; 3644 : 
-; 3645 :   if (pDesc->BufferDesc.Width != 0)
+; 3648 : 
+; 3649 :   if (pDesc->BufferDesc.Width != 0)
 
 	test	edi, edi
 	je	SHORT $LN191@DXGIFactor
 
-; 3646 :   {
-; 3647 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
+; 3650 :   {
+; 3651 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
 
 	push	edi
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3648 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
+; 3652 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
 
 	push	DWORD PTR _desc$2$[ebp]
 
-; 3649 :   }
-; 3650 : 
-; 3651 :   else
+; 3653 :   }
+; 3654 : 
+; 3655 :   else
 
 	jmp	SHORT $LN328@DXGIFactor
 $LN191@DXGIFactor:
 
-; 3652 :   {
-; 3653 :     RECT client;
-; 3654 : 
-; 3655 :     GetClientRect    (game_window.hWnd, &client);
+; 3656 :   {
+; 3657 :     RECT client;
+; 3658 : 
+; 3659 :     GetClientRect    (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$4[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 3656 :     SK_SetWindowResX (client.right  - client.left);
+; 3660 :     SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$4[ebp+8]
 	sub	eax, DWORD PTR _client$4[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3657 :     SK_SetWindowResY (client.bottom - client.top);
+; 3661 :     SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$4[ebp+12]
 	sub	eax, DWORD PTR _client$4[ebp+4]
@@ -20127,9 +20116,9 @@ $LN328@DXGIFactor:
 	call	?SK_SetWindowResY@@YAXJ@Z		; SK_SetWindowResY
 	add	esp, 8
 
-; 3658 :   }
-; 3659 : 
-; 3660 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
+; 3662 :   }
+; 3663 : 
+; 3664 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
 
 	cmp	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 	je	SHORT $LN193@DXGIFactor
@@ -20139,12 +20128,12 @@ $LN328@DXGIFactor:
 	mov	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 $LN193@DXGIFactor:
 
-; 3661 : 
-; 3662 :   //if (bFlipMode || bWait)
-; 3663 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
-; 3664 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 ; 3665 : 
-; 3666 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
+; 3666 :   //if (bFlipMode || bWait)
+; 3667 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
+; 3668 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
+; 3669 : 
+; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A+400
 	mov	DWORD PTR _max_latency$1$[ebp], edi
@@ -20155,7 +20144,7 @@ $LN193@DXGIFactor:
 	mov	DWORD PTR _pSwapChain2$6[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
@@ -20174,28 +20163,28 @@ $LN193@DXGIFactor:
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	test	eax, eax
 	js	SHORT $LN319@DXGIFactor
 
-; 3671 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
-; 3672 :       )
-; 3673 :   {
-; 3674 :     if (max_latency < 16)
+; 3675 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
+; 3676 :       )
+; 3677 :   {
+; 3678 :     if (max_latency < 16)
 
 	cmp	edi, 16					; 00000010H
 	jae	SHORT $LN195@DXGIFactor
 
-; 3675 :     {
-; 3676 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
+; 3679 :     {
+; 3680 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
 
 	push	edi
 	push	OFFSET ??_C@_1GE@BOIALL@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAS?$AAw?$AAa?$AAp?$AAc?$AAh?$AAa?$AAi?$AAn?$AA?5?$AAF@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3677 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
+; 3681 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pSwapChain2$6[ebp]
 	add	esp, 12					; 0000000cH
@@ -20205,18 +20194,18 @@ $LN193@DXGIFactor:
 	call	DWORD PTR [ecx+124]
 $LN195@DXGIFactor:
 
-; 3678 :     }
-; 3679 : 
-; 3680 :     HANDLE hWait =
-; 3681 :       pSwapChain2->GetFrameLatencyWaitableObject ();
+; 3682 :     }
+; 3683 : 
+; 3684 :     HANDLE hWait =
+; 3685 :       pSwapChain2->GetFrameLatencyWaitableObject ();
 
 	mov	eax, DWORD PTR _pSwapChain2$6[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+132]
 
-; 3682 : 
-; 3683 :     WaitForSingleObjectEx ( hWait,
+; 3686 : 
+; 3687 :     WaitForSingleObjectEx ( hWait,
 
 	push	1
 	push	500					; 000001f4H
@@ -20224,12 +20213,12 @@ $LN195@DXGIFactor:
 	call	DWORD PTR __imp__WaitForSingleObjectEx@12
 $LN319@DXGIFactor:
 
-; 3684 :                               500,//config.render.framerate.swapchain_wait,
-; 3685 :                                 TRUE );
-; 3686 :   }
-; 3687 : 
-; 3688 :   {
-; 3689 :     if (max_latency != -1)
+; 3688 :                               500,//config.render.framerate.swapchain_wait,
+; 3689 :                                 TRUE );
+; 3690 :   }
+; 3691 : 
+; 3692 :   {
+; 3693 :     if (max_latency != -1)
 
 	cmp	edi, -1
 	je	SHORT $LN320@DXGIFactor
@@ -20240,7 +20229,7 @@ $LN319@DXGIFactor:
 	mov	DWORD PTR _pDevice1$8[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3693 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
+; 3697 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
 
 	mov	edi, DWORD PTR [esi]
 	lea	eax, DWORD PTR _pDevice1$8[ebp]
@@ -20255,12 +20244,12 @@ $LN319@DXGIFactor:
 	test	eax, eax
 	js	SHORT $LN197@DXGIFactor
 
-; 3694 :                          IID_PPV_ARGS (&pDevice1)
-; 3695 :                       )
-; 3696 :                     )
-; 3697 :          )
-; 3698 :       {
-; 3699 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
+; 3698 :                          IID_PPV_ARGS (&pDevice1)
+; 3699 :                       )
+; 3700 :                     )
+; 3701 :          )
+; 3702 :       {
+; 3703 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
 
 	mov	edi, DWORD PTR _max_latency$1$[ebp]
 	push	edi
@@ -20268,7 +20257,7 @@ $LN319@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3700 :         pDevice1->SetMaximumFrameLatency (max_latency);
+; 3704 :         pDevice1->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pDevice1$8[ebp]
 	add	esp, 12					; 0000000cH
@@ -20284,7 +20273,7 @@ $LN197@DXGIFactor:
 	mov	eax, DWORD PTR _pDevice1$8[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3702 :     }
+; 3706 :     }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -20332,7 +20321,7 @@ $LN320@DXGIFactor:
 $LN233@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3705 :   CComQIPtr <ID3D11Device> pDev (pDevice);
+; 3709 :   CComQIPtr <ID3D11Device> pDev (pDevice);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -20342,14 +20331,14 @@ $LN233@DXGIFactor:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3707 :   if (pDev != nullptr)
+; 3711 :   if (pDev != nullptr)
 
 	je	SHORT $LN198@DXGIFactor
 
-; 3708 :   {
-; 3709 :     g_pD3D11Dev = pDev;
-; 3710 : 
-; 3711 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
+; 3712 :   {
+; 3713 :     g_pD3D11Dev = pDev;
+; 3714 : 
+; 3715 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
 
 	xor	eax, eax
 	mov	DWORD PTR ?g_pD3D11Dev@@3PAUID3D11Device@@A, ecx ; g_pD3D11Dev
@@ -20360,7 +20349,7 @@ $LN233@DXGIFactor:
 	mov	ecx, DWORD PTR _pDev$7[ebp]
 $LN198@DXGIFactor:
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -20382,7 +20371,7 @@ $LN252@DXGIFactor:
 	mov	eax, DWORD PTR _pSwapChain2$6[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -20402,7 +20391,7 @@ $LN258@DXGIFactor:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3746 :   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
+; 3750 :   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -20445,7 +20434,7 @@ $LN267@DXGIFactor:
 $LN317@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3979 : }
+; 3983 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -20568,7 +20557,7 @@ _<new_fullscreen_desc>$ = 44				; size = 4
 ??0<lambda_e5c15a2c98a421a829fc4b087e72baa7>@@QAE@AAJAAPAUIDXGIFactory2@@AAPAUIUnknown@@AAPAUHWND__@@AAPBUDXGI_SWAP_CHAIN_DESC1@@AAPAUDXGI_SWAP_CHAIN_FULLSCREEN_DESC@@AAPAUIDXGIOutput@@AAPAPAUIDXGISwapChain1@@AAU4@AAU5@@Z PROC ; <lambda_e5c15a2c98a421a829fc4b087e72baa7>::<lambda_e5c15a2c98a421a829fc4b087e72baa7>, COMDAT
 ; _this$ = ecx
 
-; 3926 :       };
+; 3930 :       };
 
 	npad	2
 	push	ebp
@@ -20637,7 +20626,7 @@ __$EHRec$ = -12						; size = 12
 ??R<lambda_e5c15a2c98a421a829fc4b087e72baa7>@@QBEHXZ PROC ; <lambda_e5c15a2c98a421a829fc4b087e72baa7>::operator(), COMDAT
 ; _this$ = ecx
 
-; 3912 :       {
+; 3916 :       {
 
 	npad	2
 	push	ebp
@@ -20651,7 +20640,7 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	mov	esi, ecx
 
-; 3913 :         DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
+; 3917 :         DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
 
 	mov	eax, DWORD PTR [esi+28]
 	push	DWORD PTR [eax]
@@ -20678,10 +20667,10 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3914 :                                                              pRestrictToOutput, ppSwapChain ) );
-; 3915 : 
-; 3916 :         if ( SUCCEEDED (ret)         &&
-; 3917 :              ppSwapChain  != nullptr &&
+; 3918 :                                                              pRestrictToOutput, ppSwapChain ) );
+; 3919 : 
+; 3920 :         if ( SUCCEEDED (ret)         &&
+; 3921 :              ppSwapChain  != nullptr &&
 
 	mov	eax, DWORD PTR [esi]
 	add	esp, 12					; 0000000cH
@@ -20694,9 +20683,9 @@ __$EHRec$ = -12						; size = 12
 	cmp	DWORD PTR [edx], 0
 	je	$LN2@operator
 
-; 3918 :            (*ppSwapChain) != nullptr )
-; 3919 :         {
-; 3920 :           SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, ppSwapChain);
+; 3922 :            (*ppSwapChain) != nullptr )
+; 3923 :         {
+; 3924 :           SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, ppSwapChain);
 
 	mov	eax, DWORD PTR [esi+8]
 	mov	ecx, DWORD PTR [esi+32]
@@ -20705,43 +20694,43 @@ __$EHRec$ = -12						; size = 12
 	mov	eax, DWORD PTR [eax]
 	mov	DWORD PTR _pDevice$1$[ebp], eax
 
-; 3726 :   desc.BufferDesc.Height  = pDesc1->Height;
+; 3730 :   desc.BufferDesc.Height  = pDesc1->Height;
 
 	mov	eax, DWORD PTR [ecx+4]
 	mov	DWORD PTR _desc$2$[ebp], eax
 	push	edi
 
-; 3714 : 
-; 3715 : __forceinline
-; 3716 : void
-; 3717 : SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *pDevice,
-; 3718 :                                     _In_     DXGI_SWAP_CHAIN_DESC1            *pDesc1,
-; 3719 :                                     _In_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC  *pFullscreenDesc,
-; 3720 :                                     _In_     IDXGISwapChain1                 **ppSwapChain1 )
-; 3721 : {
-; 3722 :   // ONLY AS COMPLETE AS NEEDED, if new code is added to PostInit, this will probably need changing.
-; 3723 :   DXGI_SWAP_CHAIN_DESC desc;
-; 3724 : 
-; 3725 :   desc.BufferDesc.Width   = pDesc1->Width;
+; 3718 : 
+; 3719 : __forceinline
+; 3720 : void
+; 3721 : SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *pDevice,
+; 3722 :                                     _In_     DXGI_SWAP_CHAIN_DESC1            *pDesc1,
+; 3723 :                                     _In_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC  *pFullscreenDesc,
+; 3724 :                                     _In_     IDXGISwapChain1                 **ppSwapChain1 )
+; 3725 : {
+; 3726 :   // ONLY AS COMPLETE AS NEEDED, if new code is added to PostInit, this will probably need changing.
+; 3727 :   DXGI_SWAP_CHAIN_DESC desc;
+; 3728 : 
+; 3729 :   desc.BufferDesc.Width   = pDesc1->Width;
 
 	mov	edi, DWORD PTR [ecx]
 
-; 3727 : 
-; 3728 :   desc.BufferDesc.Format  = pDesc1->Format;
-; 3729 :   //desc.BufferDesc.Scaling = pDesc1->Scaling;
-; 3730 : 
-; 3731 :   desc.BufferCount        = pDesc1->BufferCount;
-; 3732 :   desc.BufferUsage        = pDesc1->BufferUsage;
-; 3733 :   desc.Flags              = pDesc1->Flags;
-; 3734 :   desc.SampleDesc         = pDesc1->SampleDesc;
-; 3735 :   desc.SwapEffect         = pDesc1->SwapEffect;
-; 3736 : 
-; 3737 :   if (pFullscreenDesc)
+; 3731 : 
+; 3732 :   desc.BufferDesc.Format  = pDesc1->Format;
+; 3733 :   //desc.BufferDesc.Scaling = pDesc1->Scaling;
+; 3734 : 
+; 3735 :   desc.BufferCount        = pDesc1->BufferCount;
+; 3736 :   desc.BufferUsage        = pDesc1->BufferUsage;
+; 3737 :   desc.Flags              = pDesc1->Flags;
+; 3738 :   desc.SampleDesc         = pDesc1->SampleDesc;
+; 3739 :   desc.SwapEffect         = pDesc1->SwapEffect;
+; 3740 : 
+; 3741 :   if (pFullscreenDesc)
 
 	test	ebx, ebx
 	je	SHORT $LN97@operator
 
-; 3739 :     desc.Windowed                    = pFullscreenDesc->Windowed;
+; 3743 :     desc.Windowed                    = pFullscreenDesc->Windowed;
 
 	mov	eax, DWORD PTR [ebx+16]
 	jmp	SHORT $LN101@operator
@@ -20755,7 +20744,7 @@ $LN101@operator:
 	mov	esi, DWORD PTR [edx]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3739 :     desc.Windowed                    = pFullscreenDesc->Windowed;
+; 3743 :     desc.Windowed                    = pFullscreenDesc->Windowed;
 
 	mov	DWORD PTR _desc$3$[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -20777,62 +20766,62 @@ $LN101@operator:
 $LN13@operator:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	cmp	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 
-; 3744 :   CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
+; 3748 :   CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	je	SHORT $LN18@operator
 	call	?SK_CEGUI_QueueResetD3D11@@YAXXZ	; SK_CEGUI_QueueResetD3D11
 	mov	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 $LN18@operator:
 
-; 3644 : 
-; 3645 :   if (pDesc->BufferDesc.Width != 0)
+; 3648 : 
+; 3649 :   if (pDesc->BufferDesc.Width != 0)
 
 	test	edi, edi
 	je	SHORT $LN19@operator
 
-; 3646 :   {
-; 3647 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
+; 3650 :   {
+; 3651 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
 
 	push	edi
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3648 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
+; 3652 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
 
 	push	DWORD PTR _desc$2$[ebp]
 
-; 3649 :   }
-; 3650 : 
-; 3651 :   else
+; 3653 :   }
+; 3654 : 
+; 3655 :   else
 
 	jmp	SHORT $LN102@operator
 $LN19@operator:
 
-; 3652 :   {
-; 3653 :     RECT client;
-; 3654 : 
-; 3655 :     GetClientRect    (game_window.hWnd, &client);
+; 3656 :   {
+; 3657 :     RECT client;
+; 3658 : 
+; 3659 :     GetClientRect    (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$3[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 3656 :     SK_SetWindowResX (client.right  - client.left);
+; 3660 :     SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$3[ebp+8]
 	sub	eax, DWORD PTR _client$3[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3657 :     SK_SetWindowResY (client.bottom - client.top);
+; 3661 :     SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$3[ebp+12]
 	sub	eax, DWORD PTR _client$3[ebp+4]
@@ -20841,9 +20830,9 @@ $LN102@operator:
 	call	?SK_SetWindowResY@@YAXJ@Z		; SK_SetWindowResY
 	add	esp, 8
 
-; 3658 :   }
-; 3659 : 
-; 3660 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
+; 3662 :   }
+; 3663 : 
+; 3664 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
 
 	cmp	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 	je	SHORT $LN21@operator
@@ -20853,12 +20842,12 @@ $LN102@operator:
 	mov	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 $LN21@operator:
 
-; 3661 : 
-; 3662 :   //if (bFlipMode || bWait)
-; 3663 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
-; 3664 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 ; 3665 : 
-; 3666 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
+; 3666 :   //if (bFlipMode || bWait)
+; 3667 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
+; 3668 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
+; 3669 : 
+; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -20868,7 +20857,7 @@ $LN21@operator:
 	mov	DWORD PTR _pSwapChain2$6[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
@@ -20887,28 +20876,28 @@ $LN21@operator:
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	test	eax, eax
 	js	SHORT $LN98@operator
 
-; 3671 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
-; 3672 :       )
-; 3673 :   {
-; 3674 :     if (max_latency < 16)
+; 3675 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
+; 3676 :       )
+; 3677 :   {
+; 3678 :     if (max_latency < 16)
 
 	cmp	ebx, 16					; 00000010H
 	jae	SHORT $LN23@operator
 
-; 3675 :     {
-; 3676 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
+; 3679 :     {
+; 3680 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1GE@BOIALL@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAS?$AAw?$AAa?$AAp?$AAc?$AAh?$AAa?$AAi?$AAn?$AA?5?$AAF@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3677 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
+; 3681 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pSwapChain2$6[ebp]
 	add	esp, 12					; 0000000cH
@@ -20918,18 +20907,18 @@ $LN21@operator:
 	call	DWORD PTR [ecx+124]
 $LN23@operator:
 
-; 3678 :     }
-; 3679 : 
-; 3680 :     HANDLE hWait =
-; 3681 :       pSwapChain2->GetFrameLatencyWaitableObject ();
+; 3682 :     }
+; 3683 : 
+; 3684 :     HANDLE hWait =
+; 3685 :       pSwapChain2->GetFrameLatencyWaitableObject ();
 
 	mov	eax, DWORD PTR _pSwapChain2$6[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+132]
 
-; 3682 : 
-; 3683 :     WaitForSingleObjectEx ( hWait,
+; 3686 : 
+; 3687 :     WaitForSingleObjectEx ( hWait,
 
 	push	1
 	push	500					; 000001f4H
@@ -20937,12 +20926,12 @@ $LN23@operator:
 	call	DWORD PTR __imp__WaitForSingleObjectEx@12
 $LN98@operator:
 
-; 3684 :                               500,//config.render.framerate.swapchain_wait,
-; 3685 :                                 TRUE );
-; 3686 :   }
-; 3687 : 
-; 3688 :   {
-; 3689 :     if (max_latency != -1)
+; 3688 :                               500,//config.render.framerate.swapchain_wait,
+; 3689 :                                 TRUE );
+; 3690 :   }
+; 3691 : 
+; 3692 :   {
+; 3693 :     if (max_latency != -1)
 
 	cmp	ebx, -1
 	je	SHORT $LN99@operator
@@ -20953,7 +20942,7 @@ $LN98@operator:
 	mov	DWORD PTR _pDevice1$5[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3693 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
+; 3697 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
 
 	mov	edi, DWORD PTR [esi]
 	lea	eax, DWORD PTR _pDevice1$5[ebp]
@@ -20968,19 +20957,19 @@ $LN98@operator:
 	test	eax, eax
 	js	SHORT $LN25@operator
 
-; 3694 :                          IID_PPV_ARGS (&pDevice1)
-; 3695 :                       )
-; 3696 :                     )
-; 3697 :          )
-; 3698 :       {
-; 3699 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
+; 3698 :                          IID_PPV_ARGS (&pDevice1)
+; 3699 :                       )
+; 3700 :                     )
+; 3701 :          )
+; 3702 :       {
+; 3703 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1FO@CKMCMFKO@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAD?$AAe?$AAv?$AAi?$AAc?$AAe?$AA?5?$AAF?$AAr?$AAa?$AAm@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3700 :         pDevice1->SetMaximumFrameLatency (max_latency);
+; 3704 :         pDevice1->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pDevice1$5[ebp]
 	add	esp, 12					; 0000000cH
@@ -20996,7 +20985,7 @@ $LN25@operator:
 	mov	eax, DWORD PTR _pDevice1$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3702 :     }
+; 3706 :     }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -21044,7 +21033,7 @@ $LN99@operator:
 $LN61@operator:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3705 :   CComQIPtr <ID3D11Device> pDev (pDevice);
+; 3709 :   CComQIPtr <ID3D11Device> pDev (pDevice);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -21054,14 +21043,14 @@ $LN61@operator:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3707 :   if (pDev != nullptr)
+; 3711 :   if (pDev != nullptr)
 
 	je	SHORT $LN26@operator
 
-; 3708 :   {
-; 3709 :     g_pD3D11Dev = pDev;
-; 3710 : 
-; 3711 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
+; 3712 :   {
+; 3713 :     g_pD3D11Dev = pDev;
+; 3714 : 
+; 3715 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
 
 	cmp	DWORD PTR _desc$3$[ebp], 0
 	mov	DWORD PTR ?g_pD3D11Dev@@3PAUID3D11Device@@A, ecx ; g_pD3D11Dev
@@ -21071,7 +21060,7 @@ $LN61@operator:
 	mov	ecx, DWORD PTR _pDev$7[ebp]
 $LN26@operator:
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	pop	edi
@@ -21095,7 +21084,7 @@ $LN80@operator:
 	mov	eax, DWORD PTR _pSwapChain2$6[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -21113,7 +21102,7 @@ $LN80@operator:
 $LN86@operator:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3746 :   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
+; 3750 :   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -21131,15 +21120,15 @@ $LN86@operator:
 $LN95@operator:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3922 :           return TRUE;
+; 3926 :           return TRUE;
 
 	mov	eax, 1
 	pop	esi
 
-; 3923 :         }
-; 3924 : 
-; 3925 :         return FALSE;
-; 3926 :       };
+; 3927 :         }
+; 3928 : 
+; 3929 :         return FALSE;
+; 3930 :       };
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -21254,7 +21243,7 @@ _pRestrictToOutput$ = 28				; size = 4
 _ppSwapChain$ = 32					; size = 4
 ?DXGIFactory2_CreateSwapChainForHwnd_Override@@YGJPAUIDXGIFactory2@@PAUIUnknown@@PAUHWND__@@PBUDXGI_SWAP_CHAIN_DESC1@@PAUDXGI_SWAP_CHAIN_FULLSCREEN_DESC@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@Z PROC ; DXGIFactory2_CreateSwapChainForHwnd_Override
 
-; 3884 : {
+; 3888 : {
 
 	npad	2
 	push	ebp
@@ -21267,14 +21256,14 @@ _ppSwapChain$ = 32					; size = 4
 	sub	esp, 268				; 0000010cH
 	push	esi
 
-; 3885 :   std::wstring iname = SK_GetDXGIFactoryInterface (This);
+; 3889 :   std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
 	push	DWORD PTR _This$[ebp]
 	lea	eax, DWORD PTR _iname$[ebp]
 	push	eax
 	call	?SK_GetDXGIFactoryInterface@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUIUnknown@@@Z ; SK_GetDXGIFactoryInterface
 
-; 3888 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
+; 3892 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
 
 	push	8192					; 00002000H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -21307,9 +21296,9 @@ $LN6@DXGIFactor:
 	lea	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3888 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
+; 3892 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
 
-	push	OFFSET $SG357385
+	push	OFFSET $SG357017
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -21317,22 +21306,22 @@ $LN6@DXGIFactor:
 	cmovae	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3888 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
+; 3892 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
 
 	push	eax
-	push	OFFSET $SG357386
+	push	OFFSET $SG357018
 	push	esi
 	call	__swprintf
 	push	DWORD PTR _ppSwapChain$[ebp]
 	push	DWORD PTR _pDesc$[ebp]
 	push	DWORD PTR _pDevice$[ebp]
-	push	OFFSET $SG357387
+	push	OFFSET $SG357019
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG357388
+	push	OFFSET $SG357020
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -21358,12 +21347,12 @@ $LN6@DXGIFactor:
 $LN43@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3888 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
+; 3892 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
 
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG357389
+	push	OFFSET $SG357021
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21373,7 +21362,7 @@ $LN43@DXGIFactor:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3888 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
+; 3892 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21406,32 +21395,32 @@ $LN43@DXGIFactor:
 $LN53@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3888 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
+; 3892 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 $LN2@DXGIFactor:
 
-; 3889 :                        L"%ph, %ph, %ph",
-; 3890 :                          pDevice, pDesc, ppSwapChain );
-; 3891 : 
-; 3892 :   HRESULT ret;
-; 3893 : 
-; 3894 :   assert (pDesc != nullptr);
+; 3893 :                        L"%ph, %ph, %ph",
+; 3894 :                          pDevice, pDesc, ppSwapChain );
 ; 3895 : 
-; 3896 :   auto                            orig_desc1           = pDesc;
+; 3896 :   HRESULT ret;
+; 3897 : 
+; 3898 :   assert (pDesc != nullptr);
+; 3899 : 
+; 3900 :   auto                            orig_desc1           = pDesc;
 
 	mov	eax, DWORD PTR _pDesc$[ebp]
 
-; 3897 :   auto                            orig_fullscreen_desc = pFullscreenDesc;
+; 3901 :   auto                            orig_fullscreen_desc = pFullscreenDesc;
 
 	mov	ecx, DWORD PTR _pFullscreenDesc$[ebp]
 	mov	DWORD PTR _orig_desc1$1$[ebp], eax
 	mov	DWORD PTR _orig_fullscreen_desc$1$[ebp], ecx
 
-; 3898 : 
-; 3899 :   DXGI_SWAP_CHAIN_DESC1           new_desc1           = *pDesc;
+; 3902 : 
+; 3903 :   DXGI_SWAP_CHAIN_DESC1           new_desc1           = *pDesc;
 
 	movups	xmm0, XMMWORD PTR [eax]
 	movups	XMMWORD PTR _new_desc1$[ebp], xmm0
@@ -21440,8 +21429,8 @@ $LN2@DXGIFactor:
 	movups	xmm0, XMMWORD PTR [eax+32]
 	movups	XMMWORD PTR _new_desc1$[ebp+32], xmm0
 
-; 3900 :   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc =
-; 3901 :     pFullscreenDesc ? *pFullscreenDesc :
+; 3904 :   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc =
+; 3905 :     pFullscreenDesc ? *pFullscreenDesc :
 
 	test	ecx, ecx
 	je	SHORT $LN7@DXGIFactor
@@ -21460,10 +21449,10 @@ $LN8@DXGIFactor:
 	movups	xmm0, XMMWORD PTR [eax]
 	mov	eax, DWORD PTR [eax+16]
 
-; 3902 :                        DXGI_SWAP_CHAIN_FULLSCREEN_DESC { };
-; 3903 : 
-; 3904 :   pDesc           = &new_desc1;
-; 3905 :   pFullscreenDesc = orig_fullscreen_desc ? &new_fullscreen_desc : nullptr;
+; 3906 :                        DXGI_SWAP_CHAIN_FULLSCREEN_DESC { };
+; 3907 : 
+; 3908 :   pDesc           = &new_desc1;
+; 3909 :   pFullscreenDesc = orig_fullscreen_desc ? &new_fullscreen_desc : nullptr;
 
 	xor	edx, edx
 	mov	DWORD PTR _new_fullscreen_desc$[ebp+16], eax
@@ -21475,36 +21464,36 @@ $LN8@DXGIFactor:
 	movups	XMMWORD PTR _new_fullscreen_desc$[ebp], xmm0
 	mov	DWORD PTR _pFullscreenDesc$[ebp], eax
 
-; 3291 :   WaitForInit ();
+; 3295 :   WaitForInit ();
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
 
-; 3292 : 
-; 3293 :   DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
-; 3294 :   bool                 translated = false;
-; 3295 : 
-; 3296 :   if (pDesc1 != nullptr)
-; 3297 :   {
-; 3298 :     if (pDesc == nullptr)
-; 3299 :     {
-; 3300 :       pDesc = &stub_desc;
-; 3301 : 
-; 3302 :       stub_desc.BufferCount                        = pDesc1->BufferCount;
+; 3296 : 
+; 3297 :   DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
+; 3298 :   bool                 translated = false;
+; 3299 : 
+; 3300 :   if (pDesc1 != nullptr)
+; 3301 :   {
+; 3302 :     if (pDesc == nullptr)
+; 3303 :     {
+; 3304 :       pDesc = &stub_desc;
+; 3305 : 
+; 3306 :       stub_desc.BufferCount                        = pDesc1->BufferCount;
 
 	mov	eax, DWORD PTR _new_desc1$[ebp+28]
 
-; 3303 :       stub_desc.BufferUsage                        = pDesc1->BufferUsage;
-; 3304 :       stub_desc.Flags                              = pDesc1->Flags;
-; 3305 :       stub_desc.SwapEffect                         = pDesc1->SwapEffect;
+; 3307 :       stub_desc.BufferUsage                        = pDesc1->BufferUsage;
+; 3308 :       stub_desc.Flags                              = pDesc1->Flags;
+; 3309 :       stub_desc.SwapEffect                         = pDesc1->SwapEffect;
 
 	mov	edx, DWORD PTR _new_desc1$[ebp+36]
 
-; 3306 :       stub_desc.SampleDesc.Count                   = pDesc1->SampleDesc.Count;
-; 3307 :       stub_desc.SampleDesc.Quality                 = pDesc1->SampleDesc.Quality;
-; 3308 :       stub_desc.BufferDesc.Format                  = pDesc1->Format;
-; 3309 :       stub_desc.BufferDesc.Height                  = pDesc1->Height;
-; 3310 :       stub_desc.BufferDesc.Width                   = pDesc1->Width;
+; 3310 :       stub_desc.SampleDesc.Count                   = pDesc1->SampleDesc.Count;
+; 3311 :       stub_desc.SampleDesc.Quality                 = pDesc1->SampleDesc.Quality;
+; 3312 :       stub_desc.BufferDesc.Format                  = pDesc1->Format;
+; 3313 :       stub_desc.BufferDesc.Height                  = pDesc1->Height;
+; 3314 :       stub_desc.BufferDesc.Width                   = pDesc1->Width;
 
 	mov	ecx, DWORD PTR _new_desc1$[ebp]
 	mov	esi, DWORD PTR _new_desc1$[ebp+44]
@@ -21519,42 +21508,42 @@ $LN8@DXGIFactor:
 	mov	eax, DWORD PTR _new_desc1$[ebp+8]
 	mov	DWORD PTR _stub_desc$8$[ebp], eax
 
-; 3311 :       stub_desc.OutputWindow                       = hWnd;
+; 3315 :       stub_desc.OutputWindow                       = hWnd;
 
 	mov	eax, DWORD PTR _hWnd$[ebp]
 	mov	DWORD PTR _stub_desc$11$[ebp], eax
 
-; 3312 : 
-; 3313 :       if (pFullscreenDesc != nullptr)
-; 3314 :       {
-; 3315 :         stub_desc.Windowed                           = pFullscreenDesc->Windowed;
+; 3316 : 
+; 3317 :       if (pFullscreenDesc != nullptr)
+; 3318 :       {
+; 3319 :         stub_desc.Windowed                           = pFullscreenDesc->Windowed;
 
 	mov	eax, DWORD PTR _new_fullscreen_desc$[ebp+16]
 	mov	DWORD PTR _stub_desc$12$[ebp], eax
 
-; 3316 :         stub_desc.BufferDesc.RefreshRate.Denominator = pFullscreenDesc->RefreshRate.Denominator;
+; 3320 :         stub_desc.BufferDesc.RefreshRate.Denominator = pFullscreenDesc->RefreshRate.Denominator;
 
 	mov	eax, DWORD PTR _new_fullscreen_desc$[ebp+4]
 	mov	DWORD PTR _stub_desc$13$[ebp], eax
 
-; 3317 :         stub_desc.BufferDesc.RefreshRate.Numerator   = pFullscreenDesc->RefreshRate.Numerator;
+; 3321 :         stub_desc.BufferDesc.RefreshRate.Numerator   = pFullscreenDesc->RefreshRate.Numerator;
 
 	mov	eax, DWORD PTR _new_fullscreen_desc$[ebp]
 	mov	DWORD PTR _stub_desc$14$[ebp], eax
 
-; 3318 :         stub_desc.BufferDesc.Scaling                 = pFullscreenDesc->Scaling;
+; 3322 :         stub_desc.BufferDesc.Scaling                 = pFullscreenDesc->Scaling;
 
 	mov	eax, DWORD PTR _new_fullscreen_desc$[ebp+12]
 	mov	DWORD PTR _stub_desc$15$[ebp], eax
 
-; 3319 :         stub_desc.BufferDesc.ScanlineOrdering        = pFullscreenDesc->ScanlineOrdering;
+; 3323 :         stub_desc.BufferDesc.ScanlineOrdering        = pFullscreenDesc->ScanlineOrdering;
 
 	mov	eax, DWORD PTR _new_fullscreen_desc$[ebp+8]
 	mov	DWORD PTR _stub_desc$5$[ebp], edx
 	mov	DWORD PTR _stub_desc$10$[ebp], ecx
 	mov	DWORD PTR _stub_desc$16$[ebp], eax
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	test	edx, edx
 	jne	SHORT $LN129@DXGIFactor
@@ -21634,7 +21623,7 @@ $LN137@DXGIFactor:
 $LN146@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	mov	eax, DWORD PTR _stub_desc$2$[ebp]
 	cmp	DWORD PTR _stub_desc$12$[ebp], 0
@@ -21657,85 +21646,85 @@ $LN146@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 3335 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
-; 3336 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
-; 3337 :       pDesc->BufferDesc.Width,
-; 3338 :       pDesc->BufferDesc.Height,
-; 3339 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3340 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3341 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3342 :           std::numeric_limits <float>::quiet_NaN (),
-; 3343 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
-; 3344 :         L"Unspecified" :
-; 3345 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
-; 3346 :           L"Centered" :
-; 3347 :           L"Stretched",
-; 3348 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
-; 3349 :         L"Unspecified" :
-; 3350 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
-; 3351 :           L"Progressive" :
-; 3352 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
-; 3353 :             L"Interlaced Even" :
-; 3354 :             L"Interlaced Odd",
-; 3355 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
-; 3356 :       pDesc->BufferCount,
-; 3357 :       pDesc->Flags,
-; 3358 :       pDesc->SwapEffect         == 0 ?
-; 3359 :         L"Discard" :
-; 3360 :         pDesc->SwapEffect       == 1 ?
-; 3361 :           L"Sequential" :
-; 3362 :           pDesc->SwapEffect     == 2 ?
-; 3363 :             L"<Unknown>" :
-; 3364 :             pDesc->SwapEffect   == 3 ?
-; 3365 :               L"Flip Sequential" :
-; 3366 :               pDesc->SwapEffect == 4 ?
-; 3367 :                 L"Flip Discard" :
-; 3368 :                 L"<Unknown>" );
-; 3369 : 
-; 3370 :     // Set things up to make the swap chain Alt+Enter friendly
-; 3371 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
+; 3339 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
+; 3340 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
+; 3341 :       pDesc->BufferDesc.Width,
+; 3342 :       pDesc->BufferDesc.Height,
+; 3343 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3344 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3345 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3346 :           std::numeric_limits <float>::quiet_NaN (),
+; 3347 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
+; 3348 :         L"Unspecified" :
+; 3349 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
+; 3350 :           L"Centered" :
+; 3351 :           L"Stretched",
+; 3352 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
+; 3353 :         L"Unspecified" :
+; 3354 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
+; 3355 :           L"Progressive" :
+; 3356 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
+; 3357 :             L"Interlaced Even" :
+; 3358 :             L"Interlaced Odd",
+; 3359 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
+; 3360 :       pDesc->BufferCount,
+; 3361 :       pDesc->Flags,
+; 3362 :       pDesc->SwapEffect         == 0 ?
+; 3363 :         L"Discard" :
+; 3364 :         pDesc->SwapEffect       == 1 ?
+; 3365 :           L"Sequential" :
+; 3366 :           pDesc->SwapEffect     == 2 ?
+; 3367 :             L"<Unknown>" :
+; 3368 :             pDesc->SwapEffect   == 3 ?
+; 3369 :               L"Flip Sequential" :
+; 3370 :               pDesc->SwapEffect == 4 ?
+; 3371 :                 L"Flip Discard" :
+; 3372 :                 L"<Unknown>" );
+; 3373 : 
+; 3374 :     // Set things up to make the swap chain Alt+Enter friendly
+; 3375 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
 	add	esp, 52					; 00000034H
 	cmp	BYTE PTR ?bAlwaysAllowFullscreen@@3_NA, 0 ; bAlwaysAllowFullscreen
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+752
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
 	je	SHORT $LN87@DXGIFactor
 	cmp	DWORD PTR _stub_desc$12$[ebp], 0
 	je	SHORT $LN89@DXGIFactor
 
-; 3372 :     {
-; 3373 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3376 :     {
+; 3377 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 
-; 3374 :       pDesc->Windowed                           = true;
+; 3378 :       pDesc->Windowed                           = true;
 
 	mov	DWORD PTR _stub_desc$12$[ebp], 1
 
-; 3375 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
+; 3379 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
 
 	mov	DWORD PTR _stub_desc$13$[ebp], 0
 
-; 3376 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+; 3380 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
 
 	mov	DWORD PTR _stub_desc$14$[ebp], 0
 
-; 3377 :     }
-; 3378 : 
-; 3379 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
+; 3381 :     }
+; 3382 : 
+; 3383 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
 
 	jmp	SHORT $LN226@DXGIFactor
 $LN87@DXGIFactor:
 	cmp	DWORD PTR _stub_desc$12$[ebp], 0
 	je	SHORT $LN89@DXGIFactor
 $LN226@DXGIFactor:
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
 	je	SHORT $LN89@DXGIFactor
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
 	jne	SHORT $LN89@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN150@DXGIFactor
@@ -21744,18 +21733,18 @@ $LN226@DXGIFactor:
 $LN150@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3383 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3387 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	ecx, edx
 
-; 3384 :         pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3388 :         pDesc->BufferDesc.Height = config.window.res.override.y;
 
 	mov	edi, eax
 	mov	DWORD PTR _stub_desc$10$[ebp], ecx
 $LN89@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN154@DXGIFactor
@@ -21764,49 +21753,49 @@ $LN89@DXGIFactor:
 $LN154@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3399 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3403 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	ecx, edx
 
-; 3400 :       pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3404 :       pDesc->BufferDesc.Height = config.window.res.override.y;
 
 	mov	edi, eax
 	mov	DWORD PTR _stub_desc$10$[ebp], ecx
 $LN91@DXGIFactor:
 
-; 3401 :     }
-; 3402 : 
-; 3403 : 
-; 3404 :     if (config.render.dxgi.safe_fullscreen)
+; 3405 :     }
+; 3406 : 
+; 3407 : 
+; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
 	je	SHORT $LN92@DXGIFactor
 
-; 3405 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 $LN92@DXGIFactor:
 
-; 3406 : 
-; 3407 :     if (request_mode_change == mode_change_request_e::Fullscreen)
+; 3410 : 
+; 3411 :     if (request_mode_change == mode_change_request_e::Fullscreen)
 
 	cmp	DWORD PTR ?request_mode_change@@3W4mode_change_request_e@@A, 1 ; request_mode_change
 	jne	SHORT $LN232@DXGIFactor
 
-; 3408 :     {
-; 3409 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
+; 3412 :     {
+; 3413 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
 
 	push	OFFSET ??_C@_1HA@INGGDHHB@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAU?$AAs?$AAe?$AAr?$AA?9?$AAR?$AAe?$AAq?$AAu?$AAe?$AAs?$AAt?$AAe?$AAd?$AA?5@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3410 :       pDesc->Windowed = FALSE;
+; 3414 :       pDesc->Windowed = FALSE;
 
 	xor	eax, eax
 	add	esp, 8
 	mov	DWORD PTR _stub_desc$12$[ebp], eax
 
-; 3411 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3415 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 	jmp	SHORT $LN93@DXGIFactor
@@ -21814,87 +21803,87 @@ $LN232@DXGIFactor:
 	mov	eax, DWORD PTR _stub_desc$12$[ebp]
 $LN93@DXGIFactor:
 
-; 3412 :     }
-; 3413 : 
-; 3414 :     if (config.display.force_fullscreen && pDesc->Windowed)
+; 3416 :     }
+; 3417 : 
+; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
 	je	SHORT $LN94@DXGIFactor
 	test	eax, eax
 	je	SHORT $LN94@DXGIFactor
 
-; 3415 :     {
-; 3416 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3419 :     {
+; 3420 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@HCAIICBG@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3417 :                     L"(Requested: Windowed, Using: Fullscreen)" );
-; 3418 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-; 3419 :       pDesc->Windowed = FALSE;
+; 3421 :                     L"(Requested: Windowed, Using: Fullscreen)" );
+; 3422 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3423 :       pDesc->Windowed = FALSE;
 
 	mov	DWORD PTR _stub_desc$12$[ebp], 0
 	or	esi, 2
 	jmp	SHORT $LN96@DXGIFactor
 $LN94@DXGIFactor:
 
-; 3420 :     }
-; 3421 : 
-; 3422 :     else if (config.display.force_windowed)
+; 3424 :     }
+; 3425 : 
+; 3426 :     else if (config.display.force_windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
 	je	SHORT $LN96@DXGIFactor
 
-; 3423 :     {
-; 3424 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3427 :     {
+; 3428 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@LPALCGFK@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3425 :                     L"(Requested: Fullscreen, Using: Windowed)" );
-; 3426 :       pDesc->Windowed = TRUE;
+; 3429 :                     L"(Requested: Fullscreen, Using: Windowed)" );
+; 3430 :       pDesc->Windowed = TRUE;
 
 	mov	DWORD PTR _stub_desc$12$[ebp], 1
 $LN96@DXGIFactor:
 
-; 3427 :     }
-; 3428 : 
-; 3429 : #ifdef _WIN64
-; 3430 :     if (! bFlipMode)
-; 3431 :       bFlipMode =
-; 3432 :         ( dxgi_caps.present.flip_sequential && (
-; 3433 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
-; 3434 :             SK_DS3_UseFlipMode ()        ) );
-; 3435 : 
-; 3436 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
-; 3437 :     {
-; 3438 :       if (bFlipMode)
-; 3439 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
-; 3440 :     }
-; 3441 : 
-; 3442 :     else
-; 3443 : #endif
-; 3444 :     {
-; 3445 :       // If forcing flip-model, then force multisampling off
-; 3446 :       if (config.render.framerate.flip_discard)
+; 3431 :     }
+; 3432 : 
+; 3433 : #ifdef _WIN64
+; 3434 :     if (! bFlipMode)
+; 3435 :       bFlipMode =
+; 3436 :         ( dxgi_caps.present.flip_sequential && (
+; 3437 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
+; 3438 :             SK_DS3_UseFlipMode ()        ) );
+; 3439 : 
+; 3440 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
+; 3441 :     {
+; 3442 :       if (bFlipMode)
+; 3443 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
+; 3444 :     }
+; 3445 : 
+; 3446 :     else
+; 3447 : #endif
+; 3448 :     {
+; 3449 :       // If forcing flip-model, then force multisampling off
+; 3450 :       if (config.render.framerate.flip_discard)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN230@DXGIFactor
 
-; 3447 :       {
-; 3448 :         bFlipMode = dxgi_caps.present.flip_sequential;
+; 3451 :       {
+; 3452 :         bFlipMode = dxgi_caps.present.flip_sequential;
 
 	mov	al, BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+2
 	mov	BYTE PTR ?bFlipMode@@3_NA, al		; bFlipMode
 
-; 3449 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
-; 3450 : 
-; 3451 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
-; 3452 :         switch (pDesc->BufferDesc.Format)
+; 3453 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
+; 3454 : 
+; 3455 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+; 3456 :         switch (pDesc->BufferDesc.Format)
 
 	mov	eax, DWORD PTR _stub_desc$8$[ebp]
 	add	eax, -23				; ffffffe9H
@@ -21906,58 +21895,58 @@ $LN96@DXGIFactor:
 	jmp	DWORD PTR $LN237@DXGIFactor[eax*4]
 $LN98@DXGIFactor:
 
-; 3453 :         {
-; 3454 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-; 3455 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+; 3457 :         {
+; 3458 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 	mov	DWORD PTR _stub_desc$8$[ebp], 87	; 00000057H
 
-; 3456 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@NDGFBELE@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAB?$AA8?$AAG?$AA8?$AAR?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3457 :             break;
+; 3461 :             break;
 
 	jmp	SHORT $LN234@DXGIFactor
 $LN99@DXGIFactor:
 
-; 3458 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+; 3462 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+; 3463 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3464 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@CCHCBLHJ@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAR?$AA8?$AAG?$AA8?$AAB?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3461 :             break;
+; 3465 :             break;
 
 	jmp	SHORT $LN235@DXGIFactor
 $LN100@DXGIFactor:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1KK@LPPCBMFA@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAR?$AAG?$AAB?$AAA?$AA?5?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA2@
 $LN235@DXGIFactor:
 
-; 3462 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
-; 3463 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-; 3464 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3466 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
+; 3467 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+; 3468 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	mov	DWORD PTR _stub_desc$8$[ebp], 28	; 0000001cH
 $LN234@DXGIFactor:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN230@DXGIFactor:
 
-; 3466 :             break;
-; 3467 :         }
-; 3468 :       }
-; 3469 :     }
-; 3470 : 
-; 3471 :     if (       config.render.framerate.buffer_count != -1                  &&
-; 3472 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
+; 3470 :             break;
+; 3471 :         }
+; 3472 :       }
+; 3473 :     }
+; 3474 : 
+; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
+; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	cmp	ecx, -1
@@ -21968,13 +21957,13 @@ $LN230@DXGIFactor:
 	test	eax, eax
 	je	SHORT $LN101@DXGIFactor
 
-; 3473 :          pDesc->BufferCount                         !=  0 )
-; 3474 :     {
-; 3475 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3477 :          pDesc->BufferCount                         !=  0 )
+; 3478 :     {
+; 3479 :       pDesc->BufferCount = config.render.framerate.buffer_count;
 
 	mov	eax, ecx
 
-; 3476 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
+; 3480 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
 
 	push	eax
 	push	OFFSET ??_C@_1GI@GAEBCHMN@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAB?$AAu?$AAf?$AAf?$AAe?$AAr?$AA?5?$AAC?$AAo?$AAu?$AAn?$AAt?$AA?5?$AAO?$AAv@
@@ -21985,34 +21974,34 @@ $LN230@DXGIFactor:
 	add	esp, 12					; 0000000cH
 $LN101@DXGIFactor:
 
-; 3477 :     }
-; 3478 : 
-; 3479 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
+; 3481 :     }
+; 3482 : 
+; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN102@DXGIFactor
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN102@DXGIFactor
 
-; 3480 :     {
-; 3481 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-; 3482 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+; 3484 :     {
+; 3485 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+; 3486 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
 
 	push	OFFSET ??_C@_1FC@PILPBEPG@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAT?$AAe?$AAa?$AAr?$AAi?$AAn?$AAg?$AA?5?$AAO?$AAp?$AAt?$AAi?$AAo?$AAn?$AA?3@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	or	esi, 2048				; 00000800H
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3483 :       pDesc->Windowed = TRUE;
+; 3487 :       pDesc->Windowed = TRUE;
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	add	esp, 8
 	mov	DWORD PTR _stub_desc$12$[ebp], 1
 $LN102@DXGIFactor:
 
-; 3484 :     }
-; 3485 : 
-; 3486 :     if ( config.render.dxgi.scaling_mode != -1 &&
+; 3488 :     }
+; 3489 : 
+; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
 	cmp	eax, -1
@@ -22020,10 +22009,10 @@ $LN102@DXGIFactor:
 	cmp	DWORD PTR _stub_desc$15$[ebp], eax
 	je	SHORT $LN103@DXGIFactor
 
-; 3487 :           pDesc->BufferDesc.Scaling      !=
-; 3488 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
-; 3489 :     {
-; 3490 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
+; 3491 :           pDesc->BufferDesc.Scaling      !=
+; 3492 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+; 3493 :     {
+; 3494 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
@@ -22037,16 +22026,16 @@ $LN102@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3491 :                     L"(Requested: %s, Using: %s)",
-; 3492 :                       SK_DXGI_DescribeScalingMode (
-; 3493 :                         pDesc->BufferDesc.Scaling
-; 3494 :                       ),
-; 3495 :                         SK_DXGI_DescribeScalingMode (
-; 3496 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
-; 3497 :                         )
-; 3498 :                   );
-; 3499 : 
-; 3500 :       pDesc->BufferDesc.Scaling =
+; 3495 :                     L"(Requested: %s, Using: %s)",
+; 3496 :                       SK_DXGI_DescribeScalingMode (
+; 3497 :                         pDesc->BufferDesc.Scaling
+; 3498 :                       ),
+; 3499 :                         SK_DXGI_DescribeScalingMode (
+; 3500 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
+; 3501 :                         )
+; 3502 :                   );
+; 3503 : 
+; 3504 :       pDesc->BufferDesc.Scaling =
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
 	add	esp, 16					; 00000010H
@@ -22054,10 +22043,10 @@ $LN102@DXGIFactor:
 	mov	DWORD PTR _stub_desc$15$[ebp], eax
 $LN103@DXGIFactor:
 
-; 3501 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
-; 3502 :     }
-; 3503 : 
-; 3504 :     if ( config.render.dxgi.scanline_order != -1 &&
+; 3505 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+; 3506 :     }
+; 3507 : 
+; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
@@ -22065,10 +22054,10 @@ $LN103@DXGIFactor:
 	cmp	DWORD PTR _stub_desc$16$[ebp], eax
 	je	SHORT $LN104@DXGIFactor
 
-; 3505 :           pDesc->BufferDesc.ScanlineOrdering      !=
-; 3506 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
-; 3507 :     {
-; 3508 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
+; 3509 :           pDesc->BufferDesc.ScanlineOrdering      !=
+; 3510 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
+; 3511 :     {
+; 3512 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScanlineOrder@@YAPB_WW4DXGI_MODE_SCANLINE_ORDER@@@Z ; SK_DXGI_DescribeScanlineOrder
@@ -22082,16 +22071,16 @@ $LN103@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3509 :                     L"(Requested: %s, Using: %s)",
-; 3510 :                       SK_DXGI_DescribeScanlineOrder (
-; 3511 :                         pDesc->BufferDesc.ScanlineOrdering
-; 3512 :                       ),
-; 3513 :                         SK_DXGI_DescribeScanlineOrder (
-; 3514 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
-; 3515 :                         )
-; 3516 :                   );
-; 3517 : 
-; 3518 :       pDesc->BufferDesc.ScanlineOrdering =
+; 3513 :                     L"(Requested: %s, Using: %s)",
+; 3514 :                       SK_DXGI_DescribeScanlineOrder (
+; 3515 :                         pDesc->BufferDesc.ScanlineOrdering
+; 3516 :                       ),
+; 3517 :                         SK_DXGI_DescribeScanlineOrder (
+; 3518 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+; 3519 :                         )
+; 3520 :                   );
+; 3521 : 
+; 3522 :       pDesc->BufferDesc.ScanlineOrdering =
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	add	esp, 16					; 00000010H
@@ -22099,10 +22088,10 @@ $LN103@DXGIFactor:
 	mov	DWORD PTR _stub_desc$16$[ebp], eax
 $LN104@DXGIFactor:
 
-; 3519 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
-; 3520 :     }
-; 3521 : 
-; 3522 :     if ( config.render.framerate.refresh_rate != -1 &&
+; 3523 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
+; 3524 :     }
+; 3525 : 
+; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	cmp	eax, -1
@@ -22111,9 +22100,9 @@ $LN104@DXGIFactor:
 	cmp	edx, eax
 	je	SHORT $LN105@DXGIFactor
 
-; 3523 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
-; 3524 :     {
-; 3525 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
+; 3527 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
+; 3528 :     {
+; 3529 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
 
 	mov	ecx, DWORD PTR _stub_desc$13$[ebp]
 	test	ecx, ecx
@@ -22141,38 +22130,38 @@ $LN157@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3526 :                     L"(Requested: %f, Using: %li)",
-; 3527 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3528 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3529 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3530 :                      std::numeric_limits <float>::quiet_NaN (),
-; 3531 :                         config.render.framerate.refresh_rate
-; 3532 :                   );
-; 3533 : 
-; 3534 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
+; 3530 :                     L"(Requested: %f, Using: %li)",
+; 3531 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3532 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3533 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3534 :                      std::numeric_limits <float>::quiet_NaN (),
+; 3535 :                         config.render.framerate.refresh_rate
+; 3536 :                   );
+; 3537 : 
+; 3538 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	add	esp, 20					; 00000014H
 
-; 3535 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
+; 3539 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	mov	DWORD PTR _stub_desc$14$[ebp], eax
 	mov	DWORD PTR _stub_desc$13$[ebp], 1
 $LN105@DXGIFactor:
 
-; 3536 :     }
-; 3537 : 
-; 3538 :     bWait = bFlipMode && dxgi_caps.present.waitable;
+; 3540 :     }
+; 3541 : 
+; 3542 :     bWait = bFlipMode && dxgi_caps.present.waitable;
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	je	SHORT $LN143@DXGIFactor
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN143@DXGIFactor
 
-; 3539 : 
-; 3540 :     // We cannot change the swapchain parameters if this is used...
-; 3541 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
+; 3543 : 
+; 3544 :     // We cannot change the swapchain parameters if this is used...
+; 3545 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
 	jle	SHORT $LN143@DXGIFactor
@@ -22182,28 +22171,28 @@ $LN143@DXGIFactor:
 	xor	dl, dl
 $LN236@DXGIFactor:
 
-; 3542 : 
-; 3543 : #ifdef _WIN64
-; 3544 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-; 3545 :     {
-; 3546 :       if (SK_DS3_IsBorderless ())
-; 3547 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-; 3548 :     }
-; 3549 : #endif
-; 3550 : 
-; 3551 :     if (bFlipMode)
+; 3546 : 
+; 3547 : #ifdef _WIN64
+; 3548 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+; 3549 :     {
+; 3550 :       if (SK_DS3_IsBorderless ())
+; 3551 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3552 :     }
+; 3553 : #endif
+; 3554 : 
+; 3555 :     if (bFlipMode)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	BYTE PTR ?bWait@@3_NA, dl		; bWait
 	je	SHORT $LN106@DXGIFactor
 
-; 3552 :     {
-; 3553 :       if (bWait)
+; 3556 :     {
+; 3557 :       if (bWait)
 
 	test	dl, dl
 	je	SHORT $LN108@DXGIFactor
 
-; 3554 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3558 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
 	or	esi, 64					; 00000040H
 $LN108@DXGIFactor:
@@ -22216,7 +22205,7 @@ $LN108@DXGIFactor:
 	cmovg	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3560 :       if (config.render.framerate.flip_discard &&
+; 3564 :       if (config.render.framerate.flip_discard &&
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	mov	ecx, eax
@@ -22225,26 +22214,26 @@ $LN108@DXGIFactor:
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN109@DXGIFactor
 
-; 3561 :           dxgi_caps.present.flip_discard)
-; 3562 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+; 3565 :           dxgi_caps.present.flip_discard)
+; 3566 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 	mov	eax, 4
 	mov	DWORD PTR _stub_desc$5$[ebp], eax
 
-; 3563 :       else
+; 3567 :       else
 
 	jmp	SHORT $LN111@DXGIFactor
 $LN109@DXGIFactor:
 
-; 3564 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+; 3568 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
 	mov	DWORD PTR _stub_desc$5$[ebp], 3
 	jmp	SHORT $LN111@DXGIFactor
 $LN106@DXGIFactor:
 
-; 3565 :     }
-; 3566 : 
-; 3567 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
+; 3569 :     }
+; 3570 : 
+; 3571 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
 
 	mov	eax, DWORD PTR _stub_desc$5$[ebp]
 	cmp	eax, 4
@@ -22252,16 +22241,16 @@ $LN106@DXGIFactor:
 	cmp	eax, 3
 	je	SHORT $LN111@DXGIFactor
 
-; 3568 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
-; 3569 :     {
-; 3570 :       // Resort to triple-buffering if flip mode is not available
-; 3571 :       if (config.render.framerate.buffer_count > 3)
+; 3572 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
+; 3573 :     {
+; 3574 :       // Resort to triple-buffering if flip mode is not available
+; 3575 :       if (config.render.framerate.buffer_count > 3)
 
 	mov	eax, 3
 
-; 3572 :         config.render.framerate.buffer_count = 3;
-; 3573 : 
-; 3574 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+; 3576 :         config.render.framerate.buffer_count = 3;
+; 3577 : 
+; 3578 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 	mov	DWORD PTR _stub_desc$5$[ebp], 0
 	cmp	ecx, eax
@@ -22269,18 +22258,18 @@ $LN106@DXGIFactor:
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
 $LN111@DXGIFactor:
 
-; 3575 :     }
-; 3576 : 
-; 3577 :     if (config.render.framerate.buffer_count > 0)
+; 3579 :     }
+; 3580 : 
+; 3581 :     if (config.render.framerate.buffer_count > 0)
 
 	mov	eax, DWORD PTR _stub_desc$2$[ebp]
 	test	ecx, ecx
 	cmovg	eax, ecx
 
-; 3578 :       pDesc->BufferCount = config.render.framerate.buffer_count;
-; 3579 : 
-; 3580 :     // We cannot switch modes on a waitable swapchain
-; 3581 :     if (bFlipMode && bWait)
+; 3582 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3583 : 
+; 3584 :     // We cannot switch modes on a waitable swapchain
+; 3585 :     if (bFlipMode && bWait)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	DWORD PTR _stub_desc$2$[ebp], eax
@@ -22288,15 +22277,15 @@ $LN111@DXGIFactor:
 	test	dl, dl
 	je	SHORT $LN114@DXGIFactor
 
-; 3582 :     {
-; 3583 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-; 3584 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3586 :     {
+; 3587 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3588 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	and	esi, -3					; fffffffdH
 	or	esi, 64					; 00000040H
 $LN114@DXGIFactor:
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	xor	eax, eax
 	mov	ecx, OFFSET ??_C@_15BICKNCBF@?$AAN?$AAo?$AA?$AA@
@@ -22321,7 +22310,7 @@ $LN114@DXGIFactor:
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+460
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -22336,7 +22325,7 @@ $LN114@DXGIFactor:
 $LN164@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3594 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
+; 3598 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
 
 	mov	edx, DWORD PTR _stub_desc$10$[ebp]
 	cmp	edx, ecx
@@ -22352,7 +22341,7 @@ $LN164@DXGIFactor:
 $LN168@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3596 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
+; 3600 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
 
 	cmp	edi, eax
 	cmova	edi, eax
@@ -22374,7 +22363,7 @@ $LN116@DXGIFactor:
 $LN172@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3599 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
+; 3603 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
 
 	cmp	edx, ecx
 	cmovb	edx, ecx
@@ -22389,91 +22378,91 @@ $LN172@DXGIFactor:
 $LN176@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3601 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
+; 3605 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
 
 	cmp	edi, eax
 	cmovb	edi, eax
 $LN224@DXGIFactor:
 
-; 3602 :     pDesc->BufferDesc.Height = config.render.dxgi.res.min.y;
-; 3603 : 
-; 3604 : 
-; 3605 :   if (translated)
-; 3606 :   {
-; 3607 :     pDesc1->BufferCount                        = pDesc->BufferCount;
+; 3606 :     pDesc->BufferDesc.Height = config.render.dxgi.res.min.y;
+; 3607 : 
+; 3608 : 
+; 3609 :   if (translated)
+; 3610 :   {
+; 3611 :     pDesc1->BufferCount                        = pDesc->BufferCount;
 
 	mov	eax, DWORD PTR _stub_desc$2$[ebp]
 
-; 3927 : 
-; 3928 : 
-; 3929 :   if (! CreateSwapChain_Lambchop ())
+; 3931 : 
+; 3932 : 
+; 3933 :   if (! CreateSwapChain_Lambchop ())
 
 	lea	ecx, DWORD PTR _CreateSwapChain_Lambchop$[ebp]
 
-; 3607 :     pDesc1->BufferCount                        = pDesc->BufferCount;
+; 3611 :     pDesc1->BufferCount                        = pDesc->BufferCount;
 
 	mov	DWORD PTR _new_desc1$[ebp+28], eax
 
-; 3608 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
+; 3612 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
 
 	mov	eax, DWORD PTR _stub_desc$3$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+24], eax
 
-; 3610 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
+; 3614 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
 
 	mov	eax, DWORD PTR _stub_desc$5$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+36], eax
 
-; 3611 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
+; 3615 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
 
 	mov	eax, DWORD PTR _stub_desc$6$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+16], eax
 
-; 3612 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
+; 3616 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
 
 	mov	eax, DWORD PTR _stub_desc$7$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+20], eax
 
-; 3613 :     pDesc1->Format                             = pDesc->BufferDesc.Format;
+; 3617 :     pDesc1->Format                             = pDesc->BufferDesc.Format;
 
 	mov	eax, DWORD PTR _stub_desc$8$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+8], eax
 
-; 3616 : 
-; 3617 :     hWnd                                       = pDesc->OutputWindow;
+; 3620 : 
+; 3621 :     hWnd                                       = pDesc->OutputWindow;
 
 	mov	eax, DWORD PTR _stub_desc$11$[ebp]
 	mov	DWORD PTR _hWnd$[ebp], eax
 
-; 3618 : 
-; 3619 :     if (pFullscreenDesc != nullptr)
-; 3620 :     {
-; 3621 :       pFullscreenDesc->Windowed                = pDesc->Windowed;
+; 3622 : 
+; 3623 :     if (pFullscreenDesc != nullptr)
+; 3624 :     {
+; 3625 :       pFullscreenDesc->Windowed                = pDesc->Windowed;
 
 	mov	eax, DWORD PTR _stub_desc$12$[ebp]
 	mov	DWORD PTR _new_fullscreen_desc$[ebp+16], eax
 
-; 3622 :       pFullscreenDesc->RefreshRate.Denominator = pDesc->BufferDesc.RefreshRate.Denominator;
+; 3626 :       pFullscreenDesc->RefreshRate.Denominator = pDesc->BufferDesc.RefreshRate.Denominator;
 
 	mov	eax, DWORD PTR _stub_desc$13$[ebp]
 	mov	DWORD PTR _new_fullscreen_desc$[ebp+4], eax
 
-; 3623 :       pFullscreenDesc->RefreshRate.Numerator   = pDesc->BufferDesc.RefreshRate.Numerator;
+; 3627 :       pFullscreenDesc->RefreshRate.Numerator   = pDesc->BufferDesc.RefreshRate.Numerator;
 
 	mov	eax, DWORD PTR _stub_desc$14$[ebp]
 	mov	DWORD PTR _new_fullscreen_desc$[ebp], eax
 
-; 3624 :       pFullscreenDesc->Scaling                 = pDesc->BufferDesc.Scaling;
+; 3628 :       pFullscreenDesc->Scaling                 = pDesc->BufferDesc.Scaling;
 
 	mov	eax, DWORD PTR _stub_desc$15$[ebp]
 	mov	DWORD PTR _new_fullscreen_desc$[ebp+12], eax
 
-; 3625 :       pFullscreenDesc->ScanlineOrdering        = pDesc->BufferDesc.ScanlineOrdering;
+; 3629 :       pFullscreenDesc->ScanlineOrdering        = pDesc->BufferDesc.ScanlineOrdering;
 
 	mov	eax, DWORD PTR _stub_desc$16$[ebp]
 	mov	DWORD PTR _new_fullscreen_desc$[ebp+8], eax
 
-; 3926 :       };
+; 3930 :       };
 
 	lea	eax, DWORD PTR _ret$[ebp]
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp], eax
@@ -22495,40 +22484,40 @@ $LN224@DXGIFactor:
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp+32], eax
 	lea	eax, DWORD PTR _new_fullscreen_desc$[ebp]
 
-; 3609 :     pDesc1->Flags                              = pDesc->Flags;
+; 3613 :     pDesc1->Flags                              = pDesc->Flags;
 
 	mov	DWORD PTR _new_desc1$[ebp+44], esi
 
-; 3614 :     pDesc1->Height                             = pDesc->BufferDesc.Height;
+; 3618 :     pDesc1->Height                             = pDesc->BufferDesc.Height;
 
 	mov	DWORD PTR _new_desc1$[ebp+4], edi
 
-; 3615 :     pDesc1->Width                              = pDesc->BufferDesc.Width;
+; 3619 :     pDesc1->Width                              = pDesc->BufferDesc.Width;
 
 	mov	DWORD PTR _new_desc1$[ebp], edx
 
-; 3926 :       };
+; 3930 :       };
 
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp+36], eax
 
-; 3927 : 
-; 3928 : 
-; 3929 :   if (! CreateSwapChain_Lambchop ())
+; 3931 : 
+; 3932 : 
+; 3933 :   if (! CreateSwapChain_Lambchop ())
 
 	call	??R<lambda_e5c15a2c98a421a829fc4b087e72baa7>@@QBEHXZ ; <lambda_e5c15a2c98a421a829fc4b087e72baa7>::operator()
 	pop	edi
 	test	eax, eax
 	jne	SHORT $LN3@DXGIFactor
 
-; 3930 :   {
-; 3931 :     // Fallback-on-Fail
-; 3932 :     pDesc           = orig_desc1;
+; 3934 :   {
+; 3935 :     // Fallback-on-Fail
+; 3936 :     pDesc           = orig_desc1;
 
 	mov	eax, DWORD PTR _orig_desc1$1$[ebp]
 
-; 3933 :     pFullscreenDesc = orig_fullscreen_desc;
-; 3934 : 
-; 3935 :     CreateSwapChain_Lambchop ();
+; 3937 :     pFullscreenDesc = orig_fullscreen_desc;
+; 3938 : 
+; 3939 :     CreateSwapChain_Lambchop ();
 
 	lea	ecx, DWORD PTR _CreateSwapChain_Lambchop$[ebp]
 	mov	DWORD PTR _pDesc$[ebp], eax
@@ -22543,7 +22532,7 @@ $LN3@DXGIFactor:
 	mov	ecx, DWORD PTR _iname$[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3939 :   return ret;
+; 3943 :   return ret;
 
 	mov	esi, DWORD PTR _ret$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -22576,7 +22565,7 @@ $LN3@DXGIFactor:
 $LN229@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3940 : }
+; 3944 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -22686,7 +22675,7 @@ _<new_desc1>$ = 36					; size = 4
 ??0<lambda_7769376daad0f42c2f9dc7182375e5d8>@@QAE@AAJAAPAUIDXGIFactory2@@AAPAUIUnknown@@2AAPBUDXGI_SWAP_CHAIN_DESC1@@AAPAUIDXGIOutput@@AAPAPAUIDXGISwapChain1@@AAU3@@Z PROC ; <lambda_7769376daad0f42c2f9dc7182375e5d8>::<lambda_7769376daad0f42c2f9dc7182375e5d8>, COMDAT
 ; _this$ = ecx
 
-; 3860 :       };
+; 3864 :       };
 
 	npad	2
 	push	ebp
@@ -22749,7 +22738,7 @@ __$EHRec$ = -12						; size = 12
 ??R<lambda_7769376daad0f42c2f9dc7182375e5d8>@@QBEHXZ PROC ; <lambda_7769376daad0f42c2f9dc7182375e5d8>::operator(), COMDAT
 ; _this$ = ecx
 
-; 3841 :       {
+; 3845 :       {
 
 	npad	2
 	push	ebp
@@ -22763,7 +22752,7 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	mov	esi, ecx
 
-; 3842 :         DXGI_CALL( ret, CreateSwapChainForCoreWindow_Original (
+; 3846 :         DXGI_CALL( ret, CreateSwapChainForCoreWindow_Original (
 
 	mov	eax, DWORD PTR [esi+24]
 	push	DWORD PTR [eax]
@@ -22788,15 +22777,15 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3843 :                           This,
-; 3844 :                             pDevice,
-; 3845 :                               pWindow,
-; 3846 :                                 pDesc,
-; 3847 :                                   pRestrictToOutput,
-; 3848 :                                     ppSwapChain ) );
-; 3849 :       
-; 3850 :         if ( SUCCEEDED (ret)         &&
-; 3851 :              ppSwapChain  != nullptr &&
+; 3847 :                           This,
+; 3848 :                             pDevice,
+; 3849 :                               pWindow,
+; 3850 :                                 pDesc,
+; 3851 :                                   pRestrictToOutput,
+; 3852 :                                     ppSwapChain ) );
+; 3853 :       
+; 3854 :         if ( SUCCEEDED (ret)         &&
+; 3855 :              ppSwapChain  != nullptr &&
 
 	mov	eax, DWORD PTR [esi]
 	add	esp, 12					; 0000000cH
@@ -22809,7 +22798,7 @@ __$EHRec$ = -12						; size = 12
 	cmp	DWORD PTR [edx], 0
 	je	$LN2@operator
 
-; 3854 :           SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, ppSwapChain);
+; 3858 :           SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, ppSwapChain);
 
 	mov	ecx, DWORD PTR [esi+28]
 	mov	eax, DWORD PTR [esi+8]
@@ -22822,20 +22811,20 @@ __$EHRec$ = -12						; size = 12
 	push	ebx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3854 :           SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, ppSwapChain);
+; 3858 :           SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, ppSwapChain);
 
 	mov	eax, DWORD PTR [eax]
 
-; 3726 :   desc.BufferDesc.Height  = pDesc1->Height;
+; 3730 :   desc.BufferDesc.Height  = pDesc1->Height;
 
 	mov	ebx, DWORD PTR [ecx+4]
 
-; 3854 :           SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, ppSwapChain);
+; 3858 :           SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, ppSwapChain);
 
 	mov	DWORD PTR _pDevice$1$[ebp], eax
 	push	edi
 
-; 3725 :   desc.BufferDesc.Width   = pDesc1->Width;
+; 3729 :   desc.BufferDesc.Width   = pDesc1->Width;
 
 	mov	edi, DWORD PTR [ecx]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -22853,62 +22842,62 @@ __$EHRec$ = -12						; size = 12
 $LN13@operator:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	cmp	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 
-; 3744 :   CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
+; 3748 :   CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	je	SHORT $LN18@operator
 	call	?SK_CEGUI_QueueResetD3D11@@YAXXZ	; SK_CEGUI_QueueResetD3D11
 	mov	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 $LN18@operator:
 
-; 3644 : 
-; 3645 :   if (pDesc->BufferDesc.Width != 0)
+; 3648 : 
+; 3649 :   if (pDesc->BufferDesc.Width != 0)
 
 	test	edi, edi
 	je	SHORT $LN19@operator
 
-; 3646 :   {
-; 3647 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
+; 3650 :   {
+; 3651 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
 
 	push	edi
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3648 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
+; 3652 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
 
 	push	ebx
 
-; 3649 :   }
-; 3650 : 
-; 3651 :   else
+; 3653 :   }
+; 3654 : 
+; 3655 :   else
 
 	jmp	SHORT $LN100@operator
 $LN19@operator:
 
-; 3652 :   {
-; 3653 :     RECT client;
-; 3654 : 
-; 3655 :     GetClientRect    (game_window.hWnd, &client);
+; 3656 :   {
+; 3657 :     RECT client;
+; 3658 : 
+; 3659 :     GetClientRect    (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$3[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 3656 :     SK_SetWindowResX (client.right  - client.left);
+; 3660 :     SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$3[ebp+8]
 	sub	eax, DWORD PTR _client$3[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3657 :     SK_SetWindowResY (client.bottom - client.top);
+; 3661 :     SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$3[ebp+12]
 	sub	eax, DWORD PTR _client$3[ebp+4]
@@ -22917,9 +22906,9 @@ $LN100@operator:
 	call	?SK_SetWindowResY@@YAXJ@Z		; SK_SetWindowResY
 	add	esp, 8
 
-; 3658 :   }
-; 3659 : 
-; 3660 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
+; 3662 :   }
+; 3663 : 
+; 3664 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
 
 	cmp	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 	je	SHORT $LN21@operator
@@ -22929,12 +22918,12 @@ $LN100@operator:
 	mov	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 $LN21@operator:
 
-; 3661 : 
-; 3662 :   //if (bFlipMode || bWait)
-; 3663 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
-; 3664 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 ; 3665 : 
-; 3666 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
+; 3666 :   //if (bFlipMode || bWait)
+; 3667 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
+; 3668 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
+; 3669 : 
+; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -22944,7 +22933,7 @@ $LN21@operator:
 	mov	DWORD PTR _pSwapChain2$6[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
@@ -22963,28 +22952,28 @@ $LN21@operator:
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	test	eax, eax
 	js	SHORT $LN97@operator
 
-; 3671 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
-; 3672 :       )
-; 3673 :   {
-; 3674 :     if (max_latency < 16)
+; 3675 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
+; 3676 :       )
+; 3677 :   {
+; 3678 :     if (max_latency < 16)
 
 	cmp	ebx, 16					; 00000010H
 	jae	SHORT $LN23@operator
 
-; 3675 :     {
-; 3676 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
+; 3679 :     {
+; 3680 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1GE@BOIALL@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAS?$AAw?$AAa?$AAp?$AAc?$AAh?$AAa?$AAi?$AAn?$AA?5?$AAF@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3677 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
+; 3681 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pSwapChain2$6[ebp]
 	add	esp, 12					; 0000000cH
@@ -22994,18 +22983,18 @@ $LN21@operator:
 	call	DWORD PTR [ecx+124]
 $LN23@operator:
 
-; 3678 :     }
-; 3679 : 
-; 3680 :     HANDLE hWait =
-; 3681 :       pSwapChain2->GetFrameLatencyWaitableObject ();
+; 3682 :     }
+; 3683 : 
+; 3684 :     HANDLE hWait =
+; 3685 :       pSwapChain2->GetFrameLatencyWaitableObject ();
 
 	mov	eax, DWORD PTR _pSwapChain2$6[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+132]
 
-; 3682 : 
-; 3683 :     WaitForSingleObjectEx ( hWait,
+; 3686 : 
+; 3687 :     WaitForSingleObjectEx ( hWait,
 
 	push	1
 	push	500					; 000001f4H
@@ -23013,12 +23002,12 @@ $LN23@operator:
 	call	DWORD PTR __imp__WaitForSingleObjectEx@12
 $LN97@operator:
 
-; 3684 :                               500,//config.render.framerate.swapchain_wait,
-; 3685 :                                 TRUE );
-; 3686 :   }
-; 3687 : 
-; 3688 :   {
-; 3689 :     if (max_latency != -1)
+; 3688 :                               500,//config.render.framerate.swapchain_wait,
+; 3689 :                                 TRUE );
+; 3690 :   }
+; 3691 : 
+; 3692 :   {
+; 3693 :     if (max_latency != -1)
 
 	cmp	ebx, -1
 	je	SHORT $LN98@operator
@@ -23029,7 +23018,7 @@ $LN97@operator:
 	mov	DWORD PTR _pDevice1$5[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3693 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
+; 3697 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
 
 	mov	edi, DWORD PTR [esi]
 	lea	eax, DWORD PTR _pDevice1$5[ebp]
@@ -23044,19 +23033,19 @@ $LN97@operator:
 	test	eax, eax
 	js	SHORT $LN25@operator
 
-; 3694 :                          IID_PPV_ARGS (&pDevice1)
-; 3695 :                       )
-; 3696 :                     )
-; 3697 :          )
-; 3698 :       {
-; 3699 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
+; 3698 :                          IID_PPV_ARGS (&pDevice1)
+; 3699 :                       )
+; 3700 :                     )
+; 3701 :          )
+; 3702 :       {
+; 3703 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1FO@CKMCMFKO@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAD?$AAe?$AAv?$AAi?$AAc?$AAe?$AA?5?$AAF?$AAr?$AAa?$AAm@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3700 :         pDevice1->SetMaximumFrameLatency (max_latency);
+; 3704 :         pDevice1->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pDevice1$5[ebp]
 	add	esp, 12					; 0000000cH
@@ -23072,7 +23061,7 @@ $LN25@operator:
 	mov	eax, DWORD PTR _pDevice1$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3702 :     }
+; 3706 :     }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -23120,7 +23109,7 @@ $LN98@operator:
 $LN61@operator:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3705 :   CComQIPtr <ID3D11Device> pDev (pDevice);
+; 3709 :   CComQIPtr <ID3D11Device> pDev (pDevice);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -23130,14 +23119,14 @@ $LN61@operator:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3707 :   if (pDev != nullptr)
+; 3711 :   if (pDev != nullptr)
 
 	je	SHORT $LN26@operator
 
-; 3708 :   {
-; 3709 :     g_pD3D11Dev = pDev;
-; 3710 : 
-; 3711 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
+; 3712 :   {
+; 3713 :     g_pD3D11Dev = pDev;
+; 3714 : 
+; 3715 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
 
 	cmp	DWORD PTR _desc$2[ebp+48], 0
 	mov	DWORD PTR ?g_pD3D11Dev@@3PAUID3D11Device@@A, ecx ; g_pD3D11Dev
@@ -23147,7 +23136,7 @@ $LN61@operator:
 	mov	ecx, DWORD PTR _pDev$7[ebp]
 $LN26@operator:
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	pop	edi
@@ -23171,7 +23160,7 @@ $LN80@operator:
 	mov	eax, DWORD PTR _pSwapChain2$6[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -23189,7 +23178,7 @@ $LN80@operator:
 $LN86@operator:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3746 :   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
+; 3750 :   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -23207,15 +23196,15 @@ $LN86@operator:
 $LN95@operator:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3856 :           return TRUE;
+; 3860 :           return TRUE;
 
 	mov	eax, 1
 	pop	esi
 
-; 3857 :         }
-; 3858 : 
-; 3859 :         return FALSE;
-; 3860 :       };
+; 3861 :         }
+; 3862 : 
+; 3863 :         return FALSE;
+; 3864 :       };
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -23326,7 +23315,7 @@ _pRestrictToOutput$ = 24				; size = 4
 _ppSwapChain$ = 28					; size = 4
 ?DXGIFactory2_CreateSwapChainForCoreWindow_Override@@YGJPAUIDXGIFactory2@@PAUIUnknown@@1PBUDXGI_SWAP_CHAIN_DESC1@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@Z PROC ; DXGIFactory2_CreateSwapChainForCoreWindow_Override
 
-; 3816 : {
+; 3820 : {
 
 	npad	2
 	push	ebp
@@ -23339,14 +23328,14 @@ _ppSwapChain$ = 28					; size = 4
 	sub	esp, 384				; 00000180H
 	push	esi
 
-; 3817 :   std::wstring iname = SK_GetDXGIFactoryInterface (This);
+; 3821 :   std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
 	push	DWORD PTR _This$[ebp]
 	lea	eax, DWORD PTR _iname$[ebp]
 	push	eax
 	call	?SK_GetDXGIFactoryInterface@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUIUnknown@@@Z ; SK_GetDXGIFactoryInterface
 
-; 3820 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
+; 3824 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
 
 	push	8192					; 00002000H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -23379,9 +23368,9 @@ $LN7@DXGIFactor:
 	lea	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3820 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
+; 3824 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
 
-	push	OFFSET $SG357303
+	push	OFFSET $SG356935
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -23389,22 +23378,22 @@ $LN7@DXGIFactor:
 	cmovae	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3820 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
+; 3824 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
 
 	push	eax
-	push	OFFSET $SG357304
+	push	OFFSET $SG356936
 	push	esi
 	call	__swprintf
 	push	DWORD PTR _ppSwapChain$[ebp]
 	push	DWORD PTR _pDesc$[ebp]
 	push	DWORD PTR _pDevice$[ebp]
-	push	OFFSET $SG357305
+	push	OFFSET $SG356937
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG357306
+	push	OFFSET $SG356938
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -23430,12 +23419,12 @@ $LN7@DXGIFactor:
 $LN44@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3820 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
+; 3824 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
 
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG357307
+	push	OFFSET $SG356939
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -23445,7 +23434,7 @@ $LN44@DXGIFactor:
 	mov	eax, DWORD PTR $T5[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3820 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
+; 3824 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -23478,26 +23467,26 @@ $LN44@DXGIFactor:
 $LN54@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3820 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
+; 3824 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 $LN2@DXGIFactor:
 
-; 3821 :                        L"%ph, %ph, %ph",
-; 3822 :                          pDevice, pDesc, ppSwapChain );
-; 3823 : 
-; 3824 :   HRESULT ret = E_FAIL;
-; 3825 : 
-; 3826 :   auto                   orig_desc = pDesc;
+; 3825 :                        L"%ph, %ph, %ph",
+; 3826 :                          pDevice, pDesc, ppSwapChain );
+; 3827 : 
+; 3828 :   HRESULT ret = E_FAIL;
+; 3829 : 
+; 3830 :   auto                   orig_desc = pDesc;
 
 	mov	eax, DWORD PTR _pDesc$[ebp]
 	mov	DWORD PTR _ret$[ebp], -2147467259	; 80004005H
 	mov	DWORD PTR _orig_desc$1$[ebp], eax
 
-; 3827 :   DXGI_SWAP_CHAIN_DESC1  new_desc1 =
-; 3828 :     pDesc != nullptr ?
+; 3831 :   DXGI_SWAP_CHAIN_DESC1  new_desc1 =
+; 3832 :     pDesc != nullptr ?
 
 	test	eax, eax
 	je	SHORT $LN8@DXGIFactor
@@ -23531,13 +23520,13 @@ $LN9@DXGIFactor:
 	movups	xmm0, XMMWORD PTR [eax+32]
 	movups	XMMWORD PTR _new_desc1$[ebp+32], xmm0
 
-; 3291 :   WaitForInit ();
+; 3295 :   WaitForInit ();
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
 
-; 3292 : 
-; 3293 :   DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
+; 3296 : 
+; 3297 :   DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
 
 	push	60					; 0000003cH
 	lea	eax, DWORD PTR _stub_desc$6[ebp]
@@ -23545,28 +23534,28 @@ $LN9@DXGIFactor:
 	push	eax
 	call	_memset
 
-; 3294 :   bool                 translated = false;
-; 3295 : 
-; 3296 :   if (pDesc1 != nullptr)
-; 3297 :   {
-; 3298 :     if (pDesc == nullptr)
-; 3299 :     {
-; 3300 :       pDesc = &stub_desc;
-; 3301 : 
-; 3302 :       stub_desc.BufferCount                        = pDesc1->BufferCount;
-; 3303 :       stub_desc.BufferUsage                        = pDesc1->BufferUsage;
-; 3304 :       stub_desc.Flags                              = pDesc1->Flags;
-; 3305 :       stub_desc.SwapEffect                         = pDesc1->SwapEffect;
-; 3306 :       stub_desc.SampleDesc.Count                   = pDesc1->SampleDesc.Count;
+; 3298 :   bool                 translated = false;
+; 3299 : 
+; 3300 :   if (pDesc1 != nullptr)
+; 3301 :   {
+; 3302 :     if (pDesc == nullptr)
+; 3303 :     {
+; 3304 :       pDesc = &stub_desc;
+; 3305 : 
+; 3306 :       stub_desc.BufferCount                        = pDesc1->BufferCount;
+; 3307 :       stub_desc.BufferUsage                        = pDesc1->BufferUsage;
+; 3308 :       stub_desc.Flags                              = pDesc1->Flags;
+; 3309 :       stub_desc.SwapEffect                         = pDesc1->SwapEffect;
+; 3310 :       stub_desc.SampleDesc.Count                   = pDesc1->SampleDesc.Count;
 
 	mov	ecx, DWORD PTR _new_desc1$[ebp+16]
 	add	esp, 12					; 0000000cH
 	mov	eax, DWORD PTR _new_desc1$[ebp+28]
 	mov	esi, DWORD PTR _new_desc1$[ebp+44]
 
-; 3307 :       stub_desc.SampleDesc.Quality                 = pDesc1->SampleDesc.Quality;
-; 3308 :       stub_desc.BufferDesc.Format                  = pDesc1->Format;
-; 3309 :       stub_desc.BufferDesc.Height                  = pDesc1->Height;
+; 3311 :       stub_desc.SampleDesc.Quality                 = pDesc1->SampleDesc.Quality;
+; 3312 :       stub_desc.BufferDesc.Format                  = pDesc1->Format;
+; 3313 :       stub_desc.BufferDesc.Height                  = pDesc1->Height;
 
 	mov	edi, DWORD PTR _new_desc1$[ebp+4]
 	mov	DWORD PTR _stub_desc$6$[ebp], ecx
@@ -23579,13 +23568,13 @@ $LN9@DXGIFactor:
 	mov	eax, DWORD PTR _new_desc1$[ebp+36]
 	mov	DWORD PTR _stub_desc$8$[ebp], ecx
 
-; 3310 :       stub_desc.BufferDesc.Width                   = pDesc1->Width;
+; 3314 :       stub_desc.BufferDesc.Width                   = pDesc1->Width;
 
 	mov	ecx, DWORD PTR _new_desc1$[ebp]
 	mov	DWORD PTR _stub_desc$5$[ebp], eax
 	mov	DWORD PTR _stub_desc$10$[ebp], ecx
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	test	eax, eax
 	jne	SHORT $LN130@DXGIFactor
@@ -23668,7 +23657,7 @@ $LN138@DXGIFactor:
 $LN147@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	push	edx
 	mov	edx, DWORD PTR _stub_desc$2$[ebp]
@@ -23688,76 +23677,76 @@ $LN147@DXGIFactor:
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 52					; 00000034H
 
-; 3335 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
-; 3336 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
-; 3337 :       pDesc->BufferDesc.Width,
-; 3338 :       pDesc->BufferDesc.Height,
-; 3339 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3340 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3341 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3342 :           std::numeric_limits <float>::quiet_NaN (),
-; 3343 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
-; 3344 :         L"Unspecified" :
-; 3345 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
-; 3346 :           L"Centered" :
-; 3347 :           L"Stretched",
-; 3348 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
-; 3349 :         L"Unspecified" :
-; 3350 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
-; 3351 :           L"Progressive" :
-; 3352 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
-; 3353 :             L"Interlaced Even" :
-; 3354 :             L"Interlaced Odd",
-; 3355 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
-; 3356 :       pDesc->BufferCount,
-; 3357 :       pDesc->Flags,
-; 3358 :       pDesc->SwapEffect         == 0 ?
-; 3359 :         L"Discard" :
-; 3360 :         pDesc->SwapEffect       == 1 ?
-; 3361 :           L"Sequential" :
-; 3362 :           pDesc->SwapEffect     == 2 ?
-; 3363 :             L"<Unknown>" :
-; 3364 :             pDesc->SwapEffect   == 3 ?
-; 3365 :               L"Flip Sequential" :
-; 3366 :               pDesc->SwapEffect == 4 ?
-; 3367 :                 L"Flip Discard" :
-; 3368 :                 L"<Unknown>" );
-; 3369 : 
-; 3370 :     // Set things up to make the swap chain Alt+Enter friendly
-; 3371 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
+; 3339 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
+; 3340 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
+; 3341 :       pDesc->BufferDesc.Width,
+; 3342 :       pDesc->BufferDesc.Height,
+; 3343 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3344 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3345 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3346 :           std::numeric_limits <float>::quiet_NaN (),
+; 3347 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
+; 3348 :         L"Unspecified" :
+; 3349 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
+; 3350 :           L"Centered" :
+; 3351 :           L"Stretched",
+; 3352 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
+; 3353 :         L"Unspecified" :
+; 3354 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
+; 3355 :           L"Progressive" :
+; 3356 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
+; 3357 :             L"Interlaced Even" :
+; 3358 :             L"Interlaced Odd",
+; 3359 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
+; 3360 :       pDesc->BufferCount,
+; 3361 :       pDesc->Flags,
+; 3362 :       pDesc->SwapEffect         == 0 ?
+; 3363 :         L"Discard" :
+; 3364 :         pDesc->SwapEffect       == 1 ?
+; 3365 :           L"Sequential" :
+; 3366 :           pDesc->SwapEffect     == 2 ?
+; 3367 :             L"<Unknown>" :
+; 3368 :             pDesc->SwapEffect   == 3 ?
+; 3369 :               L"Flip Sequential" :
+; 3370 :               pDesc->SwapEffect == 4 ?
+; 3371 :                 L"Flip Discard" :
+; 3372 :                 L"<Unknown>" );
+; 3373 : 
+; 3374 :     // Set things up to make the swap chain Alt+Enter friendly
+; 3375 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
 
 	cmp	BYTE PTR ?bAlwaysAllowFullscreen@@3_NA, 0 ; bAlwaysAllowFullscreen
 	je	SHORT $LN88@DXGIFactor
 
-; 3372 :     {
-; 3373 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3376 :     {
+; 3377 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 
-; 3374 :       pDesc->Windowed                           = true;
-; 3375 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
+; 3378 :       pDesc->Windowed                           = true;
+; 3379 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
 
 	xor	eax, eax
 	mov	DWORD PTR _stub_desc$12$[ebp], eax
 
-; 3376 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+; 3380 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
 
 	mov	DWORD PTR _stub_desc$13$[ebp], eax
 $LN88@DXGIFactor:
 
-; 3377 :     }
-; 3378 : 
-; 3379 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
+; 3381 :     }
+; 3382 : 
+; 3383 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+752
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
 	je	SHORT $LN90@DXGIFactor
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
 	jne	SHORT $LN90@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN151@DXGIFactor
@@ -23766,18 +23755,18 @@ $LN88@DXGIFactor:
 $LN151@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3383 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3387 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	ecx, edx
 
-; 3384 :         pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3388 :         pDesc->BufferDesc.Height = config.window.res.override.y;
 
 	mov	edi, eax
 	mov	DWORD PTR _stub_desc$10$[ebp], ecx
 $LN90@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN155@DXGIFactor
@@ -23786,48 +23775,48 @@ $LN90@DXGIFactor:
 $LN155@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3399 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3403 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	ecx, edx
 
-; 3400 :       pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3404 :       pDesc->BufferDesc.Height = config.window.res.override.y;
 
 	mov	edi, eax
 	mov	DWORD PTR _stub_desc$10$[ebp], ecx
 $LN92@DXGIFactor:
 
-; 3401 :     }
-; 3402 : 
-; 3403 : 
-; 3404 :     if (config.render.dxgi.safe_fullscreen)
+; 3405 :     }
+; 3406 : 
+; 3407 : 
+; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
 	je	SHORT $LN93@DXGIFactor
 
-; 3405 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 $LN93@DXGIFactor:
 
-; 3406 : 
-; 3407 :     if (request_mode_change == mode_change_request_e::Fullscreen)
+; 3410 : 
+; 3411 :     if (request_mode_change == mode_change_request_e::Fullscreen)
 
 	cmp	DWORD PTR ?request_mode_change@@3W4mode_change_request_e@@A, 1 ; request_mode_change
 	jne	SHORT $LN232@DXGIFactor
 
-; 3408 :     {
-; 3409 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
+; 3412 :     {
+; 3413 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
 
 	push	OFFSET ??_C@_1HA@INGGDHHB@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAU?$AAs?$AAe?$AAr?$AA?9?$AAR?$AAe?$AAq?$AAu?$AAe?$AAs?$AAt?$AAe?$AAd?$AA?5@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3410 :       pDesc->Windowed = FALSE;
+; 3414 :       pDesc->Windowed = FALSE;
 
 	xor	eax, eax
 
-; 3411 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3415 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 	jmp	SHORT $LN94@DXGIFactor
@@ -23835,42 +23824,42 @@ $LN232@DXGIFactor:
 	mov	eax, 1
 $LN94@DXGIFactor:
 
-; 3412 :     }
-; 3413 : 
-; 3414 :     if (config.display.force_fullscreen && pDesc->Windowed)
+; 3416 :     }
+; 3417 : 
+; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
 	je	SHORT $LN95@DXGIFactor
 	test	eax, eax
 	je	SHORT $LN95@DXGIFactor
 
-; 3415 :     {
-; 3416 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3419 :     {
+; 3420 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@HCAIICBG@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3417 :                     L"(Requested: Windowed, Using: Fullscreen)" );
-; 3418 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3421 :                     L"(Requested: Windowed, Using: Fullscreen)" );
+; 3422 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	esi, 2
 
-; 3419 :       pDesc->Windowed = FALSE;
+; 3423 :       pDesc->Windowed = FALSE;
 
 	jmp	SHORT $LN97@DXGIFactor
 $LN95@DXGIFactor:
 
-; 3420 :     }
-; 3421 : 
-; 3422 :     else if (config.display.force_windowed)
+; 3424 :     }
+; 3425 : 
+; 3426 :     else if (config.display.force_windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
 	je	SHORT $LN97@DXGIFactor
 
-; 3423 :     {
-; 3424 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3427 :     {
+; 3428 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@LPALCGFK@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
@@ -23878,42 +23867,42 @@ $LN95@DXGIFactor:
 	add	esp, 8
 $LN97@DXGIFactor:
 
-; 3425 :                     L"(Requested: Fullscreen, Using: Windowed)" );
-; 3426 :       pDesc->Windowed = TRUE;
-; 3427 :     }
-; 3428 : 
-; 3429 : #ifdef _WIN64
-; 3430 :     if (! bFlipMode)
-; 3431 :       bFlipMode =
-; 3432 :         ( dxgi_caps.present.flip_sequential && (
-; 3433 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
-; 3434 :             SK_DS3_UseFlipMode ()        ) );
-; 3435 : 
-; 3436 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
-; 3437 :     {
-; 3438 :       if (bFlipMode)
-; 3439 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
-; 3440 :     }
-; 3441 : 
-; 3442 :     else
-; 3443 : #endif
-; 3444 :     {
-; 3445 :       // If forcing flip-model, then force multisampling off
-; 3446 :       if (config.render.framerate.flip_discard)
+; 3429 :                     L"(Requested: Fullscreen, Using: Windowed)" );
+; 3430 :       pDesc->Windowed = TRUE;
+; 3431 :     }
+; 3432 : 
+; 3433 : #ifdef _WIN64
+; 3434 :     if (! bFlipMode)
+; 3435 :       bFlipMode =
+; 3436 :         ( dxgi_caps.present.flip_sequential && (
+; 3437 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
+; 3438 :             SK_DS3_UseFlipMode ()        ) );
+; 3439 : 
+; 3440 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
+; 3441 :     {
+; 3442 :       if (bFlipMode)
+; 3443 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
+; 3444 :     }
+; 3445 : 
+; 3446 :     else
+; 3447 : #endif
+; 3448 :     {
+; 3449 :       // If forcing flip-model, then force multisampling off
+; 3450 :       if (config.render.framerate.flip_discard)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN230@DXGIFactor
 
-; 3447 :       {
-; 3448 :         bFlipMode = dxgi_caps.present.flip_sequential;
+; 3451 :       {
+; 3452 :         bFlipMode = dxgi_caps.present.flip_sequential;
 
 	mov	al, BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+2
 	mov	BYTE PTR ?bFlipMode@@3_NA, al		; bFlipMode
 
-; 3449 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
-; 3450 : 
-; 3451 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
-; 3452 :         switch (pDesc->BufferDesc.Format)
+; 3453 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
+; 3454 : 
+; 3455 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+; 3456 :         switch (pDesc->BufferDesc.Format)
 
 	mov	eax, DWORD PTR _stub_desc$8$[ebp]
 	add	eax, -23				; ffffffe9H
@@ -23925,58 +23914,58 @@ $LN97@DXGIFactor:
 	jmp	DWORD PTR $LN237@DXGIFactor[eax*4]
 $LN99@DXGIFactor:
 
-; 3453 :         {
-; 3454 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-; 3455 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+; 3457 :         {
+; 3458 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 	mov	DWORD PTR _stub_desc$8$[ebp], 87	; 00000057H
 
-; 3456 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@NDGFBELE@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAB?$AA8?$AAG?$AA8?$AAR?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3457 :             break;
+; 3461 :             break;
 
 	jmp	SHORT $LN234@DXGIFactor
 $LN100@DXGIFactor:
 
-; 3458 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+; 3462 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+; 3463 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3464 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@CCHCBLHJ@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAR?$AA8?$AAG?$AA8?$AAB?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3461 :             break;
+; 3465 :             break;
 
 	jmp	SHORT $LN235@DXGIFactor
 $LN101@DXGIFactor:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1KK@LPPCBMFA@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAR?$AAG?$AAB?$AAA?$AA?5?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA2@
 $LN235@DXGIFactor:
 
-; 3462 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
-; 3463 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-; 3464 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3466 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
+; 3467 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+; 3468 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	mov	DWORD PTR _stub_desc$8$[ebp], 28	; 0000001cH
 $LN234@DXGIFactor:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN230@DXGIFactor:
 
-; 3466 :             break;
-; 3467 :         }
-; 3468 :       }
-; 3469 :     }
-; 3470 : 
-; 3471 :     if (       config.render.framerate.buffer_count != -1                  &&
-; 3472 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
+; 3470 :             break;
+; 3471 :         }
+; 3472 :       }
+; 3473 :     }
+; 3474 : 
+; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
+; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	cmp	ecx, -1
@@ -23987,13 +23976,13 @@ $LN230@DXGIFactor:
 	test	eax, eax
 	je	SHORT $LN102@DXGIFactor
 
-; 3473 :          pDesc->BufferCount                         !=  0 )
-; 3474 :     {
-; 3475 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3477 :          pDesc->BufferCount                         !=  0 )
+; 3478 :     {
+; 3479 :       pDesc->BufferCount = config.render.framerate.buffer_count;
 
 	mov	eax, ecx
 
-; 3476 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
+; 3480 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
 
 	push	eax
 	push	OFFSET ??_C@_1GI@GAEBCHMN@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAB?$AAu?$AAf?$AAf?$AAe?$AAr?$AA?5?$AAC?$AAo?$AAu?$AAn?$AAt?$AA?5?$AAO?$AAv@
@@ -24004,18 +23993,18 @@ $LN230@DXGIFactor:
 	add	esp, 12					; 0000000cH
 $LN102@DXGIFactor:
 
-; 3477 :     }
-; 3478 : 
-; 3479 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
+; 3481 :     }
+; 3482 : 
+; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN103@DXGIFactor
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN103@DXGIFactor
 
-; 3480 :     {
-; 3481 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-; 3482 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+; 3484 :     {
+; 3485 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+; 3486 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
 
 	push	OFFSET ??_C@_1FC@PILPBEPG@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAT?$AAe?$AAa?$AAr?$AAi?$AAn?$AAg?$AA?5?$AAO?$AAp?$AAt?$AAi?$AAo?$AAn?$AA?3@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
@@ -24025,10 +24014,10 @@ $LN102@DXGIFactor:
 	add	esp, 8
 $LN103@DXGIFactor:
 
-; 3483 :       pDesc->Windowed = TRUE;
-; 3484 :     }
-; 3485 : 
-; 3486 :     if ( config.render.dxgi.scaling_mode != -1 &&
+; 3487 :       pDesc->Windowed = TRUE;
+; 3488 :     }
+; 3489 : 
+; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
 	cmp	eax, -1
@@ -24036,10 +24025,10 @@ $LN103@DXGIFactor:
 	cmp	DWORD PTR _stub_desc$6[ebp+24], eax
 	je	SHORT $LN104@DXGIFactor
 
-; 3487 :           pDesc->BufferDesc.Scaling      !=
-; 3488 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
-; 3489 :     {
-; 3490 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
+; 3491 :           pDesc->BufferDesc.Scaling      !=
+; 3492 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+; 3493 :     {
+; 3494 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
@@ -24056,20 +24045,20 @@ $LN103@DXGIFactor:
 	add	esp, 16					; 00000010H
 $LN104@DXGIFactor:
 
-; 3491 :                     L"(Requested: %s, Using: %s)",
-; 3492 :                       SK_DXGI_DescribeScalingMode (
-; 3493 :                         pDesc->BufferDesc.Scaling
-; 3494 :                       ),
-; 3495 :                         SK_DXGI_DescribeScalingMode (
-; 3496 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
-; 3497 :                         )
-; 3498 :                   );
-; 3499 : 
-; 3500 :       pDesc->BufferDesc.Scaling =
-; 3501 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
-; 3502 :     }
+; 3495 :                     L"(Requested: %s, Using: %s)",
+; 3496 :                       SK_DXGI_DescribeScalingMode (
+; 3497 :                         pDesc->BufferDesc.Scaling
+; 3498 :                       ),
+; 3499 :                         SK_DXGI_DescribeScalingMode (
+; 3500 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
+; 3501 :                         )
+; 3502 :                   );
 ; 3503 : 
-; 3504 :     if ( config.render.dxgi.scanline_order != -1 &&
+; 3504 :       pDesc->BufferDesc.Scaling =
+; 3505 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+; 3506 :     }
+; 3507 : 
+; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
@@ -24077,10 +24066,10 @@ $LN104@DXGIFactor:
 	cmp	DWORD PTR _stub_desc$6[ebp+20], eax
 	je	SHORT $LN105@DXGIFactor
 
-; 3505 :           pDesc->BufferDesc.ScanlineOrdering      !=
-; 3506 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
-; 3507 :     {
-; 3508 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
+; 3509 :           pDesc->BufferDesc.ScanlineOrdering      !=
+; 3510 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
+; 3511 :     {
+; 3512 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScanlineOrder@@YAPB_WW4DXGI_MODE_SCANLINE_ORDER@@@Z ; SK_DXGI_DescribeScanlineOrder
@@ -24097,20 +24086,20 @@ $LN104@DXGIFactor:
 	add	esp, 16					; 00000010H
 $LN105@DXGIFactor:
 
-; 3509 :                     L"(Requested: %s, Using: %s)",
-; 3510 :                       SK_DXGI_DescribeScanlineOrder (
-; 3511 :                         pDesc->BufferDesc.ScanlineOrdering
-; 3512 :                       ),
-; 3513 :                         SK_DXGI_DescribeScanlineOrder (
-; 3514 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
-; 3515 :                         )
-; 3516 :                   );
-; 3517 : 
-; 3518 :       pDesc->BufferDesc.ScanlineOrdering =
-; 3519 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
-; 3520 :     }
+; 3513 :                     L"(Requested: %s, Using: %s)",
+; 3514 :                       SK_DXGI_DescribeScanlineOrder (
+; 3515 :                         pDesc->BufferDesc.ScanlineOrdering
+; 3516 :                       ),
+; 3517 :                         SK_DXGI_DescribeScanlineOrder (
+; 3518 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+; 3519 :                         )
+; 3520 :                   );
 ; 3521 : 
-; 3522 :     if ( config.render.framerate.refresh_rate != -1 &&
+; 3522 :       pDesc->BufferDesc.ScanlineOrdering =
+; 3523 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
+; 3524 :     }
+; 3525 : 
+; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	cmp	eax, -1
@@ -24119,9 +24108,9 @@ $LN105@DXGIFactor:
 	cmp	edx, eax
 	je	SHORT $LN106@DXGIFactor
 
-; 3523 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
-; 3524 :     {
-; 3525 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
+; 3527 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
+; 3528 :     {
+; 3529 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
 
 	mov	ecx, DWORD PTR _stub_desc$12$[ebp]
 	test	ecx, ecx
@@ -24152,28 +24141,28 @@ $LN158@DXGIFactor:
 	add	esp, 20					; 00000014H
 $LN106@DXGIFactor:
 
-; 3526 :                     L"(Requested: %f, Using: %li)",
-; 3527 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3528 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3529 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3530 :                      std::numeric_limits <float>::quiet_NaN (),
-; 3531 :                         config.render.framerate.refresh_rate
-; 3532 :                   );
-; 3533 : 
-; 3534 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
-; 3535 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
-; 3536 :     }
+; 3530 :                     L"(Requested: %f, Using: %li)",
+; 3531 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3532 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3533 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3534 :                      std::numeric_limits <float>::quiet_NaN (),
+; 3535 :                         config.render.framerate.refresh_rate
+; 3536 :                   );
 ; 3537 : 
-; 3538 :     bWait = bFlipMode && dxgi_caps.present.waitable;
+; 3538 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
+; 3539 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
+; 3540 :     }
+; 3541 : 
+; 3542 :     bWait = bFlipMode && dxgi_caps.present.waitable;
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	je	SHORT $LN144@DXGIFactor
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN144@DXGIFactor
 
-; 3539 : 
-; 3540 :     // We cannot change the swapchain parameters if this is used...
-; 3541 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
+; 3543 : 
+; 3544 :     // We cannot change the swapchain parameters if this is used...
+; 3545 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
 	jle	SHORT $LN144@DXGIFactor
@@ -24183,28 +24172,28 @@ $LN144@DXGIFactor:
 	xor	dl, dl
 $LN236@DXGIFactor:
 
-; 3542 : 
-; 3543 : #ifdef _WIN64
-; 3544 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-; 3545 :     {
-; 3546 :       if (SK_DS3_IsBorderless ())
-; 3547 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-; 3548 :     }
-; 3549 : #endif
-; 3550 : 
-; 3551 :     if (bFlipMode)
+; 3546 : 
+; 3547 : #ifdef _WIN64
+; 3548 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+; 3549 :     {
+; 3550 :       if (SK_DS3_IsBorderless ())
+; 3551 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3552 :     }
+; 3553 : #endif
+; 3554 : 
+; 3555 :     if (bFlipMode)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	BYTE PTR ?bWait@@3_NA, dl		; bWait
 	je	SHORT $LN107@DXGIFactor
 
-; 3552 :     {
-; 3553 :       if (bWait)
+; 3556 :     {
+; 3557 :       if (bWait)
 
 	test	dl, dl
 	je	SHORT $LN109@DXGIFactor
 
-; 3554 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3558 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
 	or	esi, 64					; 00000040H
 $LN109@DXGIFactor:
@@ -24217,7 +24206,7 @@ $LN109@DXGIFactor:
 	cmovg	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3560 :       if (config.render.framerate.flip_discard &&
+; 3564 :       if (config.render.framerate.flip_discard &&
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	mov	ecx, eax
@@ -24226,26 +24215,26 @@ $LN109@DXGIFactor:
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN110@DXGIFactor
 
-; 3561 :           dxgi_caps.present.flip_discard)
-; 3562 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+; 3565 :           dxgi_caps.present.flip_discard)
+; 3566 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 	mov	eax, 4
 	mov	DWORD PTR _stub_desc$5$[ebp], eax
 
-; 3563 :       else
+; 3567 :       else
 
 	jmp	SHORT $LN112@DXGIFactor
 $LN110@DXGIFactor:
 
-; 3564 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+; 3568 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
 	mov	DWORD PTR _stub_desc$5$[ebp], 3
 	jmp	SHORT $LN112@DXGIFactor
 $LN107@DXGIFactor:
 
-; 3565 :     }
-; 3566 : 
-; 3567 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
+; 3569 :     }
+; 3570 : 
+; 3571 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
 
 	mov	eax, DWORD PTR _stub_desc$5$[ebp]
 	cmp	eax, 4
@@ -24253,16 +24242,16 @@ $LN107@DXGIFactor:
 	cmp	eax, 3
 	je	SHORT $LN112@DXGIFactor
 
-; 3568 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
-; 3569 :     {
-; 3570 :       // Resort to triple-buffering if flip mode is not available
-; 3571 :       if (config.render.framerate.buffer_count > 3)
+; 3572 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
+; 3573 :     {
+; 3574 :       // Resort to triple-buffering if flip mode is not available
+; 3575 :       if (config.render.framerate.buffer_count > 3)
 
 	mov	eax, 3
 
-; 3572 :         config.render.framerate.buffer_count = 3;
-; 3573 : 
-; 3574 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+; 3576 :         config.render.framerate.buffer_count = 3;
+; 3577 : 
+; 3578 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 	mov	DWORD PTR _stub_desc$5$[ebp], 0
 	cmp	ecx, eax
@@ -24270,18 +24259,18 @@ $LN107@DXGIFactor:
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
 $LN112@DXGIFactor:
 
-; 3575 :     }
-; 3576 : 
-; 3577 :     if (config.render.framerate.buffer_count > 0)
+; 3579 :     }
+; 3580 : 
+; 3581 :     if (config.render.framerate.buffer_count > 0)
 
 	mov	eax, DWORD PTR _stub_desc$2$[ebp]
 	test	ecx, ecx
 	cmovg	eax, ecx
 
-; 3578 :       pDesc->BufferCount = config.render.framerate.buffer_count;
-; 3579 : 
-; 3580 :     // We cannot switch modes on a waitable swapchain
-; 3581 :     if (bFlipMode && bWait)
+; 3582 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3583 : 
+; 3584 :     // We cannot switch modes on a waitable swapchain
+; 3585 :     if (bFlipMode && bWait)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	DWORD PTR _stub_desc$2$[ebp], eax
@@ -24289,15 +24278,15 @@ $LN112@DXGIFactor:
 	test	dl, dl
 	je	SHORT $LN115@DXGIFactor
 
-; 3582 :     {
-; 3583 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-; 3584 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3586 :     {
+; 3587 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3588 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	and	esi, -3					; fffffffdH
 	or	esi, 64					; 00000040H
 $LN115@DXGIFactor:
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	xor	eax, eax
 	mov	ecx, OFFSET ??_C@_15BICKNCBF@?$AAN?$AAo?$AA?$AA@
@@ -24322,7 +24311,7 @@ $LN115@DXGIFactor:
 	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+460
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -24337,7 +24326,7 @@ $LN115@DXGIFactor:
 $LN165@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3594 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
+; 3598 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
 
 	mov	eax, DWORD PTR _stub_desc$10$[ebp]
 	cmp	eax, edx
@@ -24353,7 +24342,7 @@ $LN165@DXGIFactor:
 $LN169@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3596 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
+; 3600 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
 
 	cmp	edi, ecx
 	cmova	edi, ecx
@@ -24375,7 +24364,7 @@ $LN117@DXGIFactor:
 $LN173@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3599 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
+; 3603 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
 
 	cmp	eax, edx
 	cmovb	eax, edx
@@ -24390,107 +24379,107 @@ $LN173@DXGIFactor:
 $LN177@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3601 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
+; 3605 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
 
 	cmp	edi, ecx
 	cmovb	edi, ecx
 $LN225@DXGIFactor:
 
-; 3608 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
+; 3612 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
 
 	mov	ecx, DWORD PTR _stub_desc$3$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+24], ecx
 
-; 3610 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
+; 3614 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
 
 	mov	ecx, DWORD PTR _stub_desc$5$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+36], ecx
 
-; 3611 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
+; 3615 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
 
 	mov	ecx, DWORD PTR _stub_desc$6$[ebp]
 
-; 3615 :     pDesc1->Width                              = pDesc->BufferDesc.Width;
+; 3619 :     pDesc1->Width                              = pDesc->BufferDesc.Width;
 
 	mov	DWORD PTR _new_desc1$[ebp], eax
 
-; 3829 :       *pDesc :
-; 3830 :         DXGI_SWAP_CHAIN_DESC1 { };
-; 3831 : 
-; 3832 :   HWND hWnd = nullptr;
-; 3833 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
-; 3834 : 
+; 3833 :       *pDesc :
+; 3834 :         DXGI_SWAP_CHAIN_DESC1 { };
 ; 3835 : 
-; 3836 :   if (pDesc != nullptr) pDesc = &new_desc1;
+; 3836 :   HWND hWnd = nullptr;
+; 3837 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
+; 3838 : 
+; 3839 : 
+; 3840 :   if (pDesc != nullptr) pDesc = &new_desc1;
 
 	mov	eax, DWORD PTR _pDesc$[ebp]
 	test	eax, eax
 
-; 3611 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
+; 3615 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
 
 	mov	DWORD PTR _new_desc1$[ebp+16], ecx
 
-; 3612 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
+; 3616 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
 
 	mov	ecx, DWORD PTR _stub_desc$7$[ebp]
 	mov	edx, DWORD PTR _stub_desc$2$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+20], ecx
 
-; 3613 :     pDesc1->Format                             = pDesc->BufferDesc.Format;
+; 3617 :     pDesc1->Format                             = pDesc->BufferDesc.Format;
 
 	mov	ecx, DWORD PTR _stub_desc$8$[ebp]
 	mov	DWORD PTR _new_desc1$[ebp+8], ecx
 
-; 3829 :       *pDesc :
-; 3830 :         DXGI_SWAP_CHAIN_DESC1 { };
-; 3831 : 
-; 3832 :   HWND hWnd = nullptr;
-; 3833 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
-; 3834 : 
+; 3833 :       *pDesc :
+; 3834 :         DXGI_SWAP_CHAIN_DESC1 { };
 ; 3835 : 
-; 3836 :   if (pDesc != nullptr) pDesc = &new_desc1;
+; 3836 :   HWND hWnd = nullptr;
+; 3837 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
+; 3838 : 
+; 3839 : 
+; 3840 :   if (pDesc != nullptr) pDesc = &new_desc1;
 
 	lea	ecx, DWORD PTR _new_desc1$[ebp]
 	cmove	ecx, eax
 
-; 3607 :     pDesc1->BufferCount                        = pDesc->BufferCount;
+; 3611 :     pDesc1->BufferCount                        = pDesc->BufferCount;
 
 	mov	DWORD PTR _new_desc1$[ebp+28], edx
 
-; 3860 :       };
+; 3864 :       };
 
 	lea	eax, DWORD PTR _ret$[ebp]
 
-; 3829 :       *pDesc :
-; 3830 :         DXGI_SWAP_CHAIN_DESC1 { };
-; 3831 : 
-; 3832 :   HWND hWnd = nullptr;
-; 3833 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
-; 3834 : 
+; 3833 :       *pDesc :
+; 3834 :         DXGI_SWAP_CHAIN_DESC1 { };
 ; 3835 : 
-; 3836 :   if (pDesc != nullptr) pDesc = &new_desc1;
+; 3836 :   HWND hWnd = nullptr;
+; 3837 :   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, nullptr);
+; 3838 : 
+; 3839 : 
+; 3840 :   if (pDesc != nullptr) pDesc = &new_desc1;
 
 	mov	DWORD PTR _pDesc$[ebp], ecx
 
-; 3860 :       };
+; 3864 :       };
 
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp], eax
 
-; 3861 : 
-; 3862 : 
-; 3863 :   if (! CreateSwapChain_Lambchop ())
+; 3865 : 
+; 3866 : 
+; 3867 :   if (! CreateSwapChain_Lambchop ())
 
 	lea	ecx, DWORD PTR _CreateSwapChain_Lambchop$[ebp]
 
-; 3860 :       };
+; 3864 :       };
 
 	lea	eax, DWORD PTR _This$[ebp]
 
-; 3609 :     pDesc1->Flags                              = pDesc->Flags;
+; 3613 :     pDesc1->Flags                              = pDesc->Flags;
 
 	mov	DWORD PTR _new_desc1$[ebp+44], esi
 
-; 3860 :       };
+; 3864 :       };
 
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp+4], eax
 	lea	eax, DWORD PTR _pDevice$[ebp]
@@ -24505,31 +24494,31 @@ $LN225@DXGIFactor:
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp+24], eax
 	lea	eax, DWORD PTR _new_desc1$[ebp]
 
-; 3614 :     pDesc1->Height                             = pDesc->BufferDesc.Height;
+; 3618 :     pDesc1->Height                             = pDesc->BufferDesc.Height;
 
 	mov	DWORD PTR _new_desc1$[ebp+4], edi
 
-; 3860 :       };
+; 3864 :       };
 
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp+28], eax
 
-; 3861 : 
-; 3862 : 
-; 3863 :   if (! CreateSwapChain_Lambchop ())
+; 3865 : 
+; 3866 : 
+; 3867 :   if (! CreateSwapChain_Lambchop ())
 
 	call	??R<lambda_7769376daad0f42c2f9dc7182375e5d8>@@QBEHXZ ; <lambda_7769376daad0f42c2f9dc7182375e5d8>::operator()
 	pop	edi
 	test	eax, eax
 	jne	SHORT $LN4@DXGIFactor
 
-; 3864 :   {
-; 3865 :     // Fallback-on-Fail
-; 3866 :     pDesc = orig_desc;
+; 3868 :   {
+; 3869 :     // Fallback-on-Fail
+; 3870 :     pDesc = orig_desc;
 
 	mov	eax, DWORD PTR _orig_desc$1$[ebp]
 
-; 3867 : 
-; 3868 :     CreateSwapChain_Lambchop ();
+; 3871 : 
+; 3872 :     CreateSwapChain_Lambchop ();
 
 	lea	ecx, DWORD PTR _CreateSwapChain_Lambchop$[ebp]
 	mov	DWORD PTR _pDesc$[ebp], eax
@@ -24542,7 +24531,7 @@ $LN4@DXGIFactor:
 	mov	ecx, DWORD PTR _iname$[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3872 :   return ret;
+; 3876 :   return ret;
 
 	mov	esi, DWORD PTR _ret$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -24575,7 +24564,7 @@ $LN4@DXGIFactor:
 $LN229@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3873 : }
+; 3877 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -24682,7 +24671,7 @@ _<new_desc>$ = 28					; size = 4
 ??0<lambda_49fe4316955e3999d8d7fe725292d871>@@QAE@AAJAAPAUIDXGIFactory@@AAPAUIUnknown@@AAPBUDXGI_SWAP_CHAIN_DESC@@AAPAPAUIDXGISwapChain@@AAU3@@Z PROC ; <lambda_49fe4316955e3999d8d7fe725292d871>::<lambda_49fe4316955e3999d8d7fe725292d871>, COMDAT
 ; _this$ = ecx
 
-; 3792 :       };
+; 3796 :       };
 
 	npad	2
 	push	ebp
@@ -24734,7 +24723,7 @@ __$EHRec$ = -12						; size = 12
 ??R<lambda_49fe4316955e3999d8d7fe725292d871>@@QBEHXZ PROC ; <lambda_49fe4316955e3999d8d7fe725292d871>::operator(), COMDAT
 ; _this$ = ecx
 
-; 3779 :       {
+; 3783 :       {
 
 	npad	2
 	push	ebp
@@ -24749,7 +24738,7 @@ __$EHRec$ = -12						; size = 12
 	push	edi
 	mov	edi, ecx
 
-; 3780 :         DXGI_CALL (ret, CreateSwapChain_Original (This, pDevice, pDesc, ppSwapChain));
+; 3784 :         DXGI_CALL (ret, CreateSwapChain_Original (This, pDevice, pDesc, ppSwapChain));
 
 	mov	eax, DWORD PTR [edi+16]
 	push	DWORD PTR [eax]
@@ -24770,9 +24759,9 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3781 :       
-; 3782 :         if ( SUCCEEDED (ret)         &&
-; 3783 :              ppSwapChain  != nullptr &&
+; 3785 :       
+; 3786 :         if ( SUCCEEDED (ret)         &&
+; 3787 :              ppSwapChain  != nullptr &&
 
 	mov	eax, DWORD PTR [edi]
 	add	esp, 12					; 0000000cH
@@ -24785,13 +24774,13 @@ __$EHRec$ = -12						; size = 12
 	cmp	DWORD PTR [esi], 0
 	je	$LN2@operator
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	cmp	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 
-; 3784 :            (*ppSwapChain) != nullptr )
-; 3785 :         {
-; 3786 :           SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, ppSwapChain);
+; 3788 :            (*ppSwapChain) != nullptr )
+; 3789 :         {
+; 3790 :           SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, ppSwapChain);
 
 	mov	eax, DWORD PTR [edi+8]
 	push	ebx
@@ -24800,55 +24789,55 @@ __$EHRec$ = -12						; size = 12
 	mov	eax, DWORD PTR [eax]
 	mov	DWORD PTR _pDevice$1$[ebp], eax
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	je	SHORT $LN5@operator
 	call	?SK_CEGUI_QueueResetD3D11@@YAXXZ	; SK_CEGUI_QueueResetD3D11
 	mov	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 $LN5@operator:
 
-; 3644 : 
-; 3645 :   if (pDesc->BufferDesc.Width != 0)
+; 3648 : 
+; 3649 :   if (pDesc->BufferDesc.Width != 0)
 
 	mov	eax, DWORD PTR [ebx]
 	test	eax, eax
 	je	SHORT $LN6@operator
 
-; 3646 :   {
-; 3647 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
+; 3650 :   {
+; 3651 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
 
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3648 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
+; 3652 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
 
 	push	DWORD PTR [ebx+4]
 
-; 3649 :   }
-; 3650 : 
-; 3651 :   else
+; 3653 :   }
+; 3654 : 
+; 3655 :   else
 
 	jmp	SHORT $LN78@operator
 $LN6@operator:
 
-; 3652 :   {
-; 3653 :     RECT client;
-; 3654 : 
-; 3655 :     GetClientRect    (game_window.hWnd, &client);
+; 3656 :   {
+; 3657 :     RECT client;
+; 3658 : 
+; 3659 :     GetClientRect    (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$2[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 3656 :     SK_SetWindowResX (client.right  - client.left);
+; 3660 :     SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$2[ebp+8]
 	sub	eax, DWORD PTR _client$2[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3657 :     SK_SetWindowResY (client.bottom - client.top);
+; 3661 :     SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$2[ebp+12]
 	sub	eax, DWORD PTR _client$2[ebp+4]
@@ -24857,9 +24846,9 @@ $LN78@operator:
 	call	?SK_SetWindowResY@@YAXJ@Z		; SK_SetWindowResY
 	add	esp, 8
 
-; 3658 :   }
-; 3659 : 
-; 3660 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
+; 3662 :   }
+; 3663 : 
+; 3664 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
 
 	cmp	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 	je	SHORT $LN8@operator
@@ -24869,12 +24858,12 @@ $LN78@operator:
 	mov	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 $LN8@operator:
 
-; 3661 : 
-; 3662 :   //if (bFlipMode || bWait)
-; 3663 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
-; 3664 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 ; 3665 : 
-; 3666 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
+; 3666 :   //if (bFlipMode || bWait)
+; 3667 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
+; 3668 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
+; 3669 : 
+; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -24884,7 +24873,7 @@ $LN8@operator:
 	mov	DWORD PTR _pSwapChain2$4[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -24904,28 +24893,28 @@ $LN8@operator:
 	call	DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	test	eax, eax
 	js	SHORT $LN75@operator
 
-; 3671 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
-; 3672 :       )
-; 3673 :   {
-; 3674 :     if (max_latency < 16)
+; 3675 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
+; 3676 :       )
+; 3677 :   {
+; 3678 :     if (max_latency < 16)
 
 	cmp	ebx, 16					; 00000010H
 	jae	SHORT $LN10@operator
 
-; 3675 :     {
-; 3676 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
+; 3679 :     {
+; 3680 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1GE@BOIALL@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAS?$AAw?$AAa?$AAp?$AAc?$AAh?$AAa?$AAi?$AAn?$AA?5?$AAF@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3677 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
+; 3681 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pSwapChain2$4[ebp]
 	add	esp, 12					; 0000000cH
@@ -24935,18 +24924,18 @@ $LN8@operator:
 	call	DWORD PTR [ecx+124]
 $LN10@operator:
 
-; 3678 :     }
-; 3679 : 
-; 3680 :     HANDLE hWait =
-; 3681 :       pSwapChain2->GetFrameLatencyWaitableObject ();
+; 3682 :     }
+; 3683 : 
+; 3684 :     HANDLE hWait =
+; 3685 :       pSwapChain2->GetFrameLatencyWaitableObject ();
 
 	mov	eax, DWORD PTR _pSwapChain2$4[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+132]
 
-; 3682 : 
-; 3683 :     WaitForSingleObjectEx ( hWait,
+; 3686 : 
+; 3687 :     WaitForSingleObjectEx ( hWait,
 
 	push	1
 	push	500					; 000001f4H
@@ -24954,12 +24943,12 @@ $LN10@operator:
 	call	DWORD PTR __imp__WaitForSingleObjectEx@12
 $LN75@operator:
 
-; 3684 :                               500,//config.render.framerate.swapchain_wait,
-; 3685 :                                 TRUE );
-; 3686 :   }
-; 3687 : 
-; 3688 :   {
-; 3689 :     if (max_latency != -1)
+; 3688 :                               500,//config.render.framerate.swapchain_wait,
+; 3689 :                                 TRUE );
+; 3690 :   }
+; 3691 : 
+; 3692 :   {
+; 3693 :     if (max_latency != -1)
 
 	cmp	ebx, -1
 	je	SHORT $LN76@operator
@@ -24970,7 +24959,7 @@ $LN75@operator:
 	mov	DWORD PTR _pDevice1$3[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3693 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
+; 3697 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
 
 	mov	esi, DWORD PTR [esi]
 	lea	eax, DWORD PTR _pDevice1$3[ebp]
@@ -24986,19 +24975,19 @@ $LN75@operator:
 	test	eax, eax
 	js	SHORT $LN12@operator
 
-; 3694 :                          IID_PPV_ARGS (&pDevice1)
-; 3695 :                       )
-; 3696 :                     )
-; 3697 :          )
-; 3698 :       {
-; 3699 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
+; 3698 :                          IID_PPV_ARGS (&pDevice1)
+; 3699 :                       )
+; 3700 :                     )
+; 3701 :          )
+; 3702 :       {
+; 3703 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1FO@CKMCMFKO@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAD?$AAe?$AAv?$AAi?$AAc?$AAe?$AA?5?$AAF?$AAr?$AAa?$AAm@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3700 :         pDevice1->SetMaximumFrameLatency (max_latency);
+; 3704 :         pDevice1->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pDevice1$3[ebp]
 	add	esp, 12					; 0000000cH
@@ -25014,7 +25003,7 @@ $LN12@operator:
 	mov	eax, DWORD PTR _pDevice1$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3702 :     }
+; 3706 :     }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -25062,7 +25051,7 @@ $LN76@operator:
 $LN48@operator:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3705 :   CComQIPtr <ID3D11Device> pDev (pDevice);
+; 3709 :   CComQIPtr <ID3D11Device> pDev (pDevice);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -25072,14 +25061,14 @@ $LN48@operator:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3707 :   if (pDev != nullptr)
+; 3711 :   if (pDev != nullptr)
 
 	je	SHORT $LN13@operator
 
-; 3708 :   {
-; 3709 :     g_pD3D11Dev = pDev;
-; 3710 : 
-; 3711 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
+; 3712 :   {
+; 3713 :     g_pD3D11Dev = pDev;
+; 3714 : 
+; 3715 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
 
 	mov	eax, DWORD PTR _pDesc$1$[ebp]
 	mov	DWORD PTR ?g_pD3D11Dev@@3PAUID3D11Device@@A, ecx ; g_pD3D11Dev
@@ -25090,7 +25079,7 @@ $LN48@operator:
 	mov	ecx, DWORD PTR _pDev$5[ebp]
 $LN13@operator:
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 	pop	ebx
@@ -25113,7 +25102,7 @@ $LN67@operator:
 	mov	eax, DWORD PTR _pSwapChain2$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3713 : }
+; 3717 : }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -25132,15 +25121,15 @@ $LN73@operator:
 	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3788 :           return TRUE;
+; 3792 :           return TRUE;
 
 	mov	eax, 1
 	pop	esi
 
-; 3789 :         }
-; 3790 : 
-; 3791 :         return FALSE;
-; 3792 :       };
+; 3793 :         }
+; 3794 : 
+; 3795 :         return FALSE;
+; 3796 :       };
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -25232,7 +25221,7 @@ _pDesc$ = 16						; size = 4
 _ppSwapChain$ = 20					; size = 4
 ?DXGIFactory_CreateSwapChain_Override@@YGJPAUIDXGIFactory@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z PROC ; DXGIFactory_CreateSwapChain_Override
 
-; 3755 : {
+; 3759 : {
 
 	npad	2
 	push	ebp
@@ -25245,14 +25234,14 @@ _ppSwapChain$ = 20					; size = 4
 	sub	esp, 320				; 00000140H
 	push	esi
 
-; 3756 :   std::wstring iname = SK_GetDXGIFactoryInterface (This);
+; 3760 :   std::wstring iname = SK_GetDXGIFactoryInterface (This);
 
 	push	DWORD PTR _This$[ebp]
 	lea	eax, DWORD PTR _iname$[ebp]
 	push	eax
 	call	?SK_GetDXGIFactoryInterface@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUIUnknown@@@Z ; SK_GetDXGIFactoryInterface
 
-; 3758 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
+; 3762 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
 
 	push	8192					; 00002000H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -25285,9 +25274,9 @@ $LN7@DXGIFactor:
 	lea	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3758 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
+; 3762 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
 
-	push	OFFSET $SG357227
+	push	OFFSET $SG356859
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -25295,22 +25284,22 @@ $LN7@DXGIFactor:
 	cmovae	eax, DWORD PTR _iname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3758 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
+; 3762 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
 
 	push	eax
-	push	OFFSET $SG357228
+	push	OFFSET $SG356860
 	push	esi
 	call	__swprintf
 	push	DWORD PTR _ppSwapChain$[ebp]
 	push	DWORD PTR _pDesc$[ebp]
 	push	DWORD PTR _pDevice$[ebp]
-	push	OFFSET $SG357229
+	push	OFFSET $SG356861
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG357230
+	push	OFFSET $SG356862
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -25336,12 +25325,12 @@ $LN7@DXGIFactor:
 $LN44@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3758 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
+; 3762 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
 
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG357231
+	push	OFFSET $SG356863
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -25351,7 +25340,7 @@ $LN44@DXGIFactor:
 	mov	eax, DWORD PTR $T5[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3758 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
+; 3762 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -25384,22 +25373,22 @@ $LN44@DXGIFactor:
 $LN54@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3758 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
+; 3762 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 $LN2@DXGIFactor:
 
-; 3759 :                        L"%ph, %ph, %ph",
-; 3760 :                          pDevice, pDesc, ppSwapChain );
-; 3761 : 
-; 3762 :   auto                 orig_desc = pDesc;
+; 3763 :                        L"%ph, %ph, %ph",
+; 3764 :                          pDevice, pDesc, ppSwapChain );
+; 3765 : 
+; 3766 :   auto                 orig_desc = pDesc;
 
 	mov	esi, DWORD PTR _pDesc$[ebp]
 
-; 3763 :   DXGI_SWAP_CHAIN_DESC new_desc  =
-; 3764 :     pDesc != nullptr ?
+; 3767 :   DXGI_SWAP_CHAIN_DESC new_desc  =
+; 3768 :     pDesc != nullptr ?
 
 	test	esi, esi
 	je	SHORT $LN8@DXGIFactor
@@ -25445,20 +25434,20 @@ $LN9@DXGIFactor:
 	movq	QWORD PTR _new_desc$[ebp+48], xmm0
 	mov	DWORD PTR _new_desc$[ebp+56], eax
 
-; 3765 :       *pDesc :
-; 3766 :         DXGI_SWAP_CHAIN_DESC { };
-; 3767 : 
-; 3768 :   if (pDesc != nullptr)
+; 3769 :       *pDesc :
+; 3770 :         DXGI_SWAP_CHAIN_DESC { };
+; 3771 : 
+; 3772 :   if (pDesc != nullptr)
 
 	test	esi, esi
 	je	$LN3@DXGIFactor
 
-; 3291 :   WaitForInit ();
+; 3295 :   WaitForInit ();
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	mov	eax, DWORD PTR _new_desc$[ebp+52]
 	test	eax, eax
@@ -25538,7 +25527,7 @@ $LN138@DXGIFactor:
 $LN147@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	cmp	DWORD PTR _new_desc$[ebp+48], 0
 	mov	eax, OFFSET ??_C@_1BC@PMICBOA@?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AAe?$AAd?$AA?$AA@
@@ -25560,87 +25549,87 @@ $LN147@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 3335 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
-; 3336 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
-; 3337 :       pDesc->BufferDesc.Width,
-; 3338 :       pDesc->BufferDesc.Height,
-; 3339 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3340 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3341 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3342 :           std::numeric_limits <float>::quiet_NaN (),
-; 3343 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
-; 3344 :         L"Unspecified" :
-; 3345 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
-; 3346 :           L"Centered" :
-; 3347 :           L"Stretched",
-; 3348 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
-; 3349 :         L"Unspecified" :
-; 3350 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
-; 3351 :           L"Progressive" :
-; 3352 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
-; 3353 :             L"Interlaced Even" :
-; 3354 :             L"Interlaced Odd",
-; 3355 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
-; 3356 :       pDesc->BufferCount,
-; 3357 :       pDesc->Flags,
-; 3358 :       pDesc->SwapEffect         == 0 ?
-; 3359 :         L"Discard" :
-; 3360 :         pDesc->SwapEffect       == 1 ?
-; 3361 :           L"Sequential" :
-; 3362 :           pDesc->SwapEffect     == 2 ?
-; 3363 :             L"<Unknown>" :
-; 3364 :             pDesc->SwapEffect   == 3 ?
-; 3365 :               L"Flip Sequential" :
-; 3366 :               pDesc->SwapEffect == 4 ?
-; 3367 :                 L"Flip Discard" :
-; 3368 :                 L"<Unknown>" );
-; 3369 : 
-; 3370 :     // Set things up to make the swap chain Alt+Enter friendly
-; 3371 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
+; 3339 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
+; 3340 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
+; 3341 :       pDesc->BufferDesc.Width,
+; 3342 :       pDesc->BufferDesc.Height,
+; 3343 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3344 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3345 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3346 :           std::numeric_limits <float>::quiet_NaN (),
+; 3347 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
+; 3348 :         L"Unspecified" :
+; 3349 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
+; 3350 :           L"Centered" :
+; 3351 :           L"Stretched",
+; 3352 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
+; 3353 :         L"Unspecified" :
+; 3354 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
+; 3355 :           L"Progressive" :
+; 3356 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
+; 3357 :             L"Interlaced Even" :
+; 3358 :             L"Interlaced Odd",
+; 3359 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
+; 3360 :       pDesc->BufferCount,
+; 3361 :       pDesc->Flags,
+; 3362 :       pDesc->SwapEffect         == 0 ?
+; 3363 :         L"Discard" :
+; 3364 :         pDesc->SwapEffect       == 1 ?
+; 3365 :           L"Sequential" :
+; 3366 :           pDesc->SwapEffect     == 2 ?
+; 3367 :             L"<Unknown>" :
+; 3368 :             pDesc->SwapEffect   == 3 ?
+; 3369 :               L"Flip Sequential" :
+; 3370 :               pDesc->SwapEffect == 4 ?
+; 3371 :                 L"Flip Discard" :
+; 3372 :                 L"<Unknown>" );
+; 3373 : 
+; 3374 :     // Set things up to make the swap chain Alt+Enter friendly
+; 3375 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+756
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+760
 	add	esp, 52					; 00000034H
 	cmp	BYTE PTR ?bAlwaysAllowFullscreen@@3_NA, 0 ; bAlwaysAllowFullscreen
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+752
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
 	mov	eax, DWORD PTR _new_desc$[ebp+48]
 	je	SHORT $LN88@DXGIFactor
 	test	eax, eax
 	je	SHORT $LN228@DXGIFactor
 
-; 3372 :     {
-; 3373 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3376 :     {
+; 3377 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	DWORD PTR _new_desc$[ebp+56], 2
 
-; 3374 :       pDesc->Windowed                           = true;
+; 3378 :       pDesc->Windowed                           = true;
 
 	mov	eax, 1
 	mov	DWORD PTR _new_desc$[ebp+48], eax
 
-; 3375 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
+; 3379 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
 
 	mov	DWORD PTR _new_desc$[ebp+12], 0
 
-; 3376 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+; 3380 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
 
 	mov	DWORD PTR _new_desc$[ebp+8], 0
 
-; 3377 :     }
-; 3378 : 
-; 3379 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
+; 3381 :     }
+; 3382 : 
+; 3383 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
 
 	jmp	SHORT $LN224@DXGIFactor
 $LN88@DXGIFactor:
 	test	eax, eax
 	je	SHORT $LN228@DXGIFactor
 $LN224@DXGIFactor:
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
 	je	SHORT $LN228@DXGIFactor
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
 	jne	SHORT $LN228@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN151@DXGIFactor
@@ -25649,17 +25638,17 @@ $LN224@DXGIFactor:
 $LN151@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3383 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3387 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	DWORD PTR _new_desc$[ebp], edx
 
-; 3384 :         pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3388 :         pDesc->BufferDesc.Height = config.window.res.override.y;
 
 	mov	DWORD PTR _new_desc$[ebp+4], ecx
 $LN228@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN155@DXGIFactor
@@ -25668,133 +25657,133 @@ $LN228@DXGIFactor:
 $LN155@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3399 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3403 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	DWORD PTR _new_desc$[ebp], edx
 
-; 3400 :       pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3404 :       pDesc->BufferDesc.Height = config.window.res.override.y;
 
 	mov	DWORD PTR _new_desc$[ebp+4], ecx
 $LN92@DXGIFactor:
 
-; 3401 :     }
-; 3402 : 
-; 3403 : 
-; 3404 :     if (config.render.dxgi.safe_fullscreen)
+; 3405 :     }
+; 3406 : 
+; 3407 : 
+; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
 	je	SHORT $LN93@DXGIFactor
 
-; 3405 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	DWORD PTR _new_desc$[ebp+56], 2
 $LN93@DXGIFactor:
 
-; 3406 : 
-; 3407 :     if (request_mode_change == mode_change_request_e::Fullscreen)
+; 3410 : 
+; 3411 :     if (request_mode_change == mode_change_request_e::Fullscreen)
 
 	cmp	DWORD PTR ?request_mode_change@@3W4mode_change_request_e@@A, 1 ; request_mode_change
 	jne	SHORT $LN94@DXGIFactor
 
-; 3408 :     {
-; 3409 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
+; 3412 :     {
+; 3413 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
 
 	push	OFFSET ??_C@_1HA@INGGDHHB@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAU?$AAs?$AAe?$AAr?$AA?9?$AAR?$AAe?$AAq?$AAu?$AAe?$AAs?$AAt?$AAe?$AAd?$AA?5@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3410 :       pDesc->Windowed = FALSE;
+; 3414 :       pDesc->Windowed = FALSE;
 
 	xor	eax, eax
 	add	esp, 8
 
-; 3411 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3415 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	DWORD PTR _new_desc$[ebp+56], 2
 	mov	DWORD PTR _new_desc$[ebp+48], eax
 $LN94@DXGIFactor:
 
-; 3412 :     }
-; 3413 : 
-; 3414 :     if (config.display.force_fullscreen && pDesc->Windowed)
+; 3416 :     }
+; 3417 : 
+; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
 	je	SHORT $LN95@DXGIFactor
 	test	eax, eax
 	je	SHORT $LN95@DXGIFactor
 
-; 3415 :     {
-; 3416 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3419 :     {
+; 3420 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@HCAIICBG@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3417 :                     L"(Requested: Windowed, Using: Fullscreen)" );
-; 3418 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-; 3419 :       pDesc->Windowed = FALSE;
+; 3421 :                     L"(Requested: Windowed, Using: Fullscreen)" );
+; 3422 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3423 :       pDesc->Windowed = FALSE;
 
 	mov	DWORD PTR _new_desc$[ebp+48], 0
 	or	DWORD PTR _new_desc$[ebp+56], 2
 	jmp	SHORT $LN97@DXGIFactor
 $LN95@DXGIFactor:
 
-; 3420 :     }
-; 3421 : 
-; 3422 :     else if (config.display.force_windowed)
+; 3424 :     }
+; 3425 : 
+; 3426 :     else if (config.display.force_windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
 	je	SHORT $LN97@DXGIFactor
 
-; 3423 :     {
-; 3424 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3427 :     {
+; 3428 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@LPALCGFK@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3425 :                     L"(Requested: Fullscreen, Using: Windowed)" );
-; 3426 :       pDesc->Windowed = TRUE;
+; 3429 :                     L"(Requested: Fullscreen, Using: Windowed)" );
+; 3430 :       pDesc->Windowed = TRUE;
 
 	mov	DWORD PTR _new_desc$[ebp+48], 1
 $LN97@DXGIFactor:
 
-; 3427 :     }
-; 3428 : 
-; 3429 : #ifdef _WIN64
-; 3430 :     if (! bFlipMode)
-; 3431 :       bFlipMode =
-; 3432 :         ( dxgi_caps.present.flip_sequential && (
-; 3433 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
-; 3434 :             SK_DS3_UseFlipMode ()        ) );
-; 3435 : 
-; 3436 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
-; 3437 :     {
-; 3438 :       if (bFlipMode)
-; 3439 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
-; 3440 :     }
-; 3441 : 
-; 3442 :     else
-; 3443 : #endif
-; 3444 :     {
-; 3445 :       // If forcing flip-model, then force multisampling off
-; 3446 :       if (config.render.framerate.flip_discard)
+; 3431 :     }
+; 3432 : 
+; 3433 : #ifdef _WIN64
+; 3434 :     if (! bFlipMode)
+; 3435 :       bFlipMode =
+; 3436 :         ( dxgi_caps.present.flip_sequential && (
+; 3437 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
+; 3438 :             SK_DS3_UseFlipMode ()        ) );
+; 3439 : 
+; 3440 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
+; 3441 :     {
+; 3442 :       if (bFlipMode)
+; 3443 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
+; 3444 :     }
+; 3445 : 
+; 3446 :     else
+; 3447 : #endif
+; 3448 :     {
+; 3449 :       // If forcing flip-model, then force multisampling off
+; 3450 :       if (config.render.framerate.flip_discard)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN229@DXGIFactor
 
-; 3447 :       {
-; 3448 :         bFlipMode = dxgi_caps.present.flip_sequential;
+; 3451 :       {
+; 3452 :         bFlipMode = dxgi_caps.present.flip_sequential;
 
 	mov	al, BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+2
 	mov	BYTE PTR ?bFlipMode@@3_NA, al		; bFlipMode
 
-; 3449 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
-; 3450 : 
-; 3451 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
-; 3452 :         switch (pDesc->BufferDesc.Format)
+; 3453 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
+; 3454 : 
+; 3455 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+; 3456 :         switch (pDesc->BufferDesc.Format)
 
 	mov	eax, DWORD PTR _new_desc$[ebp+16]
 	add	eax, -23				; ffffffe9H
@@ -25806,58 +25795,58 @@ $LN97@DXGIFactor:
 	jmp	DWORD PTR $LN237@DXGIFactor[eax*4]
 $LN99@DXGIFactor:
 
-; 3453 :         {
-; 3454 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-; 3455 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+; 3457 :         {
+; 3458 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 	mov	DWORD PTR _new_desc$[ebp+16], 87	; 00000057H
 
-; 3456 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@NDGFBELE@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAB?$AA8?$AAG?$AA8?$AAR?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3457 :             break;
+; 3461 :             break;
 
 	jmp	SHORT $LN234@DXGIFactor
 $LN100@DXGIFactor:
 
-; 3458 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+; 3462 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+; 3463 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3464 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@CCHCBLHJ@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAR?$AA8?$AAG?$AA8?$AAB?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3461 :             break;
+; 3465 :             break;
 
 	jmp	SHORT $LN235@DXGIFactor
 $LN101@DXGIFactor:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1KK@LPPCBMFA@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAR?$AAG?$AAB?$AAA?$AA?5?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA2@
 $LN235@DXGIFactor:
 
-; 3462 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
-; 3463 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-; 3464 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3466 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
+; 3467 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+; 3468 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	mov	DWORD PTR _new_desc$[ebp+16], 28	; 0000001cH
 $LN234@DXGIFactor:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN229@DXGIFactor:
 
-; 3466 :             break;
-; 3467 :         }
-; 3468 :       }
-; 3469 :     }
-; 3470 : 
-; 3471 :     if (       config.render.framerate.buffer_count != -1                  &&
-; 3472 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
+; 3470 :             break;
+; 3471 :         }
+; 3472 :       }
+; 3473 :     }
+; 3474 : 
+; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
+; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	cmp	ecx, -1
@@ -25868,10 +25857,10 @@ $LN229@DXGIFactor:
 	test	eax, eax
 	je	SHORT $LN230@DXGIFactor
 
-; 3473 :          pDesc->BufferCount                         !=  0 )
-; 3474 :     {
-; 3475 :       pDesc->BufferCount = config.render.framerate.buffer_count;
-; 3476 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
+; 3477 :          pDesc->BufferCount                         !=  0 )
+; 3478 :     {
+; 3479 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3480 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
 
 	push	ecx
 	push	OFFSET ??_C@_1GI@GAEBCHMN@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAB?$AAu?$AAf?$AAf?$AAe?$AAr?$AA?5?$AAC?$AAo?$AAu?$AAn?$AAt?$AA?5?$AAO?$AAv@
@@ -25882,36 +25871,36 @@ $LN229@DXGIFactor:
 	add	esp, 12					; 0000000cH
 $LN230@DXGIFactor:
 
-; 3477 :     }
-; 3478 : 
-; 3479 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
+; 3481 :     }
+; 3482 : 
+; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN103@DXGIFactor
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN103@DXGIFactor
 
-; 3480 :     {
-; 3481 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+; 3484 :     {
+; 3485 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 	or	DWORD PTR _new_desc$[ebp+56], 2048	; 00000800H
 
-; 3482 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+; 3486 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
 
 	push	OFFSET ??_C@_1FC@PILPBEPG@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAT?$AAe?$AAa?$AAr?$AAi?$AAn?$AAg?$AA?5?$AAO?$AAp?$AAt?$AAi?$AAo?$AAn?$AA?3@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3483 :       pDesc->Windowed = TRUE;
+; 3487 :       pDesc->Windowed = TRUE;
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	add	esp, 8
 	mov	DWORD PTR _new_desc$[ebp+48], 1
 $LN103@DXGIFactor:
 
-; 3484 :     }
-; 3485 : 
-; 3486 :     if ( config.render.dxgi.scaling_mode != -1 &&
+; 3488 :     }
+; 3489 : 
+; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
 	cmp	eax, -1
@@ -25920,10 +25909,10 @@ $LN103@DXGIFactor:
 	cmp	edi, eax
 	je	SHORT $LN104@DXGIFactor
 
-; 3487 :           pDesc->BufferDesc.Scaling      !=
-; 3488 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
-; 3489 :     {
-; 3490 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
+; 3491 :           pDesc->BufferDesc.Scaling      !=
+; 3492 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+; 3493 :     {
+; 3494 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
@@ -25937,16 +25926,16 @@ $LN103@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3491 :                     L"(Requested: %s, Using: %s)",
-; 3492 :                       SK_DXGI_DescribeScalingMode (
-; 3493 :                         pDesc->BufferDesc.Scaling
-; 3494 :                       ),
-; 3495 :                         SK_DXGI_DescribeScalingMode (
-; 3496 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
-; 3497 :                         )
-; 3498 :                   );
-; 3499 : 
-; 3500 :       pDesc->BufferDesc.Scaling =
+; 3495 :                     L"(Requested: %s, Using: %s)",
+; 3496 :                       SK_DXGI_DescribeScalingMode (
+; 3497 :                         pDesc->BufferDesc.Scaling
+; 3498 :                       ),
+; 3499 :                         SK_DXGI_DescribeScalingMode (
+; 3500 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
+; 3501 :                         )
+; 3502 :                   );
+; 3503 : 
+; 3504 :       pDesc->BufferDesc.Scaling =
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
 	add	esp, 16					; 00000010H
@@ -25954,10 +25943,10 @@ $LN103@DXGIFactor:
 	mov	DWORD PTR _new_desc$[ebp+24], eax
 $LN104@DXGIFactor:
 
-; 3501 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
-; 3502 :     }
-; 3503 : 
-; 3504 :     if ( config.render.dxgi.scanline_order != -1 &&
+; 3505 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+; 3506 :     }
+; 3507 : 
+; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
@@ -25966,10 +25955,10 @@ $LN104@DXGIFactor:
 	cmp	edi, eax
 	je	SHORT $LN105@DXGIFactor
 
-; 3505 :           pDesc->BufferDesc.ScanlineOrdering      !=
-; 3506 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
-; 3507 :     {
-; 3508 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
+; 3509 :           pDesc->BufferDesc.ScanlineOrdering      !=
+; 3510 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
+; 3511 :     {
+; 3512 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScanlineOrder@@YAPB_WW4DXGI_MODE_SCANLINE_ORDER@@@Z ; SK_DXGI_DescribeScanlineOrder
@@ -25983,16 +25972,16 @@ $LN104@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3509 :                     L"(Requested: %s, Using: %s)",
-; 3510 :                       SK_DXGI_DescribeScanlineOrder (
-; 3511 :                         pDesc->BufferDesc.ScanlineOrdering
-; 3512 :                       ),
-; 3513 :                         SK_DXGI_DescribeScanlineOrder (
-; 3514 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
-; 3515 :                         )
-; 3516 :                   );
-; 3517 : 
-; 3518 :       pDesc->BufferDesc.ScanlineOrdering =
+; 3513 :                     L"(Requested: %s, Using: %s)",
+; 3514 :                       SK_DXGI_DescribeScanlineOrder (
+; 3515 :                         pDesc->BufferDesc.ScanlineOrdering
+; 3516 :                       ),
+; 3517 :                         SK_DXGI_DescribeScanlineOrder (
+; 3518 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+; 3519 :                         )
+; 3520 :                   );
+; 3521 : 
+; 3522 :       pDesc->BufferDesc.ScanlineOrdering =
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	add	esp, 16					; 00000010H
@@ -26000,10 +25989,10 @@ $LN104@DXGIFactor:
 	mov	DWORD PTR _new_desc$[ebp+20], eax
 $LN105@DXGIFactor:
 
-; 3519 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
-; 3520 :     }
-; 3521 : 
-; 3522 :     if ( config.render.framerate.refresh_rate != -1 &&
+; 3523 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
+; 3524 :     }
+; 3525 : 
+; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	cmp	eax, -1
@@ -26012,9 +26001,9 @@ $LN105@DXGIFactor:
 	cmp	edx, eax
 	je	SHORT $LN106@DXGIFactor
 
-; 3523 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
-; 3524 :     {
-; 3525 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
+; 3527 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
+; 3528 :     {
+; 3529 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
 
 	mov	ecx, DWORD PTR _new_desc$[ebp+12]
 	test	ecx, ecx
@@ -26042,29 +26031,29 @@ $LN158@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3526 :                     L"(Requested: %f, Using: %li)",
-; 3527 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3528 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3529 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3530 :                      std::numeric_limits <float>::quiet_NaN (),
-; 3531 :                         config.render.framerate.refresh_rate
-; 3532 :                   );
-; 3533 : 
-; 3534 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
+; 3530 :                     L"(Requested: %f, Using: %li)",
+; 3531 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3532 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3533 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3534 :                      std::numeric_limits <float>::quiet_NaN (),
+; 3535 :                         config.render.framerate.refresh_rate
+; 3536 :                   );
+; 3537 : 
+; 3538 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	add	esp, 20					; 00000014H
 
-; 3535 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
+; 3539 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	mov	DWORD PTR _new_desc$[ebp+8], eax
 	mov	DWORD PTR _new_desc$[ebp+12], 1
 $LN106@DXGIFactor:
 
-; 3536 :     }
-; 3537 : 
-; 3538 :     bWait = bFlipMode && dxgi_caps.present.waitable;
+; 3540 :     }
+; 3541 : 
+; 3542 :     bWait = bFlipMode && dxgi_caps.present.waitable;
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A+420
@@ -26072,9 +26061,9 @@ $LN106@DXGIFactor:
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN144@DXGIFactor
 
-; 3539 : 
-; 3540 :     // We cannot change the swapchain parameters if this is used...
-; 3541 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
+; 3543 : 
+; 3544 :     // We cannot change the swapchain parameters if this is used...
+; 3545 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
 	test	edi, edi
 	jle	SHORT $LN144@DXGIFactor
@@ -26084,28 +26073,28 @@ $LN144@DXGIFactor:
 	xor	dl, dl
 $LN236@DXGIFactor:
 
-; 3542 : 
-; 3543 : #ifdef _WIN64
-; 3544 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-; 3545 :     {
-; 3546 :       if (SK_DS3_IsBorderless ())
-; 3547 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-; 3548 :     }
-; 3549 : #endif
-; 3550 : 
-; 3551 :     if (bFlipMode)
+; 3546 : 
+; 3547 : #ifdef _WIN64
+; 3548 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+; 3549 :     {
+; 3550 :       if (SK_DS3_IsBorderless ())
+; 3551 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3552 :     }
+; 3553 : #endif
+; 3554 : 
+; 3555 :     if (bFlipMode)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	BYTE PTR ?bWait@@3_NA, dl		; bWait
 	je	SHORT $LN107@DXGIFactor
 
-; 3552 :     {
-; 3553 :       if (bWait)
+; 3556 :     {
+; 3557 :       if (bWait)
 
 	test	dl, dl
 	je	SHORT $LN109@DXGIFactor
 
-; 3554 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3558 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
 	or	DWORD PTR _new_desc$[ebp+56], 64	; 00000040H
 $LN109@DXGIFactor:
@@ -26118,7 +26107,7 @@ $LN109@DXGIFactor:
 	cmovg	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3560 :       if (config.render.framerate.flip_discard &&
+; 3564 :       if (config.render.framerate.flip_discard &&
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	mov	ecx, eax
@@ -26127,25 +26116,25 @@ $LN109@DXGIFactor:
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN110@DXGIFactor
 
-; 3561 :           dxgi_caps.present.flip_discard)
-; 3562 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+; 3565 :           dxgi_caps.present.flip_discard)
+; 3566 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 	mov	DWORD PTR _new_desc$[ebp+52], 4
 
-; 3563 :       else
+; 3567 :       else
 
 	jmp	SHORT $LN112@DXGIFactor
 $LN110@DXGIFactor:
 
-; 3564 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+; 3568 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
 	mov	DWORD PTR _new_desc$[ebp+52], 3
 	jmp	SHORT $LN112@DXGIFactor
 $LN107@DXGIFactor:
 
-; 3565 :     }
-; 3566 : 
-; 3567 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
+; 3569 :     }
+; 3570 : 
+; 3571 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
 
 	mov	eax, DWORD PTR _new_desc$[ebp+52]
 	cmp	eax, 4
@@ -26153,16 +26142,16 @@ $LN107@DXGIFactor:
 	cmp	eax, 3
 	je	SHORT $LN112@DXGIFactor
 
-; 3568 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
-; 3569 :     {
-; 3570 :       // Resort to triple-buffering if flip mode is not available
-; 3571 :       if (config.render.framerate.buffer_count > 3)
+; 3572 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
+; 3573 :     {
+; 3574 :       // Resort to triple-buffering if flip mode is not available
+; 3575 :       if (config.render.framerate.buffer_count > 3)
 
 	mov	eax, 3
 
-; 3572 :         config.render.framerate.buffer_count = 3;
-; 3573 : 
-; 3574 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+; 3576 :         config.render.framerate.buffer_count = 3;
+; 3577 : 
+; 3578 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 	mov	DWORD PTR _new_desc$[ebp+52], 0
 	cmp	ecx, eax
@@ -26170,18 +26159,18 @@ $LN107@DXGIFactor:
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
 $LN112@DXGIFactor:
 
-; 3575 :     }
-; 3576 : 
-; 3577 :     if (config.render.framerate.buffer_count > 0)
+; 3579 :     }
+; 3580 : 
+; 3581 :     if (config.render.framerate.buffer_count > 0)
 
 	mov	eax, DWORD PTR _new_desc$[ebp+40]
 	test	ecx, ecx
 	cmovg	eax, ecx
 
-; 3578 :       pDesc->BufferCount = config.render.framerate.buffer_count;
-; 3579 : 
-; 3580 :     // We cannot switch modes on a waitable swapchain
-; 3581 :     if (bFlipMode && bWait)
+; 3582 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3583 : 
+; 3584 :     // We cannot switch modes on a waitable swapchain
+; 3585 :     if (bFlipMode && bWait)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	DWORD PTR _new_desc$[ebp+40], eax
@@ -26189,9 +26178,9 @@ $LN112@DXGIFactor:
 	test	dl, dl
 	je	SHORT $LN115@DXGIFactor
 
-; 3582 :     {
-; 3583 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-; 3584 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3586 :     {
+; 3587 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3588 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	mov	eax, DWORD PTR _new_desc$[ebp+56]
 	and	eax, -3					; fffffffdH
@@ -26199,7 +26188,7 @@ $LN112@DXGIFactor:
 	mov	DWORD PTR _new_desc$[ebp+56], eax
 $LN115@DXGIFactor:
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	xor	eax, eax
 	mov	ecx, OFFSET ??_C@_15BICKNCBF@?$AAN?$AAo?$AA?$AA@
@@ -26224,7 +26213,7 @@ $LN115@DXGIFactor:
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -26238,19 +26227,19 @@ $LN115@DXGIFactor:
 	jne	SHORT $LN165@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3596 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
+; 3600 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
 
 	mov	eax, DWORD PTR _new_desc$[ebp+4]
 	mov	ecx, DWORD PTR _new_desc$[ebp]
 	jmp	SHORT $LN117@DXGIFactor
 $LN165@DXGIFactor:
 
-; 3589 :                  bFlipMode ? L"Flip" : L"Traditional",
-; 3590 :                    bWait ? L"Yes" : L"No",
-; 3591 :                      bWait ? config.render.framerate.swapchain_wait : 0 );
-; 3592 : 
-; 3593 : 
-; 3594 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
+; 3593 :                  bFlipMode ? L"Flip" : L"Traditional",
+; 3594 :                    bWait ? L"Yes" : L"No",
+; 3595 :                      bWait ? config.render.framerate.swapchain_wait : 0 );
+; 3596 : 
+; 3597 : 
+; 3598 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
 
 	mov	ecx, DWORD PTR _new_desc$[ebp]
 	cmp	ecx, eax
@@ -26266,7 +26255,7 @@ $LN165@DXGIFactor:
 	jne	SHORT $LN169@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3596 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
+; 3600 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
 
 	mov	eax, DWORD PTR _new_desc$[ebp+4]
 	jmp	SHORT $LN117@DXGIFactor
@@ -26290,7 +26279,7 @@ $LN117@DXGIFactor:
 $LN173@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3599 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
+; 3603 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
 
 	cmp	ecx, edi
 	cmovb	ecx, edi
@@ -26306,33 +26295,33 @@ $LN173@DXGIFactor:
 $LN177@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3601 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
+; 3605 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
 
 	cmp	eax, edx
 	cmovb	eax, edx
 	mov	DWORD PTR _new_desc$[ebp+4], eax
 $LN122@DXGIFactor:
 
-; 3769 :   {
-; 3770 :     SK_DXGI_CreateSwapChain_PreInit (&new_desc, nullptr, new_desc.OutputWindow, nullptr);
-; 3771 :     pDesc = &new_desc;
+; 3773 :   {
+; 3774 :     SK_DXGI_CreateSwapChain_PreInit (&new_desc, nullptr, new_desc.OutputWindow, nullptr);
+; 3775 :     pDesc = &new_desc;
 
 	lea	eax, DWORD PTR _new_desc$[ebp]
 	mov	DWORD PTR _pDesc$[ebp], eax
 $LN3@DXGIFactor:
 
-; 3792 :       };
+; 3796 :       };
 
 	lea	eax, DWORD PTR _ret$[ebp]
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp], eax
 
-; 3793 : 
-; 3794 : 
-; 3795 :   if (! CreateSwapChain_Lambchop ())
+; 3797 : 
+; 3798 : 
+; 3799 :   if (! CreateSwapChain_Lambchop ())
 
 	lea	ecx, DWORD PTR _CreateSwapChain_Lambchop$[ebp]
 
-; 3792 :       };
+; 3796 :       };
 
 	lea	eax, DWORD PTR _This$[ebp]
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp+4], eax
@@ -26345,20 +26334,20 @@ $LN3@DXGIFactor:
 	lea	eax, DWORD PTR _new_desc$[ebp]
 	mov	DWORD PTR _CreateSwapChain_Lambchop$[ebp+20], eax
 
-; 3793 : 
-; 3794 : 
-; 3795 :   if (! CreateSwapChain_Lambchop ())
+; 3797 : 
+; 3798 : 
+; 3799 :   if (! CreateSwapChain_Lambchop ())
 
 	call	??R<lambda_49fe4316955e3999d8d7fe725292d871>@@QBEHXZ ; <lambda_49fe4316955e3999d8d7fe725292d871>::operator()
 	pop	edi
 	test	eax, eax
 	jne	SHORT $LN4@DXGIFactor
 
-; 3796 :   {
-; 3797 :     // Fallback-on-Fail
-; 3798 :     pDesc = orig_desc;
-; 3799 : 
-; 3800 :     CreateSwapChain_Lambchop ();
+; 3800 :   {
+; 3801 :     // Fallback-on-Fail
+; 3802 :     pDesc = orig_desc;
+; 3803 : 
+; 3804 :     CreateSwapChain_Lambchop ();
 
 	lea	ecx, DWORD PTR _CreateSwapChain_Lambchop$[ebp]
 	mov	DWORD PTR _pDesc$[ebp], esi
@@ -26371,7 +26360,7 @@ $LN4@DXGIFactor:
 	mov	ecx, DWORD PTR _iname$[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3804 :   return ret;
+; 3808 :   return ret;
 
 	mov	esi, DWORD PTR _ret$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -26404,7 +26393,7 @@ $LN4@DXGIFactor:
 $LN227@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3805 : }
+; 3809 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -26815,7 +26804,7 @@ _pDevice1$5 = 20					; size = 4
 _ppSwapChain1$ = 20					; size = 4
 ?SK_DXGI_CreateSwapChain1_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC1@@PAUDXGI_SWAP_CHAIN_FULLSCREEN_DESC@@PAPAUIDXGISwapChain1@@@Z PROC ; SK_DXGI_CreateSwapChain1_PostInit, COMDAT
 
-; 3721 : {
+; 3725 : {
 
 	npad	2
 	push	ebp
@@ -26827,38 +26816,38 @@ _ppSwapChain1$ = 20					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 84					; 00000054H
 
-; 3722 :   // ONLY AS COMPLETE AS NEEDED, if new code is added to PostInit, this will probably need changing.
-; 3723 :   DXGI_SWAP_CHAIN_DESC desc;
-; 3724 : 
-; 3725 :   desc.BufferDesc.Width   = pDesc1->Width;
+; 3726 :   // ONLY AS COMPLETE AS NEEDED, if new code is added to PostInit, this will probably need changing.
+; 3727 :   DXGI_SWAP_CHAIN_DESC desc;
+; 3728 : 
+; 3729 :   desc.BufferDesc.Width   = pDesc1->Width;
 
 	mov	eax, DWORD PTR _pDesc1$[ebp]
 	push	ebx
 
-; 3726 :   desc.BufferDesc.Height  = pDesc1->Height;
+; 3730 :   desc.BufferDesc.Height  = pDesc1->Height;
 
 	mov	ebx, DWORD PTR [eax+4]
 	push	esi
 	push	edi
 	mov	edi, DWORD PTR [eax]
 
-; 3727 : 
-; 3728 :   desc.BufferDesc.Format  = pDesc1->Format;
-; 3729 :   //desc.BufferDesc.Scaling = pDesc1->Scaling;
-; 3730 : 
-; 3731 :   desc.BufferCount        = pDesc1->BufferCount;
-; 3732 :   desc.BufferUsage        = pDesc1->BufferUsage;
-; 3733 :   desc.Flags              = pDesc1->Flags;
-; 3734 :   desc.SampleDesc         = pDesc1->SampleDesc;
-; 3735 :   desc.SwapEffect         = pDesc1->SwapEffect;
-; 3736 : 
-; 3737 :   if (pFullscreenDesc)
+; 3731 : 
+; 3732 :   desc.BufferDesc.Format  = pDesc1->Format;
+; 3733 :   //desc.BufferDesc.Scaling = pDesc1->Scaling;
+; 3734 : 
+; 3735 :   desc.BufferCount        = pDesc1->BufferCount;
+; 3736 :   desc.BufferUsage        = pDesc1->BufferUsage;
+; 3737 :   desc.Flags              = pDesc1->Flags;
+; 3738 :   desc.SampleDesc         = pDesc1->SampleDesc;
+; 3739 :   desc.SwapEffect         = pDesc1->SwapEffect;
+; 3740 : 
+; 3741 :   if (pFullscreenDesc)
 
 	mov	eax, DWORD PTR _pFullscreenDesc$[ebp]
 	test	eax, eax
 	je	SHORT $LN94@SK_DXGI_Cr
 
-; 3739 :     desc.Windowed                    = pFullscreenDesc->Windowed;
+; 3743 :     desc.Windowed                    = pFullscreenDesc->Windowed;
 
 	mov	eax, DWORD PTR [eax+16]
 	jmp	SHORT $LN98@SK_DXGI_Cr
@@ -26872,7 +26861,7 @@ $LN98@SK_DXGI_Cr:
 	mov	esi, DWORD PTR _ppSwapChain1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3739 :     desc.Windowed                    = pFullscreenDesc->Windowed;
+; 3743 :     desc.Windowed                    = pFullscreenDesc->Windowed;
 
 	mov	DWORD PTR _desc$3$[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -26895,66 +26884,66 @@ $LN98@SK_DXGI_Cr:
 $LN10@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	cmp	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 
-; 3740 :     desc.BufferDesc.RefreshRate      = pFullscreenDesc->RefreshRate;
-; 3741 :     desc.BufferDesc.ScanlineOrdering = pFullscreenDesc->ScanlineOrdering;
-; 3742 :   }
-; 3743 : 
-; 3744 :   CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
+; 3744 :     desc.BufferDesc.RefreshRate      = pFullscreenDesc->RefreshRate;
+; 3745 :     desc.BufferDesc.ScanlineOrdering = pFullscreenDesc->ScanlineOrdering;
+; 3746 :   }
+; 3747 : 
+; 3748 :   CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	je	SHORT $LN15@SK_DXGI_Cr
 	call	?SK_CEGUI_QueueResetD3D11@@YAXXZ	; SK_CEGUI_QueueResetD3D11
 	mov	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 $LN15@SK_DXGI_Cr:
 
-; 3644 : 
-; 3645 :   if (pDesc->BufferDesc.Width != 0)
+; 3648 : 
+; 3649 :   if (pDesc->BufferDesc.Width != 0)
 
 	test	edi, edi
 	je	SHORT $LN16@SK_DXGI_Cr
 
-; 3646 :   {
-; 3647 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
+; 3650 :   {
+; 3651 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
 
 	push	edi
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3648 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
+; 3652 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
 
 	push	ebx
 
-; 3649 :   }
-; 3650 : 
-; 3651 :   else
+; 3653 :   }
+; 3654 : 
+; 3655 :   else
 
 	jmp	SHORT $LN99@SK_DXGI_Cr
 $LN16@SK_DXGI_Cr:
 
-; 3652 :   {
-; 3653 :     RECT client;
-; 3654 : 
-; 3655 :     GetClientRect    (game_window.hWnd, &client);
+; 3656 :   {
+; 3657 :     RECT client;
+; 3658 : 
+; 3659 :     GetClientRect    (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$2[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 3656 :     SK_SetWindowResX (client.right  - client.left);
+; 3660 :     SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$2[ebp+8]
 	sub	eax, DWORD PTR _client$2[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3657 :     SK_SetWindowResY (client.bottom - client.top);
+; 3661 :     SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$2[ebp+12]
 	sub	eax, DWORD PTR _client$2[ebp+4]
@@ -26963,9 +26952,9 @@ $LN99@SK_DXGI_Cr:
 	call	?SK_SetWindowResY@@YAXJ@Z		; SK_SetWindowResY
 	add	esp, 8
 
-; 3658 :   }
-; 3659 : 
-; 3660 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
+; 3662 :   }
+; 3663 : 
+; 3664 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
 
 	cmp	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 	je	SHORT $LN18@SK_DXGI_Cr
@@ -26975,12 +26964,12 @@ $LN99@SK_DXGI_Cr:
 	mov	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 $LN18@SK_DXGI_Cr:
 
-; 3661 : 
-; 3662 :   //if (bFlipMode || bWait)
-; 3663 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
-; 3664 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 ; 3665 : 
-; 3666 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
+; 3666 :   //if (bFlipMode || bWait)
+; 3667 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
+; 3668 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
+; 3669 : 
+; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -26990,7 +26979,7 @@ $LN18@SK_DXGI_Cr:
 	mov	DWORD PTR _pSwapChain2$4[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
@@ -27009,28 +26998,28 @@ $LN18@SK_DXGI_Cr:
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	test	eax, eax
 	js	SHORT $LN95@SK_DXGI_Cr
 
-; 3671 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
-; 3672 :       )
-; 3673 :   {
-; 3674 :     if (max_latency < 16)
+; 3675 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
+; 3676 :       )
+; 3677 :   {
+; 3678 :     if (max_latency < 16)
 
 	cmp	ebx, 16					; 00000010H
 	jae	SHORT $LN20@SK_DXGI_Cr
 
-; 3675 :     {
-; 3676 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
+; 3679 :     {
+; 3680 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1GE@BOIALL@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAS?$AAw?$AAa?$AAp?$AAc?$AAh?$AAa?$AAi?$AAn?$AA?5?$AAF@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3677 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
+; 3681 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pSwapChain2$4[ebp]
 	add	esp, 12					; 0000000cH
@@ -27040,18 +27029,18 @@ $LN18@SK_DXGI_Cr:
 	call	DWORD PTR [ecx+124]
 $LN20@SK_DXGI_Cr:
 
-; 3678 :     }
-; 3679 : 
-; 3680 :     HANDLE hWait =
-; 3681 :       pSwapChain2->GetFrameLatencyWaitableObject ();
+; 3682 :     }
+; 3683 : 
+; 3684 :     HANDLE hWait =
+; 3685 :       pSwapChain2->GetFrameLatencyWaitableObject ();
 
 	mov	eax, DWORD PTR _pSwapChain2$4[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+132]
 
-; 3682 : 
-; 3683 :     WaitForSingleObjectEx ( hWait,
+; 3686 : 
+; 3687 :     WaitForSingleObjectEx ( hWait,
 
 	push	1
 	push	500					; 000001f4H
@@ -27059,12 +27048,12 @@ $LN20@SK_DXGI_Cr:
 	call	DWORD PTR __imp__WaitForSingleObjectEx@12
 $LN95@SK_DXGI_Cr:
 
-; 3684 :                               500,//config.render.framerate.swapchain_wait,
-; 3685 :                                 TRUE );
-; 3686 :   }
-; 3687 : 
-; 3688 :   {
-; 3689 :     if (max_latency != -1)
+; 3688 :                               500,//config.render.framerate.swapchain_wait,
+; 3689 :                                 TRUE );
+; 3690 :   }
+; 3691 : 
+; 3692 :   {
+; 3693 :     if (max_latency != -1)
 
 	cmp	ebx, -1
 	je	SHORT $LN96@SK_DXGI_Cr
@@ -27075,7 +27064,7 @@ $LN95@SK_DXGI_Cr:
 	mov	DWORD PTR _pDevice1$5[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3693 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
+; 3697 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
 
 	mov	edi, DWORD PTR [esi]
 	lea	eax, DWORD PTR _pDevice1$5[ebp]
@@ -27090,19 +27079,19 @@ $LN95@SK_DXGI_Cr:
 	test	eax, eax
 	js	SHORT $LN22@SK_DXGI_Cr
 
-; 3694 :                          IID_PPV_ARGS (&pDevice1)
-; 3695 :                       )
-; 3696 :                     )
-; 3697 :          )
-; 3698 :       {
-; 3699 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
+; 3698 :                          IID_PPV_ARGS (&pDevice1)
+; 3699 :                       )
+; 3700 :                     )
+; 3701 :          )
+; 3702 :       {
+; 3703 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1FO@CKMCMFKO@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAD?$AAe?$AAv?$AAi?$AAc?$AAe?$AA?5?$AAF?$AAr?$AAa?$AAm@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3700 :         pDevice1->SetMaximumFrameLatency (max_latency);
+; 3704 :         pDevice1->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pDevice1$5[ebp]
 	add	esp, 12					; 0000000cH
@@ -27118,7 +27107,7 @@ $LN22@SK_DXGI_Cr:
 	mov	eax, DWORD PTR _pDevice1$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3702 :     }
+; 3706 :     }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -27166,7 +27155,7 @@ $LN96@SK_DXGI_Cr:
 $LN58@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3705 :   CComQIPtr <ID3D11Device> pDev (pDevice);
+; 3709 :   CComQIPtr <ID3D11Device> pDev (pDevice);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -27176,14 +27165,14 @@ $LN58@SK_DXGI_Cr:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3707 :   if (pDev != nullptr)
+; 3711 :   if (pDev != nullptr)
 
 	je	SHORT $LN23@SK_DXGI_Cr
 
-; 3708 :   {
-; 3709 :     g_pD3D11Dev = pDev;
-; 3710 : 
-; 3711 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
+; 3712 :   {
+; 3713 :     g_pD3D11Dev = pDev;
+; 3714 : 
+; 3715 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
 
 	cmp	DWORD PTR _desc$3$[ebp], 0
 	mov	DWORD PTR ?g_pD3D11Dev@@3PAUID3D11Device@@A, ecx ; g_pD3D11Dev
@@ -27193,7 +27182,7 @@ $LN58@SK_DXGI_Cr:
 	mov	ecx, DWORD PTR _pDev$3[ebp]
 $LN23@SK_DXGI_Cr:
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -27215,7 +27204,7 @@ $LN77@SK_DXGI_Cr:
 	mov	eax, DWORD PTR _pSwapChain2$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -27233,7 +27222,7 @@ $LN77@SK_DXGI_Cr:
 $LN83@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3746 :   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
+; 3750 :   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -27251,7 +27240,7 @@ $LN83@SK_DXGI_Cr:
 $LN92@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3747 : }
+; 3751 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -27660,7 +27649,7 @@ _pDesc$ = 12						; size = 4
 _ppSwapChain$ = 16					; size = 4
 ?SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z PROC ; SK_DXGI_CreateSwapChain_PostInit, COMDAT
 
-; 3642 : {
+; 3646 : {
 
 	npad	2
 	push	ebp
@@ -27672,7 +27661,7 @@ _ppSwapChain$ = 16					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 28					; 0000001cH
 
-; 3643 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+; 3647 :   SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
 
 	cmp	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 	je	SHORT $LN2@SK_DXGI_Cr
@@ -27680,8 +27669,8 @@ _ppSwapChain$ = 16					; size = 4
 	mov	BYTE PTR ?first@?2??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`3'::first
 $LN2@SK_DXGI_Cr:
 
-; 3644 : 
-; 3645 :   if (pDesc->BufferDesc.Width != 0)
+; 3648 : 
+; 3649 :   if (pDesc->BufferDesc.Width != 0)
 
 	push	ebx
 	push	esi
@@ -27691,41 +27680,41 @@ $LN2@SK_DXGI_Cr:
 	test	eax, eax
 	je	SHORT $LN3@SK_DXGI_Cr
 
-; 3646 :   {
-; 3647 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
+; 3650 :   {
+; 3651 :     SK_SetWindowResX (pDesc->BufferDesc.Width);
 
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3648 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
+; 3652 :     SK_SetWindowResY (pDesc->BufferDesc.Height);
 
 	push	DWORD PTR [esi+4]
 
-; 3649 :   }
-; 3650 : 
-; 3651 :   else
+; 3653 :   }
+; 3654 : 
+; 3655 :   else
 
 	jmp	SHORT $LN76@SK_DXGI_Cr
 $LN3@SK_DXGI_Cr:
 
-; 3652 :   {
-; 3653 :     RECT client;
-; 3654 : 
-; 3655 :     GetClientRect    (game_window.hWnd, &client);
+; 3656 :   {
+; 3657 :     RECT client;
+; 3658 : 
+; 3659 :     GetClientRect    (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$2[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 3656 :     SK_SetWindowResX (client.right  - client.left);
+; 3660 :     SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$2[ebp+8]
 	sub	eax, DWORD PTR _client$2[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3657 :     SK_SetWindowResY (client.bottom - client.top);
+; 3661 :     SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$2[ebp+12]
 	sub	eax, DWORD PTR _client$2[ebp+4]
@@ -27733,9 +27722,9 @@ $LN3@SK_DXGI_Cr:
 $LN76@SK_DXGI_Cr:
 	call	?SK_SetWindowResY@@YAXJ@Z		; SK_SetWindowResY
 
-; 3658 :   }
-; 3659 : 
-; 3660 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
+; 3662 :   }
+; 3663 : 
+; 3664 :   SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
 
 	mov	edi, DWORD PTR _ppSwapChain$[ebp]
 	add	esp, 8
@@ -27747,12 +27736,12 @@ $LN76@SK_DXGI_Cr:
 	mov	BYTE PTR ?first@?M@??SK_DXGI_CreateSwapChain_PostInit@@YAXPAUIUnknown@@PAUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z@4_NA, 0 ; `SK_DXGI_CreateSwapChain_PostInit'::`12'::first
 $LN5@SK_DXGI_Cr:
 
-; 3661 : 
-; 3662 :   //if (bFlipMode || bWait)
-; 3663 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
-; 3664 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 ; 3665 : 
-; 3666 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
+; 3666 :   //if (bFlipMode || bWait)
+; 3667 :     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
+; 3668 :     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
+; 3669 : 
+; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -27762,7 +27751,7 @@ $LN5@SK_DXGI_Cr:
 	mov	DWORD PTR _pSwapChain2$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -27782,28 +27771,28 @@ $LN5@SK_DXGI_Cr:
 	call	DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3670 :   if ( bFlipMode && bWait &&
+; 3674 :   if ( bFlipMode && bWait &&
 
 	test	eax, eax
 	js	SHORT $LN72@SK_DXGI_Cr
 
-; 3671 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
-; 3672 :       )
-; 3673 :   {
-; 3674 :     if (max_latency < 16)
+; 3675 :        SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
+; 3676 :       )
+; 3677 :   {
+; 3678 :     if (max_latency < 16)
 
 	cmp	ebx, 16					; 00000010H
 	jae	SHORT $LN7@SK_DXGI_Cr
 
-; 3675 :     {
-; 3676 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
+; 3679 :     {
+; 3680 :       dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1GE@BOIALL@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAS?$AAw?$AAa?$AAp?$AAc?$AAh?$AAa?$AAi?$AAn?$AA?5?$AAF@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3677 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
+; 3681 :       pSwapChain2->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pSwapChain2$[ebp]
 	add	esp, 12					; 0000000cH
@@ -27813,18 +27802,18 @@ $LN5@SK_DXGI_Cr:
 	call	DWORD PTR [ecx+124]
 $LN7@SK_DXGI_Cr:
 
-; 3678 :     }
-; 3679 : 
-; 3680 :     HANDLE hWait =
-; 3681 :       pSwapChain2->GetFrameLatencyWaitableObject ();
+; 3682 :     }
+; 3683 : 
+; 3684 :     HANDLE hWait =
+; 3685 :       pSwapChain2->GetFrameLatencyWaitableObject ();
 
 	mov	eax, DWORD PTR _pSwapChain2$[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+132]
 
-; 3682 : 
-; 3683 :     WaitForSingleObjectEx ( hWait,
+; 3686 : 
+; 3687 :     WaitForSingleObjectEx ( hWait,
 
 	push	1
 	push	500					; 000001f4H
@@ -27832,12 +27821,12 @@ $LN7@SK_DXGI_Cr:
 	call	DWORD PTR __imp__WaitForSingleObjectEx@12
 $LN72@SK_DXGI_Cr:
 
-; 3684 :                               500,//config.render.framerate.swapchain_wait,
-; 3685 :                                 TRUE );
-; 3686 :   }
-; 3687 : 
-; 3688 :   {
-; 3689 :     if (max_latency != -1)
+; 3688 :                               500,//config.render.framerate.swapchain_wait,
+; 3689 :                                 TRUE );
+; 3690 :   }
+; 3691 : 
+; 3692 :   {
+; 3693 :     if (max_latency != -1)
 
 	cmp	ebx, -1
 	je	SHORT $LN73@SK_DXGI_Cr
@@ -27848,7 +27837,7 @@ $LN72@SK_DXGI_Cr:
 	mov	DWORD PTR _pDevice1$3[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3693 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
+; 3697 :       if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
 
 	mov	esi, DWORD PTR [edi]
 	lea	eax, DWORD PTR _pDevice1$3[ebp]
@@ -27864,19 +27853,19 @@ $LN72@SK_DXGI_Cr:
 	test	eax, eax
 	js	SHORT $LN9@SK_DXGI_Cr
 
-; 3694 :                          IID_PPV_ARGS (&pDevice1)
-; 3695 :                       )
-; 3696 :                     )
-; 3697 :          )
-; 3698 :       {
-; 3699 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
+; 3698 :                          IID_PPV_ARGS (&pDevice1)
+; 3699 :                       )
+; 3700 :                     )
+; 3701 :          )
+; 3702 :       {
+; 3703 :         dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
 
 	push	ebx
 	push	OFFSET ??_C@_1FO@CKMCMFKO@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AAS?$AAe?$AAt?$AAt?$AAi?$AAn?$AAg?$AA?5?$AAD?$AAe?$AAv?$AAi?$AAc?$AAe?$AA?5?$AAF?$AAr?$AAa?$AAm@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3700 :         pDevice1->SetMaximumFrameLatency (max_latency);
+; 3704 :         pDevice1->SetMaximumFrameLatency (max_latency);
 
 	mov	eax, DWORD PTR _pDevice1$3[ebp]
 	add	esp, 12					; 0000000cH
@@ -27892,7 +27881,7 @@ $LN9@SK_DXGI_Cr:
 	mov	eax, DWORD PTR _pDevice1$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3702 :     }
+; 3706 :     }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -27942,7 +27931,7 @@ $LN73@SK_DXGI_Cr:
 $LN45@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3705 :   CComQIPtr <ID3D11Device> pDev (pDevice);
+; 3709 :   CComQIPtr <ID3D11Device> pDev (pDevice);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -27952,17 +27941,17 @@ $LN45@SK_DXGI_Cr:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3707 :   if (pDev != nullptr)
+; 3711 :   if (pDev != nullptr)
 
 	je	SHORT $LN10@SK_DXGI_Cr
 
-; 3708 :   {
-; 3709 :     g_pD3D11Dev = pDev;
+; 3712 :   {
+; 3713 :     g_pD3D11Dev = pDev;
 
 	mov	DWORD PTR ?g_pD3D11Dev@@3PAUID3D11Device@@A, ecx ; g_pD3D11Dev
 
-; 3710 : 
-; 3711 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
+; 3714 : 
+; 3715 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
 
 	cmp	DWORD PTR [esi+48], 0
 	sete	bl
@@ -27971,7 +27960,7 @@ $LN45@SK_DXGI_Cr:
 	mov	ecx, DWORD PTR _pDev$[ebp]
 $LN10@SK_DXGI_Cr:
 
-; 3713 : }
+; 3717 : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 	pop	edi
@@ -27996,7 +27985,7 @@ $LN64@SK_DXGI_Cr:
 	mov	eax, DWORD PTR _pSwapChain2$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3713 : }
+; 3717 : }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -28014,7 +28003,7 @@ $LN64@SK_DXGI_Cr:
 $LN70@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3713 : }
+; 3717 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -28056,7 +28045,7 @@ __$EHRec$ = -12						; size = 12
 _pSwapChain$ = 8					; size = 4
 ?SK_DXGI_HookSwapChain@@YAXPAUIDXGISwapChain@@@Z PROC	; SK_DXGI_HookSwapChain
 
-; 4930 : {
+; 4931 : {
 
 	npad	2
 	push	ebp
@@ -28077,14 +28066,14 @@ _pSwapChain$ = 8					; size = 4
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4933 :   if (InterlockedCompareExchange (&init, TRUE, FALSE))
+; 4934 :   if (InterlockedCompareExchange (&init, TRUE, FALSE))
 
 	test	eax, eax
 	jne	$LN30@SK_DXGI_Ho
 
-; 4934 :     return;
-; 4935 : 
-; 4936 :   DXGI_VIRTUAL_HOOK ( &pSwapChain, 10, "IDXGISwapChain::SetFullscreenState",
+; 4935 :     return;
+; 4936 : 
+; 4937 :   DXGI_VIRTUAL_HOOK ( &pSwapChain, 10, "IDXGISwapChain::SetFullscreenState",
 
 	push	esi
 	mov	esi, DWORD PTR _pSwapChain$[ebp]
@@ -28092,46 +28081,46 @@ _pSwapChain$ = 8					; size = 4
 	push	OFFSET ?DXGISwap_SetFullscreenState_Override@@YGJPAUIDXGISwapChain@@HPAUIDXGIOutput@@@Z ; DXGISwap_SetFullscreenState_Override
 	push	10					; 0000000aH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366604
+	push	OFFSET $SG366236
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 4937 :                             DXGISwap_SetFullscreenState_Override,
-; 4938 :                                      SetFullscreenState_Original,
-; 4939 :                                        SetFullscreenState_pfn );
-; 4940 : 
-; 4941 :   DXGI_VIRTUAL_HOOK ( &pSwapChain, 11, "IDXGISwapChain::GetFullscreenState",
+; 4938 :                             DXGISwap_SetFullscreenState_Override,
+; 4939 :                                      SetFullscreenState_Original,
+; 4940 :                                        SetFullscreenState_pfn );
+; 4941 : 
+; 4942 :   DXGI_VIRTUAL_HOOK ( &pSwapChain, 11, "IDXGISwapChain::GetFullscreenState",
 
 	push	OFFSET ?GetFullscreenState_Original@@3P6GJPAUIDXGISwapChain@@PAHPAPAUIDXGIOutput@@@ZA ; GetFullscreenState_Original
 	push	OFFSET ?DXGISwap_GetFullscreenState_Override@@YGJPAUIDXGISwapChain@@PAHPAPAUIDXGIOutput@@@Z ; DXGISwap_GetFullscreenState_Override
 	push	11					; 0000000bH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366605
+	push	OFFSET $SG366237
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 4942 :                             DXGISwap_GetFullscreenState_Override,
-; 4943 :                                      GetFullscreenState_Original,
-; 4944 :                                        GetFullscreenState_pfn );
-; 4945 : 
-; 4946 :   DXGI_VIRTUAL_HOOK ( &pSwapChain, 13, "IDXGISwapChain::ResizeBuffers",
+; 4943 :                             DXGISwap_GetFullscreenState_Override,
+; 4944 :                                      GetFullscreenState_Original,
+; 4945 :                                        GetFullscreenState_pfn );
+; 4946 : 
+; 4947 :   DXGI_VIRTUAL_HOOK ( &pSwapChain, 13, "IDXGISwapChain::ResizeBuffers",
 
 	push	OFFSET ?ResizeBuffers_Original@@3P6GJPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@ZA ; ResizeBuffers_Original
 	push	OFFSET ?DXGISwap_ResizeBuffers_Override@@YGJPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@Z ; DXGISwap_ResizeBuffers_Override
 	push	13					; 0000000dH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366606
+	push	OFFSET $SG366238
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 4947 :                            DXGISwap_ResizeBuffers_Override,
-; 4948 :                                     ResizeBuffers_Original,
-; 4949 :                                       ResizeBuffers_pfn );
-; 4950 : 
-; 4951 :   DXGI_VIRTUAL_HOOK ( &pSwapChain, 14, "IDXGISwapChain::ResizeTarget",
+; 4948 :                            DXGISwap_ResizeBuffers_Override,
+; 4949 :                                     ResizeBuffers_Original,
+; 4950 :                                       ResizeBuffers_pfn );
+; 4951 : 
+; 4952 :   DXGI_VIRTUAL_HOOK ( &pSwapChain, 14, "IDXGISwapChain::ResizeTarget",
 
 	push	OFFSET ?ResizeTarget_Original@@3P6GJPAUIDXGISwapChain@@PBUDXGI_MODE_DESC@@@ZA ; ResizeTarget_Original
 	push	OFFSET ?DXGISwap_ResizeTarget_Override@@YGJPAUIDXGISwapChain@@PBUDXGI_MODE_DESC@@@Z ; DXGISwap_ResizeTarget_Override
 	push	14					; 0000000eH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366607
+	push	OFFSET $SG366239
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
@@ -28140,7 +28129,7 @@ _pSwapChain$ = 8					; size = 4
 	mov	DWORD PTR _pOutput$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4958 :   if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput)))
+; 4959 :   if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput)))
 
 	mov	eax, DWORD PTR [esi]
 	lea	ecx, DWORD PTR _pOutput$[ebp]
@@ -28157,7 +28146,7 @@ _pSwapChain$ = 8					; size = 4
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4958 :   if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput)))
+; 4959 :   if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput)))
 
 	js	SHORT $LN4@SK_DXGI_Ho
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -28167,51 +28156,51 @@ _pSwapChain$ = 8					; size = 4
 	test	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4960 :     if (pOutput != nullptr)
+; 4961 :     if (pOutput != nullptr)
 
 	je	SHORT $LN4@SK_DXGI_Ho
 
-; 4961 :     {
-; 4962 :       DXGI_VIRTUAL_HOOK ( &pOutput, 8, "IDXGIOutput::GetDisplayModeList",
+; 4962 :     {
+; 4963 :       DXGI_VIRTUAL_HOOK ( &pOutput, 8, "IDXGIOutput::GetDisplayModeList",
 
 	push	OFFSET ?GetDisplayModeList_Original@@3P6GJPAUIDXGIOutput@@W4DXGI_FORMAT@@IPAIPAUDXGI_MODE_DESC@@@ZA ; GetDisplayModeList_Original
 	push	OFFSET ?DXGIOutput_GetDisplayModeList_Override@@YGJPAUIDXGIOutput@@W4DXGI_FORMAT@@IPAIPAUDXGI_MODE_DESC@@@Z ; DXGIOutput_GetDisplayModeList_Override
 	push	8
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366610
+	push	OFFSET $SG366242
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 4963 :                                 DXGIOutput_GetDisplayModeList_Override,
-; 4964 :                                            GetDisplayModeList_Original,
-; 4965 :                                            GetDisplayModeList_pfn );
-; 4966 : 
-; 4967 :       DXGI_VIRTUAL_HOOK ( &pOutput, 9, "IDXGIOutput::FindClosestMatchingMode",
+; 4964 :                                 DXGIOutput_GetDisplayModeList_Override,
+; 4965 :                                            GetDisplayModeList_Original,
+; 4966 :                                            GetDisplayModeList_pfn );
+; 4967 : 
+; 4968 :       DXGI_VIRTUAL_HOOK ( &pOutput, 9, "IDXGIOutput::FindClosestMatchingMode",
 
 	mov	eax, DWORD PTR _pOutput$[ebp]
 	push	OFFSET ?FindClosestMatchingMode_Original@@3P6GJPAUIDXGIOutput@@PBUDXGI_MODE_DESC@@PAU2@PAUIUnknown@@@ZA ; FindClosestMatchingMode_Original
 	push	OFFSET ?DXGIOutput_FindClosestMatchingMode_Override@@YGJPAUIDXGIOutput@@PBUDXGI_MODE_DESC@@PAU2@PAUIUnknown@@@Z ; DXGIOutput_FindClosestMatchingMode_Override
 	push	9
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366611
+	push	OFFSET $SG366243
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
-; 4968 :                                 DXGIOutput_FindClosestMatchingMode_Override,
-; 4969 :                                            FindClosestMatchingMode_Original,
-; 4970 :                                            FindClosestMatchingMode_pfn );
-; 4971 : 
-; 4972 :       DXGI_VIRTUAL_HOOK ( &pOutput, 10, "IDXGIOutput::WaitForVBlank",
+; 4969 :                                 DXGIOutput_FindClosestMatchingMode_Override,
+; 4970 :                                            FindClosestMatchingMode_Original,
+; 4971 :                                            FindClosestMatchingMode_pfn );
+; 4972 : 
+; 4973 :       DXGI_VIRTUAL_HOOK ( &pOutput, 10, "IDXGIOutput::WaitForVBlank",
 
 	mov	eax, DWORD PTR _pOutput$[ebp]
 	push	OFFSET ?WaitForVBlank_Original@@3P6GJPAUIDXGIOutput@@@ZA ; WaitForVBlank_Original
 	push	OFFSET ?DXGIOutput_WaitForVBlank_Override@@YGJPAUIDXGIOutput@@@Z ; DXGIOutput_WaitForVBlank_Override
 	push	10					; 0000000aH
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366612
+	push	OFFSET $SG366244
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 	mov	eax, DWORD PTR _pOutput$[ebp]
 $LN4@SK_DXGI_Ho:
 
-; 4978 : }
+; 4979 : }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -28229,7 +28218,7 @@ $LN4@SK_DXGI_Ho:
 $LN30@SK_DXGI_Ho:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4978 : }
+; 4979 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -28307,7 +28296,7 @@ _hWnd$ = 16						; size = 4
 _pFullscreenDesc$ = 20					; size = 4
 ?SK_DXGI_CreateSwapChain_PreInit@@YAXPAUDXGI_SWAP_CHAIN_DESC@@PAUDXGI_SWAP_CHAIN_DESC1@@AAPAUHWND__@@PAUDXGI_SWAP_CHAIN_FULLSCREEN_DESC@@@Z PROC ; SK_DXGI_CreateSwapChain_PreInit, COMDAT
 
-; 3290 : {
+; 3294 : {
 
 	npad	2
 	push	ebp
@@ -28317,13 +28306,13 @@ _pFullscreenDesc$ = 20					; size = 4
 	push	esi
 	push	edi
 
-; 3291 :   WaitForInit ();
+; 3295 :   WaitForInit ();
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 	call	?WaitForInit@@YAXXZ			; WaitForInit
 
-; 3292 : 
-; 3293 :   DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
+; 3296 : 
+; 3297 :   DXGI_SWAP_CHAIN_DESC stub_desc  = {   }; // Stores common attributes between DESC and DESC1
 
 	push	60					; 0000003cH
 	lea	eax, DWORD PTR _stub_desc$[ebp]
@@ -28331,16 +28320,16 @@ _pFullscreenDesc$ = 20					; size = 4
 	push	eax
 	call	_memset
 
-; 3294 :   bool                 translated = false;
-; 3295 : 
-; 3296 :   if (pDesc1 != nullptr)
+; 3298 :   bool                 translated = false;
+; 3299 : 
+; 3300 :   if (pDesc1 != nullptr)
 
 	mov	edi, DWORD PTR _pDesc1$[ebp]
 	add	esp, 12					; 0000000cH
 	mov	ebx, DWORD PTR _pFullscreenDesc$[ebp]
 
-; 3297 :   {
-; 3298 :     if (pDesc == nullptr)
+; 3301 :   {
+; 3302 :     if (pDesc == nullptr)
 
 	mov	esi, DWORD PTR _pDesc$[ebp]
 	mov	BYTE PTR _translated$1$[ebp], 0
@@ -28349,127 +28338,127 @@ _pFullscreenDesc$ = 20					; size = 4
 	test	esi, esi
 	jne	SHORT $LN100@SK_DXGI_Cr
 
-; 3299 :     {
-; 3300 :       pDesc = &stub_desc;
-; 3301 : 
-; 3302 :       stub_desc.BufferCount                        = pDesc1->BufferCount;
+; 3303 :     {
+; 3304 :       pDesc = &stub_desc;
+; 3305 : 
+; 3306 :       stub_desc.BufferCount                        = pDesc1->BufferCount;
 
 	mov	eax, DWORD PTR [edi+28]
 	lea	esi, DWORD PTR _stub_desc$[ebp]
 	mov	DWORD PTR _stub_desc$[ebp+40], eax
 
-; 3303 :       stub_desc.BufferUsage                        = pDesc1->BufferUsage;
+; 3307 :       stub_desc.BufferUsage                        = pDesc1->BufferUsage;
 
 	mov	eax, DWORD PTR [edi+24]
 	mov	DWORD PTR _stub_desc$[ebp+36], eax
 
-; 3304 :       stub_desc.Flags                              = pDesc1->Flags;
+; 3308 :       stub_desc.Flags                              = pDesc1->Flags;
 
 	mov	eax, DWORD PTR [edi+44]
 	mov	DWORD PTR _stub_desc$[ebp+56], eax
 
-; 3305 :       stub_desc.SwapEffect                         = pDesc1->SwapEffect;
+; 3309 :       stub_desc.SwapEffect                         = pDesc1->SwapEffect;
 
 	mov	eax, DWORD PTR [edi+36]
 	mov	DWORD PTR _stub_desc$[ebp+52], eax
 
-; 3306 :       stub_desc.SampleDesc.Count                   = pDesc1->SampleDesc.Count;
+; 3310 :       stub_desc.SampleDesc.Count                   = pDesc1->SampleDesc.Count;
 
 	mov	eax, DWORD PTR [edi+16]
 	mov	DWORD PTR _stub_desc$[ebp+28], eax
 
-; 3307 :       stub_desc.SampleDesc.Quality                 = pDesc1->SampleDesc.Quality;
+; 3311 :       stub_desc.SampleDesc.Quality                 = pDesc1->SampleDesc.Quality;
 
 	mov	eax, DWORD PTR [edi+20]
 	mov	DWORD PTR _stub_desc$[ebp+32], eax
 
-; 3308 :       stub_desc.BufferDesc.Format                  = pDesc1->Format;
+; 3312 :       stub_desc.BufferDesc.Format                  = pDesc1->Format;
 
 	mov	eax, DWORD PTR [edi+8]
 	mov	DWORD PTR _stub_desc$[ebp+16], eax
 
-; 3309 :       stub_desc.BufferDesc.Height                  = pDesc1->Height;
+; 3313 :       stub_desc.BufferDesc.Height                  = pDesc1->Height;
 
 	mov	eax, DWORD PTR [edi+4]
 	mov	DWORD PTR _stub_desc$[ebp+4], eax
 
-; 3310 :       stub_desc.BufferDesc.Width                   = pDesc1->Width;
+; 3314 :       stub_desc.BufferDesc.Width                   = pDesc1->Width;
 
 	mov	eax, DWORD PTR [edi]
 	mov	DWORD PTR _stub_desc$[ebp], eax
 
-; 3311 :       stub_desc.OutputWindow                       = hWnd;
+; 3315 :       stub_desc.OutputWindow                       = hWnd;
 
 	mov	eax, DWORD PTR _hWnd$[ebp]
 	mov	eax, DWORD PTR [eax]
 	mov	DWORD PTR _stub_desc$[ebp+44], eax
 
-; 3312 : 
-; 3313 :       if (pFullscreenDesc != nullptr)
+; 3316 : 
+; 3317 :       if (pFullscreenDesc != nullptr)
 
 	test	ebx, ebx
 	je	SHORT $LN6@SK_DXGI_Cr
 
-; 3314 :       {
-; 3315 :         stub_desc.Windowed                           = pFullscreenDesc->Windowed;
+; 3318 :       {
+; 3319 :         stub_desc.Windowed                           = pFullscreenDesc->Windowed;
 
 	mov	eax, DWORD PTR [ebx+16]
 	mov	DWORD PTR _stub_desc$[ebp+48], eax
 
-; 3316 :         stub_desc.BufferDesc.RefreshRate.Denominator = pFullscreenDesc->RefreshRate.Denominator;
+; 3320 :         stub_desc.BufferDesc.RefreshRate.Denominator = pFullscreenDesc->RefreshRate.Denominator;
 
 	mov	eax, DWORD PTR [ebx+4]
 	mov	DWORD PTR _stub_desc$[ebp+12], eax
 
-; 3317 :         stub_desc.BufferDesc.RefreshRate.Numerator   = pFullscreenDesc->RefreshRate.Numerator;
+; 3321 :         stub_desc.BufferDesc.RefreshRate.Numerator   = pFullscreenDesc->RefreshRate.Numerator;
 
 	mov	eax, DWORD PTR [ebx]
 	mov	DWORD PTR _stub_desc$[ebp+8], eax
 
-; 3318 :         stub_desc.BufferDesc.Scaling                 = pFullscreenDesc->Scaling;
+; 3322 :         stub_desc.BufferDesc.Scaling                 = pFullscreenDesc->Scaling;
 
 	mov	eax, DWORD PTR [ebx+12]
 	mov	DWORD PTR _stub_desc$[ebp+24], eax
 
-; 3319 :         stub_desc.BufferDesc.ScanlineOrdering        = pFullscreenDesc->ScanlineOrdering;
+; 3323 :         stub_desc.BufferDesc.ScanlineOrdering        = pFullscreenDesc->ScanlineOrdering;
 
 	mov	eax, DWORD PTR [ebx+8]
 	mov	DWORD PTR _stub_desc$[ebp+20], eax
 
-; 3325 :       }
-; 3326 : 
-; 3327 :       // Need to take this stuff and put it back in the appropriate structures before returning :)
-; 3328 :       translated = true;
+; 3329 :       }
+; 3330 : 
+; 3331 :       // Need to take this stuff and put it back in the appropriate structures before returning :)
+; 3332 :       translated = true;
 
 	mov	BYTE PTR _translated$1$[ebp], 1
 
-; 3329 :     }
-; 3330 :   }
-; 3331 : 
-; 3332 :   if (pDesc != nullptr)
+; 3333 :     }
+; 3334 :   }
+; 3335 : 
+; 3336 :   if (pDesc != nullptr)
 
 	jmp	SHORT $LN100@SK_DXGI_Cr
 $LN6@SK_DXGI_Cr:
 
-; 3320 :       }
-; 3321 : 
-; 3322 :       else
-; 3323 :       {
-; 3324 :         stub_desc.Windowed = TRUE;
+; 3324 :       }
+; 3325 : 
+; 3326 :       else
+; 3327 :       {
+; 3328 :         stub_desc.Windowed = TRUE;
 
 	mov	DWORD PTR _stub_desc$[ebp+48], 1
 
-; 3325 :       }
-; 3326 : 
-; 3327 :       // Need to take this stuff and put it back in the appropriate structures before returning :)
-; 3328 :       translated = true;
+; 3329 :       }
+; 3330 : 
+; 3331 :       // Need to take this stuff and put it back in the appropriate structures before returning :)
+; 3332 :       translated = true;
 
 	mov	BYTE PTR _translated$1$[ebp], 1
 
-; 3329 :     }
-; 3330 :   }
-; 3331 : 
-; 3332 :   if (pDesc != nullptr)
+; 3333 :     }
+; 3334 :   }
+; 3335 : 
+; 3336 :   if (pDesc != nullptr)
 
 	jmp	SHORT $LN100@SK_DXGI_Cr
 $LN5@SK_DXGI_Cr:
@@ -28477,7 +28466,7 @@ $LN5@SK_DXGI_Cr:
 	je	$LN117@SK_DXGI_Cr
 $LN100@SK_DXGI_Cr:
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	mov	eax, DWORD PTR [esi+52]
 	test	eax, eax
@@ -28557,7 +28546,7 @@ $LN59@SK_DXGI_Cr:
 $LN68@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3334 :     dll_log.LogEx ( true,
+; 3338 :     dll_log.LogEx ( true,
 
 	cmp	DWORD PTR [esi+48], 0
 	mov	eax, OFFSET ??_C@_1BC@PMICBOA@?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AAe?$AAd?$AA?$AA@
@@ -28580,237 +28569,237 @@ $LN68@SK_DXGI_Cr:
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 52					; 00000034H
 
-; 3335 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
-; 3336 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
-; 3337 :       pDesc->BufferDesc.Width,
-; 3338 :       pDesc->BufferDesc.Height,
-; 3339 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3340 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3341 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3342 :           std::numeric_limits <float>::quiet_NaN (),
-; 3343 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
-; 3344 :         L"Unspecified" :
-; 3345 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
-; 3346 :           L"Centered" :
-; 3347 :           L"Stretched",
-; 3348 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
-; 3349 :         L"Unspecified" :
-; 3350 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
-; 3351 :           L"Progressive" :
-; 3352 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
-; 3353 :             L"Interlaced Even" :
-; 3354 :             L"Interlaced Odd",
-; 3355 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
-; 3356 :       pDesc->BufferCount,
-; 3357 :       pDesc->Flags,
-; 3358 :       pDesc->SwapEffect         == 0 ?
-; 3359 :         L"Discard" :
-; 3360 :         pDesc->SwapEffect       == 1 ?
-; 3361 :           L"Sequential" :
-; 3362 :           pDesc->SwapEffect     == 2 ?
-; 3363 :             L"<Unknown>" :
-; 3364 :             pDesc->SwapEffect   == 3 ?
-; 3365 :               L"Flip Sequential" :
-; 3366 :               pDesc->SwapEffect == 4 ?
-; 3367 :                 L"Flip Discard" :
-; 3368 :                 L"<Unknown>" );
-; 3369 : 
-; 3370 :     // Set things up to make the swap chain Alt+Enter friendly
-; 3371 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
+; 3339 :       L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
+; 3340 :       L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
+; 3341 :       pDesc->BufferDesc.Width,
+; 3342 :       pDesc->BufferDesc.Height,
+; 3343 :       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3344 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3345 :         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3346 :           std::numeric_limits <float>::quiet_NaN (),
+; 3347 :       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
+; 3348 :         L"Unspecified" :
+; 3349 :         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
+; 3350 :           L"Centered" :
+; 3351 :           L"Stretched",
+; 3352 :       pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
+; 3353 :         L"Unspecified" :
+; 3354 :         pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
+; 3355 :           L"Progressive" :
+; 3356 :           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
+; 3357 :             L"Interlaced Even" :
+; 3358 :             L"Interlaced Odd",
+; 3359 :       pDesc->Windowed ? L"Windowed" : L"Fullscreen",
+; 3360 :       pDesc->BufferCount,
+; 3361 :       pDesc->Flags,
+; 3362 :       pDesc->SwapEffect         == 0 ?
+; 3363 :         L"Discard" :
+; 3364 :         pDesc->SwapEffect       == 1 ?
+; 3365 :           L"Sequential" :
+; 3366 :           pDesc->SwapEffect     == 2 ?
+; 3367 :             L"<Unknown>" :
+; 3368 :             pDesc->SwapEffect   == 3 ?
+; 3369 :               L"Flip Sequential" :
+; 3370 :               pDesc->SwapEffect == 4 ?
+; 3371 :                 L"Flip Discard" :
+; 3372 :                 L"<Unknown>" );
+; 3373 : 
+; 3374 :     // Set things up to make the swap chain Alt+Enter friendly
+; 3375 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
 
 	cmp	BYTE PTR ?bAlwaysAllowFullscreen@@3_NA, 0 ; bAlwaysAllowFullscreen
 	je	SHORT $LN9@SK_DXGI_Cr
 	cmp	DWORD PTR [esi+48], 0
 	je	SHORT $LN11@SK_DXGI_Cr
 
-; 3372 :     {
-; 3373 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3376 :     {
+; 3377 :       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	DWORD PTR [esi+56], 2
 
-; 3374 :       pDesc->Windowed                           = true;
+; 3378 :       pDesc->Windowed                           = true;
 
 	mov	DWORD PTR [esi+48], 1
 
-; 3375 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
+; 3379 :       pDesc->BufferDesc.RefreshRate.Denominator = 0;
 
 	mov	DWORD PTR [esi+12], 0
 
-; 3376 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+; 3380 :       pDesc->BufferDesc.RefreshRate.Numerator   = 0;
 
 	mov	DWORD PTR [esi+8], 0
 $LN9@SK_DXGI_Cr:
 
-; 3377 :     }
-; 3378 : 
-; 3379 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
+; 3381 :     }
+; 3382 : 
+; 3383 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
 
 	cmp	DWORD PTR [esi+48], 0
 	je	SHORT $LN11@SK_DXGI_Cr
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
 	je	SHORT $LN11@SK_DXGI_Cr
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
 	jne	SHORT $LN11@SK_DXGI_Cr
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+752
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
 	test	eax, eax
 	jne	SHORT $LN72@SK_DXGI_Cr
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+756, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+760, eax
 	je	SHORT $LN13@SK_DXGI_Cr
 $LN72@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3383 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3387 :         pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	DWORD PTR [esi], eax
 
-; 3384 :         pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3388 :         pDesc->BufferDesc.Height = config.window.res.override.y;
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
 	mov	DWORD PTR [esi+4], eax
 $LN11@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+752
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
 	test	eax, eax
 	jne	SHORT $LN76@SK_DXGI_Cr
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+756, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+760, eax
 	je	SHORT $LN13@SK_DXGI_Cr
 $LN76@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3399 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
+; 3403 :       pDesc->BufferDesc.Width  = config.window.res.override.x;
 
 	mov	DWORD PTR [esi], eax
 
-; 3400 :       pDesc->BufferDesc.Height = config.window.res.override.y;
+; 3404 :       pDesc->BufferDesc.Height = config.window.res.override.y;
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
 	mov	DWORD PTR [esi+4], eax
 $LN13@SK_DXGI_Cr:
 
-; 3401 :     }
-; 3402 : 
-; 3403 : 
-; 3404 :     if (config.render.dxgi.safe_fullscreen)
+; 3405 :     }
+; 3406 : 
+; 3407 : 
+; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
 	je	SHORT $LN14@SK_DXGI_Cr
 
-; 3405 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	DWORD PTR [esi+56], 2
 $LN14@SK_DXGI_Cr:
 
-; 3406 : 
-; 3407 :     if (request_mode_change == mode_change_request_e::Fullscreen)
+; 3410 : 
+; 3411 :     if (request_mode_change == mode_change_request_e::Fullscreen)
 
 	cmp	DWORD PTR ?request_mode_change@@3W4mode_change_request_e@@A, 1 ; request_mode_change
 	jne	SHORT $LN15@SK_DXGI_Cr
 
-; 3408 :     {
-; 3409 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
+; 3412 :     {
+; 3413 :       dll_log.Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
 
 	push	OFFSET ??_C@_1HA@INGGDHHB@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAU?$AAs?$AAe?$AAr?$AA?9?$AAR?$AAe?$AAq?$AAu?$AAe?$AAs?$AAt?$AAe?$AAd?$AA?5@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3410 :       pDesc->Windowed = FALSE;
+; 3414 :       pDesc->Windowed = FALSE;
 
 	mov	DWORD PTR [esi+48], 0
 
-; 3411 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3415 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	or	DWORD PTR [esi+56], 2
 $LN15@SK_DXGI_Cr:
 
-; 3412 :     }
-; 3413 : 
-; 3414 :     if (config.display.force_fullscreen && pDesc->Windowed)
+; 3416 :     }
+; 3417 : 
+; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
 	je	SHORT $LN16@SK_DXGI_Cr
 	cmp	DWORD PTR [esi+48], 0
 	je	SHORT $LN16@SK_DXGI_Cr
 
-; 3415 :     {
-; 3416 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3419 :     {
+; 3420 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@HCAIICBG@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3417 :                     L"(Requested: Windowed, Using: Fullscreen)" );
-; 3418 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-; 3419 :       pDesc->Windowed = FALSE;
+; 3421 :                     L"(Requested: Windowed, Using: Fullscreen)" );
+; 3422 :       pDesc->Flags   |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3423 :       pDesc->Windowed = FALSE;
 
 	mov	DWORD PTR [esi+48], 0
 	or	DWORD PTR [esi+56], 2
 	jmp	SHORT $LN18@SK_DXGI_Cr
 $LN16@SK_DXGI_Cr:
 
-; 3420 :     }
-; 3421 : 
-; 3422 :     else if (config.display.force_windowed)
+; 3424 :     }
+; 3425 : 
+; 3426 :     else if (config.display.force_windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
 	je	SHORT $LN18@SK_DXGI_Cr
 
-; 3423 :     {
-; 3424 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 3427 :     {
+; 3428 :       dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
 	push	OFFSET ??_C@_1JG@LPALCGFK@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAD?$AAi?$AAs?$AAp?$AAl?$AAa?$AAy?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3425 :                     L"(Requested: Fullscreen, Using: Windowed)" );
-; 3426 :       pDesc->Windowed = TRUE;
+; 3429 :                     L"(Requested: Fullscreen, Using: Windowed)" );
+; 3430 :       pDesc->Windowed = TRUE;
 
 	mov	DWORD PTR [esi+48], 1
 $LN18@SK_DXGI_Cr:
 
-; 3427 :     }
-; 3428 : 
-; 3429 : #ifdef _WIN64
-; 3430 :     if (! bFlipMode)
-; 3431 :       bFlipMode =
-; 3432 :         ( dxgi_caps.present.flip_sequential && (
-; 3433 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
-; 3434 :             SK_DS3_UseFlipMode ()        ) );
-; 3435 : 
-; 3436 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
-; 3437 :     {
-; 3438 :       if (bFlipMode)
-; 3439 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
-; 3440 :     }
-; 3441 : 
-; 3442 :     else
-; 3443 : #endif
-; 3444 :     {
-; 3445 :       // If forcing flip-model, then force multisampling off
-; 3446 :       if (config.render.framerate.flip_discard)
+; 3431 :     }
+; 3432 : 
+; 3433 : #ifdef _WIN64
+; 3434 :     if (! bFlipMode)
+; 3435 :       bFlipMode =
+; 3436 :         ( dxgi_caps.present.flip_sequential && (
+; 3437 :           ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
+; 3438 :             SK_DS3_UseFlipMode ()        ) );
+; 3439 : 
+; 3440 :     if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
+; 3441 :     {
+; 3442 :       if (bFlipMode)
+; 3443 :           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
+; 3444 :     }
+; 3445 : 
+; 3446 :     else
+; 3447 : #endif
+; 3448 :     {
+; 3449 :       // If forcing flip-model, then force multisampling off
+; 3450 :       if (config.render.framerate.flip_discard)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN116@SK_DXGI_Cr
 
-; 3447 :       {
-; 3448 :         bFlipMode = dxgi_caps.present.flip_sequential;
+; 3451 :       {
+; 3452 :         bFlipMode = dxgi_caps.present.flip_sequential;
 
 	mov	al, BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+2
 	mov	BYTE PTR ?bFlipMode@@3_NA, al		; bFlipMode
 
-; 3449 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
-; 3450 : 
-; 3451 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
-; 3452 :         switch (pDesc->BufferDesc.Format)
+; 3453 :         pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
+; 3454 : 
+; 3455 :         // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+; 3456 :         switch (pDesc->BufferDesc.Format)
 
 	mov	eax, DWORD PTR [esi+16]
 	add	eax, -23				; ffffffe9H
@@ -28822,58 +28811,58 @@ $LN18@SK_DXGI_Cr:
 	jmp	DWORD PTR $LN125@SK_DXGI_Cr[eax*4]
 $LN20@SK_DXGI_Cr:
 
-; 3453 :         {
-; 3454 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-; 3455 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+; 3457 :         {
+; 3458 :           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 	mov	DWORD PTR [esi+16], 87			; 00000057H
 
-; 3456 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@NDGFBELE@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAB?$AA8?$AAG?$AA8?$AAR?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3457 :             break;
+; 3461 :             break;
 
 	jmp	SHORT $LN120@SK_DXGI_Cr
 $LN21@SK_DXGI_Cr:
 
-; 3458 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-; 3459 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-; 3460 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+; 3462 :           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+; 3463 :             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3464 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1JA@CCHCBLHJ@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAs?$AAR?$AAG?$AAB?$AA?5?$AA?$CI?$AAR?$AA8?$AAG?$AA8?$AAB?$AA8?$AAA?$AA8?$AA?$CJ@
 
-; 3461 :             break;
+; 3465 :             break;
 
 	jmp	SHORT $LN121@SK_DXGI_Cr
 $LN22@SK_DXGI_Cr:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ??_C@_1KK@LPPCBMFA@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA2?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAR?$AAG?$AAB?$AAA?$AA?5?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA1?$AA0?$AA?3?$AA2@
 $LN121@SK_DXGI_Cr:
 
-; 3462 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
-; 3463 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-; 3464 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
+; 3466 :           case DXGI_FORMAT_R10G10B10A2_UNORM:
+; 3467 :           case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+; 3468 :             pDesc->BufferDesc.Format =  DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	mov	DWORD PTR [esi+16], 28			; 0000001cH
 $LN120@SK_DXGI_Cr:
 
-; 3465 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+; 3469 :             dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
 
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN116@SK_DXGI_Cr:
 
-; 3466 :             break;
-; 3467 :         }
-; 3468 :       }
-; 3469 :     }
-; 3470 : 
-; 3471 :     if (       config.render.framerate.buffer_count != -1                  &&
-; 3472 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
+; 3470 :             break;
+; 3471 :         }
+; 3472 :       }
+; 3473 :     }
+; 3474 : 
+; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
+; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	cmp	ecx, -1
@@ -28884,10 +28873,10 @@ $LN116@SK_DXGI_Cr:
 	test	eax, eax
 	je	SHORT $LN23@SK_DXGI_Cr
 
-; 3473 :          pDesc->BufferCount                         !=  0 )
-; 3474 :     {
-; 3475 :       pDesc->BufferCount = config.render.framerate.buffer_count;
-; 3476 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
+; 3477 :          pDesc->BufferCount                         !=  0 )
+; 3478 :     {
+; 3479 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3480 :       dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
 
 	push	ecx
 	push	OFFSET ??_C@_1GI@GAEBCHMN@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAB?$AAu?$AAf?$AAf?$AAe?$AAr?$AA?5?$AAC?$AAo?$AAu?$AAn?$AAt?$AA?5?$AAO?$AAv@
@@ -28897,35 +28886,35 @@ $LN116@SK_DXGI_Cr:
 	add	esp, 12					; 0000000cH
 $LN23@SK_DXGI_Cr:
 
-; 3477 :     }
-; 3478 : 
-; 3479 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
+; 3481 :     }
+; 3482 : 
+; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN24@SK_DXGI_Cr
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN24@SK_DXGI_Cr
 
-; 3480 :     {
-; 3481 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+; 3484 :     {
+; 3485 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 	or	DWORD PTR [esi+56], 2048		; 00000800H
 
-; 3482 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+; 3486 :       dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
 
 	push	OFFSET ??_C@_1FC@PILPBEPG@?$AA?$FL?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA1?$AA?4?$AA5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAT?$AAe?$AAa?$AAr?$AAi?$AAn?$AAg?$AA?5?$AAO?$AAp?$AAt?$AAi?$AAo?$AAn?$AA?3@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 3483 :       pDesc->Windowed = TRUE;
+; 3487 :       pDesc->Windowed = TRUE;
 
 	mov	DWORD PTR [esi+48], 1
 $LN24@SK_DXGI_Cr:
 
-; 3484 :     }
-; 3485 : 
-; 3486 :     if ( config.render.dxgi.scaling_mode != -1 &&
+; 3488 :     }
+; 3489 : 
+; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
 	cmp	eax, -1
@@ -28933,10 +28922,10 @@ $LN24@SK_DXGI_Cr:
 	cmp	DWORD PTR [esi+24], eax
 	je	SHORT $LN25@SK_DXGI_Cr
 
-; 3487 :           pDesc->BufferDesc.Scaling      !=
-; 3488 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
-; 3489 :     {
-; 3490 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
+; 3491 :           pDesc->BufferDesc.Scaling      !=
+; 3492 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+; 3493 :     {
+; 3494 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
@@ -28950,26 +28939,26 @@ $LN24@SK_DXGI_Cr:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3491 :                     L"(Requested: %s, Using: %s)",
-; 3492 :                       SK_DXGI_DescribeScalingMode (
-; 3493 :                         pDesc->BufferDesc.Scaling
-; 3494 :                       ),
-; 3495 :                         SK_DXGI_DescribeScalingMode (
-; 3496 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
-; 3497 :                         )
-; 3498 :                   );
-; 3499 : 
-; 3500 :       pDesc->BufferDesc.Scaling =
+; 3495 :                     L"(Requested: %s, Using: %s)",
+; 3496 :                       SK_DXGI_DescribeScalingMode (
+; 3497 :                         pDesc->BufferDesc.Scaling
+; 3498 :                       ),
+; 3499 :                         SK_DXGI_DescribeScalingMode (
+; 3500 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
+; 3501 :                         )
+; 3502 :                   );
+; 3503 : 
+; 3504 :       pDesc->BufferDesc.Scaling =
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR [esi+24], eax
 $LN25@SK_DXGI_Cr:
 
-; 3501 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
-; 3502 :     }
-; 3503 : 
-; 3504 :     if ( config.render.dxgi.scanline_order != -1 &&
+; 3505 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+; 3506 :     }
+; 3507 : 
+; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
@@ -28977,10 +28966,10 @@ $LN25@SK_DXGI_Cr:
 	cmp	DWORD PTR [esi+20], eax
 	je	SHORT $LN26@SK_DXGI_Cr
 
-; 3505 :           pDesc->BufferDesc.ScanlineOrdering      !=
-; 3506 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
-; 3507 :     {
-; 3508 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
+; 3509 :           pDesc->BufferDesc.ScanlineOrdering      !=
+; 3510 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
+; 3511 :     {
+; 3512 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScanlineOrder@@YAPB_WW4DXGI_MODE_SCANLINE_ORDER@@@Z ; SK_DXGI_DescribeScanlineOrder
@@ -28994,26 +28983,26 @@ $LN25@SK_DXGI_Cr:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3509 :                     L"(Requested: %s, Using: %s)",
-; 3510 :                       SK_DXGI_DescribeScanlineOrder (
-; 3511 :                         pDesc->BufferDesc.ScanlineOrdering
-; 3512 :                       ),
-; 3513 :                         SK_DXGI_DescribeScanlineOrder (
-; 3514 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
-; 3515 :                         )
-; 3516 :                   );
-; 3517 : 
-; 3518 :       pDesc->BufferDesc.ScanlineOrdering =
+; 3513 :                     L"(Requested: %s, Using: %s)",
+; 3514 :                       SK_DXGI_DescribeScanlineOrder (
+; 3515 :                         pDesc->BufferDesc.ScanlineOrdering
+; 3516 :                       ),
+; 3517 :                         SK_DXGI_DescribeScanlineOrder (
+; 3518 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+; 3519 :                         )
+; 3520 :                   );
+; 3521 : 
+; 3522 :       pDesc->BufferDesc.ScanlineOrdering =
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR [esi+20], eax
 $LN26@SK_DXGI_Cr:
 
-; 3519 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
-; 3520 :     }
-; 3521 : 
-; 3522 :     if ( config.render.framerate.refresh_rate != -1 &&
+; 3523 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
+; 3524 :     }
+; 3525 : 
+; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	cmp	eax, -1
@@ -29022,9 +29011,9 @@ $LN26@SK_DXGI_Cr:
 	cmp	ecx, eax
 	je	SHORT $LN27@SK_DXGI_Cr
 
-; 3523 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
-; 3524 :     {
-; 3525 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
+; 3527 :          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
+; 3528 :     {
+; 3529 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
 
 	mov	edx, DWORD PTR [esi+12]
 	test	edx, edx
@@ -29052,37 +29041,37 @@ $LN79@SK_DXGI_Cr:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3526 :                     L"(Requested: %f, Using: %li)",
-; 3527 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-; 3528 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-; 3529 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-; 3530 :                      std::numeric_limits <float>::quiet_NaN (),
-; 3531 :                         config.render.framerate.refresh_rate
-; 3532 :                   );
-; 3533 : 
-; 3534 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
+; 3530 :                     L"(Requested: %f, Using: %li)",
+; 3531 :                  pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+; 3532 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+; 3533 :          static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+; 3534 :                      std::numeric_limits <float>::quiet_NaN (),
+; 3535 :                         config.render.framerate.refresh_rate
+; 3536 :                   );
+; 3537 : 
+; 3538 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	add	esp, 20					; 00000014H
 	mov	DWORD PTR [esi+8], eax
 
-; 3535 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
+; 3539 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
 
 	mov	DWORD PTR [esi+12], 1
 $LN27@SK_DXGI_Cr:
 
-; 3536 :     }
-; 3537 : 
-; 3538 :     bWait = bFlipMode && dxgi_caps.present.waitable;
+; 3540 :     }
+; 3541 : 
+; 3542 :     bWait = bFlipMode && dxgi_caps.present.waitable;
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	je	SHORT $LN65@SK_DXGI_Cr
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN65@SK_DXGI_Cr
 
-; 3539 : 
-; 3540 :     // We cannot change the swapchain parameters if this is used...
-; 3541 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
+; 3543 : 
+; 3544 :     // We cannot change the swapchain parameters if this is used...
+; 3545 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
 	mov	BYTE PTR ?bWait@@3_NA, 1		; bWait
@@ -29091,27 +29080,27 @@ $LN65@SK_DXGI_Cr:
 	mov	BYTE PTR ?bWait@@3_NA, 0		; bWait
 $LN66@SK_DXGI_Cr:
 
-; 3542 : 
-; 3543 : #ifdef _WIN64
-; 3544 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-; 3545 :     {
-; 3546 :       if (SK_DS3_IsBorderless ())
-; 3547 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-; 3548 :     }
-; 3549 : #endif
-; 3550 : 
-; 3551 :     if (bFlipMode)
+; 3546 : 
+; 3547 : #ifdef _WIN64
+; 3548 :     if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+; 3549 :     {
+; 3550 :       if (SK_DS3_IsBorderless ())
+; 3551 :         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3552 :     }
+; 3553 : #endif
+; 3554 : 
+; 3555 :     if (bFlipMode)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	je	SHORT $LN28@SK_DXGI_Cr
 
-; 3552 :     {
-; 3553 :       if (bWait)
+; 3556 :     {
+; 3557 :       if (bWait)
 
 	cmp	BYTE PTR ?bWait@@3_NA, 0		; bWait
 	je	SHORT $LN30@SK_DXGI_Cr
 
-; 3554 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3558 :         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
 	or	DWORD PTR [esi+56], 64			; 00000040H
 $LN30@SK_DXGI_Cr:
@@ -29124,7 +29113,7 @@ $LN30@SK_DXGI_Cr:
 	cmovg	eax, DWORD PTR ?config@@3Usk_config_t@@A+408
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3560 :       if (config.render.framerate.flip_discard &&
+; 3564 :       if (config.render.framerate.flip_discard &&
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, eax
@@ -29132,25 +29121,25 @@ $LN30@SK_DXGI_Cr:
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN31@SK_DXGI_Cr
 
-; 3561 :           dxgi_caps.present.flip_discard)
-; 3562 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+; 3565 :           dxgi_caps.present.flip_discard)
+; 3566 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 	mov	DWORD PTR [esi+52], 4
 
-; 3563 :       else
+; 3567 :       else
 
 	jmp	SHORT $LN33@SK_DXGI_Cr
 $LN31@SK_DXGI_Cr:
 
-; 3564 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+; 3568 :         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
 	mov	DWORD PTR [esi+52], 3
 	jmp	SHORT $LN33@SK_DXGI_Cr
 $LN28@SK_DXGI_Cr:
 
-; 3565 :     }
-; 3566 : 
-; 3567 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
+; 3569 :     }
+; 3570 : 
+; 3571 :     else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
 
 	mov	eax, DWORD PTR [esi+52]
 	cmp	eax, 4
@@ -29158,10 +29147,10 @@ $LN28@SK_DXGI_Cr:
 	cmp	eax, 3
 	je	SHORT $LN33@SK_DXGI_Cr
 
-; 3568 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
-; 3569 :     {
-; 3570 :       // Resort to triple-buffering if flip mode is not available
-; 3571 :       if (config.render.framerate.buffer_count > 3)
+; 3572 :               pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
+; 3573 :     {
+; 3574 :       // Resort to triple-buffering if flip mode is not available
+; 3575 :       if (config.render.framerate.buffer_count > 3)
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	mov	eax, 3
@@ -29169,38 +29158,38 @@ $LN28@SK_DXGI_Cr:
 	cmovg	ecx, eax
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
 
-; 3572 :         config.render.framerate.buffer_count = 3;
-; 3573 : 
-; 3574 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+; 3576 :         config.render.framerate.buffer_count = 3;
+; 3577 : 
+; 3578 :       pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 	mov	DWORD PTR [esi+52], 0
 $LN33@SK_DXGI_Cr:
 
-; 3575 :     }
-; 3576 : 
-; 3577 :     if (config.render.framerate.buffer_count > 0)
+; 3579 :     }
+; 3580 : 
+; 3581 :     if (config.render.framerate.buffer_count > 0)
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	test	ecx, ecx
 	jle	SHORT $LN35@SK_DXGI_Cr
 
-; 3578 :       pDesc->BufferCount = config.render.framerate.buffer_count;
+; 3582 :       pDesc->BufferCount = config.render.framerate.buffer_count;
 
 	mov	DWORD PTR [esi+40], ecx
 $LN35@SK_DXGI_Cr:
 
-; 3579 : 
-; 3580 :     // We cannot switch modes on a waitable swapchain
-; 3581 :     if (bFlipMode && bWait)
+; 3583 : 
+; 3584 :     // We cannot switch modes on a waitable swapchain
+; 3585 :     if (bFlipMode && bWait)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
 	je	SHORT $LN117@SK_DXGI_Cr
 	cmp	BYTE PTR ?bWait@@3_NA, 0		; bWait
 	je	SHORT $LN117@SK_DXGI_Cr
 
-; 3582 :     {
-; 3583 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-; 3584 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+; 3586 :     {
+; 3587 :       pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+; 3588 :       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 	mov	eax, DWORD PTR [esi+56]
 	and	eax, -3					; fffffffdH
@@ -29208,7 +29197,7 @@ $LN35@SK_DXGI_Cr:
 	mov	DWORD PTR [esi+56], eax
 $LN117@SK_DXGI_Cr:
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	mov	cl, BYTE PTR ?bWait@@3_NA		; bWait
 	xor	eax, eax
@@ -29234,7 +29223,7 @@ $LN117@SK_DXGI_Cr:
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+460
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3588 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
 
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -29249,12 +29238,12 @@ $LN117@SK_DXGI_Cr:
 $LN86@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3594 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
+; 3598 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
 
 	cmp	DWORD PTR [esi], ecx
 	jbe	SHORT $LN37@SK_DXGI_Cr
 
-; 3595 :     pDesc->BufferDesc.Width = config.render.dxgi.res.max.x;
+; 3599 :     pDesc->BufferDesc.Width = config.render.dxgi.res.max.x;
 
 	mov	DWORD PTR [esi], ecx
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
@@ -29271,12 +29260,12 @@ $LN37@SK_DXGI_Cr:
 $LN90@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3596 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
+; 3600 :   if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
 
 	cmp	DWORD PTR [esi+4], eax
 	jbe	SHORT $LN38@SK_DXGI_Cr
 
-; 3597 :     pDesc->BufferDesc.Height = config.render.dxgi.res.max.y;
+; 3601 :     pDesc->BufferDesc.Height = config.render.dxgi.res.max.y;
 
 	mov	DWORD PTR [esi+4], eax
 $LN38@SK_DXGI_Cr:
@@ -29294,12 +29283,12 @@ $LN38@SK_DXGI_Cr:
 $LN94@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3599 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
+; 3603 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
 
 	cmp	DWORD PTR [esi], eax
 	jae	SHORT $LN39@SK_DXGI_Cr
 
-; 3600 :     pDesc->BufferDesc.Width = config.render.dxgi.res.min.x;
+; 3604 :     pDesc->BufferDesc.Width = config.render.dxgi.res.min.x;
 
 	mov	DWORD PTR [esi], eax
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+452
@@ -29316,38 +29305,38 @@ $LN39@SK_DXGI_Cr:
 $LN98@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3601 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
+; 3605 :   if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
 
 	cmp	DWORD PTR [esi+4], eax
 	jae	SHORT $LN40@SK_DXGI_Cr
 
-; 3602 :     pDesc->BufferDesc.Height = config.render.dxgi.res.min.y;
+; 3606 :     pDesc->BufferDesc.Height = config.render.dxgi.res.min.y;
 
 	mov	DWORD PTR [esi+4], eax
 $LN40@SK_DXGI_Cr:
 
-; 3603 : 
-; 3604 : 
-; 3605 :   if (translated)
+; 3607 : 
+; 3608 : 
+; 3609 :   if (translated)
 
 	cmp	BYTE PTR _translated$1$[ebp], 0
 	je	SHORT $LN43@SK_DXGI_Cr
 
-; 3606 :   {
-; 3607 :     pDesc1->BufferCount                        = pDesc->BufferCount;
+; 3610 :   {
+; 3611 :     pDesc1->BufferCount                        = pDesc->BufferCount;
 
 	mov	eax, DWORD PTR [esi+40]
 
-; 3608 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
-; 3609 :     pDesc1->Flags                              = pDesc->Flags;
-; 3610 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
-; 3611 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
-; 3612 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
-; 3613 :     pDesc1->Format                             = pDesc->BufferDesc.Format;
-; 3614 :     pDesc1->Height                             = pDesc->BufferDesc.Height;
-; 3615 :     pDesc1->Width                              = pDesc->BufferDesc.Width;
-; 3616 : 
-; 3617 :     hWnd                                       = pDesc->OutputWindow;
+; 3612 :     pDesc1->BufferUsage                        = pDesc->BufferUsage;
+; 3613 :     pDesc1->Flags                              = pDesc->Flags;
+; 3614 :     pDesc1->SwapEffect                         = pDesc->SwapEffect;
+; 3615 :     pDesc1->SampleDesc.Count                   = pDesc->SampleDesc.Count;
+; 3616 :     pDesc1->SampleDesc.Quality                 = pDesc->SampleDesc.Quality;
+; 3617 :     pDesc1->Format                             = pDesc->BufferDesc.Format;
+; 3618 :     pDesc1->Height                             = pDesc->BufferDesc.Height;
+; 3619 :     pDesc1->Width                              = pDesc->BufferDesc.Width;
+; 3620 : 
+; 3621 :     hWnd                                       = pDesc->OutputWindow;
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 	mov	DWORD PTR [edi+28], eax
@@ -29370,34 +29359,34 @@ $LN40@SK_DXGI_Cr:
 	mov	eax, DWORD PTR [esi+44]
 	mov	DWORD PTR [ecx], eax
 
-; 3618 : 
-; 3619 :     if (pFullscreenDesc != nullptr)
+; 3622 : 
+; 3623 :     if (pFullscreenDesc != nullptr)
 
 	test	ebx, ebx
 	je	SHORT $LN42@SK_DXGI_Cr
 
-; 3620 :     {
-; 3621 :       pFullscreenDesc->Windowed                = pDesc->Windowed;
+; 3624 :     {
+; 3625 :       pFullscreenDesc->Windowed                = pDesc->Windowed;
 
 	mov	eax, DWORD PTR [esi+48]
 	mov	DWORD PTR [ebx+16], eax
 
-; 3622 :       pFullscreenDesc->RefreshRate.Denominator = pDesc->BufferDesc.RefreshRate.Denominator;
+; 3626 :       pFullscreenDesc->RefreshRate.Denominator = pDesc->BufferDesc.RefreshRate.Denominator;
 
 	mov	eax, DWORD PTR [esi+12]
 	mov	DWORD PTR [ebx+4], eax
 
-; 3623 :       pFullscreenDesc->RefreshRate.Numerator   = pDesc->BufferDesc.RefreshRate.Numerator;
+; 3627 :       pFullscreenDesc->RefreshRate.Numerator   = pDesc->BufferDesc.RefreshRate.Numerator;
 
 	mov	eax, DWORD PTR [esi+8]
 	mov	DWORD PTR [ebx], eax
 
-; 3624 :       pFullscreenDesc->Scaling                 = pDesc->BufferDesc.Scaling;
+; 3628 :       pFullscreenDesc->Scaling                 = pDesc->BufferDesc.Scaling;
 
 	mov	eax, DWORD PTR [esi+24]
 	mov	DWORD PTR [ebx+12], eax
 
-; 3625 :       pFullscreenDesc->ScanlineOrdering        = pDesc->BufferDesc.ScanlineOrdering;
+; 3629 :       pFullscreenDesc->ScanlineOrdering        = pDesc->BufferDesc.ScanlineOrdering;
 
 	mov	eax, DWORD PTR [esi+20]
 	pop	edi
@@ -29405,20 +29394,20 @@ $LN40@SK_DXGI_Cr:
 	mov	DWORD PTR [ebx+8], eax
 	pop	ebx
 
-; 3630 :   }
-; 3631 : 
-; 3632 :   //game_window.hWnd = pDesc->OutputWindow;
-; 3633 : }
+; 3634 :   }
+; 3635 : 
+; 3636 :   //game_window.hWnd = pDesc->OutputWindow;
+; 3637 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN42@SK_DXGI_Cr:
 
-; 3626 :     }
-; 3627 : 
-; 3628 :     else
-; 3629 :       pDesc->Windowed = TRUE;
+; 3630 :     }
+; 3631 : 
+; 3632 :     else
+; 3633 :       pDesc->Windowed = TRUE;
 
 	mov	DWORD PTR [esi+48], 1
 $LN43@SK_DXGI_Cr:
@@ -29426,10 +29415,10 @@ $LN43@SK_DXGI_Cr:
 	pop	esi
 	pop	ebx
 
-; 3630 :   }
-; 3631 : 
-; 3632 :   //game_window.hWnd = pDesc->OutputWindow;
-; 3633 : }
+; 3634 :   }
+; 3635 : 
+; 3636 :   //game_window.hWnd = pDesc->OutputWindow;
+; 3637 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -29550,7 +29539,7 @@ _wszFullyFormatted$1$ = 12				; size = 4
 _pNewTargetParameters$ = 12				; size = 4
 ?DXGISwap_ResizeTarget_Override@@YGJPAUIDXGISwapChain@@PBUDXGI_MODE_DESC@@@Z PROC ; DXGISwap_ResizeTarget_Override
 
-; 3107 : {
+; 3111 : {
 
 	npad	2
 	push	ebp
@@ -29562,22 +29551,22 @@ _pNewTargetParameters$ = 12				; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 88					; 00000058H
 
-; 3108 :   // Can't do this if waitable
-; 3109 :   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
+; 3112 :   // Can't do this if waitable
+; 3113 :   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
 
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN2@DXGISwap_R
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
 	jle	SHORT $LN2@DXGISwap_R
 
-; 3110 :     return S_OK;
+; 3114 :     return S_OK;
 
 	xor	eax, eax
 
-; 3279 :   }
-; 3280 : 
-; 3281 :   return ret;
-; 3282 : }
+; 3283 :   }
+; 3284 : 
+; 3285 :   return ret;
+; 3286 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -29588,7 +29577,7 @@ $LN2@DXGISwap_R:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?cs_mmio@@3VSK_Thread_HybridSpinlock@@A ; cs_mmio
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -29598,49 +29587,49 @@ $LN2@DXGISwap_R:
 	mov	DWORD PTR _auto_lock$6[ebp], OFFSET ?cs_mmio@@3VSK_Thread_HybridSpinlock@@A ; cs_mmio
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3113 :     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+; 3117 :     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 3114 : 
-; 3115 :     SK_D3D11_EndFrame        ();
+; 3118 : 
+; 3119 :     SK_D3D11_EndFrame        ();
 
 	call	?SK_D3D11_EndFrame@@YAXXZ		; SK_D3D11_EndFrame
 
-; 3116 :     SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+; 3120 :     SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
 
 	call	?SK_CEGUI_QueueResetD3D11@@YAXXZ	; SK_CEGUI_QueueResetD3D11
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?cs_mmio@@3VSK_Thread_HybridSpinlock@@A ; cs_mmio
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3117 :   }
+; 3121 :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3120 :   if (pNewTargetParameters == nullptr)
+; 3124 :   if (pNewTargetParameters == nullptr)
 
 	mov	esi, DWORD PTR _pNewTargetParameters$[ebp]
 	test	esi, esi
 	jne	SHORT $LN3@DXGISwap_R
 
-; 3121 :   {
-; 3122 :     HRESULT ret;
-; 3123 :     DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
+; 3125 :   {
+; 3126 :     HRESULT ret;
+; 3127 :     DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
 
 	push	esi
 	push	DWORD PTR _This$[ebp]
@@ -29649,20 +29638,20 @@ $LN2@DXGISwap_R:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356761
+	push	OFFSET $SG356393
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 3124 :     return ret;
+; 3128 :     return ret;
 
 	mov	eax, esi
 	pop	esi
 
-; 3279 :   }
-; 3280 : 
-; 3281 :   return ret;
-; 3282 : }
+; 3283 :   }
+; 3284 : 
+; 3285 :   return ret;
+; 3286 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -29672,7 +29661,7 @@ $LN2@DXGISwap_R:
 $LN3@DXGISwap_R:
 	push	edi
 
-; 3127 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
+; 3131 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
 
 	push	8192					; 00002000H
 	call	??_U@YAPAXI@Z				; operator new[]
@@ -29692,9 +29681,9 @@ $LN27@DXGISwap_R:
 	movss	xmm1, DWORD PTR __real@7fc00000
 	test	edi, edi
 	je	$LN4@DXGISwap_R
-	push	OFFSET $SG356763
-	push	OFFSET $SG356764
-	push	OFFSET $SG356765
+	push	OFFSET $SG356395
+	push	OFFSET $SG356396
+	push	OFFSET $SG356397
 	push	edi
 	call	__swprintf
 	mov	ecx, DWORD PTR [esi+12]
@@ -29723,7 +29712,7 @@ $LN28@DXGISwap_R:
 $LN44@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3127 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
+; 3131 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
 
 	push	DWORD PTR [esi+20]
 	cvtps2pd xmm0, xmm1
@@ -29734,14 +29723,14 @@ $LN44@DXGISwap_R:
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR [esi+4]
 	push	DWORD PTR [esi]
-	push	OFFSET $SG356766
+	push	OFFSET $SG356398
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
 	push	edi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG356767
+	push	OFFSET $SG356399
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -29768,11 +29757,11 @@ $LN44@DXGISwap_R:
 $LN59@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3127 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
+; 3131 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG356768
+	push	OFFSET $SG356400
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -29782,7 +29771,7 @@ $LN59@DXGISwap_R:
 	mov	eax, DWORD PTR $T3[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3127 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
+; 3131 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -29815,7 +29804,7 @@ $LN59@DXGISwap_R:
 $LN69@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3127 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
+; 3131 :   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
 
 	push	edi
 	call	??_V@YAXPAX@Z				; operator delete[]
@@ -29823,26 +29812,26 @@ $LN69@DXGISwap_R:
 	add	esp, 4
 $LN4@DXGISwap_R:
 
-; 3128 :                        L"{ (%lux%lu@%3.1f Hz),"
-; 3129 :                        L"fmt=%lu,scaling=0x%02x,scanlines=0x%02x }",
-; 3130 :                           pNewTargetParameters->Width, pNewTargetParameters->Height,
-; 3131 :                           pNewTargetParameters->RefreshRate.Denominator != 0 ?
-; 3132 :            static_cast <float> (pNewTargetParameters->RefreshRate.Numerator) /
-; 3133 :            static_cast <float> (pNewTargetParameters->RefreshRate.Denominator) :
-; 3134 :                               std::numeric_limits <float>::quiet_NaN (),
-; 3135 :             static_cast <UINT> (pNewTargetParameters->Format),
-; 3136 :                                 pNewTargetParameters->Scaling,
-; 3137 :                                 pNewTargetParameters->ScanlineOrdering );
-; 3138 : 
-; 3139 :   HRESULT ret;
-; 3140 : 
-; 3141 :   if ( config.window.borderless ||
-; 3142 :        ( config.render.dxgi.scaling_mode != -1 &&
-; 3143 :           pNewTargetParameters->Scaling  != 
-; 3144 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
-; 3145 :                                 ||
+; 3132 :                        L"{ (%lux%lu@%3.1f Hz),"
+; 3133 :                        L"fmt=%lu,scaling=0x%02x,scanlines=0x%02x }",
+; 3134 :                           pNewTargetParameters->Width, pNewTargetParameters->Height,
+; 3135 :                           pNewTargetParameters->RefreshRate.Denominator != 0 ?
+; 3136 :            static_cast <float> (pNewTargetParameters->RefreshRate.Numerator) /
+; 3137 :            static_cast <float> (pNewTargetParameters->RefreshRate.Denominator) :
+; 3138 :                               std::numeric_limits <float>::quiet_NaN (),
+; 3139 :             static_cast <UINT> (pNewTargetParameters->Format),
+; 3140 :                                 pNewTargetParameters->Scaling,
+; 3141 :                                 pNewTargetParameters->ScanlineOrdering );
+; 3142 : 
+; 3143 :   HRESULT ret;
+; 3144 : 
+; 3145 :   if ( config.window.borderless ||
+; 3146 :        ( config.render.dxgi.scaling_mode != -1 &&
+; 3147 :           pNewTargetParameters->Scaling  != 
+; 3148 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+; 3149 :                                 ||
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+472
 	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+424
 	jne	$LN7@DXGISwap_R
@@ -29857,13 +29846,13 @@ $LN8@DXGISwap_R:
 	jne	SHORT $LN7@DXGISwap_R
 $LN5@DXGISwap_R:
 
-; 3248 :       }
-; 3249 :     }
-; 3250 :   }
-; 3251 : 
-; 3252 :   else
-; 3253 :   {
-; 3254 :     DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
+; 3252 :       }
+; 3253 :     }
+; 3254 :   }
+; 3255 : 
+; 3256 :   else
+; 3257 :   {
+; 3258 :     DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
 
 	push	esi
 	push	DWORD PTR _This$[ebp]
@@ -29872,19 +29861,19 @@ $LN5@DXGISwap_R:
 	push	edi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356787
+	push	OFFSET $SG356419
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 3255 : 
-; 3256 :     if (SUCCEEDED (ret))
+; 3259 : 
+; 3260 :     if (SUCCEEDED (ret))
 
 	test	edi, edi
 	js	$LN24@DXGISwap_R
 
-; 3257 :     {
-; 3258 :       if (pNewTargetParameters->Width != 0 && pNewTargetParameters->Height != 0)
+; 3261 :     {
+; 3262 :       if (pNewTargetParameters->Width != 0 && pNewTargetParameters->Height != 0)
 
 	mov	eax, DWORD PTR [esi]
 	test	eax, eax
@@ -29892,43 +29881,43 @@ $LN5@DXGISwap_R:
 	cmp	DWORD PTR [esi+4], 0
 	je	SHORT $LN20@DXGISwap_R
 
-; 3259 :       {
-; 3260 :         SK_SetWindowResX (pNewTargetParameters->Width);
+; 3263 :       {
+; 3264 :         SK_SetWindowResX (pNewTargetParameters->Width);
 
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3261 :         SK_SetWindowResY (pNewTargetParameters->Height);
+; 3265 :         SK_SetWindowResY (pNewTargetParameters->Height);
 
 	push	DWORD PTR [esi+4]
 	call	?SK_SetWindowResY@@YAXJ@Z		; SK_SetWindowResY
 
-; 3262 :       }
-; 3263 : 
-; 3264 :       else
+; 3266 :       }
+; 3267 : 
+; 3268 :       else
 
 	mov	esi, DWORD PTR _This$[ebp]
 	jmp	$LN112@DXGISwap_R
 $LN20@DXGISwap_R:
 
-; 3265 :       {
-; 3266 :         RECT client;
-; 3267 : 
-; 3268 :         GetClientRect (game_window.hWnd, &client);
+; 3269 :       {
+; 3270 :         RECT client;
+; 3271 : 
+; 3272 :         GetClientRect (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$5[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 3269 :         SK_SetWindowResX (client.right  - client.left);
+; 3273 :         SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$5[ebp+8]
 	sub	eax, DWORD PTR _client$5[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3270 :         SK_SetWindowResY (client.bottom - client.top);
+; 3274 :         SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$5[ebp+12]
 	sub	eax, DWORD PTR _client$5[ebp+4]
@@ -29938,13 +29927,13 @@ $LN20@DXGISwap_R:
 	jmp	$LN112@DXGISwap_R
 $LN7@DXGISwap_R:
 
-; 3146 :        ( config.render.framerate.refresh_rate          != -1 &&
-; 3147 :            pNewTargetParameters->RefreshRate.Numerator !=
-; 3148 :              (UINT)config.render.framerate.refresh_rate )
-; 3149 :     )
-; 3150 :   {
-; 3151 :     DXGI_MODE_DESC new_new_params =
-; 3152 :       *pNewTargetParameters;
+; 3150 :        ( config.render.framerate.refresh_rate          != -1 &&
+; 3151 :            pNewTargetParameters->RefreshRate.Numerator !=
+; 3152 :              (UINT)config.render.framerate.refresh_rate )
+; 3153 :     )
+; 3154 :   {
+; 3155 :     DXGI_MODE_DESC new_new_params =
+; 3156 :       *pNewTargetParameters;
 
 	mov	eax, DWORD PTR [esi+24]
 	mov	DWORD PTR _new_new_params$2[ebp+24], eax
@@ -29953,8 +29942,8 @@ $LN7@DXGISwap_R:
 	movq	xmm0, QWORD PTR [esi+16]
 	movq	QWORD PTR _new_new_params$2[ebp+16], xmm0
 
-; 3153 : 
-; 3154 :     if ( config.render.framerate.refresh_rate != -1 &&
+; 3157 : 
+; 3158 :     if ( config.render.framerate.refresh_rate != -1 &&
 
 	cmp	edx, -1
 	je	SHORT $LN9@DXGISwap_R
@@ -29962,9 +29951,9 @@ $LN7@DXGISwap_R:
 	cmp	edi, edx
 	je	SHORT $LN9@DXGISwap_R
 
-; 3155 :          new_new_params.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
-; 3156 :     {
-; 3157 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
+; 3159 :          new_new_params.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
+; 3160 :     {
+; 3161 :       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
 
 	mov	eax, DWORD PTR _new_new_params$2[ebp+12]
 	test	eax, eax
@@ -29985,33 +29974,33 @@ $LN30@DXGISwap_R:
 	cvtps2pd xmm0, xmm1
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG356774
+	push	OFFSET $SG356406
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3158 :                     L"(Requested: %f, Using: %li)",
-; 3159 :                       new_new_params.RefreshRate.Denominator != 0 ?
-; 3160 :                         static_cast <float> (new_new_params.RefreshRate.Numerator) /
-; 3161 :                         static_cast <float> (new_new_params.RefreshRate.Denominator) :
-; 3162 :                           std::numeric_limits <float>::quiet_NaN (),
-; 3163 :                         config.render.framerate.refresh_rate
-; 3164 :                   );
-; 3165 : 
-; 3166 :       new_new_params.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
+; 3162 :                     L"(Requested: %f, Using: %li)",
+; 3163 :                       new_new_params.RefreshRate.Denominator != 0 ?
+; 3164 :                         static_cast <float> (new_new_params.RefreshRate.Numerator) /
+; 3165 :                         static_cast <float> (new_new_params.RefreshRate.Denominator) :
+; 3166 :                           std::numeric_limits <float>::quiet_NaN (),
+; 3167 :                         config.render.framerate.refresh_rate
+; 3168 :                   );
+; 3169 : 
+; 3170 :       new_new_params.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	add	esp, 20					; 00000014H
 
-; 3167 :       new_new_params.RefreshRate.Denominator = 1;
+; 3171 :       new_new_params.RefreshRate.Denominator = 1;
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+472
 	mov	DWORD PTR _new_new_params$2[ebp+8], eax
 	mov	DWORD PTR _new_new_params$2[ebp+12], 1
 $LN9@DXGISwap_R:
 
-; 3168 :     }
-; 3169 : 
-; 3170 :     if ( config.render.dxgi.scanline_order != -1 &&
+; 3172 :     }
+; 3173 : 
+; 3174 :     if ( config.render.dxgi.scanline_order != -1 &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
@@ -30020,10 +30009,10 @@ $LN9@DXGISwap_R:
 	cmp	edi, eax
 	je	SHORT $LN10@DXGISwap_R
 
-; 3171 :           pNewTargetParameters->ScanlineOrdering  != 
-; 3172 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
-; 3173 :     {
-; 3174 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
+; 3175 :           pNewTargetParameters->ScanlineOrdering  != 
+; 3176 :             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
+; 3177 :     {
+; 3178 :       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
 
 	push	eax
 	call	?SK_DXGI_DescribeScanlineOrder@@YAPB_WW4DXGI_MODE_SCANLINE_ORDER@@@Z ; SK_DXGI_DescribeScanlineOrder
@@ -30033,20 +30022,20 @@ $LN9@DXGISwap_R:
 	call	?SK_DXGI_DescribeScanlineOrder@@YAPB_WW4DXGI_MODE_SCANLINE_ORDER@@@Z ; SK_DXGI_DescribeScanlineOrder
 	add	esp, 4
 	push	eax
-	push	OFFSET $SG356776
+	push	OFFSET $SG356408
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3175 :                     L"(Requested: %s, Using: %s)",
-; 3176 :                       SK_DXGI_DescribeScanlineOrder (
-; 3177 :                         pNewTargetParameters->ScanlineOrdering
-; 3178 :                       ),
-; 3179 :                         SK_DXGI_DescribeScanlineOrder (
-; 3180 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
-; 3181 :                         )
-; 3182 :                   );
-; 3183 : 
-; 3184 :       new_new_params.ScanlineOrdering =
+; 3179 :                     L"(Requested: %s, Using: %s)",
+; 3180 :                       SK_DXGI_DescribeScanlineOrder (
+; 3181 :                         pNewTargetParameters->ScanlineOrdering
+; 3182 :                       ),
+; 3183 :                         SK_DXGI_DescribeScanlineOrder (
+; 3184 :                           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+; 3185 :                         )
+; 3186 :                   );
+; 3187 : 
+; 3188 :       new_new_params.ScanlineOrdering =
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	add	esp, 16					; 00000010H
@@ -30054,10 +30043,10 @@ $LN9@DXGISwap_R:
 	mov	DWORD PTR _new_new_params$2[ebp+20], eax
 $LN10@DXGISwap_R:
 
-; 3185 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
-; 3186 :     }
-; 3187 : 
-; 3188 :     if ( config.render.dxgi.scaling_mode != -1 &&
+; 3189 :         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
+; 3190 :     }
+; 3191 : 
+; 3192 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
 	cmp	ecx, -1
 	je	SHORT $LN11@DXGISwap_R
@@ -30065,10 +30054,10 @@ $LN10@DXGISwap_R:
 	cmp	esi, ecx
 	je	SHORT $LN11@DXGISwap_R
 
-; 3189 :           pNewTargetParameters->Scaling  != 
-; 3190 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
-; 3191 :     {
-; 3192 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
+; 3193 :           pNewTargetParameters->Scaling  != 
+; 3194 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
+; 3195 :     {
+; 3196 :       dll_log.Log ( L"[   DXGI   ]  >> Scaling Override "
 
 	push	ecx
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
@@ -30078,40 +30067,40 @@ $LN10@DXGISwap_R:
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
 	add	esp, 4
 	push	eax
-	push	OFFSET $SG356778
+	push	OFFSET $SG356410
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 3193 :                     L"(Requested: %s, Using: %s)",
-; 3194 :                       SK_DXGI_DescribeScalingMode (
-; 3195 :                         pNewTargetParameters->Scaling
-; 3196 :                       ),
-; 3197 :                         SK_DXGI_DescribeScalingMode (
-; 3198 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
-; 3199 :                         )
-; 3200 :                   );
-; 3201 : 
-; 3202 :       new_new_params.Scaling =
+; 3197 :                     L"(Requested: %s, Using: %s)",
+; 3198 :                       SK_DXGI_DescribeScalingMode (
+; 3199 :                         pNewTargetParameters->Scaling
+; 3200 :                       ),
+; 3201 :                         SK_DXGI_DescribeScalingMode (
+; 3202 :                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
+; 3203 :                         )
+; 3204 :                   );
+; 3205 : 
+; 3206 :       new_new_params.Scaling =
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR _new_new_params$2[ebp+24], eax
 $LN11@DXGISwap_R:
 
-; 3203 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
-; 3204 :     }
-; 3205 : 
-; 3206 :     if ( (! config.window.fullscreen) &&
+; 3207 :         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+; 3208 :     }
+; 3209 : 
+; 3210 :     if ( (! config.window.fullscreen) &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+752
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+756
 	jne	SHORT $LN13@DXGISwap_R
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
 	je	SHORT $LN13@DXGISwap_R
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	ecx, ecx
 	jne	SHORT $LN100@DXGISwap_R
@@ -30120,17 +30109,17 @@ $LN11@DXGISwap_R:
 $LN100@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3211 :         new_new_params.Width  = config.window.res.override.x;
+; 3215 :         new_new_params.Width  = config.window.res.override.x;
 
 	mov	DWORD PTR _new_new_params$2[ebp], ecx
 
-; 3212 :         new_new_params.Height = config.window.res.override.y;
+; 3216 :         new_new_params.Height = config.window.res.override.y;
 
 	mov	DWORD PTR _new_new_params$2[ebp+4], eax
 $LN13@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	ecx, ecx
 	jne	SHORT $LN104@DXGISwap_R
@@ -30139,20 +30128,20 @@ $LN13@DXGISwap_R:
 $LN104@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3225 :       new_new_params.Width  = config.window.res.override.x;
+; 3229 :       new_new_params.Width  = config.window.res.override.x;
 
 	mov	DWORD PTR _new_new_params$2[ebp], ecx
 
-; 3226 :       new_new_params.Height = config.window.res.override.y;
+; 3230 :       new_new_params.Height = config.window.res.override.y;
 
 	mov	DWORD PTR _new_new_params$2[ebp+4], eax
 $LN15@DXGISwap_R:
 
-; 3227 :     }
-; 3228 : 
-; 3229 : 
-; 3230 : 
-; 3231 :     DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
+; 3231 :     }
+; 3232 : 
+; 3233 : 
+; 3234 : 
+; 3235 :     DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
 
 	mov	esi, DWORD PTR _This$[ebp]
 	lea	eax, DWORD PTR _new_new_params$2[ebp]
@@ -30163,19 +30152,19 @@ $LN15@DXGISwap_R:
 	push	edi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356783
+	push	OFFSET $SG356415
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 3232 : 
-; 3233 :     if (SUCCEEDED (ret))
+; 3236 : 
+; 3237 :     if (SUCCEEDED (ret))
 
 	test	edi, edi
 	js	SHORT $LN24@DXGISwap_R
 
-; 3234 :     {
-; 3235 :       if (pNewNewTargetParameters->Width != 0 && pNewNewTargetParameters->Height != 0)
+; 3238 :     {
+; 3239 :       if (pNewNewTargetParameters->Width != 0 && pNewNewTargetParameters->Height != 0)
 
 	mov	eax, DWORD PTR _new_new_params$2[ebp]
 	test	eax, eax
@@ -30183,41 +30172,41 @@ $LN15@DXGISwap_R:
 	cmp	DWORD PTR _new_new_params$2[ebp+4], 0
 	je	SHORT $LN17@DXGISwap_R
 
-; 3236 :       {
-; 3237 :         SK_SetWindowResX (pNewNewTargetParameters->Width);
+; 3240 :       {
+; 3241 :         SK_SetWindowResX (pNewNewTargetParameters->Width);
 
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3238 :         SK_SetWindowResY (pNewNewTargetParameters->Height);
+; 3242 :         SK_SetWindowResY (pNewNewTargetParameters->Height);
 
 	push	DWORD PTR _new_new_params$2[ebp+4]
 
-; 3239 :       }
-; 3240 : 
-; 3241 :       else
+; 3243 :       }
+; 3244 : 
+; 3245 :       else
 
 	jmp	SHORT $LN113@DXGISwap_R
 $LN17@DXGISwap_R:
 
-; 3242 :       {
-; 3243 :         RECT client;
-; 3244 : 
-; 3245 :         GetClientRect (game_window.hWnd, &client);
+; 3246 :       {
+; 3247 :         RECT client;
+; 3248 : 
+; 3249 :         GetClientRect (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$4[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 3246 :         SK_SetWindowResX (client.right  - client.left);
+; 3250 :         SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$4[ebp+8]
 	sub	eax, DWORD PTR _client$4[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3247 :         SK_SetWindowResY (client.bottom - client.top);
+; 3251 :         SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$4[ebp+12]
 	sub	eax, DWORD PTR _client$4[ebp+4]
@@ -30227,13 +30216,13 @@ $LN113@DXGISwap_R:
 $LN112@DXGISwap_R:
 	add	esp, 8
 
-; 3271 :       }
-; 3272 :     }
-; 3273 :   }
-; 3274 : 
-; 3275 :   if (SUCCEEDED (ret))
-; 3276 :   {
-; 3277 :     SK_RunOnce (SK_DXGI_HookPresent (This));
+; 3275 :       }
+; 3276 :     }
+; 3277 :   }
+; 3278 : 
+; 3279 :   if (SUCCEEDED (ret))
+; 3280 :   {
+; 3281 :     SK_RunOnce (SK_DXGI_HookPresent (This));
 
 	cmp	BYTE PTR ?first@?DN@??DXGISwap_ResizeTarget_Override@@YGJPAUIDXGISwapChain@@PBUDXGI_MODE_DESC@@@Z@4_NA, 0
 	je	SHORT $LN23@DXGISwap_R
@@ -30244,7 +30233,7 @@ $LN112@DXGISwap_R:
 	mov	BYTE PTR ?first@?DN@??DXGISwap_ResizeTarget_Override@@YGJPAUIDXGISwapChain@@PBUDXGI_MODE_DESC@@@Z@4_NA, 0
 $LN23@DXGISwap_R:
 
-; 3278 :     SK_RunOnce (MH_ApplyQueued      (    ));
+; 3282 :     SK_RunOnce (MH_ApplyQueued      (    ));
 
 	cmp	BYTE PTR ?first@?EB@??DXGISwap_ResizeTarget_Override@@YGJPAUIDXGISwapChain@@PBUDXGI_MODE_DESC@@@Z@4_NA, 0
 	je	SHORT $LN24@DXGISwap_R
@@ -30252,10 +30241,10 @@ $LN23@DXGISwap_R:
 	mov	BYTE PTR ?first@?EB@??DXGISwap_ResizeTarget_Override@@YGJPAUIDXGISwapChain@@PBUDXGI_MODE_DESC@@@Z@4_NA, 0
 $LN24@DXGISwap_R:
 
-; 3279 :   }
-; 3280 : 
-; 3281 :   return ret;
-; 3282 : }
+; 3283 :   }
+; 3284 : 
+; 3285 :   return ret;
+; 3286 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, edi
@@ -30285,7 +30274,7 @@ _TEXT	SEGMENT
 ; _this$ = ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [eax]
@@ -30324,7 +30313,7 @@ __Mtx$ = 8						; size = 4
 	mov	DWORD PTR [esi], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__EnterCriticalSection@4
@@ -30383,7 +30372,7 @@ _NewFormat$ = 24					; size = 4
 _SwapChainFlags$ = 28					; size = 4
 ?DXGISwap_ResizeBuffers_Override@@YGJPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@Z PROC ; DXGISwap_ResizeBuffers_Override
 
-; 3002 : {
+; 3006 : {
 
 	npad	2
 	push	ebp
@@ -30398,7 +30387,7 @@ _SwapChainFlags$ = 28					; size = 4
 	push	esi
 	push	edi
 
-; 3003 :   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
+; 3007 :   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
 
 	push	8192					; 00002000H
 	call	??_U@YAPAXI@Z				; operator new[]
@@ -30418,9 +30407,9 @@ $LN21@DXGISwap_R:
 	mov	ebx, DWORD PTR _BufferCount$[ebp]
 	test	esi, esi
 	je	$LN118@DXGISwap_R
-	push	OFFSET $SG356692
-	push	OFFSET $SG356693
-	push	OFFSET $SG356694
+	push	OFFSET $SG356324
+	push	OFFSET $SG356325
+	push	OFFSET $SG356326
 	push	esi
 	call	__swprintf
 	mov	edi, DWORD PTR _SwapChainFlags$[ebp]
@@ -30430,14 +30419,14 @@ $LN21@DXGISwap_R:
 	push	DWORD PTR _Height$[ebp]
 	push	DWORD PTR _Width$[ebp]
 	push	ebx
-	push	OFFSET $SG356695
+	push	OFFSET $SG356327
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [esi+2048]
 	push	eax
 	push	esi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG356696
+	push	OFFSET $SG356328
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -30464,11 +30453,11 @@ $LN21@DXGISwap_R:
 $LN37@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3003 :   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
+; 3007 :   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG356697
+	push	OFFSET $SG356329
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -30478,7 +30467,7 @@ $LN37@DXGISwap_R:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3003 :   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
+; 3007 :   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -30510,7 +30499,7 @@ $LN37@DXGISwap_R:
 $LN47@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3003 :   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
+; 3007 :   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
@@ -30520,29 +30509,29 @@ $LN118@DXGISwap_R:
 	mov	edi, DWORD PTR _SwapChainFlags$[ebp]
 $LN2@DXGISwap_R:
 
-; 3004 :                        L"%lu,%lu,%lu,fmt=%lu,0x%08X",
-; 3005 :                          BufferCount, Width, Height,
-; 3006 :                    (UINT)NewFormat, SwapChainFlags );
-; 3007 : 
-; 3008 :   // Can't do this if waitable
-; 3009 :   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
+; 3008 :                        L"%lu,%lu,%lu,fmt=%lu,0x%08X",
+; 3009 :                          BufferCount, Width, Height,
+; 3010 :                    (UINT)NewFormat, SwapChainFlags );
+; 3011 : 
+; 3012 :   // Can't do this if waitable
+; 3013 :   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
 
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN3@DXGISwap_R
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
 	jle	SHORT $LN3@DXGISwap_R
 
-; 3010 :     return S_OK;
+; 3014 :     return S_OK;
 
 	pop	edi
 	pop	esi
 	xor	eax, eax
 	pop	ebx
 
-; 3097 :   }
-; 3098 : 
-; 3099 :   return ret;
-; 3100 : }
+; 3101 :   }
+; 3102 : 
+; 3103 :   return ret;
+; 3104 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -30552,7 +30541,7 @@ $LN2@DXGISwap_R:
 $LN3@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?cs_mmio@@3VSK_Thread_HybridSpinlock@@A ; cs_mmio
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -30562,41 +30551,41 @@ $LN3@DXGISwap_R:
 	mov	DWORD PTR _auto_lock$4[ebp], OFFSET ?cs_mmio@@3VSK_Thread_HybridSpinlock@@A ; cs_mmio
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3014 :     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+; 3018 :     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 3015 : 
-; 3016 :     SK_D3D11_EndFrame        ();
+; 3019 : 
+; 3020 :     SK_D3D11_EndFrame        ();
 
 	call	?SK_D3D11_EndFrame@@YAXXZ		; SK_D3D11_EndFrame
 
-; 3017 :     SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+; 3021 :     SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
 
 	call	?SK_CEGUI_QueueResetD3D11@@YAXXZ	; SK_CEGUI_QueueResetD3D11
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?cs_mmio@@3VSK_Thread_HybridSpinlock@@A ; cs_mmio
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3018 :   }
+; 3022 :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3022 :        (UINT)config.render.framerate.buffer_count !=  BufferCount &&
+; 3026 :        (UINT)config.render.framerate.buffer_count !=  BufferCount &&
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+408
 	cmp	eax, -1
@@ -30606,35 +30595,35 @@ $LN3@DXGISwap_R:
 	test	ebx, ebx
 	je	SHORT $LN4@DXGISwap_R
 
-; 3023 :        BufferCount                          !=  0 )
-; 3024 :   {
-; 3025 :     BufferCount = config.render.framerate.buffer_count;
+; 3027 :        BufferCount                          !=  0 )
+; 3028 :   {
+; 3029 :     BufferCount = config.render.framerate.buffer_count;
 
 	mov	ebx, eax
 
-; 3026 :     dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", BufferCount);
+; 3030 :     dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", BufferCount);
 
 	push	ebx
-	push	OFFSET $SG356700
+	push	OFFSET $SG356332
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 $LN4@DXGISwap_R:
 
-; 3027 :   }
-; 3028 : 
-; 3029 :   if (config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing)
+; 3031 :   }
+; 3032 : 
+; 3033 :   if (config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
 	je	SHORT $LN5@DXGISwap_R
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN5@DXGISwap_R
 
-; 3030 :   {
-; 3031 :     SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-; 3032 :     dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+; 3034 :   {
+; 3035 :     SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+; 3036 :     dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
 
-	push	OFFSET $SG356702
+	push	OFFSET $SG356334
 	or	edi, 2048				; 00000800H
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR _SwapChainFlags$[ebp], edi
@@ -30642,20 +30631,20 @@ $LN4@DXGISwap_R:
 	add	esp, 8
 $LN5@DXGISwap_R:
 
-; 3033 :   }
-; 3034 : 
-; 3035 :   // TODO: Something if Fullscreen
-; 3036 :   if (config.window.borderless && (! config.window.fullscreen))
+; 3037 :   }
+; 3038 : 
+; 3039 :   // TODO: Something if Fullscreen
+; 3040 :   if (config.window.borderless && (! config.window.fullscreen))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+756
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+752
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+760
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
 	je	SHORT $LN117@DXGISwap_R
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
 	jne	SHORT $LN117@DXGISwap_R
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN84@DXGISwap_R
@@ -30664,11 +30653,11 @@ $LN5@DXGISwap_R:
 $LN84@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3040 :       Width  = config.window.res.override.x;
+; 3044 :       Width  = config.window.res.override.x;
 
 	mov	edi, edx
 
-; 3041 :       Height = config.window.res.override.y;
+; 3045 :       Height = config.window.res.override.y;
 
 	mov	esi, ecx
 	jmp	SHORT $LN7@DXGISwap_R
@@ -30688,7 +30677,7 @@ $LN7@DXGISwap_R:
 $LN88@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3053 :   if ((! config.render.dxgi.res.max.isZero ()) && Width > config.render.dxgi.res.max.x)
+; 3057 :   if ((! config.render.dxgi.res.max.isZero ()) && Width > config.render.dxgi.res.max.x)
 
 	cmp	edi, DWORD PTR ?config@@3Usk_config_t@@A+460
 	cmova	edi, DWORD PTR ?config@@3Usk_config_t@@A+460
@@ -30703,7 +30692,7 @@ $LN88@DXGISwap_R:
 $LN92@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3055 :   if ((! config.render.dxgi.res.max.isZero ()) && Height > config.render.dxgi.res.max.y)
+; 3059 :   if ((! config.render.dxgi.res.max.isZero ()) && Height > config.render.dxgi.res.max.y)
 
 	cmp	esi, eax
 	cmova	esi, eax
@@ -30721,7 +30710,7 @@ $LN10@DXGISwap_R:
 $LN96@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3058 :   if ((! config.render.dxgi.res.min.isZero ()) && Width < config.render.dxgi.res.min.x)
+; 3062 :   if ((! config.render.dxgi.res.min.isZero ()) && Width < config.render.dxgi.res.min.x)
 
 	cmp	edi, DWORD PTR ?config@@3Usk_config_t@@A+452
 	cmovb	edi, DWORD PTR ?config@@3Usk_config_t@@A+452
@@ -30736,14 +30725,14 @@ $LN96@DXGISwap_R:
 $LN100@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3060 :   if ((! config.render.dxgi.res.min.isZero ()) && Height < config.render.dxgi.res.min.y)
+; 3064 :   if ((! config.render.dxgi.res.min.isZero ()) && Height < config.render.dxgi.res.min.y)
 
 	cmp	esi, eax
 	cmovb	esi, eax
 $LN12@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN104@DXGISwap_R
@@ -30752,22 +30741,22 @@ $LN12@DXGISwap_R:
 $LN104@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 3067 :     Width  = config.window.res.override.x;
+; 3071 :     Width  = config.window.res.override.x;
 
 	mov	edi, edx
 
-; 3068 :     Height = config.window.res.override.y;
+; 3072 :     Height = config.window.res.override.y;
 
 	mov	esi, ecx
 $LN13@DXGISwap_R:
 
-; 3069 :   }
-; 3070 : 
-; 3071 : 
-; 3072 : 
-; 3073 : 
-; 3074 :   HRESULT     ret;
-; 3075 :   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
+; 3073 :   }
+; 3074 : 
+; 3075 : 
+; 3076 :   //NewFormat = DXGI_FORMAT_UNKNOWN;
+; 3077 : 
+; 3078 :   HRESULT     ret;
+; 3079 :   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
 
 	push	DWORD PTR _SwapChainFlags$[ebp]
 	push	DWORD PTR _NewFormat$[ebp]
@@ -30780,61 +30769,61 @@ $LN13@DXGISwap_R:
 	push	ebx
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356711
+	push	OFFSET $SG356343
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 3076 :                                               NewFormat, SwapChainFlags ) );
-; 3077 : 
-; 3078 :   if (SUCCEEDED (ret))
+; 3080 :                                               NewFormat, SwapChainFlags ) );
+; 3081 : 
+; 3082 :   if (SUCCEEDED (ret))
 
 	test	ebx, ebx
 	js	SHORT $LN18@DXGISwap_R
 
-; 3079 :   {
-; 3080 :     if (Width != 0 && Height != 0)
+; 3083 :   {
+; 3084 :     if (Width != 0 && Height != 0)
 
 	test	edi, edi
 	je	SHORT $LN15@DXGISwap_R
 	test	esi, esi
 	je	SHORT $LN15@DXGISwap_R
 
-; 3081 :     {
-; 3082 :       SK_SetWindowResX (Width);
+; 3085 :     {
+; 3086 :       SK_SetWindowResX (Width);
 
 	push	edi
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3083 :       SK_SetWindowResY (Height);
+; 3087 :       SK_SetWindowResY (Height);
 
 	push	esi
 
-; 3084 :     }
-; 3085 : 
-; 3086 :     else
+; 3088 :     }
+; 3089 : 
+; 3090 :     else
 
 	jmp	SHORT $LN120@DXGISwap_R
 $LN15@DXGISwap_R:
 
-; 3087 :     {
-; 3088 :       RECT client;
-; 3089 : 
-; 3090 :       GetClientRect (game_window.hWnd, &client);
+; 3091 :     {
+; 3092 :       RECT client;
+; 3093 : 
+; 3094 :       GetClientRect (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$3[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 3091 :       SK_SetWindowResX (client.right  - client.left);
+; 3095 :       SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$3[ebp+8]
 	sub	eax, DWORD PTR _client$3[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 3092 :       SK_SetWindowResY (client.bottom - client.top);
+; 3096 :       SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$3[ebp+12]
 	sub	eax, DWORD PTR _client$3[ebp+4]
@@ -30843,9 +30832,9 @@ $LN120@DXGISwap_R:
 	call	?SK_SetWindowResY@@YAXJ@Z		; SK_SetWindowResY
 	add	esp, 8
 
-; 3093 :     }
-; 3094 : 
-; 3095 :     SK_RunOnce (SK_DXGI_HookPresent (This));
+; 3097 :     }
+; 3098 : 
+; 3099 :     SK_RunOnce (SK_DXGI_HookPresent (This));
 
 	cmp	BYTE PTR ?first@?CN@??DXGISwap_ResizeBuffers_Override@@YGJPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@Z@4_NA, 0
 	je	SHORT $LN17@DXGISwap_R
@@ -30856,7 +30845,7 @@ $LN120@DXGISwap_R:
 	mov	BYTE PTR ?first@?CN@??DXGISwap_ResizeBuffers_Override@@YGJPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@Z@4_NA, 0
 $LN17@DXGISwap_R:
 
-; 3096 :     SK_RunOnce (MH_ApplyQueued      (    ));
+; 3100 :     SK_RunOnce (MH_ApplyQueued      (    ));
 
 	cmp	BYTE PTR ?first@?DB@??DXGISwap_ResizeBuffers_Override@@YGJPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@Z@4_NA, 0
 	je	SHORT $LN18@DXGISwap_R
@@ -30864,10 +30853,10 @@ $LN17@DXGISwap_R:
 	mov	BYTE PTR ?first@?DB@??DXGISwap_ResizeBuffers_Override@@YGJPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@Z@4_NA, 0
 $LN18@DXGISwap_R:
 
-; 3097 :   }
-; 3098 : 
-; 3099 :   return ret;
-; 3100 : }
+; 3101 :   }
+; 3102 : 
+; 3103 :   return ret;
+; 3104 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, ebx
@@ -30909,11 +30898,12 @@ _client$3 = -16						; size = 16
 __$ReturnAddr$ = 4					; size = 4
 _This$ = 8						; size = 4
 _Fullscreen$ = 12					; size = 4
+_ret$1$ = 16						; size = 4
 _wszFullyFormatted$1$ = 16				; size = 4
 _pTarget$ = 16						; size = 4
 ?DXGISwap_SetFullscreenState_Override@@YGJPAUIDXGISwapChain@@HPAUIDXGIOutput@@@Z PROC ; DXGISwap_SetFullscreenState_Override
 
-; 2908 : {
+; 2906 : {
 
 	npad	2
 	push	ebp
@@ -30923,47 +30913,47 @@ _pTarget$ = 16						; size = 4
 	push	esi
 	push	edi
 
-; 2909 :   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
+; 2907 :   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
 
 	push	8192					; 00002000H
 	call	??_U@YAPAXI@Z				; operator new[]
 	mov	edi, eax
 	add	esp, 4
 	test	edi, edi
-	je	SHORT $LN16@DXGISwap_S
+	je	SHORT $LN17@DXGISwap_S
 	push	8192					; 00002000H
 	push	0
 	push	edi
 	call	_memset
 	add	esp, 12					; 0000000cH
-	jmp	SHORT $LN17@DXGISwap_S
-$LN16@DXGISwap_S:
-	xor	edi, edi
+	jmp	SHORT $LN18@DXGISwap_S
 $LN17@DXGISwap_S:
+	xor	edi, edi
+$LN18@DXGISwap_S:
 	mov	ebx, DWORD PTR _pTarget$[ebp]
 	mov	esi, DWORD PTR _Fullscreen$[ebp]
 	test	edi, edi
 	je	$LN2@DXGISwap_S
-	push	OFFSET $SG356619
-	push	OFFSET $SG356620
-	push	OFFSET $SG356621
+	push	OFFSET $SG356249
+	push	OFFSET $SG356250
+	push	OFFSET $SG356251
 	push	edi
 	call	__swprintf
-	mov	ecx, OFFSET $SG356623
+	mov	ecx, OFFSET $SG356253
 	test	esi, esi
 	push	ebx
-	mov	eax, OFFSET $SG356622
+	mov	eax, OFFSET $SG356252
 	cmove	eax, ecx
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG356624
+	push	OFFSET $SG356254
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
 	push	edi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG356625
+	push	OFFSET $SG356255
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -30981,20 +30971,20 @@ $LN17@DXGISwap_S:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN32@DXGISwap_S
+	jb	SHORT $LN33@DXGISwap_S
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN32@DXGISwap_S:
+$LN33@DXGISwap_S:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 2909 :   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
+; 2907 :   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG356626
+	push	OFFSET $SG356256
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31004,7 +30994,7 @@ $LN32@DXGISwap_S:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 2909 :   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
+; 2907 :   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31015,7 +31005,7 @@ $LN32@DXGISwap_S:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN42@DXGISwap_S
+	jb	SHORT $LN43@DXGISwap_S
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -31034,10 +31024,10 @@ $LN32@DXGISwap_S:
 	push	DWORD PTR $T2[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN42@DXGISwap_S:
+$LN43@DXGISwap_S:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 2909 :   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
+; 2907 :   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
 
 	push	edi
 	call	??_V@YAXPAX@Z				; operator delete[]
@@ -31052,173 +31042,203 @@ $LN2@DXGISwap_S:
 	xchg	DWORD PTR [ecx], eax
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 2916 :   if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
+; 2914 :   if (config.render.framerate.swapchain_wait != 0)
+
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
+	je	SHORT $LN3@DXGISwap_S
+
+; 2915 :   {
+; 2916 :     dll_log.Log ( L"[ DXGI 1.2 ]  >> Waitable SwapChain In Use, Skipping..." );
+
+	push	OFFSET $SG356258
+	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
+	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
+	add	esp, 8
+
+; 2917 :     return S_OK;
+
+	xor	eax, eax
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 2995 : }
+
+	mov	esp, ebp
+	pop	ebp
+	ret	12					; 0000000cH
+$LN3@DXGISwap_S:
+
+; 2918 :   }
+; 2919 : 
+; 2920 :   if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
-	je	SHORT $LN3@DXGISwap_S
+	je	SHORT $LN4@DXGISwap_S
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
-	je	SHORT $LN3@DXGISwap_S
+	je	SHORT $LN4@DXGISwap_S
 
-; 2917 :   {
-; 2918 :     Fullscreen = FALSE;
-; 2919 :     dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Override:  Enable" );
+; 2921 :   {
+; 2922 :     Fullscreen = FALSE;
+; 2923 :     dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Override:  Enable" );
 
-	push	OFFSET $SG356628
+	push	OFFSET $SG356260
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	xor	esi, esi
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 2920 :     pTarget = nullptr;
+; 2924 :     pTarget = nullptr;
 
 	xor	ebx, ebx
-$LN3@DXGISwap_S:
+$LN4@DXGISwap_S:
 
-; 2921 :   }
-; 2922 : 
-; 2923 :   if (config.display.force_fullscreen && Fullscreen == FALSE)
+; 2925 :   }
+; 2926 : 
+; 2927 :   if (config.display.force_fullscreen && Fullscreen == FALSE)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
-	je	SHORT $LN4@DXGISwap_S
+	je	SHORT $LN5@DXGISwap_S
 	test	esi, esi
-	jne	SHORT $LN4@DXGISwap_S
+	jne	SHORT $LN5@DXGISwap_S
 
-; 2924 :   {
-; 2925 :     Fullscreen = TRUE;
+; 2928 :   {
+; 2929 :     Fullscreen = TRUE;
 
 	mov	esi, 1
 
-; 2926 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 2930 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
-	push	OFFSET $SG356631
+	push	OFFSET $SG356263
 	jmp	SHORT $LN71@DXGISwap_S
-$LN4@DXGISwap_S:
+$LN5@DXGISwap_S:
 
-; 2927 :                   L"(Requested: Windowed, Using: Fullscreen)" );
-; 2928 :   }
-; 2929 :   else if (config.display.force_windowed && Fullscreen == TRUE)
+; 2931 :                   L"(Requested: Windowed, Using: Fullscreen)" );
+; 2932 :   }
+; 2933 :   else if (config.display.force_windowed && Fullscreen == TRUE)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
-	je	SHORT $LN6@DXGISwap_S
+	je	SHORT $LN7@DXGISwap_S
 	cmp	esi, 1
-	jne	SHORT $LN6@DXGISwap_S
+	jne	SHORT $LN7@DXGISwap_S
 
-; 2930 :   {
-; 2931 :     Fullscreen = FALSE;
+; 2934 :   {
+; 2935 :     Fullscreen = FALSE;
 
 	xor	esi, esi
 
-; 2932 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 2936 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
-	push	OFFSET $SG356633
+	push	OFFSET $SG356265
 $LN71@DXGISwap_S:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
-$LN6@DXGISwap_S:
+$LN7@DXGISwap_S:
 
-; 2933 :                   L"(Requested: Fullscreen, Using: Windowed)" );
-; 2934 :   }
-; 2935 : 
-; 2936 :   if (request_mode_change == mode_change_request_e::Fullscreen && Fullscreen == FALSE)
+; 2937 :                   L"(Requested: Fullscreen, Using: Windowed)" );
+; 2938 :   }
+; 2939 : 
+; 2940 :   if (request_mode_change == mode_change_request_e::Fullscreen && Fullscreen == FALSE)
 
 	mov	eax, DWORD PTR ?request_mode_change@@3W4mode_change_request_e@@A ; request_mode_change
 	cmp	eax, 1
-	jne	SHORT $LN7@DXGISwap_S
+	jne	SHORT $LN8@DXGISwap_S
 	test	esi, esi
-	jne	SHORT $LN9@DXGISwap_S
+	jne	SHORT $LN10@DXGISwap_S
 
-; 2937 :   {
-; 2938 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 2941 :   {
+; 2942 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
-	push	OFFSET $SG356636
+	push	OFFSET $SG356268
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 2939 :             L"User Initiated Fulllscreen Switch" );
-; 2940 :     Fullscreen = TRUE;
+; 2943 :             L"User Initiated Fulllscreen Switch" );
+; 2944 :     Fullscreen = TRUE;
 
 	mov	esi, 1
-	jmp	SHORT $LN9@DXGISwap_S
-$LN7@DXGISwap_S:
+	jmp	SHORT $LN10@DXGISwap_S
+$LN8@DXGISwap_S:
 
-; 2941 :   }
-; 2942 :   else if (request_mode_change == mode_change_request_e::Windowed && Fullscreen == TRUE)
+; 2945 :   }
+; 2946 :   else if (request_mode_change == mode_change_request_e::Windowed && Fullscreen == TRUE)
 
 	test	eax, eax
-	jne	SHORT $LN9@DXGISwap_S
+	jne	SHORT $LN10@DXGISwap_S
 	cmp	esi, 1
-	jne	SHORT $LN9@DXGISwap_S
+	jne	SHORT $LN10@DXGISwap_S
 
-; 2943 :   {
-; 2944 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
+; 2947 :   {
+; 2948 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
-	push	OFFSET $SG356638
+	push	OFFSET $SG356270
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 2945 :             L"User Initiated Windowed Switch" );
-; 2946 :     Fullscreen = FALSE;
+; 2949 :             L"User Initiated Windowed Switch" );
+; 2950 :     Fullscreen = FALSE;
 
 	xor	esi, esi
-$LN9@DXGISwap_S:
+$LN10@DXGISwap_S:
 
-; 2947 :   }
-; 2948 : 
-; 2949 :   HRESULT ret;
-; 2950 :   DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
+; 2951 :   }
+; 2952 : 
+; 2953 :   HRESULT ret;
+; 2954 :   DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
 
+	mov	edi, DWORD PTR _This$[ebp]
 	push	ebx
-	mov	ebx, DWORD PTR _This$[ebp]
 	push	esi
-	push	ebx
-	call	DWORD PTR ?SetFullscreenState_Original@@3P6GJPAUIDXGISwapChain@@HPAUIDXGIOutput@@@ZA ; SetFullscreenState_Original
-	mov	edi, eax
 	push	edi
+	call	DWORD PTR ?SetFullscreenState_Original@@3P6GJPAUIDXGISwapChain@@HPAUIDXGIOutput@@@ZA ; SetFullscreenState_Original
+	mov	ebx, eax
+	push	ebx
+	mov	DWORD PTR _ret$1$[ebp], ebx
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356639
+	push	OFFSET $SG356271
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 2951 : 
-; 2952 :   //
-; 2953 :   // Necessary provisions for Fullscreen Flip Mode
-; 2954 :   //
-; 2955 :   if (SUCCEEDED (ret))
+; 2955 : 
+; 2956 :   //
+; 2957 :   // Necessary provisions for Fullscreen Flip Mode
+; 2958 :   //
+; 2959 :   if (SUCCEEDED (ret))
 
-	test	edi, edi
-	js	SHORT $LN70@DXGISwap_S
+	test	ebx, ebx
+	js	$LN11@DXGISwap_S
 
-; 2956 :   {
-; 2957 :     if (bFlipMode)
+; 2960 :   {
+; 2961 :     if (bFlipMode)
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
-	je	SHORT $LN11@DXGISwap_S
+	je	SHORT $LN12@DXGISwap_S
 
-; 2958 :     {
-; 2959 :       // Steam Overlay does not like this, even though for compliance sake we are supposed to do it :(
-; 2960 :       ResizeBuffers_Original ( This, 0, 0, 0, DXGI_FORMAT_UNKNOWN,
+; 2962 :     {
+; 2963 :       // Steam Overlay does not like this, even though for compliance sake we are supposed to do it :(
+; 2964 :       ResizeBuffers_Original ( This, 0, 0, 0, DXGI_FORMAT_UNKNOWN,
 
 	push	2
 	push	0
 	push	0
 	push	0
 	push	0
-	push	ebx
+	push	edi
 	call	DWORD PTR ?ResizeBuffers_Original@@3P6GJPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@ZA ; ResizeBuffers_Original
-$LN11@DXGISwap_S:
+$LN12@DXGISwap_S:
 
-; 2961 :                                  DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH );
-; 2962 :     }
-; 2963 : 
-; 2964 :     ///ResizeBuffers_Original (This, desc.BufferCount, desc.BufferDesc.Width,
-; 2965 :     ///                          desc.BufferDesc.Height, desc.BufferDesc.Format, desc.Flags);
-; 2966 : 
-; 2967 :     DXGI_SWAP_CHAIN_DESC desc = { };
+; 2965 :                                  DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH );
+; 2966 :     }
+; 2967 : 
+; 2968 :     ///ResizeBuffers_Original (This, desc.BufferCount, desc.BufferDesc.Width,
+; 2969 :     ///                          desc.BufferDesc.Height, desc.BufferDesc.Format, desc.Flags);
+; 2970 : 
+; 2971 :     DXGI_SWAP_CHAIN_DESC desc = { };
 
 	push	60					; 0000003cH
 	lea	eax, DWORD PTR _desc$1[ebp]
@@ -31226,60 +31246,60 @@ $LN11@DXGISwap_S:
 	push	eax
 	call	_memset
 
-; 2968 : 
-; 2969 :     if (SUCCEEDED (This->GetDesc (&desc)))
+; 2972 : 
+; 2973 :     if (SUCCEEDED (This->GetDesc (&desc)))
 
-	mov	eax, DWORD PTR [ebx]
+	mov	eax, DWORD PTR [edi]
 	lea	ecx, DWORD PTR _desc$1[ebp]
 	add	esp, 12					; 0000000cH
 	push	ecx
-	push	ebx
+	push	edi
 	call	DWORD PTR [eax+48]
 	test	eax, eax
-	js	SHORT $LN14@DXGISwap_S
+	js	SHORT $LN15@DXGISwap_S
 
-; 2970 :     {
-; 2971 :       if (desc.BufferDesc.Width != 0)
+; 2974 :     {
+; 2975 :       if (desc.BufferDesc.Width != 0)
 
 	mov	eax, DWORD PTR _desc$1[ebp]
 	test	eax, eax
-	je	SHORT $LN13@DXGISwap_S
+	je	SHORT $LN14@DXGISwap_S
 
-; 2972 :       {
-; 2973 :         SK_SetWindowResX (desc.BufferDesc.Width);
+; 2976 :       {
+; 2977 :         SK_SetWindowResX (desc.BufferDesc.Width);
 
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 2974 :         SK_SetWindowResY (desc.BufferDesc.Height);
+; 2978 :         SK_SetWindowResY (desc.BufferDesc.Height);
 
 	push	DWORD PTR _desc$1[ebp+4]
 
-; 2975 :       }
-; 2976 : 
-; 2977 :       else
+; 2979 :       }
+; 2980 : 
+; 2981 :       else
 
 	jmp	SHORT $LN72@DXGISwap_S
-$LN13@DXGISwap_S:
+$LN14@DXGISwap_S:
 
-; 2978 :       {
-; 2979 :         RECT client;
-; 2980 : 
-; 2981 :         GetClientRect (desc.OutputWindow, &client);
+; 2982 :       {
+; 2983 :         RECT client;
+; 2984 : 
+; 2985 :         GetClientRect (desc.OutputWindow, &client);
 
 	lea	eax, DWORD PTR _client$3[ebp]
 	push	eax
 	push	DWORD PTR _desc$1[ebp+44]
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 2982 :         SK_SetWindowResX (client.right  - client.left);
+; 2986 :         SK_SetWindowResX (client.right  - client.left);
 
 	mov	eax, DWORD PTR _client$3[ebp+8]
 	sub	eax, DWORD PTR _client$3[ebp]
 	push	eax
 	call	?SK_SetWindowResX@@YAXJ@Z		; SK_SetWindowResX
 
-; 2983 :         SK_SetWindowResY (client.bottom - client.top);
+; 2987 :         SK_SetWindowResY (client.bottom - client.top);
 
 	mov	eax, DWORD PTR _client$3[ebp+12]
 	sub	eax, DWORD PTR _client$3[ebp+4]
@@ -31287,29 +31307,30 @@ $LN13@DXGISwap_S:
 $LN72@DXGISwap_S:
 	call	?SK_SetWindowResY@@YAXJ@Z		; SK_SetWindowResY
 	add	esp, 8
-$LN14@DXGISwap_S:
+$LN15@DXGISwap_S:
 
-; 2984 :       }
-; 2985 :     }
-; 2986 : 
-; 2987 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = Fullscreen;
+; 2988 :       }
+; 2989 :     }
+; 2990 : 
+; 2991 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = Fullscreen;
 
 	test	esi, esi
 	setne	bl
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	BYTE PTR [eax+48], bl
-$LN70@DXGISwap_S:
+	mov	ebx, DWORD PTR _ret$1$[ebp]
+$LN11@DXGISwap_S:
 
-; 2988 :   }
-; 2989 : 
-; 2990 :   return ret;
+; 2992 :   }
+; 2993 : 
+; 2994 :   return ret;
 
-	mov	eax, edi
 	pop	edi
 	pop	esi
+	mov	eax, ebx
 	pop	ebx
 
-; 2991 : }
+; 2995 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -31324,17 +31345,17 @@ _pFullscreen$ = 12					; size = 4
 _ppTarget$ = 16						; size = 4
 ?DXGISwap_GetFullscreenState_Override@@YGJPAUIDXGISwapChain@@PAHPAPAUIDXGIOutput@@@Z PROC ; DXGISwap_GetFullscreenState_Override
 
-; 2898 : {
+; 2896 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2900 : }
+; 2898 : }
 
 	pop	ebp
 
-; 2899 :   return GetFullscreenState_Original (This, pFullscreen, ppTarget);
+; 2897 :   return GetFullscreenState_Original (This, pFullscreen, ppTarget);
 
 	jmp	DWORD PTR ?GetFullscreenState_Original@@3P6GJPAUIDXGISwapChain@@PAHPAPAUIDXGIOutput@@@ZA ; GetFullscreenState_Original
 ?DXGISwap_GetFullscreenState_Override@@YGJPAUIDXGISwapChain@@PAHPAPAUIDXGIOutput@@@Z ENDP ; DXGISwap_GetFullscreenState_Override
@@ -31387,18 +31408,18 @@ $LN5@DXGIOutput:
 	test	esi, esi
 	je	$LN2@DXGIOutput
 	push	ebx
-	push	OFFSET $SG356588
-	push	OFFSET $SG356589
-	push	OFFSET $SG356590
+	push	OFFSET $SG356217
+	push	OFFSET $SG356218
+	push	OFFSET $SG356219
 	push	esi
 	call	__swprintf
-	push	OFFSET $SG356591
+	push	OFFSET $SG356220
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	ebx, DWORD PTR [edi+2048]
-	push	OFFSET $SG356592
+	push	OFFSET $SG356221
 	push	ebx
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -31428,7 +31449,7 @@ $LN20@DXGIOutput:
 
 	push	eax
 	push	ebx
-	push	OFFSET $SG356593
+	push	OFFSET $SG356222
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31480,24 +31501,14 @@ $LN30@DXGIOutput:
 $LN2@DXGIOutput:
 
 ; 2886 : 
-; 2887 :   This->AddRef (); This->Release ();
+; 2887 :   return WaitForVBlank_Original (This);
 
-	mov	esi, DWORD PTR _This$[ebp]
-	push	esi
-	mov	eax, DWORD PTR [esi]
-	call	DWORD PTR [eax+4]
-	mov	eax, DWORD PTR [esi]
-	push	esi
-	call	DWORD PTR [eax+8]
+	push	DWORD PTR _This$[ebp]
+	call	DWORD PTR ?WaitForVBlank_Original@@3P6GJPAUIDXGIOutput@@@ZA ; WaitForVBlank_Original
 	pop	edi
-
-; 2888 : 
-; 2889 :   return S_OK;//return WaitForVBlank_Original (This);
-
-	xor	eax, eax
 	pop	esi
 
-; 2890 : }
+; 2888 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -31558,21 +31569,21 @@ $LN7@DXGIOutput:
 	test	esi, esi
 	je	$LN2@DXGIOutput
 	push	ebx
-	push	OFFSET $SG356564
-	push	OFFSET $SG356565
-	push	OFFSET $SG356566
+	push	OFFSET $SG356194
+	push	OFFSET $SG356195
+	push	OFFSET $SG356196
 	push	esi
 	call	__swprintf
 	push	0
 	push	0
 	push	0
-	push	OFFSET $SG356567
+	push	OFFSET $SG356197
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	ebx, DWORD PTR [edi+2048]
-	push	OFFSET $SG356568
+	push	OFFSET $SG356198
 	push	ebx
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -31602,7 +31613,7 @@ $LN24@DXGIOutput:
 
 	push	eax
 	push	ebx
-	push	OFFSET $SG356569
+	push	OFFSET $SG356199
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31709,7 +31720,7 @@ $LN61@DXGIOutput:
 	cvtps2pd xmm0, xmm1
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG356571
+	push	OFFSET $SG356201
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -31758,7 +31769,7 @@ $LN3@DXGIOutput:
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
 	add	esp, 4
 	push	eax
-	push	OFFSET $SG356573
+	push	OFFSET $SG356203
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -36053,9 +36064,9 @@ $LN28@DXGIOutput:
 $LN29@DXGIOutput:
 	test	esi, esi
 	je	$LN611@DXGIOutput
-	push	OFFSET $SG356517
-	push	OFFSET $SG356518
-	push	OFFSET $SG356519
+	push	OFFSET $SG356147
+	push	OFFSET $SG356148
+	push	OFFSET $SG356149
 	push	esi
 	call	__swprintf
 	mov	edi, DWORD PTR _pNumModes$[ebp]
@@ -36068,14 +36079,14 @@ $LN29@DXGIOutput:
 	mov	eax, DWORD PTR _This$[ebp]
 	push	eax
 	lea	eax, DWORD PTR [esi+2048]
-	push	OFFSET $SG356520
+	push	OFFSET $SG356150
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [esi+2048]
 	push	eax
 	push	esi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG356521
+	push	OFFSET $SG356151
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -36106,7 +36117,7 @@ $LN53@DXGIOutput:
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG356522
+	push	OFFSET $SG356152
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36681,7 +36692,7 @@ $LN9@DXGIOutput:
 	mov	eax, DWORD PTR _pNumModes$[ebp]
 	push	edi
 	push	DWORD PTR [eax]
-	push	OFFSET $SG356536
+	push	OFFSET $SG356166
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -38022,15 +38033,15 @@ $LN21@PresentCal:
 ; 2600 :     {
 ; 2601 :       dll_log.Log ( L"[   DXGI   ] *** IDXGISwapChain::Present (...) "
 
-	mov	ecx, OFFSET $SG355484
+	mov	ecx, OFFSET $SG355114
 	test	esi, esi
-	mov	eax, OFFSET $SG355483
+	mov	eax, OFFSET $SG355113
 	cmovs	eax, ecx
 	push	eax
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG355485
+	push	OFFSET $SG355115
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -38072,7 +38083,7 @@ $LN21@PresentCal:
 	push	eax
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG355488
+	push	OFFSET $SG355118
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -38646,7 +38657,7 @@ $LN20@SK_DXGI_Pr:
 ; 2381 :     {
 ; 2382 :       SK_LOG0 ( ( L"IDXGISwapChain::Present (...) function prolog altered (expected: "
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	$LN5@SK_DXGI_Pr
 	movzx	eax, BYTE PTR [edi+11]
 	push	eax
@@ -38696,7 +38707,7 @@ $LN20@SK_DXGI_Pr:
 	push	eax
 	movzx	eax, bl
 	push	eax
-	push	OFFSET $SG355198
+	push	OFFSET $SG354828
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 104				; 00000068H
@@ -39547,7 +39558,7 @@ _pPresentParameters$ = 20				; size = 4
 
 	cmp	BYTE PTR ?logged@?2??Present1Callback@@YGJPAUIDXGISwapChain1@@IIPBUDXGI_PRESENT_PARAMETERS@@@Z@4_NA, 0
 	jne	SHORT $LN4@Present1Ca
-	push	OFFSET $SG355066
+	push	OFFSET $SG354696
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -41772,7 +41783,7 @@ $LN12@SK_CEGUI_D:
 
 	cmp	BYTE PTR ?logged@?BL@??SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z@4_NA, 0
 	jne	$LN170@SK_CEGUI_D
-	push	OFFSET $SG354729
+	push	OFFSET $SG354359
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -41854,7 +41865,7 @@ $LN14@SK_CEGUI_D:
 
 	cmp	BYTE PTR ?logged@?CF@??SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z@4_NA, 0
 	jne	SHORT $LN18@SK_CEGUI_D
-	push	OFFSET $SG354733
+	push	OFFSET $SG354363
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -42074,7 +42085,7 @@ $LN17@SK_CEGUI_D:
 
 	cmp	BYTE PTR ?logged@?CM@??SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z@4_NA, 0
 	jne	SHORT $LN20@SK_CEGUI_D
-	push	OFFSET $SG354736
+	push	OFFSET $SG354366
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -42449,7 +42460,7 @@ $LN25@SK_CEGUI_D:
 
 	cmp	BYTE PTR ?nv_hardware@NVAPI@sk@@3_NA, 0	; sk::NVAPI::nv_hardware
 	je	SHORT $LN299@SK_CEGUI_D
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+788, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+792, 0
 	je	SHORT $LN299@SK_CEGUI_D
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
@@ -47122,7 +47133,7 @@ $LN4@SK_Describ:
 ; 853  :   case 0x10:
 ; 854  :     return L"Execute";
 
-	mov	eax, OFFSET $SG353308
+	mov	eax, OFFSET $SG352938
 
 ; 871  :   }
 ; 872  : }
@@ -47134,7 +47145,7 @@ $LN5@SK_Describ:
 ; 855  :   case 0x20:
 ; 856  :     return L"Execute + Read-Only";
 
-	mov	eax, OFFSET $SG353310
+	mov	eax, OFFSET $SG352940
 
 ; 871  :   }
 ; 872  : }
@@ -47146,7 +47157,7 @@ $LN6@SK_Describ:
 ; 857  :   case 0x40:
 ; 858  :     return L"Execute + Read/Write";
 
-	mov	eax, OFFSET $SG353312
+	mov	eax, OFFSET $SG352942
 
 ; 871  :   }
 ; 872  : }
@@ -47158,7 +47169,7 @@ $LN7@SK_Describ:
 ; 859  :   case 0x80:
 ; 860  :     return L"Execute + Read-Only or Copy-on-Write)";
 
-	mov	eax, OFFSET $SG353314
+	mov	eax, OFFSET $SG352944
 
 ; 871  :   }
 ; 872  : }
@@ -47170,7 +47181,7 @@ $LN8@SK_Describ:
 ; 861  :   case 0x01:
 ; 862  :     return L"No Access";
 
-	mov	eax, OFFSET $SG353316
+	mov	eax, OFFSET $SG352946
 
 ; 871  :   }
 ; 872  : }
@@ -47182,7 +47193,7 @@ $LN9@SK_Describ:
 ; 863  :   case 0x02:
 ; 864  :     return L"Read-Only";
 
-	mov	eax, OFFSET $SG353318
+	mov	eax, OFFSET $SG352948
 
 ; 871  :   }
 ; 872  : }
@@ -47194,7 +47205,7 @@ $LN10@SK_Describ:
 ; 865  :   case 0x04:
 ; 866  :     return L"Read/Write";
 
-	mov	eax, OFFSET $SG353320
+	mov	eax, OFFSET $SG352950
 
 ; 871  :   }
 ; 872  : }
@@ -47206,7 +47217,7 @@ $LN11@SK_Describ:
 ; 867  :   case 0x08:
 ; 868  :     return L" Read-Only or Copy-on-Write";
 
-	mov	eax, OFFSET $SG353322
+	mov	eax, OFFSET $SG352952
 
 ; 871  :   }
 ; 872  : }
@@ -47218,7 +47229,7 @@ $LN12@SK_Describ:
 ; 869  :   default:
 ; 870  :     return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG353324
+	mov	eax, OFFSET $SG352954
 
 ; 871  :   }
 ; 872  : }
@@ -47430,18 +47441,18 @@ _TEXT	SEGMENT
 _override_id$ = 8					; size = 4
 ?SK_DXGI_SetPreferredAdapter@@YGXH@Z PROC		; SK_DXGI_SetPreferredAdapter
 
-; 5338 : {
+; 5302 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 5339 :   SK_DXGI_preferred_adapter = override_id;
+; 5303 :   SK_DXGI_preferred_adapter = override_id;
 
 	mov	eax, DWORD PTR _override_id$[ebp]
 	mov	DWORD PTR ?SK_DXGI_preferred_adapter@@3HA, eax ; SK_DXGI_preferred_adapter
 
-; 5340 : }
+; 5304 : }
 
 	pop	ebp
 	ret	4
@@ -47464,7 +47475,7 @@ _pSwapChain$ = 8					; size = 4
 _rehook$ = 12						; size = 1
 ?SK_DXGI_HookPresent@@YAXPAUIDXGISwapChain@@_N@Z PROC	; SK_DXGI_HookPresent
 
-; 4907 : {
+; 4908 : {
 
 	npad	2
 	push	ebp
@@ -47476,7 +47487,7 @@ _rehook$ = 12						; size = 1
 	mov	DWORD PTR fs:0, esp
 	push	esi
 
-; 4908 :   SK_DXGI_HookPresentBase (pSwapChain, rehook);
+; 4909 :   SK_DXGI_HookPresentBase (pSwapChain, rehook);
 
 	push	DWORD PTR _rehook$[ebp]
 	mov	esi, DWORD PTR _pSwapChain$[ebp]
@@ -47489,7 +47500,7 @@ _rehook$ = 12						; size = 1
 	xor	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4908 :   SK_DXGI_HookPresentBase (pSwapChain, rehook);
+; 4909 :   SK_DXGI_HookPresentBase (pSwapChain, rehook);
 
 	add	esp, 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -47520,7 +47531,7 @@ _rehook$ = 12						; size = 1
 $LN8@SK_DXGI_Ho:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4910 :   CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+; 4911 :   CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -47530,12 +47541,12 @@ $LN8@SK_DXGI_Ho:
 	test	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4912 :   if (pSwapChain1 != nullptr)
+; 4913 :   if (pSwapChain1 != nullptr)
 
 	je	SHORT $LN2@SK_DXGI_Ho
 
-; 4913 :   {
-; 4914 :     SK_DXGI_HookPresent1 (pSwapChain1, rehook);
+; 4914 :   {
+; 4915 :     SK_DXGI_HookPresent1 (pSwapChain1, rehook);
 
 	push	DWORD PTR _rehook$[ebp]
 	push	ecx
@@ -47544,20 +47555,20 @@ $LN8@SK_DXGI_Ho:
 	add	esp, 8
 $LN2@SK_DXGI_Ho:
 
-; 4915 :   }
-; 4916 : 
-; 4917 :   if (config.system.handle_crashes)
+; 4916 :   }
+; 4917 : 
+; 4918 :   if (config.system.handle_crashes)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+812, 0
 	je	SHORT $LN3@SK_DXGI_Ho
 
-; 4918 :     SK::Diagnostics::CrashHandler::Reinstall ();
+; 4919 :     SK::Diagnostics::CrashHandler::Reinstall ();
 
 	call	?Reinstall@CrashHandler@Diagnostics@SK@@YAXXZ ; SK::Diagnostics::CrashHandler::Reinstall
 	mov	ecx, DWORD PTR _pSwapChain1$[ebp]
 $LN3@SK_DXGI_Ho:
 
-; 4919 : }
+; 4920 : }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -47575,7 +47586,7 @@ $LN3@SK_DXGI_Ho:
 $LN27@SK_DXGI_Ho:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 4919 : }
+; 4920 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -47647,45 +47658,45 @@ _TEXT	SEGMENT
 _user$ = 8						; size = 4
 ?SK_DXGI_BringRenderWindowToTop_THREAD@@YGKPAX@Z PROC	; SK_DXGI_BringRenderWindowToTop_THREAD
 
-; 4001 :   UNREFERENCED_PARAMETER (user);
-; 4002 : 
-; 4003 :   if (hWndRender != nullptr)
+; 4005 :   UNREFERENCED_PARAMETER (user);
+; 4006 : 
+; 4007 :   if (hWndRender != nullptr)
 
 	mov	eax, DWORD PTR ?hWndRender@@3PAUHWND__@@A ; hWndRender
 	test	eax, eax
 	je	SHORT $LN2@SK_DXGI_Br
 
-; 4004 :   {
-; 4005 :     SetActiveWindow     (hWndRender);
+; 4008 :   {
+; 4009 :     SetActiveWindow     (hWndRender);
 
 	push	eax
 	call	DWORD PTR __imp__SetActiveWindow@4
 
-; 4006 :     SetForegroundWindow (hWndRender);
+; 4010 :     SetForegroundWindow (hWndRender);
 
 	push	DWORD PTR ?hWndRender@@3PAUHWND__@@A	; hWndRender
 	call	DWORD PTR __imp__SetForegroundWindow@4
 
-; 4007 :     BringWindowToTop    (hWndRender);
+; 4011 :     BringWindowToTop    (hWndRender);
 
 	push	DWORD PTR ?hWndRender@@3PAUHWND__@@A	; hWndRender
 	call	DWORD PTR __imp__BringWindowToTop@4
 $LN2@SK_DXGI_Br:
 
-; 4008 :   }
-; 4009 : 
-; 4010 :   CloseHandle (GetCurrentThread ());
+; 4012 :   }
+; 4013 : 
+; 4014 :   CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 4011 : 
-; 4012 :   return 0;
+; 4015 : 
+; 4016 :   return 0;
 
 	xor	eax, eax
 
-; 4013 : }
+; 4017 : }
 
 	ret	4
 ?SK_DXGI_BringRenderWindowToTop_THREAD@@YGKPAX@Z ENDP	; SK_DXGI_BringRenderWindowToTop_THREAD
@@ -47701,6 +47712,10 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -47725,19 +47740,20 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -47745,23 +47761,25 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 _TEXT	SEGMENT
-_desc$2 = -128						; size = 60
-_err$3 = -68						; size = 16
-_featureLevel$ = -52					; size = 4
-_pSwapChain1$4 = -48					; size = 4
-_pDevDXGI$5 = -44					; size = 4
-_pAdapter$6 = -40					; size = 4
-_pDevCtx$7 = -36					; size = 4
-_pDev$8 = -32						; size = 4
-_pDevice$ = -28						; size = 4
-_pImmediateContext$ = -24				; size = 4
-_pFactory$9 = -20					; size = 4
-_pSwapChain$10 = -16					; size = 4
+_desc$ = -132						; size = 60
+_err$2 = -72						; size = 16
+_featureLevel$ = -56					; size = 4
+_pSwapChain1$3 = -52					; size = 4
+_pFactory$4 = -48					; size = 4
+_pDevDXGI$ = -44					; size = 4
+_pAdapter$ = -40					; size = 4
+_pFactory$ = -36					; size = 4
+_pDevCtx$5 = -32					; size = 4
+_hr$1$ = -28						; size = 4
+_pDev$6 = -28						; size = 4
+_pDevice$ = -24						; size = 4
+_pImmediateContext$ = -20				; size = 4
+_pSwapChain$ = -16					; size = 4
 __$EHRec$ = -12						; size = 12
 _user$ = 8						; size = 4
 ?HookDXGI@@YGIPAX@Z PROC				; HookDXGI
 
-; 5108 : {
+; 5109 : {
 
 	npad	2
 	push	ebp
@@ -47771,21 +47789,21 @@ _user$ = 8						; size = 4
 	push	__ehhandler$?HookDXGI@@YGIPAX@Z
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 116				; 00000074H
+	sub	esp, 120				; 00000078H
 
-; 5109 :   UNREFERENCED_PARAMETER (user);
-; 5110 : 
-; 5111 :   if (! config.apis.dxgi.d3d11.hook)
+; 5110 :   UNREFERENCED_PARAMETER (user);
+; 5111 : 
+; 5112 :   if (! config.apis.dxgi.d3d11.hook)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, 0
-	je	$LN199@HookDXGI
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
+	je	$LN208@HookDXGI
 
-; 5112 :   {
-; 5113 :     return 0;
-; 5114 :   }
-; 5115 : 
-; 5116 :   // Wait for DXGI to boot
-; 5117 :   if (CreateDXGIFactory_Import == nullptr)
+; 5113 :   {
+; 5114 :     return 0;
+; 5115 :   }
+; 5116 : 
+; 5117 :   // Wait for DXGI to boot
+; 5118 :   if (CreateDXGIFactory_Import == nullptr)
 
 	cmp	DWORD PTR ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA, 0 ; CreateDXGIFactory_Import
 	push	ebx
@@ -47802,34 +47820,34 @@ _user$ = 8						; size = 4
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5123 :     if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE))
+; 5124 :     if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE))
 
 	test	eax, eax
-	jne	SHORT $LN192@HookDXGI
+	jne	SHORT $LN200@HookDXGI
 
-; 5124 :     {
-; 5125 :       dll_log.Log (L"[  D3D 11  ]  >> Implicit Initialization Triggered <<");
+; 5125 :     {
+; 5126 :       dll_log.Log (L"[  D3D 11  ]  >> Implicit Initialization Triggered <<");
 
-	push	OFFSET $SG370385
+	push	OFFSET $SG370018
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 5126 :       SK_BootDXGI ();
+; 5127 :       SK_BootDXGI ();
 
 	call	?SK_BootDXGI@@YAXXZ			; SK_BootDXGI
-$LN192@HookDXGI:
+$LN200@HookDXGI:
 
-; 5127 :     }
-; 5128 : 
-; 5129 :     while (CreateDXGIFactory_Import == nullptr)
+; 5128 :     }
+; 5129 : 
+; 5130 :     while (CreateDXGIFactory_Import == nullptr)
 
 	cmp	DWORD PTR ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA, 0 ; CreateDXGIFactory_Import
 	jne	SHORT $LN3@HookDXGI
 	mov	esi, DWORD PTR __imp__MsgWaitForMultipleObjectsEx@20
 $LL2@HookDXGI:
 
-; 5130 :       MsgWaitForMultipleObjectsEx (0, nullptr, 33, QS_ALLINPUT, MWMO_ALERTABLE);
+; 5131 :       MsgWaitForMultipleObjectsEx (0, nullptr, 33, QS_ALLINPUT, MWMO_ALERTABLE);
 
 	push	2
 	push	1279					; 000004ffH
@@ -47847,28 +47865,28 @@ $LN3@HookDXGI:
 	mov	eax, DWORD PTR ?__dxgi_ready@@3JC	; __dxgi_ready
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5135 :   if (ReadAcquire (&__dxgi_ready))
+; 5136 :   if (ReadAcquire (&__dxgi_ready))
 
 	test	eax, eax
-	jne	$LN190@HookDXGI
+	jne	$LN198@HookDXGI
 
-; 5136 :   {
-; 5137 :     //WaitForInit ();
-; 5138 :     return 0;
-; 5139 :   }
-; 5140 : 
-; 5141 :   bool success =
-; 5142 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
+; 5137 :   {
+; 5138 :     //WaitForInit ();
+; 5139 :     return 0;
+; 5140 :   }
+; 5141 : 
+; 5142 :   bool success =
+; 5143 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
 
 	push	eax
 	push	eax
 	call	DWORD PTR __imp__CoInitializeEx@8
 
-; 5143 :   DBG_UNREFERENCED_LOCAL_VARIABLE (success);
-; 5144 : 
-; 5145 :   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
+; 5144 :   DBG_UNREFERENCED_LOCAL_VARIABLE (success);
+; 5145 : 
+; 5146 :   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
-	push	OFFSET $SG370387
+	push	OFFSET $SG370020
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -47879,7 +47897,7 @@ $LN3@HookDXGI:
 	mov	DWORD PTR _pDevice$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5153 :   CComPtr <ID3D11Device>        pDevice           = nullptr;
+; 5154 :   CComPtr <ID3D11Device>        pDevice           = nullptr;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -47889,59 +47907,79 @@ $LN3@HookDXGI:
 	mov	DWORD PTR _pImmediateContext$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5154 :   CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
-
-	mov	BYTE PTR __$EHRec$[ebp+8], 1
-
-; 5155 : 
-; 5156 :   // DXGI stuff is ready at this point, we'll hook the swapchain stuff
-; 5157 :   //   after this call.
-; 5158 : 
-; 5159 :   HRESULT hr = E_NOTIMPL;
-; 5160 : 
-; 5161 :   InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
+; 5162 :   InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
 
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	mov	ecx, OFFSET ?SK_D3D11_init_tid@@3JC	; SK_D3D11_init_tid
 	xchg	DWORD PTR [ecx], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
-; 5162 : 
-; 5163 : #if 0
-; 5164 :   extern LPVOID pfnD3D11CreateDevice;
+; 162  :         p = lp;
+
+	mov	DWORD PTR _pSwapChain$[ebp], 0
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5164 :   CComPtr <IDXGISwapChain> pSwapChain = nullptr;
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 2
+
 ; 5165 : 
-; 5166 :   hr =
-; 5167 :     ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
-; 5168 :       0,
-; 5169 :         D3D_DRIVER_TYPE_HARDWARE,
-; 5170 :           nullptr,
-; 5171 :             0x0,
-; 5172 :               nullptr,
-; 5173 :                 0,
-; 5174 :                   D3D11_SDK_VERSION,
-; 5175 :                     &pDevice,
-; 5176 :                       &featureLevel,
-; 5177 :                         &pImmediateContext );
-; 5178 : 
-; 5179 :       if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-; 5180 :       {
-; 5181 :         // Load user-defined DLLs (Plug-In)
-; 5182 : #ifdef _WIN64
-; 5183 :         SK_LoadPlugIns64 ();
-; 5184 : #else
-; 5185 :         SK_LoadPlugIns32 ();
-; 5186 : #endif
-; 5187 :       }
-; 5188 : #else
-; 5189 :   // We have to take this codepath through the x86 ABI for compat.
-; 5190 :   //   with FFX / X-2 HD
-; 5191 :   //
-; 5192 :   hr =
+; 5166 :   extern HWND
+; 5167 :   SK_Win32_CreateDummyWindow (void);
+; 5168 :   
+; 5169 :   extern void
+; 5170 :   SK_Win32_CleanupDummyWindow (void);
+; 5171 :   
+; 5172 :   HWND                   hWnd = SK_Win32_CreateDummyWindow ();
+
+	call	?SK_Win32_CreateDummyWindow@@YAPAUHWND__@@XZ ; SK_Win32_CreateDummyWindow
+
+; 5173 : 
+; 5174 :   DXGI_SWAP_CHAIN_DESC desc = { };
+
+	push	60					; 0000003cH
+	mov	esi, eax
+	lea	eax, DWORD PTR _desc$[ebp]
+	push	0
+	push	eax
+	call	_memset
+	add	esp, 12					; 0000000cH
+
+; 5175 :   
+; 5176 :   desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	mov	DWORD PTR _desc$[ebp+16], 28		; 0000001cH
+
+; 5177 :   desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+; 5178 :   desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
+; 5179 :   desc.SampleDesc.Count            = 1;
+; 5180 :   desc.SampleDesc.Quality          = 0;
+; 5181 :   desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER;
+; 5182 :   desc.BufferCount                 = 1;
+; 5183 :   desc.OutputWindow                = hWnd;
+; 5184 :   desc.Windowed                    = TRUE;
+; 5185 :   desc.SwapEffect                  = DXGI_SWAP_EFFECT_SEQUENTIAL;
+; 5186 : 
+; 5187 :   extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
+; 5188 : 
+; 5189 :   hr =
 
 	lea	eax, DWORD PTR _pImmediateContext$[ebp]
+	mov	DWORD PTR _desc$[ebp+20], 0
+	mov	DWORD PTR _desc$[ebp+24], 0
+	mov	DWORD PTR _desc$[ebp+28], 1
 	push	eax
 	lea	eax, DWORD PTR _featureLevel$[ebp]
+	mov	DWORD PTR _desc$[ebp+32], 0
 	push	eax
 	lea	eax, DWORD PTR _pDevice$[ebp]
+	mov	DWORD PTR _desc$[ebp+36], 64		; 00000040H
+	push	eax
+	lea	eax, DWORD PTR _pSwapChain$[ebp]
+	mov	DWORD PTR _desc$[ebp+40], 1
+	push	eax
+	lea	eax, DWORD PTR _desc$[ebp]
+	mov	DWORD PTR _desc$[ebp+44], esi
 	push	eax
 	push	7
 	push	0
@@ -47950,68 +47988,48 @@ $LN3@HookDXGI:
 	push	0
 	push	1
 	push	0
-	call	DWORD PTR ?D3D11CreateDevice_Import@@3P6GJPAUIDXGIAdapter@@W4D3D_DRIVER_TYPE@@PAUHINSTANCE__@@IPBW4D3D_FEATURE_LEVEL@@IIPAPAUID3D11Device@@PAW44@PAPAUID3D11DeviceContext@@@ZA ; D3D11CreateDevice_Import
+	mov	DWORD PTR _desc$[ebp+48], 1
+	mov	DWORD PTR _desc$[ebp+52], 1
+	call	DWORD PTR ?pfnD3D11CreateDeviceAndSwapChain@@3PAXA ; pfnD3D11CreateDeviceAndSwapChain
 	mov	esi, eax
-
-; 5193 :     D3D11CreateDevice_Import (
-; 5194 :       nullptr,
-; 5195 :         D3D_DRIVER_TYPE_HARDWARE,
-; 5196 :           nullptr,
-; 5197 :             0x0,
-; 5198 :               nullptr,
-; 5199 :                 0,
-; 5200 :                   D3D11_SDK_VERSION,
-; 5201 :                     &pDevice,
-; 5202 :                       &featureLevel,
-; 5203 :                         &pImmediateContext );
-; 5204 : 
-; 5205 : 
-; 5206 :           if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-
-	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
-	cmp	eax, 1
-	jne	SHORT $LN8@HookDXGI
-
-; 5207 :           {
-; 5208 :             // Load user-defined DLLs (Plug-In)
-; 5209 : #ifdef _WIN64
-; 5210 :             SK_LoadPlugIns64 ();
-; 5211 : #else
-; 5212 :             SK_LoadPlugIns32 ();
-
-	call	?SK_LoadPlugIns32@@YAXXZ		; SK_LoadPlugIns32
-$LN8@HookDXGI:
-
-; 5213 : #endif
-; 5214 :           }
-; 5215 : #endif
-; 5216 : 
-; 5217 :   if (SUCCEEDED (hr))
-
-	test	esi, esi
-	js	$LN9@HookDXGI
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 162  :         p = lp;
 
-	mov	DWORD PTR _pDevDXGI$5[ebp], 0
-	mov	DWORD PTR _pAdapter$6[ebp], 0
-	mov	DWORD PTR _pFactory$9[ebp], 0
+	mov	DWORD PTR _pDevDXGI$[ebp], 0
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5203 :   d3d11_hook_ctx.ppDevice           = &pDevice;
+
+	lea	eax, DWORD PTR _pDevice$[ebp]
+	mov	DWORD PTR _hr$1$[ebp], esi
+	mov	DWORD PTR ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A, eax
+
+; 5204 :   d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
+
+	lea	eax, DWORD PTR _pImmediateContext$[ebp]
+	mov	DWORD PTR ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A+4, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 162  :         p = lp;
+
+	mov	DWORD PTR _pAdapter$[ebp], 0
+	mov	DWORD PTR _pFactory$[ebp], 0
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
 
 ; 131  :                 return QueryInterface(__uuidof(Q), (void **)pp);
 
 	mov	eax, DWORD PTR _pDevice$[ebp]
-	lea	edx, DWORD PTR _pDevDXGI$5[ebp]
+	lea	edx, DWORD PTR _pDevDXGI$[ebp]
 	push	edx
 	push	OFFSET __GUID_54ec77fa_1377_44e6_8c32_88fd5f44c84c
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5221 :     CComPtr <IDXGIFactory> pFactory = nullptr;
+; 5208 :   CComPtr <IDXGIFactory> pFactory = nullptr;
 
-	mov	BYTE PTR __$EHRec$[ebp+8], 4
+	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
 
 ; 131  :                 return QueryInterface(__uuidof(Q), (void **)pp);
@@ -48019,20 +48037,20 @@ $LN8@HookDXGI:
 	call	DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5224 :          SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
+; 5211 :        SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
 
 	test	eax, eax
-	js	$LN16@HookDXGI
-	mov	eax, DWORD PTR _pDevDXGI$5[ebp]
-	lea	edx, DWORD PTR _pAdapter$6[ebp]
+	js	$LN8@HookDXGI
+	mov	eax, DWORD PTR _pDevDXGI$[ebp]
+	lea	edx, DWORD PTR _pAdapter$[ebp]
 	push	edx
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+28]
 	test	eax, eax
-	js	$LN16@HookDXGI
-	mov	esi, DWORD PTR _pAdapter$6[ebp]
-	lea	eax, DWORD PTR _pFactory$9[ebp]
+	js	$LN8@HookDXGI
+	mov	esi, DWORD PTR _pAdapter$[ebp]
+	lea	eax, DWORD PTR _pFactory$[ebp]
 	push	edi
 	push	eax
 	mov	edi, DWORD PTR [esi]
@@ -48044,330 +48062,181 @@ $LN8@HookDXGI:
 	call	DWORD PTR [edi+24]
 	pop	edi
 	test	eax, eax
-	js	$LN16@HookDXGI
+	js	$LN204@HookDXGI
 
-; 5225 :          SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
-; 5226 :     {
-; 5227 :       d3d11_hook_ctx.ppDevice           = &pDevice;
-
-	lea	eax, DWORD PTR _pDevice$[ebp]
-	mov	DWORD PTR ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A, eax
-
-; 5228 :       d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
-
-	lea	eax, DWORD PTR _pImmediateContext$[ebp]
-
-; 5229 : 
-; 5230 :           HookD3D11             (&d3d11_hook_ctx);
+; 5212 :        SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+; 5213 :   {
+; 5214 :     HookD3D11             (&d3d11_hook_ctx);
 
 	push	OFFSET ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A ; d3d11_hook_ctx
-	mov	DWORD PTR ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A+4, eax
 	call	?HookD3D11@@YGIPAX@Z			; HookD3D11
 
-; 5231 :           SK_DXGI_HookFactory   (pFactory);
+; 5215 :     SK_DXGI_HookFactory   (pFactory);
 
-	push	DWORD PTR _pFactory$9[ebp]
+	push	DWORD PTR _pFactory$[ebp]
 	call	?SK_DXGI_HookFactory@@YAXPAUIDXGIFactory@@@Z ; SK_DXGI_HookFactory
-	add	esp, 4
 
-; 5232 : 
-; 5233 :       extern HWND
-; 5234 :       SK_Win32_CreateDummyWindow (void);
-; 5235 : 
-; 5236 :       extern void
-; 5237 :       SK_Win32_CleanupDummyWindow (void);
-; 5238 : 
-; 5239 :       HWND                   hWnd = SK_Win32_CreateDummyWindow ();
+; 5216 :     SK_DXGI_HookSwapChain (pSwapChain);
 
-	call	?SK_Win32_CreateDummyWindow@@YAPAUHWND__@@XZ ; SK_Win32_CreateDummyWindow
-	mov	esi, eax
+	push	DWORD PTR _pSwapChain$[ebp]
+	call	?SK_DXGI_HookSwapChain@@YAXPAUIDXGISwapChain@@@Z ; SK_DXGI_HookSwapChain
 
-; 5240 : 
-; 5241 :       if (hWnd != HWND_DESKTOP)
+; 5217 : 
+; 5218 :     // This won't catch Present1 (...), but no games use that
+; 5219 :     //   and we can deal with it later if it happens.
+; 5220 :     SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
 
-	test	esi, esi
-	je	$LN147@HookDXGI
+	push	0
+	push	DWORD PTR _pSwapChain$[ebp]
+	call	?SK_DXGI_HookPresentBase@@YAXPAUIDXGISwapChain@@_N@Z ; SK_DXGI_HookPresentBase
+	add	esp, 16					; 00000010H
 
-; 5242 :       {
-; 5243 :         DXGI_SWAP_CHAIN_DESC desc = { };
+; 5222 :     CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
 
-	push	60					; 0000003cH
-	lea	eax, DWORD PTR _desc$2[ebp]
+	lea	ecx, DWORD PTR _pSwapChain1$3[ebp]
+	push	DWORD PTR _pSwapChain$[ebp]
+	call	??0?$CComQIPtr@UIDXGISwapChain1@@$1?_GUID_790a45f7_0d42_4876_983a_0a55cfe6f4aa@@3U__s_GUID@@B@ATL@@QAE@PAUIUnknown@@@Z ; ATL::CComQIPtr<IDXGISwapChain1,&_GUID_790a45f7_0d42_4876_983a_0a55cfe6f4aa>::CComQIPtr<IDXGISwapChain1,&_GUID_790a45f7_0d42_4876_983a_0a55cfe6f4aa>
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 214  :         return p == pT;
+
+	mov	eax, DWORD PTR _pSwapChain1$3[ebp]
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5222 :     CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 6
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 214  :         return p == pT;
+
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5224 :     if (pSwapChain1 != nullptr)
+
+	je	SHORT $LN10@HookDXGI
+
+; 5225 :       SK_DXGI_HookPresent1 (pSwapChain1, false);
+
 	push	0
 	push	eax
-	call	_memset
-	add	esp, 12					; 0000000cH
+	call	?SK_DXGI_HookPresent1@@YAXPAUIDXGISwapChain1@@_N@Z ; SK_DXGI_HookPresent1
+	add	esp, 8
+$LN10@HookDXGI:
 
-; 5244 :       
-; 5245 :         desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+; 5226 : 
+; 5227 :     MH_ApplyQueued  ();
 
-	mov	DWORD PTR _desc$2[ebp+16], 28		; 0000001cH
+	call	_MH_ApplyQueued@0
 
-; 5246 :         desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+; 5228 : 
+; 5229 :     if (SK_GetDLLRole () == DLL_ROLE::DXGI)
 
-	mov	DWORD PTR _desc$2[ebp+20], 0
+	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
+	cmp	eax, 1
+	jne	SHORT $LN11@HookDXGI
 
-; 5247 :         desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
+; 5230 :     {
+; 5231 :       // Load user-defined DLLs (Plug-In)
+; 5232 : #ifdef _WIN64
+; 5233 :       SK_LoadPlugIns64 ();
+; 5234 : #else
+; 5235 :       SK_LoadPlugIns32 ();
 
-	mov	DWORD PTR _desc$2[ebp+24], 0
-
-; 5248 :         desc.SampleDesc.Count            = 1;
-
-	mov	DWORD PTR _desc$2[ebp+28], 1
-
-; 5249 :         desc.SampleDesc.Quality          = 0;
-
-	mov	DWORD PTR _desc$2[ebp+32], 0
-
-; 5250 :         // Deliberately unusual set of flags, prevents most vidcap software from altering vtables
-; 5251 :         //   for the COM objects we are about to create.
-; 5252 :         desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_SHADER_INPUT |
-
-	mov	DWORD PTR _desc$2[ebp+36], 720		; 000002d0H
-
-; 5253 :                                            DXGI_USAGE_SHARED      | DXGI_USAGE_DISCARD_ON_PRESENT;
-; 5254 :         desc.BufferCount                 = 1;
-
-	mov	DWORD PTR _desc$2[ebp+40], 1
-
-; 5255 :         desc.OutputWindow                = hWnd;
-
-	mov	DWORD PTR _desc$2[ebp+44], esi
-
-; 5256 :         desc.Windowed                    = TRUE;
-
-	mov	DWORD PTR _desc$2[ebp+48], 1
-
-; 5257 :         desc.SwapEffect                  = DXGI_SWAP_EFFECT_SEQUENTIAL;
-
-	mov	DWORD PTR _desc$2[ebp+52], 1
+	call	?SK_LoadPlugIns32@@YAXXZ		; SK_LoadPlugIns32
+$LN11@HookDXGI:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
-; 162  :         p = lp;
+; 158  :         p = NULL;
 
-	mov	DWORD PTR _pSwapChain$10[ebp], 0
+	mov	DWORD PTR _pFactory$4[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5260 :         if (SUCCEEDED (pFactory->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain)))
+; 5240 :     CreateDXGIFactory_Import (__uuidof (IDXGIFactory1), (void **)&pFactory);
 
-	mov	eax, DWORD PTR _pFactory$9[ebp]
-	lea	ecx, DWORD PTR _pSwapChain$10[ebp]
-	push	ecx
-	lea	ecx, DWORD PTR _desc$2[ebp]
-	mov	BYTE PTR __$EHRec$[ebp+8], 5
-	push	ecx
-	mov	ecx, DWORD PTR ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A
-	mov	edx, DWORD PTR [eax]
-	push	DWORD PTR [ecx]
+	lea	eax, DWORD PTR _pFactory$4[ebp]
+	mov	BYTE PTR __$EHRec$[ebp+8], 7
 	push	eax
-	call	DWORD PTR [edx+40]
-	test	eax, eax
-	js	$LN141@HookDXGI
+	push	OFFSET __GUID_770aae78_f26f_4dba_a829_253c83d1b387
+	call	DWORD PTR ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory_Import
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 162  :         p = lp;
 
-	mov	DWORD PTR _pDevCtx$7[ebp], 0
+	mov	DWORD PTR _pDevCtx$5[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5264 :           if (config.render.dxgi.deferred_isolation)
+; 5244 :     if (config.render.dxgi.deferred_isolation)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+490, 0
-	mov	BYTE PTR __$EHRec$[ebp+8], 6
-	je	SHORT $LN114@HookDXGI
+	mov	BYTE PTR __$EHRec$[ebp+8], 8
+	je	SHORT $LN128@HookDXGI
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 162  :         p = lp;
 
-	mov	DWORD PTR _pDev$8[ebp], 0
+	mov	DWORD PTR _pDev$6[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5267 :             pImmediateContext->GetDevice (&pDev);
+; 5247 :       pImmediateContext->GetDevice (&pDev);
 
 	mov	eax, DWORD PTR _pImmediateContext$[ebp]
-	lea	edx, DWORD PTR _pDev$8[ebp]
+	lea	edx, DWORD PTR _pDev$6[ebp]
 	push	edx
 	push	eax
-	mov	BYTE PTR __$EHRec$[ebp+8], 7
+	mov	BYTE PTR __$EHRec$[ebp+8], 9
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+12]
 
-; 5268 : 
-; 5269 :             pDev->CreateDeferredContext (0x00,  &pDevCtx);
+; 5248 : 
+; 5249 :       pDev->CreateDeferredContext (0x00,  &pDevCtx);
 
-	mov	eax, DWORD PTR _pDev$8[ebp]
-	lea	edx, DWORD PTR _pDevCtx$7[ebp]
+	mov	eax, DWORD PTR _pDev$6[ebp]
+	lea	edx, DWORD PTR _pDevCtx$5[ebp]
 	push	edx
 	push	0
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+108]
 
-; 5270 :             d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+; 5250 :       d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
 
-	lea	eax, DWORD PTR _pDevCtx$7[ebp]
+	lea	eax, DWORD PTR _pDevCtx$5[ebp]
 
-; 5271 :           }
+; 5251 :     }
 
-	mov	BYTE PTR __$EHRec$[ebp+8], 6
+	mov	BYTE PTR __$EHRec$[ebp+8], 8
 	mov	DWORD PTR ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A+4, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 176  :         if (p)
 
-	mov	eax, DWORD PTR _pDev$8[ebp]
+	mov	eax, DWORD PTR _pDev$6[ebp]
 	test	eax, eax
-	je	SHORT $LN114@HookDXGI
+	je	SHORT $LN128@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN114@HookDXGI:
+$LN128@HookDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5273 :           SK_DXGI_HookSwapChain (pSwapChain);
+; 5253 :     if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
-	push	DWORD PTR _pSwapChain$10[ebp]
-	call	?SK_DXGI_HookSwapChain@@YAXPAUIDXGISwapChain@@@Z ; SK_DXGI_HookSwapChain
-
-; 5274 : 
-; 5275 :           // This won't catch Present1 (...), but no games use that
-; 5276 :           //   and we can deal with it later if it happens.
-; 5277 :           SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
-
-	push	0
-	push	DWORD PTR _pSwapChain$10[ebp]
-	call	?SK_DXGI_HookPresentBase@@YAXPAUIDXGISwapChain@@_N@Z ; SK_DXGI_HookPresentBase
-	add	esp, 12					; 0000000cH
-
-; 5279 :           CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
-
-	lea	ecx, DWORD PTR _pSwapChain1$4[ebp]
-	push	DWORD PTR _pSwapChain$10[ebp]
-	call	??0?$CComQIPtr@UIDXGISwapChain1@@$1?_GUID_790a45f7_0d42_4876_983a_0a55cfe6f4aa@@3U__s_GUID@@B@ATL@@QAE@PAUIUnknown@@@Z ; ATL::CComQIPtr<IDXGISwapChain1,&_GUID_790a45f7_0d42_4876_983a_0a55cfe6f4aa>::CComQIPtr<IDXGISwapChain1,&_GUID_790a45f7_0d42_4876_983a_0a55cfe6f4aa>
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 214  :         return p == pT;
-
-	mov	eax, DWORD PTR _pSwapChain1$4[ebp]
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5279 :           CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
-
-	mov	BYTE PTR __$EHRec$[ebp+8], 8
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 214  :         return p == pT;
-
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5281 :           if (pSwapChain1 != nullptr)
-
-	je	SHORT $LN15@HookDXGI
-
-; 5282 :             SK_DXGI_HookPresent1 (pSwapChain1, false);
-
-	push	0
-	push	eax
-	call	?SK_DXGI_HookPresent1@@YAXPAUIDXGISwapChain1@@_N@Z ; SK_DXGI_HookPresent1
-	add	esp, 8
-$LN15@HookDXGI:
-
-; 5283 : 
-; 5284 :           MH_ApplyQueued  ();
-
-	call	_MH_ApplyQueued@0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 176  :         if (p)
-
-	mov	eax, DWORD PTR _pSwapChain1$4[ebp]
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5285 :         }
-
-	mov	BYTE PTR __$EHRec$[ebp+8], 6
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 176  :         if (p)
-
-	test	eax, eax
-	je	SHORT $LN135@HookDXGI
-
-; 177  :             p->Release();
-
-	mov	ecx, DWORD PTR [eax]
-	push	eax
-	call	DWORD PTR [ecx+8]
-$LN135@HookDXGI:
-
-; 176  :         if (p)
-
-	mov	eax, DWORD PTR _pDevCtx$7[ebp]
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5285 :         }
-
-	mov	BYTE PTR __$EHRec$[ebp+8], 5
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 176  :         if (p)
-
-	test	eax, eax
-	je	SHORT $LN141@HookDXGI
-
-; 177  :             p->Release();
-
-	mov	ecx, DWORD PTR [eax]
-	push	eax
-	call	DWORD PTR [ecx+8]
-$LN141@HookDXGI:
-
-; 176  :         if (p)
-
-	mov	eax, DWORD PTR _pSwapChain$10[ebp]
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5286 :       }
-
-	mov	BYTE PTR __$EHRec$[ebp+8], 4
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 176  :         if (p)
-
-	test	eax, eax
-	je	SHORT $LN147@HookDXGI
-
-; 177  :             p->Release();
-
-	mov	ecx, DWORD PTR [eax]
-	push	eax
-	call	DWORD PTR [ecx+8]
-$LN147@HookDXGI:
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5288 :       SK_Win32_CleanupDummyWindow ();
-
-	call	?SK_Win32_CleanupDummyWindow@@YAXXZ	; SK_Win32_CleanupDummyWindow
-
-; 5289 : 
-; 5290 :       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, 0
-	je	SHORT $LN16@HookDXGI
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
+	je	SHORT $LN13@HookDXGI
 	call	?SK_D3D11_EnableHooks@@YAXXZ		; SK_D3D11_EnableHooks
-$LN16@HookDXGI:
+$LN13@HookDXGI:
 
-; 5291 : 
-; 5292 : #ifdef _WIN64
-; 5293 :       if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
-; 5294 : #endif
-; 5295 :     }
-; 5296 : 
-; 5297 :     InterlockedExchange (&__dxgi_ready, TRUE);
+; 5254 :       
+; 5255 : #ifdef _WIN64
+; 5256 :     if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+; 5257 : #endif
+; 5258 : 
+; 5259 :     InterlockedExchange (&__dxgi_ready, TRUE);
 
 	mov	eax, OFFSET ?__dxgi_ready@@3JC		; __dxgi_ready
 	xchg	DWORD PTR [eax], ebx
@@ -48375,62 +48244,62 @@ $LN16@HookDXGI:
 
 ; 176  :         if (p)
 
-	mov	eax, DWORD PTR _pFactory$9[ebp]
+	mov	eax, DWORD PTR _pDevCtx$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5298 :   }
+; 5260 :   }
 
-	mov	BYTE PTR __$EHRec$[ebp+8], 3
+	mov	BYTE PTR __$EHRec$[ebp+8], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN153@HookDXGI
+	je	SHORT $LN134@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN153@HookDXGI:
+$LN134@HookDXGI:
 
 ; 176  :         if (p)
 
-	mov	eax, DWORD PTR _pAdapter$6[ebp]
+	mov	eax, DWORD PTR _pFactory$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5298 :   }
+; 5260 :   }
 
-	mov	BYTE PTR __$EHRec$[ebp+8], 2
+	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN159@HookDXGI
+	je	SHORT $LN140@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN159@HookDXGI:
+$LN140@HookDXGI:
 
 ; 176  :         if (p)
 
-	mov	eax, DWORD PTR _pDevDXGI$5[ebp]
+	mov	eax, DWORD PTR _pSwapChain1$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5298 :   }
+; 5260 :   }
 
-	mov	BYTE PTR __$EHRec$[ebp+8], 1
+	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN178@HookDXGI
+	je	$LN162@HookDXGI
 
 ; 177  :             p->Release();
 
@@ -48439,10 +48308,12 @@ $LN159@HookDXGI:
 	call	DWORD PTR [ecx+8]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5300 :   else
+; 5262 :   else
 
-	jmp	SHORT $LN178@HookDXGI
-$LN9@HookDXGI:
+	jmp	SHORT $LN162@HookDXGI
+$LN204@HookDXGI:
+	mov	esi, DWORD PTR _hr$1$[ebp]
+$LN8@HookDXGI:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
 
 ; 455  :     return (hr >= WCODE_HRESULT_FIRST && hr <= WCODE_HRESULT_LAST)
@@ -48451,84 +48322,177 @@ $LN9@HookDXGI:
 
 ; 301  : {
 
-	mov	DWORD PTR _err$3[ebp], OFFSET ??_7_com_error@@6B@
+	mov	DWORD PTR _err$2[ebp], OFFSET ??_7_com_error@@6B@
 
 ; 300  :     : m_hresult(hr), m_perrinfo(perrinfo), m_pszMsg(NULL)
 
-	mov	DWORD PTR _err$3[ebp+4], esi
-	mov	DWORD PTR _err$3[ebp+8], 0
-	mov	DWORD PTR _err$3[ebp+12], 0
+	mov	DWORD PTR _err$2[ebp+4], esi
+	mov	DWORD PTR _err$2[ebp+8], 0
+	mov	DWORD PTR _err$2[ebp+12], 0
 
 ; 455  :     return (hr >= WCODE_HRESULT_FIRST && hr <= WCODE_HRESULT_LAST)
 
 	cmp	eax, 65023				; 0000fdffH
-	ja	SHORT $LN174@HookDXGI
+	ja	SHORT $LN158@HookDXGI
 	lea	eax, DWORD PTR [esi-512]
 	movzx	esi, ax
-	jmp	SHORT $LN175@HookDXGI
-$LN174@HookDXGI:
+	jmp	SHORT $LN159@HookDXGI
+$LN158@HookDXGI:
 	xor	esi, esi
-$LN175@HookDXGI:
+$LN159@HookDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5304 :     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
+; 5266 :     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
 
-	lea	ecx, DWORD PTR _err$3[ebp]
+	lea	ecx, DWORD PTR _err$2[ebp]
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
 	movzx	eax, si
 	push	eax
-	push	OFFSET $SG370397
+	push	OFFSET $SG370027
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
 
 ; 317  :     if (m_perrinfo != NULL) {
 
-	mov	ecx, DWORD PTR _err$3[ebp+8]
+	mov	ecx, DWORD PTR _err$2[ebp+8]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5304 :     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
+; 5266 :     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
 
 ; 316  : {
 
-	mov	DWORD PTR _err$3[ebp], OFFSET ??_7_com_error@@6B@
+	mov	DWORD PTR _err$2[ebp], OFFSET ??_7_com_error@@6B@
 
 ; 317  :     if (m_perrinfo != NULL) {
 
 	test	ecx, ecx
-	je	SHORT $LN177@HookDXGI
+	je	SHORT $LN161@HookDXGI
 
 ; 318  :         m_perrinfo->Release();
 
 	mov	eax, DWORD PTR [ecx]
 	push	ecx
 	call	DWORD PTR [eax+8]
-$LN177@HookDXGI:
+$LN161@HookDXGI:
 
 ; 319  :     }
 ; 320  :     if (m_pszMsg != NULL) {
 
-	mov	eax, DWORD PTR _err$3[ebp+12]
+	mov	eax, DWORD PTR _err$2[ebp+12]
 	test	eax, eax
-	je	SHORT $LN178@HookDXGI
+	je	SHORT $LN162@HookDXGI
 
 ; 321  :         LocalFree((HLOCAL)m_pszMsg);
 
 	push	eax
 	call	DWORD PTR __imp__LocalFree@4
-$LN178@HookDXGI:
+$LN162@HookDXGI:
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5270 :   SK_Win32_CleanupDummyWindow ();
+
+	call	?SK_Win32_CleanupDummyWindow@@YAXXZ	; SK_Win32_CleanupDummyWindow
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 176  :         if (p)
+
+	mov	eax, DWORD PTR _pFactory$[ebp]
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5274 :   return 0;
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 176  :         if (p)
+
+	test	eax, eax
+	je	SHORT $LN168@HookDXGI
+
+; 177  :             p->Release();
+
+	mov	ecx, DWORD PTR [eax]
+	push	eax
+	call	DWORD PTR [ecx+8]
+$LN168@HookDXGI:
+
+; 176  :         if (p)
+
+	mov	eax, DWORD PTR _pAdapter$[ebp]
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5274 :   return 0;
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 3
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 176  :         if (p)
+
+	test	eax, eax
+	je	SHORT $LN174@HookDXGI
+
+; 177  :             p->Release();
+
+	mov	ecx, DWORD PTR [eax]
+	push	eax
+	call	DWORD PTR [ecx+8]
+$LN174@HookDXGI:
+
+; 176  :         if (p)
+
+	mov	eax, DWORD PTR _pDevDXGI$[ebp]
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5274 :   return 0;
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 176  :         if (p)
+
+	test	eax, eax
+	je	SHORT $LN180@HookDXGI
+
+; 177  :             p->Release();
+
+	mov	ecx, DWORD PTR [eax]
+	push	eax
+	call	DWORD PTR [ecx+8]
+$LN180@HookDXGI:
+
+; 176  :         if (p)
+
+	mov	eax, DWORD PTR _pSwapChain$[ebp]
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5274 :   return 0;
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 176  :         if (p)
+
+	test	eax, eax
+	je	SHORT $LN186@HookDXGI
+
+; 177  :             p->Release();
+
+	mov	ecx, DWORD PTR [eax]
+	push	eax
+	call	DWORD PTR [ecx+8]
+$LN186@HookDXGI:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pImmediateContext$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5310 :   return 0;
+; 5274 :   return 0;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48536,21 +48500,21 @@ $LN178@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN184@HookDXGI
+	je	SHORT $LN192@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN184@HookDXGI:
+$LN192@HookDXGI:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pDevice$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5310 :   return 0;
+; 5274 :   return 0;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48558,20 +48522,20 @@ $LN184@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN190@HookDXGI
+	je	SHORT $LN198@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN190@HookDXGI:
+$LN198@HookDXGI:
 	pop	esi
 	pop	ebx
-$LN199@HookDXGI:
+$LN208@HookDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5311 : }
+; 5275 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	xor	eax, eax
@@ -48588,26 +48552,29 @@ __unwindfunclet$?HookDXGI@@YGIPAX@Z$1:
 	lea	ecx, DWORD PTR _pImmediateContext$[ebp]
 	jmp	??1?$CComPtr@UID3D11DeviceContext@@@ATL@@QAE@XZ
 __unwindfunclet$?HookDXGI@@YGIPAX@Z$2:
-	lea	ecx, DWORD PTR _pDevDXGI$5[ebp]
-	jmp	??1?$CComPtr@UIDXGIDevice@@@ATL@@QAE@XZ
-__unwindfunclet$?HookDXGI@@YGIPAX@Z$3:
-	lea	ecx, DWORD PTR _pAdapter$6[ebp]
-	jmp	??1?$CComPtr@UIDXGIAdapter@@@ATL@@QAE@XZ
-__unwindfunclet$?HookDXGI@@YGIPAX@Z$4:
-	lea	ecx, DWORD PTR _pFactory$9[ebp]
-	jmp	??1?$CComPtr@UIDXGIFactory@@@ATL@@QAE@XZ
-__unwindfunclet$?HookDXGI@@YGIPAX@Z$5:
-	lea	ecx, DWORD PTR _pSwapChain$10[ebp]
+	lea	ecx, DWORD PTR _pSwapChain$[ebp]
 	jmp	??1?$CComPtr@UIDXGISwapChain@@@ATL@@QAE@XZ
+__unwindfunclet$?HookDXGI@@YGIPAX@Z$3:
+	lea	ecx, DWORD PTR _pDevDXGI$[ebp]
+	jmp	??1?$CComPtr@UIDXGIDevice@@@ATL@@QAE@XZ
+__unwindfunclet$?HookDXGI@@YGIPAX@Z$4:
+	lea	ecx, DWORD PTR _pAdapter$[ebp]
+	jmp	??1?$CComPtr@UIDXGIAdapter@@@ATL@@QAE@XZ
+__unwindfunclet$?HookDXGI@@YGIPAX@Z$5:
+	lea	ecx, DWORD PTR _pFactory$[ebp]
+	jmp	??1?$CComPtr@UIDXGIFactory@@@ATL@@QAE@XZ
 __unwindfunclet$?HookDXGI@@YGIPAX@Z$6:
-	lea	ecx, DWORD PTR _pDevCtx$7[ebp]
-	jmp	??1?$CComPtr@UID3D11DeviceContext@@@ATL@@QAE@XZ
-__unwindfunclet$?HookDXGI@@YGIPAX@Z$7:
-	lea	ecx, DWORD PTR _pDev$8[ebp]
-	jmp	??1?$CComPtr@UID3D11Device@@@ATL@@QAE@XZ
-__unwindfunclet$?HookDXGI@@YGIPAX@Z$8:
-	lea	ecx, DWORD PTR _pSwapChain1$4[ebp]
+	lea	ecx, DWORD PTR _pSwapChain1$3[ebp]
 	jmp	??1?$CComQIPtr@UIDXGISwapChain1@@$1?_GUID_790a45f7_0d42_4876_983a_0a55cfe6f4aa@@3U__s_GUID@@B@ATL@@QAE@XZ
+__unwindfunclet$?HookDXGI@@YGIPAX@Z$7:
+	lea	ecx, DWORD PTR _pFactory$4[ebp]
+	jmp	??1?$CComPtr@UIDXGIFactory1@@@ATL@@QAE@XZ
+__unwindfunclet$?HookDXGI@@YGIPAX@Z$8:
+	lea	ecx, DWORD PTR _pDevCtx$5[ebp]
+	jmp	??1?$CComPtr@UID3D11DeviceContext@@@ATL@@QAE@XZ
+__unwindfunclet$?HookDXGI@@YGIPAX@Z$9:
+	lea	ecx, DWORD PTR _pDev$6[ebp]
+	jmp	??1?$CComPtr@UID3D11Device@@@ATL@@QAE@XZ
 __ehhandler$?HookDXGI@@YGIPAX@Z:
 	mov	eax, OFFSET __ehfuncinfo$?HookDXGI@@YGIPAX@Z
 	jmp	___CxxFrameHandler3
@@ -49372,7 +49339,7 @@ $LN7@ResetCEGUI:
 ; 445  :     {
 ; 446  :       dll_log.Log ( L"[   DXGI   ]  ** Failed to acquire SwapChain's Backbuffer;"
 
-	push	OFFSET $SG352828
+	push	OFFSET $SG352458
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -49792,10 +49759,10 @@ __$EHRec$ = -16						; size = 16
 
 ; 218  :     snprintf (szRootPath, MAX_PATH, "%ws", _wgetenv (L"CEGUI_PARENT_DIR"));
 
-	push	OFFSET $SG352609
+	push	OFFSET $SG352239
 	call	DWORD PTR __imp___wgetenv
 	push	eax
-	push	OFFSET $SG352610
+	push	OFFSET $SG352240
 	lea	eax, DWORD PTR _szRootPath$2[ebp]
 	push	260					; 00000104H
 	push	eax
@@ -49828,7 +49795,7 @@ __$EHRec$ = -16						; size = 16
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	15					; 0000000fH
-	push	OFFSET $SG352611
+	push	OFFSET $SG352241
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -50085,7 +50052,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352613
+	push	OFFSET $SG352243
 	lea	ecx, DWORD PTR $T50[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50094,7 +50061,7 @@ $LN203@SK_CEGUI_I:
 
 	mov	ebx, DWORD PTR __imp_??HCEGUI@@YA?AVString@0@ABV10@PBE@Z
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
-	push	OFFSET $SG352612
+	push	OFFSET $SG352242
 	push	eax
 	lea	eax, DWORD PTR $T23[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 8
@@ -50124,14 +50091,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	9
-	push	OFFSET $SG352615
+	push	OFFSET $SG352245
 	lea	ecx, DWORD PTR $T49[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 230  :     rp->setResourceGroupDirectory("imagesets",
 
-	push	OFFSET $SG352614
+	push	OFFSET $SG352244
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 10		; 0000000aH
 	push	eax
@@ -50160,14 +50127,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	5
-	push	OFFSET $SG352617
+	push	OFFSET $SG352247
 	lea	ecx, DWORD PTR $T48[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 232  :     rp->setResourceGroupDirectory("fonts",
 
-	push	OFFSET $SG352616
+	push	OFFSET $SG352246
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 12		; 0000000cH
 	push	eax
@@ -50196,14 +50163,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352619
+	push	OFFSET $SG352249
 	lea	ecx, DWORD PTR $T47[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 234  :     rp->setResourceGroupDirectory("layouts",
 
-	push	OFFSET $SG352618
+	push	OFFSET $SG352248
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 14		; 0000000eH
 	push	eax
@@ -50232,14 +50199,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	10					; 0000000aH
-	push	OFFSET $SG352621
+	push	OFFSET $SG352251
 	lea	ecx, DWORD PTR $T46[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 236  :     rp->setResourceGroupDirectory("looknfeels",
 
-	push	OFFSET $SG352620
+	push	OFFSET $SG352250
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 16		; 00000010H
 	push	eax
@@ -50268,14 +50235,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	11					; 0000000bH
-	push	OFFSET $SG352623
+	push	OFFSET $SG352253
 	lea	ecx, DWORD PTR $T45[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 238  :     rp->setResourceGroupDirectory("lua_scripts",
 
-	push	OFFSET $SG352622
+	push	OFFSET $SG352252
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 18		; 00000012H
 	push	eax
@@ -50304,14 +50271,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352625
+	push	OFFSET $SG352255
 	lea	ecx, DWORD PTR $T44[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 240  :     rp->setResourceGroupDirectory("schemas",
 
-	push	OFFSET $SG352624
+	push	OFFSET $SG352254
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 20		; 00000014H
 	push	eax
@@ -50340,14 +50307,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	10					; 0000000aH
-	push	OFFSET $SG352627
+	push	OFFSET $SG352257
 	lea	ecx, DWORD PTR $T43[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 242  :     rp->setResourceGroupDirectory("animations",
 
-	push	OFFSET $SG352626
+	push	OFFSET $SG352256
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 22		; 00000016H
 	push	eax
@@ -50376,7 +50343,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	9
-	push	OFFSET $SG352628
+	push	OFFSET $SG352258
 	lea	ecx, DWORD PTR $T42[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50401,7 +50368,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	5
-	push	OFFSET $SG352629
+	push	OFFSET $SG352259
 	lea	ecx, DWORD PTR $T41[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50426,7 +50393,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352630
+	push	OFFSET $SG352260
 	lea	ecx, DWORD PTR $T40[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50451,7 +50418,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	10					; 0000000aH
-	push	OFFSET $SG352631
+	push	OFFSET $SG352261
 	lea	ecx, DWORD PTR $T39[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50476,7 +50443,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352632
+	push	OFFSET $SG352262
 	lea	ecx, DWORD PTR $T38[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50501,7 +50468,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	11					; 0000000bH
-	push	OFFSET $SG352633
+	push	OFFSET $SG352263
 	lea	ecx, DWORD PTR $T37[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50526,7 +50493,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	10					; 0000000aH
-	push	OFFSET $SG352634
+	push	OFFSET $SG352264
 	lea	ecx, DWORD PTR $T36[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50564,7 +50531,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352635
+	push	OFFSET $SG352265
 	lea	ecx, DWORD PTR $T15[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50585,7 +50552,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	18					; 00000012H
-	push	OFFSET $SG352636
+	push	OFFSET $SG352266
 	lea	ecx, DWORD PTR $T35[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50616,7 +50583,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352637
+	push	OFFSET $SG352267
 	lea	ecx, DWORD PTR $T34[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50637,7 +50604,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	18					; 00000012H
-	push	OFFSET $SG352638
+	push	OFFSET $SG352268
 	lea	ecx, DWORD PTR $T14[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50680,7 +50647,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352639
+	push	OFFSET $SG352269
 	lea	ecx, DWORD PTR $T33[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50701,7 +50668,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG352640
+	push	OFFSET $SG352270
 	lea	ecx, DWORD PTR $T13[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50732,7 +50699,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352641
+	push	OFFSET $SG352271
 	lea	ecx, DWORD PTR $T32[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50753,7 +50720,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG352642
+	push	OFFSET $SG352272
 	lea	ecx, DWORD PTR $T12[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50783,7 +50750,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352643
+	push	OFFSET $SG352273
 	lea	ecx, DWORD PTR $T31[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50804,7 +50771,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	20					; 00000014H
-	push	OFFSET $SG352644
+	push	OFFSET $SG352274
 	lea	ecx, DWORD PTR $T11[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50834,7 +50801,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352645
+	push	OFFSET $SG352275
 	lea	ecx, DWORD PTR $T30[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50855,7 +50822,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	20					; 00000014H
-	push	OFFSET $SG352646
+	push	OFFSET $SG352276
 	lea	ecx, DWORD PTR $T10[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50885,7 +50852,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352647
+	push	OFFSET $SG352277
 	lea	ecx, DWORD PTR $T29[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50906,7 +50873,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	20					; 00000014H
-	push	OFFSET $SG352648
+	push	OFFSET $SG352278
 	lea	ecx, DWORD PTR $T9[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50951,7 +50918,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG352651
+	push	OFFSET $SG352281
 	lea	ecx, DWORD PTR $T8[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50979,7 +50946,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352652
+	push	OFFSET $SG352282
 	lea	ecx, DWORD PTR $T28[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -51000,7 +50967,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG352653
+	push	OFFSET $SG352283
 	lea	ecx, DWORD PTR $T7[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51111,7 +51078,7 @@ $LN4@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	4
-	push	OFFSET $SG352655
+	push	OFFSET $SG352285
 	lea	ecx, DWORD PTR $T27[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -51132,7 +51099,7 @@ $LN4@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	13					; 0000000dH
-	push	OFFSET $SG352656
+	push	OFFSET $SG352286
 	lea	ecx, DWORD PTR $T6[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51172,7 +51139,7 @@ $LN4@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352657
+	push	OFFSET $SG352287
 	lea	ecx, DWORD PTR $T26[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -51193,7 +51160,7 @@ $LN4@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	19					; 00000013H
-	push	OFFSET $SG352658
+	push	OFFSET $SG352288
 	lea	ecx, DWORD PTR $T5[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51440,7 +51407,7 @@ __$EHRec$ = -12						; size = 12
 ; 174  :   // Move the log file that this darn thing just created...
 ; 175  :   if (GetFileAttributesW (L"CEGUI.log") != INVALID_FILE_ATTRIBUTES)
 
-	push	OFFSET $SG352489
+	push	OFFSET $SG352119
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
 	je	$LN2@SK_CEGUI_R
@@ -51491,13 +51458,13 @@ $LL4@SK_CEGUI_R:
 ; 183  :     lstrcatA ( szNewLogPath, R"(logs\CEGUI.log)");
 
 	lea	eax, DWORD PTR _szNewLogPath$2[ebp]
-	push	OFFSET $SG352490
+	push	OFFSET $SG352120
 	push	eax
 	call	DWORD PTR __imp__lstrcatA@8
 
 ; 184  :     lstrcatW (wszNewLogPath, L"logs\\CEGUI.log" );
 
-	push	OFFSET $SG352491
+	push	OFFSET $SG352121
 	lea	eax, DWORD PTR _wszNewLogPath$3[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrcatW@8
@@ -51511,7 +51478,7 @@ $LL4@SK_CEGUI_R:
 	push	0
 	lea	eax, DWORD PTR _wszNewLogPath$3[ebp]
 	push	eax
-	push	OFFSET $SG352492
+	push	OFFSET $SG352122
 	call	DWORD PTR __imp__CopyFileExW@24
 ; File c:\users\andon\source\repos\specialk\depends\include\cegui\string.h
 
@@ -51565,7 +51532,7 @@ $LL98@SK_CEGUI_R:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	36					; 00000024H
-	push	OFFSET $SG352493
+	push	OFFSET $SG352123
 	lea	ecx, DWORD PTR $T5[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51593,7 +51560,7 @@ $LL98@SK_CEGUI_R:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352494
+	push	OFFSET $SG352124
 	lea	ecx, DWORD PTR $T4[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51614,7 +51581,7 @@ $LL98@SK_CEGUI_R:
 ; 194  : 
 ; 195  :     DeleteFileW (L"CEGUI.log");
 
-	push	OFFSET $SG352495
+	push	OFFSET $SG352125
 	call	DWORD PTR __imp__DeleteFileW@4
 	pop	edi
 	pop	esi
@@ -52845,7 +52812,7 @@ _TEXT	SEGMENT
 ?isZero@<unnamed-type-override>@<unnamed-type-res>@<unnamed-type-window>@sk_config_t@@QAE_NXZ PROC ; sk_config_t::<unnamed-type-window>::<unnamed-type-res>::<unnamed-type-override>::isZero, COMDAT
 ; _this$ = ecx
 
-; 422  :         bool isZero (void) { return x == 0 && y == 0; };
+; 425  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	cmp	DWORD PTR [ecx], 0
 	jne	SHORT $LN3@isZero
@@ -55271,7 +55238,7 @@ $LL2@WaitForIni:
 
 	push	2
 	push	1279					; 000004ffH
-	push	DWORD PTR ?config@@3Usk_config_t@@A+796
+	push	DWORD PTR ?config@@3Usk_config_t@@A+800
 	push	0
 	push	0
 	call	esi
@@ -55462,7 +55429,7 @@ $LN5@SK_GetDXGI:
 ; 1201 :   return L"{Invalid-Adapter-UUID}";
 
 	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
-	push	OFFSET $SG353507
+	push	OFFSET $SG353137
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	esi
@@ -55730,7 +55697,7 @@ $LL79@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	12					; 0000000cH
-	push	OFFSET $SG353462
+	push	OFFSET $SG353092
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -55770,7 +55737,7 @@ $LL81@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	13					; 0000000dH
-	push	OFFSET $SG353465
+	push	OFFSET $SG353095
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -55810,7 +55777,7 @@ $LL83@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	13					; 0000000dH
-	push	OFFSET $SG353468
+	push	OFFSET $SG353098
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -55851,7 +55818,7 @@ $LL85@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	13					; 0000000dH
-	push	OFFSET $SG353471
+	push	OFFSET $SG353101
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56251,7 +56218,7 @@ $LN7@SK_GetDXGI:
 ; 1104 :   return L"{Invalid-Factory-UUID}";
 
 	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
-	push	OFFSET $SG353440
+	push	OFFSET $SG353070
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	esi
@@ -56668,7 +56635,7 @@ $LL91@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG353356
+	push	OFFSET $SG352986
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56708,7 +56675,7 @@ $LL93@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG353359
+	push	OFFSET $SG352989
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56748,7 +56715,7 @@ $LL95@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG353362
+	push	OFFSET $SG352992
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56789,7 +56756,7 @@ $LL97@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG353365
+	push	OFFSET $SG352995
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56829,7 +56796,7 @@ $LL99@SK_GetDXGI:
 
 ; 989  :     interface_name = L"     IDXGIFactory4";
 
-	push	OFFSET $SG353368
+	push	OFFSET $SG352998
 	mov	ecx, esi
 	call	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
 	pop	edi
@@ -56868,7 +56835,7 @@ $LL101@SK_GetDXGI:
 
 ; 991  :     interface_name = L"     IDXGIFactory5";
 
-	push	OFFSET $SG353371
+	push	OFFSET $SG353001
 	mov	ecx, esi
 	call	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
 	pop	edi
@@ -57164,68 +57131,68 @@ _ppAdapter$ = 8						; size = 4
 _DriverType$ = 12					; size = 4
 ?SK_DXGI_AdapterOverride@@YGXPAPAUIDXGIAdapter@@PAW4D3D_DRIVER_TYPE@@@Z PROC ; SK_DXGI_AdapterOverride
 
-; 4019 : {
+; 4023 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 596				; 00000254H
 
-; 4020 :   if (SK_DXGI_preferred_adapter == -1)
+; 4024 :   if (SK_DXGI_preferred_adapter == -1)
 
 	cmp	DWORD PTR ?SK_DXGI_preferred_adapter@@3HA, -1 ; SK_DXGI_preferred_adapter
 	je	$LN11@SK_DXGI_Ad
 
-; 4021 :     return;
-; 4022 : 
-; 4023 :   if (EnumAdapters_Original == nullptr)
+; 4025 :     return;
+; 4026 : 
+; 4027 :   if (EnumAdapters_Original == nullptr)
 
 	cmp	DWORD PTR ?EnumAdapters_Original@@3P6GJPAUIDXGIFactory@@IPAPAUIDXGIAdapter@@@ZA, 0 ; EnumAdapters_Original
 	jne	SHORT $LN4@SK_DXGI_Ad
 
-; 4024 :   {
-; 4025 :     WaitForInitDXGI ();
+; 4028 :   {
+; 4029 :     WaitForInitDXGI ();
 
 	call	?WaitForInitDXGI@@YAXXZ			; WaitForInitDXGI
 
-; 4026 : 
-; 4027 :     if (EnumAdapters_Original == nullptr)
+; 4030 : 
+; 4031 :     if (EnumAdapters_Original == nullptr)
 
 	cmp	DWORD PTR ?EnumAdapters_Original@@3P6GJPAUIDXGIFactory@@IPAPAUIDXGIAdapter@@@ZA, 0 ; EnumAdapters_Original
 	je	$LN11@SK_DXGI_Ad
 $LN4@SK_DXGI_Ad:
 	push	ebx
 
-; 4028 :       return;
-; 4029 :   }
-; 4030 : 
-; 4031 :   IDXGIAdapter* pGameAdapter     = (*ppAdapter);
+; 4032 :       return;
+; 4033 :   }
+; 4034 : 
+; 4035 :   IDXGIAdapter* pGameAdapter     = (*ppAdapter);
 
 	mov	ebx, DWORD PTR _ppAdapter$[ebp]
 	push	esi
 	push	edi
 
-; 4032 :   IDXGIAdapter* pOverrideAdapter = nullptr;
+; 4036 :   IDXGIAdapter* pOverrideAdapter = nullptr;
 
 	mov	DWORD PTR _pOverrideAdapter$[ebp], 0
 	mov	edi, DWORD PTR [ebx]
 	mov	DWORD PTR _pGameAdapter$[ebp], edi
 
-; 4033 :   IDXGIFactory* pFactory         = nullptr;
+; 4037 :   IDXGIFactory* pFactory         = nullptr;
 
 	mov	DWORD PTR _pFactory$[ebp], 0
 
-; 4034 : 
-; 4035 :   HRESULT res;
-; 4036 : 
-; 4037 :   if ((*ppAdapter) == nullptr)
+; 4038 : 
+; 4039 :   HRESULT res;
+; 4040 : 
+; 4041 :   if ((*ppAdapter) == nullptr)
 
 	test	edi, edi
 	je	SHORT $LN24@SK_DXGI_Ad
 
-; 4038 :     res = E_FAIL;
-; 4039 :   else
-; 4040 :     res = (*ppAdapter)->GetParent (IID_PPV_ARGS (&pFactory));
+; 4042 :     res = E_FAIL;
+; 4043 :   else
+; 4044 :     res = (*ppAdapter)->GetParent (IID_PPV_ARGS (&pFactory));
 
 	mov	esi, DWORD PTR [edi]
 	lea	eax, DWORD PTR _pFactory$[ebp]
@@ -57237,19 +57204,19 @@ $LN4@SK_DXGI_Ad:
 	push	edi
 	call	DWORD PTR [esi+24]
 
-; 4041 : 
-; 4042 :   if (FAILED (res))
+; 4045 : 
+; 4046 :   if (FAILED (res))
 
 	test	eax, eax
 	jns	SHORT $LN23@SK_DXGI_Ad
 $LN24@SK_DXGI_Ad:
 
-; 4043 :   {
-; 4044 :     if (SK_DXGI_use_factory1)
+; 4047 :   {
+; 4048 :     if (SK_DXGI_use_factory1)
 
 	cmp	BYTE PTR ?SK_DXGI_use_factory1@@3_NA, 0	; SK_DXGI_use_factory1
 
-; 4045 :       res = CreateDXGIFactory1_Import (__uuidof (IDXGIFactory1), static_cast_p2p <void> (&pFactory));
+; 4049 :       res = CreateDXGIFactory1_Import (__uuidof (IDXGIFactory1), static_cast_p2p <void> (&pFactory));
 
 	lea	eax, DWORD PTR _pFactory$[ebp]
 	push	eax
@@ -57257,39 +57224,39 @@ $LN24@SK_DXGI_Ad:
 	push	OFFSET __GUID_770aae78_f26f_4dba_a829_253c83d1b387
 	call	DWORD PTR ?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory1_Import
 
-; 4046 :     else
+; 4050 :     else
 
 	jmp	SHORT $LN9@SK_DXGI_Ad
 $LN8@SK_DXGI_Ad:
 
-; 4047 :       res = CreateDXGIFactory_Import  (__uuidof (IDXGIFactory),  static_cast_p2p <void> (&pFactory));
+; 4051 :       res = CreateDXGIFactory_Import  (__uuidof (IDXGIFactory),  static_cast_p2p <void> (&pFactory));
 
 	push	OFFSET __GUID_7b7166ec_21c7_44ae_b21a_c9ae321ae369
 	call	DWORD PTR ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory_Import
 $LN9@SK_DXGI_Ad:
 
-; 4048 :   }
-; 4049 : 
-; 4050 :   if (SUCCEEDED (res))
+; 4052 :   }
+; 4053 : 
+; 4054 :   if (SUCCEEDED (res))
 
 	test	eax, eax
 	js	$LN25@SK_DXGI_Ad
 $LN23@SK_DXGI_Ad:
 
-; 4051 :   {
-; 4052 :     if (pFactory != nullptr)
+; 4055 :   {
+; 4056 :     if (pFactory != nullptr)
 
 	mov	esi, DWORD PTR _pFactory$[ebp]
 	test	esi, esi
 	je	$LN25@SK_DXGI_Ad
 
-; 4053 :     {
-; 4054 :       if ((*ppAdapter) == nullptr)
+; 4057 :     {
+; 4058 :       if ((*ppAdapter) == nullptr)
 
 	cmp	DWORD PTR [ebx], 0
 	jne	SHORT $LN12@SK_DXGI_Ad
 
-; 4055 :         EnumAdapters_Original (pFactory, 0, &pGameAdapter);
+; 4059 :         EnumAdapters_Original (pFactory, 0, &pGameAdapter);
 
 	lea	eax, DWORD PTR _pGameAdapter$[ebp]
 	push	eax
@@ -57299,8 +57266,8 @@ $LN23@SK_DXGI_Ad:
 	mov	esi, DWORD PTR _pFactory$[ebp]
 $LN12@SK_DXGI_Ad:
 
-; 4056 : 
-; 4057 :       DXGI_ADAPTER_DESC game_desc { };
+; 4060 : 
+; 4061 :       DXGI_ADAPTER_DESC game_desc { };
 
 	push	292					; 00000124H
 	lea	eax, DWORD PTR _game_desc$2[ebp]
@@ -57308,24 +57275,24 @@ $LN12@SK_DXGI_Ad:
 	push	eax
 	call	_memset
 
-; 4058 : 
-; 4059 :       if (pGameAdapter != nullptr)
+; 4062 : 
+; 4063 :       if (pGameAdapter != nullptr)
 
 	mov	ecx, DWORD PTR _pGameAdapter$[ebp]
 	add	esp, 12					; 0000000cH
 	test	ecx, ecx
 	je	SHORT $LN13@SK_DXGI_Ad
 
-; 4060 :       {
-; 4061 :         *ppAdapter  = pGameAdapter;
-; 4062 :         *DriverType = D3D_DRIVER_TYPE_UNKNOWN;
+; 4064 :       {
+; 4065 :         *ppAdapter  = pGameAdapter;
+; 4066 :         *DriverType = D3D_DRIVER_TYPE_UNKNOWN;
 
 	mov	eax, DWORD PTR _DriverType$[ebp]
 	mov	DWORD PTR [ebx], ecx
 	mov	DWORD PTR [eax], 0
 
-; 4063 : 
-; 4064 :         GetDesc_Original (pGameAdapter, &game_desc);
+; 4067 : 
+; 4068 :         GetDesc_Original (pGameAdapter, &game_desc);
 
 	lea	eax, DWORD PTR _game_desc$2[ebp]
 	push	eax
@@ -57334,9 +57301,9 @@ $LN12@SK_DXGI_Ad:
 	mov	esi, DWORD PTR _pFactory$[ebp]
 $LN13@SK_DXGI_Ad:
 
-; 4065 :       }
-; 4066 : 
-; 4067 :       if ( SK_DXGI_preferred_adapter != -1 &&
+; 4069 :       }
+; 4070 : 
+; 4071 :       if ( SK_DXGI_preferred_adapter != -1 &&
 
 	mov	eax, DWORD PTR ?SK_DXGI_preferred_adapter@@3HA ; SK_DXGI_preferred_adapter
 	cmp	eax, -1
@@ -57349,19 +57316,19 @@ $LN13@SK_DXGI_Ad:
 	test	eax, eax
 	js	$LN14@SK_DXGI_Ad
 
-; 4068 :            SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) )
-; 4069 :       {
-; 4070 :         DXGI_ADAPTER_DESC override_desc;
-; 4071 :         GetDesc_Original (pOverrideAdapter, &override_desc);
+; 4072 :            SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) )
+; 4073 :       {
+; 4074 :         DXGI_ADAPTER_DESC override_desc;
+; 4075 :         GetDesc_Original (pOverrideAdapter, &override_desc);
 
 	lea	eax, DWORD PTR _override_desc$1[ebp]
 	push	eax
 	push	DWORD PTR _pOverrideAdapter$[ebp]
 	call	DWORD PTR ?GetDesc_Original@@3P6GJPAUIDXGIAdapter@@PAUDXGI_ADAPTER_DESC@@@ZA ; GetDesc_Original
 
-; 4072 : 
-; 4073 :         if ( game_desc.VendorId     == Vendors::Intel     &&
-; 4074 :              override_desc.VendorId != Vendors::Microsoft &&
+; 4076 : 
+; 4077 :         if ( game_desc.VendorId     == Vendors::Intel     &&
+; 4078 :              override_desc.VendorId != Vendors::Microsoft &&
 
 	cmp	DWORD PTR _game_desc$2[ebp+256], 32902	; 00008086H
 	jne	SHORT $LN16@SK_DXGI_Ad
@@ -57371,37 +57338,37 @@ $LN13@SK_DXGI_Ad:
 	cmp	eax, 32902				; 00008086H
 	je	SHORT $LN16@SK_DXGI_Ad
 
-; 4075 :              override_desc.VendorId != Vendors::Intel )
-; 4076 :         {
-; 4077 :           dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override: (Using '%s' instead of '%s') !!!",
+; 4079 :              override_desc.VendorId != Vendors::Intel )
+; 4080 :         {
+; 4081 :           dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override: (Using '%s' instead of '%s') !!!",
 
 	lea	eax, DWORD PTR _game_desc$2[ebp]
 	push	eax
 	lea	eax, DWORD PTR _override_desc$1[ebp]
 	push	eax
-	push	OFFSET $SG357475
+	push	OFFSET $SG357107
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 4078 :                         override_desc.Description, game_desc.Description );
-; 4079 : 
-; 4080 :           *ppAdapter = pOverrideAdapter;
+; 4082 :                         override_desc.Description, game_desc.Description );
+; 4083 : 
+; 4084 :           *ppAdapter = pOverrideAdapter;
 
 	mov	eax, DWORD PTR _pOverrideAdapter$[ebp]
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR [ebx], eax
 
-; 4081 :           pGameAdapter->Release ();
+; 4085 :           pGameAdapter->Release ();
 
 	mov	eax, DWORD PTR _pGameAdapter$[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+8]
 
-; 4096 :                         game_desc.Description );
-; 4097 :       }
-; 4098 : 
-; 4099 :       pFactory->Release ();
+; 4100 :                         game_desc.Description );
+; 4101 :       }
+; 4102 : 
+; 4103 :       pFactory->Release ();
 
 	mov	eax, DWORD PTR _pFactory$[ebp]
 	push	eax
@@ -57411,32 +57378,32 @@ $LN13@SK_DXGI_Ad:
 	pop	esi
 	pop	ebx
 
-; 4100 :     }
-; 4101 :   }
-; 4102 : }
+; 4104 :     }
+; 4105 :   }
+; 4106 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	8
 $LN16@SK_DXGI_Ad:
 
-; 4082 :         }
-; 4083 : 
-; 4084 :         else
-; 4085 :         {
-; 4086 :           dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override: (Tried '%s' instead of '%s') !!!",
+; 4086 :         }
+; 4087 : 
+; 4088 :         else
+; 4089 :         {
+; 4090 :           dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override: (Tried '%s' instead of '%s') !!!",
 
 	lea	eax, DWORD PTR _game_desc$2[ebp]
 	push	eax
 	lea	eax, DWORD PTR _override_desc$1[ebp]
 	push	eax
-	push	OFFSET $SG357476
+	push	OFFSET $SG357108
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 4087 :                         override_desc.Description, game_desc.Description );
-; 4088 :           //SK_DXGI_preferred_adapter = -1;
-; 4089 :           pOverrideAdapter->Release ();
+; 4091 :                         override_desc.Description, game_desc.Description );
+; 4092 :           //SK_DXGI_preferred_adapter = -1;
+; 4093 :           pOverrideAdapter->Release ();
 
 	mov	eax, DWORD PTR _pOverrideAdapter$[ebp]
 	add	esp, 16					; 00000010H
@@ -57444,10 +57411,10 @@ $LN16@SK_DXGI_Ad:
 	push	eax
 	call	DWORD PTR [ecx+8]
 
-; 4096 :                         game_desc.Description );
-; 4097 :       }
-; 4098 : 
-; 4099 :       pFactory->Release ();
+; 4100 :                         game_desc.Description );
+; 4101 :       }
+; 4102 : 
+; 4103 :       pFactory->Release ();
 
 	mov	eax, DWORD PTR _pFactory$[ebp]
 	push	eax
@@ -57457,32 +57424,32 @@ $LN16@SK_DXGI_Ad:
 	pop	esi
 	pop	ebx
 
-; 4100 :     }
-; 4101 :   }
-; 4102 : }
+; 4104 :     }
+; 4105 :   }
+; 4106 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	8
 $LN14@SK_DXGI_Ad:
 
-; 4090 :         }
-; 4091 :       }
-; 4092 : 
-; 4093 :       else
-; 4094 :       {
-; 4095 :         dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override Failed, returning '%s' !!!",
+; 4094 :         }
+; 4095 :       }
+; 4096 : 
+; 4097 :       else
+; 4098 :       {
+; 4099 :         dll_log.Log ( L"[   DXGI   ] !!! DXGI Adapter Override Failed, returning '%s' !!!",
 
 	lea	eax, DWORD PTR _game_desc$2[ebp]
 	push	eax
-	push	OFFSET $SG357477
+	push	OFFSET $SG357109
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 4096 :                         game_desc.Description );
-; 4097 :       }
-; 4098 : 
-; 4099 :       pFactory->Release ();
+; 4100 :                         game_desc.Description );
+; 4101 :       }
+; 4102 : 
+; 4103 :       pFactory->Release ();
 
 	mov	eax, DWORD PTR _pFactory$[ebp]
 	add	esp, 12					; 0000000cH
@@ -57495,9 +57462,9 @@ $LN25@SK_DXGI_Ad:
 	pop	ebx
 $LN11@SK_DXGI_Ad:
 
-; 4100 :     }
-; 4101 :   }
-; 4102 : }
+; 4104 :     }
+; 4105 :   }
+; 4106 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -57580,7 +57547,7 @@ _pFeatureLevels$ = 16					; size = 4
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG352938
+	push	OFFSET $SG352568
 	lea	ecx, DWORD PTR _out$[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -57626,7 +57593,7 @@ $LL4@SK_DXGI_Fe:
 ; 605  :     case D3D_FEATURE_LEVEL_9_2:
 ; 606  :       out += L" 9_2";
 
-	push	OFFSET $SG352942
+	push	OFFSET $SG352572
 	lea	ecx, DWORD PTR _out$[ebp]
 	call	??Y?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator+=
 
@@ -57639,7 +57606,7 @@ $LN9@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	4
-	push	OFFSET $SG352940
+	push	OFFSET $SG352570
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 604  :       break;
@@ -57651,7 +57618,7 @@ $LN11@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	4
-	push	OFFSET $SG352944
+	push	OFFSET $SG352574
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 610  :       break;
@@ -57669,7 +57636,7 @@ $LN20@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352946
+	push	OFFSET $SG352576
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 613  :       break;
@@ -57681,7 +57648,7 @@ $LN13@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352948
+	push	OFFSET $SG352578
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 616  :       break;
@@ -57704,7 +57671,7 @@ $LN19@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352952
+	push	OFFSET $SG352582
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 622  :       break;
@@ -57716,7 +57683,7 @@ $LN14@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352950
+	push	OFFSET $SG352580
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 619  :       break;
@@ -57728,7 +57695,7 @@ $LN16@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352954
+	push	OFFSET $SG352584
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 625  :       break;
@@ -57746,7 +57713,7 @@ $LN21@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352956
+	push	OFFSET $SG352586
 $LN222@SK_DXGI_Fe:
 	lea	ecx, DWORD PTR _out$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
@@ -57809,7 +57776,7 @@ $LN8@SK_DXGI_Fe:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	3
-	push	OFFSET $SG352937
+	push	OFFSET $SG352567
 	mov	ecx, esi
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -57916,7 +57883,7 @@ _swap_flags$ = 12					; size = 4
 
 	mov	ecx, esi
 	push	eax
-	push	OFFSET $SG352902
+	push	OFFSET $SG352532
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 550  : {
@@ -57955,7 +57922,7 @@ _swap_flags$ = 12					; size = 4
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	16					; 00000010H
-	push	OFFSET $SG352904
+	push	OFFSET $SG352534
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN2@SK_DXGI_De:
@@ -57970,7 +57937,7 @@ $LN2@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	29					; 0000001dH
-	push	OFFSET $SG352906
+	push	OFFSET $SG352536
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN3@SK_DXGI_De:
@@ -57985,7 +57952,7 @@ $LN3@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	15					; 0000000fH
-	push	OFFSET $SG352908
+	push	OFFSET $SG352538
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN4@SK_DXGI_De:
@@ -58000,7 +57967,7 @@ $LN4@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	40					; 00000028H
-	push	OFFSET $SG352910
+	push	OFFSET $SG352540
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN5@SK_DXGI_De:
@@ -58015,7 +57982,7 @@ $LN5@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	53					; 00000035H
-	push	OFFSET $SG352912
+	push	OFFSET $SG352542
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN6@SK_DXGI_De:
@@ -58030,7 +57997,7 @@ $LN6@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	17					; 00000011H
-	push	OFFSET $SG352914
+	push	OFFSET $SG352544
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN7@SK_DXGI_De:
@@ -58045,7 +58012,7 @@ $LN7@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	38					; 00000026H
-	push	OFFSET $SG352916
+	push	OFFSET $SG352546
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN8@SK_DXGI_De:
@@ -58060,7 +58027,7 @@ $LN8@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	31					; 0000001fH
-	push	OFFSET $SG352918
+	push	OFFSET $SG352548
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN9@SK_DXGI_De:
@@ -58075,7 +58042,7 @@ $LN9@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	34					; 00000022H
-	push	OFFSET $SG352920
+	push	OFFSET $SG352550
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN10@SK_DXGI_De:
@@ -58090,7 +58057,7 @@ $LN10@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	34					; 00000022H
-	push	OFFSET $SG352922
+	push	OFFSET $SG352552
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN109@SK_DXGI_De:
@@ -58146,7 +58113,7 @@ $LN4@SK_DXGI_De:
 ; 535  :     case DXGI_SWAP_EFFECT_DISCARD:
 ; 536  :       return    L"Discard  (BitBlt)";
 
-	mov	eax, OFFSET $SG352888
+	mov	eax, OFFSET $SG352518
 
 ; 545  :   }
 ; 546  : }
@@ -58158,7 +58125,7 @@ $LN5@SK_DXGI_De:
 ; 537  :     case DXGI_SWAP_EFFECT_SEQUENTIAL:
 ; 538  :       return L"Sequential  (BitBlt)";
 
-	mov	eax, OFFSET $SG352890
+	mov	eax, OFFSET $SG352520
 
 ; 545  :   }
 ; 546  : }
@@ -58170,7 +58137,7 @@ $LN6@SK_DXGI_De:
 ; 539  :     case DXGI_SWAP_EFFECT_FLIP_DISCARD:
 ; 540  :       return    L"Discard  (Flip)";
 
-	mov	eax, OFFSET $SG352892
+	mov	eax, OFFSET $SG352522
 
 ; 545  :   }
 ; 546  : }
@@ -58182,7 +58149,7 @@ $LN7@SK_DXGI_De:
 ; 541  :     case DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL:
 ; 542  :       return L"Sequential  (Flip)";
 
-	mov	eax, OFFSET $SG352894
+	mov	eax, OFFSET $SG352524
 
 ; 545  :   }
 ; 546  : }
@@ -58194,7 +58161,7 @@ $LN8@SK_DXGI_De:
 ; 543  :     default:
 ; 544  :       return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG352896
+	mov	eax, OFFSET $SG352526
 
 ; 545  :   }
 ; 546  : }
@@ -58234,7 +58201,7 @@ $LN4@SK_DXGI_De:
 ; 517  :   case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED:
 ; 518  :     return L"DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED";
 
-	mov	eax, OFFSET $SG352873
+	mov	eax, OFFSET $SG352503
 
 ; 527  :   }
 ; 528  : }
@@ -58246,7 +58213,7 @@ $LN5@SK_DXGI_De:
 ; 519  :   case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE:
 ; 520  :     return L"DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE";
 
-	mov	eax, OFFSET $SG352875
+	mov	eax, OFFSET $SG352505
 
 ; 527  :   }
 ; 528  : }
@@ -58258,7 +58225,7 @@ $LN6@SK_DXGI_De:
 ; 521  :   case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
 ; 522  :     return L"DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST";
 
-	mov	eax, OFFSET $SG352877
+	mov	eax, OFFSET $SG352507
 
 ; 527  :   }
 ; 528  : }
@@ -58270,7 +58237,7 @@ $LN7@SK_DXGI_De:
 ; 523  :   case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
 ; 524  :     return L"DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST";
 
-	mov	eax, OFFSET $SG352879
+	mov	eax, OFFSET $SG352509
 
 ; 527  :   }
 ; 528  : }
@@ -58282,7 +58249,7 @@ $LN8@SK_DXGI_De:
 ; 525  :   default:
 ; 526  :     return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG352881
+	mov	eax, OFFSET $SG352511
 
 ; 527  :   }
 ; 528  : }
@@ -58322,7 +58289,7 @@ _mode$ = 8						; size = 4
 ; 507  :     default:
 ; 508  :       return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG352866
+	mov	eax, OFFSET $SG352496
 
 ; 509  :   }
 ; 510  : }
@@ -58334,7 +58301,7 @@ $LN6@SK_DXGI_De:
 ; 505  :     case DXGI_MODE_SCALING_STRETCHED:
 ; 506  :       return L"DXGI_MODE_SCALING_STRETCHED";
 
-	mov	eax, OFFSET $SG352864
+	mov	eax, OFFSET $SG352494
 
 ; 509  :   }
 ; 510  : }
@@ -58347,7 +58314,7 @@ $LN4@SK_DXGI_De:
 ; 501  :     case DXGI_MODE_SCALING_CENTERED:
 ; 502  :       return L"DXGI_MODE_SCALING_CENTERED";
 
-	mov	eax, OFFSET $SG352860
+	mov	eax, OFFSET $SG352490
 
 ; 509  :   }
 ; 510  : }
@@ -58359,7 +58326,7 @@ $LN5@SK_DXGI_De:
 ; 503  :     case DXGI_MODE_SCALING_UNSPECIFIED:
 ; 504  :       return L"DXGI_MODE_SCALING_UNSPECIFIED";
 
-	mov	eax, OFFSET $SG352862
+	mov	eax, OFFSET $SG352492
 
 ; 509  :   }
 ; 510  : }
@@ -58402,7 +58369,7 @@ _success$1$ = -1					; size = 1
 _user_data$ = 8						; size = 4
 ?BudgetThread@DXGI@SK@@YGKPAX@Z PROC			; SK::DXGI::BudgetThread
 
-; 5600 : {
+; 5564 : {
 
 	npad	2
 	push	ebp
@@ -58411,36 +58378,36 @@ _user_data$ = 8						; size = 4
 	push	ebx
 	push	esi
 
-; 5601 :   auto* params =
-; 5602 :     static_cast <budget_thread_params_t *> (user_data);
-; 5603 : 
-; 5604 :   budget_log.silent = true;
+; 5565 :   auto* params =
+; 5566 :     static_cast <budget_thread_params_t *> (user_data);
+; 5567 : 
+; 5568 :   budget_log.silent = true;
 
 	mov	BYTE PTR ?budget_log@@3UiSK_Logger@@A+32, 1
 
-; 5605 :   params->tid       = GetCurrentThreadId ();
+; 5569 :   params->tid       = GetCurrentThreadId ();
 
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	mov	ebx, DWORD PTR _user_data$[ebp]
 
-; 5606 :   params->event     =
+; 5570 :   params->event     =
 
 	mov	esi, DWORD PTR __imp__CreateEventW@16
-	push	OFFSET $SG370571
+	push	OFFSET $SG370201
 	push	0
 	push	0
 	push	0
 	mov	DWORD PTR [ebx+4], eax
 	call	esi
 
-; 5607 :     CreateEvent ( nullptr,
-; 5608 :                     FALSE,
-; 5609 :                       FALSE,
-; 5610 :                         L"DXGIMemoryBudget"
-; 5611 :                 );
-; 5612 :   params->shutdown  = 
+; 5571 :     CreateEvent ( nullptr,
+; 5572 :                     FALSE,
+; 5573 :                       FALSE,
+; 5574 :                         L"DXGIMemoryBudget"
+; 5575 :                 );
+; 5576 :   params->shutdown  = 
 
-	push	OFFSET $SG370572
+	push	OFFSET $SG370202
 	push	0
 	push	0
 	push	0
@@ -58448,18 +58415,18 @@ _user_data$ = 8						; size = 4
 	call	esi
 	mov	DWORD PTR [ebx+20], eax
 
-; 5613 :     CreateEvent ( nullptr,
-; 5614 :                     FALSE,
-; 5615 :                       FALSE,
-; 5616 :                         L"DXGIMemoryBudget_Shutdown" );
-; 5617 : 
-; 5618 :   InterlockedExchange ( &params->ready, TRUE );
+; 5577 :     CreateEvent ( nullptr,
+; 5578 :                     FALSE,
+; 5579 :                       FALSE,
+; 5580 :                         L"DXGIMemoryBudget_Shutdown" );
+; 5581 : 
+; 5582 :   InterlockedExchange ( &params->ready, TRUE );
 
 	lea	esi, DWORD PTR [ebx+24]
 	mov	eax, 1
 	xchg	DWORD PTR [esi], eax
 
-; 5622 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
+; 5586 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
 
 	push	0
 	push	0
@@ -58472,33 +58439,33 @@ _user_data$ = 8						; size = 4
 	mov	eax, DWORD PTR [esi]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5622 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
+; 5586 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
 
 	setns	BYTE PTR _success$1$[ebp]
 
-; 5625 :   while ( ReadAcquire ( &params->ready ) )
+; 5589 :   while ( ReadAcquire ( &params->ready ) )
 
 	test	eax, eax
 	je	$LN3@BudgetThre
 
-; 5702 :              params->pAdapter->QueryVideoMemoryInfo (
-; 5703 :                node,
-; 5704 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5705 :                    &mem_info [buffer].nonlocal [node++]
-; 5706 :              )
-; 5707 :            )
-; 5708 :          )
-; 5709 :       {
-; 5710 :         break;
-; 5711 :       }
-; 5712 :     }
-; 5713 : 
-; 5714 : 
-; 5715 :     // Set the number of SLI/CFX Nodes
-; 5716 :     mem_info [buffer].nodes = nodes;
-; 5717 : 
-; 5718 :     static uint64_t
-; 5719 :       last_budget = mem_info [buffer].local [0].Budget;
+; 5666 :              params->pAdapter->QueryVideoMemoryInfo (
+; 5667 :                node,
+; 5668 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5669 :                    &mem_info [buffer].nonlocal [node++]
+; 5670 :              )
+; 5671 :            )
+; 5672 :          )
+; 5673 :       {
+; 5674 :         break;
+; 5675 :       }
+; 5676 :     }
+; 5677 : 
+; 5678 : 
+; 5679 :     // Set the number of SLI/CFX Nodes
+; 5680 :     mem_info [buffer].nodes = nodes;
+; 5681 : 
+; 5682 :     static uint64_t
+; 5683 :       last_budget = mem_info [buffer].local [0].Budget;
 
 	mov	ecx, DWORD PTR __tls_index
 	mov	eax, DWORD PTR fs:__tls_array
@@ -58508,28 +58475,28 @@ _user_data$ = 8						; size = 4
 	mov	DWORD PTR tv1565[ebp], eax
 $LL2@BudgetThre:
 
-; 5626 :   {
-; 5627 :     if (__SK_DLL_Ending)
+; 5590 :   {
+; 5591 :     if (__SK_DLL_Ending)
 
 	cmp	DWORD PTR ?__SK_DLL_Ending@@3JC, 0	; __SK_DLL_Ending
 	jne	$LN111@BudgetThre
 
-; 5628 :       break;
-; 5629 : 
-; 5630 :     if ( params->event == nullptr )
+; 5592 :       break;
+; 5593 : 
+; 5594 :     if ( params->event == nullptr )
 
 	mov	eax, DWORD PTR [ebx+16]
 	test	eax, eax
 	je	$LN111@BudgetThre
 
-; 5631 :       break;
-; 5632 : 
-; 5633 :     HANDLE phEvents [] = { params->event, params->shutdown };
+; 5595 :       break;
+; 5596 : 
+; 5597 :     HANDLE phEvents [] = { params->event, params->shutdown };
 
 	mov	DWORD PTR _phEvents$1[ebp], eax
 	mov	eax, DWORD PTR [ebx+20]
 
-; 5636 :       WaitForMultipleObjects ( 2,
+; 5600 :       WaitForMultipleObjects ( 2,
 
 	push	399					; 0000018fH
 	mov	DWORD PTR _phEvents$1[ebp+4], eax
@@ -58545,40 +58512,40 @@ $LL2@BudgetThre:
 	mov	ecx, DWORD PTR [esi]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5636 :       WaitForMultipleObjects ( 2,
+; 5600 :       WaitForMultipleObjects ( 2,
 
 	mov	DWORD PTR _dwWaitStatus$1$[ebp], eax
 
-; 5637 :                                  phEvents,
-; 5638 :                                    FALSE,
-; 5639 :                                      BUDGET_POLL_INTERVAL * 3 );
-; 5640 : 
-; 5641 :     if (! ReadAcquire ( &params->ready ) )
+; 5601 :                                  phEvents,
+; 5602 :                                    FALSE,
+; 5603 :                                      BUDGET_POLL_INTERVAL * 3 );
+; 5604 : 
+; 5605 :     if (! ReadAcquire ( &params->ready ) )
 
 	test	ecx, ecx
 	je	$LN82@BudgetThre
 
-; 5644 :       break;
-; 5645 :     }
-; 5646 : 
-; 5647 :     if (dwWaitStatus == WAIT_OBJECT_0 + 1)
+; 5608 :       break;
+; 5609 :     }
+; 5610 : 
+; 5611 :     if (dwWaitStatus == WAIT_OBJECT_0 + 1)
 
 	cmp	eax, 1
 	je	$LN83@BudgetThre
 
-; 5651 :       break;
-; 5652 :     }
-; 5653 : 
-; 5654 :     int         node = 0;
-; 5655 : 
-; 5656 :     buffer_t buffer  =
-; 5657 :       mem_info [node].buffer;
+; 5615 :       break;
+; 5616 :     }
+; 5617 : 
+; 5618 :     int         node = 0;
+; 5619 : 
+; 5620 :     buffer_t buffer  =
+; 5621 :       mem_info [node].buffer;
 
 	mov	esi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A+272
 
-; 5658 : 
-; 5659 : 
-; 5660 :     SK_D3D11_Textures.Budget = mem_info [buffer].local [0].Budget -
+; 5622 : 
+; 5623 : 
+; 5624 :     SK_D3D11_Textures.Budget = mem_info [buffer].local [0].Budget -
 
 	imul	eax, esi, 280
 	mov	edx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax]
@@ -58591,7 +58558,7 @@ $LL2@BudgetThre:
 
 	push	ecx
 	push	edx
-	push	OFFSET ?SK_D3D11_Textures@@3VSK_D3D11_TexMgr@@A+256
+	push	OFFSET ?SK_D3D11_Textures@@3VSK_D3D11_TexMgr@@A+248
 	call	?_Store_seq_cst_8@std@@YAXPC_K_K@Z	; std::_Store_seq_cst_8
 	xor	eax, eax
 	add	esp, 12					; 0000000cH
@@ -58599,7 +58566,7 @@ $LL2@BudgetThre:
 	sete	al
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5671 :     GetLocalTime ( &mem_info [buffer].time );
+; 5635 :     GetLocalTime ( &mem_info [buffer].time );
 
 	imul	ebx, eax, 280
 	mov	DWORD PTR tv1557[ebp], eax
@@ -58609,11 +58576,11 @@ $LL2@BudgetThre:
 	call	DWORD PTR __imp__GetLocalTime@4
 	lea	ebx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[ebx]
 
-; 5672 : 
-; 5673 :     //
-; 5674 :     // Sample Fast nUMA (On-GPU / Dedicated) Memory
-; 5675 :     //
-; 5676 :     for ( node = 0; node < MAX_GPU_NODES; )
+; 5636 : 
+; 5637 :     //
+; 5638 :     // Sample Fast nUMA (On-GPU / Dedicated) Memory
+; 5639 :     //
+; 5640 :     for ( node = 0; node < MAX_GPU_NODES; )
 
 	xor	esi, esi
 	mov	DWORD PTR tv1552[ebp], ebx
@@ -58621,8 +58588,8 @@ $LL2@BudgetThre:
 	npad	6
 $LL4@BudgetThre:
 
-; 5677 :     {
-; 5678 :       if ( FAILED (
+; 5641 :     {
+; 5642 :       if ( FAILED (
 
 	mov	eax, DWORD PTR _user_data$[ebp]
 	push	edi
@@ -58637,18 +58604,18 @@ $LL4@BudgetThre:
 	test	eax, eax
 	js	SHORT $LN78@BudgetThre
 
-; 5672 : 
-; 5673 :     //
-; 5674 :     // Sample Fast nUMA (On-GPU / Dedicated) Memory
-; 5675 :     //
-; 5676 :     for ( node = 0; node < MAX_GPU_NODES; )
+; 5636 : 
+; 5637 :     //
+; 5638 :     // Sample Fast nUMA (On-GPU / Dedicated) Memory
+; 5639 :     //
+; 5640 :     for ( node = 0; node < MAX_GPU_NODES; )
 
 	cmp	esi, 4
 	jl	SHORT $LL4@BudgetThre
 $LN78@BudgetThre:
 	mov	ebx, DWORD PTR _user_data$[ebp]
 
-; 5694 :       std::max (0, node - 1);
+; 5658 :       std::max (0, node - 1);
 
 	lea	eax, DWORD PTR [esi-1]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -58658,7 +58625,7 @@ $LN78@BudgetThre:
 	test	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5694 :       std::max (0, node - 1);
+; 5658 :       std::max (0, node - 1);
 
 	mov	DWORD PTR $T2[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -58668,7 +58635,7 @@ $LN78@BudgetThre:
 	lea	ecx, DWORD PTR $T2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5694 :       std::max (0, node - 1);
+; 5658 :       std::max (0, node - 1);
 
 	mov	DWORD PTR $T3[ebp], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -58679,7 +58646,7 @@ $LN78@BudgetThre:
 	cmovle	ecx, edx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5699 :     for ( node = 0; node < MAX_GPU_NODES; )
+; 5663 :     for ( node = 0; node < MAX_GPU_NODES; )
 
 	xor	esi, esi
 	mov	eax, DWORD PTR [ecx]
@@ -58688,8 +58655,8 @@ $LN78@BudgetThre:
 	lea	edi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax+128]
 $LL7@BudgetThre:
 
-; 5700 :     {
-; 5701 :       if ( FAILED (
+; 5664 :     {
+; 5665 :       if ( FAILED (
 
 	mov	eax, DWORD PTR [ebx]
 	push	edi
@@ -58703,30 +58670,30 @@ $LL7@BudgetThre:
 	test	eax, eax
 	js	SHORT $LN79@BudgetThre
 
-; 5699 :     for ( node = 0; node < MAX_GPU_NODES; )
+; 5663 :     for ( node = 0; node < MAX_GPU_NODES; )
 
 	cmp	esi, 4
 	jl	SHORT $LL7@BudgetThre
 $LN79@BudgetThre:
 
-; 5702 :              params->pAdapter->QueryVideoMemoryInfo (
-; 5703 :                node,
-; 5704 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5705 :                    &mem_info [buffer].nonlocal [node++]
-; 5706 :              )
-; 5707 :            )
-; 5708 :          )
-; 5709 :       {
-; 5710 :         break;
-; 5711 :       }
-; 5712 :     }
-; 5713 : 
-; 5714 : 
-; 5715 :     // Set the number of SLI/CFX Nodes
-; 5716 :     mem_info [buffer].nodes = nodes;
-; 5717 : 
-; 5718 :     static uint64_t
-; 5719 :       last_budget = mem_info [buffer].local [0].Budget;
+; 5666 :              params->pAdapter->QueryVideoMemoryInfo (
+; 5667 :                node,
+; 5668 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5669 :                    &mem_info [buffer].nonlocal [node++]
+; 5670 :              )
+; 5671 :            )
+; 5672 :          )
+; 5673 :       {
+; 5674 :         break;
+; 5675 :       }
+; 5676 :     }
+; 5677 : 
+; 5678 : 
+; 5679 :     // Set the number of SLI/CFX Nodes
+; 5680 :     mem_info [buffer].nodes = nodes;
+; 5681 : 
+; 5682 :     static uint64_t
+; 5683 :       last_budget = mem_info [buffer].local [0].Budget;
 
 	mov	eax, DWORD PTR tv1565[ebp]
 	mov	edi, DWORD PTR tv1556[ebp]
@@ -58739,26 +58706,26 @@ $LN79@BudgetThre:
 	jg	$LN113@BudgetThre
 $LN10@BudgetThre:
 
-; 5720 : 
-; 5721 : 
-; 5722 :     if ( nodes > 0 )
+; 5684 : 
+; 5685 : 
+; 5686 :     if ( nodes > 0 )
 
 	test	esi, esi
 	jle	$LN25@BudgetThre
 
-; 5723 :     {
-; 5724 :       int i;
-; 5725 : 
-; 5726 :       budget_log.LogEx ( true,
+; 5687 :     {
+; 5688 :       int i;
+; 5689 : 
+; 5690 :       budget_log.LogEx ( true,
 
-	push	OFFSET $SG370582
+	push	OFFSET $SG370212
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5727 :                            L"[ DXGI 1.4 ] Local Memory.....:" );
-; 5728 : 
-; 5729 :       for ( i = 0; i < nodes; i++ )
+; 5691 :                            L"[ DXGI 1.4 ] Local Memory.....:" );
+; 5692 : 
+; 5693 :       for ( i = 0; i < nodes; i++ )
 
 	xor	ebx, ebx
 	add	esp, 12					; 0000000cH
@@ -58766,33 +58733,33 @@ $LN10@BudgetThre:
 	test	esi, esi
 	jle	$LN12@BudgetThre
 
-; 5723 :     {
-; 5724 :       int i;
-; 5725 : 
-; 5726 :       budget_log.LogEx ( true,
+; 5687 :     {
+; 5688 :       int i;
+; 5689 : 
+; 5690 :       budget_log.LogEx ( true,
 
 	mov	esi, OFFSET ?mem_stats@@3PAUmemory_stats_t@@A+24
 	lea	edi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edi+24]
 	npad	7
 $LL13@BudgetThre:
 
-; 5730 :       {
-; 5731 :         if ( dwWaitStatus == WAIT_OBJECT_0 )
+; 5694 :       {
+; 5695 :         if ( dwWaitStatus == WAIT_OBJECT_0 )
 
 	cmp	DWORD PTR _dwWaitStatus$1$[ebp], 0
 	jne	SHORT $LN26@BudgetThre
 
-; 5732 :         {
-; 5733 :           static UINT64
-; 5734 :             LastBudget = 0ULL;
-; 5735 : 
-; 5736 :           mem_stats [i].budget_changes++;
+; 5696 :         {
+; 5697 :           static UINT64
+; 5698 :             LastBudget = 0ULL;
+; 5699 : 
+; 5700 :           mem_stats [i].budget_changes++;
 
 	add	DWORD PTR [esi+56], 1
 
-; 5737 : 
-; 5738 :           const int64_t over_budget =
-; 5739 :             ( mem_info [buffer].local [i].CurrentUsage -
+; 5701 : 
+; 5702 :           const int64_t over_budget =
+; 5703 :             ( mem_info [buffer].local [i].CurrentUsage -
 
 	mov	ecx, DWORD PTR [edi-16]
 	adc	DWORD PTR [esi+60], 0
@@ -58802,12 +58769,12 @@ $LL13@BudgetThre:
 	mov	ebx, DWORD PTR [edi-20]
 	sbb	eax, ebx
 
-; 5740 :               mem_info [buffer].local [i].Budget );
-; 5741 : 
-; 5742 :             //LastBudget -
-; 5743 :             //mem_info [buffer].local [i].Budget;
-; 5744 : 
-; 5745 :           SK_D3D11_need_tex_reset = ( over_budget > 0 );
+; 5704 :               mem_info [buffer].local [i].Budget );
+; 5705 : 
+; 5706 :             //LastBudget -
+; 5707 :             //mem_info [buffer].local [i].Budget;
+; 5708 : 
+; 5709 :           SK_D3D11_need_tex_reset = ( over_budget > 0 );
 
 	mov	DWORD PTR tv1758[ebp+4], eax
 	js	SHORT $LN42@BudgetThre
@@ -58821,42 +58788,42 @@ $LN42@BudgetThre:
 	mov	BYTE PTR ?SK_D3D11_need_tex_reset@@3_NA, 0 ; SK_D3D11_need_tex_reset
 $LN43@BudgetThre:
 
-; 5746 : 
-; 5747 :           LastBudget =
+; 5710 : 
+; 5711 :           LastBudget =
 
 	mov	DWORD PTR ?LastBudget@?CD@??BudgetThread@DXGI@SK@@YGKPAX@Z@4_KA+4, ebx
 	mov	ebx, DWORD PTR _i$1$[ebp]
 	mov	DWORD PTR ?LastBudget@?CD@??BudgetThread@DXGI@SK@@YGKPAX@Z@4_KA, edx
 $LN26@BudgetThre:
 
-; 5748 :             mem_info [buffer].local [i].Budget;
-; 5749 :         }
-; 5750 : 
-; 5751 :         if ( i > 0 )
+; 5712 :             mem_info [buffer].local [i].Budget;
+; 5713 :         }
+; 5714 : 
+; 5715 :         if ( i > 0 )
 
 	test	ebx, ebx
 	jle	SHORT $LN27@BudgetThre
 
-; 5752 :         {
-; 5753 :           budget_log.LogEx ( false, L"\n"                                );
+; 5716 :         {
+; 5717 :           budget_log.LogEx ( false, L"\n"                                );
 
-	push	OFFSET $SG370585
+	push	OFFSET $SG370215
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5754 :           budget_log.LogEx ( true,  L"                                 " );
+; 5718 :           budget_log.LogEx ( true,  L"                                 " );
 
-	push	OFFSET $SG370586
+	push	OFFSET $SG370216
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN27@BudgetThre:
 
-; 5755 :         }
-; 5756 : 
-; 5757 :         budget_log.LogEx (
+; 5719 :         }
+; 5720 : 
+; 5721 :         budget_log.LogEx (
 
 	mov	ecx, DWORD PTR [edi-24]
 	mov	eax, DWORD PTR [edi-20]
@@ -58883,22 +58850,22 @@ $LN27@BudgetThre:
 	push	eax
 	push	ecx
 	push	ebx
-	push	OFFSET $SG370587
+	push	OFFSET $SG370217
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5758 :           false,
-; 5759 :             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-; 5760 :                       L"Budget: %#5llu / %#5llu MiB)",
-; 5761 :           i,
-; 5762 :             mem_info       [buffer].local [i].CurrentReservation      >> 20ULL,
-; 5763 :               mem_info     [buffer].local [i].AvailableForReservation >> 20ULL,
-; 5764 :                 mem_info   [buffer].local [i].CurrentUsage            >> 20ULL,
-; 5765 :                   mem_info [buffer].local [i].Budget                  >> 20ULL
-; 5766 :         );
-; 5767 : 
-; 5768 :         min_max ( mem_info [buffer].local [i].AvailableForReservation,
+; 5722 :           false,
+; 5723 :             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+; 5724 :                       L"Budget: %#5llu / %#5llu MiB)",
+; 5725 :           i,
+; 5726 :             mem_info       [buffer].local [i].CurrentReservation      >> 20ULL,
+; 5727 :               mem_info     [buffer].local [i].AvailableForReservation >> 20ULL,
+; 5728 :                 mem_info   [buffer].local [i].CurrentUsage            >> 20ULL,
+; 5729 :                   mem_info [buffer].local [i].Budget                  >> 20ULL
+; 5730 :         );
+; 5731 : 
+; 5732 :         min_max ( mem_info [buffer].local [i].AvailableForReservation,
 
 	mov	ecx, DWORD PTR [edi-4]
 	add	esp, 48					; 00000030H
@@ -58922,10 +58889,10 @@ $LN99@BudgetThre:
 	mov	DWORD PTR [esi-4], ecx
 $LN29@BudgetThre:
 
-; 5769 :                                 mem_stats [i].min_avail_reserve,
-; 5770 :                                 mem_stats [i].max_avail_reserve );
-; 5771 : 
-; 5772 :         min_max ( mem_info [buffer].local [i].CurrentReservation,
+; 5733 :                                 mem_stats [i].min_avail_reserve,
+; 5734 :                                 mem_stats [i].max_avail_reserve );
+; 5735 : 
+; 5736 :         min_max ( mem_info [buffer].local [i].CurrentReservation,
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	eax, DWORD PTR [edi]
@@ -58948,10 +58915,10 @@ $LN101@BudgetThre:
 	mov	DWORD PTR [esi-20], ecx
 $LN31@BudgetThre:
 
-; 5773 :                                 mem_stats [i].min_reserve,
-; 5774 :                                 mem_stats [i].max_reserve );
-; 5775 : 
-; 5776 :         min_max ( mem_info [buffer].local [i].CurrentUsage,
+; 5737 :                                 mem_stats [i].min_reserve,
+; 5738 :                                 mem_stats [i].max_reserve );
+; 5739 : 
+; 5740 :         min_max ( mem_info [buffer].local [i].CurrentUsage,
 
 	mov	ecx, DWORD PTR [edi-12]
 	mov	eax, DWORD PTR [edi-16]
@@ -58974,10 +58941,10 @@ $LN103@BudgetThre:
 	mov	DWORD PTR [esi+28], ecx
 $LN33@BudgetThre:
 
-; 5777 :                                 mem_stats [i].min_usage,
-; 5778 :                                 mem_stats [i].max_usage );
-; 5779 : 
-; 5780 :         min_max ( mem_info [buffer].local [i].Budget,
+; 5741 :                                 mem_stats [i].min_usage,
+; 5742 :                                 mem_stats [i].max_usage );
+; 5743 : 
+; 5744 :         min_max ( mem_info [buffer].local [i].Budget,
 
 	mov	ebx, DWORD PTR [edi-20]
 	mov	edx, DWORD PTR [edi-24]
@@ -59000,10 +58967,10 @@ $LN105@BudgetThre:
 	mov	DWORD PTR [esi+12], ebx
 $LN35@BudgetThre:
 
-; 5781 :                                 mem_stats [i].min_budget,
-; 5782 :                                 mem_stats [i].max_budget );
-; 5783 : 
-; 5784 :         if ( mem_info [buffer].local [i].CurrentUsage >
+; 5745 :                                 mem_stats [i].min_budget,
+; 5746 :                                 mem_stats [i].max_budget );
+; 5747 : 
+; 5748 :         if ( mem_info [buffer].local [i].CurrentUsage >
 
 	cmp	ecx, ebx
 	jb	SHORT $LN11@BudgetThre
@@ -59012,17 +58979,17 @@ $LN35@BudgetThre:
 	jbe	SHORT $LN11@BudgetThre
 $LN106@BudgetThre:
 
-; 5785 :              mem_info [buffer].local [i].Budget)
-; 5786 :         {
-; 5787 :           uint64_t over_budget =
-; 5788 :              ( mem_info [buffer].local [i].CurrentUsage -
+; 5749 :              mem_info [buffer].local [i].Budget)
+; 5750 :         {
+; 5751 :           uint64_t over_budget =
+; 5752 :              ( mem_info [buffer].local [i].CurrentUsage -
 
 	sub	eax, edx
 	sbb	ecx, ebx
 
-; 5789 :                mem_info [buffer].local [i].Budget );
-; 5790 : 
-; 5791 :           min_max ( over_budget,
+; 5753 :                mem_info [buffer].local [i].Budget );
+; 5754 : 
+; 5755 :           min_max ( over_budget,
 
 	cmp	ecx, DWORD PTR [esi+52]
 	jb	SHORT $LN37@BudgetThre
@@ -59043,9 +59010,9 @@ $LN108@BudgetThre:
 	mov	DWORD PTR [esi+44], ecx
 $LN11@BudgetThre:
 
-; 5727 :                            L"[ DXGI 1.4 ] Local Memory.....:" );
-; 5728 : 
-; 5729 :       for ( i = 0; i < nodes; i++ )
+; 5691 :                            L"[ DXGI 1.4 ] Local Memory.....:" );
+; 5692 : 
+; 5693 :       for ( i = 0; i < nodes; i++ )
 
 	mov	ebx, DWORD PTR _i$1$[ebp]
 	add	edi, 32					; 00000020H
@@ -59056,27 +59023,27 @@ $LN11@BudgetThre:
 	jl	$LL13@BudgetThre
 $LN12@BudgetThre:
 
-; 5792 :                            mem_stats [i].min_over_budget,
-; 5793 :                            mem_stats [i].max_over_budget );
-; 5794 :         }
-; 5795 :       }
-; 5796 : 
-; 5797 :       budget_log.LogEx ( false, L"\n"                              );
+; 5756 :                            mem_stats [i].min_over_budget,
+; 5757 :                            mem_stats [i].max_over_budget );
+; 5758 :         }
+; 5759 :       }
+; 5760 : 
+; 5761 :       budget_log.LogEx ( false, L"\n"                              );
 
-	push	OFFSET $SG370599
+	push	OFFSET $SG370229
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5798 :       budget_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
+; 5762 :       budget_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
 
-	push	OFFSET $SG370600
+	push	OFFSET $SG370230
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5799 : 
-; 5800 :       for ( i = 0; i < nodes; i++ )
+; 5763 : 
+; 5764 :       for ( i = 0; i < nodes; i++ )
 
 	mov	ebx, DWORD PTR _nodes$1$[ebp]
 	add	esp, 24					; 00000018H
@@ -59084,44 +59051,44 @@ $LN12@BudgetThre:
 	test	ebx, ebx
 	jle	$LN15@BudgetThre
 
-; 5792 :                            mem_stats [i].min_over_budget,
-; 5793 :                            mem_stats [i].max_over_budget );
-; 5794 :         }
-; 5795 :       }
-; 5796 : 
-; 5797 :       budget_log.LogEx ( false, L"\n"                              );
+; 5756 :                            mem_stats [i].min_over_budget,
+; 5757 :                            mem_stats [i].max_over_budget );
+; 5758 :         }
+; 5759 :       }
+; 5760 : 
+; 5761 :       budget_log.LogEx ( false, L"\n"                              );
 
 	mov	eax, DWORD PTR tv1556[ebp]
 	lea	esi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax+136]
 	npad	7
 $LL16@BudgetThre:
 
-; 5801 :       {
-; 5802 :         if ( i > 0 )
+; 5765 :       {
+; 5766 :         if ( i > 0 )
 
 	test	edi, edi
 	jle	SHORT $LN39@BudgetThre
 
-; 5803 :         {
-; 5804 :           budget_log.LogEx ( false, L"\n"                                );
+; 5767 :         {
+; 5768 :           budget_log.LogEx ( false, L"\n"                                );
 
-	push	OFFSET $SG370602
+	push	OFFSET $SG370232
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5805 :           budget_log.LogEx ( true,  L"                                 " );
+; 5769 :           budget_log.LogEx ( true,  L"                                 " );
 
-	push	OFFSET $SG370603
+	push	OFFSET $SG370233
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN39@BudgetThre:
 
-; 5806 :         }
-; 5807 : 
-; 5808 :         budget_log.LogEx (
+; 5770 :         }
+; 5771 : 
+; 5772 :         budget_log.LogEx (
 
 	mov	ecx, DWORD PTR [esi-8]
 	mov	eax, DWORD PTR [esi-4]
@@ -59148,7 +59115,7 @@ $LN39@BudgetThre:
 	push	eax
 	push	ecx
 	push	edi
-	push	OFFSET $SG370604
+	push	OFFSET $SG370234
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -59159,27 +59126,27 @@ $LN39@BudgetThre:
 	jl	$LL16@BudgetThre
 $LN15@BudgetThre:
 
-; 5809 :           false,
-; 5810 :             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-; 5811 :                       L"Budget: %#5llu / %#5llu MiB)",    i,
-; 5812 :          mem_info    [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
-; 5813 :           mem_info   [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
-; 5814 :            mem_info  [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
-; 5815 :             mem_info [buffer].nonlocal [i].Budget                  >> 20ULL );
-; 5816 :       }
-; 5817 : 
-; 5818 :       budget_log.LogEx ( false, L"\n" );
+; 5773 :           false,
+; 5774 :             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+; 5775 :                       L"Budget: %#5llu / %#5llu MiB)",    i,
+; 5776 :          mem_info    [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
+; 5777 :           mem_info   [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
+; 5778 :            mem_info  [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
+; 5779 :             mem_info [buffer].nonlocal [i].Budget                  >> 20ULL );
+; 5780 :       }
+; 5781 : 
+; 5782 :       budget_log.LogEx ( false, L"\n" );
 
-	push	OFFSET $SG370605
+	push	OFFSET $SG370235
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 $LN25@BudgetThre:
 
-; 5819 :     }
-; 5820 : 
-; 5821 :                ( params->event != 0 ) ?
+; 5783 :     }
+; 5784 : 
+; 5785 :                ( params->event != 0 ) ?
 
 	mov	ebx, DWORD PTR _user_data$[ebp]
 	mov	edi, DWORD PTR __imp__ResetEvent@4
@@ -59190,7 +59157,7 @@ $LN25@BudgetThre:
 	call	edi
 $LN44@BudgetThre:
 
-; 5825 :     mem_info [0].buffer =
+; 5789 :     mem_info [0].buffer =
 
 	mov	eax, DWORD PTR tv1557[ebp]
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -59200,7 +59167,7 @@ $LN44@BudgetThre:
 	lea	esi, DWORD PTR [ebx+24]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5825 :     mem_info [0].buffer =
+; 5789 :     mem_info [0].buffer =
 
 	mov	DWORD PTR ?mem_info@@3PAUmem_info_t@@A+272, eax
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -59210,33 +59177,33 @@ $LN44@BudgetThre:
 	mov	eax, DWORD PTR [esi]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5625 :   while ( ReadAcquire ( &params->ready ) )
+; 5589 :   while ( ReadAcquire ( &params->ready ) )
 
 	test	eax, eax
 	jne	$LL2@BudgetThre
 
-; 5644 :       break;
-; 5645 :     }
-; 5646 : 
-; 5647 :     if (dwWaitStatus == WAIT_OBJECT_0 + 1)
+; 5608 :       break;
+; 5609 :     }
+; 5610 : 
+; 5611 :     if (dwWaitStatus == WAIT_OBJECT_0 + 1)
 
 	jmp	SHORT $LN111@BudgetThre
 $LN83@BudgetThre:
 
-; 5648 :     {
-; 5649 :       InterlockedExchange ( &params->ready, FALSE );
+; 5612 :     {
+; 5613 :       InterlockedExchange ( &params->ready, FALSE );
 
 	xor	eax, eax
 	xchg	DWORD PTR [esi], eax
 
-; 5650 :       ResetEvent          (  params->shutdown     );
+; 5614 :       ResetEvent          (  params->shutdown     );
 
 	push	DWORD PTR [ebx+20]
 	jmp	SHORT $LN112@BudgetThre
 $LN82@BudgetThre:
 
-; 5642 :     {
-; 5643 :       ResetEvent ( params->event );
+; 5606 :     {
+; 5607 :       ResetEvent ( params->event );
 
 	push	DWORD PTR [ebx+16]
 $LN112@BudgetThre:
@@ -59245,17 +59212,17 @@ $LN111@BudgetThre:
 	pop	edi
 $LN3@BudgetThre:
 
-; 5826 :                  buffer;
-; 5827 :   }
-; 5828 : 
-; 5829 :   CloseHandle (params->shutdown);
+; 5790 :                  buffer;
+; 5791 :   }
+; 5792 : 
+; 5793 :   CloseHandle (params->shutdown);
 
 	push	DWORD PTR [ebx+20]
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 5830 :                params->shutdown = INVALID_HANDLE_VALUE;
-; 5831 : 
-; 5832 :   if (success)
+; 5794 :                params->shutdown = INVALID_HANDLE_VALUE;
+; 5795 : 
+; 5796 :   if (success)
 
 	cmp	BYTE PTR _success$1$[ebp], 0
 	pop	esi
@@ -59263,41 +59230,41 @@ $LN3@BudgetThre:
 	pop	ebx
 	je	SHORT $LN109@BudgetThre
 
-; 5833 :     CoUninitialize ();
+; 5797 :     CoUninitialize ();
 
 	call	DWORD PTR __imp__CoUninitialize@0
 $LN109@BudgetThre:
 
-; 5834 : 
-; 5835 :   return 0;
+; 5798 : 
+; 5799 :   return 0;
 
 	xor	eax, eax
 
-; 5836 : }
+; 5800 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN113@BudgetThre:
 
-; 5702 :              params->pAdapter->QueryVideoMemoryInfo (
-; 5703 :                node,
-; 5704 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5705 :                    &mem_info [buffer].nonlocal [node++]
-; 5706 :              )
-; 5707 :            )
-; 5708 :          )
-; 5709 :       {
-; 5710 :         break;
-; 5711 :       }
-; 5712 :     }
-; 5713 : 
-; 5714 : 
-; 5715 :     // Set the number of SLI/CFX Nodes
-; 5716 :     mem_info [buffer].nodes = nodes;
-; 5717 : 
-; 5718 :     static uint64_t
-; 5719 :       last_budget = mem_info [buffer].local [0].Budget;
+; 5666 :              params->pAdapter->QueryVideoMemoryInfo (
+; 5667 :                node,
+; 5668 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5669 :                    &mem_info [buffer].nonlocal [node++]
+; 5670 :              )
+; 5671 :            )
+; 5672 :          )
+; 5673 :       {
+; 5674 :         break;
+; 5675 :       }
+; 5676 :     }
+; 5677 : 
+; 5678 : 
+; 5679 :     // Set the number of SLI/CFX Nodes
+; 5680 :     mem_info [buffer].nodes = nodes;
+; 5681 : 
+; 5682 :     static uint64_t
+; 5683 :       last_budget = mem_info [buffer].local [0].Budget;
 
 	push	OFFSET ?$TSS0@?3??BudgetThread@DXGI@SK@@YGKPAX@Z@4HA
 	call	__Init_thread_header
@@ -59323,7 +59290,7 @@ _closeme_budget_log$ = -16				; size = 4
 __$EHRec$ = -12						; size = 12
 ?ShutdownBudgetThread@DXGI@SK@@YAXXZ PROC		; SK::DXGI::ShutdownBudgetThread
 
-; 5883 : {
+; 5847 : {
 
 	npad	2
 	push	ebp
@@ -59335,43 +59302,43 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR fs:0, esp
 	push	ecx
 
-; 5884 :   SK_AutoClose_Log (
+; 5848 :   SK_AutoClose_Log (
 
 	lea	eax, DWORD PTR _closeme_budget_log$[ebp]
 	mov	ecx, OFFSET ?budget_log@@3UiSK_Logger@@A ; budget_log
 	push	eax
 	call	?auto_close@iSK_Logger@@QAE?AVAutoClose@1@XZ ; iSK_Logger::auto_close
 
-; 5885 :     budget_log
-; 5886 :   );
-; 5887 : 
-; 5888 : 
-; 5889 :   if ( budget_thread.handle != INVALID_HANDLE_VALUE )
+; 5849 :     budget_log
+; 5850 :   );
+; 5851 : 
+; 5852 : 
+; 5853 :   if ( budget_thread.handle != INVALID_HANDLE_VALUE )
 
 	cmp	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8, -1
 	je	$LN3@ShutdownBu
 
-; 5890 :   {
-; 5891 :     dll_log.LogEx (
+; 5854 :   {
+; 5855 :     dll_log.LogEx (
 
-	push	OFFSET $SG370651
+	push	OFFSET $SG370281
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5892 :       true,
-; 5893 :         L"[ DXGI 1.4 ] Shutting down Memory Budget Change Thread... "
-; 5894 :     );
-; 5895 : 
-; 5896 :     SetEvent (budget_thread.shutdown );
+; 5856 :       true,
+; 5857 :         L"[ DXGI 1.4 ] Shutting down Memory Budget Change Thread... "
+; 5858 :     );
+; 5859 : 
+; 5860 :     SetEvent (budget_thread.shutdown );
 
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+20
 	call	DWORD PTR __imp__SetEvent@4
 
-; 5897 : 
-; 5898 :     DWORD dwWaitState =
-; 5899 :       SignalObjectAndWait ( budget_thread.event,
+; 5861 : 
+; 5862 :     DWORD dwWaitState =
+; 5863 :       SignalObjectAndWait ( budget_thread.event,
 
 	push	1
 	push	1000					; 000003e8H
@@ -59379,103 +59346,103 @@ __$EHRec$ = -12						; size = 12
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+16
 	call	DWORD PTR __imp__SignalObjectAndWait@16
 
-; 5900 :                               budget_thread.handle, // Give 1 second, and
-; 5901 :                                 1000UL,             // then we're killing
-; 5902 :                                   TRUE );           // the thing!
-; 5903 : 
-; 5904 :     if ( dwWaitState == WAIT_OBJECT_0 )
+; 5864 :                               budget_thread.handle, // Give 1 second, and
+; 5865 :                                 1000UL,             // then we're killing
+; 5866 :                                   TRUE );           // the thing!
+; 5867 : 
+; 5868 :     if ( dwWaitState == WAIT_OBJECT_0 )
 
 	test	eax, eax
 	jne	SHORT $LN6@ShutdownBu
 
-; 5905 :     {
-; 5906 :       dll_log.LogEx   ( false, L"done!\n"                         );
+; 5869 :     {
+; 5870 :       dll_log.LogEx   ( false, L"done!\n"                         );
 
-	push	OFFSET $SG370654
+	push	OFFSET $SG370284
 	push	eax
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5907 :     }
-; 5908 : 
-; 5909 :     else
+; 5871 :     }
+; 5872 : 
+; 5873 :     else
 
 	jmp	SHORT $LN7@ShutdownBu
 $LN6@ShutdownBu:
 
-; 5910 :     {
-; 5911 :       dll_log.LogEx   ( false, L"timed out (killing manually)!\n" );
+; 5874 :     {
+; 5875 :       dll_log.LogEx   ( false, L"timed out (killing manually)!\n" );
 
-	push	OFFSET $SG370655
+	push	OFFSET $SG370285
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5912 :       TerminateThread ( budget_thread.handle,                   0 );
+; 5876 :       TerminateThread ( budget_thread.handle,                   0 );
 
 	push	0
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8
 	call	DWORD PTR __imp__TerminateThread@8
 $LN7@ShutdownBu:
 
-; 5913 :     }
-; 5914 : 
-; 5915 :     CloseHandle ( budget_thread.handle );
+; 5877 :     }
+; 5878 : 
+; 5879 :     CloseHandle ( budget_thread.handle );
 
 	push	esi
 	push	edi
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 5916 :                   budget_thread.handle = INVALID_HANDLE_VALUE;
-; 5917 : 
-; 5918 :     // Record the final statistics always
-; 5919 :     budget_log.silent    = false;
-; 5920 : 
-; 5921 :     budget_log.Log   ( L"--------------------"   );
+; 5880 :                   budget_thread.handle = INVALID_HANDLE_VALUE;
+; 5881 : 
+; 5882 :     // Record the final statistics always
+; 5883 :     budget_log.silent    = false;
+; 5884 : 
+; 5885 :     budget_log.Log   ( L"--------------------"   );
 
-	push	OFFSET $SG370656
+	push	OFFSET $SG370286
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	mov	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8, -1
 	mov	BYTE PTR ?budget_log@@3UiSK_Logger@@A+32, 0
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 5922 :     budget_log.Log   ( L"Shutdown Statistics:"   );
+; 5886 :     budget_log.Log   ( L"Shutdown Statistics:"   );
 
-	push	OFFSET $SG370657
+	push	OFFSET $SG370287
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 5923 :     budget_log.Log   ( L"--------------------\n" );
+; 5887 :     budget_log.Log   ( L"--------------------\n" );
 
-	push	OFFSET $SG370658
+	push	OFFSET $SG370288
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 5924 : 
-; 5925 :     // in %10u seconds\n",
-; 5926 :     budget_log.Log ( L" Memory Budget Changed %llu times\n",
+; 5888 : 
+; 5889 :     // in %10u seconds\n",
+; 5890 :     budget_log.Log ( L" Memory Budget Changed %llu times\n",
 
 	push	DWORD PTR ?mem_stats@@3PAUmemory_stats_t@@A+84
 	push	DWORD PTR ?mem_stats@@3PAUmemory_stats_t@@A+80
-	push	OFFSET $SG370659
+	push	OFFSET $SG370289
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 40					; 00000028H
 	mov	esi, OFFSET ?mem_stats@@3PAUmemory_stats_t@@A ; mem_stats
 
-; 5927 :                        mem_stats [0].budget_changes );
-; 5928 : 
-; 5929 :     for ( int i = 0; i < 4; i++ )
+; 5891 :                        mem_stats [0].budget_changes );
+; 5892 : 
+; 5893 :     for ( int i = 0; i < 4; i++ )
 
 	xor	edi, edi
 	npad	5
 $LL4@ShutdownBu:
 
-; 5930 :     {
-; 5931 :       if ( mem_stats [i].max_usage > 0 )
+; 5894 :     {
+; 5895 :       if ( mem_stats [i].max_usage > 0 )
 
 	cmp	DWORD PTR [esi+60], 0
 	ja	SHORT $LN21@ShutdownBu
@@ -59483,36 +59450,36 @@ $LL4@ShutdownBu:
 	jbe	$LN2@ShutdownBu
 $LN21@ShutdownBu:
 
-; 5932 :       {
-; 5933 :         if ( mem_stats [i].min_reserve     == UINT64_MAX )
+; 5896 :       {
+; 5897 :         if ( mem_stats [i].min_reserve     == UINT64_MAX )
 
 	mov	eax, DWORD PTR [esi]
 	and	eax, DWORD PTR [esi+4]
 	cmp	eax, -1
 	jne	SHORT $LN9@ShutdownBu
 
-; 5934 :              mem_stats [i].min_reserve     =  0ULL;
+; 5898 :              mem_stats [i].min_reserve     =  0ULL;
 
 	mov	DWORD PTR [esi], 0
 	mov	DWORD PTR [esi+4], 0
 $LN9@ShutdownBu:
 
-; 5935 : 
-; 5936 :         if ( mem_stats [i].min_over_budget == UINT64_MAX )
+; 5899 : 
+; 5900 :         if ( mem_stats [i].min_over_budget == UINT64_MAX )
 
 	mov	eax, DWORD PTR [esi+64]
 	and	eax, DWORD PTR [esi+68]
 	cmp	eax, -1
 	jne	SHORT $LN10@ShutdownBu
 
-; 5937 :              mem_stats [i].min_over_budget =  0ULL;
+; 5901 :              mem_stats [i].min_over_budget =  0ULL;
 
 	mov	DWORD PTR [esi+64], 0
 	mov	DWORD PTR [esi+68], 0
 $LN10@ShutdownBu:
 
-; 5938 : 
-; 5939 :         budget_log.LogEx ( true,
+; 5902 : 
+; 5903 :         budget_log.LogEx ( true,
 
 	mov	ecx, DWORD PTR [esi+32]
 	mov	eax, DWORD PTR [esi+36]
@@ -59521,15 +59488,15 @@ $LN10@ShutdownBu:
 	push	eax
 	push	ecx
 	push	edi
-	push	OFFSET $SG370663
+	push	OFFSET $SG370293
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5940 :                              L" GPU%i: Min Budget:        %05llu MiB\n",
-; 5941 :                                           i,
-; 5942 :                                mem_stats [i].min_budget >> 20ULL );
-; 5943 :         budget_log.LogEx ( true,
+; 5904 :                              L" GPU%i: Min Budget:        %05llu MiB\n",
+; 5905 :                                           i,
+; 5906 :                                mem_stats [i].min_budget >> 20ULL );
+; 5907 :         budget_log.LogEx ( true,
 
 	mov	ecx, DWORD PTR [esi+40]
 	mov	eax, DWORD PTR [esi+44]
@@ -59537,15 +59504,15 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370664
+	push	OFFSET $SG370294
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5944 :                              L"       Max Budget:        %05llu MiB\n",
-; 5945 :                                mem_stats [i].max_budget >> 20ULL );
-; 5946 : 
-; 5947 :         budget_log.LogEx ( true,
+; 5908 :                              L"       Max Budget:        %05llu MiB\n",
+; 5909 :                                mem_stats [i].max_budget >> 20ULL );
+; 5910 : 
+; 5911 :         budget_log.LogEx ( true,
 
 	mov	ecx, DWORD PTR [esi+48]
 	mov	eax, DWORD PTR [esi+52]
@@ -59553,14 +59520,14 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370665
+	push	OFFSET $SG370295
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5948 :                              L"       Min Usage:         %05llu MiB\n",
-; 5949 :                                mem_stats [i].min_usage  >> 20ULL );
-; 5950 :         budget_log.LogEx ( true,
+; 5912 :                              L"       Min Usage:         %05llu MiB\n",
+; 5913 :                                mem_stats [i].min_usage  >> 20ULL );
+; 5914 :         budget_log.LogEx ( true,
 
 	mov	ecx, DWORD PTR [esi+56]
 	add	esp, 64					; 00000040H
@@ -59569,33 +59536,33 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370666
+	push	OFFSET $SG370296
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5951 :                              L"       Max Usage:         %05llu MiB\n",
-; 5952 :                                mem_stats [i].max_usage  >> 20ULL );
-; 5953 : 
-; 5954 :         /*
-; 5955 :         SK_BLogEx (params, true, L"       Min Reserve:       %05u MiB\n",
-; 5956 :         mem_stats [i].min_reserve >> 20ULL);
-; 5957 :         SK_BLogEx (params, true, L"       Max Reserve:       %05u MiB\n",
-; 5958 :         mem_stats [i].max_reserve >> 20ULL);
-; 5959 :         SK_BLogEx (params, true, L"       Min Avail Reserve: %05u MiB\n",
-; 5960 :         mem_stats [i].min_avail_reserve >> 20ULL);
-; 5961 :         SK_BLogEx (params, true, L"       Max Avail Reserve: %05u MiB\n",
-; 5962 :         mem_stats [i].max_avail_reserve >> 20ULL);
-; 5963 :         */
-; 5964 : 
-; 5965 :         budget_log.LogEx ( true,  L"------------------------------------\n" );
+; 5915 :                              L"       Max Usage:         %05llu MiB\n",
+; 5916 :                                mem_stats [i].max_usage  >> 20ULL );
+; 5917 : 
+; 5918 :         /*
+; 5919 :         SK_BLogEx (params, true, L"       Min Reserve:       %05u MiB\n",
+; 5920 :         mem_stats [i].min_reserve >> 20ULL);
+; 5921 :         SK_BLogEx (params, true, L"       Max Reserve:       %05u MiB\n",
+; 5922 :         mem_stats [i].max_reserve >> 20ULL);
+; 5923 :         SK_BLogEx (params, true, L"       Min Avail Reserve: %05u MiB\n",
+; 5924 :         mem_stats [i].min_avail_reserve >> 20ULL);
+; 5925 :         SK_BLogEx (params, true, L"       Max Avail Reserve: %05u MiB\n",
+; 5926 :         mem_stats [i].max_avail_reserve >> 20ULL);
+; 5927 :         */
+; 5928 : 
+; 5929 :         budget_log.LogEx ( true,  L"------------------------------------\n" );
 
-	push	OFFSET $SG370667
+	push	OFFSET $SG370297
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5966 :         budget_log.LogEx ( true,  L" Minimum Over Budget:     %05llu MiB\n",
+; 5930 :         budget_log.LogEx ( true,  L" Minimum Over Budget:     %05llu MiB\n",
 
 	mov	ecx, DWORD PTR [esi+64]
 	mov	eax, DWORD PTR [esi+68]
@@ -59603,13 +59570,13 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370668
+	push	OFFSET $SG370298
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5967 :                                     mem_stats [i].min_over_budget >> 20ULL  );
-; 5968 :         budget_log.LogEx ( true,  L" Maximum Over Budget:     %05llu MiB\n",
+; 5931 :                                     mem_stats [i].min_over_budget >> 20ULL  );
+; 5932 :         budget_log.LogEx ( true,  L" Maximum Over Budget:     %05llu MiB\n",
 
 	mov	ecx, DWORD PTR [esi+72]
 	mov	eax, DWORD PTR [esi+76]
@@ -59617,32 +59584,32 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370669
+	push	OFFSET $SG370299
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 72					; 00000048H
 
-; 5969 :                                     mem_stats [i].max_over_budget >> 20ULL  );
-; 5970 :         budget_log.LogEx ( true,  L"------------------------------------\n" );
+; 5933 :                                     mem_stats [i].max_over_budget >> 20ULL  );
+; 5934 :         budget_log.LogEx ( true,  L"------------------------------------\n" );
 
-	push	OFFSET $SG370670
+	push	OFFSET $SG370300
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5971 :         budget_log.LogEx ( false, L"\n"                                     );
+; 5935 :         budget_log.LogEx ( false, L"\n"                                     );
 
-	push	OFFSET $SG370671
+	push	OFFSET $SG370301
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN2@ShutdownBu:
 
-; 5927 :                        mem_stats [0].budget_changes );
-; 5928 : 
-; 5929 :     for ( int i = 0; i < 4; i++ )
+; 5891 :                        mem_stats [0].budget_changes );
+; 5892 : 
+; 5893 :     for ( int i = 0; i < 4; i++ )
 
 	add	esi, 88					; 00000058H
 	inc	edi
@@ -59668,7 +59635,7 @@ $LN3@ShutdownBu:
 $LN14@ShutdownBu:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5975 : }
+; 5939 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -59700,7 +59667,7 @@ _adapter$3 = -16					; size = 4
 __$EHRec$ = -12						; size = 12
 ?StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ PROC	; SK::DXGI::StartBudgetThread_NoAdapter
 
-; 5840 : {
+; 5804 : {
 
 	npad	2
 	push	ebp
@@ -59715,19 +59682,19 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	push	edi
 
-; 5841 :   HRESULT hr = E_NOTIMPL;
-; 5842 : 
-; 5843 :   bool success =
-; 5844 :     SUCCEEDED ( CoInitializeEx ( nullptr, COINIT_MULTITHREADED ) );
+; 5805 :   HRESULT hr = E_NOTIMPL;
+; 5806 : 
+; 5807 :   bool success =
+; 5808 :     SUCCEEDED ( CoInitializeEx ( nullptr, COINIT_MULTITHREADED ) );
 
 	push	0
 	push	0
 	mov	esi, -2147467263			; 80004001H
 	call	DWORD PTR __imp__CoInitializeEx@8
 
-; 5845 : 
-; 5846 :   static HMODULE
-; 5847 :     hDXGI = LoadLibraryW_Original ( L"dxgi.dll" );
+; 5809 : 
+; 5810 :   static HMODULE
+; 5811 :     hDXGI = LoadLibraryW_Original ( L"dxgi.dll" );
 
 	mov	ecx, DWORD PTR __tls_index
 	test	eax, eax
@@ -59742,7 +59709,7 @@ __$EHRec$ = -12						; size = 12
 	add	esp, 4
 	cmp	DWORD PTR ?$TSS0@?1??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA, -1
 	jne	SHORT $LN2@StartBudge
-	push	OFFSET $SG370629
+	push	OFFSET $SG370259
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	push	OFFSET ?$TSS0@?1??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA
@@ -59752,15 +59719,15 @@ __$EHRec$ = -12						; size = 12
 	add	esp, 4
 $LN2@StartBudge:
 
-; 5848 : 
-; 5849 :   if (hDXGI)
+; 5812 : 
+; 5813 :   if (hDXGI)
 
 	cmp	DWORD PTR ?hDXGI@?1??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4PAUHINSTANCE__@@A, 0
 	je	$LN40@StartBudge
 
-; 5850 :   {
-; 5851 :     static auto
-; 5852 :       CreateDXGIFactory =
+; 5814 :   {
+; 5815 :     static auto
+; 5816 :       CreateDXGIFactory =
 
 	mov	eax, DWORD PTR ?$TSS1@?4??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA
 	cmp	eax, DWORD PTR __Init_thread_epoch[edi]
@@ -59771,9 +59738,9 @@ $LN2@StartBudge:
 	cmp	DWORD PTR ?$TSS1@?4??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA, -1
 	jne	SHORT $LN3@StartBudge
 
-; 5853 :         (CreateDXGIFactory_pfn) GetProcAddress ( hDXGI,
+; 5817 :         (CreateDXGIFactory_pfn) GetProcAddress ( hDXGI,
 
-	push	OFFSET $SG370631
+	push	OFFSET $SG370261
 	push	DWORD PTR ?hDXGI@?1??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4PAUHINSTANCE__@@A
 	call	DWORD PTR __imp__GetProcAddress@8
 	push	OFFSET ?$TSS1@?4??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA
@@ -59788,7 +59755,7 @@ $LN3@StartBudge:
 	mov	DWORD PTR _factory$2[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5855 :     CComPtr <IDXGIFactory> factory = nullptr;
+; 5819 :     CComPtr <IDXGIFactory> factory = nullptr;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -59798,7 +59765,7 @@ $LN3@StartBudge:
 	mov	DWORD PTR _adapter$3[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5859 :     if ( SUCCEEDED (
+; 5823 :     if ( SUCCEEDED (
 
 	lea	eax, DWORD PTR _factory$2[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
@@ -59811,11 +59778,11 @@ $LN3@StartBudge:
 	test	eax, eax
 	js	SHORT $LN6@StartBudge
 
-; 5860 :            CreateDXGIFactory ( IID_PPV_ARGS (&factory) )
-; 5861 :          )
-; 5862 :        )
-; 5863 :     {
-; 5864 :       if ( SUCCEEDED (
+; 5824 :            CreateDXGIFactory ( IID_PPV_ARGS (&factory) )
+; 5825 :          )
+; 5826 :        )
+; 5827 :     {
+; 5828 :       if ( SUCCEEDED (
 
 	mov	eax, DWORD PTR _factory$2[ebp]
 	lea	edx, DWORD PTR _adapter$3[ebp]
@@ -59827,12 +59794,12 @@ $LN3@StartBudge:
 	test	eax, eax
 	js	SHORT $LN6@StartBudge
 
-; 5865 :              factory->EnumAdapters ( 0,
-; 5866 :                                        &adapter )
-; 5867 :            )
-; 5868 :          )
-; 5869 :       {
-; 5870 :         hr = StartBudgetThread ( &adapter );
+; 5829 :              factory->EnumAdapters ( 0,
+; 5830 :                                        &adapter )
+; 5831 :            )
+; 5832 :          )
+; 5833 :       {
+; 5834 :         hr = StartBudgetThread ( &adapter );
 
 	lea	eax, DWORD PTR _adapter$3[ebp]
 	push	eax
@@ -59847,7 +59814,7 @@ $LN6@StartBudge:
 	mov	ecx, DWORD PTR _adapter$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5873 :   }
+; 5837 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -59869,7 +59836,7 @@ $LN34@StartBudge:
 	mov	eax, DWORD PTR _factory$2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5873 :   }
+; 5837 :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -59887,19 +59854,19 @@ $LN34@StartBudge:
 $LN40@StartBudge:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5875 :   if (success)
+; 5839 :   if (success)
 
 	test	bl, bl
 	je	SHORT $LN42@StartBudge
 
-; 5876 :     CoUninitialize ();
+; 5840 :     CoUninitialize ();
 
 	call	DWORD PTR __imp__CoUninitialize@0
 $LN42@StartBudge:
 
-; 5877 : 
-; 5878 :   return hr;
-; 5879 : }
+; 5841 : 
+; 5842 :   return hr;
+; 5843 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -59958,7 +59925,7 @@ _ppAdapter$ = 8						; size = 4
 _silent$1$ = 11						; size = 1
 ?StartBudgetThread@DXGI@SK@@YAJPAPAUIDXGIAdapter@@@Z PROC ; SK::DXGI::StartBudgetThread
 
-; 5361 : {
+; 5325 : {
 
 	npad	2
 	push	ebp
@@ -59970,7 +59937,7 @@ _silent$1$ = 11						; size = 1
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 356				; 00000164H
 
-; 5369 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
+; 5333 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
 
 	mov	eax, DWORD PTR _ppAdapter$[ebp]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -59982,15 +59949,15 @@ _silent$1$ = 11						; size = 1
 	push	edx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5366 :   IDXGIAdapter3* pAdapter3 = nullptr;
+; 5330 :   IDXGIAdapter3* pAdapter3 = nullptr;
 
 	mov	DWORD PTR _pAdapter3$[ebp], 0
 
-; 5367 :   HRESULT        hr        = E_NOTIMPL;
+; 5331 :   HRESULT        hr        = E_NOTIMPL;
 
 	mov	esi, -2147467263			; 80004001H
 
-; 5369 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
+; 5333 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
 
 	mov	eax, DWORD PTR [eax]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -60001,7 +59968,7 @@ _silent$1$ = 11						; size = 1
 	push	eax
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5367 :   HRESULT        hr        = E_NOTIMPL;
+; 5331 :   HRESULT        hr        = E_NOTIMPL;
 
 	mov	DWORD PTR _hr$1$[ebp], esi
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -60012,7 +59979,7 @@ _silent$1$ = 11						; size = 1
 	call	DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5369 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
+; 5333 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
 
 	test	eax, eax
 	js	$LN55@StartBudge
@@ -60024,35 +59991,35 @@ _silent$1$ = 11						; size = 1
 	mov	DWORD PTR _auto_lock$3[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5375 :     if ( budget_thread.handle == INVALID_HANDLE_VALUE )
+; 5339 :     if ( budget_thread.handle == INVALID_HANDLE_VALUE )
 
 	cmp	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8, -1
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	jne	$LN11@StartBudge
 
-; 5376 :     {
-; 5377 :       // We're going to Release this interface after thread spawnning, but
-; 5378 :       //   the running thread still needs a reference counted.
-; 5379 :       pAdapter3->AddRef ();
+; 5340 :     {
+; 5341 :       // We're going to Release this interface after thread spawnning, but
+; 5342 :       //   the running thread still needs a reference counted.
+; 5343 :       pAdapter3->AddRef ();
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+4]
 
-; 5380 : 
-; 5381 :       ZeroMemory ( &budget_thread,
-; 5382 :                      sizeof budget_thread_params_t );
-; 5383 : 
-; 5384 :       dll_log.LogEx ( true,
+; 5344 : 
+; 5345 :       ZeroMemory ( &budget_thread,
+; 5346 :                      sizeof budget_thread_params_t );
+; 5347 : 
+; 5348 :       dll_log.LogEx ( true,
 
-	push	OFFSET $SG370490
+	push	OFFSET $SG370120
 	xorps	xmm0, xmm0
 	mov	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+24, 0
 	push	1
@@ -60062,27 +60029,27 @@ _silent$1$ = 11						; size = 1
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5385 :                         L"[ DXGI 1.4 ]   "
-; 5386 :                         L"$ Spawning Memory Budget Change Thread..: " );
-; 5387 : 
-; 5388 :       InterlockedExchange ( &budget_thread.ready,
+; 5349 :                         L"[ DXGI 1.4 ]   "
+; 5350 :                         L"$ Spawning Memory Budget Change Thread..: " );
+; 5351 : 
+; 5352 :       InterlockedExchange ( &budget_thread.ready,
 
 	xor	eax, eax
 	mov	ecx, OFFSET ?budget_thread@@3Ubudget_thread_params_t@@A+24
 	xchg	DWORD PTR [ecx], eax
 
-; 5389 :                               FALSE );
-; 5390 : 
-; 5391 :       budget_thread.pAdapter = pAdapter3;
+; 5353 :                               FALSE );
+; 5354 : 
+; 5355 :       budget_thread.pAdapter = pAdapter3;
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 
-; 5392 :       budget_thread.tid      = 0;
-; 5393 :       budget_thread.event    = nullptr;
-; 5394 :       budget_log.silent      = true;
-; 5395 : 
-; 5396 : 
-; 5397 :       budget_thread.handle =
+; 5356 :       budget_thread.tid      = 0;
+; 5357 :       budget_thread.event    = nullptr;
+; 5358 :       budget_log.silent      = true;
+; 5359 : 
+; 5360 : 
+; 5361 :       budget_thread.handle =
 
 	push	0
 	push	0
@@ -60103,14 +60070,14 @@ _silent$1$ = 11						; size = 1
 	mov	eax, DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+24
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5406 :       while ( ! ReadAcquire ( &budget_thread.ready )
+; 5370 :       while ( ! ReadAcquire ( &budget_thread.ready )
 
 	test	eax, eax
 	jne	SHORT $LN3@StartBudge
 	mov	esi, DWORD PTR __imp__SleepEx@8
 $LL2@StartBudge:
 
-; 5407 :             ) SleepEx (100, TRUE);
+; 5371 :             ) SleepEx (100, TRUE);
 
 	push	1
 	push	100					; 00000064H
@@ -60122,45 +60089,45 @@ $LL2@StartBudge:
 	mov	eax, DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+24
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5406 :       while ( ! ReadAcquire ( &budget_thread.ready )
+; 5370 :       while ( ! ReadAcquire ( &budget_thread.ready )
 
 	test	eax, eax
 	je	SHORT $LL2@StartBudge
 $LN3@StartBudge:
 
-; 5408 : 
-; 5409 : 
-; 5410 :       if ( budget_thread.tid != 0 )
+; 5372 : 
+; 5373 : 
+; 5374 :       if ( budget_thread.tid != 0 )
 
 	mov	eax, DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+4
 	push	edi
 	test	eax, eax
 	je	$LN12@StartBudge
 
-; 5411 :       {
-; 5412 :         dll_log.LogEx ( false,
+; 5375 :       {
+; 5376 :         dll_log.LogEx ( false,
 
 	push	eax
-	push	OFFSET $SG370493
+	push	OFFSET $SG370123
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5413 :                           L"tid=0x%04x\n",
-; 5414 :                             budget_thread.tid );
-; 5415 : 
-; 5416 :         dll_log.LogEx ( true,
+; 5377 :                           L"tid=0x%04x\n",
+; 5378 :                             budget_thread.tid );
+; 5379 : 
+; 5380 :         dll_log.LogEx ( true,
 
-	push	OFFSET $SG370494
+	push	OFFSET $SG370124
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5417 :                           L"[ DXGI 1.4 ]   "
-; 5418 :                             L"%% Setting up Budget Change Notification.: " );
-; 5419 : 
-; 5420 :         HRESULT result =
-; 5421 :           pAdapter3->RegisterVideoMemoryBudgetChangeNotificationEvent (
+; 5381 :                           L"[ DXGI 1.4 ]   "
+; 5382 :                             L"%% Setting up Budget Change Notification.: " );
+; 5383 : 
+; 5384 :         HRESULT result =
+; 5385 :           pAdapter3->RegisterVideoMemoryBudgetChangeNotificationEvent (
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 	add	esp, 28					; 0000001cH
@@ -60172,96 +60139,96 @@ $LN3@StartBudge:
 	mov	edi, eax
 	mov	DWORD PTR _hr$1$[ebp], edi
 
-; 5422 :                             budget_thread.event,
-; 5423 :                            &budget_thread.cookie
-; 5424 :           );
-; 5425 : 
-; 5426 :         if ( SUCCEEDED ( result ) )
+; 5386 :                             budget_thread.event,
+; 5387 :                            &budget_thread.cookie
+; 5388 :           );
+; 5389 : 
+; 5390 :         if ( SUCCEEDED ( result ) )
 
 	test	edi, edi
 	js	SHORT $LN14@StartBudge
 
-; 5427 :         {
-; 5428 :           dll_log.LogEx ( false,
+; 5391 :         {
+; 5392 :           dll_log.LogEx ( false,
 
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+12
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+16
-	push	OFFSET $SG370497
+	push	OFFSET $SG370127
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 5429 :                             L"eid=0x%p, cookie=%u\n",
-; 5430 :                               budget_thread.event,
-; 5431 :                                         budget_thread.cookie );
-; 5432 : 
-; 5433 :           hr = S_OK;
+; 5393 :                             L"eid=0x%p, cookie=%u\n",
+; 5394 :                               budget_thread.event,
+; 5395 :                                         budget_thread.cookie );
+; 5396 : 
+; 5397 :           hr = S_OK;
 
 	mov	DWORD PTR _hr$1$[ebp], 0
 
-; 5434 :         }
-; 5435 : 
-; 5436 :         else
+; 5398 :         }
+; 5399 : 
+; 5400 :         else
 
 	jmp	SHORT $LN13@StartBudge
 $LN14@StartBudge:
 
-; 5437 :         {
-; 5438 :           dll_log.LogEx ( false,
+; 5401 :         {
+; 5402 :           dll_log.LogEx ( false,
 
 	push	edi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG370498
+	push	OFFSET $SG370128
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 5439 :                             L"Failed! (%s)\n",
-; 5440 :                               SK_DescribeHRESULT ( result ) );
-; 5441 : 
-; 5442 :           hr = result;
-; 5443 :         }
-; 5444 :       }
-; 5445 : 
-; 5446 :       else
+; 5403 :                             L"Failed! (%s)\n",
+; 5404 :                               SK_DescribeHRESULT ( result ) );
+; 5405 : 
+; 5406 :           hr = result;
+; 5407 :         }
+; 5408 :       }
+; 5409 : 
+; 5410 :       else
 
 	jmp	SHORT $LN13@StartBudge
 $LN12@StartBudge:
 
-; 5447 :       {
-; 5448 :         dll_log.LogEx (false, L"failed!\n");
+; 5411 :       {
+; 5412 :         dll_log.LogEx (false, L"failed!\n");
 
-	push	OFFSET $SG370499
+	push	OFFSET $SG370129
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5449 : 
-; 5450 :         hr = E_FAIL;
+; 5413 : 
+; 5414 :         hr = E_FAIL;
 
 	mov	DWORD PTR _hr$1$[ebp], -2147467259	; 80004005H
 $LN13@StartBudge:
 
-; 5451 :       }
-; 5452 : 
-; 5453 :       dll_log.LogEx ( true,
+; 5415 :       }
+; 5416 : 
+; 5417 :       dll_log.LogEx ( true,
 
-	push	OFFSET $SG370500
+	push	OFFSET $SG370130
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5454 :                         L"[ DXGI 1.2 ] GPU Scheduling...:"
-; 5455 :                                      L" Pre-Emptive" );
-; 5456 : 
-; 5457 :       DXGI_QUERY_VIDEO_MEMORY_INFO
-; 5458 :               _mem_info = { };
-; 5459 :       DXGI_ADAPTER_DESC2
-; 5460 :                   desc2 = { };
+; 5418 :                         L"[ DXGI 1.2 ] GPU Scheduling...:"
+; 5419 :                                      L" Pre-Emptive" );
+; 5420 : 
+; 5421 :       DXGI_QUERY_VIDEO_MEMORY_INFO
+; 5422 :               _mem_info = { };
+; 5423 :       DXGI_ADAPTER_DESC2
+; 5424 :                   desc2 = { };
 
 	push	304					; 00000130H
 	xorps	xmm0, xmm0
@@ -60272,16 +60239,16 @@ $LN13@StartBudge:
 	movups	XMMWORD PTR __mem_info$4[ebp+16], xmm0
 	call	_memset
 
-; 5461 : 
-; 5462 :       int     i      = 0;
-; 5463 :       bool    silent = dll_log.silent;
+; 5425 : 
+; 5426 :       int     i      = 0;
+; 5427 :       bool    silent = dll_log.silent;
 
 	mov	al, BYTE PTR ?dll_log@@3UiSK_Logger@@A+32
 
-; 5464 :       dll_log.silent = true;
-; 5465 :       {
-; 5466 :         // Don't log this call, because that would be silly...
-; 5467 :         pAdapter3->GetDesc2 ( &desc2 );
+; 5428 :       dll_log.silent = true;
+; 5429 :       {
+; 5430 :         // Don't log this call, because that would be silly...
+; 5431 :         pAdapter3->GetDesc2 ( &desc2 );
 
 	lea	edx, DWORD PTR _desc2$2[ebp]
 	mov	BYTE PTR _silent$1$[ebp], al
@@ -60294,15 +60261,15 @@ $LN13@StartBudge:
 	push	eax
 	call	DWORD PTR [ecx+44]
 
-; 5468 :       }
-; 5469 :       dll_log.silent = silent;
+; 5432 :       }
+; 5433 :       dll_log.silent = silent;
 
 	mov	al, BYTE PTR _silent$1$[ebp]
 	mov	BYTE PTR ?dll_log@@3UiSK_Logger@@A+32, al
 
-; 5470 : 
-; 5471 : 
-; 5472 :       switch ( desc2.GraphicsPreemptionGranularity )
+; 5434 : 
+; 5435 : 
+; 5436 :       switch ( desc2.GraphicsPreemptionGranularity )
 
 	mov	eax, DWORD PTR _desc2$2[ebp+296]
 	cmp	eax, 4
@@ -60310,85 +60277,85 @@ $LN13@StartBudge:
 	jmp	DWORD PTR $LN58@StartBudge[eax*4]
 $LN16@StartBudge:
 
-; 5473 :       {
-; 5474 :         case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
-; 5475 :           dll_log.LogEx ( false, L" (DMA Buffer)\n"         );
+; 5437 :       {
+; 5438 :         case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
+; 5439 :           dll_log.LogEx ( false, L" (DMA Buffer)\n"         );
 
-	push	OFFSET $SG370502
+	push	OFFSET $SG370132
 
-; 5476 :           break;
+; 5440 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN17@StartBudge:
 
-; 5477 : 
-; 5478 :         case DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY:
-; 5479 :           dll_log.LogEx ( false, L" (Graphics Primitive)\n" );
+; 5441 : 
+; 5442 :         case DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY:
+; 5443 :           dll_log.LogEx ( false, L" (Graphics Primitive)\n" );
 
-	push	OFFSET $SG370504
+	push	OFFSET $SG370134
 
-; 5480 :           break;
+; 5444 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN18@StartBudge:
 
-; 5481 : 
-; 5482 :         case DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY:
-; 5483 :           dll_log.LogEx ( false, L" (Triangle)\n"           );
+; 5445 : 
+; 5446 :         case DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY:
+; 5447 :           dll_log.LogEx ( false, L" (Triangle)\n"           );
 
-	push	OFFSET $SG370506
+	push	OFFSET $SG370136
 
-; 5484 :           break;
+; 5448 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN19@StartBudge:
 
-; 5485 : 
-; 5486 :         case DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY:
-; 5487 :           dll_log.LogEx ( false, L" (Fragment)\n"           );
+; 5449 : 
+; 5450 :         case DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY:
+; 5451 :           dll_log.LogEx ( false, L" (Fragment)\n"           );
 
-	push	OFFSET $SG370508
+	push	OFFSET $SG370138
 
-; 5488 :           break;
+; 5452 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN20@StartBudge:
 
-; 5489 : 
-; 5490 :         case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
-; 5491 :           dll_log.LogEx ( false, L" (Instruction)\n"        );
+; 5453 : 
+; 5454 :         case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
+; 5455 :           dll_log.LogEx ( false, L" (Instruction)\n"        );
 
-	push	OFFSET $SG370510
+	push	OFFSET $SG370140
 
-; 5492 :           break;
+; 5456 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN21@StartBudge:
 
-; 5493 : 
-; 5494 :         default:
-; 5495 :           dll_log.LogEx (false, L"UNDEFINED\n");
+; 5457 : 
+; 5458 :         default:
+; 5459 :           dll_log.LogEx (false, L"UNDEFINED\n");
 
-	push	OFFSET $SG370512
+	push	OFFSET $SG370142
 $LN57@StartBudge:
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5496 :           break;
-; 5497 :       }
-; 5498 : 
-; 5499 :       dll_log.LogEx ( true,
+; 5460 :           break;
+; 5461 :       }
+; 5462 : 
+; 5463 :       dll_log.LogEx ( true,
 
-	push	OFFSET $SG370513
+	push	OFFSET $SG370143
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5500 :                         L"[ DXGI 1.4 ] Local Memory.....:" );
-; 5501 : 
-; 5502 :       while ( SUCCEEDED (
+; 5464 :                         L"[ DXGI 1.4 ] Local Memory.....:" );
+; 5465 : 
+; 5466 :       while ( SUCCEEDED (
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 	lea	edx, DWORD PTR __mem_info$4[ebp]
@@ -60403,39 +60370,39 @@ $LN57@StartBudge:
 	js	$LN7@StartBudge
 $LL6@StartBudge:
 
-; 5503 :                 pAdapter3->QueryVideoMemoryInfo (
-; 5504 :                   i,
-; 5505 :                     DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-; 5506 :                       &_mem_info
-; 5507 :                 )
-; 5508 :               )
-; 5509 :             )
-; 5510 :       {
-; 5511 :         if ( i > 0 )
+; 5467 :                 pAdapter3->QueryVideoMemoryInfo (
+; 5468 :                   i,
+; 5469 :                     DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+; 5470 :                       &_mem_info
+; 5471 :                 )
+; 5472 :               )
+; 5473 :             )
+; 5474 :       {
+; 5475 :         if ( i > 0 )
 
 	test	esi, esi
 	jle	SHORT $LN22@StartBudge
 
-; 5512 :         {
-; 5513 :           dll_log.LogEx ( false, L"\n"                              );
+; 5476 :         {
+; 5477 :           dll_log.LogEx ( false, L"\n"                              );
 
-	push	OFFSET $SG370515
+	push	OFFSET $SG370145
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5514 :           dll_log.LogEx ( true,  L"                               " );
+; 5478 :           dll_log.LogEx ( true,  L"                               " );
 
-	push	OFFSET $SG370516
+	push	OFFSET $SG370146
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN22@StartBudge:
 
-; 5515 :         }
-; 5516 : 
-; 5517 :         dll_log.LogEx ( false,
+; 5479 :         }
+; 5480 : 
+; 5481 :         dll_log.LogEx ( false,
 
 	mov	ecx, DWORD PTR __mem_info$4[ebp]
 	mov	eax, DWORD PTR __mem_info$4[ebp+4]
@@ -60462,23 +60429,23 @@ $LN22@StartBudge:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG370517
+	push	OFFSET $SG370147
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	inc	esi
 	add	esp, 48					; 00000030H
 
-; 5518 :                           L" Node%i       (Reserve: %#5llu / %#5llu MiB - "
-; 5519 :                                          L"Budget: %#5llu / %#5llu MiB)",
-; 5520 :                             i++,
-; 5521 :                               _mem_info.CurrentReservation      >> 20ULL,
-; 5522 :                               _mem_info.AvailableForReservation >> 20ULL,
-; 5523 :                               _mem_info.CurrentUsage            >> 20ULL,
-; 5524 :                               _mem_info.Budget                  >> 20ULL
-; 5525 :                       );
-; 5526 : 
-; 5527 :         pAdapter3->SetVideoMemoryReservation (
+; 5482 :                           L" Node%i       (Reserve: %#5llu / %#5llu MiB - "
+; 5483 :                                          L"Budget: %#5llu / %#5llu MiB)",
+; 5484 :                             i++,
+; 5485 :                               _mem_info.CurrentReservation      >> 20ULL,
+; 5486 :                               _mem_info.AvailableForReservation >> 20ULL,
+; 5487 :                               _mem_info.CurrentUsage            >> 20ULL,
+; 5488 :                               _mem_info.Budget                  >> 20ULL
+; 5489 :                       );
+; 5490 : 
+; 5491 :         pAdapter3->SetVideoMemoryReservation (
 
 	cmp	esi, 1
 	jne	SHORT $LN25@StartBudge
@@ -60519,35 +60486,35 @@ $LN26@StartBudge:
 	jns	$LL6@StartBudge
 $LN7@StartBudge:
 
-; 5528 :               ( i - 1 ),
-; 5529 :                 DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-; 5530 :                   ( i == 1 ) ?
-; 5531 :                     uint64_t ( _mem_info.AvailableForReservation *
-; 5532 :                                  config.mem.reserve * 0.01f ) 
-; 5533 :                            :
-; 5534 :                            0
-; 5535 :         );
-; 5536 :       }
-; 5537 : 
-; 5538 :       i = 0;
-; 5539 : 
-; 5540 :       dll_log.LogEx ( false, L"\n"                              );
+; 5492 :               ( i - 1 ),
+; 5493 :                 DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+; 5494 :                   ( i == 1 ) ?
+; 5495 :                     uint64_t ( _mem_info.AvailableForReservation *
+; 5496 :                                  config.mem.reserve * 0.01f ) 
+; 5497 :                            :
+; 5498 :                            0
+; 5499 :         );
+; 5500 :       }
+; 5501 : 
+; 5502 :       i = 0;
+; 5503 : 
+; 5504 :       dll_log.LogEx ( false, L"\n"                              );
 
-	push	OFFSET $SG370518
+	push	OFFSET $SG370148
 	xor	esi, esi
 	push	esi
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5541 :       dll_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
+; 5505 :       dll_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
 
-	push	OFFSET $SG370519
+	push	OFFSET $SG370149
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5542 : 
-; 5543 :       while ( SUCCEEDED (
+; 5506 : 
+; 5507 :       while ( SUCCEEDED (
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 	lea	edx, DWORD PTR __mem_info$4[ebp]
@@ -60563,39 +60530,39 @@ $LN7@StartBudge:
 	npad	1
 $LL8@StartBudge:
 
-; 5544 :                 pAdapter3->QueryVideoMemoryInfo (
-; 5545 :                   i,
-; 5546 :                     DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5547 :                       &_mem_info
-; 5548 :                 )
-; 5549 :               )
-; 5550 :             )
-; 5551 :       {
-; 5552 :         if ( i > 0 )
+; 5508 :                 pAdapter3->QueryVideoMemoryInfo (
+; 5509 :                   i,
+; 5510 :                     DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5511 :                       &_mem_info
+; 5512 :                 )
+; 5513 :               )
+; 5514 :             )
+; 5515 :       {
+; 5516 :         if ( i > 0 )
 
 	test	esi, esi
 	jle	SHORT $LN23@StartBudge
 
-; 5553 :         {
-; 5554 :           dll_log.LogEx ( false, L"\n"                              );
+; 5517 :         {
+; 5518 :           dll_log.LogEx ( false, L"\n"                              );
 
-	push	OFFSET $SG370521
+	push	OFFSET $SG370151
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5555 :           dll_log.LogEx ( true,  L"                               " );
+; 5519 :           dll_log.LogEx ( true,  L"                               " );
 
-	push	OFFSET $SG370522
+	push	OFFSET $SG370152
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN23@StartBudge:
 
-; 5556 :         }
-; 5557 : 
-; 5558 :         dll_log.LogEx ( false,
+; 5520 :         }
+; 5521 : 
+; 5522 :         dll_log.LogEx ( false,
 
 	mov	ecx, DWORD PTR __mem_info$4[ebp]
 	mov	eax, DWORD PTR __mem_info$4[ebp+4]
@@ -60622,23 +60589,23 @@ $LN23@StartBudge:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG370523
+	push	OFFSET $SG370153
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	inc	esi
 	add	esp, 48					; 00000030H
 
-; 5559 :                           L" Node%i       (Reserve: %#5llu / %#5llu MiB - "
-; 5560 :                                          L"Budget: %#5llu / %#5llu MiB)",
-; 5561 :                             i++,
-; 5562 :                               _mem_info.CurrentReservation      >> 20ULL,
-; 5563 :                               _mem_info.AvailableForReservation >> 20ULL,
-; 5564 :                               _mem_info.CurrentUsage            >> 20ULL,
-; 5565 :                               _mem_info.Budget                  >> 20ULL
-; 5566 :                       );
-; 5567 : 
-; 5568 :         pAdapter3->SetVideoMemoryReservation (
+; 5523 :                           L" Node%i       (Reserve: %#5llu / %#5llu MiB - "
+; 5524 :                                          L"Budget: %#5llu / %#5llu MiB)",
+; 5525 :                             i++,
+; 5526 :                               _mem_info.CurrentReservation      >> 20ULL,
+; 5527 :                               _mem_info.AvailableForReservation >> 20ULL,
+; 5528 :                               _mem_info.CurrentUsage            >> 20ULL,
+; 5529 :                               _mem_info.Budget                  >> 20ULL
+; 5530 :                       );
+; 5531 : 
+; 5532 :         pAdapter3->SetVideoMemoryReservation (
 
 	cmp	esi, 1
 	jne	SHORT $LN27@StartBudge
@@ -60678,22 +60645,22 @@ $LN28@StartBudge:
 	jns	$LL8@StartBudge
 $LN9@StartBudge:
 
-; 5569 :               ( i - 1 ),
-; 5570 :                 DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5571 :                   ( i == 1 ) ?
-; 5572 :                     uint64_t ( _mem_info.AvailableForReservation *
-; 5573 :                                  config.mem.reserve * 0.01f )
-; 5574 :                            :
-; 5575 :                            0
-; 5576 :         );
-; 5577 :       }
-; 5578 : 
-; 5579 :       ::mem_info [0].nodes = ( i - 1 );
-; 5580 :       ::mem_info [1].nodes = ( i - 1 );
-; 5581 : 
-; 5582 :       dll_log.LogEx ( false, L"\n" );
+; 5533 :               ( i - 1 ),
+; 5534 :                 DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5535 :                   ( i == 1 ) ?
+; 5536 :                     uint64_t ( _mem_info.AvailableForReservation *
+; 5537 :                                  config.mem.reserve * 0.01f )
+; 5538 :                            :
+; 5539 :                            0
+; 5540 :         );
+; 5541 :       }
+; 5542 : 
+; 5543 :       ::mem_info [0].nodes = ( i - 1 );
+; 5544 :       ::mem_info [1].nodes = ( i - 1 );
+; 5545 : 
+; 5546 :       dll_log.LogEx ( false, L"\n" );
 
-	push	OFFSET $SG370524
+	push	OFFSET $SG370154
 	lea	eax, DWORD PTR [esi-1]
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
@@ -60706,18 +60673,18 @@ $LN9@StartBudge:
 $LN11@StartBudge:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5586 :   return hr;
+; 5550 :   return hr;
 
 	mov	eax, DWORD PTR _hr$1$[ebp]
 	pop	esi
 
-; 5587 : }
+; 5551 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -60754,31 +60721,31 @@ text$x	ENDS
 _TEXT	SEGMENT
 ?Shutdown@DXGI@SK@@YA_NXZ PROC				; SK::DXGI::Shutdown
 
-; 5317 : #ifdef _WIN64
-; 5318 :   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-; 5319 :   {
-; 5320 :     SK_DS3_ShutdownPlugin (L"dxgi");
-; 5321 :   }
-; 5322 : #endif
-; 5323 : 
-; 5324 :   if (config.apis.dxgi.d3d11.hook) SK_D3D11_Shutdown ();
+; 5281 : #ifdef _WIN64
+; 5282 :   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+; 5283 :   {
+; 5284 :     SK_DS3_ShutdownPlugin (L"dxgi");
+; 5285 :   }
+; 5286 : #endif
+; 5287 : 
+; 5288 :   if (config.apis.dxgi.d3d11.hook) SK_D3D11_Shutdown ();
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
 	je	SHORT $LN2@Shutdown
 	call	?SK_D3D11_Shutdown@@YAXXZ		; SK_D3D11_Shutdown
 $LN2@Shutdown:
 
-; 5325 : 
-; 5326 : #ifdef _WIN64
-; 5327 :   if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
-; 5328 : #endif
-; 5329 : 
-; 5330 :   return SK_ShutdownCore (L"dxgi");
+; 5289 : 
+; 5290 : #ifdef _WIN64
+; 5291 :   if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
+; 5292 : #endif
+; 5293 : 
+; 5294 :   return SK_ShutdownCore (L"dxgi");
 
-	push	OFFSET $SG370403
+	push	OFFSET $SG370033
 	call	?SK_ShutdownCore@@YG_NPB_W@Z		; SK_ShutdownCore
 
-; 5331 : }
+; 5295 : }
 
 	ret	0
 ?Shutdown@DXGI@SK@@YA_NXZ ENDP				; SK::DXGI::Shutdown
@@ -60788,13 +60755,13 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?Startup@DXGI@SK@@YA_NXZ PROC				; SK::DXGI::Startup
 
-; 4767 :   return SK_StartupCore (L"dxgi", dxgi_init_callback);
+; 4768 :   return SK_StartupCore (L"dxgi", dxgi_init_callback);
 
 	push	OFFSET ?dxgi_init_callback@@YGXP6GXXZ@Z	; dxgi_init_callback
-	push	OFFSET $SG366431
+	push	OFFSET $SG366063
 	call	?SK_StartupCore@@YG_NPB_WPAX@Z		; SK_StartupCore
 
-; 4768 : }
+; 4769 : }
 
 	ret	0
 ?Startup@DXGI@SK@@YA_NXZ ENDP				; SK::DXGI::Startup
@@ -60848,12 +60815,12 @@ _TEXT	SEGMENT
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::unlock, COMDAT
 ; _this$ = ecx
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 249  :   }
+; 267  :   }
 
 	ret	0
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::unlock
@@ -60865,12 +60832,12 @@ _TEXT	SEGMENT
 ?lock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::lock, COMDAT
 ; _this$ = ecx
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 244  :   }
+; 262  :   }
 
 	ret	0
 ?lock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::lock
@@ -70215,7 +70182,7 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 5976 : }
+; 5940 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
@@ -70227,7 +70194,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 5976 : }
+; 5940 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

@@ -380,3 +380,5 @@ paket-files/
 *.pdb
 *.xml
 /build/TZFix/Win32
+*.asm
+*.asm

@@ -169,6 +169,14 @@ struct sk_config_t
       } chinese,  cyrillic, default,
         japanese, korean;
     } font;
+
+    // Per-game (mostly compatibility) settings
+    struct
+    {
+      bool  disable_alpha      = false;
+      bool  antialias_lines    = true;
+      bool  antialias_contours = true;
+    } render;
   } imgui;
 
 
@@ -365,6 +373,7 @@ struct sk_config_t
     struct {
       bool    block_windows_key = false;
       bool    catch_alt_f4      = true;
+      bool    disabled_to_game  = false;
     } keyboard;
 
     struct {
@@ -386,6 +395,7 @@ struct sk_config_t
 //        that's not always possible. <<
 //
       float   antiwarp_deadzone = 2.5f;
+      bool    disabled_to_game  = false;
     } mouse;
   } input;
 

@@ -3011,18 +3011,16 @@ LPMSG last_message = nullptr;
 
 static HMODULE hModSteamOverlay = nullptr;
 
+LRESULT
+WINAPI
+ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
+                                  WPARAM wParam,
+                                  LPARAM lParam );
+
 bool
 SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 {
   LRESULT lRet = 0;
-  //if (wm_dispatch.ProcessMessage (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam, &lRet))
-  //{
-  //  if (remove)
-  //    lpMsg->message = WM_NULL;
-  //
-  //  return true;
-  //}
-
   if ( SK_ImGui_HandlesMessage (lpMsg, remove, peek) )
   {
     if (remove)
@@ -3030,6 +3028,25 @@ SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 
     return true;
   }
+
+  //if (lpMsg->message == WM_INPUT)
+  //{
+  //  if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
+  //  {
+  //    if (remove)
+  //      lpMsg->message = WM_NULL;
+  //
+  //    return true;
+  //  }
+  //}
+
+  //if (wm_dispatch.ProcessMessage (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam, &lRet))
+  //{
+  //  if (remove)
+  //    lpMsg->message = WM_NULL;
+  //
+  //  return true;
+  //}
 
   return false;
 }
@@ -4634,7 +4651,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                   TRUE,
                     reinterpret_cast <LPARAM> (hWnd) );
 
-            return 0;
+            return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
           }
 
           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
@@ -4729,7 +4746,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       // Filter this message
       if (config.window.borderless && config.window.fullscreen)
-        return 0;
+        return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
     } break;
 
     
@@ -4819,7 +4836,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       // Filter this message
       if (config.window.borderless && config.window.fullscreen)
-        return 0;
+        return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
       break;
 
 
@@ -4830,7 +4847,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         // Filter this message
         if (config.window.borderless && config.window.fullscreen)
-          return 0;
+          return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
         break;
 
 
@@ -4874,6 +4891,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
          bool handled = false;
   static bool eqgame  =
     wcsstr (SK_GetHostApp (), L"eqgame.exe");
+
+  if (uMsg == WM_INPUT)
+  {
+    if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
+      return 0;
+  }
 
   if (eqgame)
   {
@@ -4970,7 +4993,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
   
   else {
-    return 0;
+    return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
   }
 
 
@@ -5955,3 +5978,122 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
     return 1;
   }
 }
+
+
+
+#if 0
+  // We have to take this codepath through the x86 ABI for compat.
+  //   with FFX / X-2 HD
+  //
+  CComPtr <IDXGISwapChain> pSwapChain = nullptr;
+
+  extern HWND
+  SK_Win32_CreateDummyWindow (void);
+  
+  extern void
+  SK_Win32_CleanupDummyWindow (void);
+  
+  HWND                   hWnd = SK_Win32_CreateDummyWindow ();
+
+  DXGI_SWAP_CHAIN_DESC desc = { };
+  
+  desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+  desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+  desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
+  desc.SampleDesc.Count            = 1;
+  desc.SampleDesc.Quality          = 0;
+  desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER;
+  desc.BufferCount                 = 1;
+  desc.OutputWindow                = hWnd;
+  desc.Windowed                    = TRUE;
+  desc.SwapEffect                  = DXGI_SWAP_EFFECT_SEQUENTIAL;
+
+  //
+  //    if (hWnd != HWND_DESKTOP)
+  //    {
+  extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
+
+  hr =
+    ((D3D11CreateDeviceAndSwapChain_pfn)(pfnD3D11CreateDeviceAndSwapChain)) (
+      nullptr,
+        D3D_DRIVER_TYPE_HARDWARE,
+          nullptr,
+            0x0,
+              nullptr,
+                0,
+                  D3D11_SDK_VERSION,
+                    &desc, &pSwapChain,
+                    &pDevice,
+                      &featureLevel,
+                        &pImmediateContext );
+
+  d3d11_hook_ctx.ppDevice           = &pDevice;
+  d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
+
+  CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+  CComPtr <IDXGIAdapter> pAdapter = nullptr;
+  CComPtr <IDXGIFactory> pFactory = nullptr;
+  
+  if ( SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+       SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
+       SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+  {
+    HookD3D11             (&d3d11_hook_ctx);
+    SK_DXGI_HookFactory   (pFactory);
+    SK_DXGI_HookSwapChain (pSwapChain);
+
+    // This won't catch Present1 (...), but no games use that
+    //   and we can deal with it later if it happens.
+    SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
+
+    CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+    if (pSwapChain1 != nullptr)
+      SK_DXGI_HookPresent1 (pSwapChain1, false);
+
+    SK_Win32_CleanupDummyWindow ();
+
+    MH_ApplyQueued  ();
+
+    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+    {
+      // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+      SK_LoadPlugIns64 ();
+#else
+      SK_LoadPlugIns32 ();
+#endif
+    }
+
+    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+
+    if (config.render.dxgi.deferred_isolation)
+    {
+      CComPtr <ID3D11Device> pDev = nullptr;
+      pImmediateContext->GetDevice (&pDev);
+
+      pDev->CreateDeferredContext (0x00,  &pDevCtx);
+      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+    }
+
+    if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+      
+#ifdef _WIN64
+    if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+#endif
+
+    InterlockedExchange (&__dxgi_ready, TRUE);
+  }
+
+  else
+  {
+    _com_error err (hr);
+  
+    dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
+                             err.WCode (), err.ErrorMessage () );
+  }
+
+  SK_Win32_CleanupDummyWindow ();
+
+  //if (success) CoUninitialize ();
+#endif

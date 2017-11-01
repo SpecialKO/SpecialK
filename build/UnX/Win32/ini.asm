@@ -10,51 +10,55 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG134144 DB	'c:\users\andon\source\repos\specialk\src\ini.cpp', 00H
+$SG134148 DB	'w', 00H, 't', 00H, 'c', 00H, ',', 00H, 'c', 00H, 'c', 00H
+	DB	's', 00H, '=', 00H, 'U', 00H, 'T', 00H, 'F', 00H, '-', 00H, '8'
+	DB	00H, 00H, 00H
+$SG134150 DB	'c:\users\andon\source\repos\specialk\src\ini.cpp', 00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 	ORG $+2
-$SG134145 DB	'iSK_INI::write', 00H
+$SG134151 DB	'iSK_INI::write', 00H
 	ORG $+1
-$SG134146 DB	'_wfsopen (fname, L"wtc,ccs=UTF-8", _SH_DENYNO)', 00H
+$SG134152 DB	'_wfsopen (fname, L"wtc,ccs=UTF-8", _SH_DENYNO)', 00H
 	ORG $+1
-$SG134147 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG134153 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '%', 00H, 'w', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG134149 DB	'w', 00H, 't', 00H, 'c', 00H, ',', 00H, 'c', 00H, 'c', 00H
+$SG134155 DB	'w', 00H, 't', 00H, 'c', 00H, ',', 00H, 'c', 00H, 'c', 00H
 	DB	's', 00H, '=', 00H, 'U', 00H, 'T', 00H, 'F', 00H, '-', 00H, '1'
 	DB	00H, '6', 00H, 'L', 00H, 'E', 00H, 00H, 00H
 	ORG $+2
-$SG134151 DB	'c:\users\andon\source\repos\specialk\src\ini.cpp', 00H
+$SG134157 DB	'c:\users\andon\source\repos\specialk\src\ini.cpp', 00H
 	ORG $+3
-$SG134152 DB	'iSK_INI::write', 00H
+$SG134158 DB	'iSK_INI::write', 00H
 	ORG $+1
-$SG134153 DB	'_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO)', 00H
+$SG134159 DB	'_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO)', 00H
 	ORG $+2
-$SG134154 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG134160 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '%', 00H, 'w', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG134156 DB	'w', 00H, 't', 00H, 'c', 00H, ',', 00H, 'c', 00H, 'c', 00H
+$SG134162 DB	'w', 00H, 't', 00H, 'c', 00H, ',', 00H, 'c', 00H, 'c', 00H
 	DB	's', 00H, '=', 00H, 'U', 00H, 'T', 00H, 'F', 00H, '-', 00H, '1'
 	DB	00H, '6', 00H, 'L', 00H, 'E', 00H, 00H, 00H
 	ORG $+2
-$SG134158 DB	'c:\users\andon\source\repos\specialk\src\ini.cpp', 00H
+$SG134164 DB	'c:\users\andon\source\repos\specialk\src\ini.cpp', 00H
 	ORG $+3
-$SG134159 DB	'iSK_INI::write', 00H
+$SG134165 DB	'iSK_INI::write', 00H
 	ORG $+1
-$SG134160 DB	'_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO)', 00H
+$SG134166 DB	'_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO)', 00H
 	ORG $+2
-$SG134161 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG134167 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '%', 00H, 'w', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG134165 DB	00H, 00H
+$SG134171 DB	00H, 00H
 	ORG $+2
-$SG134167 DB	'[', 00H, 00H, 00H
-$SG134168 DB	']', 00H, 0aH, 00H, 00H, 00H
+$SG134173 DB	'[', 00H, 00H, 00H
+$SG134174 DB	']', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG132120 DB	0aH, 00H, 'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H, ' ', 00H
+$SG134175 DB	'=', 00H, 00H, 00H
+$SG132126 DB	0aH, 00H, 'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H, ' ', 00H
 	DB	'%', 00H, 'u', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' ', 00H, '%'
 	DB	00H, 'h', 00H, 's', 00H, ' ', 00H, '(', 00H, 'i', 00H, 'n', 00H
 	DB	' ', 00H, '%', 00H, 'h', 00H, 's', 00H, ' ', 00H, '(', 00H, '.'
@@ -69,27 +73,21 @@ $SG132120 DB	0aH, 00H, 'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H, ' ', 00H
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '<', 00H, '<', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG134169 DB	'=', 00H, 00H, 00H
-$SG134170 DB	0aH, 00H, 00H, 00H
-$SG134171 DB	0aH, 00H, 00H, 00H
-$SG132160 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG134176 DB	0aH, 00H, 00H, 00H
+$SG134177 DB	0aH, 00H, 00H, 00H
+$SG132166 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, 00H, 00H
-$SG132161 DB	'r', 00H, 'b', 00H, 'S', 00H, 00H, 00H
-$SG132163 DB	'c:\users\andon\source\repos\specialk\src\ini.cpp', 00H
+$SG132167 DB	'r', 00H, 'b', 00H, 'S', 00H, 00H, 00H
+$SG132169 DB	'c:\users\andon\source\repos\specialk\src\ini.cpp', 00H
 	ORG $+3
-$SG132164 DB	'iSK_INI::iSK_INI', 00H
+$SG132170 DB	'iSK_INI::iSK_INI', 00H
 	ORG $+3
-$SG132165 DB	'_wfsopen (filename, L"rbS", _SH_DENYNO)', 00H
-$SG132166 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG132171 DB	'_wfsopen (filename, L"rbS", _SH_DENYNO)', 00H
+$SG132172 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '%', 00H, 'w', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG133219 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
-	DB	'd', 00H, 00H, 00H
-$SG134142 DB	'w', 00H, 't', 00H, 'c', 00H, ',', 00H, 'c', 00H, 'c', 00H
-	DB	's', 00H, '=', 00H, 'U', 00H, 'T', 00H, 'F', 00H, '-', 00H, '8'
-	DB	00H, 00H, 00H
-$SG132173 DB	'[', 00H, 'I', 00H, 'N', 00H, 'I', 00H, ' ', 00H, 'P', 00H
+$SG132179 DB	'[', 00H, 'I', 00H, 'N', 00H, 'I', 00H, ' ', 00H, 'P', 00H
 	DB	'a', 00H, 'r', 00H, 's', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'E', 00H, 'n', 00H, 'c', 00H, 'o', 00H, 'u', 00H, 'n', 00H
 	DB	't', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'B'
@@ -103,7 +101,7 @@ $SG132173 DB	'[', 00H, 'I', 00H, 'N', 00H, 'I', 00H, ' ', 00H, 'P', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r'
 	DB	00H, 'e', 00H, 'c', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 'r', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG132175 DB	'[', 00H, 'I', 00H, 'N', 00H, 'I', 00H, ' ', 00H, 'P', 00H
+$SG132181 DB	'[', 00H, 'I', 00H, 'N', 00H, 'I', 00H, ' ', 00H, 'P', 00H
 	DB	'a', 00H, 'r', 00H, 's', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'n'
@@ -117,6 +115,8 @@ $SG132175 DB	'[', 00H, 'I', 00H, 'N', 00H, 'I', 00H, ' ', 00H, 'P', 00H
 	DB	' ', 00H, 'U', 00H, 'T', 00H, 'F', 00H, '-', 00H, '1', 00H, '6'
 	DB	00H, ',', 00H, ' ', 00H, 'a', 00H, 'b', 00H, 'o', 00H, 'r', 00H
 	DB	't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, '!', 00H, 00H, 00H
+$SG133225 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+	DB	'd', 00H, 00H, 00H
 ?IID_SK_INI@@3U_GUID@@B DD 0dd2b1e00H			; IID_SK_INI
 	DW	06c14H
 	DW	04659H
@@ -2557,8 +2557,6 @@ ___formal$ = 20						; size = 1
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\ini.cpp
 
-; 942  : }
-
 	mov	DWORD PTR [esi], OFFSET ??_7iSK_INISection@@6B@
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
 
@@ -2788,8 +2786,6 @@ _<_Args_2>$ = 20					; size = 4
 	test	ecx, ecx
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\ini.cpp
-
-; 942  : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -3845,6 +3841,8 @@ _<_Args_2>$ = 20					; size = 4
 	test	ecx, ecx
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\ini.cpp
+
+; 942  : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -20058,7 +20056,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG133219
+	push	OFFSET $SG133225
 	mov	ecx, OFFSET ?invalid@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@A ; invalid
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -21881,7 +21879,7 @@ _file_name$ = 32					; size = 4
 	push	DWORD PTR _function_name$[ebp]
 	push	DWORD PTR _file_name$[ebp]
 	push	DWORD PTR _line_no$[ebp]
-	push	OFFSET $SG132120
+	push	OFFSET $SG132126
 	push	1024					; 00000400H
 	push	eax
 	call	_swprintf
@@ -31598,18 +31596,18 @@ _fname$ = 12						; size = 4
 
 ; 738  :       TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
 
-	push	OFFSET $SG134156
+	push	OFFSET $SG134162
 	push	esi
 	call	DWORD PTR __imp___wfsopen
 	add	esp, 12					; 0000000cH
 	mov	DWORD PTR _fOut$1$[ebp], eax
 	test	eax, eax
 	jne	$LN862@write
-	push	OFFSET $SG134158
-	push	OFFSET $SG134159
+	push	OFFSET $SG134164
+	push	OFFSET $SG134165
 	push	738					; 000002e2H
 	push	esi
-	push	OFFSET $SG134160
+	push	OFFSET $SG134166
 	call	DWORD PTR __imp__GetLastError@0
 	push	eax
 	lea	eax, DWORD PTR $T4[ebp]
@@ -31636,7 +31634,7 @@ $LN136@write:
 ; 738  :       TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
 
 	push	eax
-	push	OFFSET $SG134161
+	push	OFFSET $SG134167
 $LN866@write:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -31690,18 +31688,18 @@ $LN15@write:
 
 ; 733  :       TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
 
-	push	OFFSET $SG134149
+	push	OFFSET $SG134155
 	push	esi
 	call	DWORD PTR __imp___wfsopen
 	add	esp, 12					; 0000000cH
 	mov	DWORD PTR _fOut$1$[ebp], eax
 	test	eax, eax
 	jne	$LN862@write
-	push	OFFSET $SG134151
-	push	OFFSET $SG134152
+	push	OFFSET $SG134157
+	push	OFFSET $SG134158
 	push	733					; 000002ddH
 	push	esi
-	push	OFFSET $SG134153
+	push	OFFSET $SG134159
 	call	DWORD PTR __imp__GetLastError@0
 	push	eax
 	lea	eax, DWORD PTR $T5[ebp]
@@ -31728,7 +31726,7 @@ $LN87@write:
 ; 733  :       TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
 
 	push	eax
-	push	OFFSET $SG134154
+	push	OFFSET $SG134160
 
 ; 734  :       break;
 
@@ -31737,18 +31735,18 @@ $LN13@write:
 
 ; 728  :       TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-8",    _SH_DENYNO), fname, fOut);
 
-	push	OFFSET $SG134142
+	push	OFFSET $SG134148
 	push	esi
 	call	DWORD PTR __imp___wfsopen
 	add	esp, 12					; 0000000cH
 	mov	DWORD PTR _fOut$1$[ebp], eax
 	test	eax, eax
 	jne	SHORT $LN862@write
-	push	OFFSET $SG134144
-	push	OFFSET $SG134145
+	push	OFFSET $SG134150
+	push	OFFSET $SG134151
 	push	728					; 000002d8H
 	push	esi
-	push	OFFSET $SG134146
+	push	OFFSET $SG134152
 	call	DWORD PTR __imp__GetLastError@0
 	push	eax
 	lea	eax, DWORD PTR $T6[ebp]
@@ -31775,7 +31773,7 @@ $LN38@write:
 ; 728  :       TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-8",    _SH_DENYNO), fname, fOut);
 
 	push	eax
-	push	OFFSET $SG134147
+	push	OFFSET $SG134153
 
 ; 739  :       break;
 ; 740  :   }
@@ -31899,7 +31897,7 @@ $LN5@write:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG134165
+	push	OFFSET $SG134171
 	lea	ecx, DWORD PTR _outbuf$[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -31984,14 +31982,14 @@ $LN405@write:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG134167
+	push	OFFSET $SG134173
 	lea	ecx, DWORD PTR _outbuf$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 ; File c:\users\andon\source\repos\specialk\src\ini.cpp
 
 ; 779  :       outbuf += section.name + L"]\n";
 
-	push	OFFSET $SG134168
+	push	OFFSET $SG134174
 	lea	eax, DWORD PTR [ebx+4]
 	push	eax
 	lea	eax, DWORD PTR $T3[ebp]
@@ -32088,7 +32086,7 @@ $LN566@write:
 ; 785  : 
 ; 786  :         outbuf += key_it + L"=";
 
-	push	OFFSET $SG134169
+	push	OFFSET $SG134175
 	mov	DWORD PTR _val$1$[ebp], eax
 	lea	eax, DWORD PTR $T2[ebp]
 	push	esi
@@ -32212,7 +32210,7 @@ $LN609@write:
 
 ; 787  :         outbuf += val    + L"\n";
 
-	push	OFFSET $SG134170
+	push	OFFSET $SG134176
 	push	DWORD PTR _val$1$[ebp]
 	lea	eax, DWORD PTR $T1[ebp]
 	push	eax
@@ -32351,7 +32349,7 @@ $LN11@write:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG134171
+	push	OFFSET $SG134177
 	lea	ecx, DWORD PTR _outbuf$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN7@write:
@@ -34486,7 +34484,7 @@ _filename$ = 8						; size = 4
 ; 66   :   if (wcsstr (filename, L"Version"))
 
 	mov	ebx, DWORD PTR _filename$[ebp]
-	push	OFFSET $SG132160
+	push	OFFSET $SG132166
 	push	ebx
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	mov	DWORD PTR [edi+64], 0
@@ -34628,18 +34626,18 @@ $LL17@iSK_INI:
 ; 80   :   TRY_FILE_IO (_wfsopen (filename, L"rbS", _SH_DENYNO), filename, fINI);
 
 	push	64					; 00000040H
-	push	OFFSET $SG132161
+	push	OFFSET $SG132167
 	push	ebx
 	call	DWORD PTR __imp___wfsopen
 	add	esp, 12					; 0000000cH
 	mov	DWORD PTR [edi+4], eax
 	test	eax, eax
 	jne	SHORT $LN180@iSK_INI
-	push	OFFSET $SG132163
-	push	OFFSET $SG132164
+	push	OFFSET $SG132169
+	push	OFFSET $SG132170
 	push	80					; 00000050H
 	push	ebx
-	push	OFFSET $SG132165
+	push	OFFSET $SG132171
 	call	DWORD PTR __imp__GetLastError@0
 	push	eax
 	lea	eax, DWORD PTR $T2[ebp]
@@ -34666,7 +34664,7 @@ $LN170@iSK_INI:
 ; 80   :   TRY_FILE_IO (_wfsopen (filename, L"rbS", _SH_DENYNO), filename, fINI);
 
 	push	eax
-	push	OFFSET $SG132166
+	push	OFFSET $SG132172
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -34798,7 +34796,7 @@ $LN9@iSK_INI:
 ; 104  :       dll_log.Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
 
 	push	DWORD PTR [edi+8]
-	push	OFFSET $SG132173
+	push	OFFSET $SG132179
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -34942,7 +34940,7 @@ $LN21@iSK_INI:
 ; 151  :         dll_log.Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
 
 	push	DWORD PTR [edi+8]
-	push	OFFSET $SG132175
+	push	OFFSET $SG132181
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 

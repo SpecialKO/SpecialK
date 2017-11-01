@@ -853,10 +853,7 @@ GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 {
   SK_LOG_FIRST_CALL
 
-  //if (SK_ImGui_WantGamepadCapture ())
-    return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, false);
-
- //return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+  return SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, false);
 }
 
 
@@ -877,7 +874,7 @@ SK_ImGui_IsMouseRelevant (void)
   // SK_ImGui_Visible is the full-blown config UI;
   //   but we also have floating widgets that may capture mouse
   //     input.
-  return SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
+  return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 }
 
 __inline
@@ -1116,6 +1113,9 @@ SK_ImGui_WantKeyboardCapture (void)
       imgui_capture = true;
   //}
 
+  if (config.input.keyboard.disabled_to_game)
+    imgui_capture = true;
+
   return imgui_capture;
 }
 
@@ -1162,8 +1162,11 @@ SK_ImGui_WantGamepadCapture (void)
   return imgui_capture;
 }
 
+
+const DWORD REASON_DISABLED = 0x4;
+
 bool
-SK_ImGui_WantMouseCapture (void)
+SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   bool imgui_capture = false;
 
@@ -1177,10 +1180,23 @@ SK_ImGui_WantMouseCapture (void)
 
     if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
+
+    if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game)
+      imgui_capture = true;
   }
 
   return imgui_capture;
 }
+
+
+
+bool
+SK_ImGui_WantMouseCapture (void)
+{
+  return SK_ImGui_WantMouseCaptureEx (0xFFFF);
+}
+
+
 
 HCURSOR GetGameCursor (void)
 {
@@ -1313,11 +1329,22 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 {
   SK_LOG_FIRST_CALL
 
-  POINT pt  = pci->ptScreenPos;
-  BOOL  ret = GetCursorInfo_Original (pci);
-        pci->ptScreenPos = pt;
+  POINT   pt        = pci->ptScreenPos;
+  BOOL    ret       = GetCursorInfo_Original (pci);
 
-  pci->hCursor =
+
+  struct state_backup
+  {
+    state_backup (PCURSORINFO pci) :
+      hCursor     (pci->hCursor),
+      ptScreenPos (pci->ptScreenPos) { };
+
+    HCURSOR hCursor;
+    POINT   ptScreenPos;
+  } actual (pci);
+
+  pci->ptScreenPos = pt;
+  pci->hCursor     =
     SK_ImGui_Cursor.orig_img;
 
 
@@ -1357,7 +1384,10 @@ GetCursorInfo_Detour (PCURSORINFO pci)
   }
 
 
-  return GetCursorInfo_Original (pci);
+  pci->hCursor     = actual.hCursor;
+  pci->ptScreenPos = actual.ptScreenPos;
+
+  return ret;
 }
 
 BOOL
@@ -1403,7 +1433,18 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   }
 
 
-  return GetCursorPos_Original (lpPoint);
+  BOOL bRet = GetCursorPos_Original (lpPoint);
+
+  if (bRet)
+  {
+    SK_ImGui_Cursor.orig_pos = *lpPoint;
+    SK_ImGui_Cursor.pos      = *lpPoint;
+
+    SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
+    SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
+  }
+
+  return bRet;
 }
 
 BOOL
@@ -1535,7 +1576,7 @@ GetAsyncKeyState_Detour (_In_ int vKey)
       SK_ConsumeVKey (vKey);
   }
 
-  else
+  else if (vKey < 8)
   {
     // Some games use this API for mouse buttons, for reasons that are beyond me...
     if (SK_ImGui_WantMouseCapture ())
@@ -1568,7 +1609,7 @@ GetKeyState_Detour (_In_ int nVirtKey)
       SK_ConsumeVirtKey (nVirtKey);
   }
 
-  else
+  else if (nVirtKey < 8)
   {
     // Some games use this API for mouse buttons, for reasons that are beyond me...
     if (SK_ImGui_WantMouseCapture ())
@@ -1586,20 +1627,17 @@ GetKeyboardState_Detour (PBYTE lpKeyState)
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_ImGui_WantKeyboardCapture ())
-  {
-    memset (&lpKeyState [7], 0, 248);
-    return TRUE;
-  }
-
   BOOL bRet =
     GetKeyboardState_Original (lpKeyState);
 
   if (bRet)
   {
+    if (SK_ImGui_WantKeyboardCapture ())
+      memset (&lpKeyState [7], 0, 247);
+
     // Some games use this API for mouse buttons, for reasons that are beyond me...
     if (SK_ImGui_WantMouseCapture ())
-      memset (lpKeyState, 0, 7);
+      memset (  lpKeyState,    0, 7);
   }
 
   return bRet;
@@ -1680,7 +1718,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
 
     case WM_INPUT:
     {
-      handled = (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0);
+      ////handled = (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0);
     } break;
 
     default:
@@ -1771,12 +1809,10 @@ void SK_Input_PreInit (void)
                               GetRegisteredRawInputDevices_Detour,
      static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
 
-#if 0
   SK_CreateDLLHook2 (       L"user32.dll",
                              "GetRawInputBuffer",
                               GetRawInputBuffer_Detour,
      static_cast_p2p <void> (&GetRawInputBuffer_Original) );
-#endif
 
   if (config.input.gamepad.hook_xinput)
     SK_XInput_InitHotPlugHooks ();

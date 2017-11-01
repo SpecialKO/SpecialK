@@ -10,106 +10,106 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG129276 DB	'W', 00H, 'A', 00H, 'V', 00H, 'E', 00H, 00H, 00H
-$SG129279 DB	00H
+$SG129279 DB	'W', 00H, 'A', 00H, 'V', 00H, 'E', 00H, 00H, 00H
 $SG129282 DB	00H
-$SG129361 DB	'%ws Software License Agreement', 00H
-$SG129418 DB	00H
-$SG129365 DB	'EULA_Body', 00H
-$SG129419 DB	00H
-$SG129435 DB	00H
-$SG129364 DB	'Use of this software is granted on the condition that an'
+$SG129285 DB	00H
+$SG129364 DB	'%ws Software License Agreement', 00H
+$SG129421 DB	00H
+$SG129368 DB	'EULA_Body', 00H
+$SG129422 DB	00H
+$SG129438 DB	00H
+$SG129367 DB	'Use of this software is granted on the condition that an'
 	DB	'y products being modified have been licensed to you under the'
 	DB	' terms and conditions set forth by their respective copyright'
 	DB	' holders.', 0aH, 00H
 	ORG $+3
-$SG129366 DB	'EULA_Inset', 00H
+$SG129369 DB	'EULA_Inset', 00H
 	ORG $+1
-$SG129368 DB	'Overview of Products Unlicensed', 00H
-$SG129369 DB	'Overview of Products Licensed', 00H
-	ORG $+2
-$SG129370 DB	'%s', 00H
-	ORG $+1
-$SG129372 DB	'7-Zip', 00H
+$SG129371 DB	'Overview of Products Unlicensed', 00H
+$SG129372 DB	'Overview of Products Licensed', 00H
 	ORG $+2
 $SG129373 DB	'%s', 00H
 	ORG $+1
-$SG129375 DB	'ADL', 00H
+$SG129375 DB	'7-Zip', 00H
+	ORG $+2
 $SG129376 DB	'%s', 00H
 	ORG $+1
-$SG129378 DB	'CEGUI (D3D9/11/GL)', 00H
-	ORG $+1
+$SG129378 DB	'ADL', 00H
 $SG129379 DB	'%s', 00H
 	ORG $+1
-$SG129382 DB	'DirectXTex (D3D11/12)', 00H
+$SG129381 DB	'CEGUI (D3D9/11/GL)', 00H
+	ORG $+1
+$SG129382 DB	'%s', 00H
+	ORG $+1
+$SG129385 DB	'DirectXTex (D3D11/12)', 00H
 	ORG $+2
-$SG129383 DB	'%s', 00H
-	ORG $+1
-$SG129385 DB	'FreeType 2', 00H
-	ORG $+1
 $SG129386 DB	'%s', 00H
 	ORG $+1
-$SG129388 DB	'GLEW (OpenGL)', 00H
-	ORG $+2
+$SG129388 DB	'FreeType 2', 00H
+	ORG $+1
 $SG129389 DB	'%s', 00H
 	ORG $+1
-$SG129391 DB	'GLM v 0.9.4.5', 00H
+$SG129391 DB	'GLEW (OpenGL)', 00H
 	ORG $+2
 $SG129392 DB	'%s', 00H
 	ORG $+1
-$SG129394 DB	'ImGui', 00H
+$SG129394 DB	'GLM v 0.9.4.5', 00H
 	ORG $+2
 $SG129395 DB	'%s', 00H
 	ORG $+1
-$SG129397 DB	'MinHook', 00H
+$SG129397 DB	'ImGui', 00H
+	ORG $+2
 $SG129398 DB	'%s', 00H
 	ORG $+1
-$SG129400 DB	'NvAPI', 00H
-	ORG $+2
+$SG129400 DB	'MinHook', 00H
 $SG129401 DB	'%s', 00H
 	ORG $+1
-$SG129403 DB	'PCRE', 00H
-	ORG $+3
+$SG129403 DB	'NvAPI', 00H
+	ORG $+2
 $SG129404 DB	'%s', 00H
 	ORG $+1
-$SG129405 DB	'%s', 00H
+$SG129406 DB	'PCRE', 00H
+	ORG $+3
+$SG129407 DB	'%s', 00H
 	ORG $+1
-$SG129407 DB	'Special K', 00H
-	ORG $+2
 $SG129408 DB	'%s', 00H
 	ORG $+1
-$SG129410 DB	'STB', 00H
+$SG129410 DB	'Special K', 00H
+	ORG $+2
 $SG129411 DB	'%s', 00H
 	ORG $+1
-$SG129413 DB	'Vulkan', 00H
-	ORG $+1
+$SG129413 DB	'STB', 00H
 $SG129414 DB	'%s', 00H
 	ORG $+1
-$SG129416 DB	'ZLIB', 00H
-	ORG $+3
+$SG129416 DB	'Vulkan', 00H
+	ORG $+1
 $SG129417 DB	'%s', 00H
 	ORG $+1
-$SG129421 DB	' Decline ', 00H
-	ORG $+2
-$SG129423 DB	'WARNING:  ', 00H
-	ORG $+1
-$SG129424 DB	'Game will exit!', 00H
-$SG129426 DB	'I agree ... never show me this again!', 00H
-	ORG $+2
-$SG129428 DB	' Accept ', 00H
+$SG129419 DB	'ZLIB', 00H
 	ORG $+3
-$SG129430 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG129420 DB	'%s', 00H
+	ORG $+1
+$SG129424 DB	' Decline ', 00H
+	ORG $+2
+$SG129426 DB	'WARNING:  ', 00H
+	ORG $+1
+$SG129427 DB	'Game will exit!', 00H
+$SG129429 DB	'I agree ... never show me this again!', 00H
+	ORG $+2
+$SG129431 DB	' Accept ', 00H
+	ORG $+3
+$SG129433 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG129432 DB	'Read the Yellow Text', 00H
+$SG129435 DB	'Read the Yellow Text', 00H
 	ORG $+3
-$SG129433 DB	'Please use the other button, you already broke the terms'
+$SG129436 DB	'Please use the other button, you already broke the terms'
 	DB	'.', 00H
 	ORG $+2
-$SG129434 DB	'You may be able to find a modified version with these te'
+$SG129437 DB	'You may be able to find a modified version with these te'
 	DB	'rms removed', 00H
 	ORG $+4
-$SG129436 DB	'The authors listed above are not responsible for said mo'
+$SG129439 DB	'The authors listed above are not responsible for said mo'
 	DB	'dified version and will not provide you support no matter how'
 	DB	' much you make life difficult for them.', 00H
 CONST	ENDS
@@ -1554,7 +1554,7 @@ $LN2@SK_ImGui_D:
 
 	push	eax
 	lea	eax, DWORD PTR _szTitle$[ebp]
-	push	OFFSET $SG129361
+	push	OFFSET $SG129364
 	push	eax
 	call	_sprintf
 
@@ -1673,7 +1673,7 @@ $LN31@SK_ImGui_D:
 
 ; 162  :     ImGui::TextWrapped (
 
-	push	OFFSET $SG129364
+	push	OFFSET $SG129367
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 
 ; 163  :          "Use of this software is granted on the condition that any products being modified have been licensed to you under the "
@@ -1701,7 +1701,7 @@ $LN31@SK_ImGui_D:
 	push	0
 	push	0
 	push	eax
-	push	OFFSET $SG129365
+	push	OFFSET $SG129368
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -1729,7 +1729,7 @@ $LN31@SK_ImGui_D:
 ; 173  :     ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, 0.0f),                     false, ImGuiWindowFlags_NavFlattened);
 
 	push	eax
-	push	OFFSET $SG129366
+	push	OFFSET $SG129369
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -1748,9 +1748,9 @@ $LN31@SK_ImGui_D:
 ; 175  : 
 ; 176  :     if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unlicensed" : 
 
-	mov	ecx, OFFSET $SG129369
+	mov	ecx, OFFSET $SG129372
 	test	bl, bl
-	mov	eax, OFFSET $SG129368
+	mov	eax, OFFSET $SG129371
 	cmove	eax, ecx
 	push	0
 	push	eax
@@ -1802,7 +1802,7 @@ $LN95@SK_ImGui_D:
 ; 180  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_OVERVIEW).c_str ());
 
 	push	eax
-	push	OFFSET $SG129370
+	push	OFFSET $SG129373
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -1861,7 +1861,7 @@ $LN6@SK_ImGui_D:
 ; 188  :     if (ImGui::CollapsingHeader ("7-Zip"))
 
 	push	0
-	push	OFFSET $SG129372
+	push	OFFSET $SG129375
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -1900,7 +1900,7 @@ $LN144@SK_ImGui_D:
 ; 190  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_7ZIP).c_str ());
 
 	push	eax
-	push	OFFSET $SG129373
+	push	OFFSET $SG129376
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -1940,10 +1940,10 @@ $LN154@SK_ImGui_D:
 
 ; 193  :     if (config.apis.ADL.enable && ImGui::CollapsingHeader ("ADL"))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+793, 0
 	je	SHORT $LN203@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129375
+	push	OFFSET $SG129378
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -1982,7 +1982,7 @@ $LN193@SK_ImGui_D:
 ; 195  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ADL).c_str ());
 
 	push	eax
-	push	OFFSET $SG129376
+	push	OFFSET $SG129379
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2025,7 +2025,7 @@ $LN203@SK_ImGui_D:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+160, 0
 	je	SHORT $LN252@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129378
+	push	OFFSET $SG129381
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2064,7 +2064,7 @@ $LN242@SK_ImGui_D:
 ; 200  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_CEGUI).c_str ());
 
 	push	eax
-	push	OFFSET $SG129379
+	push	OFFSET $SG129382
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2112,7 +2112,7 @@ $LN252@SK_ImGui_D:
 	jne	SHORT $LN301@SK_ImGui_D
 $LN11@SK_ImGui_D:
 	push	0
-	push	OFFSET $SG129382
+	push	OFFSET $SG129385
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2151,7 +2151,7 @@ $LN291@SK_ImGui_D:
 ; 208  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_DXTEX).c_str ());
 
 	push	eax
-	push	OFFSET $SG129383
+	push	OFFSET $SG129386
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2194,7 +2194,7 @@ $LN301@SK_ImGui_D:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+160, 0
 	je	$LN418@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129385
+	push	OFFSET $SG129388
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2233,7 +2233,7 @@ $LN340@SK_ImGui_D:
 ; 213  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_FREETYPE2).c_str ());
 
 	push	eax
-	push	OFFSET $SG129386
+	push	OFFSET $SG129389
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2279,7 +2279,7 @@ $LN350@SK_ImGui_D:
 	cmp	DWORD PTR [eax], 2
 	jne	SHORT $LN13@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129388
+	push	OFFSET $SG129391
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2318,7 +2318,7 @@ $LN389@SK_ImGui_D:
 ; 221  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLEW).c_str ());
 
 	push	eax
-	push	OFFSET $SG129389
+	push	OFFSET $SG129392
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 	add	esp, 8
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
@@ -2335,7 +2335,7 @@ $LN13@SK_ImGui_D:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+160, 0
 	je	SHORT $LN418@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129391
+	push	OFFSET $SG129394
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2374,7 +2374,7 @@ $LN408@SK_ImGui_D:
 ; 228  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLM_0_9_4_5).c_str ());
 
 	push	eax
-	push	OFFSET $SG129392
+	push	OFFSET $SG129395
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2415,7 +2415,7 @@ $LN418@SK_ImGui_D:
 ; 231  :     if (ImGui::CollapsingHeader ("ImGui"))
 
 	push	0
-	push	OFFSET $SG129394
+	push	OFFSET $SG129397
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2454,7 +2454,7 @@ $LN457@SK_ImGui_D:
 ; 233  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_IMGUI).c_str ());
 
 	push	eax
-	push	OFFSET $SG129395
+	push	OFFSET $SG129398
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2495,7 +2495,7 @@ $LN467@SK_ImGui_D:
 ; 238  :     if (ImGui::CollapsingHeader ("MinHook"))
 
 	push	0
-	push	OFFSET $SG129397
+	push	OFFSET $SG129400
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2534,7 +2534,7 @@ $LN506@SK_ImGui_D:
 ; 240  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_MINHOOK).c_str ());
 
 	push	eax
-	push	OFFSET $SG129398
+	push	OFFSET $SG129401
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2574,10 +2574,10 @@ $LN516@SK_ImGui_D:
 
 ; 243  :     if (config.apis.NvAPI.enable && ImGui::CollapsingHeader ("NvAPI"))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+787, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+791, 0
 	je	SHORT $LN17@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129400
+	push	OFFSET $SG129403
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2625,7 +2625,7 @@ $LN557@SK_ImGui_D:
 ; 246  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_NVAPI).c_str ());
 
 	push	eax
-	push	OFFSET $SG129401
+	push	OFFSET $SG129404
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2675,7 +2675,7 @@ $LN17@SK_ImGui_D:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+160, 0
 	je	$LN665@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129403
+	push	OFFSET $SG129406
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2714,7 +2714,7 @@ $LN606@SK_ImGui_D:
 ; 252  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE).c_str ());
 
 	push	eax
-	push	OFFSET $SG129404
+	push	OFFSET $SG129407
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2785,7 +2785,7 @@ $LN655@SK_ImGui_D:
 ; 253  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE_CPP).c_str ());
 
 	push	eax
-	push	OFFSET $SG129405
+	push	OFFSET $SG129408
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2826,7 +2826,7 @@ $LN665@SK_ImGui_D:
 ; 256  :     if (ImGui::CollapsingHeader ("Special K"))
 
 	push	0
-	push	OFFSET $SG129407
+	push	OFFSET $SG129410
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2865,7 +2865,7 @@ $LN704@SK_ImGui_D:
 ; 258  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_SPECIALK).c_str ());
 
 	push	eax
-	push	OFFSET $SG129408
+	push	OFFSET $SG129411
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2908,7 +2908,7 @@ $LN714@SK_ImGui_D:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+160, 0
 	je	SHORT $LN763@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129410
+	push	OFFSET $SG129413
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -2947,7 +2947,7 @@ $LN753@SK_ImGui_D:
 ; 263  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_STB).c_str ());
 
 	push	eax
-	push	OFFSET $SG129411
+	push	OFFSET $SG129414
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2991,7 +2991,7 @@ $LN763@SK_ImGui_D:
 	cmp	DWORD PTR [eax], 4
 	jne	SHORT $LN812@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129413
+	push	OFFSET $SG129416
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -3030,7 +3030,7 @@ $LN802@SK_ImGui_D:
 ; 271  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_VULKAN).c_str ());
 
 	push	eax
-	push	OFFSET $SG129414
+	push	OFFSET $SG129417
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -3073,7 +3073,7 @@ $LN812@SK_ImGui_D:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+160, 0
 	je	SHORT $LN861@SK_ImGui_D
 	push	0
-	push	OFFSET $SG129416
+	push	OFFSET $SG129419
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -3112,7 +3112,7 @@ $LN851@SK_ImGui_D:
 ; 276  :       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ZLIB).c_str ());
 
 	push	eax
-	push	OFFSET $SG129417
+	push	OFFSET $SG129420
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -3175,13 +3175,13 @@ $LN861@SK_ImGui_D:
 ; 286  :     ImGui::Columns  (2, "", false);
 
 	push	0
-	push	OFFSET $SG129418
+	push	OFFSET $SG129421
 	push	2
 	call	?Columns@ImGui@@YAXHPBD_N@Z		; ImGui::Columns
 
 ; 287  :     ImGui::TreePush (   "");
 
-	push	OFFSET $SG129419
+	push	OFFSET $SG129422
 	call	?TreePush@ImGui@@YAXPBD@Z		; ImGui::TreePush
 
 ; 289  :     if (ImGui::Button (" Decline "))
@@ -3197,7 +3197,7 @@ $LN861@SK_ImGui_D:
 ; 289  :     if (ImGui::Button (" Decline "))
 
 	push	eax
-	push	OFFSET $SG129421
+	push	OFFSET $SG129424
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -3245,7 +3245,7 @@ $LN23@SK_ImGui_D:
 ; 298  :       ImGui::TextColored  (ImVec4 (1.0f, 1.0f, 0.0f, 1.0f), "WARNING:  "); ImGui::SameLine ();
 
 	lea	eax, DWORD PTR $T4[ebp]
-	push	OFFSET $SG129423
+	push	OFFSET $SG129426
 	push	eax
 	movups	XMMWORD PTR $T4[ebp], xmm0
 	call	?TextColored@ImGui@@YAXABUImVec4@@PBDZZ	; ImGui::TextColored
@@ -3258,7 +3258,7 @@ $LN23@SK_ImGui_D:
 ; 299  :       ImGui::TextColored  (ImVec4 (0.9f, 0.9f, 0.9f, 1.0f), "Game will exit!");
 
 	lea	eax, DWORD PTR $T3[ebp]
-	push	OFFSET $SG129424
+	push	OFFSET $SG129427
 	push	eax
 	movups	XMMWORD PTR $T3[ebp], xmm0
 	call	?TextColored@ImGui@@YAXABUImVec4@@PBDZZ	; ImGui::TextColored
@@ -3290,7 +3290,7 @@ $LN24@SK_ImGui_D:
 
 	lea	eax, DWORD PTR [edi+1]
 	push	eax
-	push	OFFSET $SG129426
+	push	OFFSET $SG129429
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	add	esp, 8
 $LN25@SK_ImGui_D:
@@ -3317,7 +3317,7 @@ $LN25@SK_ImGui_D:
 ; 313  :     if (ImGui::Button (" Accept ") && (! pirate))
 
 	push	eax
-	push	OFFSET $SG129428
+	push	OFFSET $SG129431
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -3362,7 +3362,7 @@ $LN25@SK_ImGui_D:
 	mov	esi, eax
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	mov	edx, OFFSET $SG129430
+	mov	edx, OFFSET $SG129433
 
 ; 325  :         config_name = L"SpecialK";
 ; 326  : 
@@ -3400,7 +3400,7 @@ $LN942@SK_ImGui_D:
 ; 334  :       ImGui::TextColored (ImColor (255,255,255), "Read the Yellow Text");
 
 	lea	eax, DWORD PTR $T28[ebp]
-	push	OFFSET $SG129432
+	push	OFFSET $SG129435
 	push	eax
 	movups	XMMWORD PTR $T28[ebp], xmm0
 	call	?TextColored@ImGui@@YAXABUImVec4@@PBDZZ	; ImGui::TextColored
@@ -3411,22 +3411,22 @@ $LN942@SK_ImGui_D:
 
 ; 336  :       ImGui::BulletText  ("Please use the other button, you already broke the terms.");
 
-	push	OFFSET $SG129433
+	push	OFFSET $SG129436
 	call	?BulletText@ImGui@@YAXPBDZZ		; ImGui::BulletText
 
 ; 337  :       ImGui::BulletText  ("You may be able to find a modified version with these terms removed");
 
-	push	OFFSET $SG129434
+	push	OFFSET $SG129437
 	call	?BulletText@ImGui@@YAXPBDZZ		; ImGui::BulletText
 
 ; 338  :       ImGui::TreePush    ("");
 
-	push	OFFSET $SG129435
+	push	OFFSET $SG129438
 	call	?TreePush@ImGui@@YAXPBD@Z		; ImGui::TreePush
 
 ; 339  :       ImGui::TextWrapped ("The authors listed above are not responsible for said modified version and will not "
 
-	push	OFFSET $SG129436
+	push	OFFSET $SG129439
 	call	?TextWrapped@ImGui@@YAXPBDZZ		; ImGui::TextWrapped
 	add	esp, 24					; 00000018H
 
@@ -3616,7 +3616,7 @@ _id$ = 12						; size = 2
 	push	ebx
 	push	esi
 	push	edi
-	push	OFFSET $SG129276
+	push	OFFSET $SG129279
 	push	eax
 	mov	DWORD PTR $T2[ebp], 0
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
@@ -3658,7 +3658,7 @@ _id$ = 12						; size = 2
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG129279
+	push	OFFSET $SG129282
 ; File c:\users\andon\source\repos\specialk\src\imgui\eula.cpp
 
 ; 50   :     if (! license_ref) return std::string ("");
@@ -3799,7 +3799,7 @@ $LN4@SK_GetLice:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG129282
+	push	OFFSET $SG129285
 $LN171@SK_GetLice:
 
 ; 3597 : 		_My_data._Mysize = 0;

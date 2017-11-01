@@ -2911,6 +2911,12 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
   InterlockedExchange (&__gui_reset, TRUE);
 
+  if (config.render.framerate.swapchain_wait != 0)
+  {
+    dll_log.Log ( L"[ DXGI 1.2 ]  >> Waitable SwapChain In Use, Skipping..." );
+    return S_OK;
+  }
+
   if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
   {
     Fullscreen = FALSE;
@@ -3067,7 +3073,7 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   }
 
 
-
+  //NewFormat = DXGI_FORMAT_UNKNOWN;
 
   HRESULT     ret;
   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
@@ -5155,37 +5161,33 @@ HookDXGI (LPVOID user)
 
   InterlockedExchange (&SK_D3D11_init_tid, GetCurrentThreadId ());
 
-#if 0
-  extern LPVOID pfnD3D11CreateDevice;
+  CComPtr <IDXGISwapChain> pSwapChain = nullptr;
+
+  extern HWND
+  SK_Win32_CreateDummyWindow (void);
+  
+  extern void
+  SK_Win32_CleanupDummyWindow (void);
+  
+  HWND                   hWnd = SK_Win32_CreateDummyWindow ();
+
+  DXGI_SWAP_CHAIN_DESC desc = { };
+  
+  desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+  desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+  desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
+  desc.SampleDesc.Count            = 1;
+  desc.SampleDesc.Quality          = 0;
+  desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER;
+  desc.BufferCount                 = 1;
+  desc.OutputWindow                = hWnd;
+  desc.Windowed                    = TRUE;
+  desc.SwapEffect                  = DXGI_SWAP_EFFECT_SEQUENTIAL;
+
+  extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
 
   hr =
-    ((D3D11CreateDevice_pfn)(pfnD3D11CreateDevice)) (
-      0,
-        D3D_DRIVER_TYPE_HARDWARE,
-          nullptr,
-            0x0,
-              nullptr,
-                0,
-                  D3D11_SDK_VERSION,
-                    &pDevice,
-                      &featureLevel,
-                        &pImmediateContext );
-
-      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-      {
-        // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-        SK_LoadPlugIns64 ();
-#else
-        SK_LoadPlugIns32 ();
-#endif
-      }
-#else
-  // We have to take this codepath through the x86 ABI for compat.
-  //   with FFX / X-2 HD
-  //
-  hr =
-    D3D11CreateDevice_Import (
+    ((D3D11CreateDeviceAndSwapChain_pfn)(pfnD3D11CreateDeviceAndSwapChain)) (
       nullptr,
         D3D_DRIVER_TYPE_HARDWARE,
           nullptr,
@@ -5193,101 +5195,66 @@ HookDXGI (LPVOID user)
               nullptr,
                 0,
                   D3D11_SDK_VERSION,
+                    &desc, &pSwapChain,
                     &pDevice,
                       &featureLevel,
                         &pImmediateContext );
 
+  d3d11_hook_ctx.ppDevice           = &pDevice;
+  d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
-          if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-          {
-            // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-            SK_LoadPlugIns64 ();
-#else
-            SK_LoadPlugIns32 ();
-#endif
-          }
-#endif
-
-  if (SUCCEEDED (hr))
+  CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+  CComPtr <IDXGIAdapter> pAdapter = nullptr;
+  CComPtr <IDXGIFactory> pFactory = nullptr;
+  
+  if ( SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+       SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
+       SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
   {
-    CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-    CComPtr <IDXGIAdapter> pAdapter = nullptr;
-    CComPtr <IDXGIFactory> pFactory = nullptr;
+    HookD3D11             (&d3d11_hook_ctx);
+    SK_DXGI_HookFactory   (pFactory);
+    SK_DXGI_HookSwapChain (pSwapChain);
 
-    if ( SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
-         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
-         SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+    // This won't catch Present1 (...), but no games use that
+    //   and we can deal with it later if it happens.
+    SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
+
+    CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+    if (pSwapChain1 != nullptr)
+      SK_DXGI_HookPresent1 (pSwapChain1, false);
+
+    MH_ApplyQueued  ();
+
+    CComPtr <IDXGIFactory1> pFactory;
+    CreateDXGIFactory_Import (__uuidof (IDXGIFactory1), (void **)&pFactory);
+
+    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
     {
-      d3d11_hook_ctx.ppDevice           = &pDevice;
-      d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
-
-      HookD3D11             (&d3d11_hook_ctx);
-      SK_DXGI_HookFactory   (pFactory);
-
-      extern HWND
-      SK_Win32_CreateDummyWindow (void);
-
-      extern void
-      SK_Win32_CleanupDummyWindow (void);
-
-      HWND                   hWnd = SK_Win32_CreateDummyWindow ();
-
-      if (hWnd != HWND_DESKTOP)
-      {
-        DXGI_SWAP_CHAIN_DESC desc = { };
-      
-        desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
-        desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-        desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
-        desc.SampleDesc.Count            = 1;
-        desc.SampleDesc.Quality          = 0;
-        // Deliberately unusual set of flags, prevents most vidcap software from altering vtables
-        //   for the COM objects we are about to create.
-        desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_SHADER_INPUT |
-                                           DXGI_USAGE_SHARED      | DXGI_USAGE_DISCARD_ON_PRESENT;
-        desc.BufferCount                 = 1;
-        desc.OutputWindow                = hWnd;
-        desc.Windowed                    = TRUE;
-        desc.SwapEffect                  = DXGI_SWAP_EFFECT_SEQUENTIAL;
-
-        CComPtr <IDXGISwapChain> pSwapChain = nullptr;
-        if (SUCCEEDED (pFactory->CreateSwapChain (*d3d11_hook_ctx.ppDevice, &desc, &pSwapChain)))
-        {
-          CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-
-          if (config.render.dxgi.deferred_isolation)
-          {
-            CComPtr <ID3D11Device> pDev = nullptr;
-            pImmediateContext->GetDevice (&pDev);
-
-            pDev->CreateDeferredContext (0x00,  &pDevCtx);
-            d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
-          }
-
-          SK_DXGI_HookSwapChain (pSwapChain);
-
-          // This won't catch Present1 (...), but no games use that
-          //   and we can deal with it later if it happens.
-          SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
-
-          CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
-
-          if (pSwapChain1 != nullptr)
-            SK_DXGI_HookPresent1 (pSwapChain1, false);
-
-          MH_ApplyQueued  ();
-        }
-      }
-
-      SK_Win32_CleanupDummyWindow ();
-
-      if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
-
+      // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
-      if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+      SK_LoadPlugIns64 ();
+#else
+      SK_LoadPlugIns32 ();
 #endif
     }
+
+    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+
+    if (config.render.dxgi.deferred_isolation)
+    {
+      CComPtr <ID3D11Device> pDev = nullptr;
+      pImmediateContext->GetDevice (&pDev);
+
+      pDev->CreateDeferredContext (0x00,  &pDevCtx);
+      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+    }
+
+    if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+      
+#ifdef _WIN64
+    if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+#endif
 
     InterlockedExchange (&__dxgi_ready, TRUE);
   }
@@ -5295,10 +5262,12 @@ HookDXGI (LPVOID user)
   else
   {
     _com_error err (hr);
-
+  
     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
                              err.WCode (), err.ErrorMessage () );
   }
+
+  SK_Win32_CleanupDummyWindow ();
 
   //if (success) CoUninitialize ();
 

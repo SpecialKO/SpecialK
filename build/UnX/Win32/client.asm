@@ -18,12 +18,12 @@ _BSS	ENDS
 CONST	SEGMENT
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 	ORG $+3
-$SG146058 DB	'SteamClient_Detour', 00H
+$SG146064 DB	'SteamClient_Detour', 00H
 	ORG $+1
-$SG146059 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
+$SG146065 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ' ', 00H, '(', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG146079 DB	'[', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+$SG146085 DB	'[', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'W', 00H, 'r', 00H, 'a', 00H, 'p', 00H, ']', 00H, ' ', 00H, 'S'
 	DB	00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'I', 00H, 'n', 00H
 	DB	't', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'a', 00H, 'l', 00H, '_'
@@ -31,9 +31,9 @@ $SG146079 DB	'[', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H, 'a'
 	DB	00H, 'c', 00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
-$SG146082 DB	'SteamClient017', 00H
+$SG146088 DB	'SteamClient017', 00H
 	ORG $+1
-$SG146088 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
+$SG146094 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
 	DB	'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 's', 00H, 't', 00H, 'e'
 	DB	00H, 'd', 00H, ' ', 00H, 'u', 00H, 'n', 00H, 'e', 00H, 'x', 00H
 	DB	'p', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' '
@@ -1217,6 +1217,8 @@ _<_Args_2>$ = 20					; size = 4
 	test	ecx, ecx
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\steam\client.cpp
+
+; 246  : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -5305,7 +5307,7 @@ _ver$ = 8						; size = 4
 
 	mov	esi, DWORD PTR _ver$[ebp]
 	push	esi
-	push	OFFSET $SG146079
+	push	OFFSET $SG146085
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5313,7 +5315,7 @@ _ver$ = 8						; size = 4
 ; 214  : 
 ; 215  :   if (! lstrcmpA (ver, STEAMCLIENT_INTERFACE_VERSION))
 
-	push	OFFSET $SG146082
+	push	OFFSET $SG146088
 	push	esi
 	call	DWORD PTR __imp__lstrcmpA@8
 	test	eax, eax
@@ -5546,7 +5548,7 @@ $LN2@SteamInter:
 	cmp	BYTE PTR ?first@?P@??SteamInternal_CreateInterface_Detour@@YAPAXPBD@Z@4_NA, 0
 	je	SHORT $LN7@SteamInter
 	push	esi
-	push	OFFSET $SG146088
+	push	OFFSET $SG146094
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5628,8 +5630,8 @@ $T11 = -1						; size = 1
 
 	cmp	BYTE PTR ?first@?2??SteamClient_Detour@@YAPAVISteamClient@@XZ@4_NA, 0
 	je	SHORT $LN2@SteamClien
-	push	OFFSET $SG146058
-	push	OFFSET $SG146059
+	push	OFFSET $SG146064
+	push	OFFSET $SG146065
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH

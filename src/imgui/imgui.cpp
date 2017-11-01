@@ -2803,6 +2803,8 @@ static void NavUpdate()
 
 #include <SpecialK/console.h>
 #include <SpecialK/window.h>
+#include <SpecialK/config.h>
+
 extern IMGUI_API bool SK_ImGui_Visible;
 extern bool           SK_ImGui_IsMouseRelevant (void);
 
@@ -2815,6 +2817,11 @@ struct show_eula_s {
 void ImGui::NewFrame()
 {
     ImGuiContext& g = *GImGui;
+
+
+    g.Style.AntiAliasedLines  = config.imgui.render.antialias_lines;
+    g.Style.AntiAliasedShapes = config.imgui.render.antialias_contours;
+
 
     // Check user data
     IM_ASSERT(g.IO.DeltaTime >= 0.0f);               // Need a positive DeltaTime (zero is tolerated but will cause some timing issues)
@@ -2863,7 +2870,7 @@ void ImGui::NewFrame()
   //
   static int last_x, last_y;
 
-  if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCapture ())
+  if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCaptureEx (0x0))
     SK_ImGui_Cursor.last_move = timeGetTime ();
 
   last_x = SK_ImGui_Cursor.pos.x; last_y = SK_ImGui_Cursor.pos.y;
@@ -11868,7 +11875,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           switch (data.header.dwType)
           {
             case RIM_TYPEMOUSE:
-              cap = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header),  true) != 0 && SK_ImGui_WantMouseCapture ();
+              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header),  true) != 0;
+              cap &= SK_ImGui_WantMouseCapture ();
               break;
 
             case RIM_TYPEKEYBOARD:
@@ -11939,11 +11947,18 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     {
       if (uMsg == WM_INPUT)
       {
-        bool bUnicode =
-          IsWindowUnicode (hWnd);
+        if (GET_RAWINPUT_CODE_WPARAM (wParam) == RIM_INPUT)
+        {
+          bool bUnicode =
+            IsWindowUnicode (hWnd);
 
-        ( bUnicode ? DefWindowProcW (hWnd, uMsg, lParam, wParam) :
-                     DefWindowProcA (hWnd, uMsg, lParam, wParam) );
+          ( bUnicode ? DefWindowProcW (hWnd, uMsg, lParam, wParam) :
+                       DefWindowProcA (hWnd, uMsg, lParam, wParam) );
+
+          return 1;
+        }
+
+        return 0;
       }
 
       return 1;
@@ -12041,6 +12056,9 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
 
   if (SK_ImGui_Active () && nav_usable)
   {
+    //keybd_event_Original (VK_CAPITAL, 0, KEYEVENTF_EXTENDEDKEY,                   0);
+    //keybd_event_Original (VK_CAPITAL, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+
     SK_Input_RememberPressedKeys ();
 
     haptic_events.PulseTitle.start = static_cast <float> (timeGetTime ());

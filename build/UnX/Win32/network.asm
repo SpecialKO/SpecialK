@@ -33,82 +33,82 @@ _DATA	SEGMENT
 ?hWndUpdateDlg@@3PAUHWND__@@A DD 0ffffffffH		; hWndUpdateDlg
 _DATA	ENDS
 CONST	SEGMENT
-$SG160078 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG160085 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'A', 00H, 'u', 00H, 't'
 	DB	00H, 'o', 00H, '-', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 00H, 00H
-$SG160083 DB	'*', 00H, '/', 00H, '*', 00H, 00H, 00H
-$SG160084 DB	'H', 00H, 'T', 00H, 'T', 00H, 'P', 00H, '/', 00H, '1', 00H
+$SG160090 DB	'*', 00H, '/', 00H, '*', 00H, 00H, 00H
+$SG160091 DB	'H', 00H, 'T', 00H, 'T', 00H, 'P', 00H, '/', 00H, '1', 00H
 	DB	'.', 00H, '1', 00H, 00H, 00H
 	ORG $+2
-$SG160251 DB	'W', 00H, 'A', 00H, 'V', 00H, 'E', 00H, 00H, 00H
+$SG160258 DB	'W', 00H, 'A', 00H, 'V', 00H, 'E', 00H, 00H, 00H
 	ORG $+2
-$SG160254 DB	'N', 00H, 'e', 00H, 'x', 00H, 't', 00H, ' ', 00H, 'l', 00H
+$SG160261 DB	'N', 00H, 'e', 00H, 'x', 00H, 't', 00H, ' ', 00H, 'l', 00H
 	DB	'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 00H, 00H
-$SG160255 DB	'A', 00H, 'f', 00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H
+$SG160262 DB	'A', 00H, 'f', 00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H
 	DB	'1', 00H, '5', 00H, ' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, 'u'
 	DB	00H, 't', 00H, 'e', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG160256 DB	'A', 00H, 'f', 00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H
+$SG160263 DB	'A', 00H, 'f', 00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H
 	DB	'1', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG160257 DB	'A', 00H, 'f', 00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H
+$SG160264 DB	'A', 00H, 'f', 00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H
 	DB	'1', 00H, '2', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'u', 00H, 'r'
 	DB	00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG160258 DB	'T', 00H, 'o', 00H, 'm', 00H, 'o', 00H, 'r', 00H, 'r', 00H
+$SG160265 DB	'T', 00H, 'o', 00H, 'm', 00H, 'o', 00H, 'r', 00H, 'r', 00H
 	DB	'o', 00H, 'w', 00H, 00H, 00H
 	ORG $+2
-$SG160259 DB	'N', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG160270 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
-	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG160272 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
-	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG160275 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
-	DB	'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG160276 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
-	DB	'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
+$SG160266 DB	'N', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 $SG160277 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG160278 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
-	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
-$SG160279 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
-	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
-$SG160280 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG160279 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG160281 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG160282 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG160282 DB	'n', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG160345 DB	'o', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 00H, 00H
+$SG160283 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+	DB	'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG161456 DB	' ', 00H, ' ', 00H, ' ', 00H, '1', 00H, ' ', 00H, 'F', 00H
+$SG160284 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG160285 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
+	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
+$SG160286 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
+	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
+$SG160287 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG160288 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+	DB	'e', 00H, 'r', 00H, 00H, 00H
+	ORG $+2
+$SG160289 DB	'n', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG160352 DB	'o', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG161463 DB	' ', 00H, ' ', 00H, ' ', 00H, '1', 00H, ' ', 00H, 'F', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, ',', 00H, ' ', 00H, ' ', 00H, '%'
 	DB	00H, '5', 00H, '.', 00H, '2', 00H, 'f', 00H, ' ', 00H, 'M', 00H
 	DB	'i', 00H, 'B', 00H, 00H, 00H
-$SG161458 DB	'%', 00H, '4', 00H, 'u', 00H, ' ', 00H, 'F', 00H, 'i', 00H
+$SG161465 DB	'%', 00H, '4', 00H, 'u', 00H, ' ', 00H, 'F', 00H, 'i', 00H
 	DB	'l', 00H, 'e', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, '5'
 	DB	00H, '.', 00H, '2', 00H, 'f', 00H, ' ', 00H, 'M', 00H, 'i', 00H
 	DB	'B', 00H, 00H, 00H
 	ORG $+2
-$SG161459 DB	'C', 00H, 'o', 00H, 'n', 00H, 's', 00H, 'o', 00H, 'l', 00H
+$SG161466 DB	'C', 00H, 'o', 00H, 'n', 00H, 's', 00H, 'o', 00H, 'l', 00H
 	DB	'a', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG161461 DB	'D', 00H, 'o', 00H, 'w', 00H, 'n', 00H, 'l', 00H, 'o', 00H
+$SG161468 DB	'D', 00H, 'o', 00H, 'w', 00H, 'n', 00H, 'l', 00H, 'o', 00H
 	DB	'a', 00H, 'd', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '%'
 	DB	00H, '5', 00H, '.', 00H, '2', 00H, 'f', 00H, ' ', 00H, 'M', 00H
 	DB	'i', 00H, 'B', 00H, 00H, 00H
-$SG161465 DB	'O', 00H, 'P', 00H, 'E', 00H, 'N', 00H, 00H, 00H
+$SG161472 DB	'O', 00H, 'P', 00H, 'E', 00H, 'N', 00H, 00H, 00H
 	ORG $+2
-$SG161476 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG161483 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'S', 00H, 'o', 00H, 'f'
 	DB	00H, 't', 00H, 'w', 00H, 'a', 00H, 'r', 00H, 'e', 00H, ' ', 00H
 	DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H
 	DB	00H
-$SG161471 DB	'F', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 's', 00H, 'h', 00H
+$SG161478 DB	'F', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 's', 00H, 'h', 00H
 	DB	' ', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e'
 	DB	00H, 0aH, 00H, 'T', 00H, 'h', 00H, 'e', 00H, ' ', 00H, 'g', 00H
 	DB	'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'w', 00H, 'i', 00H, 'l'
@@ -116,38 +116,38 @@ $SG161471 DB	'F', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 's', 00H, 'h', 00H
 	DB	'm', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'c', 00H, 'a', 00H, 'l'
 	DB	00H, 'l', 00H, 'y', 00H, ' ', 00H, 'e', 00H, 'x', 00H, 'i', 00H
 	DB	't', 00H, '.', 00H, 00H, 00H
-$SG161472 DB	'F', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 's', 00H, 'h', 00H
+$SG161479 DB	'F', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 's', 00H, 'h', 00H
 	DB	' ', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l'
 	DB	00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG161473 DB	'V', 00H, 'i', 00H, 'e', 00H, 'w', 00H, ' ', 00H, 'R', 00H
+$SG161480 DB	'V', 00H, 'i', 00H, 'e', 00H, 'w', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H, ' '
 	DB	00H, 'N', 00H, 'o', 00H, 't', 00H, 'e', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG161477 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG161484 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, ' ', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a'
 	DB	00H, 't', 00H, 'e', 00H, ' ', 00H, 'S', 00H, 'u', 00H, 'c', 00H
 	DB	'c', 00H, 'e', 00H, 's', 00H, 's', 00H, 'f', 00H, 'u', 00H, 'l'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG161478 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG161485 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'S', 00H, 'o', 00H, 'f'
 	DB	00H, 't', 00H, 'w', 00H, 'a', 00H, 'r', 00H, 'e', 00H, ' ', 00H
 	DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG161479 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG161486 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, 'a', 00H, 't', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'u', 00H, 'c', 00H, 'c'
 	DB	00H, 'e', 00H, 's', 00H, 's', 00H, 'f', 00H, 'u', 00H, 'l', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG161612 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG161619 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'A', 00H, 'u', 00H, 't'
 	DB	00H, 'o', 00H, '-', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 00H, 00H
-$SG161483 DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H
+$SG161490 DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H
 	DB	' ', 00H, 'f', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' '
 	DB	00H, 'w', 00H, 'e', 00H, 'r', 00H, 'e', 00H, ' ', 00H, 'a', 00H
 	DB	'l', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H, ','
@@ -159,7 +159,7 @@ $SG161483 DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H
 	DB	'c', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'u', 00H, 'p'
 	DB	00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG161484 DB	'N', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'n', 00H
+$SG161491 DB	'N', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'n', 00H
 	DB	'f', 00H, 'i', 00H, 'g', 00H, ' ', 00H, 'f', 00H, 'i', 00H, 'l'
 	DB	00H, 'e', 00H, 's', 00H, ' ', 00H, 'w', 00H, 'e', 00H, 'r', 00H
 	DB	'e', 00H, ' ', 00H, 'a', 00H, 'l', 00H, 't', 00H, 'e', 00H, 'r'
@@ -167,13 +167,13 @@ $SG161484 DB	'N', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'n', 00H
 	DB	't', 00H, 'h', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'r', 00H, 'e'
 	DB	00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H, '.', 00H
 	DB	00H, 00H
-$SG161617 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG161624 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	' ', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'l', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'r', 00H, ' ', 00H, '(', 00H, 'o', 00H, 'r', 00H
 	DB	' ', 00H, 'd', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l'
 	DB	00H, 'e', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG161485 DB	'Y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'o', 00H
+$SG161492 DB	'Y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'o', 00H
 	DB	'l', 00H, 'd', 00H, ' ', 00H, 'f', 00H, 'i', 00H, 'l', 00H, 'e'
 	DB	00H, 's', 00H, ' ', 00H, 'h', 00H, 'a', 00H, 'v', 00H, 'e', 00H
 	DB	' ', 00H, 'b', 00H, 'e', 00H, 'e', 00H, 'n', 00H, ' ', 00H, 'b'
@@ -185,12 +185,12 @@ $SG161485 DB	'Y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'o', 00H
 	DB	'"', 00H, '>', 00H, 'h', 00H, 'e', 00H, 'r', 00H, 'e', 00H, '.'
 	DB	00H, '<', 00H, '/', 00H, 'a', 00H, '>', 00H, 0aH, 00H, 0aH, 00H
 	DB	'%', 00H, 's', 00H, 00H, 00H
-$SG161618 DB	'N', 00H, 'o', 00H, ',', 00H, ' ', 00H, 'I', 00H, ' ', 00H
+$SG161625 DB	'N', 00H, 'o', 00H, ',', 00H, ' ', 00H, 'I', 00H, ' ', 00H
 	DB	'c', 00H, 'h', 00H, 'a', 00H, 'n', 00H, 'g', 00H, 'e', 00H, 'd'
 	DB	00H, ' ', 00H, 'm', 00H, 'y', 00H, ' ', 00H, 'm', 00H, 'i', 00H
 	DB	'n', 00H, 'd', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG161486 DB	';', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 'f', 00H
+$SG161493 DB	';', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 'f', 00H
 	DB	'i', 00H, 'g', 00H, ' ', 00H, 'f', 00H, 'i', 00H, 'l', 00H, 'e'
 	DB	00H, 's', 00H, ' ', 00H, 'w', 00H, 'e', 00H, 'r', 00H, 'e', 00H
 	DB	' ', 00H, 'a', 00H, 'l', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'e'
@@ -202,31 +202,31 @@ $SG161486 DB	';', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 'f', 00H
 	DB	'b', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' '
 	DB	00H, 'u', 00H, 'p', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG161614 DB	'Y', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG161627 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG161621 DB	'Y', 00H, 'e', 00H, 's', 00H, 00H, 00H
+$SG161634 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG161487 DB	';', 00H, ' ', 00H, 'n', 00H, 'o', 00H, ' ', 00H, 'c', 00H
+$SG161494 DB	';', 00H, ' ', 00H, 'n', 00H, 'o', 00H, ' ', 00H, 'c', 00H
 	DB	'o', 00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H, ' ', 00H, 'f'
 	DB	00H, 'i', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'w', 00H
 	DB	'e', 00H, 'r', 00H, 'e', 00H, ' ', 00H, 'a', 00H, 'l', 00H, 't'
 	DB	00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H, '.', 00H, 00H, 00H
-$SG161488 DB	'E', 00H, 'x', 00H, 'i', 00H, 's', 00H, 't', 00H, 'i', 00H
+$SG161495 DB	'E', 00H, 'x', 00H, 'i', 00H, 's', 00H, 't', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'm', 00H, 'o', 00H, 'd', 00H, ' '
 	DB	00H, 'f', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
 	DB	'w', 00H, 'e', 00H, 'r', 00H, 'e', 00H, ' ', 00H, 'o', 00H, 'v'
 	DB	00H, 'e', 00H, 'r', 00H, 'w', 00H, 'r', 00H, 'i', 00H, 't', 00H
 	DB	't', 00H, 'e', 00H, 'n', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG161613 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG161620 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'S', 00H, 'o', 00H, 'f'
 	DB	00H, 't', 00H, 'w', 00H, 'a', 00H, 'r', 00H, 'e', 00H, ' ', 00H
 	DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG161628 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG161635 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG161621 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG161628 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, ' ', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a'
 	DB	00H, 't', 00H, 'e', 00H, ' ', 00H, 'A', 00H, 'v', 00H, 'a', 00H
 	DB	'i', 00H, 'l', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H, ' '
@@ -234,111 +234,111 @@ $SG161621 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'w', 00H, 'n', 00H, 'l', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG161622 DB	'W', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
+$SG161629 DB	'W', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'y', 00H, 'o', 00H, 'u', 00H, ' ', 00H, 'l', 00H, 'i', 00H, 'k'
 	DB	00H, 'e', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'u', 00H
 	DB	'p', 00H, 'g', 00H, 'r', 00H, 'a', 00H, 'd', 00H, 'e', 00H, ' '
 	DB	00H, 'n', 00H, 'o', 00H, 'w', 00H, '?', 00H, 00H, 00H
 	ORG $+2
-$SG161623 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG161630 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, 'a', 00H, 't', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 'd'
 	DB	00H, 'y', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'D', 00H
 	DB	'o', 00H, 'w', 00H, 'n', 00H, 'l', 00H, 'o', 00H, 'a', 00H, 'd'
 	DB	00H, 00H, 00H
-$SG161624 DB	'W', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
+$SG161631 DB	'W', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'y', 00H, 'o', 00H, 'u', 00H, ' ', 00H, 'l', 00H, 'i', 00H, 'k'
 	DB	00H, 'e', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'b', 00H
 	DB	'e', 00H, 'g', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'i', 00H, 'n'
 	DB	00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'a', 00H
 	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'n', 00H, 'o'
 	DB	00H, 'w', 00H, '?', 00H, 00H, 00H
-$SG161630 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG161637 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG161631 DB	' ', 00H, 00H, 00H
-$SG161632 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
-	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
-	DB	00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG161633 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 's', 00H, 't', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG161634 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG161637 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 's', 00H, 't', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG161638 DB	'%', 00H, '1', 00H, '2', 00H, '8', 00H, '[', 00H, '^', 00H
-	DB	',', 00H, ']', 00H, ',', 00H, '%', 00H, 'i', 00H, 00H, 00H
+$SG161638 DB	' ', 00H, 00H, 00H
 $SG161639 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG161640 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG161640 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 's', 00H, 't', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG161641 DB	'[', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H
+$SG161641 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG161644 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 's', 00H, 't', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG161645 DB	'%', 00H, '1', 00H, '2', 00H, '8', 00H, '[', 00H, '^', 00H
+	DB	',', 00H, ']', 00H, ',', 00H, '%', 00H, 'i', 00H, 00H, 00H
+$SG161646 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
+	DB	00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG161647 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG161648 DB	'[', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H
 	DB	'e', 00H, '.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, ']'
 	DB	00H, 0aH, 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H
 	DB	'd', 00H, 'e', 00H, 'r', 00H, '=', 00H, '0', 00H, 0aH, 00H, 0aH
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG161642 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG161649 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG161643 DB	'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'i', 00H
+$SG161650 DB	'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'i', 00H
 	DB	'p', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG161644 DB	'T', 00H, 'i', 00H, 't', 00H, 'l', 00H, 'e', 00H, 00H, 00H
-$SG161645 DB	'R', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H
+$SG161651 DB	'T', 00H, 'i', 00H, 't', 00H, 'l', 00H, 'e', 00H, 00H, 00H
+$SG161652 DB	'R', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H
 	DB	'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'e', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG161646 DB	'<', 00H, 'a', 00H, ' ', 00H, 'h', 00H, 'r', 00H, 'e', 00H
+$SG161653 DB	'<', 00H, 'a', 00H, ' ', 00H, 'h', 00H, 'r', 00H, 'e', 00H
 	DB	'f', 00H, '=', 00H, '"', 00H, '%', 00H, 's', 00H, '"', 00H, '>'
 	DB	00H, '%', 00H, 's', 00H, '<', 00H, '/', 00H, 'a', 00H, '>', 00H
 	DB	0aH, 00H, 0aH, 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG161647 DB	'%', 00H, '1', 00H, '2', 00H, '8', 00H, '[', 00H, '^', 00H
+$SG161654 DB	'%', 00H, '1', 00H, '2', 00H, '8', 00H, '[', 00H, '^', 00H
 	DB	',', 00H, ']', 00H, ',', 00H, '%', 00H, 'i', 00H, 00H, 00H
-$SG161648 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+$SG161655 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG161649 DB	'R', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H
+$SG161656 DB	'R', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H
 	DB	'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'e', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG161652 DB	'A', 00H, 'r', 00H, 'c', 00H, 'h', 00H, 'i', 00H, 'v', 00H
+$SG161659 DB	'A', 00H, 'r', 00H, 'c', 00H, 'h', 00H, 'i', 00H, 'v', 00H
 	DB	'e', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG161655 DB	'U', 00H, 'R', 00H, 'L', 00H, 00H, 00H
-$SG161656 DB	'U', 00H, 'R', 00H, 'L', 00H, 00H, 00H
-$SG161657 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, '.', 00H, '7', 00H
+$SG161662 DB	'U', 00H, 'R', 00H, 'L', 00H, 00H, 00H
+$SG161663 DB	'U', 00H, 'R', 00H, 'L', 00H, 00H, 00H
+$SG161664 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, '.', 00H, '7', 00H
 	DB	'z', 00H, 00H, 00H
-$SG161658 DB	'H', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ' ', 00H, 'D', 00H
+$SG161665 DB	'H', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ' ', 00H, 'D', 00H
 	DB	'e', 00H, 't', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG161659 DB	'S', 00H, 'h', 00H, 'o', 00H, 'w', 00H, ' ', 00H, 'M', 00H
+$SG161666 DB	'S', 00H, 'h', 00H, 'o', 00H, 'w', 00H, ' ', 00H, 'M', 00H
 	DB	'o', 00H, 'r', 00H, 'e', 00H, ' ', 00H, 'D', 00H, 'e', 00H, 't'
 	DB	00H, 'a', 00H, 'i', 00H, 'l', 00H, 's', 00H, 00H, 00H
-$SG161665 DB	'B', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'u', 00H, 'p', 00H
+$SG161672 DB	'B', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'u', 00H, 'p', 00H
 	DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG161666 DB	'B', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'u', 00H, 'p', 00H
+$SG161673 DB	'B', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'u', 00H, 'p', 00H
 	DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG161667 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG161674 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG161668 DB	'K', 00H, 'e', 00H, 'e', 00H, 'p', 00H, 'D', 00H, 'o', 00H
+$SG161675 DB	'K', 00H, 'e', 00H, 'e', 00H, 'p', 00H, 'D', 00H, 'o', 00H
 	DB	'w', 00H, 'n', 00H, 'l', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 's'
 	DB	00H, 00H, 00H
-$SG161669 DB	'K', 00H, 'e', 00H, 'e', 00H, 'p', 00H, 'D', 00H, 'o', 00H
+$SG161676 DB	'K', 00H, 'e', 00H, 'e', 00H, 'p', 00H, 'D', 00H, 'o', 00H
 	DB	'w', 00H, 'n', 00H, 'l', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 's'
 	DB	00H, 00H, 00H
-$SG161670 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG161677 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG161679 DB	'[', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
+$SG161686 DB	'[', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a'
 	DB	00H, 'l', 00H, ']', 00H, 0aH, 00H, 'B', 00H, 'r', 00H, 'a', 00H
 	DB	'n', 00H, 'c', 00H, 'h', 00H, '=', 00H, 'L', 00H, 'a', 00H, 't'
@@ -356,17 +356,17 @@ $SG161679 DB	'[', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
 	DB	'D', 00H, 'o', 00H, 'w', 00H, 'n', 00H, 'l', 00H, 'o', 00H, 'a'
 	DB	00H, 'd', 00H, 's', 00H, '=', 00H, 't', 00H, 'r', 00H, 'u', 00H
 	DB	'e', 00H, 0aH, 00H, 0aH, 00H, 00H, 00H
-$SG161680 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+$SG161687 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG161681 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+$SG161688 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG161682 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG161689 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG161683 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG161690 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'e', 00H, 'r', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
@@ -3093,7 +3093,7 @@ $LN7@Update_Dlg:
 	lea	eax, DWORD PTR _wszDownloadSize$5[ebp]
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG161456
+	push	OFFSET $SG161463
 	push	eax
 	movsd	QWORD PTR tv917[ebp], xmm0
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
@@ -3287,7 +3287,7 @@ $LN5@Update_Dlg:
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
 	push	edi
-	push	OFFSET $SG161458
+	push	OFFSET $SG161465
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 	add	esp, 20					; 00000014H
@@ -3298,7 +3298,7 @@ $LN5@Update_Dlg:
 ; 718  :       HFONT header_font =
 ; 719  :         CreateFont ( 14,
 
-	push	OFFSET $SG161459
+	push	OFFSET $SG161466
 	push	8
 	push	6
 	push	0
@@ -3395,7 +3395,7 @@ $LN5@Update_Dlg:
 	lea	eax, DWORD PTR _wszDownloadSize$5[ebp]
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG161461
+	push	OFFSET $SG161468
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 	add	esp, 16					; 00000010H
@@ -3503,7 +3503,7 @@ $LN27@Update_Dlg:
 	push	0
 	push	0
 	push	OFFSET ?update_dlg_file@@3PA_WA		; update_dlg_file
-	push	OFFSET $SG161465
+	push	OFFSET $SG161472
 	push	0
 	call	DWORD PTR __imp__ShellExecuteW@24
 
@@ -3633,12 +3633,12 @@ $LN11@Update_Dlg:
 ; 805  :           buttons [1].nButtonID       = 0;
 
 	mov	DWORD PTR _buttons$8[ebp+8], 0
-	mov	edx, OFFSET $SG161472
+	mov	edx, OFFSET $SG161479
 
 ; 806  :           buttons [1].pszButtonText   = L"View Release Notes";
 
-	mov	DWORD PTR _buttons$8[ebp+12], OFFSET $SG161473
-	mov	ecx, OFFSET $SG161471
+	mov	DWORD PTR _buttons$8[ebp+12], OFFSET $SG161480
+	mov	ecx, OFFSET $SG161478
 
 ; 807  : 
 ; 808  :           task_cfg.pButtons           = buttons;
@@ -3661,11 +3661,11 @@ $LN11@Update_Dlg:
 ; 813  :           {
 ; 814  :             task_cfg.pszWindowTitle     = L"Special K Software Update";
 
-	mov	DWORD PTR _task_cfg$7[ebp+20], OFFSET $SG161476
+	mov	DWORD PTR _task_cfg$7[ebp+20], OFFSET $SG161483
 
 ; 815  :             task_cfg.pszMainInstruction = L"Software Update Successful";
 
-	mov	DWORD PTR _task_cfg$7[ebp+28], OFFSET $SG161477
+	mov	DWORD PTR _task_cfg$7[ebp+28], OFFSET $SG161484
 
 ; 816  :           }
 ; 817  : 
@@ -3678,11 +3678,11 @@ $LN17@Update_Dlg:
 ; 820  :           {
 ; 821  :             task_cfg.pszWindowTitle     = L"Special K Software Install";
 
-	mov	DWORD PTR _task_cfg$7[ebp+20], OFFSET $SG161478
+	mov	DWORD PTR _task_cfg$7[ebp+20], OFFSET $SG161485
 
 ; 822  :             task_cfg.pszMainInstruction = L"Software Installation Successful";
 
-	mov	DWORD PTR _task_cfg$7[ebp+28], OFFSET $SG161479
+	mov	DWORD PTR _task_cfg$7[ebp+28], OFFSET $SG161486
 $LN18@Update_Dlg:
 
 ; 885  : 
@@ -3723,15 +3723,15 @@ $LN18@Update_Dlg:
 ; 895  :               swprintf ( wszBackupMessage,
 
 	cmp	BYTE PTR ?config_files_changed@@3_NA, 0	; config_files_changed
-	mov	ecx, OFFSET $SG161484
-	mov	eax, OFFSET $SG161483
+	mov	ecx, OFFSET $SG161491
+	mov	eax, OFFSET $SG161490
 	cmove	eax, ecx
 	push	eax
 	push	OFFSET ?update_dlg_build@@3PA_WA	; update_dlg_build
 	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
 	push	eax
 	lea	eax, DWORD PTR _wszBackupMessage$2[ebp]
-	push	OFFSET $SG161485
+	push	OFFSET $SG161492
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 	add	esp, 20					; 00000014H
@@ -3756,12 +3756,12 @@ $LN20@Update_Dlg:
 ; 909  :               swprintf ( wszBackupMessage,
 
 	cmp	BYTE PTR ?config_files_changed@@3_NA, 0	; config_files_changed
-	mov	ecx, OFFSET $SG161487
-	mov	eax, OFFSET $SG161486
+	mov	ecx, OFFSET $SG161494
+	mov	eax, OFFSET $SG161493
 	cmove	eax, ecx
 	push	eax
 	lea	eax, DWORD PTR _wszBackupMessage$2[ebp]
-	push	OFFSET $SG161488
+	push	OFFSET $SG161495
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 	add	esp, 12					; 0000000cH
@@ -4059,7 +4059,7 @@ $LN4@DownloadDi:
 	push	0
 	push	0
 	push	DWORD PTR _lParam$[ebp]
-	push	OFFSET $SG160345
+	push	OFFSET $SG160352
 	push	0
 	call	DWORD PTR __imp__ShellExecuteW@24
 	pop	edi
@@ -4762,7 +4762,7 @@ $LN59@RemindMeLa:
 
 ; 426  :         iSK_INISection& user_prefs =
 
-	push	OFFSET $SG160270
+	push	OFFSET $SG160277
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 
 ; 1277 : 		return (this->_Mysize() == 0);
@@ -4787,7 +4787,7 @@ $LN59@RemindMeLa:
 ; 430  :           user_prefs.set_name (L"Update.User");
 
 	mov	ecx, DWORD PTR [eax]
-	push	OFFSET $SG160272
+	push	OFFSET $SG160279
 	push	eax
 	call	DWORD PTR [ecx+16]
 $LN19@RemindMeLa:
@@ -4822,7 +4822,7 @@ $LN19@RemindMeLa:
 	push	OFFSET ??_R0?AVParameterInt64@sk@@@8
 	push	OFFSET ??_R0?AViParameter@sk@@@8
 	push	0
-	push	OFFSET $SG160275
+	push	OFFSET $SG160282
 	call	??$create_parameter@_J@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z ; sk::ParameterFactory::create_parameter<__int64>
 	push	eax
 	call	___RTDynamicCast
@@ -4834,13 +4834,13 @@ $LN19@RemindMeLa:
 	push	ecx
 	mov	ecx, esp
 	mov	DWORD PTR $T8[ebp], esp
-	push	OFFSET $SG160276
+	push	OFFSET $SG160283
 	mov	esi, eax
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	sub	esp, 24					; 00000018H
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	mov	ecx, esp
-	push	OFFSET $SG160277
+	push	OFFSET $SG160284
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
@@ -4886,7 +4886,7 @@ $LN20@RemindMeLa:
 	push	OFFSET ??_R0?AVParameterStringW@sk@@@8
 	push	OFFSET ??_R0?AViParameter@sk@@@8
 	push	0
-	push	OFFSET $SG160278
+	push	OFFSET $SG160285
 	call	??$create_parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z ; sk::ParameterFactory::create_parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 	push	eax
 	call	___RTDynamicCast
@@ -4900,13 +4900,13 @@ $LN20@RemindMeLa:
 	push	ecx
 	mov	ecx, esp
 	mov	DWORD PTR $T7[ebp], esp
-	push	OFFSET $SG160279
+	push	OFFSET $SG160286
 	mov	esi, eax
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	sub	esp, 24					; 00000018H
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 	mov	ecx, esp
-	push	OFFSET $SG160280
+	push	OFFSET $SG160287
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
@@ -4922,7 +4922,7 @@ $LN20@RemindMeLa:
 ; 468  :           user_prefs.remove_key (L"Reminder");
 
 	mov	ecx, DWORD PTR _user_prefs$1$[ebp]
-	push	OFFSET $SG160281
+	push	OFFSET $SG160288
 	push	ecx
 	mov	eax, DWORD PTR [ecx]
 	call	DWORD PTR [eax+28]
@@ -4932,7 +4932,7 @@ $LN20@RemindMeLa:
 
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG160282
+	push	OFFSET $SG160289
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
@@ -5083,7 +5083,7 @@ $LN6@RemindMeLa:
 ; 339  :       HRSRC   default_sound =
 ; 340  :         FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_ANNOYING), L"WAVE");
 
-	push	OFFSET $SG160251
+	push	OFFSET $SG160258
 	push	112					; 00000070H
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -5123,7 +5123,7 @@ $LN8@RemindMeLa:
 ; 351  :       ComboBox_InsertString (hWndNextCheck, 0, L"Next launch");
 
 	mov	esi, DWORD PTR __imp__SendMessageW@16
-	push	OFFSET $SG160254
+	push	OFFSET $SG160261
 	push	0
 	push	330					; 0000014aH
 	push	ebx
@@ -5131,7 +5131,7 @@ $LN8@RemindMeLa:
 
 ; 352  :       ComboBox_InsertString (hWndNextCheck, 1, L"After 15 Minutes");
 
-	push	OFFSET $SG160255
+	push	OFFSET $SG160262
 	push	1
 	push	330					; 0000014aH
 	push	ebx
@@ -5139,7 +5139,7 @@ $LN8@RemindMeLa:
 
 ; 353  :       ComboBox_InsertString (hWndNextCheck, 2, L"After 1 Hour");
 
-	push	OFFSET $SG160256
+	push	OFFSET $SG160263
 	push	2
 	push	330					; 0000014aH
 	push	ebx
@@ -5147,7 +5147,7 @@ $LN8@RemindMeLa:
 
 ; 354  :       ComboBox_InsertString (hWndNextCheck, 3, L"After 12 Hours");
 
-	push	OFFSET $SG160257
+	push	OFFSET $SG160264
 	push	3
 	push	330					; 0000014aH
 	push	ebx
@@ -5155,7 +5155,7 @@ $LN8@RemindMeLa:
 
 ; 355  :       ComboBox_InsertString (hWndNextCheck, 4, L"Tomorrow");
 
-	push	OFFSET $SG160258
+	push	OFFSET $SG160265
 	push	4
 	push	330					; 0000014aH
 	push	ebx
@@ -5163,7 +5163,7 @@ $LN8@RemindMeLa:
 
 ; 356  :       ComboBox_InsertString (hWndNextCheck, 5, L"Never");
 
-	push	OFFSET $SG160259
+	push	OFFSET $SG160266
 	push	5
 	push	330					; 0000014aH
 	push	ebx
@@ -5766,7 +5766,7 @@ $LN40@DownloadTh:
 	push	0
 	push	0
 	push	1
-	push	OFFSET $SG160078
+	push	OFFSET $SG160085
 	call	DWORD PTR __imp__InternetOpenW@20
 	mov	ebx, eax
 	mov	DWORD PTR _hInetRoot$1$[ebp], ebx
@@ -5869,7 +5869,7 @@ $LN6@DownloadTh:
 ; 171  :     HttpOpenRequest ( hInetHost,
 
 	lea	eax, DWORD PTR _dwInetCtx$[ebp]
-	mov	DWORD PTR _rgpszAcceptTypes$[ebp], OFFSET $SG160083
+	mov	DWORD PTR _rgpszAcceptTypes$[ebp], OFFSET $SG160090
 	push	eax
 	push	80000					; 00013880H
 	lea	eax, DWORD PTR _rgpszAcceptTypes$[ebp]
@@ -5877,7 +5877,7 @@ $LN6@DownloadTh:
 	push	eax
 	mov	eax, DWORD PTR _get$[ebp]
 	push	0
-	push	OFFSET $SG160084
+	push	OFFSET $SG160091
 	add	eax, 512				; 00000200H
 	push	eax
 	push	0
@@ -6471,12 +6471,12 @@ _force$ = 12						; size = 1
 ; 1049 :   buttons [0].nButtonID     = IDYES;
 
 	mov	DWORD PTR _buttons$[ebp], 6
-	mov	edx, OFFSET $SG161613
+	mov	edx, OFFSET $SG161620
 
 ; 1050 :   buttons [0].pszButtonText = L"Yes";
 
-	mov	DWORD PTR _buttons$[ebp+4], OFFSET $SG161614
-	mov	ecx, OFFSET $SG161612
+	mov	DWORD PTR _buttons$[ebp+4], OFFSET $SG161621
+	mov	ecx, OFFSET $SG161619
 	cmovne	ecx, edx
 	mov	DWORD PTR _task_config$[ebp+20], ecx
 
@@ -6494,7 +6494,7 @@ _force$ = 12						; size = 1
 
 ; 1055 :     buttons [1].pszButtonText = L"Remind me later (or disable)";
 
-	mov	DWORD PTR _buttons$[ebp+12], OFFSET $SG161617
+	mov	DWORD PTR _buttons$[ebp+12], OFFSET $SG161624
 
 ; 1056 :   }
 ; 1057 : 
@@ -6510,7 +6510,7 @@ $LN8@SK_UpdateS:
 
 ; 1061 :     buttons [1].pszButtonText = L"No, I changed my mind...";
 
-	mov	DWORD PTR _buttons$[ebp+12], OFFSET $SG161618
+	mov	DWORD PTR _buttons$[ebp+12], OFFSET $SG161625
 $LN9@SK_UpdateS:
 
 ; 1062 :   }
@@ -6560,8 +6560,8 @@ $LN9@SK_UpdateS:
 ; 1079 : 
 ; 1080 :     task_config.pszContent         = L"Would you like to upgrade now?";
 
-	mov	DWORD PTR _task_config$[ebp+28], OFFSET $SG161621
-	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG161622
+	mov	DWORD PTR _task_config$[ebp+28], OFFSET $SG161628
+	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG161629
 
 ; 1081 :   }
 ; 1082 : 
@@ -6573,13 +6573,13 @@ $LN10@SK_UpdateS:
 ; 1084 :   {
 ; 1085 :     task_config.pszMainInstruction = L"Software Installation Ready to Download";
 
-	mov	DWORD PTR _task_config$[ebp+28], OFFSET $SG161623
+	mov	DWORD PTR _task_config$[ebp+28], OFFSET $SG161630
 
 ; 1086 :     task_config.pszMainIcon        = TD_INFORMATION_ICON;
 ; 1087 : 
 ; 1088 :     task_config.pszContent         = L"Would you like to begin installation now?";
 
-	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG161624
+	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG161631
 $LN11@SK_UpdateS:
 
 ; 1091 :   iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
@@ -6787,7 +6787,7 @@ $LN133@SK_UpdateS:
 ; 1109 :   // Not exactly empty, but certainly not in a working state.
 ; 1110 :   if (! install_ini.contains_section (L"Version.Local"))
 
-	push	OFFSET $SG161627
+	push	OFFSET $SG161634
 	cmp	DWORD PTR [eax+8], 0
 	lea	eax, DWORD PTR _install_ini$[ebp]
 	push	eax
@@ -6802,7 +6802,7 @@ $LN133@SK_UpdateS:
 ; 1113 :   iSK_INISection& installed_ver =
 
 	lea	eax, DWORD PTR _install_ini$[ebp]
-	push	OFFSET $SG161628
+	push	OFFSET $SG161635
 	cmove	ecx, edx
 	push	eax
 	mov	DWORD PTR tv2174[ebp], ecx
@@ -6821,23 +6821,23 @@ $LN133@SK_UpdateS:
 ; 1118 :     installed_ver.set_name      (L"Version.Local");
 
 	mov	ecx, DWORD PTR [ebx]
-	push	OFFSET $SG161630
+	push	OFFSET $SG161637
 	push	ebx
 	call	DWORD PTR [ecx+16]
 
 ; 1119 :     installed_ver.add_key_value (L"InstallPackage", L" ");
 
 	mov	ecx, DWORD PTR [ebx]
-	push	OFFSET $SG161631
-	push	OFFSET $SG161632
+	push	OFFSET $SG161638
+	push	OFFSET $SG161639
 	push	ebx
 	call	DWORD PTR [ecx+24]
 
 ; 1120 :     installed_ver.add_key_value (L"Branch",         L"Latest");
 
 	mov	eax, DWORD PTR [ebx]
-	push	OFFSET $SG161633
-	push	OFFSET $SG161634
+	push	OFFSET $SG161640
+	push	OFFSET $SG161641
 	push	ebx
 	call	DWORD PTR [eax+24]
 $LN14@SK_UpdateS:
@@ -6865,12 +6865,12 @@ $LN14@SK_UpdateS:
 ; 1129 :     build.installed  = -1;
 ; 1130 :     wcscpy (build.branch, L"Latest");
 
-	movq	xmm0, QWORD PTR $SG161637
+	movq	xmm0, QWORD PTR $SG161644
 	xor	eax, eax
 	mov	WORD PTR _wszCurrentBuild$[ebp], ax
-	mov	eax, DWORD PTR $SG161637+8
+	mov	eax, DWORD PTR $SG161644+8
 	mov	DWORD PTR _build$[ebp+12], eax
-	mov	ax, WORD PTR $SG161637+12
+	mov	ax, WORD PTR $SG161644+12
 	mov	DWORD PTR _build$[ebp], -1
 	movq	QWORD PTR _build$[ebp+4], xmm0
 	mov	WORD PTR _build$[ebp+16], ax
@@ -6885,7 +6885,7 @@ $LN15@SK_UpdateS:
 ; 1135 :     swscanf ( installed_ver.get_value (L"InstallPackage").c_str (),
 
 	mov	eax, DWORD PTR [ebx]
-	push	OFFSET $SG161639
+	push	OFFSET $SG161646
 	push	ebx
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6911,7 +6911,7 @@ $LN188@SK_UpdateS:
 	push	ecx
 	lea	ecx, DWORD PTR _wszCurrentBuild$[ebp]
 	push	ecx
-	push	OFFSET $SG161638
+	push	OFFSET $SG161645
 	push	eax
 	call	_swscanf
 
@@ -6919,7 +6919,7 @@ $LN188@SK_UpdateS:
 
 	mov	eax, DWORD PTR [ebx]
 	add	esp, 16					; 00000010H
-	push	OFFSET $SG161640
+	push	OFFSET $SG161647
 	push	ebx
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6963,7 +6963,7 @@ $LN16@SK_UpdateS:
 ; 1144 :   //     attempt by the user to upgrade.
 ; 1145 :   install_ini.import (L"[Update.User]\nReminder=0\n\n");
 
-	push	OFFSET $SG161641
+	push	OFFSET $SG161648
 	lea	eax, DWORD PTR _install_ini$[ebp]
 	push	eax
 	call	?import@iSK_INI@@UAGXPB_W@Z		; iSK_INI::import
@@ -7032,7 +7032,7 @@ $LN235@SK_UpdateS:
 	lea	eax, DWORD PTR _build$[ebp+4]
 	push	eax
 	lea	eax, DWORD PTR _repo_ini$[ebp]
-	push	OFFSET $SG161642
+	push	OFFSET $SG161649
 	push	eax
 	call	?get_section_f@iSK_INI@@UAAAAUiSK_INISection@@QB_WZZ ; iSK_INI::get_section_f
 	mov	edi, eax
@@ -7041,7 +7041,7 @@ $LN235@SK_UpdateS:
 ; 1152 :   swprintf ( wszFullDetails,
 
 	mov	ecx, DWORD PTR [edi]
-	push	OFFSET $SG161643
+	push	OFFSET $SG161650
 	push	edi
 	call	DWORD PTR [ecx+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7069,7 +7069,7 @@ $LN275@SK_UpdateS:
 ; 1152 :   swprintf ( wszFullDetails,
 
 	mov	eax, DWORD PTR [edi]
-	push	OFFSET $SG161644
+	push	OFFSET $SG161651
 	push	edi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7096,7 +7096,7 @@ $LN294@SK_UpdateS:
 ; 1152 :   swprintf ( wszFullDetails,
 
 	mov	eax, DWORD PTR [edi]
-	push	OFFSET $SG161645
+	push	OFFSET $SG161652
 	push	edi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7122,7 +7122,7 @@ $LN313@SK_UpdateS:
 	push	esi
 	push	eax
 	lea	eax, DWORD PTR _wszFullDetails$[ebp]
-	push	OFFSET $SG161646
+	push	OFFSET $SG161653
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 
@@ -7130,7 +7130,7 @@ $LN313@SK_UpdateS:
 
 	mov	eax, DWORD PTR [edi]
 	add	esp, 20					; 00000014H
-	push	OFFSET $SG161648
+	push	OFFSET $SG161655
 	push	edi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7156,7 +7156,7 @@ $LN332@SK_UpdateS:
 	push	ecx
 	lea	ecx, DWORD PTR _build$[ebp+264]
 	push	ecx
-	push	OFFSET $SG161647
+	push	OFFSET $SG161654
 	push	eax
 	call	_swscanf
 
@@ -7164,7 +7164,7 @@ $LN332@SK_UpdateS:
 
 	mov	eax, DWORD PTR [edi]
 	add	esp, 16					; 00000010H
-	push	OFFSET $SG161649
+	push	OFFSET $SG161656
 	push	edi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7217,7 +7217,7 @@ $LN18@SK_UpdateS:
 	lea	eax, DWORD PTR _build$[ebp+264]
 	push	eax
 	lea	eax, DWORD PTR _repo_ini$[ebp]
-	push	OFFSET $SG161652
+	push	OFFSET $SG161659
 	push	eax
 	call	?get_section_f@iSK_INI@@UAAAAUiSK_INISection@@QB_WZZ ; iSK_INI::get_section_f
 
@@ -7280,11 +7280,11 @@ $LN41@SK_UpdateS:
 	mov	DWORD PTR _urlcomps$4[ebp+44], eax
 	mov	DWORD PTR _urlcomps$4[ebp+48], 2048	; 00000800H
 	mov	eax, DWORD PTR [ecx]
-	push	OFFSET $SG161655
+	push	OFFSET $SG161662
 	push	ecx
 	call	DWORD PTR [eax+12]
 	mov	ecx, DWORD PTR _archive$1$[ebp]
-	push	OFFSET $SG161656
+	push	OFFSET $SG161663
 	push	ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -7420,7 +7420,7 @@ $LN450@SK_UpdateS:
 	push	ecx
 	push	eax
 	lea	eax, DWORD PTR _wszUpdateTempFile$3[ebp]
-	push	OFFSET $SG161657
+	push	OFFSET $SG161664
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7479,7 +7479,7 @@ $LN459@SK_UpdateS:
 ; 1212 : 
 ; 1213 :       task_config.pszExpandedControlText  = L"Hide Details";
 
-	mov	DWORD PTR _task_config$[ebp+68], OFFSET $SG161658
+	mov	DWORD PTR _task_config$[ebp+68], OFFSET $SG161665
 	mov	DWORD PTR _task_config$[ebp+64], eax
 	add	esp, 12					; 0000000cH
 
@@ -7491,7 +7491,7 @@ $LN459@SK_UpdateS:
 ; 1219 :       while (SK_bypass_dialog_hwnd != nullptr && IsWindow (SK_bypass_dialog_hwnd))
 
 	mov	eax, DWORD PTR ?SK_bypass_dialog_hwnd@@3PAUHWND__@@A ; SK_bypass_dialog_hwnd
-	mov	DWORD PTR _task_config$[ebp+72], OFFSET $SG161659
+	mov	DWORD PTR _task_config$[ebp+72], OFFSET $SG161666
 	mov	DWORD PTR _nButton$18[ebp], 0
 	test	eax, eax
 	je	SHORT $LN582@SK_UpdateS
@@ -7591,7 +7591,7 @@ $LN582@SK_UpdateS:
 	push	OFFSET ??_R0?AVParameterBool@sk@@@8
 	push	OFFSET ??_R0?AViParameter@sk@@@8
 	push	0
-	push	OFFSET $SG161665
+	push	OFFSET $SG161672
 	lea	ecx, DWORD PTR _ParameterFactory$15[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 	call	??$create_parameter@_N@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z ; sk::ParameterFactory::create_parameter<bool>
@@ -7607,12 +7607,12 @@ $LN582@SK_UpdateS:
 	mov	DWORD PTR $T10[ebp], esp
 	mov	ecx, esp
 	mov	DWORD PTR _backup_pref$1$[ebp], esi
-	push	OFFSET $SG161666
+	push	OFFSET $SG161673
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	sub	esp, 24					; 00000018H
 	mov	BYTE PTR __$EHRec$[ebp+8], 7
 	mov	ecx, esp
-	push	OFFSET $SG161667
+	push	OFFSET $SG161674
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	lea	eax, DWORD PTR _install_ini$[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
@@ -7632,7 +7632,7 @@ $LN582@SK_UpdateS:
 	push	OFFSET ??_R0?AVParameterBool@sk@@@8
 	push	OFFSET ??_R0?AViParameter@sk@@@8
 	push	0
-	push	OFFSET $SG161668
+	push	OFFSET $SG161675
 	lea	ecx, DWORD PTR _ParameterFactory$15[ebp]
 	call	??$create_parameter@_N@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z ; sk::ParameterFactory::create_parameter<bool>
 	push	eax
@@ -7647,12 +7647,12 @@ $LN582@SK_UpdateS:
 	mov	DWORD PTR $T9[ebp], esp
 	mov	ecx, esp
 	mov	DWORD PTR _keep_pref$1$[ebp], esi
-	push	OFFSET $SG161669
+	push	OFFSET $SG161676
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	sub	esp, 24					; 00000018H
 	mov	BYTE PTR __$EHRec$[ebp+8], 8
 	mov	ecx, esp
-	push	OFFSET $SG161670
+	push	OFFSET $SG161677
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	lea	eax, DWORD PTR _install_ini$[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
@@ -7716,15 +7716,15 @@ $LN28@SK_UpdateS:
 $LN29@SK_UpdateS:
 
 ; 1269 : 
-; 1270 :           wcsncpy ( update_dlg_file,  wszUpdateTempFile, MAX_PATH );
+; 1270 :           wcsncpy ( update_dlg_file,  wszUpdateTempFile, MAX_PATH - 1 );
 
-	push	260					; 00000104H
+	push	259					; 00000103H
 	lea	eax, DWORD PTR _wszUpdateTempFile$3[ebp]
 	push	eax
 	push	OFFSET ?update_dlg_file@@3PA_WA		; update_dlg_file
 	call	DWORD PTR __imp__wcsncpy
 
-; 1271 :           wcsncpy ( update_dlg_build, wszCurrentBuild,   127      );
+; 1271 :           wcsncpy ( update_dlg_build, wszCurrentBuild,   127          );
 
 	push	127					; 0000007fH
 	lea	eax, DWORD PTR _wszCurrentBuild$[ebp]
@@ -7824,7 +7824,7 @@ $LN5@SK_UpdateS:
 ; 1300 :             {
 ; 1301 :               install_ini.import ( L"[Version.Local]\n"
 
-	push	OFFSET $SG161679
+	push	OFFSET $SG161686
 	lea	eax, DWORD PTR _install_ini$[ebp]
 	push	eax
 	call	?import@iSK_INI@@UAGXPB_W@Z		; iSK_INI::import
@@ -7871,12 +7871,12 @@ $LN33@SK_UpdateS:
 ; 1317 :             installed_ver.get_value (L"InstallPackage") =
 
 	mov	eax, DWORD PTR [edi]
-	push	OFFSET $SG161681
+	push	OFFSET $SG161688
 	push	edi
 	call	DWORD PTR [eax+12]
 	mov	ecx, DWORD PTR [ebx]
 	mov	esi, eax
-	push	OFFSET $SG161680
+	push	OFFSET $SG161687
 	push	ebx
 	call	DWORD PTR [ecx+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7898,11 +7898,11 @@ $LN498@SK_UpdateS:
 
 ; 1321 :             install_ini.get_section (L"Update.User").remove_key (L"Reminder");
 
-	push	OFFSET $SG161682
+	push	OFFSET $SG161689
 	lea	eax, DWORD PTR _install_ini$[ebp]
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
-	push	OFFSET $SG161683
+	push	OFFSET $SG161690
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+28]

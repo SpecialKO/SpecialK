@@ -240,15 +240,23 @@ $SG91177 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG146476 DB	'E', 00H, 'a', 00H, 'r', 00H, 'l', 00H, 'y', 00H, 00H, 00H
-$SG146484 DB	'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, 'I', 00H, 'n', 00H
+$SG146483 DB	'E', 00H, 'a', 00H, 'r', 00H, 'l', 00H, 'y', 00H, 00H, 00H
+$SG146491 DB	'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, 'I', 00H, 'n', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG146490 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
+$SG146497 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG146496 DB	'L', 00H, 'a', 00H, 'z', 00H, 'y', 00H, 00H, 00H
+$SG146503 DB	'L', 00H, 'a', 00H, 'z', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG150597 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG150605 DB	'SK_SHIM_GetReShade', 00H
+	ORG $+1
+$SG146511 DB	'P', 00H, 'r', 00H, 'o', 00H, 'x', 00H, 'y', 00H, 00H, 00H
+$SG146517 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG91224 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG150615 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'i', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'z'
@@ -256,17 +264,17 @@ $SG150597 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ':', 00H, ' '
 	DB	00H, '%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG150598 DB	'SKPlugIn_Init', 00H
+$SG150616 DB	'SKPlugIn_Init', 00H
 	ORG $+2
-$SG146504 DB	'P', 00H, 'r', 00H, 'o', 00H, 'x', 00H, 'y', 00H, 00H, 00H
-$SG150603 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG146523 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, 00H, 00H
+$SG150621 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
 	DB	00H, 'n', 00H, 'i', 00H, 't', 00H, ' ', 00H, 'S', 00H, 'u', 00H
 	DB	'c', 00H, 'c', 00H, 'e', 00H, 's', 00H, 's', 00H, ' ', 00H, '('
 	DB	00H, '%', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG150604 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG150622 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
@@ -277,7 +285,7 @@ $SG150604 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'e', 00H, 'd', 00H, ' ', 00H, 'f', 00H, 'a', 00H, 'l', 00H
 	DB	's', 00H, 'e', 00H, ')', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG150605 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG150623 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
@@ -289,59 +297,30 @@ $SG150605 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'n', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 't', 00H, 'r', 00H, 'y'
 	DB	00H, ' ', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H
 	DB	')', 00H, '!', 00H, 00H, 00H
-$SG146510 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG146531 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
 	ORG $+2
-$SG146516 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, 00H, 00H
-$SG91224 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG146524 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
-	ORG $+2
-$SG146532 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG146539 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG146540 DB	'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, 'I', 00H, 'n', 00H
+$SG146547 DB	'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, 'I', 00H, 'n', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG146548 DB	'T', 00H, 'h', 00H, 'i', 00H, 'r', 00H, 'd', 00H, 'P', 00H
+$SG146555 DB	'T', 00H, 'h', 00H, 'i', 00H, 'r', 00H, 'd', 00H, 'P', 00H
 	DB	'a', 00H, 'r', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG146554 DB	'x', 00H, '6', 00H, '4', 00H, 00H, 00H
-$SG146560 DB	'W', 00H, 'i', 00H, 'n', 00H, '3', 00H, '2', 00H, 00H, 00H
+$SG146561 DB	'x', 00H, '6', 00H, '4', 00H, 00H, 00H
+$SG146567 DB	'W', 00H, 'i', 00H, 'n', 00H, '3', 00H, '2', 00H, 00H, 00H
 $SG91271 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG146579 DB	00H, 00H
+$SG146586 DB	00H, 00H
 	ORG $+2
-$SG146580 DB	00H, 00H
+$SG146587 DB	00H, 00H
 	ORG $+2
 $SG91318 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG150740 DB	00H, 00H
-	ORG $+2
-$SG150747 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
-	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
-	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'E', 00H, 'a'
-	DB	00H, 'r', 00H, 'l', 00H, 'y', 00H, ' ', 00H, 'C', 00H, 'u', 00H
-	DB	's', 00H, 't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm'
-	DB	00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H
-	DB	's', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-	ORG $+2
-$SG150752 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG150756 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
-	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
-	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG150757 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
-	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
-	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
-	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
-	DB	0aH, 00H, 00H, 00H
 $SG91365 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
 $SG91370 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
@@ -352,9 +331,45 @@ $SG91417 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG150815 DB	00H, 00H
+$SG91464 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
+	DB	00H
 	ORG $+2
-$SG150822 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG91511 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG150906 DB	00H, 00H
+	ORG $+2
+$SG90495 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG150919 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
+$SG150913 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
+	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'E', 00H, 'a'
+	DB	00H, 'r', 00H, 'l', 00H, 'y', 00H, ' ', 00H, 'C', 00H, 'u', 00H
+	DB	's', 00H, 't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm'
+	DB	00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H
+	DB	's', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
+	ORG $+2
+$SG150923 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
+	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
+	DB	'!', 00H, 0aH, 00H, 00H, 00H
+$SG150983 DB	00H, 00H
+	ORG $+2
+$SG150924 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
+	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
+	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
+	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
+	DB	0aH, 00H, 00H, 00H
+$SG90566 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG101839 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG150990 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'S', 00H, 'p'
@@ -363,19 +378,45 @@ $SG150822 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'I', 00H, 'n', 00H, ' ', 00H, '%', 00H, 's', 00H, '.', 00H
 	DB	'.', 00H, '.', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG150827 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG101840 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG101841 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG101842 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG101843 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG150996 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG150831 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG101844 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG101845 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG101846 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG101847 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG101849 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG151000 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, '0'
 	DB	00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X', 00H, ' ', 00H
 	DB	'(', 00H, '%', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG91464 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
-	DB	00H
+$SG101848 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
 	ORG $+2
-$SG150832 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG101850 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+	DB	'b', 00H, 00H, 00H
+$SG151049 DB	00H, 00H
+	ORG $+2
+$SG151001 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, 'H'
@@ -383,9 +424,12 @@ $SG150832 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'p', 00H, ' ', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'B', 00H, 'l'
 	DB	00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l', 00H, 'i', 00H, 's', 00H
 	DB	't', 00H, 'e', 00H, 'd', 00H, '!', 00H, 00H, 00H
-$SG150879 DB	00H, 00H
+$SG90613 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG150886 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151062 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
+$SG151056 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
@@ -393,27 +437,26 @@ $SG150886 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
 	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-$SG150891 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG150892 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151063 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG91511 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG150893 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151064 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
 	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
 	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
 	DB	0aH, 00H, 00H, 00H
-$SG90495 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG150940 DB	00H, 00H
+$SG90660 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG151112 DB	00H, 00H
 	ORG $+2
-$SG150947 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG90707 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG151119 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
@@ -421,21 +464,24 @@ $SG150947 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
 	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-$SG150952 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG151125 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG150953 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151126 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG101839 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG150954 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG90754 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
+	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG151127 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
 	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
 	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
 	DB	0aH, 00H, 00H, 00H
-$SG101840 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG150963 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151201 DB	00H, 00H
+	ORG $+2
+$SG151136 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'i', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'z'
@@ -443,23 +489,18 @@ $SG150963 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ':', 00H, ' '
 	DB	00H, '%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG150964 DB	'SKPlugIn_Init', 00H
+$SG151137 DB	'SKPlugIn_Init', 00H
 	ORG $+2
-$SG90566 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG101841 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
-	ORG $+2
-$SG150969 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151214 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
+$SG151142 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
 	DB	00H, 'n', 00H, 'i', 00H, 't', 00H, ' ', 00H, 'S', 00H, 'u', 00H
 	DB	'c', 00H, 'c', 00H, 'e', 00H, 's', 00H, 's', 00H, ' ', 00H, '('
 	DB	00H, '%', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG150970 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151143 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
@@ -470,7 +511,7 @@ $SG150970 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'e', 00H, 'd', 00H, ' ', 00H, 'f', 00H, 'a', 00H, 'l', 00H
 	DB	's', 00H, 'e', 00H, ')', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG150971 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151144 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
@@ -482,34 +523,11 @@ $SG150971 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'n', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 't', 00H, 'r', 00H, 'y'
 	DB	00H, ' ', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H
 	DB	')', 00H, '!', 00H, 00H, 00H
-$SG101842 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
+$SG90801 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
+	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG101843 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG101844 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG101845 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG101846 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG101847 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
-	ORG $+2
-$SG101848 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG101849 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG101850 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
-	DB	'b', 00H, 00H, 00H
-$SG151027 DB	00H, 00H
-	ORG $+2
-$SG90613 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
-	ORG $+2
-$SG151034 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151208 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'E', 00H, 'a'
@@ -518,100 +536,13 @@ $SG151034 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H
 	DB	's', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG151039 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151043 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151218 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG151044 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
-	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
-	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
-	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
-	DB	0aH, 00H, 00H, 00H
-$SG90660 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG151100 DB	00H, 00H
+$SG151276 DB	00H, 00H
 	ORG $+2
-$SG151112 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151107 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
-	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
-	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'S', 00H, 'p'
-	DB	00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H
-	DB	'K', 00H, ' ', 00H, 'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, '-'
-	DB	00H, 'I', 00H, 'n', 00H, ' ', 00H, '%', 00H, 's', 00H, '.', 00H
-	DB	'.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-	ORG $+2
-$SG90707 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
-	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG151116 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
-	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
-	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, '0'
-	DB	00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X', 00H, ' ', 00H
-	DB	'(', 00H, '%', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG151164 DB	00H, 00H
-	ORG $+2
-$SG151117 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
-	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
-	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, 'H'
-	DB	00H, 'o', 00H, 's', 00H, 't', 00H, ' ', 00H, 'A', 00H, 'p', 00H
-	DB	'p', 00H, ' ', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'B', 00H, 'l'
-	DB	00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l', 00H, 'i', 00H, 's', 00H
-	DB	't', 00H, 'e', 00H, 'd', 00H, '!', 00H, 00H, 00H
-$SG90754 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
-	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG151171 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
-	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
-	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
-	DB	00H, 't', 00H, 'e', 00H, ' ', 00H, 'C', 00H, 'u', 00H, 's', 00H
-	DB	't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
-	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-$SG151176 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151177 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
-	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
-	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG90801 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
-	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG151178 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
-	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
-	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
-	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
-	DB	0aH, 00H, 00H, 00H
-$SG151226 DB	00H, 00H
-	ORG $+2
-$SG151233 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
-	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
-	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
-	DB	00H, 'z', 00H, 'y', 00H, ' ', 00H, 'C', 00H, 'u', 00H, 's', 00H
-	DB	't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
-	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-$SG151238 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151239 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
-	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
-	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG151266 DB	'SKPlugIn_Shutdown', 00H
-	ORG $+2
-$SG151240 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151219 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
 	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
@@ -620,11 +551,103 @@ $SG151240 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 $SG90848 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG151272 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151289 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
+$SG151283 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
+	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'S', 00H, 'p'
+	DB	00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H
+	DB	'K', 00H, ' ', 00H, 'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, '-'
+	DB	00H, 'I', 00H, 'n', 00H, ' ', 00H, '%', 00H, 's', 00H, '.', 00H
+	DB	'.', 00H, '.', 00H, ' ', 00H, 00H, 00H
+	ORG $+2
+$SG90895 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
+	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG151293 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
+	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, '0'
+	DB	00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X', 00H, ' ', 00H
+	DB	'(', 00H, '%', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
+$SG101149 DB	'S', 00H, 00H, 00H
+$SG151294 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
+	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, 'H'
+	DB	00H, 'o', 00H, 's', 00H, 't', 00H, ' ', 00H, 'A', 00H, 'p', 00H
+	DB	'p', 00H, ' ', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'B', 00H, 'l'
+	DB	00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l', 00H, 'i', 00H, 's', 00H
+	DB	't', 00H, 'e', 00H, 'd', 00H, '!', 00H, 00H, 00H
+$SG101151 DB	'M', 00H, 00H, 00H
+$SG101153 DB	'D', 00H, 00H, 00H
+$SG101155 DB	'B', 00H, 00H, 00H
+$SG101157 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG101159 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
+$SG101161 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+	DB	'v', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG101163 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG151342 DB	00H, 00H
+	ORG $+2
+$SG151349 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
+	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
+	DB	00H, 't', 00H, 'e', 00H, ' ', 00H, 'C', 00H, 'u', 00H, 's', 00H
+	DB	't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
+	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
+$SG151355 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
+$SG151356 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG151268 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151406 DB	00H, 00H
+	ORG $+2
+$SG151357 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
+	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
+	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
+	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
+	DB	0aH, 00H, 00H, 00H
+$SG90942 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
+	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+	ORG $+2
+$SG90989 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
+	DB	00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG151419 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
+$SG151413 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
+	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
+	DB	00H, 'z', 00H, 'y', 00H, ' ', 00H, 'C', 00H, 'u', 00H, 's', 00H
+	DB	't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
+	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
+$SG151420 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
+	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
+	DB	'!', 00H, 0aH, 00H, 00H, 00H
+$SG151421 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
+	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
+	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
+	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
+	DB	0aH, 00H, 00H, 00H
+$SG151447 DB	'SKPlugIn_Shutdown', 00H
+	ORG $+2
+$SG151449 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'l', 00H, 'o', 00H, 'a', 00H, 'd', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'C', 00H, 'u', 00H, 's'
@@ -632,7 +655,10 @@ $SG151268 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's'
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG151271 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG91036 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
+	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
+$SG151454 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '['
@@ -649,34 +675,10 @@ $SG151271 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	00H, '4', 00H, 'u', 00H, ' ', 00H, 'm', 00H, 's', 00H, ')', 00H
 	DB	0aH, 00H, 00H, 00H
 	ORG $+2
-$SG90895 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
-	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG101149 DB	'S', 00H, 00H, 00H
-$SG101151 DB	'M', 00H, 00H, 00H
-$SG101153 DB	'D', 00H, 00H, 00H
-$SG101155 DB	'B', 00H, 00H, 00H
-$SG101157 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG101159 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
-	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG101161 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
-	DB	'v', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG101163 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG90942 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
-	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG90989 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
-	DB	00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG91036 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
-	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
+$SG151455 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
+	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
+	DB	'!', 00H, 0aH, 00H, 00H, 00H
 $SG91083 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
@@ -838,6 +840,7 @@ PUBLIC	?SK_LoadLateImports32@@YAXXZ			; SK_LoadLateImports32
 PUBLIC	?SK_LoadLazyImports32@@YAXXZ			; SK_LoadLazyImports32
 PUBLIC	?SK_LoadPlugIns32@@YAXXZ			; SK_LoadPlugIns32
 PUBLIC	?SK_UnloadImports@@YAXXZ			; SK_UnloadImports
+PUBLIC	?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ; SK_Import_GetShimmedLibrary
 PUBLIC	?SK_InitPlugIn64@@YAPAUHINSTANCE__@@PAU1@@Z	; SK_InitPlugIn64
 PUBLIC	??$?8_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA_NABV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@0@Z ; std::operator==<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??0?$CHeapPtrBase@_WVCCRTAllocator@ATL@@@ATL@@IAE@PA_W@Z ; ATL::CHeapPtrBase<wchar_t,ATL::CCRTAllocator>::CHeapPtrBase<wchar_t,ATL::CCRTAllocator>
@@ -846,6 +849,7 @@ PUBLIC	??B?$CHeapPtrBase@_WVCCRTAllocator@ATL@@@ATL@@QBEPA_WXZ ; ATL::CHeapPtrBa
 PUBLIC	?Free@?$CHeapPtrBase@_WVCCRTAllocator@ATL@@@ATL@@QAEXXZ ; ATL::CHeapPtrBase<wchar_t,ATL::CCRTAllocator>::Free
 PUBLIC	??0?$CHeapPtr@_WVCCRTAllocator@ATL@@@ATL@@QAE@PA_W@Z ; ATL::CHeapPtr<wchar_t,ATL::CCRTAllocator>::CHeapPtr<wchar_t,ATL::CCRTAllocator>
 PUBLIC	??1?$CHeapPtr@_WVCCRTAllocator@ATL@@@ATL@@QAE@XZ ; ATL::CHeapPtr<wchar_t,ATL::CCRTAllocator>::~CHeapPtr<wchar_t,ATL::CCRTAllocator>
+PUBLIC	??$swap@PAUHINSTANCE__@@X@std@@YAXAAPAUHINSTANCE__@@0@Z ; std::swap<HINSTANCE__ *,void>
 PUBLIC	?SK_InitPlugIn32@@YAPAUHINSTANCE__@@PAU1@@Z	; SK_InitPlugIn32
 PUBLIC	??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
 PUBLIC	??$addressof@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
@@ -860,6 +864,7 @@ PUBLIC	??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_
 PUBLIC	??$_Unfancy@_W@std@@YAPA_WPA_W@Z		; std::_Unfancy<wchar_t>
 PUBLIC	??$_Min_value@I@std@@YAABIABI0@Z		; std::_Min_value<unsigned int>
 PUBLIC	??$construct@PA_WAAPA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_WAAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
+PUBLIC	??$move@AAPAUHINSTANCE__@@@std@@YA$$QAPAUHINSTANCE__@@AAPAU1@@Z ; std::move<HINSTANCE__ * &>
 PUBLIC	??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >
 PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >
 PUBLIC	??$_Pocma@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@0U?$integral_constant@_N$00@0@@Z ; std::_Pocma<std::_Wrap_alloc<std::allocator<wchar_t> > >
@@ -1069,8 +1074,8 @@ _BSS	SEGMENT
 ?SK_IMPORT_ROLE_D3D11@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B DB 018H DUP (?) ; SK_IMPORT_ROLE_D3D11
 ?SK_IMPORT_ARCH_X64@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B DB 018H DUP (?) ; SK_IMPORT_ARCH_X64
 ?SK_IMPORT_ARCH_WIN32@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B DB 018H DUP (?) ; SK_IMPORT_ARCH_WIN32
-?imports@@3PAUimport_s@@A DB 0240H DUP (?)		; imports
-?host_executable@@3Uimport_s@@A DB 048H DUP (?)		; host_executable
+?imports@@3PAUimport_s@@A DB 0260H DUP (?)		; imports
+?host_executable@@3Uimport_s@@A DB 04cH DUP (?)		; host_executable
 ?SK_IMPORT_PLUGIN@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B DB 018H DUP (?) ; SK_IMPORT_PLUGIN
 ?SK_IMPORT_PROXY@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B DB 018H DUP (?) ; SK_IMPORT_PROXY
 ?SK_IMPORT_ROLE_D3D9@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B DB 018H DUP (?) ; SK_IMPORT_ROLE_D3D9
@@ -1731,6 +1736,29 @@ __Arg$ = 8						; size = 4
 ??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ENDP ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$move@AAPAUHINSTANCE__@@@std@@YA$$QAPAUHINSTANCE__@@AAPAU1@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$move@AAPAUHINSTANCE__@@@std@@YA$$QAPAUHINSTANCE__@@AAPAU1@@Z PROC ; std::move<HINSTANCE__ * &>, COMDAT
+
+; 1350 : 	{	// forward _Arg as movable
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1352 : 	}
+
+	pop	ebp
+	ret	0
+??$move@AAPAUHINSTANCE__@@@std@@YA$$QAPAUHINSTANCE__@@AAPAU1@@Z ENDP ; std::move<HINSTANCE__ * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@PA_WAAPA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_WAAPA_W@Z
 _TEXT	SEGMENT
@@ -2067,14 +2095,14 @@ $T2 = -24						; size = 24
 _hLibrary$ = 8						; size = 4
 ?SK_InitPlugIn32@@YAPAUHINSTANCE__@@PAU1@@Z PROC	; SK_InitPlugIn32
 
-; 441  : {
+; 475  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 24					; 00000018H
 
-; 442  :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
+; 476  :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	esi
@@ -2101,10 +2129,10 @@ _hLibrary$ = 8						; size = 4
 $LN23@SK_InitPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 442  :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
+; 476  :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
 
 	push	eax
-	push	OFFSET $SG150963
+	push	OFFSET $SG151136
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2114,7 +2142,7 @@ $LN23@SK_InitPlu:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 442  :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
+; 476  :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2147,25 +2175,25 @@ $LN23@SK_InitPlu:
 $LN33@SK_InitPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 447  :       GetProcAddress (
+; 481  :       GetProcAddress (
 
-	push	OFFSET $SG150964
+	push	OFFSET $SG151137
 	push	esi
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	edi, eax
 
-; 448  :         hLibrary,
-; 449  :           "SKPlugIn_Init"
-; 450  :       )
-; 451  :     );
-; 452  : 
-; 453  :   if (SKPlugIn_Init != nullptr)
+; 482  :         hLibrary,
+; 483  :           "SKPlugIn_Init"
+; 484  :       )
+; 485  :     );
+; 486  : 
+; 487  :   if (SKPlugIn_Init != nullptr)
 
 	test	edi, edi
 	je	SHORT $LN2@SK_InitPlu
 
-; 454  :   {
-; 455  :     if (SKPlugIn_Init (SK_GetDLL ()))
+; 488  :   {
+; 489  :     if (SKPlugIn_Init (SK_GetDLL ()))
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -2173,7 +2201,7 @@ $LN33@SK_InitPlu:
 	test	eax, eax
 	je	SHORT $LN4@SK_InitPlu
 
-; 457  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
+; 491  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
 
 	lea	eax, DWORD PTR $T1[ebp]
 	push	esi
@@ -2197,10 +2225,10 @@ $LN33@SK_InitPlu:
 $LN72@SK_InitPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 457  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
+; 491  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
 
 	push	eax
-	push	OFFSET $SG150969
+	push	OFFSET $SG151142
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2210,7 +2238,7 @@ $LN72@SK_InitPlu:
 	mov	eax, DWORD PTR $T1[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 457  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
+; 491  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2243,80 +2271,117 @@ $LN72@SK_InitPlu:
 $LN3@SK_InitPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 478  :   if (hLibrary != nullptr)
+; 512  :   if (hLibrary != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN108@SK_InitPlu
 
-; 479  :     SK_SymRefreshModuleList ();
+; 513  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
 $LN108@SK_InitPlu:
 
-; 480  : 
-; 481  :   return hLibrary;
+; 514  : 
+; 515  :   return hLibrary;
 
 	pop	edi
 	mov	eax, esi
 	pop	esi
 
-; 482  : }
+; 516  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN4@SK_InitPlu:
 
-; 458  :                       SK_GetModuleName (hLibrary).c_str () );
-; 459  :     }
-; 460  : 
-; 461  :     else
-; 462  :     {
-; 463  :       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
+; 492  :                       SK_GetModuleName (hLibrary).c_str () );
+; 493  :     }
+; 494  : 
+; 495  :     else
+; 496  :     {
+; 497  :       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
-	push	OFFSET $SG150970
+	push	OFFSET $SG151143
 
-; 464  : 
-; 465  :       FreeLibrary_Original (hLibrary);
-; 466  :       hLibrary = nullptr;
-; 467  :     }
-; 468  :   }
-; 469  : 
-; 470  :   else
+; 498  : 
+; 499  :       FreeLibrary_Original (hLibrary);
+; 500  :       hLibrary = nullptr;
+; 501  :     }
+; 502  :   }
+; 503  : 
+; 504  :   else
 
 	jmp	SHORT $LN109@SK_InitPlu
 $LN2@SK_InitPlu:
 
-; 471  :   {
-; 472  :     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
+; 505  :   {
+; 506  :     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
-	push	OFFSET $SG150971
+	push	OFFSET $SG151144
 $LN109@SK_InitPlu:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 473  : 
-; 474  :     FreeLibrary_Original (hLibrary);
+; 507  : 
+; 508  :     FreeLibrary_Original (hLibrary);
 
 	push	esi
 	call	DWORD PTR ?FreeLibrary_Original@@3P6GHPAUHINSTANCE__@@@ZA ; FreeLibrary_Original
 	pop	edi
 
-; 480  : 
-; 481  :   return hLibrary;
+; 514  : 
+; 515  :   return hLibrary;
 
 	xor	eax, eax
 	pop	esi
 
-; 482  : }
+; 516  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ?SK_InitPlugIn32@@YAPAUHINSTANCE__@@PAU1@@Z ENDP	; SK_InitPlugIn32
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+;	COMDAT ??$swap@PAUHINSTANCE__@@X@std@@YAXAAPAUHINSTANCE__@@0@Z
+_TEXT	SEGMENT
+__Left$ = 8						; size = 4
+__Right$ = 12						; size = 4
+??$swap@PAUHINSTANCE__@@X@std@@YAXAAPAUHINSTANCE__@@0@Z PROC ; std::swap<HINSTANCE__ *,void>, COMDAT
+
+; 65   : 	{	// exchange values stored at _Left and _Right
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 66   : 	_Ty _Tmp = _STD move(_Left);
+
+	mov	edx, DWORD PTR __Left$[ebp]
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	ecx, DWORD PTR __Right$[ebp]
+	push	esi
+	mov	esi, DWORD PTR [edx]
+	mov	eax, DWORD PTR [ecx]
+	mov	DWORD PTR [edx], eax
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [ecx], esi
+	pop	esi
+
+; 69   : 	}
+
+	pop	ebp
+	ret	0
+??$swap@PAUHINSTANCE__@@X@std@@YAXAAPAUHINSTANCE__@@0@Z ENDP ; std::swap<HINSTANCE__ *,void>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -2523,14 +2588,14 @@ $T2 = -24						; size = 24
 _hLibrary$ = 8						; size = 4
 ?SK_InitPlugIn64@@YAPAUHINSTANCE__@@PAU1@@Z PROC	; SK_InitPlugIn64
 
-; 72   : {
+; 94   : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 24					; 00000018H
 
-; 73   :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
+; 95   :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	esi
@@ -2557,10 +2622,10 @@ _hLibrary$ = 8						; size = 4
 $LN23@SK_InitPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 73   :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
+; 95   :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
 
 	push	eax
-	push	OFFSET $SG150597
+	push	OFFSET $SG150615
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2570,7 +2635,7 @@ $LN23@SK_InitPlu:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 73   :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
+; 95   :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2603,25 +2668,25 @@ $LN23@SK_InitPlu:
 $LN33@SK_InitPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 78   :       GetProcAddress (
+; 100  :       GetProcAddress (
 
-	push	OFFSET $SG150598
+	push	OFFSET $SG150616
 	push	esi
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	edi, eax
 
-; 79   :         hLibrary,
-; 80   :           "SKPlugIn_Init"
-; 81   :       )
-; 82   :     );
-; 83   : 
-; 84   :   if (SKPlugIn_Init != nullptr) 
+; 101  :         hLibrary,
+; 102  :           "SKPlugIn_Init"
+; 103  :       )
+; 104  :     );
+; 105  : 
+; 106  :   if (SKPlugIn_Init != nullptr) 
 
 	test	edi, edi
 	je	SHORT $LN2@SK_InitPlu
 
-; 85   :   {
-; 86   :     if (SKPlugIn_Init (SK_GetDLL ()))
+; 107  :   {
+; 108  :     if (SKPlugIn_Init (SK_GetDLL ()))
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -2629,7 +2694,7 @@ $LN33@SK_InitPlu:
 	test	eax, eax
 	je	SHORT $LN4@SK_InitPlu
 
-; 88   :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
+; 110  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
 
 	lea	eax, DWORD PTR $T1[ebp]
 	push	esi
@@ -2653,10 +2718,10 @@ $LN33@SK_InitPlu:
 $LN72@SK_InitPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 88   :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
+; 110  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
 
 	push	eax
-	push	OFFSET $SG150603
+	push	OFFSET $SG150621
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2666,7 +2731,7 @@ $LN72@SK_InitPlu:
 	mov	eax, DWORD PTR $T1[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 88   :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
+; 110  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2699,80 +2764,146 @@ $LN72@SK_InitPlu:
 $LN3@SK_InitPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 109  :   if (hLibrary != nullptr)
+; 131  :   if (hLibrary != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN108@SK_InitPlu
 
-; 110  :     SK_SymRefreshModuleList ();
+; 132  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
 $LN108@SK_InitPlu:
 
-; 111  : 
-; 112  :   return hLibrary;
+; 133  : 
+; 134  :   return hLibrary;
 
 	pop	edi
 	mov	eax, esi
 	pop	esi
 
-; 113  : }
+; 135  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN4@SK_InitPlu:
 
-; 89   :                       SK_GetModuleName (hLibrary).c_str () );
-; 90   :     }
-; 91   : 
-; 92   :     else
-; 93   :     {
-; 94   :       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
+; 111  :                       SK_GetModuleName (hLibrary).c_str () );
+; 112  :     }
+; 113  : 
+; 114  :     else
+; 115  :     {
+; 116  :       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
-	push	OFFSET $SG150604
+	push	OFFSET $SG150622
 
-; 95   : 
-; 96   :       FreeLibrary_Original (hLibrary);
-; 97   :       hLibrary = nullptr;
-; 98   :     }
-; 99   :   }
-; 100  : 
-; 101  :   else
+; 117  : 
+; 118  :       FreeLibrary_Original (hLibrary);
+; 119  :       hLibrary = nullptr;
+; 120  :     }
+; 121  :   }
+; 122  : 
+; 123  :   else
 
 	jmp	SHORT $LN109@SK_InitPlu
 $LN2@SK_InitPlu:
 
-; 102  :   {
-; 103  :     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
+; 124  :   {
+; 125  :     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
-	push	OFFSET $SG150605
+	push	OFFSET $SG150623
 $LN109@SK_InitPlu:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 104  : 
-; 105  :     FreeLibrary_Original (hLibrary);
+; 126  : 
+; 127  :     FreeLibrary_Original (hLibrary);
 
 	push	esi
 	call	DWORD PTR ?FreeLibrary_Original@@3P6GHPAUHINSTANCE__@@@ZA ; FreeLibrary_Original
 	pop	edi
 
-; 111  : 
-; 112  :   return hLibrary;
+; 133  : 
+; 134  :   return hLibrary;
 
 	xor	eax, eax
 	pop	esi
 
-; 113  : }
+; 135  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ?SK_InitPlugIn64@@YAPAUHINSTANCE__@@PAU1@@Z ENDP	; SK_InitPlugIn64
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\import.cpp
+_TEXT	SEGMENT
+_hModShim$ = 8						; size = 4
+_hModReal$ = 12						; size = 4
+?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z PROC ; SK_Import_GetShimmedLibrary
+
+; 72   : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 73   :   typedef HMODULE (__stdcall *SK_SHIM_GetReShade_pfn)(void);
+; 74   : 
+; 75   :   SK_SHIM_GetReShade_pfn SK_SHIM_GetReShade =
+; 76   :     (SK_SHIM_GetReShade_pfn)GetProcAddress (hModShim, "SK_SHIM_GetReShade");
+
+	push	OFFSET $SG150605
+	push	DWORD PTR _hModShim$[ebp]
+	call	DWORD PTR __imp__GetProcAddress@8
+
+; 77   : 
+; 78   :   if (SK_SHIM_GetReShade != nullptr)
+
+	test	eax, eax
+	je	SHORT $LN3@SK_Import_
+
+; 79   :   {
+; 80   :     hModReal =
+
+	call	eax
+	mov	ecx, DWORD PTR _hModReal$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 81   :       SK_SHIM_GetReShade ();
+; 82   : 
+; 83   :     if (hModReal != 0)
+
+	test	eax, eax
+	je	SHORT $LN3@SK_Import_
+
+; 84   :     {
+; 85   :       return true;
+
+	mov	al, 1
+
+; 90   : }
+
+	pop	ebp
+	ret	0
+$LN3@SK_Import_:
+
+; 86   :     }
+; 87   :   }
+; 88   : 
+; 89   :   return false;
+
+	xor	al, al
+
+; 90   : }
+
+	pop	ebp
+	ret	0
+?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ENDP ; SK_Import_GetShimmedLibrary
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2798,12 +2929,12 @@ text$yd	SEGMENT
 
 ; 3606 : 		this->_Orphan_all();
 
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+28
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+32
 	call	?_Orphan_all@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Orphan_all
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR ?host_executable@@3Uimport_s@@A+48, 8
+	cmp	DWORD PTR ?host_executable@@3Uimport_s@@A+52, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
@@ -2812,18 +2943,18 @@ text$yd	SEGMENT
 ; 3609 : 			{
 ; 3610 : 			pointer _Ptr = _My_data._Bx._Ptr;
 
-	mov	esi, DWORD PTR ?host_executable@@3Uimport_s@@A+28
+	mov	esi, DWORD PTR ?host_executable@@3Uimport_s@@A+32
 
 ; 3611 : 			auto& _Al = this->_Getal();
 ; 3612 : 			_Al.destroy(_STD addressof(_My_data._Bx._Ptr));
 
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+28
-	push	OFFSET ?host_executable@@3Uimport_s@@A+28
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+32
+	push	OFFSET ?host_executable@@3Uimport_s@@A+32
 	call	??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::destroy<wchar_t *>
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
-	mov	eax, DWORD PTR ?host_executable@@3Uimport_s@@A+48
+	mov	eax, DWORD PTR ?host_executable@@3Uimport_s@@A+52
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -2852,20 +2983,20 @@ $LN10@dynamic:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+44, 0
+	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+48, 0
 
 ; 2217 : 		}
 
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+28
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+32
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+48, 7
+	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+52, 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR ?host_executable@@3Uimport_s@@A+28, ax
+	mov	WORD PTR ?host_executable@@3Uimport_s@@A+32, ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2217 : 		}
@@ -2874,12 +3005,12 @@ $LN10@dynamic:
 
 ; 3606 : 		this->_Orphan_all();
 
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+4
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+8
 	call	?_Orphan_all@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Orphan_all
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR ?host_executable@@3Uimport_s@@A+24, 8
+	cmp	DWORD PTR ?host_executable@@3Uimport_s@@A+28, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
@@ -2888,18 +3019,18 @@ $LN10@dynamic:
 ; 3609 : 			{
 ; 3610 : 			pointer _Ptr = _My_data._Bx._Ptr;
 
-	mov	esi, DWORD PTR ?host_executable@@3Uimport_s@@A+4
+	mov	esi, DWORD PTR ?host_executable@@3Uimport_s@@A+8
 
 ; 3611 : 			auto& _Al = this->_Getal();
 ; 3612 : 			_Al.destroy(_STD addressof(_My_data._Bx._Ptr));
 
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+4
-	push	OFFSET ?host_executable@@3Uimport_s@@A+4
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+8
+	push	OFFSET ?host_executable@@3Uimport_s@@A+8
 	call	??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::destroy<wchar_t *>
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
-	mov	eax, DWORD PTR ?host_executable@@3Uimport_s@@A+24
+	mov	eax, DWORD PTR ?host_executable@@3Uimport_s@@A+28
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -2928,20 +3059,20 @@ $LN40@dynamic:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+20, 0
+	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+24, 0
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+24, 7
+	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+28, 7
 
 ; 2217 : 		}
 
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+4
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR ?host_executable@@3Uimport_s@@A+4, ax
+	mov	WORD PTR ?host_executable@@3Uimport_s@@A+8, ax
 	pop	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2983,7 +3114,7 @@ __$EHRec$ = -12						; size = 12
 
 ; 302  : 		: _Ty1(), _Myval2(_STD forward<_Other2>(_Val2)...)
 
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+4
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
 ; 49   : import_s host_executable          = { };
@@ -3006,22 +3137,22 @@ __$EHRec$ = -12						; size = 12
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+20, 0
+	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+24, 0
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG146579
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+4
+	push	OFFSET $SG146586
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+8
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+24, 7
+	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+28, 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR ?host_executable@@3Uimport_s@@A+4, ax
+	mov	WORD PTR ?host_executable@@3Uimport_s@@A+8, ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
@@ -3031,10 +3162,10 @@ __$EHRec$ = -12						; size = 12
 
 ; 302  : 		: _Ty1(), _Myval2(_STD forward<_Other2>(_Val2)...)
 
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+28
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+32
 ; File c:\users\andon\source\repos\specialk\include\specialk\import.h
 
-; 43   :   std::wstring          product_desc = L"";
+; 44   :   std::wstring          product_desc = L"";
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -3051,22 +3182,22 @@ __$EHRec$ = -12						; size = 12
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+44, 0
+	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+48, 0
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG146580
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+28
+	push	OFFSET $SG146587
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+32
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+48, 7
+	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+52, 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR ?host_executable@@3Uimport_s@@A+28, ax
+	mov	WORD PTR ?host_executable@@3Uimport_s@@A+32, ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
@@ -3075,15 +3206,15 @@ __$EHRec$ = -12						; size = 12
 	xorps	xmm0, xmm0
 ; File c:\users\andon\source\repos\specialk\include\specialk\import.h
 
-; 51   :   sk::ParameterStringW* blacklist    = nullptr;
+; 52   :   sk::ParameterStringW* blacklist    = nullptr;
 
-	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+68, 0
+	mov	DWORD PTR ?host_executable@@3Uimport_s@@A+72, 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
 ; 49   : import_s host_executable          = { };
 
 	push	OFFSET ??__Fhost_executable@@YAXXZ	; `dynamic atexit destructor for 'host_executable''
-	movups	XMMWORD PTR ?host_executable@@3Uimport_s@@A+52, xmm0
+	movups	XMMWORD PTR ?host_executable@@3Uimport_s@@A+56, xmm0
 	call	_atexit
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	add	esp, 4
@@ -3095,7 +3226,7 @@ text$di	ENDS
 ;	COMDAT text$x
 text$x	SEGMENT
 __unwindfunclet$??__Ehost_executable@@YAXXZ$0:
-	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+4
+	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+8
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$??__Ehost_executable@@YAXXZ:
 	mov	eax, OFFSET __ehfuncinfo$??__Ehost_executable@@YAXXZ
@@ -3108,7 +3239,7 @@ text$yd	SEGMENT
 ??__Fimports@@YAXXZ PROC				; `dynamic atexit destructor for 'imports'', COMDAT
 	push	OFFSET ??1import_s@@QAE@XZ
 	push	8
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	push	OFFSET ?imports@@3PAUimport_s@@A	; imports
 	call	??_M@YGXPAXIIP6EX0@Z@Z
 	ret	0
@@ -3125,7 +3256,7 @@ text$di	SEGMENT
 	push	OFFSET ??1import_s@@QAE@XZ
 	push	OFFSET ??0import_s@@QAE@XZ
 	push	8
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	push	OFFSET ?imports@@3PAUimport_s@@A	; imports
 	call	??_L@YGXPAXIIP6EX0@Z1@Z
 	push	OFFSET ??__Fimports@@YAXXZ		; `dynamic atexit destructor for 'imports''
@@ -3262,7 +3393,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146560
+	push	OFFSET $SG146567
 	mov	ecx, OFFSET ?SK_IMPORT_ARCH_WIN32@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_ARCH_WIN32
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -3416,7 +3547,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146554
+	push	OFFSET $SG146561
 	mov	ecx, OFFSET ?SK_IMPORT_ARCH_X64@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_ARCH_X64
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -3570,7 +3701,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146548
+	push	OFFSET $SG146555
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_3RDPARTY@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -3724,7 +3855,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146540
+	push	OFFSET $SG146547
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_PLUGIN@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -3878,7 +4009,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146532
+	push	OFFSET $SG146539
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_OPENGL@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4032,7 +4163,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146524
+	push	OFFSET $SG146531
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_D3D9@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4186,7 +4317,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146516
+	push	OFFSET $SG146523
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_D3D11@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_ROLE_D3D11
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4340,7 +4471,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146510
+	push	OFFSET $SG146517
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_DXGI@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_ROLE_DXGI
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4494,7 +4625,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146504
+	push	OFFSET $SG146511
 	mov	ecx, OFFSET ?SK_IMPORT_PROXY@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4648,7 +4779,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146496
+	push	OFFSET $SG146503
 	mov	ecx, OFFSET ?SK_IMPORT_LAZY@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_LAZY
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4802,7 +4933,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146490
+	push	OFFSET $SG146497
 	mov	ecx, OFFSET ?SK_IMPORT_LATE@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_LATE
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4956,7 +5087,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146484
+	push	OFFSET $SG146491
 	mov	ecx, OFFSET ?SK_IMPORT_PLUGIN@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -5110,7 +5241,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146476
+	push	OFFSET $SG146483
 	mov	ecx, OFFSET ?SK_IMPORT_EARLY@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_EARLY
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -5175,7 +5306,7 @@ _err$3 = -24						; size = 16
 _dwTime$1$ = -4						; size = 4
 ?SK_UnloadImports@@YAXXZ PROC				; SK_UnloadImports
 
-; 811  : {
+; 857  : {
 
 	npad	2
 	push	ebp
@@ -5185,23 +5316,23 @@ _dwTime$1$ = -4						; size = 4
 	push	esi
 	push	edi
 
-; 813  :   for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
+; 859  :   for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
 
-	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+556
+	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+588
 $LL4@SK_UnloadI:
 
-; 814  :   {
-; 815  :     if (imports [i].hLibrary > 0)
+; 860  :   {
+; 861  :     if (imports [i].hLibrary > 0)
 
-	cmp	DWORD PTR [edi-52], 0
+	cmp	DWORD PTR [edi-56], 0
 	jbe	$LN2@SK_UnloadI
 
-; 816  :     {
-; 817  :       DWORD dwTime = timeGetTime ();
+; 862  :     {
+; 863  :       DWORD dwTime = timeGetTime ();
 
 	call	DWORD PTR __imp__timeGetTime@0
 
-; 819  :       if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 865  :       if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	mov	ecx, DWORD PTR [edi+8]
 	mov	DWORD PTR _dwTime$1$[ebp], eax
@@ -5230,13 +5361,13 @@ $LL4@SK_UnloadI:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN64@SK_UnloadI
+	jb	SHORT $LN66@SK_UnloadI
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN64@SK_UnloadI:
+$LN66@SK_UnloadI:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3416 : 		return (_Traits_equal<_Traits>(this->_Myptr(), this->_Mysize(), _Right._Myptr(), _Right._Mysize()));
@@ -5246,35 +5377,35 @@ $LN64@SK_UnloadI:
 ; 25   : 	return (_Left_size == _Right_size && _Traits::compare(_Left, _Right, _Left_size) == 0);
 
 	cmp	esi, DWORD PTR ?SK_IMPORT_ROLE_PLUGIN@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B+16
-	jne	SHORT $LN72@SK_UnloadI
+	jne	SHORT $LN74@SK_UnloadI
 ; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
 
 ; 216  :         for (; 0 < _N; ++_S1, ++_S2, --_N)
 
 	test	esi, esi
-	je	SHORT $LN224@SK_UnloadI
+	je	SHORT $LN226@SK_UnloadI
 	npad	5
-$LL81@SK_UnloadI:
+$LL83@SK_UnloadI:
 
 ; 217  :             if (*_S1 != *_S2)
 
 	mov	cx, WORD PTR [eax]
 	cmp	cx, WORD PTR [edx]
-	jne	SHORT $LN227@SK_UnloadI
+	jne	SHORT $LN229@SK_UnloadI
 
 ; 216  :         for (; 0 < _N; ++_S1, ++_S2, --_N)
 
 	add	eax, 2
 	add	edx, 2
 	sub	esi, 1
-	jne	SHORT $LL81@SK_UnloadI
+	jne	SHORT $LL83@SK_UnloadI
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 25   : 	return (_Left_size == _Right_size && _Traits::compare(_Left, _Right, _Left_size) == 0);
 
 	mov	bl, 1
-	jmp	SHORT $LN73@SK_UnloadI
-$LN227@SK_UnloadI:
+	jmp	SHORT $LN75@SK_UnloadI
+$LN229@SK_UnloadI:
 ; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
 
 ; 218  :                 return *_S1 < *_S2 ? -1 : 1;
@@ -5286,13 +5417,13 @@ $LN227@SK_UnloadI:
 
 ; 25   : 	return (_Left_size == _Right_size && _Traits::compare(_Left, _Right, _Left_size) == 0);
 
-	jne	SHORT $LN72@SK_UnloadI
-$LN224@SK_UnloadI:
+	jne	SHORT $LN74@SK_UnloadI
+$LN226@SK_UnloadI:
 	mov	bl, 1
-	jmp	SHORT $LN73@SK_UnloadI
-$LN72@SK_UnloadI:
+	jmp	SHORT $LN75@SK_UnloadI
+$LN74@SK_UnloadI:
 	xor	bl, bl
-$LN73@SK_UnloadI:
+$LN75@SK_UnloadI:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
@@ -5301,7 +5432,7 @@ $LN73@SK_UnloadI:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN118@SK_UnloadI
+	jb	SHORT $LN120@SK_UnloadI
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -5317,7 +5448,7 @@ $LN73@SK_UnloadI:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	$LN212@SK_UnloadI
+	ja	$LN214@SK_UnloadI
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -5326,14 +5457,14 @@ $LN73@SK_UnloadI:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN113@SK_UnloadI
+	jb	SHORT $LN115@SK_UnloadI
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	$LN212@SK_UnloadI
+	jne	$LN214@SK_UnloadI
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -5355,7 +5486,7 @@ $LN73@SK_UnloadI:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	$LN212@SK_UnloadI
+	jae	$LN214@SK_UnloadI
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -5367,19 +5498,19 @@ $LN73@SK_UnloadI:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	$LN212@SK_UnloadI
+	jb	$LN214@SK_UnloadI
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	$LN212@SK_UnloadI
+	ja	$LN214@SK_UnloadI
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN113@SK_UnloadI:
+$LN115@SK_UnloadI:
 
 ; 133  : 		}
 ; 134  : 
@@ -5393,38 +5524,38 @@ $LN113@SK_UnloadI:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN118@SK_UnloadI:
+$LN120@SK_UnloadI:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 819  :       if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 865  :       if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	test	bl, bl
 	je	SHORT $LN7@SK_UnloadI
 
-; 820  :       {
-; 821  :         auto SKPlugIn_Shutdown =
-; 822  :           reinterpret_cast <SKPlugIn_Shutdown_pfn> (
-; 823  :             GetProcAddress ( imports [i].hLibrary,
+; 866  :       {
+; 867  :         auto SKPlugIn_Shutdown =
+; 868  :           reinterpret_cast <SKPlugIn_Shutdown_pfn> (
+; 869  :             GetProcAddress ( imports [i].hLibrary,
 
-	push	OFFSET $SG151266
-	push	DWORD PTR [edi-52]
+	push	OFFSET $SG151447
+	push	DWORD PTR [edi-56]
 	call	DWORD PTR __imp__GetProcAddress@8
 
-; 824  :                                "SKPlugIn_Shutdown" )
-; 825  :           );
-; 826  : 
-; 827  :         if (SKPlugIn_Shutdown != nullptr)
+; 870  :                                "SKPlugIn_Shutdown" )
+; 871  :           );
+; 872  : 
+; 873  :         if (SKPlugIn_Shutdown != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN7@SK_UnloadI
 
-; 828  :           SKPlugIn_Shutdown (nullptr);
+; 874  :           SKPlugIn_Shutdown (nullptr);
 
 	push	0
 	call	eax
 $LN7@SK_UnloadI:
 
-; 831  :       dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
+; 877  :       dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
 
 	mov	ecx, DWORD PTR [edi]
 	lea	edx, DWORD PTR $T1[ebp]
@@ -5439,19 +5570,19 @@ $LN7@SK_UnloadI:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN140@SK_UnloadI
+	jb	SHORT $LN142@SK_UnloadI
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN140@SK_UnloadI:
+$LN142@SK_UnloadI:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 831  :       dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
+; 877  :       dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
 
 	push	eax
-	push	OFFSET $SG151268
+	push	OFFSET $SG151449
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5461,7 +5592,7 @@ $LN140@SK_UnloadI:
 	mov	eax, DWORD PTR $T1[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 831  :       dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
+; 877  :       dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5472,7 +5603,7 @@ $LN140@SK_UnloadI:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN180@SK_UnloadI
+	jb	SHORT $LN182@SK_UnloadI
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -5488,7 +5619,7 @@ $LN140@SK_UnloadI:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	$LN212@SK_UnloadI
+	ja	$LN214@SK_UnloadI
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -5497,14 +5628,14 @@ $LN140@SK_UnloadI:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN175@SK_UnloadI
+	jb	SHORT $LN177@SK_UnloadI
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	$LN212@SK_UnloadI
+	jne	$LN214@SK_UnloadI
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -5526,7 +5657,7 @@ $LN140@SK_UnloadI:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	$LN212@SK_UnloadI
+	jae	$LN214@SK_UnloadI
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -5538,19 +5669,19 @@ $LN140@SK_UnloadI:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	$LN212@SK_UnloadI
+	jb	$LN214@SK_UnloadI
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	$LN212@SK_UnloadI
+	ja	$LN214@SK_UnloadI
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN175@SK_UnloadI:
+$LN177@SK_UnloadI:
 
 ; 133  : 		}
 ; 134  : 
@@ -5564,40 +5695,50 @@ $LN175@SK_UnloadI:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN180@SK_UnloadI:
+$LN182@SK_UnloadI:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 834  :       if (FreeLibrary_Original (imports [i].hLibrary))
+; 881  :       if ( (imports [i].hShim != nullptr && FreeLibrary_Original (imports [i].hShim) ) ||
 
-	push	DWORD PTR [edi-52]
+	mov	eax, DWORD PTR [edi-52]
+	test	eax, eax
+	je	SHORT $LN11@SK_UnloadI
+	push	eax
+	call	DWORD PTR ?FreeLibrary_Original@@3P6GHPAUHINSTANCE__@@@ZA ; FreeLibrary_Original
+	test	eax, eax
+	jne	SHORT $LN10@SK_UnloadI
+$LN11@SK_UnloadI:
+	push	DWORD PTR [edi-56]
 	call	DWORD PTR ?FreeLibrary_Original@@3P6GHPAUHINSTANCE__@@@ZA ; FreeLibrary_Original
 	test	eax, eax
 	je	SHORT $LN8@SK_UnloadI
+$LN10@SK_UnloadI:
 
-; 835  :       {
-; 836  :         dll_log.LogEx ( false,
+; 882  :                                             FreeLibrary_Original (imports [i].hLibrary) )
+; 883  :       {
+; 884  :         dll_log.LogEx ( false,
 
 	call	DWORD PTR __imp__timeGetTime@0
 	sub	eax, DWORD PTR _dwTime$1$[ebp]
 	push	eax
-	push	OFFSET $SG151271
+	push	OFFSET $SG151454
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 837  :                         L"-------------------------[ Free Lib ]                "
-; 838  :                         L"                           success! (%4u ms)\n",
-; 839  :                           timeGetTime ( ) - dwTime );
-; 840  :       }
-; 841  : 
-; 842  :       else
+; 885  :                         L"-------------------------[ Free Lib ]                "
+; 886  :                         L"                           success! (%4u ms)\n",
+; 887  :                           timeGetTime ( ) - dwTime );
+; 888  :       }
+; 889  : 
+; 890  :       else
 
 	jmp	$LN2@SK_UnloadI
 $LN8@SK_UnloadI:
 
-; 843  :       {
-; 844  :         _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+; 891  :       {
+; 892  :         _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
 	call	DWORD PTR __imp__GetLastError@0
 	mov	ecx, eax
@@ -5606,10 +5747,10 @@ $LN8@SK_UnloadI:
 ; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
 
 	test	ecx, ecx
-	jle	SHORT $LN191@SK_UnloadI
+	jle	SHORT $LN193@SK_UnloadI
 	movzx	ecx, cx
 	or	ecx, -2147024896			; 80070000H
-$LN191@SK_UnloadI:
+$LN193@SK_UnloadI:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
 
 ; 455  :     return (hr >= WCODE_HRESULT_FIRST && hr <= WCODE_HRESULT_LAST)
@@ -5629,23 +5770,23 @@ $LN191@SK_UnloadI:
 ; 455  :     return (hr >= WCODE_HRESULT_FIRST && hr <= WCODE_HRESULT_LAST)
 
 	cmp	eax, 65023				; 0000fdffH
-	ja	SHORT $LN199@SK_UnloadI
+	ja	SHORT $LN201@SK_UnloadI
 	lea	eax, DWORD PTR [ecx-512]
 	movzx	esi, ax
-	jmp	SHORT $LN200@SK_UnloadI
-$LN199@SK_UnloadI:
+	jmp	SHORT $LN202@SK_UnloadI
+$LN201@SK_UnloadI:
 	xor	esi, esi
-$LN200@SK_UnloadI:
+$LN202@SK_UnloadI:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 846  :         dll_log.LogEx ( false,
+; 894  :         dll_log.LogEx ( false,
 
 	lea	ecx, DWORD PTR _err$3[ebp]
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
 	movzx	eax, si
 	push	eax
-	push	OFFSET $SG151272
+	push	OFFSET $SG151455
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -5656,7 +5797,7 @@ $LN200@SK_UnloadI:
 	mov	ecx, DWORD PTR _err$3[ebp+8]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 846  :         dll_log.LogEx ( false,
+; 894  :         dll_log.LogEx ( false,
 
 	add	esp, 20					; 00000014H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -5668,14 +5809,14 @@ $LN200@SK_UnloadI:
 ; 317  :     if (m_perrinfo != NULL) {
 
 	test	ecx, ecx
-	je	SHORT $LN202@SK_UnloadI
+	je	SHORT $LN204@SK_UnloadI
 
 ; 318  :         m_perrinfo->Release();
 
 	mov	eax, DWORD PTR [ecx]
 	push	ecx
 	call	DWORD PTR [eax+8]
-$LN202@SK_UnloadI:
+$LN204@SK_UnloadI:
 
 ; 319  :     }
 ; 320  :     if (m_pszMsg != NULL) {
@@ -5691,21 +5832,21 @@ $LN202@SK_UnloadI:
 $LN2@SK_UnloadI:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 813  :   for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
+; 859  :   for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
 
-	sub	edi, 72					; 00000048H
-	cmp	edi, OFFSET ?imports@@3PAUimport_s@@A+52
+	sub	edi, 76					; 0000004cH
+	cmp	edi, OFFSET ?imports@@3PAUimport_s@@A+56
 	jge	$LL4@SK_UnloadI
 
-; 847  :                           L"failed: 0x%04X (%s)!\n",
-; 848  :                             err.WCode (),
-; 849  :                               err.ErrorMessage ()
-; 850  :                       );
-; 851  :       }
-; 852  :     }
-; 853  :   }
-; 854  : 
-; 855  :   SK_SymRefreshModuleList ();
+; 895  :                           L"failed: 0x%04X (%s)!\n",
+; 896  :                             err.WCode (),
+; 897  :                               err.ErrorMessage ()
+; 898  :                       );
+; 899  :       }
+; 900  :     }
+; 901  :   }
+; 902  : 
+; 903  :   SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
@@ -5714,19 +5855,19 @@ $LN2@SK_UnloadI:
 	pop	esi
 	pop	ebx
 
-; 856  : }
+; 904  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN212@SK_UnloadI:
+$LN214@SK_UnloadI:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN229@SK_UnloadI:
-$LN228@SK_UnloadI:
+$LN231@SK_UnloadI:
+$LN230@SK_UnloadI:
 	int	3
 ?SK_UnloadImports@@YAXXZ ENDP				; SK_UnloadImports
 _TEXT	ENDS
@@ -5793,6 +5934,8 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5831,8 +5974,8 @@ $T9 = -124						; size = 24
 _err$10 = -100						; size = 16
 $T11 = -84						; size = 24
 $T12 = -84						; size = 24
-tv1753 = -60						; size = 4
-tv1701 = -56						; size = 4
+tv1820 = -60						; size = 4
+tv1765 = -56						; size = 4
 _blacklist$13 = -52					; size = 24
 _success$1$ = -28					; size = 4
 $T14 = -24						; size = 4
@@ -5843,7 +5986,7 @@ _blacklisted$1$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
 ?SK_LoadPlugIns32@@YAXXZ PROC				; SK_LoadPlugIns32
 
-; 571  : {
+; 608  : {
 
 	npad	2
 	push	ebp
@@ -5857,31 +6000,31 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	xor	esi, esi
 
-; 572  :   int success = 0;
+; 609  :   int success = 0;
 
 	xor	ecx, ecx
 	push	edi
 	mov	DWORD PTR $T15[ebp], esi
-	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+64
+	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+68
 	mov	DWORD PTR $T14[ebp], esi
 	mov	DWORD PTR _success$1$[ebp], ecx
 	npad	12
 $LL4@SK_LoadPlu:
 
-; 575  :   {
-; 576  :     // Skip libraries that are already loaded
-; 577  :     if (import.hLibrary != nullptr)
+; 612  :   {
+; 613  :     // Skip libraries that are already loaded
+; 614  :     if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
-	mov	DWORD PTR tv1753[ebp], ecx
+	cmp	DWORD PTR [edi-68], 0
+	mov	DWORD PTR tv1820[ebp], ecx
 	jne	$LN2@SK_LoadPlu
 
-; 582  :       import.blacklist != nullptr ?
+; 619  :       import.blacklist != nullptr ?
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	BYTE PTR _blacklisted$1$[ebp], 0
 	test	ecx, ecx
-	je	SHORT $LN19@SK_LoadPlu
+	je	SHORT $LN20@SK_LoadPlu
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T4[ebp]
 	push	edx
@@ -5890,8 +6033,8 @@ $LL4@SK_LoadPlu:
 	mov	ecx, eax
 	mov	eax, DWORD PTR $T15[ebp]
 	or	eax, 1
-	jmp	SHORT $LN437@SK_LoadPlu
-$LN19@SK_LoadPlu:
+	jmp	SHORT $LN450@SK_LoadPlu
+$LN20@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -5906,7 +6049,7 @@ $LN19@SK_LoadPlu:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151100
+	push	OFFSET $SG151276
 	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -5925,7 +6068,7 @@ $LN19@SK_LoadPlu:
 	mov	eax, DWORD PTR $T15[ebp]
 	lea	ecx, DWORD PTR $T9[ebp]
 	or	eax, 2
-$LN437@SK_LoadPlu:
+$LN450@SK_LoadPlu:
 
 ; 1595 : 		_Mysize(0),
 
@@ -5964,11 +6107,11 @@ $LN437@SK_LoadPlu:
 	mov	WORD PTR [ecx], dx
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 582  :       import.blacklist != nullptr ?
+; 619  :       import.blacklist != nullptr ?
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	al, 2
-	je	SHORT $LN126@SK_LoadPlu
+	je	SHORT $LN127@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -5976,7 +6119,7 @@ $LN437@SK_LoadPlu:
 	mov	ecx, DWORD PTR $T9[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 582  :       import.blacklist != nullptr ?
+; 619  :       import.blacklist != nullptr ?
 
 	and	eax, -3					; fffffffdH
 	mov	DWORD PTR $T15[ebp], eax
@@ -5989,7 +6132,7 @@ $LN437@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN129@SK_LoadPlu
+	jb	SHORT $LN130@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -6004,7 +6147,7 @@ $LN437@SK_LoadPlu:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T15[ebp]
 	add	esp, 12					; 0000000cH
-$LN129@SK_LoadPlu:
+$LN130@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -6024,14 +6167,14 @@ $LN129@SK_LoadPlu:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T9[ebp], cx
-$LN126@SK_LoadPlu:
+$LN127@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 582  :       import.blacklist != nullptr ?
+; 619  :       import.blacklist != nullptr ?
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 	test	al, 1
-	je	SHORT $LN156@SK_LoadPlu
+	je	SHORT $LN157@SK_LoadPlu
 	and	eax, -2					; fffffffeH
 	mov	DWORD PTR $T15[ebp], eax
 	mov	DWORD PTR $T14[ebp], eax
@@ -6044,7 +6187,7 @@ $LN126@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN159@SK_LoadPlu
+	jb	SHORT $LN160@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -6058,7 +6201,7 @@ $LN126@SK_LoadPlu:
 	push	DWORD PTR $T4[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN159@SK_LoadPlu:
+$LN160@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -6078,7 +6221,7 @@ $LN159@SK_LoadPlu:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T4[ebp], ax
-$LN156@SK_LoadPlu:
+$LN157@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -6091,7 +6234,7 @@ $LN156@SK_LoadPlu:
 	cmovae	esi, DWORD PTR _blacklist$13[ebp]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 586  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
+; 623  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -6102,28 +6245,28 @@ $LN156@SK_LoadPlu:
 	mov	eax, 1
 	cmovne	ecx, eax
 
-; 587  :       blacklisted = true;
-; 588  : 
-; 589  :     if (import.filename != nullptr)
+; 624  :       blacklisted = true;
+; 625  : 
+; 626  :     if (import.filename != nullptr)
 
 	cmp	DWORD PTR [edi-12], 0
-	mov	DWORD PTR tv1701[ebp], ecx
-	je	$LN374@SK_LoadPlu
+	mov	DWORD PTR tv1765[ebp], ecx
+	je	$LN387@SK_LoadPlu
 
-; 590  :     {
-; 591  :       if (import.when != nullptr)
+; 627  :     {
+; 628  :       if (import.when != nullptr)
 
 	cmp	DWORD PTR [edi-8], 0
-	je	$LN374@SK_LoadPlu
+	je	$LN387@SK_LoadPlu
 
-; 592  :       {
-; 593  :         if (import.architecture != nullptr)
+; 629  :       {
+; 630  :         if (import.architecture != nullptr)
 
 	mov	ecx, DWORD PTR [edi]
 	test	ecx, ecx
-	je	$LN374@SK_LoadPlu
+	je	$LN387@SK_LoadPlu
 
-; 595  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 632  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T8[ebp]
@@ -6139,7 +6282,7 @@ $LN156@SK_LoadPlu:
 	or	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 595  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 632  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6152,10 +6295,10 @@ $LN156@SK_LoadPlu:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 595  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 632  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	test	al, al
-	je	SHORT $LN21@SK_LoadPlu
+	je	SHORT $LN22@SK_LoadPlu
 	mov	ecx, DWORD PTR [edi-8]
 	lea	edx, DWORD PTR $T12[ebp]
 	push	edx
@@ -6173,17 +6316,17 @@ $LN156@SK_LoadPlu:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 595  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 632  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	BYTE PTR $T17[ebp], 1
 	test	al, al
-	jne	SHORT $LN22@SK_LoadPlu
-$LN21@SK_LoadPlu:
-	mov	BYTE PTR $T17[ebp], 0
+	jne	SHORT $LN23@SK_LoadPlu
 $LN22@SK_LoadPlu:
+	mov	BYTE PTR $T17[ebp], 0
+$LN23@SK_LoadPlu:
 	mov	eax, DWORD PTR $T15[ebp]
 	test	al, 8
-	je	SHORT $LN211@SK_LoadPlu
+	je	SHORT $LN212@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -6191,7 +6334,7 @@ $LN22@SK_LoadPlu:
 	mov	ecx, DWORD PTR $T12[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 595  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 632  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	and	eax, -9					; fffffff7H
 	mov	DWORD PTR $T15[ebp], eax
@@ -6203,7 +6346,7 @@ $LN22@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN214@SK_LoadPlu
+	jb	SHORT $LN215@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -6218,7 +6361,7 @@ $LN22@SK_LoadPlu:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T15[ebp]
 	add	esp, 12					; 0000000cH
-$LN214@SK_LoadPlu:
+$LN215@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -6238,10 +6381,10 @@ $LN214@SK_LoadPlu:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T12[ebp], cx
-$LN211@SK_LoadPlu:
+$LN212@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 595  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 632  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	and	eax, -5					; fffffffbH
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
@@ -6256,7 +6399,7 @@ $LN211@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN244@SK_LoadPlu
+	jb	SHORT $LN245@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -6270,15 +6413,15 @@ $LN211@SK_LoadPlu:
 	push	DWORD PTR $T8[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN244@SK_LoadPlu:
+$LN245@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 595  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 632  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	cmp	BYTE PTR $T17[ebp], 0
-	je	$LN374@SK_LoadPlu
+	je	$LN387@SK_LoadPlu
 
-; 598  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 635  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T11[ebp]
@@ -6294,16 +6437,16 @@ $LN244@SK_LoadPlu:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN283@SK_LoadPlu
+	jb	SHORT $LN284@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN283@SK_LoadPlu:
+$LN284@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 598  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 635  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	push	eax
 	call	DWORD PTR __imp___wcsdup
@@ -6314,7 +6457,7 @@ $LN283@SK_LoadPlu:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 598  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 635  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	add	esp, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -6329,7 +6472,7 @@ $LN283@SK_LoadPlu:
 	mov	eax, DWORD PTR $T11[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 598  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 635  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6340,7 +6483,7 @@ $LN283@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN297@SK_LoadPlu
+	jb	SHORT $LN298@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -6354,7 +6497,7 @@ $LN283@SK_LoadPlu:
 	push	DWORD PTR $T11[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN297@SK_LoadPlu:
+$LN298@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -6367,7 +6510,7 @@ $LN297@SK_LoadPlu:
 	mov	DWORD PTR $T11[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 600  :             SK_StripUserNameFromPathW (file);
+; 637  :             SK_StripUserNameFromPathW (file);
 
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6382,28 +6525,28 @@ $LN297@SK_LoadPlu:
 	mov	WORD PTR $T11[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 600  :             SK_StripUserNameFromPathW (file);
+; 637  :             SK_StripUserNameFromPathW (file);
 
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 601  : 
-; 602  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
+; 638  : 
+; 639  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
 
 	push	esi
-	push	OFFSET $SG151107
+	push	OFFSET $SG151283
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 603  :               file.m_pData);
-; 604  : 
-; 605  :             if (! blacklisted)
+; 640  :               file.m_pData);
+; 641  : 
+; 642  :             if (! blacklisted)
 
-	cmp	BYTE PTR tv1701[ebp], 0
+	cmp	BYTE PTR tv1765[ebp], 0
 	jne	$LN11@SK_LoadPlu
 
-; 607  :               import.hLibrary = LoadLibraryW_Original (
+; 644  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T7[ebp]
@@ -6418,50 +6561,77 @@ $LN297@SK_LoadPlu:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 607  :               import.hLibrary = LoadLibraryW_Original (
+; 644  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN338@SK_LoadPlu
+	jb	SHORT $LN339@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN338@SK_LoadPlu:
+$LN339@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 607  :               import.hLibrary = LoadLibraryW_Original (
+; 644  :               import.hLibrary = LoadLibraryW_Original (
 
 	push	eax
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	lea	ecx, DWORD PTR $T7[ebp]
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 608  :                 import.filename->get_value_str ().c_str ()
-; 609  :               );
-; 610  : 
-; 611  :               if (import.hLibrary != nullptr)
+; 645  :                 import.filename->get_value_str ().c_str ()
+; 646  :               );
+; 647  : 
+; 648  :               if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	mov	ecx, DWORD PTR [edi-68]
+	test	ecx, ecx
 	je	$LN13@SK_LoadPlu
 
-; 612  :               {
-; 613  :                 dll_log.LogEx (false, L"success!\n");
+; 649  :               {
+; 650  :                 if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
 
-	push	OFFSET $SG151112
+	lea	eax, DWORD PTR [edi-64]
+	push	eax
+	push	ecx
+	call	?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ; SK_Import_GetShimmedLibrary
+	add	esp, 8
+	test	al, al
+	je	SHORT $LN346@SK_LoadPlu
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 66   : 	_Ty _Tmp = _STD move(_Left);
+
+	mov	ecx, DWORD PTR [edi-68]
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	eax, DWORD PTR [edi-64]
+	mov	DWORD PTR [edi-68], eax
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi-64], ecx
+$LN346@SK_LoadPlu:
+; File c:\users\andon\source\repos\specialk\src\import.cpp
+
+; 653  :                 dll_log.LogEx (false, L"success!\n");
+
+	push	OFFSET $SG151289
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 616  :                 import.product_desc =
+; 656  :                 import.product_desc =
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	inc	DWORD PTR _success$1$[ebp]
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -6474,23 +6644,23 @@ $LN338@SK_LoadPlu:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 616  :                 import.product_desc =
+; 656  :                 import.product_desc =
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN357@SK_LoadPlu
+	jb	SHORT $LN370@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN357@SK_LoadPlu:
+$LN370@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 616  :                 import.product_desc =
+; 656  :                 import.product_desc =
 
 	push	eax
 	lea	eax, DWORD PTR $T6[ebp]
@@ -6505,7 +6675,7 @@ $LN357@SK_LoadPlu:
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 621  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 661  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	mov	ecx, DWORD PTR [edi-4]
 	lea	edx, DWORD PTR $T5[ebp]
@@ -6522,7 +6692,7 @@ $LN357@SK_LoadPlu:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 621  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 661  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	lea	ecx, DWORD PTR $T5[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6532,41 +6702,41 @@ $LN357@SK_LoadPlu:
 	mov	BYTE PTR $T16[ebp], al
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 621  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 661  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	cmp	BYTE PTR $T16[ebp], 0
 	je	$LN12@SK_LoadPlu
 
-; 622  :                 {
-; 623  :                   import.hLibrary = SK_InitPlugIn32 (import.hLibrary);
+; 662  :                 {
+; 663  :                   import.hLibrary = SK_InitPlugIn32 (import.hLibrary);
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	call	?SK_InitPlugIn32@@YAPAUHINSTANCE__@@PAU1@@Z ; SK_InitPlugIn32
 	add	esp, 4
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 
-; 624  : 
-; 625  :                   if (import.hLibrary == nullptr)
+; 664  : 
+; 665  :                   if (import.hLibrary == nullptr)
 
 	test	eax, eax
 	jne	SHORT $LN12@SK_LoadPlu
 
-; 626  :                     --success;
+; 666  :                     --success;
 
-	mov	eax, DWORD PTR tv1753[ebp]
+	mov	eax, DWORD PTR tv1820[ebp]
 	mov	DWORD PTR _success$1$[ebp], eax
 
-; 627  :                 }
-; 628  :               }
-; 629  : 
-; 630  :               else
+; 667  :                 }
+; 668  :               }
+; 669  : 
+; 670  :               else
 
 	jmp	SHORT $LN12@SK_LoadPlu
 $LN13@SK_LoadPlu:
 
-; 631  :               {
-; 632  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+; 671  :               {
+; 672  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
 	call	DWORD PTR __imp__GetLastError@0
 ; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
@@ -6574,13 +6744,13 @@ $LN13@SK_LoadPlu:
 ; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
 
 	test	eax, eax
-	jle	SHORT $LN369@SK_LoadPlu
+	jle	SHORT $LN382@SK_LoadPlu
 	movzx	eax, ax
 	or	eax, -2147024896			; 80070000H
-$LN369@SK_LoadPlu:
+$LN382@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 635  :                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
+; 675  :                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
 
 	lea	ecx, DWORD PTR _err$10[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -6596,11 +6766,11 @@ $LN369@SK_LoadPlu:
 	mov	DWORD PTR _err$10[ebp+12], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 634  :                 import.hLibrary = (HMODULE)-2;
+; 674  :                 import.hLibrary = (HMODULE)-2;
 
-	mov	DWORD PTR [edi-64], -2			; fffffffeH
+	mov	DWORD PTR [edi-68], -2			; fffffffeH
 
-; 635  :                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
+; 675  :                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
 
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
@@ -6608,28 +6778,28 @@ $LN369@SK_LoadPlu:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151116
+	push	OFFSET $SG151293
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
 
-; 636  :                                err.WCode (), err.ErrorMessage () );
-; 637  :               }
+; 676  :                                err.WCode (), err.ErrorMessage () );
+; 677  :               }
 
 	lea	ecx, DWORD PTR _err$10[ebp]
 	call	??1_com_error@@UAE@XZ			; _com_error::~_com_error
 
-; 638  :             }
-; 639  : 
-; 640  :             else
+; 678  :             }
+; 679  : 
+; 680  :             else
 
 	jmp	SHORT $LN12@SK_LoadPlu
 $LN11@SK_LoadPlu:
 
-; 641  :             {
-; 642  :               dll_log.Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
+; 681  :             {
+; 682  :               dll_log.Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
 
-	push	OFFSET $SG151117
+	push	OFFSET $SG151294
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -6641,7 +6811,7 @@ $LN12@SK_LoadPlu:
 	push	esi
 	call	DWORD PTR __imp__free
 	add	esp, 4
-$LN374@SK_LoadPlu:
+$LN387@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -6649,7 +6819,7 @@ $LN374@SK_LoadPlu:
 	mov	eax, DWORD PTR _blacklist$13[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 648  :   }
+; 688  :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6660,7 +6830,7 @@ $LN374@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN416@SK_LoadPlu
+	jb	SHORT $LN429@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -6676,7 +6846,7 @@ $LN374@SK_LoadPlu:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	SHORT $LN430@SK_LoadPlu
+	ja	SHORT $LN443@SK_LoadPlu
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -6685,14 +6855,14 @@ $LN374@SK_LoadPlu:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN411@SK_LoadPlu
+	jb	SHORT $LN424@SK_LoadPlu
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	SHORT $LN430@SK_LoadPlu
+	jne	SHORT $LN443@SK_LoadPlu
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -6714,7 +6884,7 @@ $LN374@SK_LoadPlu:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	SHORT $LN430@SK_LoadPlu
+	jae	SHORT $LN443@SK_LoadPlu
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -6726,19 +6896,19 @@ $LN374@SK_LoadPlu:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	SHORT $LN430@SK_LoadPlu
+	jb	SHORT $LN443@SK_LoadPlu
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	SHORT $LN430@SK_LoadPlu
+	ja	SHORT $LN443@SK_LoadPlu
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN411@SK_LoadPlu:
+$LN424@SK_LoadPlu:
 
 ; 133  : 		}
 ; 134  : 
@@ -6752,7 +6922,7 @@ $LN411@SK_LoadPlu:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN416@SK_LoadPlu:
+$LN429@SK_LoadPlu:
 	mov	ecx, DWORD PTR _success$1$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -6776,54 +6946,54 @@ $LN416@SK_LoadPlu:
 $LN2@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 574  :   for (auto& import : imports)
+; 611  :   for (auto& import : imports)
 
-	add	edi, 72					; 00000048H
-	lea	eax, DWORD PTR [edi-64]
-	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+576
+	add	edi, 76					; 0000004cH
+	lea	eax, DWORD PTR [edi-68]
+	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+608
 	jne	$LL4@SK_LoadPlu
 
-; 649  : 
-; 650  :   if (success > 0)
+; 689  : 
+; 690  :   if (success > 0)
 
 	pop	edi
 	pop	esi
 	test	ecx, ecx
-	jle	SHORT $LN17@SK_LoadPlu
+	jle	SHORT $LN18@SK_LoadPlu
 
-; 651  :     SK_SymRefreshModuleList ();
+; 691  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
-$LN17@SK_LoadPlu:
+$LN18@SK_LoadPlu:
 
-; 652  : }
+; 692  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN430@SK_LoadPlu:
+$LN443@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN438@SK_LoadPlu:
-$LN436@SK_LoadPlu:
+$LN451@SK_LoadPlu:
+$LN449@SK_LoadPlu:
 	int	3
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_LoadPlugIns32@@YAXXZ$0:
 	mov	eax, DWORD PTR $T14[ebp]
 	and	eax, 1
-	je	$LN24@SK_LoadPlu
+	je	$LN25@SK_LoadPlu
 	and	DWORD PTR $T14[ebp], -2			; fffffffeH
 	lea	ecx, DWORD PTR $T4[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN24@SK_LoadPlu:
+$LN25@SK_LoadPlu:
 	ret	0
 __unwindfunclet$?SK_LoadPlugIns32@@YAXXZ$2:
 	lea	ecx, DWORD PTR _blacklist$13[ebp]
@@ -6831,11 +7001,11 @@ __unwindfunclet$?SK_LoadPlugIns32@@YAXXZ$2:
 __unwindfunclet$?SK_LoadPlugIns32@@YAXXZ$3:
 	mov	eax, DWORD PTR $T14[ebp]
 	and	eax, 4
-	je	$LN31@SK_LoadPlu
+	je	$LN32@SK_LoadPlu
 	and	DWORD PTR $T14[ebp], -5			; fffffffbH
 	lea	ecx, DWORD PTR $T8[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN31@SK_LoadPlu:
+$LN32@SK_LoadPlu:
 	ret	0
 __unwindfunclet$?SK_LoadPlugIns32@@YAXXZ$6:
 	lea	ecx, DWORD PTR _file$2[ebp]
@@ -6914,6 +7084,8 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6947,7 +7119,7 @@ $T8 = -120						; size = 24
 _err$9 = -96						; size = 16
 $T10 = -80						; size = 24
 $T11 = -80						; size = 24
-tv1649 = -56						; size = 4
+tv1682 = -56						; size = 4
 _blacklist$12 = -52					; size = 24
 _success$1$ = -28					; size = 4
 $T13 = -24						; size = 4
@@ -6957,7 +7129,7 @@ _blacklisted$1$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
 ?SK_LoadLazyImports32@@YAXXZ PROC			; SK_LoadLazyImports32
 
-; 733  : {
+; 776  : {
 
 	npad	2
 	push	ebp
@@ -6971,29 +7143,29 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	xor	esi, esi
 
-; 734  :   int success = 0;
+; 777  :   int success = 0;
 
 	xor	eax, eax
 	push	edi
 	mov	DWORD PTR $T14[ebp], esi
-	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+64
+	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+68
 	mov	DWORD PTR $T13[ebp], esi
 	mov	DWORD PTR _success$1$[ebp], eax
 $LL4@SK_LoadLaz:
 
-; 737  :   {
-; 738  :     // Skip libraries that are already loaded
-; 739  :     if (import.hLibrary != nullptr)
+; 780  :   {
+; 781  :     // Skip libraries that are already loaded
+; 782  :     if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	cmp	DWORD PTR [edi-68], 0
 	jne	$LN2@SK_LoadLaz
 
-; 744  :       import.blacklist != nullptr ?
+; 787  :       import.blacklist != nullptr ?
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	BYTE PTR _blacklisted$1$[ebp], 0
 	test	ecx, ecx
-	je	SHORT $LN17@SK_LoadLaz
+	je	SHORT $LN18@SK_LoadLaz
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T7[ebp]
 	push	edx
@@ -7002,8 +7174,8 @@ $LL4@SK_LoadLaz:
 	mov	ecx, eax
 	mov	eax, DWORD PTR $T14[ebp]
 	or	eax, 1
-	jmp	SHORT $LN431@SK_LoadLaz
-$LN17@SK_LoadLaz:
+	jmp	SHORT $LN444@SK_LoadLaz
+$LN18@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -7018,7 +7190,7 @@ $LN17@SK_LoadLaz:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151226
+	push	OFFSET $SG151406
 	lea	ecx, DWORD PTR $T8[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -7037,7 +7209,7 @@ $LN17@SK_LoadLaz:
 	mov	eax, DWORD PTR $T14[ebp]
 	lea	ecx, DWORD PTR $T8[ebp]
 	or	eax, 2
-$LN431@SK_LoadLaz:
+$LN444@SK_LoadLaz:
 
 ; 1595 : 		_Mysize(0),
 
@@ -7076,11 +7248,11 @@ $LN431@SK_LoadLaz:
 	mov	WORD PTR [ecx], dx
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 744  :       import.blacklist != nullptr ?
+; 787  :       import.blacklist != nullptr ?
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	al, 2
-	je	SHORT $LN123@SK_LoadLaz
+	je	SHORT $LN124@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -7088,7 +7260,7 @@ $LN431@SK_LoadLaz:
 	mov	ecx, DWORD PTR $T8[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 744  :       import.blacklist != nullptr ?
+; 787  :       import.blacklist != nullptr ?
 
 	and	eax, -3					; fffffffdH
 	mov	DWORD PTR $T14[ebp], eax
@@ -7101,7 +7273,7 @@ $LN431@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN126@SK_LoadLaz
+	jb	SHORT $LN127@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -7116,7 +7288,7 @@ $LN431@SK_LoadLaz:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T14[ebp]
 	add	esp, 12					; 0000000cH
-$LN126@SK_LoadLaz:
+$LN127@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -7136,14 +7308,14 @@ $LN126@SK_LoadLaz:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T8[ebp], cx
-$LN123@SK_LoadLaz:
+$LN124@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 744  :       import.blacklist != nullptr ?
+; 787  :       import.blacklist != nullptr ?
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 	test	al, 1
-	je	SHORT $LN153@SK_LoadLaz
+	je	SHORT $LN154@SK_LoadLaz
 	and	eax, -2					; fffffffeH
 	mov	DWORD PTR $T14[ebp], eax
 	mov	DWORD PTR $T13[ebp], eax
@@ -7156,7 +7328,7 @@ $LN123@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN156@SK_LoadLaz
+	jb	SHORT $LN157@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -7170,7 +7342,7 @@ $LN123@SK_LoadLaz:
 	push	DWORD PTR $T7[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN156@SK_LoadLaz:
+$LN157@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -7190,7 +7362,7 @@ $LN156@SK_LoadLaz:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T7[ebp], ax
-$LN153@SK_LoadLaz:
+$LN154@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -7203,7 +7375,7 @@ $LN153@SK_LoadLaz:
 	cmovae	esi, DWORD PTR _blacklist$12[ebp]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 748  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
+; 791  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -7214,28 +7386,28 @@ $LN153@SK_LoadLaz:
 	mov	eax, 1
 	cmovne	ecx, eax
 
-; 749  :       blacklisted = true;
-; 750  : 
-; 751  :     if (import.filename != nullptr)
+; 792  :       blacklisted = true;
+; 793  : 
+; 794  :     if (import.filename != nullptr)
 
 	cmp	DWORD PTR [edi-12], 0
-	mov	DWORD PTR tv1649[ebp], ecx
-	je	$LN368@SK_LoadLaz
+	mov	DWORD PTR tv1682[ebp], ecx
+	je	$LN381@SK_LoadLaz
 
-; 752  :     {
-; 753  :       if (import.when != nullptr)
+; 795  :     {
+; 796  :       if (import.when != nullptr)
 
 	cmp	DWORD PTR [edi-8], 0
-	je	$LN368@SK_LoadLaz
+	je	$LN381@SK_LoadLaz
 
-; 754  :       {
-; 755  :         if (import.architecture != nullptr)
+; 797  :       {
+; 798  :         if (import.architecture != nullptr)
 
 	mov	ecx, DWORD PTR [edi]
 	test	ecx, ecx
-	je	$LN368@SK_LoadLaz
+	je	$LN381@SK_LoadLaz
 
-; 757  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 800  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T5[ebp]
@@ -7251,7 +7423,7 @@ $LN153@SK_LoadLaz:
 	or	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 757  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 800  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7264,10 +7436,10 @@ $LN153@SK_LoadLaz:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 757  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 800  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	test	al, al
-	je	SHORT $LN19@SK_LoadLaz
+	je	SHORT $LN20@SK_LoadLaz
 	mov	ecx, DWORD PTR [edi-8]
 	lea	edx, DWORD PTR $T11[ebp]
 	push	edx
@@ -7285,17 +7457,17 @@ $LN153@SK_LoadLaz:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 757  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 800  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	BYTE PTR $T15[ebp], 1
 	test	al, al
-	jne	SHORT $LN20@SK_LoadLaz
-$LN19@SK_LoadLaz:
-	mov	BYTE PTR $T15[ebp], 0
+	jne	SHORT $LN21@SK_LoadLaz
 $LN20@SK_LoadLaz:
+	mov	BYTE PTR $T15[ebp], 0
+$LN21@SK_LoadLaz:
 	mov	eax, DWORD PTR $T14[ebp]
 	test	al, 8
-	je	SHORT $LN208@SK_LoadLaz
+	je	SHORT $LN209@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -7303,7 +7475,7 @@ $LN20@SK_LoadLaz:
 	mov	ecx, DWORD PTR $T11[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 757  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 800  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	and	eax, -9					; fffffff7H
 	mov	DWORD PTR $T14[ebp], eax
@@ -7315,7 +7487,7 @@ $LN20@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN211@SK_LoadLaz
+	jb	SHORT $LN212@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -7330,7 +7502,7 @@ $LN20@SK_LoadLaz:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T14[ebp]
 	add	esp, 12					; 0000000cH
-$LN211@SK_LoadLaz:
+$LN212@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -7350,10 +7522,10 @@ $LN211@SK_LoadLaz:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T11[ebp], cx
-$LN208@SK_LoadLaz:
+$LN209@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 757  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 800  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	and	eax, -5					; fffffffbH
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
@@ -7368,7 +7540,7 @@ $LN208@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN241@SK_LoadLaz
+	jb	SHORT $LN242@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -7382,15 +7554,15 @@ $LN208@SK_LoadLaz:
 	push	DWORD PTR $T5[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN241@SK_LoadLaz:
+$LN242@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 757  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 800  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	cmp	BYTE PTR $T15[ebp], 0
-	je	$LN368@SK_LoadLaz
+	je	$LN381@SK_LoadLaz
 
-; 760  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 803  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T10[ebp]
@@ -7406,16 +7578,16 @@ $LN241@SK_LoadLaz:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN280@SK_LoadLaz
+	jb	SHORT $LN281@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN280@SK_LoadLaz:
+$LN281@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 760  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 803  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	push	eax
 	call	DWORD PTR __imp___wcsdup
@@ -7426,7 +7598,7 @@ $LN280@SK_LoadLaz:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 760  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 803  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	add	esp, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -7441,7 +7613,7 @@ $LN280@SK_LoadLaz:
 	mov	eax, DWORD PTR $T10[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 760  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 803  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7452,7 +7624,7 @@ $LN280@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN294@SK_LoadLaz
+	jb	SHORT $LN295@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -7466,7 +7638,7 @@ $LN280@SK_LoadLaz:
 	push	DWORD PTR $T10[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN294@SK_LoadLaz:
+$LN295@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -7479,7 +7651,7 @@ $LN294@SK_LoadLaz:
 	mov	DWORD PTR $T10[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 762  :             SK_StripUserNameFromPathW (file);
+; 805  :             SK_StripUserNameFromPathW (file);
 
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7494,28 +7666,28 @@ $LN294@SK_LoadLaz:
 	mov	WORD PTR $T10[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 762  :             SK_StripUserNameFromPathW (file);
+; 805  :             SK_StripUserNameFromPathW (file);
 
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 763  : 
-; 764  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
+; 806  : 
+; 807  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG151233
+	push	OFFSET $SG151413
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 765  :                 file.m_pData);
-; 766  : 
-; 767  :             if (! blacklisted)
+; 808  :                 file.m_pData);
+; 809  : 
+; 810  :             if (! blacklisted)
 
-	cmp	BYTE PTR tv1649[ebp], 0
+	cmp	BYTE PTR tv1682[ebp], 0
 	jne	$LN11@SK_LoadLaz
 
-; 769  :               import.hLibrary = LoadLibraryW_Original (
+; 812  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T4[ebp]
@@ -7530,50 +7702,77 @@ $LN294@SK_LoadLaz:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 769  :               import.hLibrary = LoadLibraryW_Original (
+; 812  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN335@SK_LoadLaz
+	jb	SHORT $LN336@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN335@SK_LoadLaz:
+$LN336@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 769  :               import.hLibrary = LoadLibraryW_Original (
+; 812  :               import.hLibrary = LoadLibraryW_Original (
 
 	push	eax
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	lea	ecx, DWORD PTR $T4[ebp]
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 770  :                 import.filename->get_value_str ().c_str ()
-; 771  :                 );
-; 772  : 
-; 773  :               if (import.hLibrary != nullptr)
+; 813  :                 import.filename->get_value_str ().c_str ()
+; 814  :                 );
+; 815  : 
+; 816  :               if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	mov	ecx, DWORD PTR [edi-68]
+	test	ecx, ecx
 	je	SHORT $LN13@SK_LoadLaz
 
-; 774  :               {
-; 775  :                 dll_log.LogEx (false, L"success!\n");
+; 817  :               {
+; 818  :                 if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
 
-	push	OFFSET $SG151238
+	lea	eax, DWORD PTR [edi-64]
+	push	eax
+	push	ecx
+	call	?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ; SK_Import_GetShimmedLibrary
+	add	esp, 8
+	test	al, al
+	je	SHORT $LN343@SK_LoadLaz
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 66   : 	_Ty _Tmp = _STD move(_Left);
+
+	mov	ecx, DWORD PTR [edi-68]
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	eax, DWORD PTR [edi-64]
+	mov	DWORD PTR [edi-68], eax
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi-64], ecx
+$LN343@SK_LoadLaz:
+; File c:\users\andon\source\repos\specialk\src\import.cpp
+
+; 821  :                 dll_log.LogEx (false, L"success!\n");
+
+	push	OFFSET $SG151419
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 778  :                 import.product_desc =
+; 824  :                 import.product_desc =
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	inc	DWORD PTR _success$1$[ebp]
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
@@ -7586,23 +7785,23 @@ $LN335@SK_LoadLaz:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 778  :                 import.product_desc =
+; 824  :                 import.product_desc =
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN354@SK_LoadLaz
+	jb	SHORT $LN367@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN354@SK_LoadLaz:
+$LN367@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 778  :                 import.product_desc =
+; 824  :                 import.product_desc =
 
 	push	eax
 	lea	eax, DWORD PTR $T3[ebp]
@@ -7616,18 +7815,18 @@ $LN354@SK_LoadLaz:
 	lea	ecx, DWORD PTR $T6[ebp]
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 779  :                   SK_GetDLLVersionStr (
-; 780  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
-; 781  :                   );
-; 782  :               }
-; 783  : 
-; 784  :               else
+; 825  :                   SK_GetDLLVersionStr (
+; 826  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
+; 827  :                   );
+; 828  :               }
+; 829  : 
+; 830  :               else
 
 	jmp	SHORT $LN12@SK_LoadLaz
 $LN13@SK_LoadLaz:
 
-; 785  :               {
-; 786  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+; 831  :               {
+; 832  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
 	call	DWORD PTR __imp__GetLastError@0
 ; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
@@ -7635,13 +7834,13 @@ $LN13@SK_LoadLaz:
 ; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
 
 	test	eax, eax
-	jle	SHORT $LN363@SK_LoadLaz
+	jle	SHORT $LN376@SK_LoadLaz
 	movzx	eax, ax
 	or	eax, -2147024896			; 80070000H
-$LN363@SK_LoadLaz:
+$LN376@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 789  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 835  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	lea	ecx, DWORD PTR _err$9[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -7657,11 +7856,11 @@ $LN363@SK_LoadLaz:
 	mov	DWORD PTR _err$9[ebp+12], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 788  :                 import.hLibrary = (HMODULE)-3;
+; 834  :                 import.hLibrary = (HMODULE)-3;
 
-	mov	DWORD PTR [edi-64], -3			; fffffffdH
+	mov	DWORD PTR [edi-68], -3			; fffffffdH
 
-; 789  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 835  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
@@ -7669,37 +7868,37 @@ $LN363@SK_LoadLaz:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151239
+	push	OFFSET $SG151420
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 790  :                                err.WCode (), err.ErrorMessage () );
-; 791  :               }
+; 836  :                                err.WCode (), err.ErrorMessage () );
+; 837  :               }
 
 	lea	ecx, DWORD PTR _err$9[ebp]
 	call	??1_com_error@@UAE@XZ			; _com_error::~_com_error
 
-; 792  :             }
-; 793  : 
-; 794  :             else
+; 838  :             }
+; 839  : 
+; 840  :             else
 
 	jmp	SHORT $LN12@SK_LoadLaz
 $LN11@SK_LoadLaz:
 
-; 795  :             {
-; 796  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
+; 841  :             {
+; 842  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG151240
+	push	OFFSET $SG151421
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 797  :               import.hLibrary = (HMODULE)-3;
+; 843  :               import.hLibrary = (HMODULE)-3;
 
-	mov	DWORD PTR [edi-64], -3			; fffffffdH
+	mov	DWORD PTR [edi-68], -3			; fffffffdH
 $LN12@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
 
@@ -7708,7 +7907,7 @@ $LN12@SK_LoadLaz:
 	push	esi
 	call	DWORD PTR __imp__free
 	add	esp, 4
-$LN368@SK_LoadLaz:
+$LN381@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -7716,7 +7915,7 @@ $LN368@SK_LoadLaz:
 	mov	eax, DWORD PTR _blacklist$12[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 803  :   }
+; 849  :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7727,7 +7926,7 @@ $LN368@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN410@SK_LoadLaz
+	jb	SHORT $LN423@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -7743,7 +7942,7 @@ $LN368@SK_LoadLaz:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	SHORT $LN424@SK_LoadLaz
+	ja	SHORT $LN437@SK_LoadLaz
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -7752,14 +7951,14 @@ $LN368@SK_LoadLaz:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN405@SK_LoadLaz
+	jb	SHORT $LN418@SK_LoadLaz
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	SHORT $LN424@SK_LoadLaz
+	jne	SHORT $LN437@SK_LoadLaz
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -7781,7 +7980,7 @@ $LN368@SK_LoadLaz:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	SHORT $LN424@SK_LoadLaz
+	jae	SHORT $LN437@SK_LoadLaz
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -7793,19 +7992,19 @@ $LN368@SK_LoadLaz:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	SHORT $LN424@SK_LoadLaz
+	jb	SHORT $LN437@SK_LoadLaz
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	SHORT $LN424@SK_LoadLaz
+	ja	SHORT $LN437@SK_LoadLaz
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN405@SK_LoadLaz:
+$LN418@SK_LoadLaz:
 
 ; 133  : 		}
 ; 134  : 
@@ -7819,7 +8018,7 @@ $LN405@SK_LoadLaz:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN410@SK_LoadLaz:
+$LN423@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -7842,55 +8041,55 @@ $LN410@SK_LoadLaz:
 $LN2@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 736  :   for (auto& import : imports)
+; 779  :   for (auto& import : imports)
 
-	add	edi, 72					; 00000048H
-	lea	eax, DWORD PTR [edi-64]
-	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+576
+	add	edi, 76					; 0000004cH
+	lea	eax, DWORD PTR [edi-68]
+	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+608
 	jne	$LL4@SK_LoadLaz
 
-; 804  : 
-; 805  :   if (success > 0)
+; 850  : 
+; 851  :   if (success > 0)
 
 	mov	eax, DWORD PTR _success$1$[ebp]
 	pop	edi
 	pop	esi
 	test	eax, eax
-	jle	SHORT $LN15@SK_LoadLaz
+	jle	SHORT $LN16@SK_LoadLaz
 
-; 806  :     SK_SymRefreshModuleList ();
+; 852  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
-$LN15@SK_LoadLaz:
+$LN16@SK_LoadLaz:
 
-; 807  : }
+; 853  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN424@SK_LoadLaz:
+$LN437@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN432@SK_LoadLaz:
-$LN430@SK_LoadLaz:
+$LN445@SK_LoadLaz:
+$LN443@SK_LoadLaz:
 	int	3
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_LoadLazyImports32@@YAXXZ$0:
 	mov	eax, DWORD PTR $T13[ebp]
 	and	eax, 1
-	je	$LN22@SK_LoadLaz
+	je	$LN23@SK_LoadLaz
 	and	DWORD PTR $T13[ebp], -2			; fffffffeH
 	lea	ecx, DWORD PTR $T7[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN22@SK_LoadLaz:
+$LN23@SK_LoadLaz:
 	ret	0
 __unwindfunclet$?SK_LoadLazyImports32@@YAXXZ$2:
 	lea	ecx, DWORD PTR _blacklist$12[ebp]
@@ -7898,11 +8097,11 @@ __unwindfunclet$?SK_LoadLazyImports32@@YAXXZ$2:
 __unwindfunclet$?SK_LoadLazyImports32@@YAXXZ$3:
 	mov	eax, DWORD PTR $T13[ebp]
 	and	eax, 4
-	je	$LN29@SK_LoadLaz
+	je	$LN30@SK_LoadLaz
 	and	DWORD PTR $T13[ebp], -5			; fffffffbH
 	lea	ecx, DWORD PTR $T5[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN29@SK_LoadLaz:
+$LN30@SK_LoadLaz:
 	ret	0
 __unwindfunclet$?SK_LoadLazyImports32@@YAXXZ$6:
 	lea	ecx, DWORD PTR _file$2[ebp]
@@ -7981,6 +8180,8 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -8014,7 +8215,7 @@ $T8 = -120						; size = 24
 _err$9 = -96						; size = 16
 $T10 = -80						; size = 24
 $T11 = -80						; size = 24
-tv1649 = -56						; size = 4
+tv1682 = -56						; size = 4
 _blacklist$12 = -52					; size = 24
 _success$1$ = -28					; size = 4
 $T13 = -24						; size = 4
@@ -8024,7 +8225,7 @@ _blacklisted$1$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
 ?SK_LoadLateImports32@@YAXXZ PROC			; SK_LoadLateImports32
 
-; 656  : {
+; 696  : {
 
 	npad	2
 	push	ebp
@@ -8038,29 +8239,29 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	xor	esi, esi
 
-; 657  :   int success = 0;
+; 697  :   int success = 0;
 
 	xor	eax, eax
 	push	edi
 	mov	DWORD PTR $T14[ebp], esi
-	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+64
+	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+68
 	mov	DWORD PTR $T13[ebp], esi
 	mov	DWORD PTR _success$1$[ebp], eax
 $LL4@SK_LoadLat:
 
-; 660  :   {
-; 661  :     // Skip libraries that are already loaded
-; 662  :     if (import.hLibrary != nullptr)
+; 700  :   {
+; 701  :     // Skip libraries that are already loaded
+; 702  :     if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	cmp	DWORD PTR [edi-68], 0
 	jne	$LN2@SK_LoadLat
 
-; 667  :       import.blacklist != nullptr ?
+; 707  :       import.blacklist != nullptr ?
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	BYTE PTR _blacklisted$1$[ebp], 0
 	test	ecx, ecx
-	je	SHORT $LN17@SK_LoadLat
+	je	SHORT $LN18@SK_LoadLat
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T7[ebp]
 	push	edx
@@ -8069,8 +8270,8 @@ $LL4@SK_LoadLat:
 	mov	ecx, eax
 	mov	eax, DWORD PTR $T14[ebp]
 	or	eax, 1
-	jmp	SHORT $LN431@SK_LoadLat
-$LN17@SK_LoadLat:
+	jmp	SHORT $LN444@SK_LoadLat
+$LN18@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -8085,7 +8286,7 @@ $LN17@SK_LoadLat:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151164
+	push	OFFSET $SG151342
 	lea	ecx, DWORD PTR $T8[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -8104,7 +8305,7 @@ $LN17@SK_LoadLat:
 	mov	eax, DWORD PTR $T14[ebp]
 	lea	ecx, DWORD PTR $T8[ebp]
 	or	eax, 2
-$LN431@SK_LoadLat:
+$LN444@SK_LoadLat:
 
 ; 1595 : 		_Mysize(0),
 
@@ -8143,11 +8344,11 @@ $LN431@SK_LoadLat:
 	mov	WORD PTR [ecx], dx
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 667  :       import.blacklist != nullptr ?
+; 707  :       import.blacklist != nullptr ?
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	al, 2
-	je	SHORT $LN123@SK_LoadLat
+	je	SHORT $LN124@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -8155,7 +8356,7 @@ $LN431@SK_LoadLat:
 	mov	ecx, DWORD PTR $T8[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 667  :       import.blacklist != nullptr ?
+; 707  :       import.blacklist != nullptr ?
 
 	and	eax, -3					; fffffffdH
 	mov	DWORD PTR $T14[ebp], eax
@@ -8168,7 +8369,7 @@ $LN431@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN126@SK_LoadLat
+	jb	SHORT $LN127@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -8183,7 +8384,7 @@ $LN431@SK_LoadLat:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T14[ebp]
 	add	esp, 12					; 0000000cH
-$LN126@SK_LoadLat:
+$LN127@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -8203,14 +8404,14 @@ $LN126@SK_LoadLat:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T8[ebp], cx
-$LN123@SK_LoadLat:
+$LN124@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 667  :       import.blacklist != nullptr ?
+; 707  :       import.blacklist != nullptr ?
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 	test	al, 1
-	je	SHORT $LN153@SK_LoadLat
+	je	SHORT $LN154@SK_LoadLat
 	and	eax, -2					; fffffffeH
 	mov	DWORD PTR $T14[ebp], eax
 	mov	DWORD PTR $T13[ebp], eax
@@ -8223,7 +8424,7 @@ $LN123@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN156@SK_LoadLat
+	jb	SHORT $LN157@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -8237,7 +8438,7 @@ $LN123@SK_LoadLat:
 	push	DWORD PTR $T7[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN156@SK_LoadLat:
+$LN157@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -8257,7 +8458,7 @@ $LN156@SK_LoadLat:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T7[ebp], ax
-$LN153@SK_LoadLat:
+$LN154@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -8270,7 +8471,7 @@ $LN153@SK_LoadLat:
 	cmovae	esi, DWORD PTR _blacklist$12[ebp]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 671  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
+; 711  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -8281,28 +8482,28 @@ $LN153@SK_LoadLat:
 	mov	eax, 1
 	cmovne	ecx, eax
 
-; 672  :       blacklisted = true;
-; 673  : 
-; 674  :     if (import.filename != nullptr)
+; 712  :       blacklisted = true;
+; 713  : 
+; 714  :     if (import.filename != nullptr)
 
 	cmp	DWORD PTR [edi-12], 0
-	mov	DWORD PTR tv1649[ebp], ecx
-	je	$LN368@SK_LoadLat
+	mov	DWORD PTR tv1682[ebp], ecx
+	je	$LN381@SK_LoadLat
 
-; 675  :     {
-; 676  :       if (import.when != nullptr)
+; 715  :     {
+; 716  :       if (import.when != nullptr)
 
 	cmp	DWORD PTR [edi-8], 0
-	je	$LN368@SK_LoadLat
+	je	$LN381@SK_LoadLat
 
-; 677  :       {
-; 678  :         if (import.architecture != nullptr)
+; 717  :       {
+; 718  :         if (import.architecture != nullptr)
 
 	mov	ecx, DWORD PTR [edi]
 	test	ecx, ecx
-	je	$LN368@SK_LoadLat
+	je	$LN381@SK_LoadLat
 
-; 680  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 720  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T5[ebp]
@@ -8318,7 +8519,7 @@ $LN153@SK_LoadLat:
 	or	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 680  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 720  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -8331,10 +8532,10 @@ $LN153@SK_LoadLat:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 680  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 720  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	test	al, al
-	je	SHORT $LN19@SK_LoadLat
+	je	SHORT $LN20@SK_LoadLat
 	mov	ecx, DWORD PTR [edi-8]
 	lea	edx, DWORD PTR $T11[ebp]
 	push	edx
@@ -8352,17 +8553,17 @@ $LN153@SK_LoadLat:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 680  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 720  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	BYTE PTR $T15[ebp], 1
 	test	al, al
-	jne	SHORT $LN20@SK_LoadLat
-$LN19@SK_LoadLat:
-	mov	BYTE PTR $T15[ebp], 0
+	jne	SHORT $LN21@SK_LoadLat
 $LN20@SK_LoadLat:
+	mov	BYTE PTR $T15[ebp], 0
+$LN21@SK_LoadLat:
 	mov	eax, DWORD PTR $T14[ebp]
 	test	al, 8
-	je	SHORT $LN208@SK_LoadLat
+	je	SHORT $LN209@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -8370,7 +8571,7 @@ $LN20@SK_LoadLat:
 	mov	ecx, DWORD PTR $T11[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 680  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 720  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	and	eax, -9					; fffffff7H
 	mov	DWORD PTR $T14[ebp], eax
@@ -8382,7 +8583,7 @@ $LN20@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN211@SK_LoadLat
+	jb	SHORT $LN212@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -8397,7 +8598,7 @@ $LN20@SK_LoadLat:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T14[ebp]
 	add	esp, 12					; 0000000cH
-$LN211@SK_LoadLat:
+$LN212@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -8417,10 +8618,10 @@ $LN211@SK_LoadLat:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T11[ebp], cx
-$LN208@SK_LoadLat:
+$LN209@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 680  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 720  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	and	eax, -5					; fffffffbH
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
@@ -8435,7 +8636,7 @@ $LN208@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN241@SK_LoadLat
+	jb	SHORT $LN242@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -8449,15 +8650,15 @@ $LN208@SK_LoadLat:
 	push	DWORD PTR $T5[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN241@SK_LoadLat:
+$LN242@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 680  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 720  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	cmp	BYTE PTR $T15[ebp], 0
-	je	$LN368@SK_LoadLat
+	je	$LN381@SK_LoadLat
 
-; 683  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 723  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T10[ebp]
@@ -8473,16 +8674,16 @@ $LN241@SK_LoadLat:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN280@SK_LoadLat
+	jb	SHORT $LN281@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN280@SK_LoadLat:
+$LN281@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 683  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 723  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	push	eax
 	call	DWORD PTR __imp___wcsdup
@@ -8493,7 +8694,7 @@ $LN280@SK_LoadLat:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 683  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 723  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	add	esp, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -8508,7 +8709,7 @@ $LN280@SK_LoadLat:
 	mov	eax, DWORD PTR $T10[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 683  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 723  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -8519,7 +8720,7 @@ $LN280@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN294@SK_LoadLat
+	jb	SHORT $LN295@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -8533,7 +8734,7 @@ $LN280@SK_LoadLat:
 	push	DWORD PTR $T10[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN294@SK_LoadLat:
+$LN295@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -8546,7 +8747,7 @@ $LN294@SK_LoadLat:
 	mov	DWORD PTR $T10[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 685  :             SK_StripUserNameFromPathW (file);
+; 725  :             SK_StripUserNameFromPathW (file);
 
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -8561,28 +8762,28 @@ $LN294@SK_LoadLat:
 	mov	WORD PTR $T10[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 685  :             SK_StripUserNameFromPathW (file);
+; 725  :             SK_StripUserNameFromPathW (file);
 
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 686  : 
-; 687  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
+; 726  : 
+; 727  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG151171
+	push	OFFSET $SG151349
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 688  :               file.m_pData);
-; 689  : 
-; 690  :             if (! blacklisted)
+; 728  :               file.m_pData);
+; 729  : 
+; 730  :             if (! blacklisted)
 
-	cmp	BYTE PTR tv1649[ebp], 0
+	cmp	BYTE PTR tv1682[ebp], 0
 	jne	$LN11@SK_LoadLat
 
-; 692  :               import.hLibrary = LoadLibraryW_Original (
+; 732  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T4[ebp]
@@ -8597,50 +8798,77 @@ $LN294@SK_LoadLat:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 692  :               import.hLibrary = LoadLibraryW_Original (
+; 732  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN335@SK_LoadLat
+	jb	SHORT $LN336@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN335@SK_LoadLat:
+$LN336@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 692  :               import.hLibrary = LoadLibraryW_Original (
+; 732  :               import.hLibrary = LoadLibraryW_Original (
 
 	push	eax
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	lea	ecx, DWORD PTR $T4[ebp]
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 693  :                 import.filename->get_value_str ().c_str ()
-; 694  :                 );
-; 695  : 
-; 696  :               if (import.hLibrary != nullptr)
+; 733  :                 import.filename->get_value_str ().c_str ()
+; 734  :                 );
+; 735  : 
+; 736  :               if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	mov	ecx, DWORD PTR [edi-68]
+	test	ecx, ecx
 	je	SHORT $LN13@SK_LoadLat
 
-; 697  :               {
-; 698  :                 dll_log.LogEx (false, L"success!\n");
+; 737  :               {
+; 738  :                 if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
 
-	push	OFFSET $SG151176
+	lea	eax, DWORD PTR [edi-64]
+	push	eax
+	push	ecx
+	call	?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ; SK_Import_GetShimmedLibrary
+	add	esp, 8
+	test	al, al
+	je	SHORT $LN343@SK_LoadLat
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 66   : 	_Ty _Tmp = _STD move(_Left);
+
+	mov	ecx, DWORD PTR [edi-68]
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	eax, DWORD PTR [edi-64]
+	mov	DWORD PTR [edi-68], eax
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi-64], ecx
+$LN343@SK_LoadLat:
+; File c:\users\andon\source\repos\specialk\src\import.cpp
+
+; 741  :                 dll_log.LogEx (false, L"success!\n");
+
+	push	OFFSET $SG151355
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 701  :                 import.product_desc =
+; 744  :                 import.product_desc =
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	inc	DWORD PTR _success$1$[ebp]
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
@@ -8653,23 +8881,23 @@ $LN335@SK_LoadLat:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 701  :                 import.product_desc =
+; 744  :                 import.product_desc =
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN354@SK_LoadLat
+	jb	SHORT $LN367@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN354@SK_LoadLat:
+$LN367@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 701  :                 import.product_desc =
+; 744  :                 import.product_desc =
 
 	push	eax
 	lea	eax, DWORD PTR $T3[ebp]
@@ -8683,18 +8911,18 @@ $LN354@SK_LoadLat:
 	lea	ecx, DWORD PTR $T6[ebp]
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 702  :                   SK_GetDLLVersionStr (
-; 703  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
-; 704  :                   );
-; 705  :               }
-; 706  : 
-; 707  :               else
+; 745  :                   SK_GetDLLVersionStr (
+; 746  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
+; 747  :                   );
+; 748  :               }
+; 749  : 
+; 750  :               else
 
 	jmp	SHORT $LN12@SK_LoadLat
 $LN13@SK_LoadLat:
 
-; 708  :               {
-; 709  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+; 751  :               {
+; 752  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
 	call	DWORD PTR __imp__GetLastError@0
 ; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
@@ -8702,13 +8930,13 @@ $LN13@SK_LoadLat:
 ; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
 
 	test	eax, eax
-	jle	SHORT $LN363@SK_LoadLat
+	jle	SHORT $LN376@SK_LoadLat
 	movzx	eax, ax
 	or	eax, -2147024896			; 80070000H
-$LN363@SK_LoadLat:
+$LN376@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 712  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 755  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	lea	ecx, DWORD PTR _err$9[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -8724,11 +8952,11 @@ $LN363@SK_LoadLat:
 	mov	DWORD PTR _err$9[ebp+12], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 711  :                 import.hLibrary = (HMODULE)-2;
+; 754  :                 import.hLibrary = (HMODULE)-2;
 
-	mov	DWORD PTR [edi-64], -2			; fffffffeH
+	mov	DWORD PTR [edi-68], -2			; fffffffeH
 
-; 712  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 755  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
@@ -8736,29 +8964,29 @@ $LN363@SK_LoadLat:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151177
+	push	OFFSET $SG151356
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 713  :                                err.WCode (), err.ErrorMessage () );
-; 714  :               }
+; 756  :                                err.WCode (), err.ErrorMessage () );
+; 757  :               }
 
 	lea	ecx, DWORD PTR _err$9[ebp]
 	call	??1_com_error@@UAE@XZ			; _com_error::~_com_error
 
-; 715  :             }
-; 716  : 
-; 717  :             else
+; 758  :             }
+; 759  : 
+; 760  :             else
 
 	jmp	SHORT $LN12@SK_LoadLat
 $LN11@SK_LoadLat:
 
-; 718  :             {
-; 719  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
+; 761  :             {
+; 762  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG151178
+	push	OFFSET $SG151357
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -8771,7 +8999,7 @@ $LN12@SK_LoadLat:
 	push	esi
 	call	DWORD PTR __imp__free
 	add	esp, 4
-$LN368@SK_LoadLat:
+$LN381@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -8779,7 +9007,7 @@ $LN368@SK_LoadLat:
 	mov	eax, DWORD PTR _blacklist$12[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 725  :   }
+; 768  :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -8790,7 +9018,7 @@ $LN368@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN410@SK_LoadLat
+	jb	SHORT $LN423@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -8806,7 +9034,7 @@ $LN368@SK_LoadLat:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	SHORT $LN424@SK_LoadLat
+	ja	SHORT $LN437@SK_LoadLat
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -8815,14 +9043,14 @@ $LN368@SK_LoadLat:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN405@SK_LoadLat
+	jb	SHORT $LN418@SK_LoadLat
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	SHORT $LN424@SK_LoadLat
+	jne	SHORT $LN437@SK_LoadLat
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -8844,7 +9072,7 @@ $LN368@SK_LoadLat:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	SHORT $LN424@SK_LoadLat
+	jae	SHORT $LN437@SK_LoadLat
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -8856,19 +9084,19 @@ $LN368@SK_LoadLat:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	SHORT $LN424@SK_LoadLat
+	jb	SHORT $LN437@SK_LoadLat
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	SHORT $LN424@SK_LoadLat
+	ja	SHORT $LN437@SK_LoadLat
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN405@SK_LoadLat:
+$LN418@SK_LoadLat:
 
 ; 133  : 		}
 ; 134  : 
@@ -8882,7 +9110,7 @@ $LN405@SK_LoadLat:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN410@SK_LoadLat:
+$LN423@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -8905,55 +9133,55 @@ $LN410@SK_LoadLat:
 $LN2@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 659  :   for (auto& import : imports)
+; 699  :   for (auto& import : imports)
 
-	add	edi, 72					; 00000048H
-	lea	eax, DWORD PTR [edi-64]
-	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+576
+	add	edi, 76					; 0000004cH
+	lea	eax, DWORD PTR [edi-68]
+	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+608
 	jne	$LL4@SK_LoadLat
 
-; 726  : 
-; 727  :   if (success > 0)
+; 769  : 
+; 770  :   if (success > 0)
 
 	mov	eax, DWORD PTR _success$1$[ebp]
 	pop	edi
 	pop	esi
 	test	eax, eax
-	jle	SHORT $LN15@SK_LoadLat
+	jle	SHORT $LN16@SK_LoadLat
 
-; 728  :     SK_SymRefreshModuleList ();
+; 771  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
-$LN15@SK_LoadLat:
+$LN16@SK_LoadLat:
 
-; 729  : }
+; 772  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN424@SK_LoadLat:
+$LN437@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN432@SK_LoadLat:
-$LN430@SK_LoadLat:
+$LN445@SK_LoadLat:
+$LN443@SK_LoadLat:
 	int	3
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_LoadLateImports32@@YAXXZ$0:
 	mov	eax, DWORD PTR $T13[ebp]
 	and	eax, 1
-	je	$LN22@SK_LoadLat
+	je	$LN23@SK_LoadLat
 	and	DWORD PTR $T13[ebp], -2			; fffffffeH
 	lea	ecx, DWORD PTR $T7[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN22@SK_LoadLat:
+$LN23@SK_LoadLat:
 	ret	0
 __unwindfunclet$?SK_LoadLateImports32@@YAXXZ$2:
 	lea	ecx, DWORD PTR _blacklist$12[ebp]
@@ -8961,11 +9189,11 @@ __unwindfunclet$?SK_LoadLateImports32@@YAXXZ$2:
 __unwindfunclet$?SK_LoadLateImports32@@YAXXZ$3:
 	mov	eax, DWORD PTR $T13[ebp]
 	and	eax, 4
-	je	$LN29@SK_LoadLat
+	je	$LN30@SK_LoadLat
 	and	DWORD PTR $T13[ebp], -5			; fffffffbH
 	lea	ecx, DWORD PTR $T5[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN29@SK_LoadLat:
+$LN30@SK_LoadLat:
 	ret	0
 __unwindfunclet$?SK_LoadLateImports32@@YAXXZ$6:
 	lea	ecx, DWORD PTR _file$2[ebp]
@@ -9044,6 +9272,8 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9082,8 +9312,8 @@ $T9 = -124						; size = 24
 _err$10 = -100						; size = 16
 $T11 = -84						; size = 24
 $T12 = -84						; size = 24
-tv1785 = -60						; size = 4
-tv1733 = -56						; size = 4
+tv1820 = -60						; size = 4
+tv1765 = -56						; size = 4
 _blacklist$13 = -52					; size = 24
 _success$1$ = -28					; size = 4
 $T14 = -24						; size = 4
@@ -9094,7 +9324,7 @@ _blacklisted$1$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
 ?SK_LoadEarlyImports32@@YAXXZ PROC			; SK_LoadEarlyImports32
 
-; 486  : {
+; 520  : {
 
 	npad	2
 	push	ebp
@@ -9108,31 +9338,31 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	xor	esi, esi
 
-; 487  :   int success = 0;
+; 521  :   int success = 0;
 
 	xor	ecx, ecx
 	push	edi
 	mov	DWORD PTR $T15[ebp], esi
-	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+64
+	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+68
 	mov	DWORD PTR $T14[ebp], esi
 	mov	DWORD PTR _success$1$[ebp], ecx
 	npad	12
 $LL4@SK_LoadEar:
 
-; 490  :   {
-; 491  :     // Skip libraries that are already loaded
-; 492  :     if (import.hLibrary != nullptr)
+; 524  :   {
+; 525  :     // Skip libraries that are already loaded
+; 526  :     if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
-	mov	DWORD PTR tv1785[ebp], ecx
+	cmp	DWORD PTR [edi-68], 0
+	mov	DWORD PTR tv1820[ebp], ecx
 	jne	$LN2@SK_LoadEar
 
-; 497  :       import.blacklist != nullptr ?
+; 531  :       import.blacklist != nullptr ?
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	BYTE PTR _blacklisted$1$[ebp], 0
 	test	ecx, ecx
-	je	SHORT $LN19@SK_LoadEar
+	je	SHORT $LN20@SK_LoadEar
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T4[ebp]
 	push	edx
@@ -9141,8 +9371,8 @@ $LL4@SK_LoadEar:
 	mov	ecx, eax
 	mov	eax, DWORD PTR $T15[ebp]
 	or	eax, 1
-	jmp	SHORT $LN437@SK_LoadEar
-$LN19@SK_LoadEar:
+	jmp	SHORT $LN450@SK_LoadEar
+$LN20@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -9157,7 +9387,7 @@ $LN19@SK_LoadEar:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151027
+	push	OFFSET $SG151201
 	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -9176,7 +9406,7 @@ $LN19@SK_LoadEar:
 	mov	eax, DWORD PTR $T15[ebp]
 	lea	ecx, DWORD PTR $T9[ebp]
 	or	eax, 2
-$LN437@SK_LoadEar:
+$LN450@SK_LoadEar:
 
 ; 1595 : 		_Mysize(0),
 
@@ -9215,11 +9445,11 @@ $LN437@SK_LoadEar:
 	mov	WORD PTR [ecx], dx
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 497  :       import.blacklist != nullptr ?
+; 531  :       import.blacklist != nullptr ?
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	al, 2
-	je	SHORT $LN126@SK_LoadEar
+	je	SHORT $LN127@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -9227,7 +9457,7 @@ $LN437@SK_LoadEar:
 	mov	ecx, DWORD PTR $T9[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 497  :       import.blacklist != nullptr ?
+; 531  :       import.blacklist != nullptr ?
 
 	and	eax, -3					; fffffffdH
 	mov	DWORD PTR $T15[ebp], eax
@@ -9240,7 +9470,7 @@ $LN437@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN129@SK_LoadEar
+	jb	SHORT $LN130@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -9255,7 +9485,7 @@ $LN437@SK_LoadEar:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T15[ebp]
 	add	esp, 12					; 0000000cH
-$LN129@SK_LoadEar:
+$LN130@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -9275,14 +9505,14 @@ $LN129@SK_LoadEar:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T9[ebp], cx
-$LN126@SK_LoadEar:
+$LN127@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 497  :       import.blacklist != nullptr ?
+; 531  :       import.blacklist != nullptr ?
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 	test	al, 1
-	je	SHORT $LN156@SK_LoadEar
+	je	SHORT $LN157@SK_LoadEar
 	and	eax, -2					; fffffffeH
 	mov	DWORD PTR $T15[ebp], eax
 	mov	DWORD PTR $T14[ebp], eax
@@ -9295,7 +9525,7 @@ $LN126@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN159@SK_LoadEar
+	jb	SHORT $LN160@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -9309,7 +9539,7 @@ $LN126@SK_LoadEar:
 	push	DWORD PTR $T4[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN159@SK_LoadEar:
+$LN160@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -9329,7 +9559,7 @@ $LN159@SK_LoadEar:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T4[ebp], ax
-$LN156@SK_LoadEar:
+$LN157@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -9342,7 +9572,7 @@ $LN156@SK_LoadEar:
 	cmovae	esi, DWORD PTR _blacklist$13[ebp]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 501  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
+; 535  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -9353,28 +9583,28 @@ $LN156@SK_LoadEar:
 	mov	eax, 1
 	cmovne	ecx, eax
 
-; 502  :       blacklisted = true;
-; 503  : 
-; 504  :     if (import.filename != nullptr)
+; 536  :       blacklisted = true;
+; 537  : 
+; 538  :     if (import.filename != nullptr)
 
 	cmp	DWORD PTR [edi-12], 0
-	mov	DWORD PTR tv1733[ebp], ecx
-	je	$LN374@SK_LoadEar
+	mov	DWORD PTR tv1765[ebp], ecx
+	je	$LN387@SK_LoadEar
 
-; 505  :     {
-; 506  :       if (import.when != nullptr)
+; 539  :     {
+; 540  :       if (import.when != nullptr)
 
 	cmp	DWORD PTR [edi-8], 0
-	je	$LN374@SK_LoadEar
+	je	$LN387@SK_LoadEar
 
-; 507  :       {
-; 508  :         if (import.architecture != nullptr)
+; 541  :       {
+; 542  :         if (import.architecture != nullptr)
 
 	mov	ecx, DWORD PTR [edi]
 	test	ecx, ecx
-	je	$LN374@SK_LoadEar
+	je	$LN387@SK_LoadEar
 
-; 510  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 544  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T8[ebp]
@@ -9390,7 +9620,7 @@ $LN156@SK_LoadEar:
 	or	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 510  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 544  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9403,10 +9633,10 @@ $LN156@SK_LoadEar:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 510  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 544  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	test	al, al
-	je	SHORT $LN21@SK_LoadEar
+	je	SHORT $LN22@SK_LoadEar
 	mov	ecx, DWORD PTR [edi-8]
 	lea	edx, DWORD PTR $T12[ebp]
 	push	edx
@@ -9424,17 +9654,17 @@ $LN156@SK_LoadEar:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 510  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 544  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	mov	BYTE PTR $T17[ebp], 1
 	test	al, al
-	jne	SHORT $LN22@SK_LoadEar
-$LN21@SK_LoadEar:
-	mov	BYTE PTR $T17[ebp], 0
+	jne	SHORT $LN23@SK_LoadEar
 $LN22@SK_LoadEar:
+	mov	BYTE PTR $T17[ebp], 0
+$LN23@SK_LoadEar:
 	mov	eax, DWORD PTR $T15[ebp]
 	test	al, 8
-	je	SHORT $LN211@SK_LoadEar
+	je	SHORT $LN212@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -9442,7 +9672,7 @@ $LN22@SK_LoadEar:
 	mov	ecx, DWORD PTR $T12[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 510  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 544  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	and	eax, -9					; fffffff7H
 	mov	DWORD PTR $T15[ebp], eax
@@ -9454,7 +9684,7 @@ $LN22@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN214@SK_LoadEar
+	jb	SHORT $LN215@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -9469,7 +9699,7 @@ $LN22@SK_LoadEar:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T15[ebp]
 	add	esp, 12					; 0000000cH
-$LN214@SK_LoadEar:
+$LN215@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -9489,10 +9719,10 @@ $LN214@SK_LoadEar:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T12[ebp], cx
-$LN211@SK_LoadEar:
+$LN212@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 510  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 544  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	and	eax, -5					; fffffffbH
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
@@ -9507,7 +9737,7 @@ $LN211@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN244@SK_LoadEar
+	jb	SHORT $LN245@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -9521,15 +9751,15 @@ $LN211@SK_LoadEar:
 	push	DWORD PTR $T8[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN244@SK_LoadEar:
+$LN245@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 510  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
+; 544  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_WIN32 &&
 
 	cmp	BYTE PTR $T17[ebp], 0
-	je	$LN374@SK_LoadEar
+	je	$LN387@SK_LoadEar
 
-; 513  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 547  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T11[ebp]
@@ -9545,16 +9775,16 @@ $LN244@SK_LoadEar:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN283@SK_LoadEar
+	jb	SHORT $LN284@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN283@SK_LoadEar:
+$LN284@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 513  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 547  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	push	eax
 	call	DWORD PTR __imp___wcsdup
@@ -9565,7 +9795,7 @@ $LN283@SK_LoadEar:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 513  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 547  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	add	esp, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -9580,7 +9810,7 @@ $LN283@SK_LoadEar:
 	mov	eax, DWORD PTR $T11[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 513  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 547  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9591,7 +9821,7 @@ $LN283@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN297@SK_LoadEar
+	jb	SHORT $LN298@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -9605,7 +9835,7 @@ $LN283@SK_LoadEar:
 	push	DWORD PTR $T11[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN297@SK_LoadEar:
+$LN298@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -9618,7 +9848,7 @@ $LN297@SK_LoadEar:
 	mov	DWORD PTR $T11[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 515  :             SK_StripUserNameFromPathW (file);
+; 549  :             SK_StripUserNameFromPathW (file);
 
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9633,28 +9863,28 @@ $LN297@SK_LoadEar:
 	mov	WORD PTR $T11[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 515  :             SK_StripUserNameFromPathW (file);
+; 549  :             SK_StripUserNameFromPathW (file);
 
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 516  : 
-; 517  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
+; 550  : 
+; 551  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG151034
+	push	OFFSET $SG151208
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 518  :               file.m_pData);
-; 519  : 
-; 520  :             if (! blacklisted)
+; 552  :               file.m_pData);
+; 553  : 
+; 554  :             if (! blacklisted)
 
-	cmp	BYTE PTR tv1733[ebp], 0
+	cmp	BYTE PTR tv1765[ebp], 0
 	jne	$LN11@SK_LoadEar
 
-; 522  :               import.hLibrary = LoadLibraryW_Original (
+; 556  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T7[ebp]
@@ -9669,50 +9899,77 @@ $LN297@SK_LoadEar:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 522  :               import.hLibrary = LoadLibraryW_Original (
+; 556  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN338@SK_LoadEar
+	jb	SHORT $LN339@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN338@SK_LoadEar:
+$LN339@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 522  :               import.hLibrary = LoadLibraryW_Original (
+; 556  :               import.hLibrary = LoadLibraryW_Original (
 
 	push	eax
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	lea	ecx, DWORD PTR $T7[ebp]
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 523  :                 import.filename->get_value_str ().c_str ()
-; 524  :               );
-; 525  : 
-; 526  :               if (import.hLibrary != nullptr)
+; 557  :                 import.filename->get_value_str ().c_str ()
+; 558  :               );
+; 559  : 
+; 560  :               if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	mov	ecx, DWORD PTR [edi-68]
+	test	ecx, ecx
 	je	$LN13@SK_LoadEar
 
-; 527  :               {
-; 528  :                 dll_log.LogEx (false, L"success!\n");
+; 561  :               {
+; 562  :                 if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
 
-	push	OFFSET $SG151039
+	lea	eax, DWORD PTR [edi-64]
+	push	eax
+	push	ecx
+	call	?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ; SK_Import_GetShimmedLibrary
+	add	esp, 8
+	test	al, al
+	je	SHORT $LN346@SK_LoadEar
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 66   : 	_Ty _Tmp = _STD move(_Left);
+
+	mov	ecx, DWORD PTR [edi-68]
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	eax, DWORD PTR [edi-64]
+	mov	DWORD PTR [edi-68], eax
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi-64], ecx
+$LN346@SK_LoadEar:
+; File c:\users\andon\source\repos\specialk\src\import.cpp
+
+; 565  :                 dll_log.LogEx (false, L"success!\n");
+
+	push	OFFSET $SG151214
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 531  :                 import.product_desc =
+; 568  :                 import.product_desc =
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	inc	DWORD PTR _success$1$[ebp]
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -9725,23 +9982,23 @@ $LN338@SK_LoadEar:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 531  :                 import.product_desc =
+; 568  :                 import.product_desc =
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN357@SK_LoadEar
+	jb	SHORT $LN370@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN357@SK_LoadEar:
+$LN370@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 531  :                 import.product_desc =
+; 568  :                 import.product_desc =
 
 	push	eax
 	lea	eax, DWORD PTR $T6[ebp]
@@ -9756,7 +10013,7 @@ $LN357@SK_LoadEar:
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 536  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 573  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	mov	ecx, DWORD PTR [edi-4]
 	lea	edx, DWORD PTR $T5[ebp]
@@ -9773,7 +10030,7 @@ $LN357@SK_LoadEar:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 536  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 573  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	lea	ecx, DWORD PTR $T5[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9783,41 +10040,41 @@ $LN357@SK_LoadEar:
 	mov	BYTE PTR $T16[ebp], al
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 536  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 573  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	cmp	BYTE PTR $T16[ebp], 0
 	je	$LN12@SK_LoadEar
 
-; 537  :                 {
-; 538  :                   import.hLibrary = SK_InitPlugIn32 (import.hLibrary);
+; 574  :                 {
+; 575  :                   import.hLibrary = SK_InitPlugIn32 (import.hLibrary);
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	call	?SK_InitPlugIn32@@YAPAUHINSTANCE__@@PAU1@@Z ; SK_InitPlugIn32
 	add	esp, 4
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 
-; 539  : 
-; 540  :                   if (import.hLibrary == nullptr)
+; 576  : 
+; 577  :                   if (import.hLibrary == nullptr)
 
 	test	eax, eax
 	jne	$LN12@SK_LoadEar
 
-; 541  :                     --success;
+; 578  :                     --success;
 
-	mov	eax, DWORD PTR tv1785[ebp]
+	mov	eax, DWORD PTR tv1820[ebp]
 	mov	DWORD PTR _success$1$[ebp], eax
 
-; 542  :                 }
-; 543  :               }
-; 544  : 
-; 545  :               else
+; 579  :                 }
+; 580  :               }
+; 581  : 
+; 582  :               else
 
 	jmp	SHORT $LN12@SK_LoadEar
 $LN13@SK_LoadEar:
 
-; 546  :               {
-; 547  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+; 583  :               {
+; 584  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
 	call	DWORD PTR __imp__GetLastError@0
 ; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
@@ -9825,13 +10082,13 @@ $LN13@SK_LoadEar:
 ; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
 
 	test	eax, eax
-	jle	SHORT $LN369@SK_LoadEar
+	jle	SHORT $LN382@SK_LoadEar
 	movzx	eax, ax
 	or	eax, -2147024896			; 80070000H
-$LN369@SK_LoadEar:
+$LN382@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 550  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 587  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	lea	ecx, DWORD PTR _err$10[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -9847,11 +10104,11 @@ $LN369@SK_LoadEar:
 	mov	DWORD PTR _err$10[ebp+12], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 549  :                 import.hLibrary = (HMODULE)-2;
+; 586  :                 import.hLibrary = (HMODULE)-2;
 
-	mov	DWORD PTR [edi-64], -2			; fffffffeH
+	mov	DWORD PTR [edi-68], -2			; fffffffeH
 
-; 550  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 587  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
@@ -9859,29 +10116,29 @@ $LN369@SK_LoadEar:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151043
+	push	OFFSET $SG151218
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 551  :                                err.WCode (), err.ErrorMessage () );
-; 552  :               }
+; 588  :                                err.WCode (), err.ErrorMessage () );
+; 589  :               }
 
 	lea	ecx, DWORD PTR _err$10[ebp]
 	call	??1_com_error@@UAE@XZ			; _com_error::~_com_error
 
-; 553  :             }
-; 554  : 
-; 555  :             else
+; 590  :             }
+; 591  : 
+; 592  :             else
 
 	jmp	SHORT $LN12@SK_LoadEar
 $LN11@SK_LoadEar:
 
-; 556  :             {
-; 557  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
+; 593  :             {
+; 594  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG151044
+	push	OFFSET $SG151219
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -9894,7 +10151,7 @@ $LN12@SK_LoadEar:
 	push	esi
 	call	DWORD PTR __imp__free
 	add	esp, 4
-$LN374@SK_LoadEar:
+$LN387@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -9902,7 +10159,7 @@ $LN374@SK_LoadEar:
 	mov	eax, DWORD PTR _blacklist$13[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 563  :   }
+; 600  :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9913,7 +10170,7 @@ $LN374@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN416@SK_LoadEar
+	jb	SHORT $LN429@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -9929,7 +10186,7 @@ $LN374@SK_LoadEar:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	SHORT $LN430@SK_LoadEar
+	ja	SHORT $LN443@SK_LoadEar
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -9938,14 +10195,14 @@ $LN374@SK_LoadEar:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN411@SK_LoadEar
+	jb	SHORT $LN424@SK_LoadEar
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	SHORT $LN430@SK_LoadEar
+	jne	SHORT $LN443@SK_LoadEar
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -9967,7 +10224,7 @@ $LN374@SK_LoadEar:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	SHORT $LN430@SK_LoadEar
+	jae	SHORT $LN443@SK_LoadEar
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -9979,19 +10236,19 @@ $LN374@SK_LoadEar:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	SHORT $LN430@SK_LoadEar
+	jb	SHORT $LN443@SK_LoadEar
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	SHORT $LN430@SK_LoadEar
+	ja	SHORT $LN443@SK_LoadEar
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN411@SK_LoadEar:
+$LN424@SK_LoadEar:
 
 ; 133  : 		}
 ; 134  : 
@@ -10005,7 +10262,7 @@ $LN411@SK_LoadEar:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN416@SK_LoadEar:
+$LN429@SK_LoadEar:
 	mov	ecx, DWORD PTR _success$1$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -10029,54 +10286,54 @@ $LN416@SK_LoadEar:
 $LN2@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 489  :   for (auto& import : imports)
+; 523  :   for (auto& import : imports)
 
-	add	edi, 72					; 00000048H
-	lea	eax, DWORD PTR [edi-64]
-	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+576
+	add	edi, 76					; 0000004cH
+	lea	eax, DWORD PTR [edi-68]
+	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+608
 	jne	$LL4@SK_LoadEar
 
-; 564  : 
-; 565  :   if (success > 0)
+; 601  : 
+; 602  :   if (success > 0)
 
 	pop	edi
 	pop	esi
 	test	ecx, ecx
-	jle	SHORT $LN17@SK_LoadEar
+	jle	SHORT $LN18@SK_LoadEar
 
-; 566  :     SK_SymRefreshModuleList ();
+; 603  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
-$LN17@SK_LoadEar:
+$LN18@SK_LoadEar:
 
-; 567  : }
+; 604  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN430@SK_LoadEar:
+$LN443@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN438@SK_LoadEar:
-$LN436@SK_LoadEar:
+$LN451@SK_LoadEar:
+$LN449@SK_LoadEar:
 	int	3
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_LoadEarlyImports32@@YAXXZ$0:
 	mov	eax, DWORD PTR $T14[ebp]
 	and	eax, 1
-	je	$LN24@SK_LoadEar
+	je	$LN25@SK_LoadEar
 	and	DWORD PTR $T14[ebp], -2			; fffffffeH
 	lea	ecx, DWORD PTR $T4[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN24@SK_LoadEar:
+$LN25@SK_LoadEar:
 	ret	0
 __unwindfunclet$?SK_LoadEarlyImports32@@YAXXZ$2:
 	lea	ecx, DWORD PTR _blacklist$13[ebp]
@@ -10084,11 +10341,11 @@ __unwindfunclet$?SK_LoadEarlyImports32@@YAXXZ$2:
 __unwindfunclet$?SK_LoadEarlyImports32@@YAXXZ$3:
 	mov	eax, DWORD PTR $T14[ebp]
 	and	eax, 4
-	je	$LN31@SK_LoadEar
+	je	$LN32@SK_LoadEar
 	and	DWORD PTR $T14[ebp], -5			; fffffffbH
 	lea	ecx, DWORD PTR $T8[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN31@SK_LoadEar:
+$LN32@SK_LoadEar:
 	ret	0
 __unwindfunclet$?SK_LoadEarlyImports32@@YAXXZ$6:
 	lea	ecx, DWORD PTR _file$2[ebp]
@@ -10167,6 +10424,8 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -10205,8 +10464,8 @@ $T9 = -124						; size = 24
 _err$10 = -100						; size = 16
 $T11 = -84						; size = 24
 $T12 = -84						; size = 24
-tv1753 = -60						; size = 4
-tv1701 = -56						; size = 4
+tv1820 = -60						; size = 4
+tv1765 = -56						; size = 4
 _blacklist$13 = -52					; size = 24
 _success$1$ = -28					; size = 4
 $T14 = -24						; size = 4
@@ -10217,7 +10476,7 @@ _blacklisted$1$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
 ?SK_LoadPlugIns64@@YAXXZ PROC				; SK_LoadPlugIns64
 
-; 201  : {
+; 226  : {
 
 	npad	2
 	push	ebp
@@ -10231,31 +10490,31 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	xor	esi, esi
 
-; 202  :   int success = 0;
+; 227  :   int success = 0;
 
 	xor	ecx, ecx
 	push	edi
 	mov	DWORD PTR $T15[ebp], esi
-	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+64
+	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+68
 	mov	DWORD PTR $T14[ebp], esi
 	mov	DWORD PTR _success$1$[ebp], ecx
 	npad	12
 $LL4@SK_LoadPlu:
 
-; 205  :   {
-; 206  :     // Skip libraries that are already loaded
-; 207  :     if (import.hLibrary != nullptr)
+; 230  :   {
+; 231  :     // Skip libraries that are already loaded
+; 232  :     if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
-	mov	DWORD PTR tv1753[ebp], ecx
+	cmp	DWORD PTR [edi-68], 0
+	mov	DWORD PTR tv1820[ebp], ecx
 	jne	$LN2@SK_LoadPlu
 
-; 212  :       import.blacklist != nullptr ?
+; 237  :       import.blacklist != nullptr ?
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	BYTE PTR _blacklisted$1$[ebp], 0
 	test	ecx, ecx
-	je	SHORT $LN19@SK_LoadPlu
+	je	SHORT $LN20@SK_LoadPlu
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T4[ebp]
 	push	edx
@@ -10264,8 +10523,8 @@ $LL4@SK_LoadPlu:
 	mov	ecx, eax
 	mov	eax, DWORD PTR $T15[ebp]
 	or	eax, 1
-	jmp	SHORT $LN437@SK_LoadPlu
-$LN19@SK_LoadPlu:
+	jmp	SHORT $LN450@SK_LoadPlu
+$LN20@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -10280,7 +10539,7 @@ $LN19@SK_LoadPlu:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG150815
+	push	OFFSET $SG150983
 	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -10299,7 +10558,7 @@ $LN19@SK_LoadPlu:
 	mov	eax, DWORD PTR $T15[ebp]
 	lea	ecx, DWORD PTR $T9[ebp]
 	or	eax, 2
-$LN437@SK_LoadPlu:
+$LN450@SK_LoadPlu:
 
 ; 1595 : 		_Mysize(0),
 
@@ -10338,11 +10597,11 @@ $LN437@SK_LoadPlu:
 	mov	WORD PTR [ecx], dx
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 212  :       import.blacklist != nullptr ?
+; 237  :       import.blacklist != nullptr ?
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	al, 2
-	je	SHORT $LN126@SK_LoadPlu
+	je	SHORT $LN127@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -10350,7 +10609,7 @@ $LN437@SK_LoadPlu:
 	mov	ecx, DWORD PTR $T9[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 212  :       import.blacklist != nullptr ?
+; 237  :       import.blacklist != nullptr ?
 
 	and	eax, -3					; fffffffdH
 	mov	DWORD PTR $T15[ebp], eax
@@ -10363,7 +10622,7 @@ $LN437@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN129@SK_LoadPlu
+	jb	SHORT $LN130@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10378,7 +10637,7 @@ $LN437@SK_LoadPlu:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T15[ebp]
 	add	esp, 12					; 0000000cH
-$LN129@SK_LoadPlu:
+$LN130@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -10398,14 +10657,14 @@ $LN129@SK_LoadPlu:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T9[ebp], cx
-$LN126@SK_LoadPlu:
+$LN127@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 212  :       import.blacklist != nullptr ?
+; 237  :       import.blacklist != nullptr ?
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 	test	al, 1
-	je	SHORT $LN156@SK_LoadPlu
+	je	SHORT $LN157@SK_LoadPlu
 	and	eax, -2					; fffffffeH
 	mov	DWORD PTR $T15[ebp], eax
 	mov	DWORD PTR $T14[ebp], eax
@@ -10418,7 +10677,7 @@ $LN126@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN159@SK_LoadPlu
+	jb	SHORT $LN160@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10432,7 +10691,7 @@ $LN126@SK_LoadPlu:
 	push	DWORD PTR $T4[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN159@SK_LoadPlu:
+$LN160@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -10452,7 +10711,7 @@ $LN159@SK_LoadPlu:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T4[ebp], ax
-$LN156@SK_LoadPlu:
+$LN157@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -10465,7 +10724,7 @@ $LN156@SK_LoadPlu:
 	cmovae	esi, DWORD PTR _blacklist$13[ebp]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 216  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
+; 241  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -10476,28 +10735,28 @@ $LN156@SK_LoadPlu:
 	mov	eax, 1
 	cmovne	ecx, eax
 
-; 217  :       blacklisted = true;
-; 218  : 
-; 219  :     if (import.filename != nullptr)
+; 242  :       blacklisted = true;
+; 243  : 
+; 244  :     if (import.filename != nullptr)
 
 	cmp	DWORD PTR [edi-12], 0
-	mov	DWORD PTR tv1701[ebp], ecx
-	je	$LN374@SK_LoadPlu
+	mov	DWORD PTR tv1765[ebp], ecx
+	je	$LN387@SK_LoadPlu
 
-; 220  :     {
-; 221  :       if (import.when != nullptr)
+; 245  :     {
+; 246  :       if (import.when != nullptr)
 
 	cmp	DWORD PTR [edi-8], 0
-	je	$LN374@SK_LoadPlu
+	je	$LN387@SK_LoadPlu
 
-; 222  :       {
-; 223  :         if (import.architecture != nullptr)
+; 247  :       {
+; 248  :         if (import.architecture != nullptr)
 
 	mov	ecx, DWORD PTR [edi]
 	test	ecx, ecx
-	je	$LN374@SK_LoadPlu
+	je	$LN387@SK_LoadPlu
 
-; 225  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 250  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T8[ebp]
@@ -10513,7 +10772,7 @@ $LN156@SK_LoadPlu:
 	or	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 225  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 250  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -10526,10 +10785,10 @@ $LN156@SK_LoadPlu:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 225  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 250  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	test	al, al
-	je	SHORT $LN21@SK_LoadPlu
+	je	SHORT $LN22@SK_LoadPlu
 	mov	ecx, DWORD PTR [edi-8]
 	lea	edx, DWORD PTR $T12[ebp]
 	push	edx
@@ -10547,17 +10806,17 @@ $LN156@SK_LoadPlu:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 225  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 250  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	BYTE PTR $T17[ebp], 1
 	test	al, al
-	jne	SHORT $LN22@SK_LoadPlu
-$LN21@SK_LoadPlu:
-	mov	BYTE PTR $T17[ebp], 0
+	jne	SHORT $LN23@SK_LoadPlu
 $LN22@SK_LoadPlu:
+	mov	BYTE PTR $T17[ebp], 0
+$LN23@SK_LoadPlu:
 	mov	eax, DWORD PTR $T15[ebp]
 	test	al, 8
-	je	SHORT $LN211@SK_LoadPlu
+	je	SHORT $LN212@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -10565,7 +10824,7 @@ $LN22@SK_LoadPlu:
 	mov	ecx, DWORD PTR $T12[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 225  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 250  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	and	eax, -9					; fffffff7H
 	mov	DWORD PTR $T15[ebp], eax
@@ -10577,7 +10836,7 @@ $LN22@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN214@SK_LoadPlu
+	jb	SHORT $LN215@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10592,7 +10851,7 @@ $LN22@SK_LoadPlu:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T15[ebp]
 	add	esp, 12					; 0000000cH
-$LN214@SK_LoadPlu:
+$LN215@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -10612,10 +10871,10 @@ $LN214@SK_LoadPlu:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T12[ebp], cx
-$LN211@SK_LoadPlu:
+$LN212@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 225  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 250  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	and	eax, -5					; fffffffbH
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
@@ -10630,7 +10889,7 @@ $LN211@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN244@SK_LoadPlu
+	jb	SHORT $LN245@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10644,15 +10903,15 @@ $LN211@SK_LoadPlu:
 	push	DWORD PTR $T8[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN244@SK_LoadPlu:
+$LN245@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 225  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 250  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	cmp	BYTE PTR $T17[ebp], 0
-	je	$LN374@SK_LoadPlu
+	je	$LN387@SK_LoadPlu
 
-; 228  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 253  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T11[ebp]
@@ -10668,16 +10927,16 @@ $LN244@SK_LoadPlu:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN283@SK_LoadPlu
+	jb	SHORT $LN284@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN283@SK_LoadPlu:
+$LN284@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 228  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 253  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	push	eax
 	call	DWORD PTR __imp___wcsdup
@@ -10688,7 +10947,7 @@ $LN283@SK_LoadPlu:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 228  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 253  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	add	esp, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -10703,7 +10962,7 @@ $LN283@SK_LoadPlu:
 	mov	eax, DWORD PTR $T11[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 228  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 253  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -10714,7 +10973,7 @@ $LN283@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN297@SK_LoadPlu
+	jb	SHORT $LN298@SK_LoadPlu
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10728,7 +10987,7 @@ $LN283@SK_LoadPlu:
 	push	DWORD PTR $T11[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN297@SK_LoadPlu:
+$LN298@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -10741,7 +11000,7 @@ $LN297@SK_LoadPlu:
 	mov	DWORD PTR $T11[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 230  :             SK_StripUserNameFromPathW (file);
+; 255  :             SK_StripUserNameFromPathW (file);
 
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -10756,28 +11015,28 @@ $LN297@SK_LoadPlu:
 	mov	WORD PTR $T11[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 230  :             SK_StripUserNameFromPathW (file);
+; 255  :             SK_StripUserNameFromPathW (file);
 
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 231  : 
-; 232  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
+; 256  : 
+; 257  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
 
 	push	esi
-	push	OFFSET $SG150822
+	push	OFFSET $SG150990
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 233  :               file.m_pData);
-; 234  : 
-; 235  :             if (! blacklisted)
+; 258  :               file.m_pData);
+; 259  : 
+; 260  :             if (! blacklisted)
 
-	cmp	BYTE PTR tv1701[ebp], 0
+	cmp	BYTE PTR tv1765[ebp], 0
 	jne	$LN11@SK_LoadPlu
 
-; 237  :               import.hLibrary = LoadLibraryW_Original (
+; 262  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T7[ebp]
@@ -10792,50 +11051,77 @@ $LN297@SK_LoadPlu:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 237  :               import.hLibrary = LoadLibraryW_Original (
+; 262  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN338@SK_LoadPlu
+	jb	SHORT $LN339@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN338@SK_LoadPlu:
+$LN339@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 237  :               import.hLibrary = LoadLibraryW_Original (
+; 262  :               import.hLibrary = LoadLibraryW_Original (
 
 	push	eax
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	lea	ecx, DWORD PTR $T7[ebp]
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 238  :                 import.filename->get_value_str ().c_str ()
-; 239  :               );
-; 240  : 
-; 241  :               if (import.hLibrary != nullptr)
+; 263  :                 import.filename->get_value_str ().c_str ()
+; 264  :               );
+; 265  : 
+; 266  :               if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	mov	ecx, DWORD PTR [edi-68]
+	test	ecx, ecx
 	je	$LN13@SK_LoadPlu
 
-; 242  :               {
-; 243  :                 dll_log.LogEx (false, L"success!\n");
+; 267  :               {
+; 268  :                 if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
 
-	push	OFFSET $SG150827
+	lea	eax, DWORD PTR [edi-64]
+	push	eax
+	push	ecx
+	call	?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ; SK_Import_GetShimmedLibrary
+	add	esp, 8
+	test	al, al
+	je	SHORT $LN346@SK_LoadPlu
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 66   : 	_Ty _Tmp = _STD move(_Left);
+
+	mov	ecx, DWORD PTR [edi-68]
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	eax, DWORD PTR [edi-64]
+	mov	DWORD PTR [edi-68], eax
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi-64], ecx
+$LN346@SK_LoadPlu:
+; File c:\users\andon\source\repos\specialk\src\import.cpp
+
+; 271  :                 dll_log.LogEx (false, L"success!\n");
+
+	push	OFFSET $SG150996
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 246  :                 import.product_desc =
+; 274  :                 import.product_desc =
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	inc	DWORD PTR _success$1$[ebp]
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -10848,23 +11134,23 @@ $LN338@SK_LoadPlu:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 246  :                 import.product_desc =
+; 274  :                 import.product_desc =
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN357@SK_LoadPlu
+	jb	SHORT $LN370@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN357@SK_LoadPlu:
+$LN370@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 246  :                 import.product_desc =
+; 274  :                 import.product_desc =
 
 	push	eax
 	lea	eax, DWORD PTR $T6[ebp]
@@ -10879,7 +11165,7 @@ $LN357@SK_LoadPlu:
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 251  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 279  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	mov	ecx, DWORD PTR [edi-4]
 	lea	edx, DWORD PTR $T5[ebp]
@@ -10896,7 +11182,7 @@ $LN357@SK_LoadPlu:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 251  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 279  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	lea	ecx, DWORD PTR $T5[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -10906,41 +11192,41 @@ $LN357@SK_LoadPlu:
 	mov	BYTE PTR $T16[ebp], al
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 251  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+; 279  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN)
 
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	cmp	BYTE PTR $T16[ebp], 0
 	je	$LN12@SK_LoadPlu
 
-; 252  :                 {
-; 253  :                   import.hLibrary = SK_InitPlugIn64 (import.hLibrary);
+; 280  :                 {
+; 281  :                   import.hLibrary = SK_InitPlugIn64 (import.hLibrary);
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	call	?SK_InitPlugIn64@@YAPAUHINSTANCE__@@PAU1@@Z ; SK_InitPlugIn64
 	add	esp, 4
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 
-; 254  : 
-; 255  :                   if (import.hLibrary == nullptr)
+; 282  : 
+; 283  :                   if (import.hLibrary == nullptr)
 
 	test	eax, eax
 	jne	SHORT $LN12@SK_LoadPlu
 
-; 256  :                     --success;
+; 284  :                     --success;
 
-	mov	eax, DWORD PTR tv1753[ebp]
+	mov	eax, DWORD PTR tv1820[ebp]
 	mov	DWORD PTR _success$1$[ebp], eax
 
-; 257  :                 }
-; 258  :               }
-; 259  : 
-; 260  :               else
+; 285  :                 }
+; 286  :               }
+; 287  : 
+; 288  :               else
 
 	jmp	SHORT $LN12@SK_LoadPlu
 $LN13@SK_LoadPlu:
 
-; 261  :               {
-; 262  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+; 289  :               {
+; 290  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
 	call	DWORD PTR __imp__GetLastError@0
 ; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
@@ -10948,13 +11234,13 @@ $LN13@SK_LoadPlu:
 ; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
 
 	test	eax, eax
-	jle	SHORT $LN369@SK_LoadPlu
+	jle	SHORT $LN382@SK_LoadPlu
 	movzx	eax, ax
 	or	eax, -2147024896			; 80070000H
-$LN369@SK_LoadPlu:
+$LN382@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 265  :                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
+; 293  :                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
 
 	lea	ecx, DWORD PTR _err$10[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -10970,11 +11256,11 @@ $LN369@SK_LoadPlu:
 	mov	DWORD PTR _err$10[ebp+12], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 264  :                 import.hLibrary = (HMODULE)-2;
+; 292  :                 import.hLibrary = (HMODULE)-2;
 
-	mov	DWORD PTR [edi-64], -2			; fffffffeH
+	mov	DWORD PTR [edi-68], -2			; fffffffeH
 
-; 265  :                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
+; 293  :                 dll_log.Log (L"[ SpecialK ] [*] Failed: 0x%04X (%s)!",
 
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
@@ -10982,28 +11268,28 @@ $LN369@SK_LoadPlu:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG150831
+	push	OFFSET $SG151000
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
 
-; 266  :                                err.WCode (), err.ErrorMessage () );
-; 267  :               }
+; 294  :                                err.WCode (), err.ErrorMessage () );
+; 295  :               }
 
 	lea	ecx, DWORD PTR _err$10[ebp]
 	call	??1_com_error@@UAE@XZ			; _com_error::~_com_error
 
-; 268  :             }
-; 269  : 
-; 270  :             else
+; 296  :             }
+; 297  : 
+; 298  :             else
 
 	jmp	SHORT $LN12@SK_LoadPlu
 $LN11@SK_LoadPlu:
 
-; 271  :             {
-; 272  :               dll_log.Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
+; 299  :             {
+; 300  :               dll_log.Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
 
-	push	OFFSET $SG150832
+	push	OFFSET $SG151001
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -11015,7 +11301,7 @@ $LN12@SK_LoadPlu:
 	push	esi
 	call	DWORD PTR __imp__free
 	add	esp, 4
-$LN374@SK_LoadPlu:
+$LN387@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -11023,7 +11309,7 @@ $LN374@SK_LoadPlu:
 	mov	eax, DWORD PTR _blacklist$13[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 278  :   }
+; 306  :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -11034,7 +11320,7 @@ $LN374@SK_LoadPlu:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN416@SK_LoadPlu
+	jb	SHORT $LN429@SK_LoadPlu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -11050,7 +11336,7 @@ $LN374@SK_LoadPlu:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	SHORT $LN430@SK_LoadPlu
+	ja	SHORT $LN443@SK_LoadPlu
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -11059,14 +11345,14 @@ $LN374@SK_LoadPlu:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN411@SK_LoadPlu
+	jb	SHORT $LN424@SK_LoadPlu
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	SHORT $LN430@SK_LoadPlu
+	jne	SHORT $LN443@SK_LoadPlu
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -11088,7 +11374,7 @@ $LN374@SK_LoadPlu:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	SHORT $LN430@SK_LoadPlu
+	jae	SHORT $LN443@SK_LoadPlu
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -11100,19 +11386,19 @@ $LN374@SK_LoadPlu:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	SHORT $LN430@SK_LoadPlu
+	jb	SHORT $LN443@SK_LoadPlu
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	SHORT $LN430@SK_LoadPlu
+	ja	SHORT $LN443@SK_LoadPlu
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN411@SK_LoadPlu:
+$LN424@SK_LoadPlu:
 
 ; 133  : 		}
 ; 134  : 
@@ -11126,7 +11412,7 @@ $LN411@SK_LoadPlu:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN416@SK_LoadPlu:
+$LN429@SK_LoadPlu:
 	mov	ecx, DWORD PTR _success$1$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -11150,54 +11436,54 @@ $LN416@SK_LoadPlu:
 $LN2@SK_LoadPlu:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 204  :   for (auto& import : imports)
+; 229  :   for (auto& import : imports)
 
-	add	edi, 72					; 00000048H
-	lea	eax, DWORD PTR [edi-64]
-	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+576
+	add	edi, 76					; 0000004cH
+	lea	eax, DWORD PTR [edi-68]
+	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+608
 	jne	$LL4@SK_LoadPlu
 
-; 279  : 
-; 280  :   if (success > 0)
+; 307  : 
+; 308  :   if (success > 0)
 
 	pop	edi
 	pop	esi
 	test	ecx, ecx
-	jle	SHORT $LN17@SK_LoadPlu
+	jle	SHORT $LN18@SK_LoadPlu
 
-; 281  :     SK_SymRefreshModuleList ();
+; 309  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
-$LN17@SK_LoadPlu:
+$LN18@SK_LoadPlu:
 
-; 282  : }
+; 310  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN430@SK_LoadPlu:
+$LN443@SK_LoadPlu:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN438@SK_LoadPlu:
-$LN436@SK_LoadPlu:
+$LN451@SK_LoadPlu:
+$LN449@SK_LoadPlu:
 	int	3
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_LoadPlugIns64@@YAXXZ$0:
 	mov	eax, DWORD PTR $T14[ebp]
 	and	eax, 1
-	je	$LN24@SK_LoadPlu
+	je	$LN25@SK_LoadPlu
 	and	DWORD PTR $T14[ebp], -2			; fffffffeH
 	lea	ecx, DWORD PTR $T4[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN24@SK_LoadPlu:
+$LN25@SK_LoadPlu:
 	ret	0
 __unwindfunclet$?SK_LoadPlugIns64@@YAXXZ$2:
 	lea	ecx, DWORD PTR _blacklist$13[ebp]
@@ -11205,11 +11491,11 @@ __unwindfunclet$?SK_LoadPlugIns64@@YAXXZ$2:
 __unwindfunclet$?SK_LoadPlugIns64@@YAXXZ$3:
 	mov	eax, DWORD PTR $T14[ebp]
 	and	eax, 4
-	je	$LN31@SK_LoadPlu
+	je	$LN32@SK_LoadPlu
 	and	DWORD PTR $T14[ebp], -5			; fffffffbH
 	lea	ecx, DWORD PTR $T8[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN31@SK_LoadPlu:
+$LN32@SK_LoadPlu:
 	ret	0
 __unwindfunclet$?SK_LoadPlugIns64@@YAXXZ$6:
 	lea	ecx, DWORD PTR _file$2[ebp]
@@ -11288,6 +11574,8 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -11321,7 +11609,7 @@ $T8 = -120						; size = 24
 _err$9 = -96						; size = 16
 $T10 = -80						; size = 24
 $T11 = -80						; size = 24
-tv1649 = -56						; size = 4
+tv1682 = -56						; size = 4
 _blacklist$12 = -52					; size = 24
 _success$1$ = -28					; size = 4
 $T13 = -24						; size = 4
@@ -11331,7 +11619,7 @@ _blacklisted$1$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
 ?SK_LoadLazyImports64@@YAXXZ PROC			; SK_LoadLazyImports64
 
-; 363  : {
+; 394  : {
 
 	npad	2
 	push	ebp
@@ -11345,29 +11633,29 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	xor	esi, esi
 
-; 364  :   int success = 0;
+; 395  :   int success = 0;
 
 	xor	eax, eax
 	push	edi
 	mov	DWORD PTR $T14[ebp], esi
-	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+64
+	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+68
 	mov	DWORD PTR $T13[ebp], esi
 	mov	DWORD PTR _success$1$[ebp], eax
 $LL4@SK_LoadLaz:
 
-; 367  :   {
-; 368  :     // Skip libraries that are already loaded
-; 369  :     if (import.hLibrary != nullptr)
+; 398  :   {
+; 399  :     // Skip libraries that are already loaded
+; 400  :     if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	cmp	DWORD PTR [edi-68], 0
 	jne	$LN2@SK_LoadLaz
 
-; 374  :       import.blacklist != nullptr ?
+; 405  :       import.blacklist != nullptr ?
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	BYTE PTR _blacklisted$1$[ebp], 0
 	test	ecx, ecx
-	je	SHORT $LN17@SK_LoadLaz
+	je	SHORT $LN18@SK_LoadLaz
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T7[ebp]
 	push	edx
@@ -11376,8 +11664,8 @@ $LL4@SK_LoadLaz:
 	mov	ecx, eax
 	mov	eax, DWORD PTR $T14[ebp]
 	or	eax, 1
-	jmp	SHORT $LN431@SK_LoadLaz
-$LN17@SK_LoadLaz:
+	jmp	SHORT $LN444@SK_LoadLaz
+$LN18@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -11392,7 +11680,7 @@ $LN17@SK_LoadLaz:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG150940
+	push	OFFSET $SG151112
 	lea	ecx, DWORD PTR $T8[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -11411,7 +11699,7 @@ $LN17@SK_LoadLaz:
 	mov	eax, DWORD PTR $T14[ebp]
 	lea	ecx, DWORD PTR $T8[ebp]
 	or	eax, 2
-$LN431@SK_LoadLaz:
+$LN444@SK_LoadLaz:
 
 ; 1595 : 		_Mysize(0),
 
@@ -11450,11 +11738,11 @@ $LN431@SK_LoadLaz:
 	mov	WORD PTR [ecx], dx
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 374  :       import.blacklist != nullptr ?
+; 405  :       import.blacklist != nullptr ?
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	al, 2
-	je	SHORT $LN123@SK_LoadLaz
+	je	SHORT $LN124@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -11462,7 +11750,7 @@ $LN431@SK_LoadLaz:
 	mov	ecx, DWORD PTR $T8[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 374  :       import.blacklist != nullptr ?
+; 405  :       import.blacklist != nullptr ?
 
 	and	eax, -3					; fffffffdH
 	mov	DWORD PTR $T14[ebp], eax
@@ -11475,7 +11763,7 @@ $LN431@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN126@SK_LoadLaz
+	jb	SHORT $LN127@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -11490,7 +11778,7 @@ $LN431@SK_LoadLaz:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T14[ebp]
 	add	esp, 12					; 0000000cH
-$LN126@SK_LoadLaz:
+$LN127@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -11510,14 +11798,14 @@ $LN126@SK_LoadLaz:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T8[ebp], cx
-$LN123@SK_LoadLaz:
+$LN124@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 374  :       import.blacklist != nullptr ?
+; 405  :       import.blacklist != nullptr ?
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 	test	al, 1
-	je	SHORT $LN153@SK_LoadLaz
+	je	SHORT $LN154@SK_LoadLaz
 	and	eax, -2					; fffffffeH
 	mov	DWORD PTR $T14[ebp], eax
 	mov	DWORD PTR $T13[ebp], eax
@@ -11530,7 +11818,7 @@ $LN123@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN156@SK_LoadLaz
+	jb	SHORT $LN157@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -11544,7 +11832,7 @@ $LN123@SK_LoadLaz:
 	push	DWORD PTR $T7[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN156@SK_LoadLaz:
+$LN157@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -11564,7 +11852,7 @@ $LN156@SK_LoadLaz:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T7[ebp], ax
-$LN153@SK_LoadLaz:
+$LN154@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -11577,7 +11865,7 @@ $LN153@SK_LoadLaz:
 	cmovae	esi, DWORD PTR _blacklist$12[ebp]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 378  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
+; 409  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -11588,28 +11876,28 @@ $LN153@SK_LoadLaz:
 	mov	eax, 1
 	cmovne	ecx, eax
 
-; 379  :       blacklisted = true;
-; 380  : 
-; 381  :     if (import.filename != nullptr)
+; 410  :       blacklisted = true;
+; 411  : 
+; 412  :     if (import.filename != nullptr)
 
 	cmp	DWORD PTR [edi-12], 0
-	mov	DWORD PTR tv1649[ebp], ecx
-	je	$LN368@SK_LoadLaz
+	mov	DWORD PTR tv1682[ebp], ecx
+	je	$LN381@SK_LoadLaz
 
-; 382  :     {
-; 383  :       if (import.when != nullptr)
+; 413  :     {
+; 414  :       if (import.when != nullptr)
 
 	cmp	DWORD PTR [edi-8], 0
-	je	$LN368@SK_LoadLaz
+	je	$LN381@SK_LoadLaz
 
-; 384  :       {
-; 385  :         if (import.architecture != nullptr)
+; 415  :       {
+; 416  :         if (import.architecture != nullptr)
 
 	mov	ecx, DWORD PTR [edi]
 	test	ecx, ecx
-	je	$LN368@SK_LoadLaz
+	je	$LN381@SK_LoadLaz
 
-; 387  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 418  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T5[ebp]
@@ -11625,7 +11913,7 @@ $LN153@SK_LoadLaz:
 	or	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 387  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 418  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -11638,10 +11926,10 @@ $LN153@SK_LoadLaz:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 387  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 418  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	test	al, al
-	je	SHORT $LN19@SK_LoadLaz
+	je	SHORT $LN20@SK_LoadLaz
 	mov	ecx, DWORD PTR [edi-8]
 	lea	edx, DWORD PTR $T11[ebp]
 	push	edx
@@ -11659,17 +11947,17 @@ $LN153@SK_LoadLaz:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 387  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 418  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	BYTE PTR $T15[ebp], 1
 	test	al, al
-	jne	SHORT $LN20@SK_LoadLaz
-$LN19@SK_LoadLaz:
-	mov	BYTE PTR $T15[ebp], 0
+	jne	SHORT $LN21@SK_LoadLaz
 $LN20@SK_LoadLaz:
+	mov	BYTE PTR $T15[ebp], 0
+$LN21@SK_LoadLaz:
 	mov	eax, DWORD PTR $T14[ebp]
 	test	al, 8
-	je	SHORT $LN208@SK_LoadLaz
+	je	SHORT $LN209@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -11677,7 +11965,7 @@ $LN20@SK_LoadLaz:
 	mov	ecx, DWORD PTR $T11[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 387  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 418  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	and	eax, -9					; fffffff7H
 	mov	DWORD PTR $T14[ebp], eax
@@ -11689,7 +11977,7 @@ $LN20@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN211@SK_LoadLaz
+	jb	SHORT $LN212@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -11704,7 +11992,7 @@ $LN20@SK_LoadLaz:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T14[ebp]
 	add	esp, 12					; 0000000cH
-$LN211@SK_LoadLaz:
+$LN212@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -11724,10 +12012,10 @@ $LN211@SK_LoadLaz:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T11[ebp], cx
-$LN208@SK_LoadLaz:
+$LN209@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 387  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 418  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	and	eax, -5					; fffffffbH
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
@@ -11742,7 +12030,7 @@ $LN208@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN241@SK_LoadLaz
+	jb	SHORT $LN242@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -11756,15 +12044,15 @@ $LN208@SK_LoadLaz:
 	push	DWORD PTR $T5[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN241@SK_LoadLaz:
+$LN242@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 387  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 418  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	cmp	BYTE PTR $T15[ebp], 0
-	je	$LN368@SK_LoadLaz
+	je	$LN381@SK_LoadLaz
 
-; 390  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 421  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T10[ebp]
@@ -11780,16 +12068,16 @@ $LN241@SK_LoadLaz:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN280@SK_LoadLaz
+	jb	SHORT $LN281@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN280@SK_LoadLaz:
+$LN281@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 390  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 421  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	push	eax
 	call	DWORD PTR __imp___wcsdup
@@ -11800,7 +12088,7 @@ $LN280@SK_LoadLaz:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 390  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 421  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	add	esp, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -11815,7 +12103,7 @@ $LN280@SK_LoadLaz:
 	mov	eax, DWORD PTR $T10[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 390  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 421  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -11826,7 +12114,7 @@ $LN280@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN294@SK_LoadLaz
+	jb	SHORT $LN295@SK_LoadLaz
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -11840,7 +12128,7 @@ $LN280@SK_LoadLaz:
 	push	DWORD PTR $T10[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN294@SK_LoadLaz:
+$LN295@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -11853,7 +12141,7 @@ $LN294@SK_LoadLaz:
 	mov	DWORD PTR $T10[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 392  :             SK_StripUserNameFromPathW (file);
+; 423  :             SK_StripUserNameFromPathW (file);
 
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -11868,28 +12156,28 @@ $LN294@SK_LoadLaz:
 	mov	WORD PTR $T10[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 392  :             SK_StripUserNameFromPathW (file);
+; 423  :             SK_StripUserNameFromPathW (file);
 
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 393  : 
-; 394  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
+; 424  : 
+; 425  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG150947
+	push	OFFSET $SG151119
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 395  :                 file.m_pData);
-; 396  : 
-; 397  :             if (! blacklisted)
+; 426  :                 file.m_pData);
+; 427  : 
+; 428  :             if (! blacklisted)
 
-	cmp	BYTE PTR tv1649[ebp], 0
+	cmp	BYTE PTR tv1682[ebp], 0
 	jne	$LN11@SK_LoadLaz
 
-; 399  :               import.hLibrary = LoadLibraryW_Original (
+; 430  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T4[ebp]
@@ -11904,50 +12192,77 @@ $LN294@SK_LoadLaz:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 399  :               import.hLibrary = LoadLibraryW_Original (
+; 430  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN335@SK_LoadLaz
+	jb	SHORT $LN336@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN335@SK_LoadLaz:
+$LN336@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 399  :               import.hLibrary = LoadLibraryW_Original (
+; 430  :               import.hLibrary = LoadLibraryW_Original (
 
 	push	eax
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	lea	ecx, DWORD PTR $T4[ebp]
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 400  :                 import.filename->get_value_str ().c_str ()
-; 401  :               );
-; 402  : 
-; 403  :               if (import.hLibrary != nullptr)
+; 431  :                 import.filename->get_value_str ().c_str ()
+; 432  :               );
+; 433  : 
+; 434  :               if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	mov	ecx, DWORD PTR [edi-68]
+	test	ecx, ecx
 	je	SHORT $LN13@SK_LoadLaz
 
-; 404  :               {
-; 405  :                 dll_log.LogEx (false, L"success!\n");
+; 435  :               {
+; 436  :                 if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
 
-	push	OFFSET $SG150952
+	lea	eax, DWORD PTR [edi-64]
+	push	eax
+	push	ecx
+	call	?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ; SK_Import_GetShimmedLibrary
+	add	esp, 8
+	test	al, al
+	je	SHORT $LN343@SK_LoadLaz
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 66   : 	_Ty _Tmp = _STD move(_Left);
+
+	mov	ecx, DWORD PTR [edi-68]
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	eax, DWORD PTR [edi-64]
+	mov	DWORD PTR [edi-68], eax
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi-64], ecx
+$LN343@SK_LoadLaz:
+; File c:\users\andon\source\repos\specialk\src\import.cpp
+
+; 439  :                 dll_log.LogEx (false, L"success!\n");
+
+	push	OFFSET $SG151125
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 408  :                 import.product_desc =
+; 442  :                 import.product_desc =
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	inc	DWORD PTR _success$1$[ebp]
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
@@ -11960,23 +12275,23 @@ $LN335@SK_LoadLaz:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 408  :                 import.product_desc =
+; 442  :                 import.product_desc =
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN354@SK_LoadLaz
+	jb	SHORT $LN367@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN354@SK_LoadLaz:
+$LN367@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 408  :                 import.product_desc =
+; 442  :                 import.product_desc =
 
 	push	eax
 	lea	eax, DWORD PTR $T3[ebp]
@@ -11990,18 +12305,18 @@ $LN354@SK_LoadLaz:
 	lea	ecx, DWORD PTR $T6[ebp]
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 409  :                   SK_GetDLLVersionStr (
-; 410  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
-; 411  :                   );
-; 412  :               }
-; 413  : 
-; 414  :               else
+; 443  :                   SK_GetDLLVersionStr (
+; 444  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
+; 445  :                   );
+; 446  :               }
+; 447  : 
+; 448  :               else
 
 	jmp	SHORT $LN12@SK_LoadLaz
 $LN13@SK_LoadLaz:
 
-; 415  :               {
-; 416  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+; 449  :               {
+; 450  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
 	call	DWORD PTR __imp__GetLastError@0
 ; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
@@ -12009,13 +12324,13 @@ $LN13@SK_LoadLaz:
 ; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
 
 	test	eax, eax
-	jle	SHORT $LN363@SK_LoadLaz
+	jle	SHORT $LN376@SK_LoadLaz
 	movzx	eax, ax
 	or	eax, -2147024896			; 80070000H
-$LN363@SK_LoadLaz:
+$LN376@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 419  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 453  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	lea	ecx, DWORD PTR _err$9[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -12031,11 +12346,11 @@ $LN363@SK_LoadLaz:
 	mov	DWORD PTR _err$9[ebp+12], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 418  :                 import.hLibrary = (HMODULE)-3;
+; 452  :                 import.hLibrary = (HMODULE)-3;
 
-	mov	DWORD PTR [edi-64], -3			; fffffffdH
+	mov	DWORD PTR [edi-68], -3			; fffffffdH
 
-; 419  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 453  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
@@ -12043,29 +12358,29 @@ $LN363@SK_LoadLaz:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG150953
+	push	OFFSET $SG151126
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 420  :                                err.WCode (), err.ErrorMessage () );
-; 421  :               }
+; 454  :                                err.WCode (), err.ErrorMessage () );
+; 455  :               }
 
 	lea	ecx, DWORD PTR _err$9[ebp]
 	call	??1_com_error@@UAE@XZ			; _com_error::~_com_error
 
-; 422  :             }
-; 423  : 
-; 424  :             else
+; 456  :             }
+; 457  : 
+; 458  :             else
 
 	jmp	SHORT $LN12@SK_LoadLaz
 $LN11@SK_LoadLaz:
 
-; 425  :             {
-; 426  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
+; 459  :             {
+; 460  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG150954
+	push	OFFSET $SG151127
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -12078,7 +12393,7 @@ $LN12@SK_LoadLaz:
 	push	esi
 	call	DWORD PTR __imp__free
 	add	esp, 4
-$LN368@SK_LoadLaz:
+$LN381@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -12086,7 +12401,7 @@ $LN368@SK_LoadLaz:
 	mov	eax, DWORD PTR _blacklist$12[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 432  :   }
+; 466  :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -12097,7 +12412,7 @@ $LN368@SK_LoadLaz:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN410@SK_LoadLaz
+	jb	SHORT $LN423@SK_LoadLaz
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -12113,7 +12428,7 @@ $LN368@SK_LoadLaz:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	SHORT $LN424@SK_LoadLaz
+	ja	SHORT $LN437@SK_LoadLaz
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -12122,14 +12437,14 @@ $LN368@SK_LoadLaz:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN405@SK_LoadLaz
+	jb	SHORT $LN418@SK_LoadLaz
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	SHORT $LN424@SK_LoadLaz
+	jne	SHORT $LN437@SK_LoadLaz
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -12151,7 +12466,7 @@ $LN368@SK_LoadLaz:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	SHORT $LN424@SK_LoadLaz
+	jae	SHORT $LN437@SK_LoadLaz
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -12163,19 +12478,19 @@ $LN368@SK_LoadLaz:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	SHORT $LN424@SK_LoadLaz
+	jb	SHORT $LN437@SK_LoadLaz
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	SHORT $LN424@SK_LoadLaz
+	ja	SHORT $LN437@SK_LoadLaz
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN405@SK_LoadLaz:
+$LN418@SK_LoadLaz:
 
 ; 133  : 		}
 ; 134  : 
@@ -12189,7 +12504,7 @@ $LN405@SK_LoadLaz:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN410@SK_LoadLaz:
+$LN423@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -12212,55 +12527,55 @@ $LN410@SK_LoadLaz:
 $LN2@SK_LoadLaz:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 366  :   for (auto& import : imports)
+; 397  :   for (auto& import : imports)
 
-	add	edi, 72					; 00000048H
-	lea	eax, DWORD PTR [edi-64]
-	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+576
+	add	edi, 76					; 0000004cH
+	lea	eax, DWORD PTR [edi-68]
+	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+608
 	jne	$LL4@SK_LoadLaz
 
-; 433  : 
-; 434  :   if (success > 0)
+; 467  : 
+; 468  :   if (success > 0)
 
 	mov	eax, DWORD PTR _success$1$[ebp]
 	pop	edi
 	pop	esi
 	test	eax, eax
-	jle	SHORT $LN15@SK_LoadLaz
+	jle	SHORT $LN16@SK_LoadLaz
 
-; 435  :     SK_SymRefreshModuleList ();
+; 469  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
-$LN15@SK_LoadLaz:
+$LN16@SK_LoadLaz:
 
-; 436  : }
+; 470  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN424@SK_LoadLaz:
+$LN437@SK_LoadLaz:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN432@SK_LoadLaz:
-$LN430@SK_LoadLaz:
+$LN445@SK_LoadLaz:
+$LN443@SK_LoadLaz:
 	int	3
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_LoadLazyImports64@@YAXXZ$0:
 	mov	eax, DWORD PTR $T13[ebp]
 	and	eax, 1
-	je	$LN22@SK_LoadLaz
+	je	$LN23@SK_LoadLaz
 	and	DWORD PTR $T13[ebp], -2			; fffffffeH
 	lea	ecx, DWORD PTR $T7[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN22@SK_LoadLaz:
+$LN23@SK_LoadLaz:
 	ret	0
 __unwindfunclet$?SK_LoadLazyImports64@@YAXXZ$2:
 	lea	ecx, DWORD PTR _blacklist$12[ebp]
@@ -12268,11 +12583,11 @@ __unwindfunclet$?SK_LoadLazyImports64@@YAXXZ$2:
 __unwindfunclet$?SK_LoadLazyImports64@@YAXXZ$3:
 	mov	eax, DWORD PTR $T13[ebp]
 	and	eax, 4
-	je	$LN29@SK_LoadLaz
+	je	$LN30@SK_LoadLaz
 	and	DWORD PTR $T13[ebp], -5			; fffffffbH
 	lea	ecx, DWORD PTR $T5[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN29@SK_LoadLaz:
+$LN30@SK_LoadLaz:
 	ret	0
 __unwindfunclet$?SK_LoadLazyImports64@@YAXXZ$6:
 	lea	ecx, DWORD PTR _file$2[ebp]
@@ -12351,6 +12666,8 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -12384,7 +12701,7 @@ $T8 = -120						; size = 24
 _err$9 = -96						; size = 16
 $T10 = -80						; size = 24
 $T11 = -80						; size = 24
-tv1649 = -56						; size = 4
+tv1682 = -56						; size = 4
 _blacklist$12 = -52					; size = 24
 _success$1$ = -28					; size = 4
 $T13 = -24						; size = 4
@@ -12394,7 +12711,7 @@ _blacklisted$1$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
 ?SK_LoadLateImports64@@YAXXZ PROC			; SK_LoadLateImports64
 
-; 286  : {
+; 314  : {
 
 	npad	2
 	push	ebp
@@ -12408,29 +12725,29 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	xor	esi, esi
 
-; 287  :   int success = 0;
+; 315  :   int success = 0;
 
 	xor	eax, eax
 	push	edi
 	mov	DWORD PTR $T14[ebp], esi
-	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+64
+	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+68
 	mov	DWORD PTR $T13[ebp], esi
 	mov	DWORD PTR _success$1$[ebp], eax
 $LL4@SK_LoadLat:
 
-; 290  :   {
-; 291  :     // Skip libraries that are already loaded
-; 292  :     if (import.hLibrary != nullptr)
+; 318  :   {
+; 319  :     // Skip libraries that are already loaded
+; 320  :     if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	cmp	DWORD PTR [edi-68], 0
 	jne	$LN2@SK_LoadLat
 
-; 297  :       import.blacklist != nullptr ?
+; 325  :       import.blacklist != nullptr ?
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	BYTE PTR _blacklisted$1$[ebp], 0
 	test	ecx, ecx
-	je	SHORT $LN17@SK_LoadLat
+	je	SHORT $LN18@SK_LoadLat
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T7[ebp]
 	push	edx
@@ -12439,8 +12756,8 @@ $LL4@SK_LoadLat:
 	mov	ecx, eax
 	mov	eax, DWORD PTR $T14[ebp]
 	or	eax, 1
-	jmp	SHORT $LN431@SK_LoadLat
-$LN17@SK_LoadLat:
+	jmp	SHORT $LN444@SK_LoadLat
+$LN18@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -12455,7 +12772,7 @@ $LN17@SK_LoadLat:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG150879
+	push	OFFSET $SG151049
 	lea	ecx, DWORD PTR $T8[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -12474,7 +12791,7 @@ $LN17@SK_LoadLat:
 	mov	eax, DWORD PTR $T14[ebp]
 	lea	ecx, DWORD PTR $T8[ebp]
 	or	eax, 2
-$LN431@SK_LoadLat:
+$LN444@SK_LoadLat:
 
 ; 1595 : 		_Mysize(0),
 
@@ -12513,11 +12830,11 @@ $LN431@SK_LoadLat:
 	mov	WORD PTR [ecx], dx
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 297  :       import.blacklist != nullptr ?
+; 325  :       import.blacklist != nullptr ?
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	al, 2
-	je	SHORT $LN123@SK_LoadLat
+	je	SHORT $LN124@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -12525,7 +12842,7 @@ $LN431@SK_LoadLat:
 	mov	ecx, DWORD PTR $T8[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 297  :       import.blacklist != nullptr ?
+; 325  :       import.blacklist != nullptr ?
 
 	and	eax, -3					; fffffffdH
 	mov	DWORD PTR $T14[ebp], eax
@@ -12538,7 +12855,7 @@ $LN431@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN126@SK_LoadLat
+	jb	SHORT $LN127@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -12553,7 +12870,7 @@ $LN431@SK_LoadLat:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T14[ebp]
 	add	esp, 12					; 0000000cH
-$LN126@SK_LoadLat:
+$LN127@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -12573,14 +12890,14 @@ $LN126@SK_LoadLat:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T8[ebp], cx
-$LN123@SK_LoadLat:
+$LN124@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 297  :       import.blacklist != nullptr ?
+; 325  :       import.blacklist != nullptr ?
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 	test	al, 1
-	je	SHORT $LN153@SK_LoadLat
+	je	SHORT $LN154@SK_LoadLat
 	and	eax, -2					; fffffffeH
 	mov	DWORD PTR $T14[ebp], eax
 	mov	DWORD PTR $T13[ebp], eax
@@ -12593,7 +12910,7 @@ $LN123@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN156@SK_LoadLat
+	jb	SHORT $LN157@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -12607,7 +12924,7 @@ $LN123@SK_LoadLat:
 	push	DWORD PTR $T7[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN156@SK_LoadLat:
+$LN157@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -12627,7 +12944,7 @@ $LN156@SK_LoadLat:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T7[ebp], ax
-$LN153@SK_LoadLat:
+$LN154@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -12640,7 +12957,7 @@ $LN153@SK_LoadLat:
 	cmovae	esi, DWORD PTR _blacklist$12[ebp]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 301  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
+; 329  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -12651,28 +12968,28 @@ $LN153@SK_LoadLat:
 	mov	eax, 1
 	cmovne	ecx, eax
 
-; 302  :       blacklisted = true;
-; 303  : 
-; 304  :     if (import.filename != nullptr)
+; 330  :       blacklisted = true;
+; 331  : 
+; 332  :     if (import.filename != nullptr)
 
 	cmp	DWORD PTR [edi-12], 0
-	mov	DWORD PTR tv1649[ebp], ecx
-	je	$LN368@SK_LoadLat
+	mov	DWORD PTR tv1682[ebp], ecx
+	je	$LN381@SK_LoadLat
 
-; 305  :     {
-; 306  :       if (import.when != nullptr)
+; 333  :     {
+; 334  :       if (import.when != nullptr)
 
 	cmp	DWORD PTR [edi-8], 0
-	je	$LN368@SK_LoadLat
+	je	$LN381@SK_LoadLat
 
-; 307  :       {
-; 308  :         if (import.architecture != nullptr)
+; 335  :       {
+; 336  :         if (import.architecture != nullptr)
 
 	mov	ecx, DWORD PTR [edi]
 	test	ecx, ecx
-	je	$LN368@SK_LoadLat
+	je	$LN381@SK_LoadLat
 
-; 310  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 338  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T5[ebp]
@@ -12688,7 +13005,7 @@ $LN153@SK_LoadLat:
 	or	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 310  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 338  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -12701,10 +13018,10 @@ $LN153@SK_LoadLat:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 310  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 338  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	test	al, al
-	je	SHORT $LN19@SK_LoadLat
+	je	SHORT $LN20@SK_LoadLat
 	mov	ecx, DWORD PTR [edi-8]
 	lea	edx, DWORD PTR $T11[ebp]
 	push	edx
@@ -12722,17 +13039,17 @@ $LN153@SK_LoadLat:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 310  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 338  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	BYTE PTR $T15[ebp], 1
 	test	al, al
-	jne	SHORT $LN20@SK_LoadLat
-$LN19@SK_LoadLat:
-	mov	BYTE PTR $T15[ebp], 0
+	jne	SHORT $LN21@SK_LoadLat
 $LN20@SK_LoadLat:
+	mov	BYTE PTR $T15[ebp], 0
+$LN21@SK_LoadLat:
 	mov	eax, DWORD PTR $T14[ebp]
 	test	al, 8
-	je	SHORT $LN208@SK_LoadLat
+	je	SHORT $LN209@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -12740,7 +13057,7 @@ $LN20@SK_LoadLat:
 	mov	ecx, DWORD PTR $T11[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 310  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 338  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	and	eax, -9					; fffffff7H
 	mov	DWORD PTR $T14[ebp], eax
@@ -12752,7 +13069,7 @@ $LN20@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN211@SK_LoadLat
+	jb	SHORT $LN212@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -12767,7 +13084,7 @@ $LN20@SK_LoadLat:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T14[ebp]
 	add	esp, 12					; 0000000cH
-$LN211@SK_LoadLat:
+$LN212@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -12787,10 +13104,10 @@ $LN211@SK_LoadLat:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T11[ebp], cx
-$LN208@SK_LoadLat:
+$LN209@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 310  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 338  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	and	eax, -5					; fffffffbH
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
@@ -12805,7 +13122,7 @@ $LN208@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN241@SK_LoadLat
+	jb	SHORT $LN242@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -12819,15 +13136,15 @@ $LN208@SK_LoadLat:
 	push	DWORD PTR $T5[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN241@SK_LoadLat:
+$LN242@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 310  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 338  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	cmp	BYTE PTR $T15[ebp], 0
-	je	$LN368@SK_LoadLat
+	je	$LN381@SK_LoadLat
 
-; 313  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 341  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T10[ebp]
@@ -12843,16 +13160,16 @@ $LN241@SK_LoadLat:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN280@SK_LoadLat
+	jb	SHORT $LN281@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN280@SK_LoadLat:
+$LN281@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 313  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 341  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	push	eax
 	call	DWORD PTR __imp___wcsdup
@@ -12863,7 +13180,7 @@ $LN280@SK_LoadLat:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 313  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 341  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	add	esp, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -12878,7 +13195,7 @@ $LN280@SK_LoadLat:
 	mov	eax, DWORD PTR $T10[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 313  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 341  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -12889,7 +13206,7 @@ $LN280@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN294@SK_LoadLat
+	jb	SHORT $LN295@SK_LoadLat
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -12903,7 +13220,7 @@ $LN280@SK_LoadLat:
 	push	DWORD PTR $T10[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN294@SK_LoadLat:
+$LN295@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -12916,7 +13233,7 @@ $LN294@SK_LoadLat:
 	mov	DWORD PTR $T10[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 315  :             SK_StripUserNameFromPathW (file);
+; 343  :             SK_StripUserNameFromPathW (file);
 
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -12931,28 +13248,28 @@ $LN294@SK_LoadLat:
 	mov	WORD PTR $T10[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 315  :             SK_StripUserNameFromPathW (file);
+; 343  :             SK_StripUserNameFromPathW (file);
 
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 316  : 
-; 317  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
+; 344  : 
+; 345  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG150886
+	push	OFFSET $SG151056
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 318  :               file.m_pData);
-; 319  : 
-; 320  :             if (! blacklisted)
+; 346  :               file.m_pData);
+; 347  : 
+; 348  :             if (! blacklisted)
 
-	cmp	BYTE PTR tv1649[ebp], 0
+	cmp	BYTE PTR tv1682[ebp], 0
 	jne	$LN11@SK_LoadLat
 
-; 322  :               import.hLibrary = LoadLibraryW_Original (
+; 350  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T4[ebp]
@@ -12967,50 +13284,77 @@ $LN294@SK_LoadLat:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 322  :               import.hLibrary = LoadLibraryW_Original (
+; 350  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN335@SK_LoadLat
+	jb	SHORT $LN336@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN335@SK_LoadLat:
+$LN336@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 322  :               import.hLibrary = LoadLibraryW_Original (
+; 350  :               import.hLibrary = LoadLibraryW_Original (
 
 	push	eax
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	lea	ecx, DWORD PTR $T4[ebp]
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 323  :                 import.filename->get_value_str ().c_str ()
-; 324  :               );
-; 325  : 
-; 326  :               if (import.hLibrary != nullptr)
+; 351  :                 import.filename->get_value_str ().c_str ()
+; 352  :               );
+; 353  : 
+; 354  :               if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
+	mov	ecx, DWORD PTR [edi-68]
+	test	ecx, ecx
 	je	SHORT $LN13@SK_LoadLat
 
-; 327  :               {
-; 328  :                 dll_log.LogEx (false, L"success!\n");
+; 355  :               {
+; 356  :                 if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
 
-	push	OFFSET $SG150891
+	lea	eax, DWORD PTR [edi-64]
+	push	eax
+	push	ecx
+	call	?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ; SK_Import_GetShimmedLibrary
+	add	esp, 8
+	test	al, al
+	je	SHORT $LN343@SK_LoadLat
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 66   : 	_Ty _Tmp = _STD move(_Left);
+
+	mov	ecx, DWORD PTR [edi-68]
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	eax, DWORD PTR [edi-64]
+	mov	DWORD PTR [edi-68], eax
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi-64], ecx
+$LN343@SK_LoadLat:
+; File c:\users\andon\source\repos\specialk\src\import.cpp
+
+; 359  :                 dll_log.LogEx (false, L"success!\n");
+
+	push	OFFSET $SG151062
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 331  :                 import.product_desc =
+; 362  :                 import.product_desc =
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	inc	DWORD PTR _success$1$[ebp]
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
@@ -13023,23 +13367,23 @@ $LN335@SK_LoadLat:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 331  :                 import.product_desc =
+; 362  :                 import.product_desc =
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN354@SK_LoadLat
+	jb	SHORT $LN367@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN354@SK_LoadLat:
+$LN367@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 331  :                 import.product_desc =
+; 362  :                 import.product_desc =
 
 	push	eax
 	lea	eax, DWORD PTR $T3[ebp]
@@ -13053,18 +13397,18 @@ $LN354@SK_LoadLat:
 	lea	ecx, DWORD PTR $T6[ebp]
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 332  :                   SK_GetDLLVersionStr (
-; 333  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
-; 334  :                   );
-; 335  :               }
-; 336  : 
-; 337  :               else
+; 363  :                   SK_GetDLLVersionStr (
+; 364  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
+; 365  :                   );
+; 366  :               }
+; 367  : 
+; 368  :               else
 
 	jmp	SHORT $LN12@SK_LoadLat
 $LN13@SK_LoadLat:
 
-; 338  :               {
-; 339  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+; 369  :               {
+; 370  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
 	call	DWORD PTR __imp__GetLastError@0
 ; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
@@ -13072,13 +13416,13 @@ $LN13@SK_LoadLat:
 ; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
 
 	test	eax, eax
-	jle	SHORT $LN363@SK_LoadLat
+	jle	SHORT $LN376@SK_LoadLat
 	movzx	eax, ax
 	or	eax, -2147024896			; 80070000H
-$LN363@SK_LoadLat:
+$LN376@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 342  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 373  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	lea	ecx, DWORD PTR _err$9[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -13094,11 +13438,11 @@ $LN363@SK_LoadLat:
 	mov	DWORD PTR _err$9[ebp+12], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 341  :                 import.hLibrary = (HMODULE)-2;
+; 372  :                 import.hLibrary = (HMODULE)-2;
 
-	mov	DWORD PTR [edi-64], -2			; fffffffeH
+	mov	DWORD PTR [edi-68], -2			; fffffffeH
 
-; 342  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 373  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
@@ -13106,29 +13450,29 @@ $LN363@SK_LoadLat:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG150892
+	push	OFFSET $SG151063
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 343  :                                err.WCode (), err.ErrorMessage () );
-; 344  :               }
+; 374  :                                err.WCode (), err.ErrorMessage () );
+; 375  :               }
 
 	lea	ecx, DWORD PTR _err$9[ebp]
 	call	??1_com_error@@UAE@XZ			; _com_error::~_com_error
 
-; 345  :             }
-; 346  : 
-; 347  :             else
+; 376  :             }
+; 377  : 
+; 378  :             else
 
 	jmp	SHORT $LN12@SK_LoadLat
 $LN11@SK_LoadLat:
 
-; 348  :             {
-; 349  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
+; 379  :             {
+; 380  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG150893
+	push	OFFSET $SG151064
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -13141,7 +13485,7 @@ $LN12@SK_LoadLat:
 	push	esi
 	call	DWORD PTR __imp__free
 	add	esp, 4
-$LN368@SK_LoadLat:
+$LN381@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -13149,7 +13493,7 @@ $LN368@SK_LoadLat:
 	mov	eax, DWORD PTR _blacklist$12[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 355  :   }
+; 386  :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -13160,7 +13504,7 @@ $LN368@SK_LoadLat:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN410@SK_LoadLat
+	jb	SHORT $LN423@SK_LoadLat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -13176,7 +13520,7 @@ $LN368@SK_LoadLat:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	SHORT $LN424@SK_LoadLat
+	ja	SHORT $LN437@SK_LoadLat
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -13185,14 +13529,14 @@ $LN368@SK_LoadLat:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN405@SK_LoadLat
+	jb	SHORT $LN418@SK_LoadLat
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	SHORT $LN424@SK_LoadLat
+	jne	SHORT $LN437@SK_LoadLat
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -13214,7 +13558,7 @@ $LN368@SK_LoadLat:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	SHORT $LN424@SK_LoadLat
+	jae	SHORT $LN437@SK_LoadLat
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -13226,19 +13570,19 @@ $LN368@SK_LoadLat:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	SHORT $LN424@SK_LoadLat
+	jb	SHORT $LN437@SK_LoadLat
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	SHORT $LN424@SK_LoadLat
+	ja	SHORT $LN437@SK_LoadLat
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN405@SK_LoadLat:
+$LN418@SK_LoadLat:
 
 ; 133  : 		}
 ; 134  : 
@@ -13252,7 +13596,7 @@ $LN405@SK_LoadLat:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN410@SK_LoadLat:
+$LN423@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -13275,55 +13619,55 @@ $LN410@SK_LoadLat:
 $LN2@SK_LoadLat:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 289  :   for (auto& import : imports)
+; 317  :   for (auto& import : imports)
 
-	add	edi, 72					; 00000048H
-	lea	eax, DWORD PTR [edi-64]
-	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+576
+	add	edi, 76					; 0000004cH
+	lea	eax, DWORD PTR [edi-68]
+	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+608
 	jne	$LL4@SK_LoadLat
 
-; 356  : 
-; 357  :   if (success > 0)
+; 387  : 
+; 388  :   if (success > 0)
 
 	mov	eax, DWORD PTR _success$1$[ebp]
 	pop	edi
 	pop	esi
 	test	eax, eax
-	jle	SHORT $LN15@SK_LoadLat
+	jle	SHORT $LN16@SK_LoadLat
 
-; 358  :     SK_SymRefreshModuleList ();
+; 389  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
-$LN15@SK_LoadLat:
+$LN16@SK_LoadLat:
 
-; 359  : }
+; 390  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN424@SK_LoadLat:
+$LN437@SK_LoadLat:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN432@SK_LoadLat:
-$LN430@SK_LoadLat:
+$LN445@SK_LoadLat:
+$LN443@SK_LoadLat:
 	int	3
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_LoadLateImports64@@YAXXZ$0:
 	mov	eax, DWORD PTR $T13[ebp]
 	and	eax, 1
-	je	$LN22@SK_LoadLat
+	je	$LN23@SK_LoadLat
 	and	DWORD PTR $T13[ebp], -2			; fffffffeH
 	lea	ecx, DWORD PTR $T7[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN22@SK_LoadLat:
+$LN23@SK_LoadLat:
 	ret	0
 __unwindfunclet$?SK_LoadLateImports64@@YAXXZ$2:
 	lea	ecx, DWORD PTR _blacklist$12[ebp]
@@ -13331,11 +13675,11 @@ __unwindfunclet$?SK_LoadLateImports64@@YAXXZ$2:
 __unwindfunclet$?SK_LoadLateImports64@@YAXXZ$3:
 	mov	eax, DWORD PTR $T13[ebp]
 	and	eax, 4
-	je	$LN29@SK_LoadLat
+	je	$LN30@SK_LoadLat
 	and	DWORD PTR $T13[ebp], -5			; fffffffbH
 	lea	ecx, DWORD PTR $T5[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN29@SK_LoadLat:
+$LN30@SK_LoadLat:
 	ret	0
 __unwindfunclet$?SK_LoadLateImports64@@YAXXZ$6:
 	lea	ecx, DWORD PTR _file$2[ebp]
@@ -13414,6 +13758,8 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -13452,8 +13798,8 @@ $T9 = -124						; size = 24
 _err$10 = -100						; size = 16
 $T11 = -84						; size = 24
 $T12 = -84						; size = 24
-tv1785 = -60						; size = 4
-tv1733 = -56						; size = 4
+tv1820 = -60						; size = 4
+tv1765 = -56						; size = 4
 _blacklist$13 = -52					; size = 24
 _success$1$ = -28					; size = 4
 $T14 = -24						; size = 4
@@ -13464,7 +13810,7 @@ _blacklisted$1$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
 ?SK_LoadEarlyImports64@@YAXXZ PROC			; SK_LoadEarlyImports64
 
-; 117  : {
+; 139  : {
 
 	npad	2
 	push	ebp
@@ -13478,31 +13824,31 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	xor	esi, esi
 
-; 118  :   int success = 0;
+; 140  :   int success = 0;
 
 	xor	ecx, ecx
 	push	edi
 	mov	DWORD PTR $T15[ebp], esi
-	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+64
+	mov	edi, OFFSET ?imports@@3PAUimport_s@@A+68
 	mov	DWORD PTR $T14[ebp], esi
 	mov	DWORD PTR _success$1$[ebp], ecx
 	npad	12
 $LL4@SK_LoadEar:
 
-; 121  :   {
-; 122  :     // Skip libraries that are already loaded
-; 123  :     if (import.hLibrary != nullptr)
+; 143  :   {
+; 144  :     // Skip libraries that are already loaded
+; 145  :     if (import.hLibrary != nullptr)
 
-	cmp	DWORD PTR [edi-64], 0
-	mov	DWORD PTR tv1785[ebp], ecx
+	cmp	DWORD PTR [edi-68], 0
+	mov	DWORD PTR tv1820[ebp], ecx
 	jne	$LN2@SK_LoadEar
 
-; 128  :       import.blacklist != nullptr ?
+; 150  :       import.blacklist != nullptr ?
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	BYTE PTR _blacklisted$1$[ebp], 0
 	test	ecx, ecx
-	je	SHORT $LN19@SK_LoadEar
+	je	SHORT $LN20@SK_LoadEar
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T4[ebp]
 	push	edx
@@ -13511,8 +13857,8 @@ $LL4@SK_LoadEar:
 	mov	ecx, eax
 	mov	eax, DWORD PTR $T15[ebp]
 	or	eax, 1
-	jmp	SHORT $LN437@SK_LoadEar
-$LN19@SK_LoadEar:
+	jmp	SHORT $LN450@SK_LoadEar
+$LN20@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -13527,7 +13873,7 @@ $LN19@SK_LoadEar:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG150740
+	push	OFFSET $SG150906
 	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -13546,7 +13892,7 @@ $LN19@SK_LoadEar:
 	mov	eax, DWORD PTR $T15[ebp]
 	lea	ecx, DWORD PTR $T9[ebp]
 	or	eax, 2
-$LN437@SK_LoadEar:
+$LN450@SK_LoadEar:
 
 ; 1595 : 		_Mysize(0),
 
@@ -13585,11 +13931,11 @@ $LN437@SK_LoadEar:
 	mov	WORD PTR [ecx], dx
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 128  :       import.blacklist != nullptr ?
+; 150  :       import.blacklist != nullptr ?
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	al, 2
-	je	SHORT $LN126@SK_LoadEar
+	je	SHORT $LN127@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -13597,7 +13943,7 @@ $LN437@SK_LoadEar:
 	mov	ecx, DWORD PTR $T9[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 128  :       import.blacklist != nullptr ?
+; 150  :       import.blacklist != nullptr ?
 
 	and	eax, -3					; fffffffdH
 	mov	DWORD PTR $T15[ebp], eax
@@ -13610,7 +13956,7 @@ $LN437@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN129@SK_LoadEar
+	jb	SHORT $LN130@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -13625,7 +13971,7 @@ $LN437@SK_LoadEar:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T15[ebp]
 	add	esp, 12					; 0000000cH
-$LN129@SK_LoadEar:
+$LN130@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -13645,14 +13991,14 @@ $LN129@SK_LoadEar:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T9[ebp], cx
-$LN126@SK_LoadEar:
+$LN127@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 128  :       import.blacklist != nullptr ?
+; 150  :       import.blacklist != nullptr ?
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 	test	al, 1
-	je	SHORT $LN156@SK_LoadEar
+	je	SHORT $LN157@SK_LoadEar
 	and	eax, -2					; fffffffeH
 	mov	DWORD PTR $T15[ebp], eax
 	mov	DWORD PTR $T14[ebp], eax
@@ -13665,7 +14011,7 @@ $LN126@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN159@SK_LoadEar
+	jb	SHORT $LN160@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -13679,7 +14025,7 @@ $LN126@SK_LoadEar:
 	push	DWORD PTR $T4[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN159@SK_LoadEar:
+$LN160@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -13699,7 +14045,7 @@ $LN159@SK_LoadEar:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T4[ebp], ax
-$LN156@SK_LoadEar:
+$LN157@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -13712,7 +14058,7 @@ $LN156@SK_LoadEar:
 	cmovae	esi, DWORD PTR _blacklist$13[ebp]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 132  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
+; 154  :     if (StrStrIW (blacklist.c_str (), SK_GetHostApp ()))
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -13723,28 +14069,28 @@ $LN156@SK_LoadEar:
 	mov	eax, 1
 	cmovne	ecx, eax
 
-; 133  :       blacklisted = true;
-; 134  : 
-; 135  :     if (import.filename != nullptr)
+; 155  :       blacklisted = true;
+; 156  : 
+; 157  :     if (import.filename != nullptr)
 
 	cmp	DWORD PTR [edi-12], 0
-	mov	DWORD PTR tv1733[ebp], ecx
-	je	$LN374@SK_LoadEar
+	mov	DWORD PTR tv1765[ebp], ecx
+	je	$LN387@SK_LoadEar
 
-; 136  :     {
-; 137  :       if (import.when != nullptr)
+; 158  :     {
+; 159  :       if (import.when != nullptr)
 
 	cmp	DWORD PTR [edi-8], 0
-	je	$LN374@SK_LoadEar
+	je	$LN387@SK_LoadEar
 
-; 138  :       {
-; 139  :         if (import.architecture != nullptr)
+; 160  :       {
+; 161  :         if (import.architecture != nullptr)
 
 	mov	ecx, DWORD PTR [edi]
 	test	ecx, ecx
-	je	$LN374@SK_LoadEar
+	je	$LN387@SK_LoadEar
 
-; 141  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 163  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR $T8[ebp]
@@ -13760,7 +14106,7 @@ $LN156@SK_LoadEar:
 	or	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 141  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 163  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -13773,10 +14119,10 @@ $LN156@SK_LoadEar:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 141  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 163  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	test	al, al
-	je	SHORT $LN21@SK_LoadEar
+	je	SHORT $LN22@SK_LoadEar
 	mov	ecx, DWORD PTR [edi-8]
 	lea	edx, DWORD PTR $T12[ebp]
 	push	edx
@@ -13794,17 +14140,17 @@ $LN156@SK_LoadEar:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 141  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 163  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	mov	BYTE PTR $T17[ebp], 1
 	test	al, al
-	jne	SHORT $LN22@SK_LoadEar
-$LN21@SK_LoadEar:
-	mov	BYTE PTR $T17[ebp], 0
+	jne	SHORT $LN23@SK_LoadEar
 $LN22@SK_LoadEar:
+	mov	BYTE PTR $T17[ebp], 0
+$LN23@SK_LoadEar:
 	mov	eax, DWORD PTR $T15[ebp]
 	test	al, 8
-	je	SHORT $LN211@SK_LoadEar
+	je	SHORT $LN212@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -13812,7 +14158,7 @@ $LN22@SK_LoadEar:
 	mov	ecx, DWORD PTR $T12[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 141  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 163  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	and	eax, -9					; fffffff7H
 	mov	DWORD PTR $T15[ebp], eax
@@ -13824,7 +14170,7 @@ $LN22@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN214@SK_LoadEar
+	jb	SHORT $LN215@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -13839,7 +14185,7 @@ $LN22@SK_LoadEar:
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	mov	eax, DWORD PTR $T15[ebp]
 	add	esp, 12					; 0000000cH
-$LN214@SK_LoadEar:
+$LN215@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -13859,10 +14205,10 @@ $LN214@SK_LoadEar:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T12[ebp], cx
-$LN211@SK_LoadEar:
+$LN212@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 141  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 163  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	and	eax, -5					; fffffffbH
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
@@ -13877,7 +14223,7 @@ $LN211@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN244@SK_LoadEar
+	jb	SHORT $LN245@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -13891,15 +14237,15 @@ $LN211@SK_LoadEar:
 	push	DWORD PTR $T8[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN244@SK_LoadEar:
+$LN245@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 141  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
+; 163  :           if (import.architecture->get_value () == SK_IMPORT_ARCH_X64 &&
 
 	cmp	BYTE PTR $T17[ebp], 0
-	je	$LN374@SK_LoadEar
+	je	$LN387@SK_LoadEar
 
-; 144  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 166  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T11[ebp]
@@ -13915,16 +14261,16 @@ $LN244@SK_LoadEar:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN283@SK_LoadEar
+	jb	SHORT $LN284@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN283@SK_LoadEar:
+$LN284@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 144  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 166  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	push	eax
 	call	DWORD PTR __imp___wcsdup
@@ -13935,7 +14281,7 @@ $LN283@SK_LoadEar:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 144  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 166  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	add	esp, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -13950,7 +14296,7 @@ $LN283@SK_LoadEar:
 	mov	eax, DWORD PTR $T11[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 144  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
+; 166  :             CHeapPtr <wchar_t> file (_wcsdup (import.filename->get_value_str ().c_str ()));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -13961,7 +14307,7 @@ $LN283@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN297@SK_LoadEar
+	jb	SHORT $LN298@SK_LoadEar
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -13975,7 +14321,7 @@ $LN283@SK_LoadEar:
 	push	DWORD PTR $T11[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN297@SK_LoadEar:
+$LN298@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -13988,7 +14334,7 @@ $LN297@SK_LoadEar:
 	mov	DWORD PTR $T11[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 146  :             SK_StripUserNameFromPathW (file);
+; 168  :             SK_StripUserNameFromPathW (file);
 
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -14003,28 +14349,28 @@ $LN297@SK_LoadEar:
 	mov	WORD PTR $T11[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 146  :             SK_StripUserNameFromPathW (file);
+; 168  :             SK_StripUserNameFromPathW (file);
 
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 147  : 
-; 148  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
+; 169  : 
+; 170  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG150747
+	push	OFFSET $SG150913
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 149  :               file.m_pData);
-; 150  : 
-; 151  :             if (! blacklisted)
+; 171  :               file.m_pData);
+; 172  : 
+; 173  :             if (! blacklisted)
 
-	cmp	BYTE PTR tv1733[ebp], 0
+	cmp	BYTE PTR tv1765[ebp], 0
 	jne	$LN11@SK_LoadEar
 
-; 153  :               import.hLibrary = LoadLibraryW_Original (
+; 175  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	ecx, DWORD PTR [edi-12]
 	lea	edx, DWORD PTR $T7[ebp]
@@ -14039,43 +14385,70 @@ $LN297@SK_LoadEar:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 153  :               import.hLibrary = LoadLibraryW_Original (
+; 175  :               import.hLibrary = LoadLibraryW_Original (
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN338@SK_LoadEar
+	jb	SHORT $LN339@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN338@SK_LoadEar:
+$LN339@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 153  :               import.hLibrary = LoadLibraryW_Original (
+; 175  :               import.hLibrary = LoadLibraryW_Original (
 
 	push	eax
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	lea	ecx, DWORD PTR $T7[ebp]
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 154  :                 import.filename->get_value_str ().c_str ()
-; 155  :               );
-; 156  : 
-; 157  :               if (import.hLibrary != nullptr)
+; 176  :                 import.filename->get_value_str ().c_str ()
+; 177  :               );
+; 178  : 
+; 179  :               if (import.hLibrary != nullptr)
 
-	mov	eax, DWORD PTR [edi-64]
-	test	eax, eax
+	mov	ecx, DWORD PTR [edi-68]
+	test	ecx, ecx
 	je	$LN13@SK_LoadEar
 
-; 159  :                 import.product_desc =
+; 180  :               {
+; 181  :                 if (SK_Import_GetShimmedLibrary (import.hLibrary, import.hShim))
 
+	lea	eax, DWORD PTR [edi-64]
 	push	eax
+	push	ecx
+	call	?SK_Import_GetShimmedLibrary@@YA_NPAUHINSTANCE__@@AAPAU1@@Z ; SK_Import_GetShimmedLibrary
+	add	esp, 8
+	test	al, al
+	je	SHORT $LN346@SK_LoadEar
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 66   : 	_Ty _Tmp = _STD move(_Left);
+
+	mov	ecx, DWORD PTR [edi-68]
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	eax, DWORD PTR [edi-64]
+	mov	DWORD PTR [edi-68], eax
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi-64], ecx
+$LN346@SK_LoadEar:
+; File c:\users\andon\source\repos\specialk\src\import.cpp
+
+; 184  :                 import.product_desc =
+
+	push	DWORD PTR [edi-68]
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
 	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
@@ -14087,23 +14460,23 @@ $LN338@SK_LoadEar:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 159  :                 import.product_desc =
+; 184  :                 import.product_desc =
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN357@SK_LoadEar
+	jb	SHORT $LN370@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN357@SK_LoadEar:
+$LN370@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 159  :                 import.product_desc =
+; 184  :                 import.product_desc =
 
 	push	eax
 	lea	eax, DWORD PTR $T6[ebp]
@@ -14118,18 +14491,18 @@ $LN357@SK_LoadEar:
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 160  :                   SK_GetDLLVersionStr (
-; 161  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
-; 162  :                   );
-; 163  : 
-; 164  :                 dll_log.LogEx (false, L"success!\n");
+; 185  :                   SK_GetDLLVersionStr (
+; 186  :                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
+; 187  :                   );
+; 188  : 
+; 189  :                 dll_log.LogEx (false, L"success!\n");
 
-	push	OFFSET $SG150752
+	push	OFFSET $SG150919
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 167  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
+; 192  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
 
 	mov	ecx, DWORD PTR [edi-4]
 	lea	edx, DWORD PTR $T5[ebp]
@@ -14148,7 +14521,7 @@ $LN357@SK_LoadEar:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 167  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
+; 192  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
 
 	lea	ecx, DWORD PTR $T5[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -14158,40 +14531,40 @@ $LN357@SK_LoadEar:
 	mov	BYTE PTR $T16[ebp], al
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 167  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
+; 192  :                 if (import.role->get_value () == SK_IMPORT_ROLE_PLUGIN) {
 
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	cmp	BYTE PTR $T16[ebp], 0
 	je	$LN12@SK_LoadEar
 
-; 168  :                   import.hLibrary = SK_InitPlugIn64 (import.hLibrary);
+; 193  :                   import.hLibrary = SK_InitPlugIn64 (import.hLibrary);
 
-	push	DWORD PTR [edi-64]
+	push	DWORD PTR [edi-68]
 	call	?SK_InitPlugIn64@@YAPAUHINSTANCE__@@PAU1@@Z ; SK_InitPlugIn64
 	add	esp, 4
-	mov	DWORD PTR [edi-64], eax
+	mov	DWORD PTR [edi-68], eax
 
-; 169  : 
-; 170  :                   if (import.hLibrary == nullptr)
+; 194  : 
+; 195  :                   if (import.hLibrary == nullptr)
 
 	test	eax, eax
 	jne	$LN12@SK_LoadEar
 
-; 171  :                     --success;
+; 196  :                     --success;
 
-	mov	eax, DWORD PTR tv1785[ebp]
+	mov	eax, DWORD PTR tv1820[ebp]
 	mov	DWORD PTR _success$1$[ebp], eax
 
-; 172  :                 }
-; 173  :               }
-; 174  : 
-; 175  :               else
+; 197  :                 }
+; 198  :               }
+; 199  : 
+; 200  :               else
 
 	jmp	SHORT $LN12@SK_LoadEar
 $LN13@SK_LoadEar:
 
-; 176  :               {
-; 177  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+; 201  :               {
+; 202  :                 _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
 	call	DWORD PTR __imp__GetLastError@0
 ; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
@@ -14199,13 +14572,13 @@ $LN13@SK_LoadEar:
 ; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
 
 	test	eax, eax
-	jle	SHORT $LN369@SK_LoadEar
+	jle	SHORT $LN382@SK_LoadEar
 	movzx	eax, ax
 	or	eax, -2147024896			; 80070000H
-$LN369@SK_LoadEar:
+$LN382@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 180  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 205  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	lea	ecx, DWORD PTR _err$10[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -14221,11 +14594,11 @@ $LN369@SK_LoadEar:
 	mov	DWORD PTR _err$10[ebp+12], 0
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 179  :                 import.hLibrary = (HMODULE)-2;
+; 204  :                 import.hLibrary = (HMODULE)-2;
 
-	mov	DWORD PTR [edi-64], -2			; fffffffeH
+	mov	DWORD PTR [edi-68], -2			; fffffffeH
 
-; 180  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
+; 205  :                 dll_log.LogEx (false, L"failed: 0x%04X (%s)!\n",
 
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
@@ -14233,29 +14606,29 @@ $LN369@SK_LoadEar:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG150756
+	push	OFFSET $SG150923
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 181  :                                err.WCode (), err.ErrorMessage () );
-; 182  :               }
+; 206  :                                err.WCode (), err.ErrorMessage () );
+; 207  :               }
 
 	lea	ecx, DWORD PTR _err$10[ebp]
 	call	??1_com_error@@UAE@XZ			; _com_error::~_com_error
 
-; 183  :             }
-; 184  : 
-; 185  :             else
+; 208  :             }
+; 209  : 
+; 210  :             else
 
 	jmp	SHORT $LN12@SK_LoadEar
 $LN11@SK_LoadEar:
 
-; 186  :             {
-; 187  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
+; 211  :             {
+; 212  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG150757
+	push	OFFSET $SG150924
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -14268,7 +14641,7 @@ $LN12@SK_LoadEar:
 	push	esi
 	call	DWORD PTR __imp__free
 	add	esp, 4
-$LN374@SK_LoadEar:
+$LN387@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -14276,7 +14649,7 @@ $LN374@SK_LoadEar:
 	mov	eax, DWORD PTR _blacklist$13[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 193  :   }
+; 218  :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -14287,7 +14660,7 @@ $LN374@SK_LoadEar:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN416@SK_LoadEar
+	jb	SHORT $LN429@SK_LoadEar
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -14303,7 +14676,7 @@ $LN374@SK_LoadEar:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	SHORT $LN430@SK_LoadEar
+	ja	SHORT $LN443@SK_LoadEar
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -14312,14 +14685,14 @@ $LN374@SK_LoadEar:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN411@SK_LoadEar
+	jb	SHORT $LN424@SK_LoadEar
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	SHORT $LN430@SK_LoadEar
+	jne	SHORT $LN443@SK_LoadEar
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -14341,7 +14714,7 @@ $LN374@SK_LoadEar:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	SHORT $LN430@SK_LoadEar
+	jae	SHORT $LN443@SK_LoadEar
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -14353,19 +14726,19 @@ $LN374@SK_LoadEar:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	SHORT $LN430@SK_LoadEar
+	jb	SHORT $LN443@SK_LoadEar
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	SHORT $LN430@SK_LoadEar
+	ja	SHORT $LN443@SK_LoadEar
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN411@SK_LoadEar:
+$LN424@SK_LoadEar:
 
 ; 133  : 		}
 ; 134  : 
@@ -14379,7 +14752,7 @@ $LN411@SK_LoadEar:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN416@SK_LoadEar:
+$LN429@SK_LoadEar:
 	mov	ecx, DWORD PTR _success$1$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -14403,54 +14776,54 @@ $LN416@SK_LoadEar:
 $LN2@SK_LoadEar:
 ; File c:\users\andon\source\repos\specialk\src\import.cpp
 
-; 120  :   for (auto& import : imports)
+; 142  :   for (auto& import : imports)
 
-	add	edi, 72					; 00000048H
-	lea	eax, DWORD PTR [edi-64]
-	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+576
+	add	edi, 76					; 0000004cH
+	lea	eax, DWORD PTR [edi-68]
+	cmp	eax, OFFSET ?imports@@3PAUimport_s@@A+608
 	jne	$LL4@SK_LoadEar
 
-; 194  : 
-; 195  :   if (success > 0)
+; 219  : 
+; 220  :   if (success > 0)
 
 	pop	edi
 	pop	esi
 	test	ecx, ecx
-	jle	SHORT $LN17@SK_LoadEar
+	jle	SHORT $LN18@SK_LoadEar
 
-; 196  :     SK_SymRefreshModuleList ();
+; 221  :     SK_SymRefreshModuleList ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	?SK_SymRefreshModuleList@@YGXPAX@Z	; SK_SymRefreshModuleList
-$LN17@SK_LoadEar:
+$LN18@SK_LoadEar:
 
-; 197  : }
+; 222  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN430@SK_LoadEar:
+$LN443@SK_LoadEar:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN438@SK_LoadEar:
-$LN436@SK_LoadEar:
+$LN451@SK_LoadEar:
+$LN449@SK_LoadEar:
 	int	3
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_LoadEarlyImports64@@YAXXZ$0:
 	mov	eax, DWORD PTR $T14[ebp]
 	and	eax, 1
-	je	$LN24@SK_LoadEar
+	je	$LN25@SK_LoadEar
 	and	DWORD PTR $T14[ebp], -2			; fffffffeH
 	lea	ecx, DWORD PTR $T4[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN24@SK_LoadEar:
+$LN25@SK_LoadEar:
 	ret	0
 __unwindfunclet$?SK_LoadEarlyImports64@@YAXXZ$2:
 	lea	ecx, DWORD PTR _blacklist$13[ebp]
@@ -14458,11 +14831,11 @@ __unwindfunclet$?SK_LoadEarlyImports64@@YAXXZ$2:
 __unwindfunclet$?SK_LoadEarlyImports64@@YAXXZ$3:
 	mov	eax, DWORD PTR $T14[ebp]
 	and	eax, 4
-	je	$LN31@SK_LoadEar
+	je	$LN32@SK_LoadEar
 	and	DWORD PTR $T14[ebp], -5			; fffffffbH
 	lea	ecx, DWORD PTR $T8[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-$LN31@SK_LoadEar:
+$LN32@SK_LoadEar:
 	ret	0
 __unwindfunclet$?SK_LoadEarlyImports64@@YAXXZ$6:
 	lea	ecx, DWORD PTR _file$2[ebp]
@@ -14505,7 +14878,7 @@ _TEXT	SEGMENT
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR [esi+48]
+	mov	eax, DWORD PTR [esi+52]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
@@ -14526,7 +14899,7 @@ _TEXT	SEGMENT
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR [esi+28]
+	push	DWORD PTR [esi+32]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 $LN7@import_s:
@@ -14539,21 +14912,21 @@ $LN7@import_s:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+44], 0
+	mov	DWORD PTR [esi+48], 0
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+48], 7
+	mov	DWORD PTR [esi+52], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+28], ax
+	mov	WORD PTR [esi+32], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR [esi+24]
+	mov	eax, DWORD PTR [esi+28]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
@@ -14574,7 +14947,7 @@ $LN7@import_s:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR [esi+4]
+	push	DWORD PTR [esi+8]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 $LN37@import_s:
@@ -14582,7 +14955,7 @@ $LN37@import_s:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+20], 0
+	mov	DWORD PTR [esi+24], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -14592,12 +14965,12 @@ $LN37@import_s:
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+24], 7
+	mov	DWORD PTR [esi+28], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+4], ax
+	mov	WORD PTR [esi+8], ax
 	pop	esi
 	ret	0
 ??1import_s@@QAE@XZ ENDP				; import_s::~import_s
@@ -14631,7 +15004,7 @@ __$EHRec$ = -12						; size = 12
 	xor	eax, eax
 	push	esi
 	mov	esi, ecx
-	lea	ecx, DWORD PTR [esi+4]
+	lea	ecx, DWORD PTR [esi+8]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
@@ -14639,6 +15012,7 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
 	mov	DWORD PTR [esi], 0
+	mov	DWORD PTR [esi+4], 0
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -14666,8 +15040,8 @@ __$EHRec$ = -12						; size = 12
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+44], 0
-	lea	ecx, DWORD PTR [esi+28]
+	mov	DWORD PTR [esi+48], 0
+	lea	ecx, DWORD PTR [esi+32]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
@@ -14689,11 +15063,11 @@ __$EHRec$ = -12						; size = 12
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
-	mov	DWORD PTR [esi+52], 0
 	mov	DWORD PTR [esi+56], 0
 	mov	DWORD PTR [esi+60], 0
 	mov	DWORD PTR [esi+64], 0
 	mov	DWORD PTR [esi+68], 0
+	mov	DWORD PTR [esi+72], 0
 	mov	DWORD PTR fs:0, ecx
 	pop	esi
 	mov	esp, ebp

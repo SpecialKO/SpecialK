@@ -9,6 +9,23 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
+PUBLIC	?dgvoodoo_ddraw@@3PAUimport_s@@A		; dgvoodoo_ddraw
+PUBLIC	?dgvoodoo_d3dimm@@3PAUimport_s@@A		; dgvoodoo_d3dimm
+PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
+PUBLIC	_IID_IAxWinHostWindow
+PUBLIC	_IID_IAxWinHostWindowLic
+PUBLIC	_IID_IAxWinAmbientDispatch
+PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
+PUBLIC	_LIBID_ATLLib
+PUBLIC	?__ddraw_ready@@3JC				; __ddraw_ready
+PUBLIC	?DirectDrawCreate_Import@@3P6GJPAU_GUID@@PAPAXPAUIUnknown@@@ZA ; DirectDrawCreate_Import
+PUBLIC	?DirectDrawCreateEx_Import@@3P6GJPAU_GUID@@PAPAXABU1@PAUIUnknown@@@ZA ; DirectDrawCreateEx_Import
+PUBLIC	?DirectDrawEnumerateA_Import@@3P6GJPAX0@ZA	; DirectDrawEnumerateA_Import
+PUBLIC	?DirectDrawEnumerateW_Import@@3P6GJPAX0@ZA	; DirectDrawEnumerateW_Import
+PUBLIC	?DirectDrawEnumerateExA_Import@@3P6GJPAX0K@ZA	; DirectDrawEnumerateExA_Import
+PUBLIC	?DirectDrawEnumerateExW_Import@@3P6GJPAX0K@ZA	; DirectDrawEnumerateExW_Import
+PUBLIC	_IID_IAxWinAmbientDispatchEx
+PUBLIC	_IID_IInternalConnection
 PUBLIC	___pobjMapEntryFirst
 PUBLIC	___pobjMapEntryLast
 PUBLIC	?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA	; ATL::_pPerfRegFunc
@@ -31,39 +48,6 @@ PUBLIC	?szForceRemove@ATL@@3QB_WB			; ATL::szForceRemove
 PUBLIC	?szNoRemove@ATL@@3QB_WB				; ATL::szNoRemove
 PUBLIC	?szDelete@ATL@@3QB_WB				; ATL::szDelete
 PUBLIC	_IID_IDocHostUIHandlerDispatch
-PUBLIC	?dgvoodoo_ddraw@@3PAUimport_s@@A		; dgvoodoo_ddraw
-PUBLIC	?dgvoodoo_d3dimm@@3PAUimport_s@@A		; dgvoodoo_d3dimm
-PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
-PUBLIC	_IID_IAxWinHostWindow
-PUBLIC	_IID_IAxWinHostWindowLic
-PUBLIC	_IID_IAxWinAmbientDispatch
-PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
-PUBLIC	_LIBID_ATLLib
-PUBLIC	?__ddraw_ready@@3JC				; __ddraw_ready
-PUBLIC	?DirectDrawCreate_Import@@3P6GJPAU_GUID@@PAPAXPAUIUnknown@@@ZA ; DirectDrawCreate_Import
-PUBLIC	?DirectDrawCreateEx_Import@@3P6GJPAU_GUID@@PAPAXABU1@PAUIUnknown@@@ZA ; DirectDrawCreateEx_Import
-PUBLIC	?DirectDrawEnumerateA_Import@@3P6GJPAX0@ZA	; DirectDrawEnumerateA_Import
-PUBLIC	?DirectDrawEnumerateW_Import@@3P6GJPAX0@ZA	; DirectDrawEnumerateW_Import
-PUBLIC	?DirectDrawEnumerateExA_Import@@3P6GJPAX0K@ZA	; DirectDrawEnumerateExA_Import
-PUBLIC	?DirectDrawEnumerateExW_Import@@3P6GJPAX0K@ZA	; DirectDrawEnumerateExW_Import
-PUBLIC	_IID_IAxWinAmbientDispatchEx
-PUBLIC	_IID_IInternalConnection
-;	COMDAT ?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA
-_BSS	SEGMENT
-?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA DD 01H DUP (?) ; ATL::_pPerfRegFunc
-_BSS	ENDS
-;	COMDAT ?_pPerfUnRegFunc@ATL@@3P6AJXZA
-_BSS	SEGMENT
-?_pPerfUnRegFunc@ATL@@3P6AJXZA DD 01H DUP (?)		; ATL::_pPerfUnRegFunc
-_BSS	ENDS
-;	COMDAT ?_AtlRegisterPerUser@ATL@@3_NA
-_BSS	SEGMENT
-?_AtlRegisterPerUser@ATL@@3_NA DB 01H DUP (?)		; ATL::_AtlRegisterPerUser
-_BSS	ENDS
-;	COMDAT ?_pModule@ATL@@3PAVCComModule@1@A
-_BSS	SEGMENT
-?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
-_BSS	ENDS
 _BSS	SEGMENT
 ?dgvoodoo_ddraw@@3PAUimport_s@@A DD 01H DUP (?)		; dgvoodoo_ddraw
 ?dgvoodoo_d3dimm@@3PAUimport_s@@A DD 01H DUP (?)	; dgvoodoo_d3dimm
@@ -85,6 +69,124 @@ _BSS	SEGMENT
 ?DirectDrawEnumerateExA_Import@@3P6GJPAX0K@ZA DD 01H DUP (?) ; DirectDrawEnumerateExA_Import
 ?DirectDrawEnumerateExW_Import@@3P6GJPAX0K@ZA DD 01H DUP (?) ; DirectDrawEnumerateExW_Import
 _BSS	ENDS
+;	COMDAT ?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA
+_BSS	SEGMENT
+?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA DD 01H DUP (?) ; ATL::_pPerfRegFunc
+_BSS	ENDS
+;	COMDAT ?_pPerfUnRegFunc@ATL@@3P6AJXZA
+_BSS	SEGMENT
+?_pPerfUnRegFunc@ATL@@3P6AJXZA DD 01H DUP (?)		; ATL::_pPerfUnRegFunc
+_BSS	ENDS
+;	COMDAT ?_AtlRegisterPerUser@ATL@@3_NA
+_BSS	SEGMENT
+?_AtlRegisterPerUser@ATL@@3_NA DB 01H DUP (?)		; ATL::_AtlRegisterPerUser
+_BSS	ENDS
+;	COMDAT ?_pModule@ATL@@3PAVCComModule@1@A
+_BSS	SEGMENT
+?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
+_BSS	ENDS
+;	COMDAT _IID_IDocHostUIHandlerDispatch
+CONST	SEGMENT
+_IID_IDocHostUIHandlerDispatch DD 0425b5af0H
+	DW	065f1H
+	DW	011d1H
+	DB	096H
+	DB	011H
+	DB	00H
+	DB	00H
+	DB	0f8H
+	DB	01eH
+	DB	0dH
+	DB	0dH
+CONST	ENDS
+;	COMDAT ?szDelete@ATL@@3QB_WB
+CONST	SEGMENT
+?szDelete@ATL@@3QB_WB DD FLAT:$SG231354			; ATL::szDelete
+CONST	ENDS
+;	COMDAT ?szNoRemove@ATL@@3QB_WB
+CONST	SEGMENT
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG231352		; ATL::szNoRemove
+CONST	ENDS
+;	COMDAT ?szForceRemove@ATL@@3QB_WB
+CONST	SEGMENT
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG231350		; ATL::szForceRemove
+CONST	ENDS
+;	COMDAT ?szValToken@ATL@@3QB_WB
+CONST	SEGMENT
+?szValToken@ATL@@3QB_WB DD FLAT:$SG231348		; ATL::szValToken
+CONST	ENDS
+;	COMDAT ?szBinaryVal@ATL@@3QB_WB
+CONST	SEGMENT
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG231346		; ATL::szBinaryVal
+CONST	ENDS
+;	COMDAT ?szDwordVal@ATL@@3QB_WB
+CONST	SEGMENT
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG231344		; ATL::szDwordVal
+CONST	ENDS
+;	COMDAT ?multiszStringVal@ATL@@3QB_WB
+CONST	SEGMENT
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG231342		; ATL::multiszStringVal
+CONST	ENDS
+;	COMDAT ?szStringVal@ATL@@3QB_WB
+CONST	SEGMENT
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG231340		; ATL::szStringVal
+CONST	ENDS
+;	COMDAT ?chEquals@ATL@@3_WB
+CONST	SEGMENT
+?chEquals@ATL@@3_WB DW 03dH				; ATL::chEquals
+CONST	ENDS
+;	COMDAT ?chQuote@ATL@@3_WB
+CONST	SEGMENT
+?chQuote@ATL@@3_WB DW 027H				; ATL::chQuote
+CONST	ENDS
+;	COMDAT ?chLeftBracket@ATL@@3_WB
+CONST	SEGMENT
+?chLeftBracket@ATL@@3_WB DW 07bH			; ATL::chLeftBracket
+CONST	ENDS
+;	COMDAT ?chRightBracket@ATL@@3_WB
+CONST	SEGMENT
+?chRightBracket@ATL@@3_WB DW 07dH			; ATL::chRightBracket
+CONST	ENDS
+;	COMDAT ?chDirSep@ATL@@3_WB
+CONST	SEGMENT
+?chDirSep@ATL@@3_WB DW 05cH				; ATL::chDirSep
+CONST	ENDS
+;	COMDAT _IID_IRegistrar
+CONST	SEGMENT
+_IID_IRegistrar DD 044ec053bH
+	DW	0400fH
+	DW	011d0H
+	DB	09dH
+	DB	0cdH
+	DB	00H
+	DB	0a0H
+	DB	0c9H
+	DB	03H
+	DB	091H
+	DB	0d3H
+CONST	ENDS
+;	COMDAT _CLSID_Registrar
+CONST	SEGMENT
+_CLSID_Registrar DD 044ec053aH
+	DW	0400fH
+	DW	011d0H
+	DB	09dH
+	DB	0cdH
+	DB	00H
+	DB	0a0H
+	DB	0c9H
+	DB	03H
+	DB	091H
+	DB	0d3H
+CONST	ENDS
+;	COMDAT ___pobjMapEntryLast
+ATL$__z	SEGMENT
+___pobjMapEntryLast DD 00H
+ATL$__z	ENDS
+;	COMDAT ___pobjMapEntryFirst
+ATL$__a	SEGMENT
+___pobjMapEntryFirst DD 00H
+ATL$__a	ENDS
 ;	COMDAT _IID_IInternalConnection
 CONST	SEGMENT
 _IID_IInternalConnection DD 072ad0770H
@@ -169,117 +271,112 @@ _IID_IAxWinHostWindow DD 0b6ea2050H
 	DB	094H
 	DB	02eH
 CONST	ENDS
-;	COMDAT _IID_IDocHostUIHandlerDispatch
 CONST	SEGMENT
-_IID_IDocHostUIHandlerDispatch DD 0425b5af0H
-	DW	065f1H
-	DW	011d1H
-	DB	096H
-	DB	011H
+$SG220186 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG220233 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
+$SG220280 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, 00H, 00H
+?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+	ORG $+1
+$SG220327 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG220332 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
+	ORG $+2
+$SG220379 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG220426 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
-	DB	0f8H
-	DB	01eH
-	DB	0dH
-	DB	0dH
-CONST	ENDS
-;	COMDAT ?szDelete@ATL@@3QB_WB
-CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG231726			; ATL::szDelete
-CONST	ENDS
-;	COMDAT ?szNoRemove@ATL@@3QB_WB
-CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG231724		; ATL::szNoRemove
-CONST	ENDS
-;	COMDAT ?szForceRemove@ATL@@3QB_WB
-CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG231722		; ATL::szForceRemove
-CONST	ENDS
-;	COMDAT ?szValToken@ATL@@3QB_WB
-CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG231720		; ATL::szValToken
-CONST	ENDS
-;	COMDAT ?szBinaryVal@ATL@@3QB_WB
-CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG231718		; ATL::szBinaryVal
-CONST	ENDS
-;	COMDAT ?szDwordVal@ATL@@3QB_WB
-CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG231716		; ATL::szDwordVal
-CONST	ENDS
-;	COMDAT ?multiszStringVal@ATL@@3QB_WB
-CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG231714		; ATL::multiszStringVal
-CONST	ENDS
-;	COMDAT ?szStringVal@ATL@@3QB_WB
-CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG231712		; ATL::szStringVal
-CONST	ENDS
-;	COMDAT ?chEquals@ATL@@3_WB
-CONST	SEGMENT
-?chEquals@ATL@@3_WB DW 03dH				; ATL::chEquals
-CONST	ENDS
-;	COMDAT ?chQuote@ATL@@3_WB
-CONST	SEGMENT
-?chQuote@ATL@@3_WB DW 027H				; ATL::chQuote
-CONST	ENDS
-;	COMDAT ?chLeftBracket@ATL@@3_WB
-CONST	SEGMENT
-?chLeftBracket@ATL@@3_WB DW 07bH			; ATL::chLeftBracket
-CONST	ENDS
-;	COMDAT ?chRightBracket@ATL@@3_WB
-CONST	SEGMENT
-?chRightBracket@ATL@@3_WB DW 07dH			; ATL::chRightBracket
-CONST	ENDS
-;	COMDAT ?chDirSep@ATL@@3_WB
-CONST	SEGMENT
-?chDirSep@ATL@@3_WB DW 05cH				; ATL::chDirSep
-CONST	ENDS
-;	COMDAT _IID_IRegistrar
-CONST	SEGMENT
-_IID_IRegistrar DD 044ec053bH
-	DW	0400fH
-	DW	011d0H
-	DB	09dH
-	DB	0cdH
-	DB	00H
-	DB	0a0H
-	DB	0c9H
-	DB	03H
-	DB	091H
-	DB	0d3H
-CONST	ENDS
-;	COMDAT _CLSID_Registrar
-CONST	SEGMENT
-_CLSID_Registrar DD 044ec053aH
-	DW	0400fH
-	DW	011d0H
-	DB	09dH
-	DB	0cdH
-	DB	00H
-	DB	0a0H
-	DB	0c9H
-	DB	03H
-	DB	091H
-	DB	0d3H
-CONST	ENDS
-;	COMDAT ___pobjMapEntryLast
-ATL$__z	SEGMENT
-___pobjMapEntryLast DD 00H
-ATL$__z	ENDS
-;	COMDAT ___pobjMapEntryFirst
-ATL$__a	SEGMENT
-___pobjMapEntryFirst DD 00H
-ATL$__a	ENDS
-CONST	SEGMENT
-$SG220182 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	ORG $+2
+$SG220473 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG219457 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG219528 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG219575 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+	ORG $+2
+$SG219622 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG219669 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG219716 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
+	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG255570 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 'C', 00H, 'r', 00H, 'e'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG255571 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
+	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, ' '
+	DB	00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG255582 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 'C', 00H, 'r', 00H, 'e'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 00H, 00H
+	ORG $+2
+$SG232030 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG255583 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
+	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, ' '
+	DB	00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG232031 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG232032 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG232033 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG232034 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG232035 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG232036 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG232037 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG232038 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG232039 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG232040 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG232041 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+	DB	'b', 00H, 00H, 00H
+$SG219763 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
+	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG219810 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG256051 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG255681 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG256057 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG256052 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
+$SG255682 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r'
@@ -287,10 +384,9 @@ $SG256052 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'w', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
 	DB	00H, '{', 00H, 'E', 00H, 'x', 00H, '}', 00H, '.', 00H, '.', 00H
 	DB	00H, 00H
-$SG256058 DB	'DirectDrawCreate', 00H
-?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-	ORG $+2
-$SG256053 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
+$SG255687 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG255683 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
@@ -298,9 +394,9 @@ $SG256053 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	00H, 00H
-$SG256060 DB	'DirectDrawCreateEx', 00H
-	ORG $+1
-$SG256059 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
+$SG255688 DB	'DirectDrawCreate', 00H
+	ORG $+3
+$SG255689 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
 	DB	'c', 00H, 't', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 'C'
@@ -308,7 +404,11 @@ $SG256059 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG256061 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
+$SG255690 DB	'DirectDrawCreateEx', 00H
+	ORG $+1
+$SG255692 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG255691 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
 	DB	'c', 00H, 't', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 'C'
@@ -316,41 +416,46 @@ $SG256061 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'x', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG256062 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG256064 DB	'DirectDrawCreate', 00H
+$SG255694 DB	'DirectDrawCreate', 00H
 	ORG $+3
-$SG256065 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG255695 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG256066 DB	'DirectDrawCreateEx', 00H
+$SG255696 DB	'DirectDrawCreateEx', 00H
 	ORG $+1
-$SG256067 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG255697 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG256068 DB	'DirectDrawEnumerateA', 00H
-	ORG $+3
-$SG256069 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG220229 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219857 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG256070 DB	'DirectDrawEnumerateW', 00H
+$SG255698 DB	'DirectDrawEnumerateA', 00H
 	ORG $+3
-$SG256071 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG255699 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG256072 DB	'DirectDrawEnumerateExA', 00H
-	ORG $+1
-$SG256073 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG256074 DB	'DirectDrawEnumerateExW', 00H
-	ORG $+1
-$SG256075 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG256077 DB	'DirectDrawCreate', 00H
+$SG255700 DB	'DirectDrawEnumerateW', 00H
 	ORG $+3
-$SG256078 DB	'DirectDrawCreateEx', 00H
+$SG255701 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG255702 DB	'DirectDrawEnumerateExA', 00H
 	ORG $+1
-$SG256079 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
+$SG255703 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG255704 DB	'DirectDrawEnumerateExW', 00H
+	ORG $+1
+$SG255705 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG255707 DB	'DirectDrawCreate', 00H
+	ORG $+3
+$SG255708 DB	'DirectDrawCreateEx', 00H
+	ORG $+1
+$SG255711 DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'S', 00H, 'u', 00H
+	DB	'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'P'
+	DB	00H, 'l', 00H, 'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H
+	DB	00H, 00H
+$SG255753 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
+	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, 00H, 00H
+$SG255709 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
 	DB	'c', 00H, 't', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 'C'
@@ -358,10 +463,10 @@ $SG256079 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p', 00H, ' ', 00H, ' '
 	DB	00H, '{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H, 00H
-$SG256123 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG255756 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, 00H, 00H
-$SG256080 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
+$SG255710 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
 	DB	'c', 00H, 't', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 'C'
@@ -369,169 +474,64 @@ $SG256080 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
 	DB	'x', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, ' ', 00H, ' '
 	DB	00H, '{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H, 00H
-$SG256081 DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'S', 00H, 'u', 00H
-	DB	'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'P'
-	DB	00H, 'l', 00H, 'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H
-	DB	00H, 00H
-$SG220276 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219904 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG256125 DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'S', 00H, 'u', 00H
+$SG255755 DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'S', 00H, 'u', 00H
 	DB	'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'P'
 	DB	00H, 'l', 00H, 'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H
 	DB	00H, 00H
-$SG256126 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
-	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
-	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, 00H, 00H
-$SG256124 DB	'%', 00H, 's', 00H, '\', 00H, 'P', 00H, 'l', 00H, 'u', 00H
+$SG255759 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
+$SG255754 DB	'%', 00H, 's', 00H, '\', 00H, 'P', 00H, 'l', 00H, 'u', 00H
 	DB	'g', 00H, 'I', 00H, 'n', 00H, 's', 00H, '\', 00H, 'T', 00H, 'h'
 	DB	00H, 'i', 00H, 'r', 00H, 'd', 00H, 'P', 00H, 'a', 00H, 'r', 00H
 	DB	't', 00H, 'y', 00H, '\', 00H, 'd', 00H, 'g', 00H, 'V', 00H, 'o'
 	DB	00H, 'o', 00H, 'd', 00H, 'o', 00H, 'o', 00H, '\', 00H, 'd', 00H
 	DB	'3', 00H, 'd', 00H, 'i', 00H, 'm', 00H, 'm', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG256129 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
-$SG256127 DB	'%', 00H, 's', 00H, '\', 00H, 'P', 00H, 'l', 00H, 'u', 00H
+$SG255772 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
+$SG255757 DB	'%', 00H, 's', 00H, '\', 00H, 'P', 00H, 'l', 00H, 'u', 00H
 	DB	'g', 00H, 'I', 00H, 'n', 00H, 's', 00H, '\', 00H, 'T', 00H, 'h'
 	DB	00H, 'i', 00H, 'r', 00H, 'd', 00H, 'P', 00H, 'a', 00H, 'r', 00H
 	DB	't', 00H, 'y', 00H, '\', 00H, 'd', 00H, 'g', 00H, 'V', 00H, 'o'
 	DB	00H, 'o', 00H, 'd', 00H, 'o', 00H, 'o', 00H, '\', 00H, 'd', 00H
 	DB	'3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG256128 DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'S', 00H, 'u', 00H
+$SG255758 DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'S', 00H, 'u', 00H
 	DB	'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'P'
 	DB	00H, 'l', 00H, 'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H
 	DB	00H, 00H
-$SG256142 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
-$SG220323 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219951 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG220370 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219998 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG220417 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220045 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG231712 DB	'S', 00H, 00H, 00H
-$SG231714 DB	'M', 00H, 00H, 00H
-$SG231716 DB	'D', 00H, 00H, 00H
-$SG231718 DB	'B', 00H, 00H, 00H
-$SG231720 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG231722 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG231340 DB	'S', 00H, 00H, 00H
+$SG231342 DB	'M', 00H, 00H, 00H
+$SG231344 DB	'D', 00H, 00H, 00H
+$SG231346 DB	'B', 00H, 00H, 00H
+$SG231348 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG231350 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG231724 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG231352 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG231726 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG231354 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG220464 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220092 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG220511 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220139 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
-	ORG $+2
-$SG220558 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG220605 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
-	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG220652 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
-	DB	00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG220699 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG220704 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG220751 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
-	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG220798 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG220845 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG219829 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG219900 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG219947 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
-	ORG $+2
-$SG219994 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG220041 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
-	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG220088 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
-	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG255940 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 'C', 00H, 'r', 00H, 'e'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG255941 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
-	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, ' '
-	DB	00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG255952 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 'C', 00H, 'r', 00H, 'e'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 00H, 00H
-	ORG $+2
-$SG255953 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'D', 00H
-	DB	'r', 00H, 'a', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, ' '
-	DB	00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG232402 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG232403 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG232404 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
-	ORG $+2
-$SG232405 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG232406 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG232407 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG232408 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG232409 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG232410 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
-	ORG $+2
-$SG232411 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG232412 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG232413 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
-	DB	'b', 00H, 00H, 00H
-$SG220135 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
-	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
@@ -989,6 +989,14 @@ xdata$x	ENDS
 xdata$x	SEGMENT
 __unwindtable$?SK_HookDDraw@@YGXXZ DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_HookDDraw@@YGXXZ$1
+__unwindtable$?Startup@DDraw@SK@@YA_NXZ DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?Startup@DDraw@SK@@YA_NXZ$0
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?Startup@DDraw@SK@@YA_NXZ$2
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?Startup@DDraw@SK@@YA_NXZ$4
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?Startup@DDraw@SK@@YA_NXZ$6
 __ehfuncinfo$?SK_HookDDraw@@YGXXZ DD 019930522H
 	DD	01H
 	DD	FLAT:__unwindtable$?SK_HookDDraw@@YGXXZ
@@ -997,24 +1005,12 @@ __ehfuncinfo$?SK_HookDDraw@@YGXXZ DD 019930522H
 	DD	00H
 	DD	01H
 __ehfuncinfo$?Startup@DDraw@SK@@YA_NXZ DD 019930522H
-	DD	06H
+	DD	04H
 	DD	FLAT:__unwindtable$?Startup@DDraw@SK@@YA_NXZ
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
 	DD	00H
 	DD	01H
-__unwindtable$?Startup@DDraw@SK@@YA_NXZ DD 0ffffffffH
-	DD	FLAT:__unwindfunclet$?Startup@DDraw@SK@@YA_NXZ$0
-	DD	0ffffffffH
-	DD	FLAT:___std_terminate
-	DD	0ffffffffH
-	DD	FLAT:__unwindfunclet$?Startup@DDraw@SK@@YA_NXZ$2
-	DD	0ffffffffH
-	DD	FLAT:__unwindfunclet$?Startup@DDraw@SK@@YA_NXZ$4
-	DD	0ffffffffH
-	DD	FLAT:___std_terminate
-	DD	0ffffffffH
-	DD	FLAT:__unwindfunclet$?Startup@DDraw@SK@@YA_NXZ$6
 xdata$x	ENDS
 ;	COMDAT CRT$XCU
 CRT$XCU	SEGMENT
@@ -1698,19 +1694,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJPAX0K@Z@@YAPAPAXPAP6GJPAX0K@Z@Z PROC ; static_cast_p2p<void,long __stdcall(void *,void *,unsigned long)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -1723,19 +1719,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJPAX0@Z@@YAPAPAXPAP6GJPAX0@Z@Z PROC ; static_cast_p2p<void,long __stdcall(void *,void *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -1748,19 +1744,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJPAU_GUID@@PAPAXABU1@PAUIUnknown@@@Z@@YAPAPAXPAP6GJPAU_GUID@@PAPAXABU0@PAUIUnknown@@@Z@Z PROC ; static_cast_p2p<void,long __stdcall(_GUID *,void * *,_GUID const &,IUnknown *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -1773,19 +1769,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJPAU_GUID@@PAPAXPAUIUnknown@@@Z@@YAPAPAXPAP6GJPAU_GUID@@PAPAXPAUIUnknown@@@Z@Z PROC ; static_cast_p2p<void,long __stdcall(_GUID *,void * *,IUnknown *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -1984,7 +1980,7 @@ __$EHRec$ = -12						; size = 12
 	mov	eax, DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A ; backend_dll
 	jmp	SHORT $LN167@SK_HookDDr
 $LN8@SK_HookDDr:
-	push	OFFSET $SG256051
+	push	OFFSET $SG255681
 	call	esi
 $LN167@SK_HookDDr:
 	mov	DWORD PTR _hBackend$[ebp], eax
@@ -1996,7 +1992,7 @@ $LN167@SK_HookDDr:
 ; 276  : 
 ; 277  :   dll_log.Log (L"[   DDraw  ] Importing DirectDrawCreate{Ex}..");
 
-	push	OFFSET $SG256052
+	push	OFFSET $SG255682
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 
 ; 275  :   };
@@ -2010,7 +2006,7 @@ $LN167@SK_HookDDr:
 
 ; 278  :   dll_log.Log (L"[   DDraw  ] ================================");
 
-	push	OFFSET $SG256053
+	push	OFFSET $SG255683
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -2043,7 +2039,7 @@ $LN32@SK_HookDDr:
 
 ; 280  :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"ddraw.dll"))
 
-	push	OFFSET $SG256057
+	push	OFFSET $SG255687
 	push	eax
 	call	DWORD PTR __imp___wcsicmp
 	add	esp, 8
@@ -2092,11 +2088,11 @@ $LN42@SK_HookDDr:
 ; 282  :     dll_log.Log (L"[   DDraw  ]   DirectDrawCreate:   %ph",
 
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
-	push	OFFSET $SG256058
+	push	OFFSET $SG255688
 	push	DWORD PTR _hBackend$[ebp]
 	call	esi
 	push	eax
-	push	OFFSET $SG256059
+	push	OFFSET $SG255689
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?DirectDrawCreate_Import@@3P6GJPAU_GUID@@PAPAXPAUIUnknown@@@ZA, eax ; DirectDrawCreate_Import
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -2109,11 +2105,11 @@ $LN42@SK_HookDDr:
 ; 287  :     );
 ; 288  :     dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %ph",
 
-	push	OFFSET $SG256060
+	push	OFFSET $SG255690
 	push	DWORD PTR _hBackend$[ebp]
 	call	esi
 	push	eax
-	push	OFFSET $SG256061
+	push	OFFSET $SG255691
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?DirectDrawCreateEx_Import@@3P6GJPAU_GUID@@PAPAXABU1@PAUIUnknown@@@ZA, eax ; DirectDrawCreateEx_Import
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -2140,7 +2136,7 @@ $LN3@SK_HookDDr:
 ; 299  :   {
 ; 300  :     bool bProxy = GetModuleHandle (L"ddraw.dll") != hBackend;
 
-	push	OFFSET $SG256062
+	push	OFFSET $SG255692
 	call	esi
 	cmp	eax, DWORD PTR _hBackend$[ebp]
 
@@ -2174,8 +2170,8 @@ $LN3@SK_HookDDr:
 	push	0
 	push	OFFSET ?DirectDrawCreate_Import@@3P6GJPAU_GUID@@PAPAXPAUIUnknown@@@ZA ; DirectDrawCreate_Import
 	push	OFFSET ?DirectDrawCreate@@YGJPAU_GUID@@PAPAXPAUIUnknown@@@Z ; DirectDrawCreate
-	push	OFFSET $SG256064
-	push	OFFSET $SG256065
+	push	OFFSET $SG255694
+	push	OFFSET $SG255695
 	setne	bl
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -2183,40 +2179,40 @@ $LN3@SK_HookDDr:
 	push	eax
 	push	OFFSET ?DirectDrawCreateEx_Import@@3P6GJPAU_GUID@@PAPAXABU1@PAUIUnknown@@@ZA ; DirectDrawCreateEx_Import
 	push	OFFSET ?DirectDrawCreateEx@@YGJPAU_GUID@@PAPAXABU1@PAUIUnknown@@@Z ; DirectDrawCreateEx
-	push	OFFSET $SG256066
-	push	OFFSET $SG256067
+	push	OFFSET $SG255696
+	push	OFFSET $SG255697
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
 	jne	$LN5@SK_HookDDr
 	push	eax
 	push	OFFSET ?DirectDrawEnumerateA_Import@@3P6GJPAX0@ZA ; DirectDrawEnumerateA_Import
 	push	OFFSET ?DirectDrawEnumerateA@@YGJPAX0@Z	; DirectDrawEnumerateA
-	push	OFFSET $SG256068
-	push	OFFSET $SG256069
+	push	OFFSET $SG255698
+	push	OFFSET $SG255699
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
 	jne	$LN5@SK_HookDDr
 	push	eax
 	push	OFFSET ?DirectDrawEnumerateW_Import@@3P6GJPAX0@ZA ; DirectDrawEnumerateW_Import
 	push	OFFSET ?DirectDrawEnumerateW@@YGJPAX0@Z	; DirectDrawEnumerateW
-	push	OFFSET $SG256070
-	push	OFFSET $SG256071
+	push	OFFSET $SG255700
+	push	OFFSET $SG255701
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
 	jne	$LN5@SK_HookDDr
 	push	eax
 	push	OFFSET ?DirectDrawEnumerateExA_Import@@3P6GJPAX0K@ZA ; DirectDrawEnumerateExA_Import
 	push	OFFSET ?DirectDrawEnumerateExA@@YGJPAX0K@Z ; DirectDrawEnumerateExA
-	push	OFFSET $SG256072
-	push	OFFSET $SG256073
+	push	OFFSET $SG255702
+	push	OFFSET $SG255703
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
 	jne	SHORT $LN5@SK_HookDDr
 	push	eax
 	push	OFFSET ?DirectDrawEnumerateExW_Import@@3P6GJPAX0K@ZA ; DirectDrawEnumerateExW_Import
 	push	OFFSET ?DirectDrawEnumerateExW@@YGJPAX0K@Z ; DirectDrawEnumerateExW
-	push	OFFSET $SG256074
-	push	OFFSET $SG256075
+	push	OFFSET $SG255704
+	push	OFFSET $SG255705
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
 	jne	SHORT $LN5@SK_HookDDr
@@ -2237,7 +2233,7 @@ $LN3@SK_HookDDr:
 ; 336  :         (DirectDrawCreate_Import)   =  \
 
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
-	push	OFFSET $SG256077
+	push	OFFSET $SG255707
 	push	DWORD PTR _hBackend$[ebp]
 	call	esi
 
@@ -2246,7 +2242,7 @@ $LN3@SK_HookDDr:
 ; 339  :           );
 ; 340  :         (DirectDrawCreateEx_Import) =  \
 
-	push	OFFSET $SG256078
+	push	OFFSET $SG255708
 	push	DWORD PTR _hBackend$[ebp]
 	mov	DWORD PTR ?DirectDrawCreate_Import@@3P6GJPAU_GUID@@PAPAXPAUIUnknown@@@ZA, eax ; DirectDrawCreate_Import
 	call	esi
@@ -2267,7 +2263,7 @@ $LN6@SK_HookDDr:
 ; 348  :       dll_log.Log (L"[   DDraw  ]   DirectDrawCreate:   %p  { Hooked }",
 
 	push	DWORD PTR ?DirectDrawCreate_Import@@3P6GJPAU_GUID@@PAPAXPAUIUnknown@@@ZA ; DirectDrawCreate_Import
-	push	OFFSET $SG256079
+	push	OFFSET $SG255709
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -2275,7 +2271,7 @@ $LN6@SK_HookDDr:
 ; 350  :       dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %p  { Hooked }",
 
 	push	DWORD PTR ?DirectDrawCreateEx_Import@@3P6GJPAU_GUID@@PAPAXABU1@PAUIUnknown@@@ZA ; DirectDrawCreateEx_Import
-	push	OFFSET $SG256080
+	push	OFFSET $SG255710
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 24					; 00000018H
@@ -2287,14 +2283,14 @@ $LN5@SK_HookDDr:
 ; 354  : 
 ; 355  :   dgvoodoo_ddraw = new import_s ();
 
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 	mov	esi, eax
 	pop	ebx
 	test	esi, esi
 	je	SHORT $LN10@SK_HookDDr
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	push	0
 	push	esi
 	call	_memset
@@ -2321,12 +2317,12 @@ $LN168@SK_HookDDr:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	19					; 00000013H
-	push	OFFSET $SG256081
+	push	OFFSET $SG255711
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 
 ; 357  :   dgvoodoo_ddraw->name         = L"API Support Plug-In";
 
-	lea	ecx, DWORD PTR [ecx+28]
+	lea	ecx, DWORD PTR [ecx+32]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
@@ -2373,7 +2369,7 @@ $LN100@SK_HookDDr:
 	call	?SK_GetDLLVersionStr@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z ; SK_GetDLLVersionStr
 	mov	ecx, DWORD PTR ?dgvoodoo_ddraw@@3PAUimport_s@@A ; dgvoodoo_ddraw
 	push	eax
-	lea	ecx, DWORD PTR [ecx+4]
+	lea	ecx, DWORD PTR [ecx+8]
 	call	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@$$QAV01@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2778,8 +2774,8 @@ $LN19@DirectDraw:
 ; 147  :   dll_log.Log ( L"[   DDraw  ] [!] %s (...) - "
 
 	push	eax
-	push	OFFSET $SG255952
-	push	OFFSET $SG255953
+	push	OFFSET $SG255582
+	push	OFFSET $SG255583
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2919,8 +2915,8 @@ $LN19@DirectDraw:
 ; 118  :   dll_log.Log ( L"[   DDraw  ] [!] %s (...) - "
 
 	push	eax
-	push	OFFSET $SG255940
-	push	OFFSET $SG255941
+	push	OFFSET $SG255570
+	push	OFFSET $SG255571
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -3024,7 +3020,7 @@ $LL2@WaitForIni:
 
 	push	2
 	push	1279					; 000004ffH
-	push	DWORD PTR ?config@@3Usk_config_t@@A+796
+	push	DWORD PTR ?config@@3Usk_config_t@@A+800
 	push	0
 	push	0
 	call	esi
@@ -3052,7 +3048,7 @@ _user$ = 8						; size = 4
 ; 442  : 
 ; 443  :   if (! config.apis.ddraw.hook)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+782, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+786, 0
 	je	SHORT $LN4@HookDDraw
 
 ; 444  :   {
@@ -4860,7 +4856,7 @@ ___flags$ = 8						; size = 4
 	call	??1import_s@@QAE@XZ
 	test	BYTE PTR ___flags$[ebp], 1
 	je	SHORT $LN4@scalar
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	push	esi
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
@@ -4898,7 +4894,7 @@ _TEXT	SEGMENT
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR [esi+48]
+	mov	eax, DWORD PTR [esi+52]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
@@ -4919,7 +4915,7 @@ _TEXT	SEGMENT
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR [esi+28]
+	push	DWORD PTR [esi+32]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 $LN7@import_s:
@@ -4932,21 +4928,21 @@ $LN7@import_s:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+44], 0
+	mov	DWORD PTR [esi+48], 0
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+48], 7
+	mov	DWORD PTR [esi+52], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+28], ax
+	mov	WORD PTR [esi+32], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR [esi+24]
+	mov	eax, DWORD PTR [esi+28]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
@@ -4967,7 +4963,7 @@ $LN7@import_s:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR [esi+4]
+	push	DWORD PTR [esi+8]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 $LN37@import_s:
@@ -4975,7 +4971,7 @@ $LN37@import_s:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+20], 0
+	mov	DWORD PTR [esi+24], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -4985,12 +4981,12 @@ $LN37@import_s:
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+24], 7
+	mov	DWORD PTR [esi+28], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+4], ax
+	mov	WORD PTR [esi+8], ax
 	pop	esi
 	ret	0
 ??1import_s@@QAE@XZ ENDP				; import_s::~import_s
@@ -5024,7 +5020,7 @@ __$EHRec$ = -12						; size = 12
 	xor	eax, eax
 	push	esi
 	mov	esi, ecx
-	lea	ecx, DWORD PTR [esi+4]
+	lea	ecx, DWORD PTR [esi+8]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
@@ -5032,6 +5028,7 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
 	mov	DWORD PTR [esi], 0
+	mov	DWORD PTR [esi+4], 0
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -5059,8 +5056,8 @@ __$EHRec$ = -12						; size = 12
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+44], 0
-	lea	ecx, DWORD PTR [esi+28]
+	mov	DWORD PTR [esi+48], 0
+	lea	ecx, DWORD PTR [esi+32]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
@@ -5082,11 +5079,11 @@ __$EHRec$ = -12						; size = 12
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
-	mov	DWORD PTR [esi+52], 0
 	mov	DWORD PTR [esi+56], 0
 	mov	DWORD PTR [esi+60], 0
 	mov	DWORD PTR [esi+64], 0
 	mov	DWORD PTR [esi+68], 0
+	mov	DWORD PTR [esi+72], 0
 	mov	DWORD PTR fs:0, ecx
 	pop	esi
 	mov	esp, ebp
@@ -9473,7 +9470,7 @@ _TEXT	SEGMENT
 	je	SHORT $LN13@Shutdown
 	mov	ecx, esi
 	call	??1import_s@@QAE@XZ
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	push	esi
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
@@ -9500,7 +9497,7 @@ $LN13@Shutdown:
 	je	SHORT $LN17@Shutdown
 	mov	ecx, esi
 	call	??1import_s@@QAE@XZ
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	push	esi
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
@@ -9527,7 +9524,7 @@ $LN17@Shutdown:
 	je	SHORT $LN21@Shutdown
 	mov	ecx, esi
 	call	??1import_s@@QAE@XZ
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	push	esi
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
@@ -9537,7 +9534,7 @@ $LN21@Shutdown:
 ; 432  : 
 ; 433  :   return SK_ShutdownCore (L"ddraw");
 
-	push	OFFSET $SG256142
+	push	OFFSET $SG255772
 	call	?SK_ShutdownCore@@YG_NPB_W@Z		; SK_ShutdownCore
 	pop	edi
 	pop	esi
@@ -9564,15 +9561,6 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9614,15 +9602,6 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
@@ -9696,7 +9675,7 @@ __$EHRec$ = -12						; size = 12
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG256123
+	push	OFFSET $SG255753
 	push	eax
 	lea	eax, DWORD PTR $T9[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -9724,7 +9703,7 @@ $LN28@Startup:
 
 	push	eax
 	lea	eax, DWORD PTR _wszImmediateMode$[ebp]
-	push	OFFSET $SG256124
+	push	OFFSET $SG255754
 	push	eax
 	call	DWORD PTR __imp__wsprintfW
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9818,93 +9797,20 @@ $LN68@Startup:
 
 ; 393  :   dgvoodoo_d3dimm               = new import_s ();
 
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
 	add	esp, 4
 	test	esi, esi
-	je	$LN3@Startup
-	push	72					; 00000048H
+	je	SHORT $LN3@Startup
+	push	76					; 0000004cH
 	push	0
 	push	esi
 	call	_memset
 	add	esp, 12					; 0000000cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-	mov	DWORD PTR [esi], 0
-	lea	ecx, DWORD PTR [esi+4]
-	mov	DWORD PTR __$EHRec$[ebp+8], 1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [ecx+16], 0
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	eax
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [ecx+20], 7
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR [ecx], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [esi+44], 0
-	lea	ecx, DWORD PTR [esi+28]
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [ecx+20], 7
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	eax
-	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR [ecx], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
-	mov	DWORD PTR [esi+52], 0
-	mov	DWORD PTR [esi+56], 0
-	mov	DWORD PTR [esi+60], 0
-	mov	DWORD PTR [esi+64], 0
-	mov	DWORD PTR [esi+68], 0
-	mov	DWORD PTR __$EHRec$[ebp+8], -1
-; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
-
-; 393  :   dgvoodoo_d3dimm               = new import_s ();
-
-	mov	DWORD PTR ?dgvoodoo_d3dimm@@3PAUimport_s@@A, esi ; dgvoodoo_d3dimm
+	mov	ecx, esi
+	call	??0import_s@@QAE@XZ
+	mov	DWORD PTR ?dgvoodoo_d3dimm@@3PAUimport_s@@A, eax ; dgvoodoo_d3dimm
 	jmp	SHORT $LN4@Startup
 $LN3@Startup:
 	mov	DWORD PTR ?dgvoodoo_d3dimm@@3PAUimport_s@@A, 0 ; dgvoodoo_d3dimm
@@ -9921,7 +9827,7 @@ $LN4@Startup:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	19					; 00000013H
-	push	OFFSET $SG256125
+	push	OFFSET $SG255755
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 
 ; 394  :   dgvoodoo_d3dimm->hLibrary     = LoadLibraryW (wszImmediateMode);
@@ -9931,7 +9837,7 @@ $LN4@Startup:
 ; 395  :   dgvoodoo_d3dimm->name         = L"API Support Plug-In";
 
 	mov	ecx, DWORD PTR ?dgvoodoo_d3dimm@@3PAUimport_s@@A ; dgvoodoo_d3dimm
-	lea	ecx, DWORD PTR [ecx+28]
+	lea	ecx, DWORD PTR [ecx+32]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
@@ -9956,18 +9862,18 @@ $LN4@Startup:
 
 ; 396  :   dgvoodoo_d3dimm->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3dimm->hLibrary).c_str ());
 
-	mov	DWORD PTR __$EHRec$[ebp+8], 2
+	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN165@Startup
+	jb	SHORT $LN114@Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN165@Startup:
+$LN114@Startup:
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 
 ; 396  :   dgvoodoo_d3dimm->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3dimm->hLibrary).c_str ());
@@ -9978,13 +9884,13 @@ $LN165@Startup:
 	call	?SK_GetDLLVersionStr@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z ; SK_GetDLLVersionStr
 	mov	esi, DWORD PTR ?dgvoodoo_d3dimm@@3PAUimport_s@@A ; dgvoodoo_d3dimm
 	mov	edi, eax
-	add	esi, 4
+	add	esi, 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2076 : 		if (this != _STD addressof(_Right))
 
 	cmp	esi, edi
-	je	SHORT $LN248@Startup
+	je	SHORT $LN197@Startup
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
@@ -9993,7 +9899,7 @@ $LN165@Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN179@Startup
+	jb	SHORT $LN128@Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10007,7 +9913,7 @@ $LN165@Startup:
 	push	DWORD PTR [esi]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN179@Startup:
+$LN128@Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3616 : 		_My_data._Mysize = 0;
@@ -10049,7 +9955,7 @@ $LN179@Startup:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR [edi], ax
-$LN248@Startup:
+$LN197@Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -10059,7 +9965,7 @@ $LN248@Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN254@Startup
+	jb	SHORT $LN203@Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10073,7 +9979,7 @@ $LN248@Startup:
 	push	DWORD PTR $T8[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN254@Startup:
+$LN203@Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -10111,7 +10017,7 @@ $LN254@Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN284@Startup
+	jb	SHORT $LN233@Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10125,7 +10031,7 @@ $LN254@Startup:
 	push	DWORD PTR $T5[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN284@Startup:
+$LN233@Startup:
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 
 ; 398  :   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
@@ -10133,10 +10039,10 @@ $LN284@Startup:
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG256126
+	push	OFFSET $SG255756
 	push	eax
 	lea	eax, DWORD PTR $T7[ebp]
-	mov	DWORD PTR __$EHRec$[ebp+8], 3
+	mov	DWORD PTR __$EHRec$[ebp+8], 2
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	add	esp, 16					; 00000010H
@@ -10148,20 +10054,20 @@ $LN284@Startup:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN323@Startup
+	jb	SHORT $LN272@Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN323@Startup:
+$LN272@Startup:
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 
 ; 398  :   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszImmediateMode$[ebp]
-	push	OFFSET $SG256127
+	push	OFFSET $SG255757
 	push	eax
 	call	DWORD PTR __imp__wsprintfW
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -10182,7 +10088,7 @@ $LN323@Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN333@Startup
+	jb	SHORT $LN282@Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10196,7 +10102,7 @@ $LN323@Startup:
 	push	DWORD PTR $T7[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN333@Startup:
+$LN282@Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -10234,7 +10140,7 @@ $LN333@Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN363@Startup
+	jb	SHORT $LN312@Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10248,98 +10154,25 @@ $LN333@Startup:
 	push	DWORD PTR $T4[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN363@Startup:
+$LN312@Startup:
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 
 ; 400  :   dgvoodoo_d3d8               = new import_s ();
 
-	push	72					; 00000048H
+	push	76					; 0000004cH
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
 	add	esp, 4
 	test	esi, esi
-	je	$LN5@Startup
-	push	72					; 00000048H
+	je	SHORT $LN5@Startup
+	push	76					; 0000004cH
 	push	0
 	push	esi
 	call	_memset
 	add	esp, 12					; 0000000cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-	mov	DWORD PTR [esi], 0
-	lea	ecx, DWORD PTR [esi+4]
-	mov	DWORD PTR __$EHRec$[ebp+8], 4
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [ecx+16], 0
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	eax
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [ecx+20], 7
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR [ecx], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [esi+44], 0
-	lea	ecx, DWORD PTR [esi+28]
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [ecx+20], 7
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	eax
-	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR [ecx], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
-	mov	DWORD PTR [esi+52], 0
-	mov	DWORD PTR [esi+56], 0
-	mov	DWORD PTR [esi+60], 0
-	mov	DWORD PTR [esi+64], 0
-	mov	DWORD PTR [esi+68], 0
-	mov	DWORD PTR __$EHRec$[ebp+8], -1
-; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
-
-; 400  :   dgvoodoo_d3d8               = new import_s ();
-
-	mov	DWORD PTR ?dgvoodoo_d3d8@@3PAUimport_s@@A, esi ; dgvoodoo_d3d8
+	mov	ecx, esi
+	call	??0import_s@@QAE@XZ
+	mov	DWORD PTR ?dgvoodoo_d3d8@@3PAUimport_s@@A, eax ; dgvoodoo_d3d8
 	jmp	SHORT $LN6@Startup
 $LN5@Startup:
 	mov	DWORD PTR ?dgvoodoo_d3d8@@3PAUimport_s@@A, 0 ; dgvoodoo_d3d8
@@ -10356,7 +10189,7 @@ $LN6@Startup:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	19					; 00000013H
-	push	OFFSET $SG256128
+	push	OFFSET $SG255758
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 
 ; 401  :   dgvoodoo_d3d8->hLibrary     = LoadLibraryW (wszImmediateMode);
@@ -10366,7 +10199,7 @@ $LN6@Startup:
 ; 402  :   dgvoodoo_d3d8->name         = L"API Support Plug-In";
 
 	mov	ecx, DWORD PTR ?dgvoodoo_d3d8@@3PAUimport_s@@A ; dgvoodoo_d3d8
-	lea	ecx, DWORD PTR [ecx+28]
+	lea	ecx, DWORD PTR [ecx+32]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
@@ -10391,18 +10224,18 @@ $LN6@Startup:
 
 ; 403  :   dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3d8->hLibrary).c_str ());
 
-	mov	DWORD PTR __$EHRec$[ebp+8], 5
+	mov	DWORD PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN460@Startup
+	jb	SHORT $LN358@Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN460@Startup:
+$LN358@Startup:
 ; File c:\users\andon\source\repos\specialk\src\ddraw.cpp
 
 ; 403  :   dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3d8->hLibrary).c_str ());
@@ -10413,13 +10246,13 @@ $LN460@Startup:
 	call	?SK_GetDLLVersionStr@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z ; SK_GetDLLVersionStr
 	mov	esi, DWORD PTR ?dgvoodoo_d3d8@@3PAUimport_s@@A ; dgvoodoo_d3d8
 	mov	edi, eax
-	add	esi, 4
+	add	esi, 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2076 : 		if (this != _STD addressof(_Right))
 
 	cmp	esi, edi
-	je	SHORT $LN543@Startup
+	je	SHORT $LN441@Startup
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
@@ -10428,7 +10261,7 @@ $LN460@Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN474@Startup
+	jb	SHORT $LN372@Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10442,7 +10275,7 @@ $LN460@Startup:
 	push	DWORD PTR [esi]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN474@Startup:
+$LN372@Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3616 : 		_My_data._Mysize = 0;
@@ -10484,7 +10317,7 @@ $LN474@Startup:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR [edi], ax
-$LN543@Startup:
+$LN441@Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -10496,7 +10329,7 @@ $LN543@Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN549@Startup
+	jb	SHORT $LN447@Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -10510,7 +10343,7 @@ $LN543@Startup:
 	push	DWORD PTR $T3[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN549@Startup:
+$LN447@Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -10548,7 +10381,7 @@ $LN549@Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN579@Startup
+	jb	SHORT $LN477@Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -10567,7 +10400,7 @@ $LN549@Startup:
 	push	DWORD PTR $T2[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN579@Startup:
+$LN477@Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -10583,7 +10416,7 @@ $LN579@Startup:
 ; 407  :   const bool ret = SK_StartupCore (L"ddraw", ddraw_init_callback);
 
 	push	OFFSET ?ddraw_init_callback@@YGXP6GXXZ@Z ; ddraw_init_callback
-	push	OFFSET $SG256129
+	push	OFFSET $SG255759
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -10598,7 +10431,7 @@ $LN579@Startup:
 
 ; 405  :   config.apis.d3d8.hook = false;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+781, al
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+785, al
 
 ; 407  :   const bool ret = SK_StartupCore (L"ddraw", ddraw_init_callback);
 

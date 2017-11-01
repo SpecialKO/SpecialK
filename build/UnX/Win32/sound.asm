@@ -322,23 +322,23 @@ $SG96784 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG152099 DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ':', 00H, ' ', 00H
+$SG152104 DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ':', 00H, ' ', 00H
 	DB	'%', 00H, 'w', 00H, 's', 00H, 00H, 00H
 $SG96831 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG152101 DB	'[', 00H, ' ', 00H, ' ', 00H, 'W', 00H, 'A', 00H, 'S', 00H
+$SG152106 DB	'[', 00H, ' ', 00H, ' ', 00H, 'W', 00H, 'A', 00H, 'S', 00H
 	DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'A', 00H, 'u', 00H, 'd', 00H, 'i', 00H, 'o', 00H
 	DB	' ', 00H, 'S', 00H, 'e', 00H, 's', 00H, 's', 00H, 'i', 00H, 'o'
 	DB	00H, 'n', 00H, ' ', 00H, '(', 00H, 'p', 00H, 'i', 00H, 'd', 00H
 	DB	'=', 00H, '%', 00H, 'l', 00H, 'u', 00H, ')', 00H, 00H, 00H
-$SG157254 DB	'd', 00H, 's', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H
+$SG157259 DB	'd', 00H, 's', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG157256 DB	'DirectSoundCreate', 00H
+$SG157261 DB	'DirectSoundCreate', 00H
 	ORG $+2
-$SG157265 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'S', 00H, 'o', 00H
+$SG157270 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'S', 00H, 'o', 00H
 	DB	'u', 00H, 'n', 00H, 'd', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'D', 00H
 	DB	'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'S', 00H, 'o'
@@ -350,7 +350,7 @@ $SG157265 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'S', 00H, 'o', 00H
 	DB	'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, 'h', 00H, 'r', 00H, '='
 	DB	00H, '%', 00H, 'x', 00H, ' ', 00H, '<', 00H, '<', 00H, 00H, 00H
 	ORG $+2
-$SG157267 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'S', 00H, 'o', 00H
+$SG157272 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'S', 00H, 'o', 00H
 	DB	'u', 00H, 'n', 00H, 'd', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'D', 00H
 	DB	'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'S', 00H, 'o'
@@ -362,12 +362,12 @@ $SG157267 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'S', 00H, 'o', 00H
 	DB	'=', 00H, '%', 00H, 'x', 00H, ' ', 00H, '<', 00H, '<', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG157271 DB	'Headphone Left', 00H
+$SG157276 DB	'Headphone Left', 00H
 	ORG $+1
-$SG157272 DB	'Headphone Right', 00H
-$SG157276 DB	'Front Left', 00H
+$SG157277 DB	'Headphone Right', 00H
+$SG157281 DB	'Front Left', 00H
 	ORG $+1
-$SG157269 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'S', 00H, 'o', 00H
+$SG157274 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'S', 00H, 'o', 00H
 	DB	'u', 00H, 'n', 00H, 'd', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
 	DB	'r', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'S', 00H, 'o', 00H, 'u'
@@ -376,79 +376,79 @@ $SG157269 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'S', 00H, 'o', 00H
 	DB	00H, ')', 00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H
 	DB	'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, 'h', 00H, 'r', 00H, '='
 	DB	00H, '%', 00H, 'x', 00H, ' ', 00H, '<', 00H, '<', 00H, 00H, 00H
-$SG157274 DB	'Center', 00H
+$SG157279 DB	'Center', 00H
 	ORG $+1
-$SG157277 DB	'Front Right', 00H
-$SG157279 DB	'Front Left', 00H
-	ORG $+1
-$SG157280 DB	'Front Right', 00H
-$SG157281 DB	'Back Left', 00H
-	ORG $+2
-$SG157282 DB	'Back Right', 00H
-	ORG $+1
+$SG157282 DB	'Front Right', 00H
 $SG157284 DB	'Front Left', 00H
 	ORG $+1
 $SG157285 DB	'Front Right', 00H
-$SG157286 DB	'Front Center', 00H
-	ORG $+3
-$SG157287 DB	'Back Center', 00H
+$SG157286 DB	'Back Left', 00H
+	ORG $+2
+$SG157287 DB	'Back Right', 00H
+	ORG $+1
 $SG157289 DB	'Front Left', 00H
 	ORG $+1
 $SG157290 DB	'Front Right', 00H
-$SG157291 DB	'Center', 00H
-	ORG $+1
-$SG157292 DB	'Low Frequency Emitter', 00H
-	ORG $+2
-$SG157293 DB	'Back Left', 00H
-	ORG $+2
-$SG157294 DB	'Back Right', 00H
+$SG157291 DB	'Front Center', 00H
+	ORG $+3
+$SG157292 DB	'Back Center', 00H
+$SG157294 DB	'Front Left', 00H
 	ORG $+1
 $SG96878 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG157296 DB	'Front Left', 00H
+$SG157295 DB	'Front Right', 00H
+$SG157296 DB	'Center', 00H
 	ORG $+1
-$SG157297 DB	'Front Right', 00H
-$SG157298 DB	'Center', 00H
-	ORG $+1
-$SG157299 DB	'Low Frequency Emitter', 00H
+$SG157297 DB	'Low Frequency Emitter', 00H
 	ORG $+2
-$SG157300 DB	'Side Left', 00H
+$SG157298 DB	'Back Left', 00H
 	ORG $+2
-$SG157301 DB	'Side Right', 00H
+$SG157299 DB	'Back Right', 00H
 	ORG $+1
-$SG157303 DB	'Front Left', 00H
+$SG157301 DB	'Front Left', 00H
 	ORG $+1
-$SG157304 DB	'Front Right', 00H
-$SG157305 DB	'Center', 00H
+$SG157302 DB	'Front Right', 00H
+$SG157303 DB	'Center', 00H
 	ORG $+1
-$SG157306 DB	'Low Frequency Emitter', 00H
+$SG157304 DB	'Low Frequency Emitter', 00H
 	ORG $+2
-$SG157307 DB	'Back Left', 00H
+$SG157305 DB	'Side Left', 00H
 	ORG $+2
-$SG157308 DB	'Back Right', 00H
+$SG157306 DB	'Side Right', 00H
 	ORG $+1
-$SG157309 DB	'Front Left of Center', 00H
+$SG157308 DB	'Front Left', 00H
+	ORG $+1
+$SG157309 DB	'Front Right', 00H
+$SG157310 DB	'Center', 00H
+	ORG $+1
+$SG157311 DB	'Low Frequency Emitter', 00H
+	ORG $+2
+$SG157312 DB	'Back Left', 00H
+	ORG $+2
+$SG157313 DB	'Back Right', 00H
+	ORG $+1
+$SG157314 DB	'Front Left of Center', 00H
 	ORG $+3
-$SG157310 DB	'Front Right of Center', 00H
+$SG157315 DB	'Front Right of Center', 00H
 	ORG $+2
-$SG157312 DB	'Front Left', 00H
+$SG157317 DB	'Front Left', 00H
 	ORG $+1
-$SG157313 DB	'Front Right', 00H
-$SG157314 DB	'Center', 00H
+$SG157318 DB	'Front Right', 00H
+$SG157319 DB	'Center', 00H
 	ORG $+1
-$SG157315 DB	'Low Frequency Emitter', 00H
+$SG157320 DB	'Low Frequency Emitter', 00H
 	ORG $+2
-$SG157316 DB	'Back Left', 00H
+$SG157321 DB	'Back Left', 00H
 	ORG $+2
-$SG157317 DB	'Back Right', 00H
+$SG157322 DB	'Back Right', 00H
 	ORG $+1
-$SG157318 DB	'Side Left', 00H
+$SG157323 DB	'Side Left', 00H
 	ORG $+2
-$SG157319 DB	'Side Right', 00H
+$SG157324 DB	'Side Right', 00H
 	ORG $+1
-$SG157322 DB	'[', 00H, ' ', 00H, ' ', 00H, 'W', 00H, 'A', 00H, 'S', 00H
+$SG157327 DB	'[', 00H, ' ', 00H, ' ', 00H, 'W', 00H, 'A', 00H, 'S', 00H
 	DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'U', 00H, 'N', 00H
 	DB	'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H, 'N', 00H, ' ', 00H, 'S'
@@ -457,7 +457,7 @@ $SG157322 DB	'[', 00H, ' ', 00H, ' ', 00H, 'W', 00H, 'A', 00H, 'S', 00H
 	DB	00H, ':', 00H, ' ', 00H, '%', 00H, 'x', 00H, ' ', 00H, '<', 00H
 	DB	'<', 00H, 00H, 00H
 	ORG $+2
-$SG157325 DB	'Unknown Channel (%02i)', 00H
+$SG157330 DB	'Unknown Channel (%02i)', 00H
 	ORG $+1
 $SG96925 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
@@ -3253,6 +3253,8 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\sound.cpp
 
+; 489  : }
+
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -4214,8 +4216,6 @@ _<_Args_2>$ = 20					; size = 4
 	test	ecx, ecx
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\sound.cpp
-
-; 489  : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -5535,6 +5535,8 @@ _<_Val_2>$ = 24						; size = 4
 	test	edx, edx
 	je	SHORT $LN54@Buynode
 ; File c:\users\andon\source\repos\specialk\src\sound.cpp
+
+; 489  : }
 
 	mov	ecx, DWORD PTR _<_Val_1>$[ebp]
 	mov	ecx, DWORD PTR [ecx]
@@ -35309,7 +35311,7 @@ $LN2@SK_WASAPI_:
 ; 310  :       LoadLibraryW (L"dsound.dll");
 
 	push	esi
-	push	OFFSET $SG157254
+	push	OFFSET $SG157259
 	mov	DWORD PTR _dwConfig$45[ebp], 0
 	call	DWORD PTR __imp__LoadLibraryW@4
 	mov	esi, eax
@@ -35325,7 +35327,7 @@ $LN2@SK_WASAPI_:
 ; 315  :         reinterpret_cast <DirectSoundCreate_pfn> (
 ; 316  :           GetProcAddress ( hModDSound,
 
-	push	OFFSET $SG157256
+	push	OFFSET $SG157261
 	push	esi
 	call	DWORD PTR __imp__GetProcAddress@8
 
@@ -35374,10 +35376,10 @@ $LN2@SK_WASAPI_:
 ; 338  :           else
 ; 339  :             SK_LOG0 ( ( L" >> IDirectSound::Initialize (...) Failed: hr=%x <<", hr ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN16@SK_WASAPI_
 	push	eax
-	push	OFFSET $SG157267
+	push	OFFSET $SG157272
 	jmp	SHORT $LN332@SK_WASAPI_
 $LN12@SK_WASAPI_:
 
@@ -35397,11 +35399,11 @@ $LN12@SK_WASAPI_:
 ; 332  :               dwConfig = 0x00;
 ; 333  :               SK_LOG0 ( ( L" >> IDirectSound::GetSpeakerConfig (...) Failed: hr=%x <<", hr ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	mov	DWORD PTR _dwConfig$45[ebp], 0
 	jl	SHORT $LN16@SK_WASAPI_
 	push	eax
-	push	OFFSET $SG157265
+	push	OFFSET $SG157270
 
 ; 340  :                         L"  DSound  " );
 ; 341  :         }
@@ -35413,10 +35415,10 @@ $LN8@SK_WASAPI_:
 
 ; 344  :           SK_LOG0 ( ( L" >> DirectSoundCreate (...) Failed: hr=%x <<", hr ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN16@SK_WASAPI_
 	push	eax
-	push	OFFSET $SG157269
+	push	OFFSET $SG157274
 $LN332@SK_WASAPI_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -35470,7 +35472,7 @@ $LN17@SK_WASAPI_:
 ; 353  :       case DSSPEAKER_HEADPHONE:
 ; 354  :         channel_names.emplace (0, "Headphone Left");
 
-	push	OFFSET $SG157271
+	push	OFFSET $SG157276
 	lea	eax, DWORD PTR $T87[ebp]
 	mov	DWORD PTR $T87[ebp], 0
 	push	eax
@@ -35481,7 +35483,7 @@ $LN17@SK_WASAPI_:
 
 ; 355  :         channel_names.emplace (1, "Headphone Right");
 
-	push	OFFSET $SG157272
+	push	OFFSET $SG157277
 	lea	eax, DWORD PTR $T86[ebp]
 	mov	DWORD PTR $T86[ebp], 1
 	push	eax
@@ -35500,7 +35502,7 @@ $LN18@SK_WASAPI_:
 ; 359  :       //case KSAUDIO_SPEAKER_MONO:
 ; 360  :         channel_names.emplace (0, "Center");
 
-	push	OFFSET $SG157274
+	push	OFFSET $SG157279
 	lea	eax, DWORD PTR $T85[ebp]
 	mov	DWORD PTR $T85[ebp], 0
 	push	eax
@@ -35519,7 +35521,7 @@ $LN19@SK_WASAPI_:
 ; 364  :       //case KSAUDIO_SPEAKER_STEREO:
 ; 365  :         channel_names.emplace (0, "Front Left");
 
-	push	OFFSET $SG157276
+	push	OFFSET $SG157281
 	lea	eax, DWORD PTR $T84[ebp]
 	mov	DWORD PTR $T84[ebp], 0
 	push	eax
@@ -35531,7 +35533,7 @@ $LN19@SK_WASAPI_:
 ; 366  :         channel_names.emplace (1, "Front Right");
 
 	mov	DWORD PTR $T83[ebp], 1
-	push	OFFSET $SG157277
+	push	OFFSET $SG157282
 $LN333@SK_WASAPI_:
 	lea	eax, DWORD PTR $T83[ebp]
 	mov	ecx, OFFSET ?channel_names@?1??SK_WASAPI_GetChannelName@@YGPBDH@Z@4V?$unordered_map@HV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@U?$hash@H@2@U?$equal_to@H@2@V?$allocator@U?$pair@$$CBHV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@2@@std@@A
@@ -35550,7 +35552,7 @@ $LN20@SK_WASAPI_:
 ; 370  :       //case KSAUDIO_SPEAKER_QUAD:
 ; 371  :         channel_names.emplace (0, "Front Left");
 
-	push	OFFSET $SG157279
+	push	OFFSET $SG157284
 	lea	eax, DWORD PTR $T82[ebp]
 	mov	DWORD PTR $T82[ebp], 0
 	push	eax
@@ -35561,7 +35563,7 @@ $LN20@SK_WASAPI_:
 
 ; 372  :         channel_names.emplace (1, "Front Right");
 
-	push	OFFSET $SG157280
+	push	OFFSET $SG157285
 	lea	eax, DWORD PTR $T81[ebp]
 	mov	DWORD PTR $T81[ebp], 1
 	push	eax
@@ -35572,7 +35574,7 @@ $LN20@SK_WASAPI_:
 
 ; 373  :         channel_names.emplace (2, "Back Left");
 
-	push	OFFSET $SG157281
+	push	OFFSET $SG157286
 	lea	eax, DWORD PTR $T80[ebp]
 	mov	DWORD PTR $T80[ebp], 2
 	push	eax
@@ -35584,7 +35586,7 @@ $LN20@SK_WASAPI_:
 ; 374  :         channel_names.emplace (3, "Back Right");
 
 	mov	DWORD PTR $T79[ebp], 3
-	push	OFFSET $SG157282
+	push	OFFSET $SG157287
 $LN334@SK_WASAPI_:
 	lea	eax, DWORD PTR $T79[ebp]
 	mov	ecx, OFFSET ?channel_names@?1??SK_WASAPI_GetChannelName@@YGPBDH@Z@4V?$unordered_map@HV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@U?$hash@H@2@U?$equal_to@H@2@V?$allocator@U?$pair@$$CBHV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@2@@std@@A
@@ -35603,7 +35605,7 @@ $LN21@SK_WASAPI_:
 ; 378  :       //case KSAUDIO_SPEAKER_SURROUND:
 ; 379  :         channel_names.emplace (0, "Front Left");
 
-	push	OFFSET $SG157284
+	push	OFFSET $SG157289
 	lea	eax, DWORD PTR $T78[ebp]
 	mov	DWORD PTR $T78[ebp], 0
 	push	eax
@@ -35614,7 +35616,7 @@ $LN21@SK_WASAPI_:
 
 ; 380  :         channel_names.emplace (1, "Front Right");
 
-	push	OFFSET $SG157285
+	push	OFFSET $SG157290
 	lea	eax, DWORD PTR $T77[ebp]
 	mov	DWORD PTR $T77[ebp], 1
 	push	eax
@@ -35625,7 +35627,7 @@ $LN21@SK_WASAPI_:
 
 ; 381  :         channel_names.emplace (2, "Front Center");
 
-	push	OFFSET $SG157286
+	push	OFFSET $SG157291
 	lea	eax, DWORD PTR $T76[ebp]
 	mov	DWORD PTR $T76[ebp], 2
 	push	eax
@@ -35637,7 +35639,7 @@ $LN21@SK_WASAPI_:
 ; 382  :         channel_names.emplace (3, "Back Center");
 
 	mov	DWORD PTR $T75[ebp], 3
-	push	OFFSET $SG157287
+	push	OFFSET $SG157292
 
 ; 383  :         break;
 
@@ -35649,7 +35651,7 @@ $LN22@SK_WASAPI_:
 ; 386  :       //case KSAUDIO_SPEAKER_5POINT1:
 ; 387  :         channel_names.emplace (0, "Front Left");
 
-	push	OFFSET $SG157289
+	push	OFFSET $SG157294
 	lea	eax, DWORD PTR $T74[ebp]
 	mov	DWORD PTR $T74[ebp], 0
 	push	eax
@@ -35660,7 +35662,7 @@ $LN22@SK_WASAPI_:
 
 ; 388  :         channel_names.emplace (1, "Front Right");
 
-	push	OFFSET $SG157290
+	push	OFFSET $SG157295
 	lea	eax, DWORD PTR $T73[ebp]
 	mov	DWORD PTR $T73[ebp], 1
 	push	eax
@@ -35671,7 +35673,7 @@ $LN22@SK_WASAPI_:
 
 ; 389  :         channel_names.emplace (2, "Center");
 
-	push	OFFSET $SG157291
+	push	OFFSET $SG157296
 	lea	eax, DWORD PTR $T72[ebp]
 	mov	DWORD PTR $T72[ebp], 2
 	push	eax
@@ -35682,7 +35684,7 @@ $LN22@SK_WASAPI_:
 
 ; 390  :         channel_names.emplace (3, "Low Frequency Emitter");
 
-	push	OFFSET $SG157292
+	push	OFFSET $SG157297
 	lea	eax, DWORD PTR $T71[ebp]
 	mov	DWORD PTR $T71[ebp], 3
 	push	eax
@@ -35693,7 +35695,7 @@ $LN22@SK_WASAPI_:
 
 ; 391  :         channel_names.emplace (4, "Back Left");
 
-	push	OFFSET $SG157293
+	push	OFFSET $SG157298
 	lea	eax, DWORD PTR $T70[ebp]
 	mov	DWORD PTR $T70[ebp], 4
 	push	eax
@@ -35705,7 +35707,7 @@ $LN22@SK_WASAPI_:
 ; 392  :         channel_names.emplace (5, "Back Right");
 
 	mov	DWORD PTR $T69[ebp], 5
-	push	OFFSET $SG157294
+	push	OFFSET $SG157299
 
 ; 393  :         break;
 
@@ -35717,7 +35719,7 @@ $LN23@SK_WASAPI_:
 ; 396  :       //case KSAUDIO_SPEAKER_5POINT1_SURROUND:
 ; 397  :         channel_names.emplace (0, "Front Left");
 
-	push	OFFSET $SG157296
+	push	OFFSET $SG157301
 	lea	eax, DWORD PTR $T68[ebp]
 	mov	DWORD PTR $T68[ebp], 0
 	push	eax
@@ -35728,7 +35730,7 @@ $LN23@SK_WASAPI_:
 
 ; 398  :         channel_names.emplace (1, "Front Right");
 
-	push	OFFSET $SG157297
+	push	OFFSET $SG157302
 	lea	eax, DWORD PTR $T67[ebp]
 	mov	DWORD PTR $T67[ebp], 1
 	push	eax
@@ -35739,7 +35741,7 @@ $LN23@SK_WASAPI_:
 
 ; 399  :         channel_names.emplace (2, "Center");
 
-	push	OFFSET $SG157298
+	push	OFFSET $SG157303
 	lea	eax, DWORD PTR $T66[ebp]
 	mov	DWORD PTR $T66[ebp], 2
 	push	eax
@@ -35750,7 +35752,7 @@ $LN23@SK_WASAPI_:
 
 ; 400  :         channel_names.emplace (3, "Low Frequency Emitter");
 
-	push	OFFSET $SG157299
+	push	OFFSET $SG157304
 	lea	eax, DWORD PTR $T65[ebp]
 	mov	DWORD PTR $T65[ebp], 3
 	push	eax
@@ -35761,7 +35763,7 @@ $LN23@SK_WASAPI_:
 
 ; 401  :         channel_names.emplace (4, "Side Left");
 
-	push	OFFSET $SG157300
+	push	OFFSET $SG157305
 	lea	eax, DWORD PTR $T64[ebp]
 	mov	DWORD PTR $T64[ebp], 4
 	push	eax
@@ -35773,7 +35775,7 @@ $LN23@SK_WASAPI_:
 ; 402  :         channel_names.emplace (5, "Side Right");
 
 	mov	DWORD PTR $T63[ebp], 5
-	push	OFFSET $SG157301
+	push	OFFSET $SG157306
 
 ; 403  :         break;
 
@@ -35785,7 +35787,7 @@ $LN24@SK_WASAPI_:
 ; 406  :       //case KSAUDIO_SPEAKER_7POINT1:
 ; 407  :         channel_names.emplace (0, "Front Left");
 
-	push	OFFSET $SG157303
+	push	OFFSET $SG157308
 	lea	eax, DWORD PTR $T62[ebp]
 	mov	DWORD PTR $T62[ebp], 0
 	push	eax
@@ -35796,7 +35798,7 @@ $LN24@SK_WASAPI_:
 
 ; 408  :         channel_names.emplace (1, "Front Right");
 
-	push	OFFSET $SG157304
+	push	OFFSET $SG157309
 	lea	eax, DWORD PTR $T61[ebp]
 	mov	DWORD PTR $T61[ebp], 1
 	push	eax
@@ -35807,7 +35809,7 @@ $LN24@SK_WASAPI_:
 
 ; 409  :         channel_names.emplace (2, "Center");
 
-	push	OFFSET $SG157305
+	push	OFFSET $SG157310
 	lea	eax, DWORD PTR $T60[ebp]
 	mov	DWORD PTR $T60[ebp], 2
 	push	eax
@@ -35818,7 +35820,7 @@ $LN24@SK_WASAPI_:
 
 ; 410  :         channel_names.emplace (3, "Low Frequency Emitter");
 
-	push	OFFSET $SG157306
+	push	OFFSET $SG157311
 	lea	eax, DWORD PTR $T59[ebp]
 	mov	DWORD PTR $T59[ebp], 3
 	push	eax
@@ -35829,7 +35831,7 @@ $LN24@SK_WASAPI_:
 
 ; 411  :         channel_names.emplace (4, "Back Left");
 
-	push	OFFSET $SG157307
+	push	OFFSET $SG157312
 	lea	eax, DWORD PTR $T58[ebp]
 	mov	DWORD PTR $T58[ebp], 4
 	push	eax
@@ -35840,7 +35842,7 @@ $LN24@SK_WASAPI_:
 
 ; 412  :         channel_names.emplace (5, "Back Right");
 
-	push	OFFSET $SG157308
+	push	OFFSET $SG157313
 	lea	eax, DWORD PTR $T57[ebp]
 	mov	DWORD PTR $T57[ebp], 5
 	push	eax
@@ -35851,7 +35853,7 @@ $LN24@SK_WASAPI_:
 
 ; 413  :         channel_names.emplace (6, "Front Left of Center");
 
-	push	OFFSET $SG157309
+	push	OFFSET $SG157314
 	lea	eax, DWORD PTR $T56[ebp]
 	mov	DWORD PTR $T56[ebp], 6
 	push	eax
@@ -35862,7 +35864,7 @@ $LN24@SK_WASAPI_:
 
 ; 414  :         channel_names.emplace (7, "Front Right of Center");
 
-	push	OFFSET $SG157310
+	push	OFFSET $SG157315
 	lea	eax, DWORD PTR $T55[ebp]
 	mov	DWORD PTR $T55[ebp], 7
 	push	eax
@@ -35881,7 +35883,7 @@ $LN25@SK_WASAPI_:
 ; 418  :       //case KSAUDIO_SPEAKER_7POINT1_SURROUND:
 ; 419  :         channel_names.emplace (0, "Front Left");
 
-	push	OFFSET $SG157312
+	push	OFFSET $SG157317
 	lea	eax, DWORD PTR $T54[ebp]
 	mov	DWORD PTR $T54[ebp], 0
 	push	eax
@@ -35892,7 +35894,7 @@ $LN25@SK_WASAPI_:
 
 ; 420  :         channel_names.emplace (1, "Front Right");
 
-	push	OFFSET $SG157313
+	push	OFFSET $SG157318
 	lea	eax, DWORD PTR $T53[ebp]
 	mov	DWORD PTR $T53[ebp], 1
 	push	eax
@@ -35903,7 +35905,7 @@ $LN25@SK_WASAPI_:
 
 ; 421  :         channel_names.emplace (2, "Center");
 
-	push	OFFSET $SG157314
+	push	OFFSET $SG157319
 	lea	eax, DWORD PTR $T52[ebp]
 	mov	DWORD PTR $T52[ebp], 2
 	push	eax
@@ -35914,7 +35916,7 @@ $LN25@SK_WASAPI_:
 
 ; 422  :         channel_names.emplace (3, "Low Frequency Emitter");
 
-	push	OFFSET $SG157315
+	push	OFFSET $SG157320
 	lea	eax, DWORD PTR $T51[ebp]
 	mov	DWORD PTR $T51[ebp], 3
 	push	eax
@@ -35925,7 +35927,7 @@ $LN25@SK_WASAPI_:
 
 ; 423  :         channel_names.emplace (4, "Back Left");
 
-	push	OFFSET $SG157316
+	push	OFFSET $SG157321
 	lea	eax, DWORD PTR $T50[ebp]
 	mov	DWORD PTR $T50[ebp], 4
 	push	eax
@@ -35936,7 +35938,7 @@ $LN25@SK_WASAPI_:
 
 ; 424  :         channel_names.emplace (5, "Back Right");
 
-	push	OFFSET $SG157317
+	push	OFFSET $SG157322
 	lea	eax, DWORD PTR $T49[ebp]
 	mov	DWORD PTR $T49[ebp], 5
 	push	eax
@@ -35947,7 +35949,7 @@ $LN25@SK_WASAPI_:
 
 ; 425  :         channel_names.emplace (6, "Side Left");
 
-	push	OFFSET $SG157318
+	push	OFFSET $SG157323
 	lea	eax, DWORD PTR $T48[ebp]
 	mov	DWORD PTR $T48[ebp], 6
 	push	eax
@@ -35959,7 +35961,7 @@ $LN25@SK_WASAPI_:
 ; 426  :         channel_names.emplace (7, "Side Right");
 
 	mov	DWORD PTR $T47[ebp], 7
-	push	OFFSET $SG157319
+	push	OFFSET $SG157324
 
 ; 427  :         break;
 
@@ -35970,10 +35972,10 @@ $LN26@SK_WASAPI_:
 ; 429  :       default:
 ; 430  :         SK_LOG0 ( ( L" >> UNKNOWN Speaker Config: %x <<", dwConfig ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN27@SK_WASAPI_
 	push	ecx
-	push	OFFSET $SG157322
+	push	OFFSET $SG157327
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -36059,7 +36061,7 @@ $LN28@SK_WASAPI_:
 	push	DWORD PTR _channel_idx$[ebp]
 	xorps	xmm0, xmm0
 	lea	eax, DWORD PTR _szChannelOrdinal$2[ebp]
-	push	OFFSET $SG157325
+	push	OFFSET $SG157330
 	push	31					; 0000001fH
 	push	eax
 	movups	XMMWORD PTR _szChannelOrdinal$2[ebp], xmm0
@@ -42116,7 +42118,7 @@ $LN23@SK_WASAPI_:
 ; 161  :             dll_log.Log (L"Name: %ws", wszDisplayName);
 
 	push	DWORD PTR _wszDisplayName$4[ebp]
-	push	OFFSET $SG152099
+	push	OFFSET $SG152104
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -42131,10 +42133,10 @@ $LN24@SK_WASAPI_:
 ; 164  : 
 ; 165  :           SK_LOG4 ( ( L" Audio Session (pid=%lu)", dwProcess ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 4
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 4
 	jl	SHORT $LN25@SK_WASAPI_
 	push	DWORD PTR _dwProcess$7[ebp]
-	push	OFFSET $SG152101
+	push	OFFSET $SG152106
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH

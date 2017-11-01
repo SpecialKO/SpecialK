@@ -142,6 +142,9 @@ struct {
   sk::ParameterBool*      mac_style_menu;
   sk::ParameterBool*      show_gsync_status;
   sk::ParameterBool*      show_input_apis;
+  sk::ParameterBool*      disable_alpha;
+  sk::ParameterBool*      antialias_lines;
+  sk::ParameterBool*      antialias_contours;
 } imgui;
 
 struct {
@@ -291,7 +294,13 @@ struct {
   struct
   {
     sk::ParameterBool*    catch_alt_f4;
+    sk::ParameterBool*    disabled_to_game;
   } keyboard;
+
+  struct
+  {
+    sk::ParameterBool*    disabled_to_game;
+  } mouse;
 
   struct {
     sk::ParameterBool*    manage;
@@ -602,6 +611,27 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini,
       L"Input.Keyboard",
         L"CatchAltF4" );
+
+  input.keyboard.disabled_to_game =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Completely stop all keyboard input from reaching the Game.")
+      );
+  input.keyboard.disabled_to_game->register_to_ini (
+    dll_ini,
+      L"Input.Keyboard",
+        L"DisabledToGame" );
+
+
+  input.mouse.disabled_to_game =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Completely stop all mouse input from reaching the Game.")
+      );
+  input.mouse.disabled_to_game->register_to_ini (
+    dll_ini,
+      L"Input.Mouse",
+        L"DisabledToGame" );
 
 
   input.cursor.manage =
@@ -1883,6 +1913,36 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"ImGui.Global",
         L"ShowActiveInputAPIs" );
 
+  imgui.disable_alpha =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Disable Alpha Transparency (reduce flicker)")
+      );
+  imgui.disable_alpha->register_to_ini (
+    dll_ini,
+      L"ImGui.Render",
+        L"DisableAlpha" );
+
+  imgui.antialias_lines =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Reduce Aliasing on (but dim) Line Edges")
+      );
+  imgui.antialias_lines->register_to_ini (
+    dll_ini,
+      L"ImGui.Render",
+        L"AntialiasLines" );
+
+  imgui.antialias_contours =
+    dynamic_cast <sk::ParameterBool *>
+      (g_ParameterFactory.create_parameter <bool> (
+        L"Reduce Aliasing on (but widen) Window Borders")
+      );
+  imgui.antialias_contours->register_to_ini (
+    dll_ini,
+      L"ImGui.Render",
+        L"AntialiasContours" );
+
 
   osd.show =
     dynamic_cast <sk::ParameterBool *>
@@ -2594,7 +2654,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       case SK_GAME_ID::DukeNukemForever:
         // The mouse cursor's coordinate space is limited to 1920x1080 even at 4K, which
         //   has the unfortunate side effect of reducing aiming precision when the game
-        //     isn't using RawInput.
+        //     isn't using HID.
         config.window.unconfine_cursor = true; // Remap the coordinates and increase precision
 
         // The graphics engine doesn't import any render APIs directly aside from ddraw.dll,
@@ -2646,6 +2706,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (imgui.show_input_apis->load ())
     config.imgui.show_input_apis = imgui.show_input_apis->get_value ();
+
+  if (imgui.disable_alpha->load      ())
+    config.imgui.render.disable_alpha      = imgui.disable_alpha->get_value      ();
+  if (imgui.antialias_lines->load    ())
+    config.imgui.render.antialias_lines    = imgui.antialias_lines->get_value    ();
+  if (imgui.antialias_contours->load ())
+    config.imgui.render.antialias_contours = imgui.antialias_contours->get_value ();
 
 
   if (monitoring.io.show->load () && config.osd.remember_state)
@@ -3079,6 +3146,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (input.keyboard.catch_alt_f4->load ())
     config.input.keyboard.catch_alt_f4 = input.keyboard.catch_alt_f4->get_value ();
+  if (input.keyboard.disabled_to_game->load ())
+    config.input.keyboard.disabled_to_game = input.keyboard.disabled_to_game->get_value ();
+
+  if (input.mouse.disabled_to_game->load ())
+    config.input.mouse.disabled_to_game = input.mouse.disabled_to_game->get_value ();
 
   if (input.cursor.manage->load ())
     config.input.cursor.manage = input.cursor.manage->get_value ();
@@ -3674,7 +3746,9 @@ SK_SaveConfig ( std::wstring name,
   imgui.show_gsync_status->set_value          (config.apis.NvAPI.gsync_status);
   imgui.mac_style_menu->set_value             (config.imgui.use_mac_style_menu);
   imgui.show_input_apis->set_value            (config.imgui.show_input_apis);
-
+  imgui.disable_alpha->set_value              (config.imgui.render.disable_alpha);
+  imgui.antialias_lines->set_value            (config.imgui.render.antialias_lines);
+  imgui.antialias_contours->set_value         (config.imgui.render.antialias_contours);
 
   apis.last_known->set_value                  (static_cast <int> (config.apis.last_known));
 
@@ -3692,6 +3766,9 @@ SK_SaveConfig ( std::wstring name,
 #endif
 
   input.keyboard.catch_alt_f4->set_value      (config.input.keyboard.catch_alt_f4);
+  input.keyboard.disabled_to_game->set_value  (config.input.keyboard.disabled_to_game);
+
+  input.mouse.disabled_to_game->set_value     (config.input.mouse.disabled_to_game);
 
   input.cursor.manage->set_value              (config.input.cursor.manage);
   input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
@@ -4010,6 +4087,9 @@ SK_SaveConfig ( std::wstring name,
   monitoring.pagefile.interval->store      ();
 
   input.keyboard.catch_alt_f4->store       ();
+  input.keyboard.disabled_to_game->store   ();
+
+  input.mouse.disabled_to_game->store      ();
 
   input.cursor.manage->store               ();
   input.cursor.keys_activate->store        ();
@@ -4149,6 +4229,9 @@ SK_SaveConfig ( std::wstring name,
   imgui.show_gsync_status->store         ();
   imgui.mac_style_menu->store            ();
   imgui.show_input_apis->store           ();
+  imgui.disable_alpha->store             ();
+  imgui.antialias_lines->store           ();
+  imgui.antialias_contours->store        ();
 
   steam.achievements.sound_file->store         ();
   steam.achievements.play_sound->store         ();

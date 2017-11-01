@@ -42,227 +42,227 @@ _BSS	SEGMENT
 ?g_UploadBuffer@@3_KA DQ 01H DUP (?)			; g_UploadBuffer
 _BSS	ENDS
 CONST	SEGMENT
-$SG90982 DB	'main', 00H
+$SG90984 DB	'main', 00H
 	ORG $+3
-$SG90983 DB	'main', 00H
+$SG90985 DB	'main', 00H
 	ORG $+3
-$SG91058 DB	'vkGetPhysicalDeviceMemoryProperties', 00H
-$SG91059 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
-	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG91060 DB	'vkAllocateMemory', 00H
-	ORG $+3
+$SG91060 DB	'vkGetPhysicalDeviceMemoryProperties', 00H
 $SG91061 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91062 DB	'vkFreeMemory', 00H
+$SG91062 DB	'vkAllocateMemory', 00H
 	ORG $+3
 $SG91063 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91064 DB	'vkMapMemory', 00H
+$SG91064 DB	'vkFreeMemory', 00H
+	ORG $+3
 $SG91065 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91066 DB	'vkUnmapMemory', 00H
-	ORG $+2
+$SG91066 DB	'vkMapMemory', 00H
 $SG91067 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91068 DB	'vkFlushMappedMemoryRanges', 00H
+$SG91068 DB	'vkUnmapMemory', 00H
 	ORG $+2
 $SG91069 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91070 DB	'vkBindBufferMemory', 00H
-	ORG $+1
+$SG91070 DB	'vkFlushMappedMemoryRanges', 00H
+	ORG $+2
 $SG91071 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91072 DB	'vkBindImageMemory', 00H
-	ORG $+2
+$SG91072 DB	'vkBindBufferMemory', 00H
+	ORG $+1
 $SG91073 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91074 DB	'vkGetBufferMemoryRequirements', 00H
+$SG91074 DB	'vkBindImageMemory', 00H
 	ORG $+2
 $SG91075 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91076 DB	'vkGetImageMemoryRequirements', 00H
-	ORG $+3
+$SG91076 DB	'vkGetBufferMemoryRequirements', 00H
+	ORG $+2
 $SG91077 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91078 DB	'vkCreateBuffer', 00H
-	ORG $+1
+$SG91078 DB	'vkGetImageMemoryRequirements', 00H
+	ORG $+3
 $SG91079 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91080 DB	'vkDestroyBuffer', 00H
+$SG91080 DB	'vkCreateBuffer', 00H
+	ORG $+1
 $SG91081 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91082 DB	'vkCreateImage', 00H
-	ORG $+2
+$SG91082 DB	'vkDestroyBuffer', 00H
 $SG91083 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91084 DB	'vkDestroyImage', 00H
-	ORG $+1
+$SG91084 DB	'vkCreateImage', 00H
+	ORG $+2
 $SG91085 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91086 DB	'vkCreateImageView', 00H
-	ORG $+2
+$SG91086 DB	'vkDestroyImage', 00H
+	ORG $+1
 $SG91087 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91088 DB	'vkDestroyImageView', 00H
-	ORG $+1
+$SG91088 DB	'vkCreateImageView', 00H
+	ORG $+2
 $SG91089 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91090 DB	'vkCreateShaderModule', 00H
-	ORG $+3
+$SG91090 DB	'vkDestroyImageView', 00H
+	ORG $+1
 $SG91091 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91092 DB	'vkDestroyShaderModule', 00H
-	ORG $+2
+$SG91092 DB	'vkCreateShaderModule', 00H
+	ORG $+3
 $SG91093 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91094 DB	'vkCreateGraphicsPipelines', 00H
+$SG91094 DB	'vkDestroyShaderModule', 00H
 	ORG $+2
 $SG91095 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91096 DB	'vkDestroyPipeline', 00H
+$SG91096 DB	'vkCreateGraphicsPipelines', 00H
 	ORG $+2
 $SG91097 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91098 DB	'vkCreatePipelineLayout', 00H
-	ORG $+1
+$SG91098 DB	'vkDestroyPipeline', 00H
+	ORG $+2
 $SG91099 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91100 DB	'vkDestroyPipelineLayout', 00H
+$SG91100 DB	'vkCreatePipelineLayout', 00H
+	ORG $+1
 $SG91101 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91102 DB	'vkCreateSampler', 00H
+$SG91102 DB	'vkDestroyPipelineLayout', 00H
 $SG91103 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91104 DB	'vkDestroySampler', 00H
-	ORG $+3
+$SG91104 DB	'vkCreateSampler', 00H
 $SG91105 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91106 DB	'vkCreateDescriptorSetLayout', 00H
+$SG91106 DB	'vkDestroySampler', 00H
+	ORG $+3
 $SG91107 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91108 DB	'vkDestroyDescriptorSetLayout', 00H
-	ORG $+3
+$SG91108 DB	'vkCreateDescriptorSetLayout', 00H
 $SG91109 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91110 DB	'vkAllocateDescriptorSets', 00H
+$SG91110 DB	'vkDestroyDescriptorSetLayout', 00H
 	ORG $+3
 $SG91111 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91112 DB	'vkUpdateDescriptorSets', 00H
-	ORG $+1
+$SG91112 DB	'vkAllocateDescriptorSets', 00H
+	ORG $+3
 $SG91113 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91114 DB	'vkCmdBindPipeline', 00H
-	ORG $+2
+$SG91114 DB	'vkUpdateDescriptorSets', 00H
+	ORG $+1
 $SG91115 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91116 DB	'vkCmdSetViewport', 00H
-	ORG $+3
+$SG91116 DB	'vkCmdBindPipeline', 00H
+	ORG $+2
 $SG91117 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91118 DB	'vkCmdSetScissor', 00H
+$SG91118 DB	'vkCmdSetViewport', 00H
+	ORG $+3
 $SG91119 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91120 DB	'vkCmdBindDescriptorSets', 00H
+$SG91120 DB	'vkCmdSetScissor', 00H
 $SG91121 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91122 DB	'vkCmdBindIndexBuffer', 00H
-	ORG $+3
+$SG91122 DB	'vkCmdBindDescriptorSets', 00H
 $SG91123 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91124 DB	'vkCmdBindVertexBuffers', 00H
-	ORG $+1
+$SG91124 DB	'vkCmdBindIndexBuffer', 00H
+	ORG $+3
 $SG91125 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91126 DB	'vkCmdDrawIndexed', 00H
-	ORG $+3
+$SG91126 DB	'vkCmdBindVertexBuffers', 00H
+	ORG $+1
 $SG91127 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91128 DB	'vkCmdCopyBufferToImage', 00H
-	ORG $+1
+$SG91128 DB	'vkCmdDrawIndexed', 00H
+	ORG $+3
 $SG91129 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91130 DB	'vkCmdPipelineBarrier', 00H
-	ORG $+3
+$SG91130 DB	'vkCmdCopyBufferToImage', 00H
+	ORG $+1
 $SG91131 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG91132 DB	'vkCmdPushConstants', 00H
-	ORG $+1
+$SG91132 DB	'vkCmdPipelineBarrier', 00H
+	ORG $+3
 $SG91133 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
+	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG91134 DB	'vkCmdPushConstants', 00H
+	ORG $+1
+$SG91135 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 CONST	ENDS
@@ -2413,10 +2413,10 @@ $LN4@ImGui_Impl:
 	push	eax
 	mov	DWORD PTR _stage$[ebp], 18		; 00000012H
 	mov	DWORD PTR _stage$[ebp+12], 1
-	mov	DWORD PTR _stage$[ebp+24], OFFSET $SG90982
+	mov	DWORD PTR _stage$[ebp+24], OFFSET $SG90984
 	mov	DWORD PTR _stage$[ebp+32], 18		; 00000012H
 	mov	DWORD PTR _stage$[ebp+44], 16		; 00000010H
-	mov	DWORD PTR _stage$[ebp+56], OFFSET $SG90983
+	mov	DWORD PTR _stage$[ebp+56], OFFSET $SG90985
 	mov	DWORD PTR _binding_desc$[ebp+4], 20	; 00000014H
 	mov	DWORD PTR _binding_desc$[ebp+8], 0
 	call	_memset
@@ -4036,8 +4036,8 @@ $LN2@ImGui_Impl:
 ; 944  :   SK_IMPORT_VK_FUNC (vkGetPhysicalDeviceMemoryProperties)
 
 	mov	edi, DWORD PTR __imp__GetModuleHandleW@4
-	push	OFFSET $SG91058
-	push	OFFSET $SG91059
+	push	OFFSET $SG91060
+	push	OFFSET $SG91061
 	call	edi
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
 	push	eax
@@ -4045,8 +4045,8 @@ $LN2@ImGui_Impl:
 
 ; 945  :   SK_IMPORT_VK_FUNC (vkAllocateMemory)
 
-	push	OFFSET $SG91060
-	push	OFFSET $SG91061
+	push	OFFSET $SG91062
+	push	OFFSET $SG91063
 	mov	DWORD PTR ?vkGetPhysicalDeviceMemoryProperties@@3P6GXPAUVkPhysicalDevice_T@@PAUVkPhysicalDeviceMemoryProperties@@@ZA, eax
 	call	edi
 	push	eax
@@ -4054,8 +4054,8 @@ $LN2@ImGui_Impl:
 
 ; 946  :   SK_IMPORT_VK_FUNC (vkFreeMemory)
 
-	push	OFFSET $SG91062
-	push	OFFSET $SG91063
+	push	OFFSET $SG91064
+	push	OFFSET $SG91065
 	mov	DWORD PTR ?vkAllocateMemory@@3P6G?AW4VkResult@@PAUVkDevice_T@@PBUVkMemoryAllocateInfo@@PBUVkAllocationCallbacks@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4063,8 +4063,8 @@ $LN2@ImGui_Impl:
 
 ; 947  :   SK_IMPORT_VK_FUNC (vkMapMemory)
 
-	push	OFFSET $SG91064
-	push	OFFSET $SG91065
+	push	OFFSET $SG91066
+	push	OFFSET $SG91067
 	mov	DWORD PTR ?vkFreeMemory@@3P6GXPAUVkDevice_T@@_KPBUVkAllocationCallbacks@@@ZA, eax
 	call	edi
 	push	eax
@@ -4072,8 +4072,8 @@ $LN2@ImGui_Impl:
 
 ; 948  :   SK_IMPORT_VK_FUNC (vkUnmapMemory)
 
-	push	OFFSET $SG91066
-	push	OFFSET $SG91067
+	push	OFFSET $SG91068
+	push	OFFSET $SG91069
 	mov	DWORD PTR ?vkMapMemory@@3P6G?AW4VkResult@@PAUVkDevice_T@@_K11IPAPAX@ZA, eax
 	call	edi
 	push	eax
@@ -4081,8 +4081,8 @@ $LN2@ImGui_Impl:
 
 ; 949  :   SK_IMPORT_VK_FUNC (vkFlushMappedMemoryRanges)
 
-	push	OFFSET $SG91068
-	push	OFFSET $SG91069
+	push	OFFSET $SG91070
+	push	OFFSET $SG91071
 	mov	DWORD PTR ?vkUnmapMemory@@3P6GXPAUVkDevice_T@@_K@ZA, eax
 	call	edi
 	push	eax
@@ -4090,8 +4090,8 @@ $LN2@ImGui_Impl:
 
 ; 950  :   SK_IMPORT_VK_FUNC (vkBindBufferMemory)
 
-	push	OFFSET $SG91070
-	push	OFFSET $SG91071
+	push	OFFSET $SG91072
+	push	OFFSET $SG91073
 	mov	DWORD PTR ?vkFlushMappedMemoryRanges@@3P6G?AW4VkResult@@PAUVkDevice_T@@IPBUVkMappedMemoryRange@@@ZA, eax
 	call	edi
 	push	eax
@@ -4099,8 +4099,8 @@ $LN2@ImGui_Impl:
 
 ; 951  :   SK_IMPORT_VK_FUNC (vkBindImageMemory)
 
-	push	OFFSET $SG91072
-	push	OFFSET $SG91073
+	push	OFFSET $SG91074
+	push	OFFSET $SG91075
 	mov	DWORD PTR ?vkBindBufferMemory@@3P6G?AW4VkResult@@PAUVkDevice_T@@_K11@ZA, eax
 	call	edi
 	push	eax
@@ -4108,8 +4108,8 @@ $LN2@ImGui_Impl:
 
 ; 952  :   SK_IMPORT_VK_FUNC (vkGetBufferMemoryRequirements)
 
-	push	OFFSET $SG91074
-	push	OFFSET $SG91075
+	push	OFFSET $SG91076
+	push	OFFSET $SG91077
 	mov	DWORD PTR ?vkBindImageMemory@@3P6G?AW4VkResult@@PAUVkDevice_T@@_K11@ZA, eax
 	call	edi
 	push	eax
@@ -4117,8 +4117,8 @@ $LN2@ImGui_Impl:
 
 ; 953  :   SK_IMPORT_VK_FUNC (vkGetImageMemoryRequirements)
 
-	push	OFFSET $SG91076
-	push	OFFSET $SG91077
+	push	OFFSET $SG91078
+	push	OFFSET $SG91079
 	mov	DWORD PTR ?vkGetBufferMemoryRequirements@@3P6GXPAUVkDevice_T@@_KPAUVkMemoryRequirements@@@ZA, eax
 	call	edi
 	push	eax
@@ -4126,8 +4126,8 @@ $LN2@ImGui_Impl:
 
 ; 954  :   SK_IMPORT_VK_FUNC (vkCreateBuffer)
 
-	push	OFFSET $SG91078
-	push	OFFSET $SG91079
+	push	OFFSET $SG91080
+	push	OFFSET $SG91081
 	mov	DWORD PTR ?vkGetImageMemoryRequirements@@3P6GXPAUVkDevice_T@@_KPAUVkMemoryRequirements@@@ZA, eax
 	call	edi
 	push	eax
@@ -4135,8 +4135,8 @@ $LN2@ImGui_Impl:
 
 ; 955  :   SK_IMPORT_VK_FUNC (vkDestroyBuffer)
 
-	push	OFFSET $SG91080
-	push	OFFSET $SG91081
+	push	OFFSET $SG91082
+	push	OFFSET $SG91083
 	mov	DWORD PTR ?vkCreateBuffer@@3P6G?AW4VkResult@@PAUVkDevice_T@@PBUVkBufferCreateInfo@@PBUVkAllocationCallbacks@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4144,8 +4144,8 @@ $LN2@ImGui_Impl:
 
 ; 956  :   SK_IMPORT_VK_FUNC (vkCreateImage)
 
-	push	OFFSET $SG91082
-	push	OFFSET $SG91083
+	push	OFFSET $SG91084
+	push	OFFSET $SG91085
 	mov	DWORD PTR ?vkDestroyBuffer@@3P6GXPAUVkDevice_T@@_KPBUVkAllocationCallbacks@@@ZA, eax
 	call	edi
 	push	eax
@@ -4153,8 +4153,8 @@ $LN2@ImGui_Impl:
 
 ; 957  :   SK_IMPORT_VK_FUNC (vkDestroyImage)
 
-	push	OFFSET $SG91084
-	push	OFFSET $SG91085
+	push	OFFSET $SG91086
+	push	OFFSET $SG91087
 	mov	DWORD PTR ?vkCreateImage@@3P6G?AW4VkResult@@PAUVkDevice_T@@PBUVkImageCreateInfo@@PBUVkAllocationCallbacks@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4162,8 +4162,8 @@ $LN2@ImGui_Impl:
 
 ; 958  :   SK_IMPORT_VK_FUNC (vkCreateImageView)  
 
-	push	OFFSET $SG91086
-	push	OFFSET $SG91087
+	push	OFFSET $SG91088
+	push	OFFSET $SG91089
 	mov	DWORD PTR ?vkDestroyImage@@3P6GXPAUVkDevice_T@@_KPBUVkAllocationCallbacks@@@ZA, eax
 	call	edi
 	push	eax
@@ -4171,8 +4171,8 @@ $LN2@ImGui_Impl:
 
 ; 959  :   SK_IMPORT_VK_FUNC (vkDestroyImageView) 
 
-	push	OFFSET $SG91088
-	push	OFFSET $SG91089
+	push	OFFSET $SG91090
+	push	OFFSET $SG91091
 	mov	DWORD PTR ?vkCreateImageView@@3P6G?AW4VkResult@@PAUVkDevice_T@@PBUVkImageViewCreateInfo@@PBUVkAllocationCallbacks@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4180,8 +4180,8 @@ $LN2@ImGui_Impl:
 
 ; 960  :   SK_IMPORT_VK_FUNC (vkCreateShaderModule)
 
-	push	OFFSET $SG91090
-	push	OFFSET $SG91091
+	push	OFFSET $SG91092
+	push	OFFSET $SG91093
 	mov	DWORD PTR ?vkDestroyImageView@@3P6GXPAUVkDevice_T@@_KPBUVkAllocationCallbacks@@@ZA, eax
 	call	edi
 	push	eax
@@ -4189,8 +4189,8 @@ $LN2@ImGui_Impl:
 
 ; 961  :   SK_IMPORT_VK_FUNC (vkDestroyShaderModule)
 
-	push	OFFSET $SG91092
-	push	OFFSET $SG91093
+	push	OFFSET $SG91094
+	push	OFFSET $SG91095
 	mov	DWORD PTR ?vkCreateShaderModule@@3P6G?AW4VkResult@@PAUVkDevice_T@@PBUVkShaderModuleCreateInfo@@PBUVkAllocationCallbacks@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4198,8 +4198,8 @@ $LN2@ImGui_Impl:
 
 ; 962  :   SK_IMPORT_VK_FUNC (vkCreateGraphicsPipelines)
 
-	push	OFFSET $SG91094
-	push	OFFSET $SG91095
+	push	OFFSET $SG91096
+	push	OFFSET $SG91097
 	mov	DWORD PTR ?vkDestroyShaderModule@@3P6GXPAUVkDevice_T@@_KPBUVkAllocationCallbacks@@@ZA, eax
 	call	edi
 	push	eax
@@ -4207,8 +4207,8 @@ $LN2@ImGui_Impl:
 
 ; 963  :   SK_IMPORT_VK_FUNC (vkDestroyPipeline)
 
-	push	OFFSET $SG91096
-	push	OFFSET $SG91097
+	push	OFFSET $SG91098
+	push	OFFSET $SG91099
 	mov	DWORD PTR ?vkCreateGraphicsPipelines@@3P6G?AW4VkResult@@PAUVkDevice_T@@_KIPBUVkGraphicsPipelineCreateInfo@@PBUVkAllocationCallbacks@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4216,8 +4216,8 @@ $LN2@ImGui_Impl:
 
 ; 964  :   SK_IMPORT_VK_FUNC (vkCreatePipelineLayout)
 
-	push	OFFSET $SG91098
-	push	OFFSET $SG91099
+	push	OFFSET $SG91100
+	push	OFFSET $SG91101
 	mov	DWORD PTR ?vkDestroyPipeline@@3P6GXPAUVkDevice_T@@_KPBUVkAllocationCallbacks@@@ZA, eax
 	call	edi
 	push	eax
@@ -4225,8 +4225,8 @@ $LN2@ImGui_Impl:
 
 ; 965  :   SK_IMPORT_VK_FUNC (vkDestroyPipelineLayout)
 
-	push	OFFSET $SG91100
-	push	OFFSET $SG91101
+	push	OFFSET $SG91102
+	push	OFFSET $SG91103
 	mov	DWORD PTR ?vkCreatePipelineLayout@@3P6G?AW4VkResult@@PAUVkDevice_T@@PBUVkPipelineLayoutCreateInfo@@PBUVkAllocationCallbacks@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4234,8 +4234,8 @@ $LN2@ImGui_Impl:
 
 ; 966  :   SK_IMPORT_VK_FUNC (vkCreateSampler)
 
-	push	OFFSET $SG91102
-	push	OFFSET $SG91103
+	push	OFFSET $SG91104
+	push	OFFSET $SG91105
 	mov	DWORD PTR ?vkDestroyPipelineLayout@@3P6GXPAUVkDevice_T@@_KPBUVkAllocationCallbacks@@@ZA, eax
 	call	edi
 	push	eax
@@ -4243,8 +4243,8 @@ $LN2@ImGui_Impl:
 
 ; 967  :   SK_IMPORT_VK_FUNC (vkDestroySampler)
 
-	push	OFFSET $SG91104
-	push	OFFSET $SG91105
+	push	OFFSET $SG91106
+	push	OFFSET $SG91107
 	mov	DWORD PTR ?vkCreateSampler@@3P6G?AW4VkResult@@PAUVkDevice_T@@PBUVkSamplerCreateInfo@@PBUVkAllocationCallbacks@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4252,8 +4252,8 @@ $LN2@ImGui_Impl:
 
 ; 968  :   SK_IMPORT_VK_FUNC (vkCreateDescriptorSetLayout)
 
-	push	OFFSET $SG91106
-	push	OFFSET $SG91107
+	push	OFFSET $SG91108
+	push	OFFSET $SG91109
 	mov	DWORD PTR ?vkDestroySampler@@3P6GXPAUVkDevice_T@@_KPBUVkAllocationCallbacks@@@ZA, eax
 	call	edi
 	push	eax
@@ -4261,8 +4261,8 @@ $LN2@ImGui_Impl:
 
 ; 969  :   SK_IMPORT_VK_FUNC (vkDestroyDescriptorSetLayout)
 
-	push	OFFSET $SG91108
-	push	OFFSET $SG91109
+	push	OFFSET $SG91110
+	push	OFFSET $SG91111
 	mov	DWORD PTR ?vkCreateDescriptorSetLayout@@3P6G?AW4VkResult@@PAUVkDevice_T@@PBUVkDescriptorSetLayoutCreateInfo@@PBUVkAllocationCallbacks@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4270,17 +4270,17 @@ $LN2@ImGui_Impl:
 
 ; 970  :   SK_IMPORT_VK_FUNC (vkAllocateDescriptorSets)
 
-	push	OFFSET $SG91110
+	push	OFFSET $SG91112
 	mov	DWORD PTR ?vkDestroyDescriptorSetLayout@@3P6GXPAUVkDevice_T@@_KPBUVkAllocationCallbacks@@@ZA, eax
-	push	OFFSET $SG91111
+	push	OFFSET $SG91113
 	call	edi
 	push	eax
 	call	esi
 
 ; 971  :   SK_IMPORT_VK_FUNC (vkUpdateDescriptorSets)
 
-	push	OFFSET $SG91112
-	push	OFFSET $SG91113
+	push	OFFSET $SG91114
+	push	OFFSET $SG91115
 	mov	DWORD PTR ?vkAllocateDescriptorSets@@3P6G?AW4VkResult@@PAUVkDevice_T@@PBUVkDescriptorSetAllocateInfo@@PA_K@ZA, eax
 	call	edi
 	push	eax
@@ -4288,8 +4288,8 @@ $LN2@ImGui_Impl:
 
 ; 972  :   SK_IMPORT_VK_FUNC (vkCmdBindPipeline)
 
-	push	OFFSET $SG91114
-	push	OFFSET $SG91115
+	push	OFFSET $SG91116
+	push	OFFSET $SG91117
 	mov	DWORD PTR ?vkUpdateDescriptorSets@@3P6GXPAUVkDevice_T@@IPBUVkWriteDescriptorSet@@IPBUVkCopyDescriptorSet@@@ZA, eax
 	call	edi
 	push	eax
@@ -4297,8 +4297,8 @@ $LN2@ImGui_Impl:
 
 ; 973  :   SK_IMPORT_VK_FUNC (vkCmdSetViewport)
 
-	push	OFFSET $SG91116
-	push	OFFSET $SG91117
+	push	OFFSET $SG91118
+	push	OFFSET $SG91119
 	mov	DWORD PTR ?vkCmdBindPipeline@@3P6GXPAUVkCommandBuffer_T@@W4VkPipelineBindPoint@@_K@ZA, eax
 	call	edi
 	push	eax
@@ -4306,8 +4306,8 @@ $LN2@ImGui_Impl:
 
 ; 974  :   SK_IMPORT_VK_FUNC (vkCmdSetScissor)
 
-	push	OFFSET $SG91118
-	push	OFFSET $SG91119
+	push	OFFSET $SG91120
+	push	OFFSET $SG91121
 	mov	DWORD PTR ?vkCmdSetViewport@@3P6GXPAUVkCommandBuffer_T@@IIPBUVkViewport@@@ZA, eax
 	call	edi
 	push	eax
@@ -4315,8 +4315,8 @@ $LN2@ImGui_Impl:
 
 ; 975  :   SK_IMPORT_VK_FUNC (vkCmdBindDescriptorSets)
 
-	push	OFFSET $SG91120
-	push	OFFSET $SG91121
+	push	OFFSET $SG91122
+	push	OFFSET $SG91123
 	mov	DWORD PTR ?vkCmdSetScissor@@3P6GXPAUVkCommandBuffer_T@@IIPBUVkRect2D@@@ZA, eax
 	call	edi
 	push	eax
@@ -4324,8 +4324,8 @@ $LN2@ImGui_Impl:
 
 ; 976  :   SK_IMPORT_VK_FUNC (vkCmdBindIndexBuffer)
 
-	push	OFFSET $SG91122
-	push	OFFSET $SG91123
+	push	OFFSET $SG91124
+	push	OFFSET $SG91125
 	mov	DWORD PTR ?vkCmdBindDescriptorSets@@3P6GXPAUVkCommandBuffer_T@@W4VkPipelineBindPoint@@_KIIPB_KIPBI@ZA, eax
 	call	edi
 	push	eax
@@ -4333,8 +4333,8 @@ $LN2@ImGui_Impl:
 
 ; 977  :   SK_IMPORT_VK_FUNC (vkCmdBindVertexBuffers)
 
-	push	OFFSET $SG91124
-	push	OFFSET $SG91125
+	push	OFFSET $SG91126
+	push	OFFSET $SG91127
 	mov	DWORD PTR ?vkCmdBindIndexBuffer@@3P6GXPAUVkCommandBuffer_T@@_K1W4VkIndexType@@@ZA, eax
 	call	edi
 	push	eax
@@ -4342,8 +4342,8 @@ $LN2@ImGui_Impl:
 
 ; 978  :   SK_IMPORT_VK_FUNC (vkCmdDrawIndexed)
 
-	push	OFFSET $SG91126
-	push	OFFSET $SG91127
+	push	OFFSET $SG91128
+	push	OFFSET $SG91129
 	mov	DWORD PTR ?vkCmdBindVertexBuffers@@3P6GXPAUVkCommandBuffer_T@@IIPB_K1@ZA, eax
 	call	edi
 	push	eax
@@ -4351,8 +4351,8 @@ $LN2@ImGui_Impl:
 
 ; 979  :   SK_IMPORT_VK_FUNC (vkCmdCopyBufferToImage)
 
-	push	OFFSET $SG91128
-	push	OFFSET $SG91129
+	push	OFFSET $SG91130
+	push	OFFSET $SG91131
 	mov	DWORD PTR ?vkCmdDrawIndexed@@3P6GXPAUVkCommandBuffer_T@@IIIHI@ZA, eax
 	call	edi
 	push	eax
@@ -4360,8 +4360,8 @@ $LN2@ImGui_Impl:
 
 ; 980  :   SK_IMPORT_VK_FUNC (vkCmdPipelineBarrier)
 
-	push	OFFSET $SG91130
-	push	OFFSET $SG91131
+	push	OFFSET $SG91132
+	push	OFFSET $SG91133
 	mov	DWORD PTR ?vkCmdCopyBufferToImage@@3P6GXPAUVkCommandBuffer_T@@_K1W4VkImageLayout@@IPBUVkBufferImageCopy@@@ZA, eax
 	call	edi
 	push	eax
@@ -4369,8 +4369,8 @@ $LN2@ImGui_Impl:
 
 ; 981  :   SK_IMPORT_VK_FUNC (vkCmdPushConstants)
 
-	push	OFFSET $SG91132
-	push	OFFSET $SG91133
+	push	OFFSET $SG91134
+	push	OFFSET $SG91135
 	mov	DWORD PTR ?vkCmdPipelineBarrier@@3P6GXPAUVkCommandBuffer_T@@IIIIPBUVkMemoryBarrier@@IPBUVkBufferMemoryBarrier@@IPBUVkImageMemoryBarrier@@@ZA, eax
 	call	edi
 	push	eax

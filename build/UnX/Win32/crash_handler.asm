@@ -18,33 +18,33 @@ _BSS	SEGMENT
 ?SteamAPI_UseBrakepadCrashHandler_NEVER@@3P6AXPBD00_NPAX2@ZA DD 01H DUP (?) ; SteamAPI_UseBrakepadCrashHandler_NEVER
 _BSS	ENDS
 CONST	SEGMENT
-$SG250012 DB	'W', 00H, 'A', 00H, 'V', 00H, 'E', 00H, 00H, 00H
-$SG250041 DB	00H
-$SG250231 DB	00H
-$SG250016 DB	'w', 00H, 00H, 00H
-$SG250017 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, 'c', 00H
+$SG250020 DB	'W', 00H, 'A', 00H, 'V', 00H, 'E', 00H, 00H, 00H
+$SG250049 DB	00H
+$SG250239 DB	00H
+$SG250024 DB	'w', 00H, 00H, 00H
+$SG250025 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, 'c', 00H
 	DB	'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, '.', 00H, 'l', 00H, 'o'
 	DB	00H, 'g', 00H, 00H, 00H
-$SG250241 DB	00H
+$SG250249 DB	00H
 	ORG $+1
-$SG250018 DB	'SetUnhandledExceptionFilter', 00H
-$SG250019 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG250026 DB	'SetUnhandledExceptionFilter', 00H
+$SG250027 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG250044 DB	'UNKNOWN', 00H
-$SG250178 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250052 DB	'UNKNOWN', 00H
+$SG250186 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'A', 00H, 'C', 00H, 'C', 00H, 'E', 00H, 'S', 00H
 	DB	'S', 00H, '_', 00H, 'V', 00H, 'I', 00H, 'O', 00H, 'L', 00H, 'A'
 	DB	00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H, ' ', 00H, '>', 00H
 	DB	'>', 00H, 00H, 00H
-$SG250194 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250202 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'F', 00H, 'L', 00H, 'T', 00H, '_', 00H, 'O', 00H
 	DB	'V', 00H, 'E', 00H, 'R', 00H, 'F', 00H, 'L', 00H, 'O', 00H, 'W'
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, 00H, 00H
-$SG250180 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250188 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'A', 00H, 'R', 00H, 'R', 00H, 'A', 00H, 'Y', 00H
 	DB	'_', 00H, 'B', 00H, 'O', 00H, 'U', 00H, 'N', 00H, 'D', 00H, 'S'
@@ -52,12 +52,12 @@ $SG250180 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'D', 00H, 'E', 00H, 'D', 00H, ' ', 00H, '>', 00H, '>', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG250182 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250190 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'B', 00H, 'R', 00H, 'E', 00H, 'A', 00H, 'K', 00H
 	DB	'P', 00H, 'O', 00H, 'I', 00H, 'N', 00H, 'T', 00H, ' ', 00H, '>'
 	DB	00H, '>', 00H, 00H, 00H
-$SG250184 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250192 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'D', 00H, 'A', 00H, 'T', 00H, 'A', 00H, 'T', 00H
 	DB	'Y', 00H, 'P', 00H, 'E', 00H, '_', 00H, 'M', 00H, 'I', 00H, 'S'
@@ -65,30 +65,30 @@ $SG250184 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'E', 00H, 'N', 00H, 'T', 00H, ' ', 00H, '>', 00H, '>', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG250186 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250194 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'F', 00H, 'L', 00H, 'T', 00H, '_', 00H, 'D', 00H
 	DB	'E', 00H, 'N', 00H, 'O', 00H, 'R', 00H, 'M', 00H, 'A', 00H, 'L'
 	DB	00H, '_', 00H, 'O', 00H, 'P', 00H, 'E', 00H, 'R', 00H, 'A', 00H
 	DB	'N', 00H, 'D', 00H, ' ', 00H, '>', 00H, '>', 00H, 00H, 00H
-$SG250206 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250214 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'I', 00H, 'N', 00H, 'T', 00H, '_', 00H, 'O', 00H
 	DB	'V', 00H, 'E', 00H, 'R', 00H, 'F', 00H, 'L', 00H, 'O', 00H, 'W'
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, 00H, 00H
-$SG250188 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250196 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'F', 00H, 'L', 00H, 'T', 00H, '_', 00H, 'D', 00H
 	DB	'I', 00H, 'V', 00H, 'I', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'B'
 	DB	00H, 'Y', 00H, '_', 00H, 'Z', 00H, 'E', 00H, 'R', 00H, 'O', 00H
 	DB	' ', 00H, '>', 00H, '>', 00H, 00H, 00H
-$SG250190 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250198 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'F', 00H, 'L', 00H, 'T', 00H, '_', 00H, 'I', 00H
 	DB	'N', 00H, 'E', 00H, 'X', 00H, 'A', 00H, 'C', 00H, 'T', 00H, '_'
 	DB	00H, 'R', 00H, 'E', 00H, 'S', 00H, 'U', 00H, 'L', 00H, 'T', 00H
 	DB	' ', 00H, '>', 00H, '>', 00H, 00H, 00H
-$SG250192 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250200 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'F', 00H, 'L', 00H, 'T', 00H, '_', 00H, 'I', 00H
 	DB	'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H, 'D', 00H, '_'
@@ -96,81 +96,81 @@ $SG250192 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'I', 00H, 'O', 00H, 'N', 00H, ' ', 00H, '>', 00H, '>', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG250196 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250204 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'F', 00H, 'L', 00H, 'T', 00H, '_', 00H, 'S', 00H
 	DB	'T', 00H, 'A', 00H, 'C', 00H, 'K', 00H, '_', 00H, 'C', 00H, 'H'
 	DB	00H, 'E', 00H, 'C', 00H, 'K', 00H, ' ', 00H, '>', 00H, '>', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG250198 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250206 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'F', 00H, 'L', 00H, 'T', 00H, '_', 00H, 'U', 00H
 	DB	'N', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'F', 00H, 'L', 00H, 'O'
 	DB	00H, 'W', 00H, ' ', 00H, '>', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG250214 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250222 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'S', 00H, 'I', 00H, 'N', 00H, 'G', 00H, 'L', 00H
 	DB	'E', 00H, '_', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'P', 00H, ' '
 	DB	00H, '>', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG250200 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250208 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'I', 00H, 'L', 00H, 'L', 00H, 'E', 00H, 'G', 00H
 	DB	'A', 00H, 'L', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'S', 00H, 'T'
 	DB	00H, 'R', 00H, 'U', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'O', 00H
 	DB	'N', 00H, ' ', 00H, '>', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG250202 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250210 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'I', 00H, 'N', 00H, '_', 00H, 'P', 00H, 'A', 00H
 	DB	'G', 00H, 'E', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H, 'O'
 	DB	00H, 'R', 00H, ' ', 00H, '>', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG250219 DB	'[', 00H, '!', 00H, ' ', 00H, 'E', 00H, 'x', 00H, 'c', 00H
+$SG250227 DB	'[', 00H, '!', 00H, ' ', 00H, 'E', 00H, 'x', 00H, 'c', 00H
 	DB	'e', 00H, 'p', 00H, 't', 00H, ' ', 00H, '!', 00H, ']', 00H, ' '
 	DB	00H, '%', 00H, 's', 00H, 00H, 00H
-$SG250239 DB	'Scaleform', 00H
+$SG250247 DB	'Scaleform', 00H
 	ORG $+2
-$SG250204 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250212 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'I', 00H, 'N', 00H, 'T', 00H, '_', 00H, 'D', 00H
 	DB	'I', 00H, 'V', 00H, 'I', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'B'
 	DB	00H, 'Y', 00H, '_', 00H, 'Z', 00H, 'E', 00H, 'R', 00H, 'O', 00H
 	DB	' ', 00H, '>', 00H, '>', 00H, 00H, 00H
-$SG250208 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250216 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H
 	DB	'I', 00H, 'D', 00H, '_', 00H, 'D', 00H, 'I', 00H, 'S', 00H, 'P'
 	DB	00H, 'O', 00H, 'S', 00H, 'I', 00H, 'T', 00H, 'I', 00H, 'O', 00H
 	DB	'N', 00H, ' ', 00H, '>', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG250248 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 00H, 00H
-$SG250210 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250256 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 00H, 00H
+$SG250218 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'N', 00H, 'O', 00H, 'N', 00H, 'C', 00H, 'O', 00H
 	DB	'N', 00H, 'T', 00H, 'I', 00H, 'N', 00H, 'U', 00H, 'A', 00H, 'B'
 	DB	00H, 'L', 00H, 'E', 00H, '_', 00H, 'E', 00H, 'X', 00H, 'C', 00H
 	DB	'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H, ' '
 	DB	00H, '>', 00H, '>', 00H, 00H, 00H
-$SG250253 DB	'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+$SG250261 DB	'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'l', 00H, 'o', 00H, 'g'
 	DB	00H, 00H, 00H
-$SG250212 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250220 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'P', 00H, 'R', 00H, 'I', 00H, 'V', 00H, '_', 00H
 	DB	'I', 00H, 'N', 00H, 'S', 00H, 'T', 00H, 'R', 00H, 'U', 00H, 'C'
 	DB	00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H, ' ', 00H, '>', 00H
 	DB	'>', 00H, 00H, 00H
-$SG250260 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
+$SG250268 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
 	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-$SG250216 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
+$SG250224 DB	09H, 00H, '<', 00H, '<', 00H, ' ', 00H, 'E', 00H, 'X', 00H
 	DB	'C', 00H, 'E', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
 	DB	00H, '_', 00H, 'S', 00H, 'T', 00H, 'A', 00H, 'C', 00H, 'K', 00H
 	DB	'_', 00H, 'O', 00H, 'V', 00H, 'E', 00H, 'R', 00H, 'F', 00H, 'L'
 	DB	00H, 'O', 00H, 'W', 00H, ' ', 00H, '>', 00H, '>', 00H, 00H, 00H
-$SG250218 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG250226 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
@@ -180,7 +180,7 @@ $SG250218 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, 00H, 00H
-$SG250220 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG250228 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
@@ -190,28 +190,28 @@ $SG250220 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, 00H, 00H
-$SG250221 DB	'[', 00H, ' ', 00H, 'F', 00H, 'a', 00H, 'u', 00H, 'l', 00H
+$SG250229 DB	'[', 00H, ' ', 00H, 'F', 00H, 'a', 00H, 'u', 00H, 'l', 00H
 	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '#', 00H, ' ', 00H, 'F', 00H, 'i', 00H, 'l', 00H
 	DB	'e', 00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H, ':'
 	DB	00H, ' ', 00H, '''', 00H, '%', 00H, 'h', 00H, 's', 00H, '''', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG250250 DB	'%', 00H, 'm', 00H, '-', 00H, '%', 00H, 'd', 00H, '-', 00H
+$SG250258 DB	'%', 00H, 'm', 00H, '-', 00H, '%', 00H, 'd', 00H, '-', 00H
 	DB	'%', 00H, 'Y', 00H, '_', 00H, '_', 00H, '%', 00H, 'H', 00H, ''''
 	DB	00H, '%', 00H, 'M', 00H, '''', 00H, '%', 00H, 'S', 00H, '\', 00H
 	DB	00H, 00H
-$SG250261 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
+$SG250269 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
 	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-$SG250222 DB	'[', 00H, ' ', 00H, 'F', 00H, 'a', 00H, 'u', 00H, 'l', 00H
+$SG250230 DB	'[', 00H, ' ', 00H, 'F', 00H, 'a', 00H, 'u', 00H, 'l', 00H
 	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'E', 00H, 'I', 00H, 'P', 00H
 	DB	' ', 00H, 'A', 00H, 'd', 00H, 'd', 00H, 'r', 00H, '.', 00H, ':'
 	DB	00H, ' ', 00H, '%', 00H, 'h', 00H, 's', 00H, '+', 00H, '%', 00H
 	DB	'0', 00H, '8', 00H, 'X', 00H, 'h', 00H, 00H, 00H
 	ORG $+2
-$SG250264 DB	'a', 00H, 00H, 00H
-$SG250223 DB	'[', 00H, 'S', 00H, 't', 00H, 'a', 00H, 'c', 00H, 'k', 00H
+$SG250272 DB	'a', 00H, 00H, 00H
+$SG250231 DB	'[', 00H, 'S', 00H, 't', 00H, 'a', 00H, 'c', 00H, 'k', 00H
 	DB	'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, '<', 00H, '-', 00H, '>', 00H, ' ', 00H, 'E', 00H, 'i', 00H
 	DB	'p', 00H, '=', 00H, '%', 00H, '0', 00H, '8', 00H, 'x', 00H, 'h'
@@ -220,50 +220,50 @@ $SG250223 DB	'[', 00H, 'S', 00H, 't', 00H, 'a', 00H, 'c', 00H, 'k', 00H
 	DB	00H, 'E', 00H, 'b', 00H, 'p', 00H, '=', 00H, '%', 00H, '0', 00H
 	DB	'8', 00H, 'x', 00H, 'h', 00H, 00H, 00H
 	ORG $+2
-$SG250266 DB	'a', 00H, 00H, 00H
-$SG250224 DB	'[', 00H, 'S', 00H, 't', 00H, 'a', 00H, 'c', 00H, 'k', 00H
+$SG250274 DB	'a', 00H, 00H, 00H
+$SG250232 DB	'[', 00H, 'S', 00H, 't', 00H, 'a', 00H, 'c', 00H, 'k', 00H
 	DB	'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, '>', 00H, '-', 00H, '<', 00H, ' ', 00H, 'E', 00H, 's', 00H
 	DB	'i', 00H, '=', 00H, '%', 00H, '0', 00H, '8', 00H, 'x', 00H, 'h'
 	DB	00H, ',', 00H, ' ', 00H, 'E', 00H, 'd', 00H, 'i', 00H, '=', 00H
 	DB	'%', 00H, '0', 00H, '8', 00H, 'x', 00H, 'h', 00H, 00H, 00H
-$SG250268 DB	'a', 00H, 00H, 00H
-$SG250225 DB	'[', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H
+$SG250276 DB	'a', 00H, 00H, 00H
+$SG250233 DB	'[', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H
 	DB	'R', 00H, 'e', 00H, 'g', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'e', 00H, 'a', 00H, 'x', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H
 	DB	'8', 00H, 'x', 00H, 00H, 00H
 	ORG $+2
-$SG250226 DB	'[', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H
+$SG250234 DB	'[', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H
 	DB	'R', 00H, 'e', 00H, 'g', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'e', 00H, 'b', 00H, 'x', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H
 	DB	'8', 00H, 'x', 00H, 00H, 00H
 	ORG $+2
-$SG250227 DB	'[', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H
+$SG250235 DB	'[', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H
 	DB	'R', 00H, 'e', 00H, 'g', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'e', 00H, 'c', 00H, 'x', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H
 	DB	'8', 00H, 'x', 00H, 00H, 00H
 	ORG $+2
-$SG250228 DB	'[', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H
+$SG250236 DB	'[', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H
 	DB	'R', 00H, 'e', 00H, 'g', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'e', 00H, 'd', 00H, 'x', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H
 	DB	'8', 00H, 'x', 00H, 00H, 00H
 	ORG $+2
-$SG250229 DB	'[', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H, 'F', 00H
+$SG250237 DB	'[', 00H, ' ', 00H, 'G', 00H, 'P', 00H, ' ', 00H, 'F', 00H
 	DB	'l', 00H, 'a', 00H, 'g', 00H, 's', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'E', 00H, 'F', 00H, 'l', 00H, 'a', 00H, 'g', 00H, 's', 00H, ':'
 	DB	00H, ' ', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H
 	DB	'8', 00H, 'x', 00H, 00H, 00H
 	ORG $+2
-$SG250230 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG250238 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
@@ -273,22 +273,22 @@ $SG250230 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, 00H, 00H
-$SG250236 DB	'[', 00H, '-', 00H, '(', 00H, 'S', 00H, 'o', 00H, 'u', 00H
+$SG250244 DB	'[', 00H, '-', 00H, '(', 00H, 'S', 00H, 'o', 00H, 'u', 00H
 	DB	'r', 00H, 'c', 00H, 'e', 00H, ')', 00H, '-', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '{', 00H, '%', 00H
 	DB	'2', 00H, '4', 00H, 'h', 00H, 's', 00H, '}', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '#', 00H, '6', 00H, '4', 00H, 'h', 00H, 's', 00H
 	DB	' ', 00H, ' ', 00H, '<', 00H, '%', 00H, 'h', 00H, 's', 00H, ':'
 	DB	00H, '%', 00H, 'l', 00H, 'u', 00H, '>', 00H, 00H, 00H
-$SG250237 DB	'[', 00H, '-', 00H, '-', 00H, '(', 00H, 'N', 00H, 'a', 00H
+$SG250245 DB	'[', 00H, '-', 00H, '-', 00H, '(', 00H, 'N', 00H, 'a', 00H
 	DB	'm', 00H, 'e', 00H, ')', 00H, '-', 00H, '-', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '{', 00H, '%', 00H
 	DB	'2', 00H, '4', 00H, 'h', 00H, 's', 00H, '}', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '#', 00H, '6', 00H, '4', 00H, 'h', 00H, 's', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG250270 DB	'a', 00H, 00H, 00H
-$SG250242 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG250278 DB	'a', 00H, 00H, 00H
+$SG250250 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
@@ -298,13 +298,13 @@ $SG250242 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, 00H, 00H
-$SG250246 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, '*', 00H
+$SG250254 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, '*', 00H
 	DB	'.', 00H, 'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG250249 DB	'c', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, '\', 00H
+$SG250257 DB	'c', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, '\', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG250393 DB	'W', 00H, 'A', 00H, 'V', 00H, 'E', 00H, 00H, 00H
+$SG250401 DB	'W', 00H, 'A', 00H, 'V', 00H, 'E', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	?Init@CrashHandler@Diagnostics@SK@@YAXXZ	; SK::Diagnostics::CrashHandler::Init
 PUBLIC	?InitSyms@CrashHandler@Diagnostics@SK@@YAXXZ	; SK::Diagnostics::CrashHandler::InitSyms
@@ -1873,7 +1873,7 @@ _hProc$ = 8						; size = 4
 	mov	ebp, esp
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A ; cs_dbghelp
 	push	DWORD PTR [eax]
@@ -1886,7 +1886,7 @@ _hProc$ = 8						; size = 4
 	call	DWORD PTR __imp__SymRefreshModuleList@4
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A ; cs_dbghelp
 	push	DWORD PTR [eax]
@@ -2252,7 +2252,7 @@ _addr$ = 16						; size = 4
 
 	mov	ecx, edi
 	push	0
-	push	OFFSET $SG250041
+	push	OFFSET $SG250049
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\crash_handler.cpp
 
 ; 144  : {
@@ -2430,7 +2430,7 @@ $LN4@SK_GetSymb:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	7
-	push	OFFSET $SG250044
+	push	OFFSET $SG250052
 $LN54@SK_GetSymb:
 	mov	ecx, edi
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
@@ -2476,19 +2476,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GP6GJPAU_EXCEPTION_POINTERS@@@ZP6GJ0@Z@Z@@YAPAPAXPAP6GP6GJPAU_EXCEPTION_POINTERS@@@ZP6GJ0@Z@Z@Z PROC ; static_cast_p2p<void,long (__stdcall*__stdcall(long (__stdcall*)(_EXCEPTION_POINTERS *)))(_EXCEPTION_POINTERS *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -2599,15 +2599,15 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\crash_handler.cpp
 _TEXT	SEGMENT
-_wszFindPattern$2 = -9840				; size = 1040
-_sip$3 = -8800						; size = 2096
-_wszOutDir$4 = -6704					; size = 1040
-_wszBaseDir$5 = -5664					; size = 1040
-_ctx$ = -4624						; size = 716
-_wszTime$6 = -3908					; size = 520
-_wszOrigPath$7 = -3388					; size = 1042
-_wszDestPath$8 = -2344					; size = 1042
-_szModName$ = -1300					; size = 260
+_wszFindPattern$2 = -9848				; size = 1040
+_sip$3 = -8808						; size = 2096
+_wszOutDir$4 = -6712					; size = 1040
+_wszBaseDir$5 = -5672					; size = 1040
+_ctx$ = -4632						; size = 716
+_wszTime$6 = -3916					; size = 524
+_wszOrigPath$7 = -3392					; size = 1042
+_wszDestPath$8 = -2348					; size = 1042
+_szModName$ = -1304					; size = 262
 $T9 = -1040						; size = 152
 _fd$10 = -888						; size = 592
 _stackframe$ = -296					; size = 164
@@ -2644,7 +2644,7 @@ _ExceptionInfo$ = 8					; size = 4
 	push	-1
 	push	__ehhandler$?SK_TopLevelExceptionFilter@@YGJPAU_EXCEPTION_POINTERS@@@Z
 	push	eax
-	mov	eax, 9828				; 00002664H
+	mov	eax, 9836				; 0000266cH
 	mov	DWORD PTR fs:0, esp
 	call	__chkstk
 	push	esi
@@ -2746,7 +2746,7 @@ _ExceptionInfo$ = 8					; size = 4
 ; 355  :     case EXCEPTION_SINGLE_STEP:
 ; 356  :       desc = L"\t<< EXCEPTION_SINGLE_STEP >>";
 
-	push	OFFSET $SG250214
+	push	OFFSET $SG250222
 
 ; 357  :              //L"A trace trap or other single-instruction mechanism signaled "
 ; 358  :              //L"that one instruction has been executed.";
@@ -2759,7 +2759,7 @@ $LN16@SK_TopLeve:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	27					; 0000001bH
-	push	OFFSET $SG250182
+	push	OFFSET $SG250190
 	lea	ecx, DWORD PTR _desc$[ebp]
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\crash_handler.cpp
@@ -2773,7 +2773,7 @@ $LN17@SK_TopLeve:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	38					; 00000026H
-	push	OFFSET $SG250184
+	push	OFFSET $SG250192
 	lea	ecx, DWORD PTR _desc$[ebp]
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\crash_handler.cpp
@@ -2787,7 +2787,7 @@ $LN14@SK_TopLeve:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	33					; 00000021H
-	push	OFFSET $SG250178
+	push	OFFSET $SG250186
 	lea	ecx, DWORD PTR _desc$[ebp]
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\crash_handler.cpp
@@ -2810,7 +2810,7 @@ $LN15@SK_TopLeve:
 ; 258  :     case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
 ; 259  :       desc = L"\t<< EXCEPTION_ARRAY_BOUNDS_EXCEEDED >>";
 
-	push	OFFSET $SG250180
+	push	OFFSET $SG250188
 
 ; 260  :              //L"The thread tried to access an array element that is out of "
 ; 261  :              //L"bounds and the underlying hardware supports bounds checking.";
@@ -2823,7 +2823,7 @@ $LN18@SK_TopLeve:
 ; 275  :     case EXCEPTION_FLT_DENORMAL_OPERAND:
 ; 276  :       desc = L"\t<< EXCEPTION_FLT_DENORMAL_OPERAND >>";
 
-	push	OFFSET $SG250186
+	push	OFFSET $SG250194
 
 ; 277  :              //L"One of the operands in a floating-point operation is denormal.";
 ; 278  :       break;
@@ -2835,7 +2835,7 @@ $LN19@SK_TopLeve:
 ; 280  :     case EXCEPTION_FLT_DIVIDE_BY_ZERO:
 ; 281  :       desc = L"\t<< EXCEPTION_FLT_DIVIDE_BY_ZERO >>";
 
-	push	OFFSET $SG250188
+	push	OFFSET $SG250196
 
 ; 282  :              //L"The thread tried to divide a floating-point value by a "
 ; 283  :              //L"floating-point divisor of zero.";
@@ -2848,7 +2848,7 @@ $LN20@SK_TopLeve:
 ; 286  :     case EXCEPTION_FLT_INEXACT_RESULT:
 ; 287  :       desc = L"\t<< EXCEPTION_FLT_INEXACT_RESULT >>";
 
-	push	OFFSET $SG250190
+	push	OFFSET $SG250198
 
 ; 288  :              //L"The result of a floating-point operation cannot be represented "
 ; 289  :              //L"exactly as a decimal fraction.";
@@ -2861,7 +2861,7 @@ $LN21@SK_TopLeve:
 ; 292  :     case EXCEPTION_FLT_INVALID_OPERATION:
 ; 293  :       desc = L"\t<< EXCEPTION_FLT_INVALID_OPERATION >>";
 
-	push	OFFSET $SG250192
+	push	OFFSET $SG250200
 
 ; 294  :       break;
 
@@ -2872,7 +2872,7 @@ $LN22@SK_TopLeve:
 ; 296  :     case EXCEPTION_FLT_OVERFLOW:
 ; 297  :       desc = L"\t<< EXCEPTION_FLT_OVERFLOW >>";
 
-	push	OFFSET $SG250194
+	push	OFFSET $SG250202
 
 ; 298  :              //L"The exponent of a floating-point operation is greater than the "
 ; 299  :              //L"magnitude allowed by the corresponding type.";
@@ -2885,7 +2885,7 @@ $LN23@SK_TopLeve:
 ; 302  :     case EXCEPTION_FLT_STACK_CHECK:
 ; 303  :       desc = L"\t<< EXCEPTION_FLT_STACK_CHECK >>";
 
-	push	OFFSET $SG250196
+	push	OFFSET $SG250204
 
 ; 304  :              //L"The stack overflowed or underflowed as the result of a "
 ; 305  :              //L"floating-point operation.";
@@ -2898,7 +2898,7 @@ $LN24@SK_TopLeve:
 ; 308  :     case EXCEPTION_FLT_UNDERFLOW:
 ; 309  :       desc = L"\t<< EXCEPTION_FLT_UNDERFLOW >>";
 
-	push	OFFSET $SG250198
+	push	OFFSET $SG250206
 
 ; 310  :              //L"The exponent of a floating-point operation is less than the "
 ; 311  :              //L"magnitude allowed by the corresponding type.";
@@ -2911,7 +2911,7 @@ $LN25@SK_TopLeve:
 ; 314  :     case EXCEPTION_ILLEGAL_INSTRUCTION:
 ; 315  :       desc = L"\t<< EXCEPTION_ILLEGAL_INSTRUCTION >>";
 
-	push	OFFSET $SG250200
+	push	OFFSET $SG250208
 
 ; 316  :              //L"The thread tried to execute an invalid instruction.";
 ; 317  :       break;
@@ -2923,7 +2923,7 @@ $LN26@SK_TopLeve:
 ; 319  :     case EXCEPTION_IN_PAGE_ERROR:
 ; 320  :       desc = L"\t<< EXCEPTION_IN_PAGE_ERROR >>";
 
-	push	OFFSET $SG250202
+	push	OFFSET $SG250210
 
 ; 321  :              //L"The thread tried to access a page that was not present, "
 ; 322  :              //L"and the system was unable to load the page.";
@@ -2936,7 +2936,7 @@ $LN27@SK_TopLeve:
 ; 325  :     case EXCEPTION_INT_DIVIDE_BY_ZERO:
 ; 326  :       desc = L"\t<< EXCEPTION_INT_DIVIDE_BY_ZERO >>";
 
-	push	OFFSET $SG250204
+	push	OFFSET $SG250212
 
 ; 327  :              //L"The thread tried to divide an integer value by an integer "
 ; 328  :              //L"divisor of zero.";
@@ -2949,7 +2949,7 @@ $LN28@SK_TopLeve:
 ; 331  :     case EXCEPTION_INT_OVERFLOW:
 ; 332  :       desc = L"\t<< EXCEPTION_INT_OVERFLOW >>";
 
-	push	OFFSET $SG250206
+	push	OFFSET $SG250214
 
 ; 333  :              //L"The result of an integer operation caused a carry out of the "
 ; 334  :              //L"most significant bit of the result.";
@@ -2962,7 +2962,7 @@ $LN29@SK_TopLeve:
 ; 337  :     case EXCEPTION_INVALID_DISPOSITION:
 ; 338  :       desc = L"\t<< EXCEPTION_INVALID_DISPOSITION >>";
 
-	push	OFFSET $SG250208
+	push	OFFSET $SG250216
 
 ; 339  :              //L"An exception handler returned an invalid disposition to the "
 ; 340  :              //L"exception dispatcher.";
@@ -2975,7 +2975,7 @@ $LN30@SK_TopLeve:
 ; 343  :     case EXCEPTION_NONCONTINUABLE_EXCEPTION:
 ; 344  :       desc = L"\t<< EXCEPTION_NONCONTINUABLE_EXCEPTION >>";
 
-	push	OFFSET $SG250210
+	push	OFFSET $SG250218
 
 ; 345  :              //L"The thread tried to continue execution after a noncontinuable "
 ; 346  :              //L"exception occurred.";
@@ -2988,7 +2988,7 @@ $LN31@SK_TopLeve:
 ; 349  :     case EXCEPTION_PRIV_INSTRUCTION:
 ; 350  :       desc = L"\t<< EXCEPTION_PRIV_INSTRUCTION >>";
 
-	push	OFFSET $SG250212
+	push	OFFSET $SG250220
 
 ; 351  :              //L"The thread tried to execute an instruction whose operation is "
 ; 352  :              //L"not allowed in the current machine mode.";
@@ -3001,7 +3001,7 @@ $LN33@SK_TopLeve:
 ; 361  :     case EXCEPTION_STACK_OVERFLOW:
 ; 362  :       desc = L"\t<< EXCEPTION_STACK_OVERFLOW >>";
 
-	push	OFFSET $SG250216
+	push	OFFSET $SG250224
 $LN504@SK_TopLeve:
 	lea	ecx, DWORD PTR _desc$[ebp]
 	call	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
@@ -3011,10 +3011,10 @@ $LN2@SK_TopLeve:
 ; 364  :       break;
 ; 365  :   }
 ; 366  : 
-; 367  :   HMODULE hModSource           = nullptr;
-; 368  :   char    szModName [MAX_PATH] = { };
+; 367  :   HMODULE hModSource               = nullptr;
+; 368  :   char    szModName [MAX_PATH + 2] = { };
 
-	push	260					; 00000104H
+	push	262					; 00000106H
 	lea	eax, DWORD PTR _szModName$[ebp]
 	mov	DWORD PTR _hModSource$[ebp], 0
 	push	0
@@ -3022,7 +3022,7 @@ $LN2@SK_TopLeve:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 369  :   HANDLE  hProc                = GetCurrentProcess ();
+; 369  :   HANDLE  hProc                    = GetCurrentProcess ();
 
 	call	edi
 	mov	edi, eax
@@ -3118,7 +3118,7 @@ $LN501@SK_TopLeve:
 ; 399  : 
 ; 400  :   crash_log.Log (L"-----------------------------------------------------------");
 
-	push	OFFSET $SG250218
+	push	OFFSET $SG250226
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -3136,13 +3136,13 @@ $LN501@SK_TopLeve:
 ; 401  :   crash_log.Log (L"[! Except !] %s", desc.c_str ());
 
 	push	eax
-	push	OFFSET $SG250219
+	push	OFFSET $SG250227
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
 ; 402  :   crash_log.Log (L"-----------------------------------------------------------");
 
-	push	OFFSET $SG250220
+	push	OFFSET $SG250228
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3150,7 +3150,7 @@ $LN501@SK_TopLeve:
 
 	lea	eax, DWORD PTR _szModName$[ebp]
 	push	eax
-	push	OFFSET $SG250221
+	push	OFFSET $SG250229
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3161,7 +3161,7 @@ $LN501@SK_TopLeve:
 	sub	eax, DWORD PTR _BaseAddr$1$[ebp]
 	push	eax
 	push	esi
-	push	OFFSET $SG250222
+	push	OFFSET $SG250230
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3173,7 +3173,7 @@ $LN501@SK_TopLeve:
 	push	DWORD PTR [eax+180]
 	push	DWORD PTR [eax+196]
 	push	DWORD PTR _ip$1$[ebp]
-	push	OFFSET $SG250223
+	push	OFFSET $SG250231
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3186,7 +3186,7 @@ $LN501@SK_TopLeve:
 	add	esp, 76					; 0000004cH
 	push	DWORD PTR [eax+156]
 	push	DWORD PTR [eax+160]
-	push	OFFSET $SG250224
+	push	OFFSET $SG250232
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3197,7 +3197,7 @@ $LN501@SK_TopLeve:
 
 	mov	eax, DWORD PTR [esi+4]
 	push	DWORD PTR [eax+176]
-	push	OFFSET $SG250225
+	push	OFFSET $SG250233
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3206,7 +3206,7 @@ $LN501@SK_TopLeve:
 
 	mov	eax, DWORD PTR [esi+4]
 	push	DWORD PTR [eax+164]
-	push	OFFSET $SG250226
+	push	OFFSET $SG250234
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3215,7 +3215,7 @@ $LN501@SK_TopLeve:
 
 	mov	eax, DWORD PTR [esi+4]
 	push	DWORD PTR [eax+172]
-	push	OFFSET $SG250227
+	push	OFFSET $SG250235
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3224,7 +3224,7 @@ $LN501@SK_TopLeve:
 
 	mov	eax, DWORD PTR [esi+4]
 	push	DWORD PTR [eax+168]
-	push	OFFSET $SG250228
+	push	OFFSET $SG250236
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3234,7 +3234,7 @@ $LN501@SK_TopLeve:
 	mov	eax, DWORD PTR [esi+4]
 	add	esp, 64					; 00000040H
 	push	DWORD PTR [eax+192]
-	push	OFFSET $SG250229
+	push	OFFSET $SG250237
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3276,7 +3276,7 @@ $LN501@SK_TopLeve:
 ; 459  : 
 ; 460  :   crash_log.Log (
 
-	push	OFFSET $SG250230
+	push	OFFSET $SG250238
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -3353,7 +3353,7 @@ $LN501@SK_TopLeve:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG250231
+	push	OFFSET $SG250239
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\crash_handler.cpp
 
 ; 479  :   stackframe.AddrPC.Mode   = AddrModeFlat;
@@ -3603,7 +3603,7 @@ $LN502@SK_TopLeve:
 	push	DWORD PTR _ihl$13[ebp+12]
 	push	eax
 	push	esi
-	push	OFFSET $SG250236
+	push	OFFSET $SG250244
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 24					; 00000018H
@@ -3625,7 +3625,7 @@ $LN37@SK_TopLeve:
 
 	push	eax
 	push	esi
-	push	OFFSET $SG250237
+	push	OFFSET $SG250245
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -3633,7 +3633,7 @@ $LN38@SK_TopLeve:
 
 ; 595  :       if (StrStrIA (sip.si.Name, "Scaleform"))
 
-	push	OFFSET $SG250239
+	push	OFFSET $SG250247
 	lea	eax, DWORD PTR _sip$3[ebp+84]
 	push	eax
 	call	DWORD PTR __imp__StrStrIA@8
@@ -3756,7 +3756,7 @@ $LN36@SK_TopLeve:
 ; 631  : 
 ; 632  :   crash_log.Log (L"-----------------------------------------------------------");
 
-	push	OFFSET $SG250242
+	push	OFFSET $SG250250
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -3823,7 +3823,7 @@ $LN42@SK_TopLeve:
 ; 642  :   {
 ; 643  :     if (! config.system.handle_crashes)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+808, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+812, al
 	jne	SHORT $LN43@SK_TopLeve
 
 ; 644  :       TerminateProcess (GetCurrentProcess (), 0xdeadbeef);
@@ -3883,7 +3883,7 @@ $LN43@SK_TopLeve:
 
 ; 658  :     lstrcatW (wszFindPattern, L"logs\\*.log");
 
-	push	OFFSET $SG250246
+	push	OFFSET $SG250254
 	lea	eax, DWORD PTR _wszFindPattern$2[ebp]
 	push	eax
 	call	edi
@@ -3922,9 +3922,9 @@ $LN43@SK_TopLeve:
 	push	eax
 	call	_memset
 
-; 667  :       wchar_t wszTime    [MAX_PATH    ] = { };
+; 667  :       wchar_t wszTime    [MAX_PATH + 2] = { };
 
-	push	520					; 00000208H
+	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszTime$6[ebp]
 	push	0
 	push	eax
@@ -3942,7 +3942,7 @@ $LN43@SK_TopLeve:
 
 ; 670  :       lstrcatW (wszBaseDir, L"logs\\");
 
-	push	OFFSET $SG250248
+	push	OFFSET $SG250256
 	lea	eax, DWORD PTR _wszBaseDir$5[ebp]
 	push	eax
 	call	edi
@@ -3961,7 +3961,7 @@ $LL66@SK_TopLeve:
 
 ; 673  :       lstrcatW (wszOutDir, L"crash\\");
 
-	push	OFFSET $SG250249
+	push	OFFSET $SG250257
 	lea	eax, DWORD PTR _wszOutDir$4[ebp]
 	push	eax
 	call	edi
@@ -3993,7 +3993,7 @@ $LL66@SK_TopLeve:
 ; 683  :       wcsftime (wszTime, MAX_PATH, wszTimestamp, now_tm);
 
 	push	eax
-	push	OFFSET $SG250250
+	push	OFFSET $SG250258
 	lea	eax, DWORD PTR _wszTime$6[ebp]
 	push	260					; 00000104H
 	push	eax
@@ -4091,7 +4091,7 @@ $LL13@SK_TopLeve:
 ; 703  : 
 ; 704  :           if (! StrStrIW (wszOrigPath, L"installer.log"))
 
-	push	OFFSET $SG250253
+	push	OFFSET $SG250261
 	lea	eax, DWORD PTR _wszOrigPath$7[ebp]
 	push	eax
 	call	DWORD PTR __imp__StrStrIW@8
@@ -4340,7 +4340,7 @@ $LN50@SK_TopLeve:
 ; 734  :             //   Avoid this by counting the number of frames actually drawn.
 ; 735  :             if (StrStrW (fd.cFileName, L"CEGUI.log") && SK_GetFramesDrawn () > 120)
 
-	push	OFFSET $SG250260
+	push	OFFSET $SG250268
 	lea	eax, DWORD PTR _fd$10[ebp+44]
 	push	eax
 	call	DWORD PTR __imp__StrStrW@8
@@ -4359,7 +4359,7 @@ $LN50@SK_TopLeve:
 	push	0
 	lea	eax, DWORD PTR _wszDestPath$8[ebp]
 	push	eax
-	push	OFFSET $SG250261
+	push	OFFSET $SG250269
 	call	esi
 
 ; 740  :               CEGUI::Logger::getDllSingleton ().
@@ -4470,7 +4470,7 @@ $LN51@SK_TopLeve:
 ; 749  :               {
 ; 750  :                 dll_log.init  (wszDestPath, L"a");
 
-	push	OFFSET $SG250264
+	push	OFFSET $SG250272
 	lea	eax, DWORD PTR _wszDestPath$8[ebp]
 	push	eax
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
@@ -4492,7 +4492,7 @@ $LN54@SK_TopLeve:
 ; 754  :               {
 ; 755  :                 steam_log.init  (wszDestPath, L"a");
 
-	push	OFFSET $SG250266
+	push	OFFSET $SG250274
 	lea	eax, DWORD PTR _wszDestPath$8[ebp]
 	push	eax
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
@@ -4514,7 +4514,7 @@ $LN55@SK_TopLeve:
 ; 759  :               {
 ; 760  :                 game_debug.init  (wszDestPath, L"a");
 
-	push	OFFSET $SG250268
+	push	OFFSET $SG250276
 	lea	eax, DWORD PTR _wszDestPath$8[ebp]
 	push	eax
 	push	OFFSET ?game_debug@@3UiSK_Logger@@A	; game_debug
@@ -4536,7 +4536,7 @@ $LN56@SK_TopLeve:
 ; 764  :               {
 ; 765  :                 budget_log.init  (wszDestPath, L"a");
 
-	push	OFFSET $SG250270
+	push	OFFSET $SG250278
 	lea	eax, DWORD PTR _wszDestPath$8[ebp]
 	push	eax
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
@@ -5080,12 +5080,12 @@ _TEXT	SEGMENT
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::unlock, COMDAT
 ; _this$ = ecx
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 249  :   }
+; 267  :   }
 
 	ret	0
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::unlock
@@ -5097,12 +5097,12 @@ _TEXT	SEGMENT
 ?lock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::lock, COMDAT
 ; _this$ = ecx
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 244  :   }
+; 262  :   }
 
 	ret	0
 ?lock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::lock
@@ -12365,7 +12365,7 @@ _ulLen$ = 20						; size = 4
 	sub	esp, 2372				; 00000944H
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A ; cs_dbghelp
 	push	ebx
@@ -12560,7 +12560,7 @@ $LN4@SK_GetSymb:
 $LN5@SK_GetSymb:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A ; cs_dbghelp
 	push	DWORD PTR [eax]
@@ -12661,7 +12661,7 @@ _TEXT	SEGMENT
 ?InitSyms@CrashHandler@Diagnostics@SK@@YAXXZ PROC	; SK::Diagnostics::CrashHandler::InitSyms
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A ; cs_dbghelp
 	push	DWORD PTR [eax]
@@ -12683,14 +12683,14 @@ _TEXT	SEGMENT
 ; 972  :   {
 ; 973  :     if (config.system.handle_crashes)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+808, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+812, al
 	je	SHORT $LN5@InitSyms
 
 ; 974  :     {
 ; 975  :       HRSRC   default_sound =
 ; 976  :         FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
 
-	push	OFFSET $SG250393
+	push	OFFSET $SG250401
 	push	102					; 00000066H
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -12751,7 +12751,7 @@ $LN5@InitSyms:
 $LN2@InitSyms:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A ; cs_dbghelp
 	push	DWORD PTR [eax]
@@ -12771,7 +12771,7 @@ _TEXT	SEGMENT
 ; 94   :   HRSRC   default_sound =
 ; 95   :     FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
 
-	push	OFFSET $SG250012
+	push	OFFSET $SG250020
 	push	102					; 00000066H
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -12821,8 +12821,8 @@ $LN3@Init:
 ; 112  :     crash_log.lockless   = true;
 ; 113  :     crash_log.init (L"logs/crash.log", L"w");
 
-	push	OFFSET $SG250016
-	push	OFFSET $SG250017
+	push	OFFSET $SG250024
+	push	OFFSET $SG250025
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	mov	DWORD PTR ?crash_log@@3UiSK_Logger@@A+72, 0
 	mov	BYTE PTR ?crash_log@@3UiSK_Logger@@A+76, 1
@@ -12836,8 +12836,8 @@ $LN4@Init:
 	push	0
 	push	OFFSET ?SetUnhandledExceptionFilter_Original@@3P6GP6GJPAU_EXCEPTION_POINTERS@@@ZP6GJ0@Z@ZA ; SetUnhandledExceptionFilter_Original
 	push	OFFSET ?SetUnhandledExceptionFilter_Detour@@YGP6GJPAU_EXCEPTION_POINTERS@@@ZP6GJ0@Z@Z ; SetUnhandledExceptionFilter_Detour
-	push	OFFSET $SG250018
-	push	OFFSET $SG250019
+	push	OFFSET $SG250026
+	push	OFFSET $SG250027
 	call	?SK_CreateDLLHook@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook
 
 ; 117  :                              "SetUnhandledExceptionFilter",

@@ -13,8 +13,8 @@ PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
 PUBLIC	_IID_IAxWinHostWindow
 PUBLIC	_LIBID_ATLLib
 PUBLIC	_IID_IAxWinHostWindowLic
-PUBLIC	?SK_bypass_dialog_hwnd@@3PAUHWND__@@A		; SK_bypass_dialog_hwnd
 PUBLIC	_IID_IAxWinAmbientDispatch
+PUBLIC	?SK_bypass_dialog_hwnd@@3PAUHWND__@@A		; SK_bypass_dialog_hwnd
 PUBLIC	?SK_LoadLibrary_SILENCE@@3_NA			; SK_LoadLibrary_SILENCE
 PUBLIC	___pobjMapEntryFirst
 PUBLIC	___pobjMapEntryLast
@@ -52,6 +52,11 @@ PUBLIC	_CLSID_Registrar
 PUBLIC	_IID_IRegistrar
 PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
 PUBLIC	_IID_IDocHostUIHandlerDispatch
+_BSS	SEGMENT
+?GetClientRect_DeadEnd@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA DD 01H DUP (?) ; GetClientRect_DeadEnd
+?GetWindowRect_DeadEnd@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA DD 01H DUP (?) ; GetWindowRect_DeadEnd
+?GetSystemMetrics_DeadEnd@@3P6GHH@ZA DD 01H DUP (?)	; GetSystemMetrics_DeadEnd
+_BSS	ENDS
 ;	COMDAT ?_pAtlModule@ATL@@3PAVCAtlModule@1@A
 _BSS	SEGMENT
 ?_pAtlModule@ATL@@3PAVCAtlModule@1@A DD 01H DUP (?)	; ATL::_pAtlModule
@@ -112,11 +117,6 @@ _BSS	ENDS
 ;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
 _BSS	SEGMENT
 ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A DD 01H DUP (?) ; ATL::_pAtlAutoThreadModule
-_BSS	ENDS
-_BSS	SEGMENT
-?GetClientRect_DeadEnd@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA DD 01H DUP (?) ; GetClientRect_DeadEnd
-?GetWindowRect_DeadEnd@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA DD 01H DUP (?) ; GetWindowRect_DeadEnd
-?GetSystemMetrics_DeadEnd@@3P6GHH@ZA DD 01H DUP (?)	; GetSystemMetrics_DeadEnd
 _BSS	ENDS
 ;	COMDAT _IID_IDocHostUIHandlerDispatch
 CONST	SEGMENT
@@ -249,14 +249,14 @@ ATL$__a	SEGMENT
 ___pobjMapEntryFirst DD 00H
 ATL$__a	ENDS
 _DATA	SEGMENT
-?wszSteamClientDLL@@3PB_WB DD FLAT:$SG199980		; wszSteamClientDLL
-?szSteamClientDLL@@3PBDB DD FLAT:$SG199982		; szSteamClientDLL
-?wszSteamNativeDLL@@3PB_WB DD FLAT:$SG199984		; wszSteamNativeDLL
-?szSteamNativeDLL@@3PBDB DD FLAT:$SG199986		; szSteamNativeDLL
-?wszSteamAPIDLL@@3PB_WB DD FLAT:$SG199988		; wszSteamAPIDLL
-?szSteamAPIDLL@@3PBDB DD FLAT:$SG199990			; szSteamAPIDLL
-?wszSteamAPIAltDLL@@3PB_WB DD FLAT:$SG199992		; wszSteamAPIAltDLL
-?szSteamAPIAltDLL@@3PBDB DD FLAT:$SG199994		; szSteamAPIAltDLL
+?wszSteamClientDLL@@3PB_WB DD FLAT:$SG199990		; wszSteamClientDLL
+?szSteamClientDLL@@3PBDB DD FLAT:$SG199992		; szSteamClientDLL
+?wszSteamNativeDLL@@3PB_WB DD FLAT:$SG199994		; wszSteamNativeDLL
+?szSteamNativeDLL@@3PBDB DD FLAT:$SG199996		; szSteamNativeDLL
+?wszSteamAPIDLL@@3PB_WB DD FLAT:$SG199998		; wszSteamAPIDLL
+?szSteamAPIDLL@@3PBDB DD FLAT:$SG200000			; szSteamAPIDLL
+?wszSteamAPIAltDLL@@3PB_WB DD FLAT:$SG200002		; wszSteamAPIAltDLL
+?szSteamAPIAltDLL@@3PBDB DD FLAT:$SG200004		; szSteamAPIAltDLL
 _DATA	ENDS
 ;	COMDAT _IID_IAxWinAmbientDispatch
 CONST	SEGMENT
@@ -318,21 +318,21 @@ CONST	SEGMENT
 $SG90127 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG203674 DB	00H
+$SG203684 DB	00H
 	ORG $+1
 $SG90174 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG223298 DB	'[DLL Loader]   ( %-28ws ) loaded ''%#116hs'' <%hs> { ''%'
+$SG223308 DB	'[DLL Loader]   ( %-28ws ) loaded ''%#116hs'' <%hs> { ''%'
 	DB	'21hs'' }', 00H
 	ORG $+3
-$SG223304 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
+$SG223314 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
 	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG223306 DB	'G', 00H, 'e', 00H, 'D', 00H, 'o', 00H, 'S', 00H, 'a', 00H
+$SG223316 DB	'G', 00H, 'e', 00H, 'D', 00H, 'o', 00H, 'S', 00H, 'a', 00H
 	DB	'T', 00H, 'o', 00H, 00H, 00H
 	ORG $+2
-$SG223299 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
+$SG223309 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'o', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '(', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'2', 00H, '8', 00H, 'w', 00H, 's', 00H, ' ', 00H, ')', 00H, ' '
@@ -343,127 +343,127 @@ $SG223299 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	00H, '%', 00H, '2', 00H, '1', 00H, 'h', 00H, 's', 00H, '''', 00H
 	DB	' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG223305 DB	'r', 00H, 'x', 00H, 'c', 00H, 'o', 00H, 'r', 00H, 'e', 00H
+$SG223315 DB	'r', 00H, 'x', 00H, 'c', 00H, 'o', 00H, 'r', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG223307 DB	'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'o', 00H, 'v', 00H
+$SG223317 DB	'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'o', 00H, 'v', 00H
 	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'r', 00H, 'e'
 	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
 	DB	00H, 00H
-$SG223308 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
+$SG223318 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 's', 00H, 00H, 00H
-$SG223309 DB	'N', 00H, 'a', 00H, 'h', 00H, 'i', 00H, 'm', 00H, 'i', 00H
+$SG223319 DB	'N', 00H, 'a', 00H, 'h', 00H, 'i', 00H, 'm', 00H, 'i', 00H
 	DB	'c', 00H, '2', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'P', 00H, 'r'
 	DB	00H, 'o', 00H, 'p', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG223310 DB	'R', 00H, 'e', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H
+$SG223320 DB	'R', 00H, 'e', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H
 	DB	'e', 00H, 00H, 00H
-$SG223311 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
+$SG223321 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
 	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG223316 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG223326 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG223317 DB	'd3d9.dll', 00H
+$SG223327 DB	'd3d9.dll', 00H
 	ORG $+3
-$SG223318 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG223328 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG223319 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
+$SG223329 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG223320 DB	'd3dx9_', 00H
+$SG223330 DB	'd3dx9_', 00H
 	ORG $+1
-$SG223321 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
+$SG223331 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG223322 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG223332 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'3', 00H, 'D', 00H, '9', 00H, 00H, 00H
-$SG223323 DB	'Direct3D9', 00H
+$SG223333 DB	'Direct3D9', 00H
 	ORG $+2
-$SG223324 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG223334 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'3', 00H, 'D', 00H, '9', 00H, 00H, 00H
-$SG223325 DB	'n', 00H, 'v', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'u', 00H
+$SG223335 DB	'n', 00H, 'v', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'u', 00H
 	DB	'm', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG223326 DB	'nvd3dum.dll', 00H
-$SG223327 DB	'n', 00H, 'v', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'u', 00H
+$SG223336 DB	'nvd3dum.dll', 00H
+$SG223337 DB	'n', 00H, 'v', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'u', 00H
 	DB	'm', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG223331 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG223341 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG223332 DB	'd3d8.dll', 00H
-	ORG $+3
-$SG223333 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG223337 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG223338 DB	'ddraw.dll', 00H
-	ORG $+2
-$SG223339 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 $SG90221 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG223343 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG223344 DB	'd3d11.dll', 00H
-	ORG $+2
-$SG223345 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG223349 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG223350 DB	'OpenGL32.dll', 00H
+$SG223342 DB	'd3d8.dll', 00H
 	ORG $+3
-$SG223351 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG223343 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG223347 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG223348 DB	'ddraw.dll', 00H
+	ORG $+2
+$SG223349 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG223353 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG223354 DB	'd3d11.dll', 00H
+	ORG $+2
+$SG223355 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG223359 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG223354 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG223360 DB	'OpenGL32.dll', 00H
+	ORG $+3
+$SG223361 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG223364 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG223355 DB	'xinput1_3.dll', 00H
+$SG223365 DB	'xinput1_3.dll', 00H
 	ORG $+2
-$SG223358 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG223368 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG223359 DB	'xinput1_4.dll', 00H
+$SG223369 DB	'xinput1_4.dll', 00H
 	ORG $+2
-$SG223362 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG223372 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG223363 DB	'xinput9_1_0.dll', 00H
-$SG223366 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG223373 DB	'xinput9_1_0.dll', 00H
+$SG223376 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG223367 DB	'dinput8.dll', 00H
-$SG223369 DB	'h', 00H, 'i', 00H, 'd', 00H, '.', 00H, 'd', 00H, 'l', 00H
+$SG223377 DB	'dinput8.dll', 00H
+$SG223379 DB	'h', 00H, 'i', 00H, 'd', 00H, '.', 00H, 'd', 00H, 'l', 00H
 	DB	'l', 00H, 00H, 00H
-$SG223370 DB	'hid.dll', 00H
+$SG223380 DB	'hid.dll', 00H
 $SG90268 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG224430 DB	'a', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H
+$SG224440 DB	'a', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H
 	DB	'_', 00H, 'x', 00H, '8', 00H, '6', 00H, 00H, 00H
 	ORG $+2
-$SG224431 DB	'action_x86', 00H
+$SG224441 DB	'action_x86', 00H
 	ORG $+1
-$SG224433 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
+$SG224443 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 's', 00H, 00H, 00H
-$SG224434 DB	'RTSSHooks', 00H
+$SG224444 DB	'RTSSHooks', 00H
 	ORG $+2
-$SG224437 DB	'l', 00H, 't', 00H, 'c', 00H, '_', 00H, 'g', 00H, 'a', 00H
+$SG224447 DB	'l', 00H, 't', 00H, 'c', 00H, '_', 00H, 'g', 00H, 'a', 00H
 	DB	'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG224438 DB	'ltc_game', 00H
+$SG224448 DB	'ltc_game', 00H
 	ORG $+3
-$SG203958 DB	'o', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'g', 00H, 'l', 00H
+$SG203968 DB	'o', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'g', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG224439 DB	'[', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H
+$SG224449 DB	'[', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H
 	DB	' ', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'P', 00H, 'r', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'n', 00H
 	DB	't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'R', 00H, 'a'
@@ -476,61 +476,71 @@ $SG224439 DB	'[', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H
 	DB	00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'g', 00H
 	DB	'a', 00H, 'm', 00H, 'e', 00H, 's', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG224442 DB	'r', 00H, 'x', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG224452 DB	'r', 00H, 'x', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'p', 00H, 'a', 00H, 'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u'
 	DB	00H, 't', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG203962 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
+$SG203972 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG224443 DB	'rxgamepadinput.dll', 00H
+$SG224453 DB	'rxgamepadinput.dll', 00H
 	ORG $+1
-$SG224444 DB	'r', 00H, 'x', 00H, 'c', 00H, 'o', 00H, 'r', 00H, 'e', 00H
+$SG224454 DB	'r', 00H, 'x', 00H, 'c', 00H, 'o', 00H, 'r', 00H, 'e', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG224445 DB	'rxcore.dll', 00H
+$SG224455 DB	'rxcore.dll', 00H
 	ORG $+1
-$SG224446 DB	'n', 00H, 'v', 00H, 'i', 00H, 'n', 00H, 'j', 00H, 'e', 00H
+$SG224456 DB	'n', 00H, 'v', 00H, 'i', 00H, 'n', 00H, 'j', 00H, 'e', 00H
 	DB	'c', 00H, 't', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG203966 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG203976 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG224447 DB	'nvinject.dll', 00H
+$SG224457 DB	'nvinject.dll', 00H
 	ORG $+3
-$SG224448 DB	'r', 00H, 'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG224458 DB	'r', 00H, 'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG224449 DB	'rxinput.dll', 00H
-$SG203970 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG203973 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
+$SG224459 DB	'rxinput.dll', 00H
 $SG90315 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG203996 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
+$SG203980 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG203983 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG204006 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 's', 00H, 00H, 00H
-$SG204000 DB	'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'o', 00H, 'v', 00H
+$SG204010 DB	'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'o', 00H, 'v', 00H
 	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'r', 00H, 'e'
 	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
 	DB	00H, 00H
-$SG204004 DB	'G', 00H, 'e', 00H, 'D', 00H, 'o', 00H, 'S', 00H, 'a', 00H
+$SG204014 DB	'G', 00H, 'e', 00H, 'D', 00H, 'o', 00H, 'S', 00H, 'a', 00H
 	DB	'T', 00H, 'o', 00H, 00H, 00H
 	ORG $+2
-$SG204007 DB	'l', 00H, 't', 00H, 'c', 00H, '_', 00H, 'h', 00H, 'e', 00H
+$SG204017 DB	'l', 00H, 't', 00H, 'c', 00H, '_', 00H, 'h', 00H, 'e', 00H
 	DB	'l', 00H, 'p', 00H, 00H, 00H
 	ORG $+2
 $SG90362 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG204031 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, 'm', 00H
+$SG204041 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, 'm', 00H
 	DB	'o', 00H, 'd', 00H, 'u', 00H, 'l', 00H, 'e', 00H, 's', 00H, '.'
 	DB	00H, 'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG204035 DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
+$SG103690 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG103691 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG103692 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG103693 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG204045 DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
@@ -555,37 +565,6 @@ $SG204035 DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, 0aH, 00H
 	DB	0aH, 00H, 00H, 00H
 	ORG $+2
-$SG103690 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG103691 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG204044 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
-	DB	'o', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG103692 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
-	ORG $+2
-$SG204045 DB	'[', 00H, 'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'C', 00H
-	DB	'o', 00H, 'm', 00H, 'p', 00H, 'a', 00H, 't', 00H, ']', 00H, ' '
-	DB	00H, 'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, ' ', 00H, 'a', 00H
-	DB	'p', 00H, 'p', 00H, 'e', 00H, 'a', 00H, 'r', 00H, 's', 00H, ' '
-	DB	00H, 't', 00H, 'o', 00H, ' ', 00H, 'b', 00H, 'e', 00H, ' ', 00H
-	DB	'i', 00H, 'n', 00H, ' ', 00H, 'H', 00H, 'i', 00H, 'g', 00H, 'h'
-	DB	00H, ' ', 00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'D', 00H
-	DB	'e', 00H, 't', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o'
-	DB	00H, 'n', 00H, ' ', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'S', 00H
-	DB	't', 00H, 'e', 00H, 'a', 00H, 'l', 00H, 't', 00H, 'h', 00H, ' '
-	DB	00H, 'm', 00H, 'o', 00H, 'd', 00H, 'e', 00H, ',', 00H, ' ', 00H
-	DB	'y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'g', 00H, 'a'
-	DB	00H, 'm', 00H, 'e', 00H, ' ', 00H, 'i', 00H, 's', 00H, ' ', 00H
-	DB	'p', 00H, 'r', 00H, 'o', 00H, 'b', 00H, 'a', 00H, 'b', 00H, 'l'
-	DB	00H, 'y', 00H, ' ', 00H, 'g', 00H, 'o', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'r'
-	DB	00H, 'a', 00H, 's', 00H, 'h', 00H, '.', 00H, 00H, 00H
-	ORG $+2
-$SG103693 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
 $SG103694 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
 	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
 $SG103695 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
@@ -605,65 +584,86 @@ $SG103700 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	ORG $+2
 $SG103701 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG204069 DB	'o', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 00H, 00H
+$SG204054 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
+	DB	'o', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG204055 DB	'[', 00H, 'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'C', 00H
+	DB	'o', 00H, 'm', 00H, 'p', 00H, 'a', 00H, 't', 00H, ']', 00H, ' '
+	DB	00H, 'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, ' ', 00H, 'a', 00H
+	DB	'p', 00H, 'p', 00H, 'e', 00H, 'a', 00H, 'r', 00H, 's', 00H, ' '
+	DB	00H, 't', 00H, 'o', 00H, ' ', 00H, 'b', 00H, 'e', 00H, ' ', 00H
+	DB	'i', 00H, 'n', 00H, ' ', 00H, 'H', 00H, 'i', 00H, 'g', 00H, 'h'
+	DB	00H, ' ', 00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'D', 00H
+	DB	'e', 00H, 't', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o'
+	DB	00H, 'n', 00H, ' ', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'S', 00H
+	DB	't', 00H, 'e', 00H, 'a', 00H, 'l', 00H, 't', 00H, 'h', 00H, ' '
+	DB	00H, 'm', 00H, 'o', 00H, 'd', 00H, 'e', 00H, ',', 00H, ' ', 00H
+	DB	'y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'g', 00H, 'a'
+	DB	00H, 'm', 00H, 'e', 00H, ' ', 00H, 'i', 00H, 's', 00H, ' ', 00H
+	DB	'p', 00H, 'r', 00H, 'o', 00H, 'b', 00H, 'a', 00H, 'b', 00H, 'l'
+	DB	00H, 'y', 00H, ' ', 00H, 'g', 00H, 'o', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'r'
+	DB	00H, 'a', 00H, 's', 00H, 'h', 00H, '.', 00H, 00H, 00H
 	ORG $+2
 $SG90409 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG199980 DB	'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'C', 00H
-	DB	'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-$SG199982 DB	'SteamClient', 00H
 $SG90414 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG199984 DB	'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'N', 00H
+$SG204079 DB	'o', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG199990 DB	'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'C', 00H
+	DB	'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
+$SG199992 DB	'SteamClient', 00H
+$SG199994 DB	'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'N', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG199986 DB	'SteamNative.dll', 00H
-$SG199988 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG199996 DB	'SteamNative.dll', 00H
+$SG199998 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'a', 00H, 'p', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG199990 DB	'steam_api.dll', 00H
+$SG200000 DB	'steam_api.dll', 00H
 	ORG $+2
-$SG199992 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG200002 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'a', 00H, 'p', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG199994 DB	'steam_api.dll', 00H
-	ORG $+2
-$SG204118 DB	'\', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'f', 00H, 'i', 00H
-	DB	'l', 00H, 'e', 00H, 's', 00H, '\', 00H, 'G', 00H, 'l', 00H, 'o'
-	DB	00H, 'b', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG204119 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, 00H, 00H
-$SG204122 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
-	DB	00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG204123 DB	'1', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, 00H, 00H
-$SG204124 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
-	DB	00H, 'y', 00H, 00H, 00H
+$SG200004 DB	'steam_api.dll', 00H
 	ORG $+2
 $SG90461 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG204126 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG204128 DB	'\', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'f', 00H, 'i', 00H
+	DB	'l', 00H, 'e', 00H, 's', 00H, '\', 00H, 'G', 00H, 'l', 00H, 'o'
+	DB	00H, 'b', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG204129 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, 00H, 00H
+$SG204132 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
 	DB	00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG204127 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG204133 DB	'1', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, 00H, 00H
+$SG204134 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
 	DB	00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG204128 DB	'1', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, 00H, 00H
-$SG204131 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG204136 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
+	DB	00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG204137 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
+	DB	00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG204138 DB	'1', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, 00H, 00H
+$SG204141 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
 	DB	00H, 'y', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'g', 00H, 'g', 00H
 	DB	'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG204132 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG204142 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
 	DB	00H, 'l', 00H, ',', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, ',', 00H, 's', 00H, 't'
@@ -676,60 +676,57 @@ $SG204132 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H
 	DB	'6', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
-$SG204133 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG204143 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
 	DB	00H, 'y', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'g', 00H, 'g', 00H
 	DB	'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG204134 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG204144 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
 	DB	00H, 'y', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'g', 00H, 'g', 00H
 	DB	'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG204135 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG204145 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
 	DB	00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG204136 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG204146 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG204137 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG204147 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'a', 00H, 'p', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG204138 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG204148 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'a', 00H, 'p', 00H, 'i', 00H, '6', 00H, '4', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG204139 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG204149 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG204140 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG204150 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '6', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l'
 	DB	00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG204142 DB	',', 00H, 00H, 00H
+$SG204152 DB	',', 00H, 00H, 00H
 $SG90508 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG204147 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG204157 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'm'
 	DB	00H, 'p', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'b', 00H, 'i', 00H
 	DB	'l', 00H, 'i', 00H, 't', 00H, 'y', 00H, ' ', 00H, 'L', 00H, 'a'
 	DB	00H, 'y', 00H, 'e', 00H, 'r', 00H, ' ', 00H, '(', 00H, 'v', 00H
-	DB	' ', 00H, '0', 00H, '.', 00H, '8', 00H, '.', 00H, '4', 00H, '8'
-	DB	00H, ')', 00H, 00H, 00H
+	DB	' ', 00H, '0', 00H, '.', 00H, '8', 00H, '.', 00H, '4', 00H, '9'
+	DB	00H, '.', 00H, '2', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG204157 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, 00H, 00H
-$SG200096 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 00H, 00H
-$SG204148 DB	'R', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 'T', 00H, 'u', 00H
+$SG204158 DB	'R', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 'T', 00H, 'u', 00H
 	DB	'n', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a'
 	DB	00H, 't', 00H, 'i', 00H, 's', 00H, 't', 00H, 'i', 00H, 'c', 00H
 	DB	's', 00H, ' ', 00H, 'S', 00H, 'e', 00H, 'r', 00H, 'v', 00H, 'e'
 	DB	00H, 'r', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'c', 00H, 'o', 00H
 	DB	'm', 00H, 'p', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'b', 00H, 'i'
 	DB	00H, 'l', 00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
-$SG204151 DB	'R', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 'T', 00H, 'u', 00H
+$SG204161 DB	'R', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 'T', 00H, 'u', 00H
 	DB	'n', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a'
 	DB	00H, 't', 00H, 'i', 00H, 's', 00H, 't', 00H, 'i', 00H, 'c', 00H
 	DB	's', 00H, ' ', 00H, 'S', 00H, 'e', 00H, 'r', 00H, 'v', 00H, 'e'
@@ -746,10 +743,10 @@ $SG204151 DB	'R', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 'T', 00H, 'u', 00H
 	DB	00H, 'y', 00H, ' ', 00H, 'i', 00H, 's', 00H, 's', 00H, 'u', 00H
 	DB	'e', 00H, 's', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG204159 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
+$SG204167 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, 00H, 00H
-$SG200099 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 00H, 00H
-$SG204152 DB	'T', 00H, 'h', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'c', 00H
+$SG200106 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 00H, 00H
+$SG204162 DB	'T', 00H, 'h', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'c', 00H
 	DB	'a', 00H, 'n', 00H, ' ', 00H, 'b', 00H, 'e', 00H, ' ', 00H, 'f'
 	DB	00H, 'i', 00H, 'x', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'b', 00H
 	DB	'y', 00H, ' ', 00H, 's', 00H, 't', 00H, 'a', 00H, 'r', 00H, 't'
@@ -758,10 +755,8 @@ $SG204152 DB	'T', 00H, 'h', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'c', 00H
 	DB	00H, 'a', 00H, 's', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'm', 00H
 	DB	'i', 00H, 'n', 00H, ' ', 00H, 'o', 00H, 'n', 00H, 'c', 00H, 'e'
 	DB	00H, '.', 00H, 00H, 00H
-$SG90555 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG204153 DB	'C', 00H, 'h', 00H, 'e', 00H, 'c', 00H, 'k', 00H, ' ', 00H
+$SG200109 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 00H, 00H
+$SG204163 DB	'C', 00H, 'h', 00H, 'e', 00H, 'c', 00H, 'k', 00H, ' ', 00H
 	DB	'h', 00H, 'e', 00H, 'r', 00H, 'e', 00H, ' ', 00H, 'i', 00H, 'f'
 	DB	00H, ' ', 00H, 'y', 00H, 'o', 00H, 'u', 00H, ' ', 00H, 'd', 00H
 	DB	'o', 00H, ' ', 00H, 'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'c'
@@ -769,7 +764,7 @@ $SG204153 DB	'C', 00H, 'h', 00H, 'e', 00H, 'c', 00H, 'k', 00H, ' ', 00H
 	DB	'i', 00H, 's', 00H, 'k', 00H, 'y', 00H, ')', 00H, '.', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG204156 DB	'R', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 'T', 00H, 'u', 00H
+$SG204166 DB	'R', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 'T', 00H, 'u', 00H
 	DB	'n', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a'
 	DB	00H, 't', 00H, 'i', 00H, 's', 00H, 't', 00H, 'i', 00H, 'c', 00H
 	DB	's', 00H, ' ', 00H, 'S', 00H, 'e', 00H, 'r', 00H, 'v', 00H, 'e'
@@ -786,21 +781,23 @@ $SG204156 DB	'R', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 'T', 00H, 'u', 00H
 	DB	00H, 'y', 00H, ' ', 00H, 'i', 00H, 's', 00H, 's', 00H, 'u', 00H
 	DB	'e', 00H, 's', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG204158 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG204168 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
 	DB	00H, 'y', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'g', 00H, 'g', 00H
 	DB	'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG204160 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG204169 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, 00H, 00H
+$SG204170 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
 	DB	00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG204164 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
+$SG204174 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, 00H, 00H
-$SG224700 DB	'G', 00H, 'e', 00H, 'D', 00H, 'o', 00H, 'S', 00H, 'a', 00H
-	DB	'T', 00H, 'o', 00H, 00H, 00H
-	ORG $+2
-$SG204161 DB	0dH, 00H, 0aH, 00H, 0dH, 00H, 0aH, 00H, 'P', 00H, 'r', 00H
+$SG90555 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG204171 DB	0dH, 00H, 0aH, 00H, 0dH, 00H, 0aH, 00H, 'P', 00H, 'r', 00H
 	DB	'o', 00H, 'p', 00H, 'o', 00H, 's', 00H, 'e', 00H, 'd', 00H, ' '
 	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'n', 00H, 'g', 00H, 'e', 00H
 	DB	's', 00H, 0dH, 00H, 0aH, 00H, 0dH, 00H, 0aH, 00H, '<', 00H, 'A'
@@ -817,24 +814,24 @@ $SG204161 DB	0dH, 00H, 0aH, 00H, 0dH, 00H, 0aH, 00H, 'P', 00H, 'r', 00H
 	DB	00H, 'T', 00H, 'r', 00H, 'i', 00H, 'g', 00H, 'g', 00H, 'e', 00H
 	DB	'r', 00H, 's', 00H, '=', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG204162 DB	'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'y', 00H, ' ', 00H
+$SG204172 DB	'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'y', 00H, ' ', 00H
 	DB	'P', 00H, 'r', 00H, 'o', 00H, 'p', 00H, 'o', 00H, 's', 00H, 'e'
 	DB	00H, 'd', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H
 	DB	'i', 00H, 'g', 00H, ' ', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'n'
 	DB	00H, 'g', 00H, 'e', 00H, 's', 00H, '?', 00H, 00H, 00H
 	ORG $+2
-$SG204165 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG204175 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
 	DB	00H, 'y', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'g', 00H, 'g', 00H
 	DB	'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG204166 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
+$SG204176 DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, 00H, 00H
-$SG204167 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG204177 DB	'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'a'
 	DB	00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG204168 DB	'[', 00H, 'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'C', 00H
+$SG204178 DB	'[', 00H, 'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'C', 00H
 	DB	'o', 00H, 'm', 00H, 'p', 00H, 'a', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'N', 00H, 'E', 00H, 'W', 00H, ' ', 00H, 'G', 00H, 'l', 00H
 	DB	'o', 00H, 'b', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'P', 00H, 'r'
@@ -845,25 +842,19 @@ $SG204168 DB	'[', 00H, 'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'C', 00H
 	DB	00H, 'e', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'T', 00H, 'r', 00H
 	DB	'i', 00H, 'g', 00H, 'g', 00H, 'e', 00H, 'r', 00H, 's', 00H, '='
 	DB	00H, '%', 00H, 's', 00H, 00H, 00H
-$SG204184 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG204194 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'm'
 	DB	00H, 'p', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'b', 00H, 'i', 00H
 	DB	'l', 00H, 'i', 00H, 't', 00H, 'y', 00H, ' ', 00H, 'L', 00H, 'a'
 	DB	00H, 'y', 00H, 'e', 00H, 'r', 00H, ' ', 00H, '(', 00H, 'v', 00H
-	DB	' ', 00H, '0', 00H, '.', 00H, '8', 00H, '.', 00H, '4', 00H, '8'
-	DB	00H, ')', 00H, 00H, 00H
+	DB	' ', 00H, '0', 00H, '.', 00H, '8', 00H, '.', 00H, '4', 00H, '9'
+	DB	00H, '.', 00H, '2', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG200092 DB	'N', 00H, 'v', 00H, 'C', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG200102 DB	'N', 00H, 'v', 00H, 'C', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'r', 00H, 'a', 00H, '6', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l'
 	DB	00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG224701 DB	'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'o', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'r', 00H, 'e'
-	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
-	DB	00H, 00H
-$SG224702 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
-	DB	'o', 00H, 'k', 00H, 's', 00H, 00H, 00H
-$SG200101 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
+$SG200111 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'o', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '(', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'2', 00H, '8', 00H, 'l', 00H, 's', 00H, ' ', 00H, ')', 00H, ' '
@@ -873,30 +864,24 @@ $SG200101 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'm', 00H, ' ', 00H, '{', 00H, ' ', 00H, '''', 00H, '%', 00H, 'h'
 	DB	00H, 's', 00H, '''', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG224703 DB	'N', 00H, 'a', 00H, 'h', 00H, 'i', 00H, 'm', 00H, 'i', 00H
-	DB	'c', 00H, '2', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'P', 00H, 'r'
-	DB	00H, 'o', 00H, 'p', 00H, 's', 00H, 00H, 00H
+$SG89539 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG224710 DB	'G', 00H, 'e', 00H, 'D', 00H, 'o', 00H, 'S', 00H, 'a', 00H
+	DB	'T', 00H, 'o', 00H, 00H, 00H
 	ORG $+2
-$SG204203 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG204213 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'm'
 	DB	00H, 'p', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'b', 00H, 'i', 00H
 	DB	'l', 00H, 'i', 00H, 't', 00H, 'y', 00H, ' ', 00H, 'L', 00H, 'a'
 	DB	00H, 'y', 00H, 'e', 00H, 'r', 00H, ' ', 00H, '(', 00H, 'v', 00H
-	DB	' ', 00H, '0', 00H, '.', 00H, '8', 00H, '.', 00H, '4', 00H, '8'
-	DB	00H, ')', 00H, 00H, 00H
+	DB	' ', 00H, '0', 00H, '.', 00H, '8', 00H, '.', 00H, '4', 00H, '9'
+	DB	00H, '.', 00H, '2', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG224692 DB	'[DLL Loader]   ( %-28ws ) loaded ''%#116hs'' <%hs> { ''%'
+$SG224702 DB	'[DLL Loader]   ( %-28ws ) loaded ''%#116hs'' <%hs> { ''%'
 	DB	'21hs'' }', 00H
 	ORG $+3
-$SG224698 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
-	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG224704 DB	'R', 00H, 'e', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H
-	DB	'e', 00H, 00H, 00H
-$SG224710 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG224693 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
+$SG224703 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'o', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '(', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'2', 00H, '8', 00H, 'w', 00H, 's', 00H, ' ', 00H, ')', 00H, ' '
@@ -907,20 +892,33 @@ $SG224693 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	00H, '%', 00H, '2', 00H, '1', 00H, 'h', 00H, 's', 00H, '''', 00H
 	DB	' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG224699 DB	'r', 00H, 'x', 00H, 'c', 00H, 'o', 00H, 'r', 00H, 'e', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG224705 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
+$SG224708 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
 	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG200131 DB	' LoadLibraryA ', 00H
+$SG224709 DB	'r', 00H, 'x', 00H, 'c', 00H, 'o', 00H, 'r', 00H, 'e', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG224711 DB	'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'o', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'r', 00H, 'e'
+	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
+	DB	00H, 00H
+$SG224712 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
+	DB	'o', 00H, 'k', 00H, 's', 00H, 00H, 00H
+$SG224713 DB	'N', 00H, 'a', 00H, 'h', 00H, 'i', 00H, 'm', 00H, 'i', 00H
+	DB	'c', 00H, '2', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'P', 00H, 'r'
+	DB	00H, 'o', 00H, 'p', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG224714 DB	'R', 00H, 'e', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H
+	DB	'e', 00H, 00H, 00H
+$SG224715 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
+	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG200141 DB	' LoadLibraryA ', 00H
 	ORG $+1
-$SG89539 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG224711 DB	'd3d9.dll', 00H
-	ORG $+3
-$SG200129 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
+$SG224720 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG200139 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'o', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H, 'r', 00H
 	DB	'a', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'e'
@@ -934,10 +932,9 @@ $SG200129 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'd', 00H, 'L', 00H, 'i', 00H, 'b', 00H, 'r', 00H, 'a', 00H, 'r'
 	DB	00H, 'y', 00H, 'A', 00H, ' ', 00H, '(', 00H, '''', 00H, '%', 00H
 	DB	'h', 00H, 's', 00H, '''', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG224712 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG204231 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
+$SG224721 DB	'd3d9.dll', 00H
+	ORG $+3
+$SG204241 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'e', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'r'
 	DB	00H, ' ', 00H, '/', 00H, ' ', 00H, 'P', 00H, 'l', 00H, 'a', 00H
 	DB	'y', 00H, 's', 00H, '.', 00H, 'T', 00H, 'V', 00H, 0aH, 00H, 0aH
@@ -949,11 +946,10 @@ $SG204231 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'h', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm'
 	DB	00H, 'e', 00H, ')', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG224714 DB	'd3dx9_', 00H
-	ORG $+1
-$SG224716 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	'3', 00H, 'D', 00H, '9', 00H, 00H, 00H
-$SG204232 DB	'C', 00H, 'h', 00H, 'e', 00H, 'c', 00H, 'k', 00H, ' ', 00H
+$SG224722 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG204242 DB	'C', 00H, 'h', 00H, 'e', 00H, 'c', 00H, 'k', 00H, ' ', 00H
 	DB	'h', 00H, 'e', 00H, 'r', 00H, 'e', 00H, ' ', 00H, 't', 00H, 'o'
 	DB	00H, ' ', 00H, 'i', 00H, 'g', 00H, 'n', 00H, 'o', 00H, 'r', 00H
 	DB	'e', 00H, ' ', 00H, 't', 00H, 'h', 00H, 'i', 00H, 's', 00H, ' '
@@ -962,12 +958,14 @@ $SG204232 DB	'C', 00H, 'h', 00H, 'e', 00H, 'c', 00H, 'k', 00H, ' ', 00H
 	DB	00H, 'e', 00H, ' ', 00H, 'f', 00H, 'u', 00H, 't', 00H, 'u', 00H
 	DB	'r', 00H, 'e', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG224713 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
+$SG224723 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG224717 DB	'Direct3D9', 00H
-	ORG $+2
-$SG204233 DB	'I', 00H, 'n', 00H, ' ', 00H, 's', 00H, 'o', 00H, 'm', 00H
+$SG224724 DB	'd3dx9_', 00H
+	ORG $+1
+$SG224726 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	'3', 00H, 'D', 00H, '9', 00H, 00H, 00H
+$SG204243 DB	'I', 00H, 'n', 00H, ' ', 00H, 's', 00H, 'o', 00H, 'm', 00H
 	DB	'e', 00H, ' ', 00H, 's', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w'
 	DB	00H, 'a', 00H, 'r', 00H, 'e', 00H, ' ', 00H, 'y', 00H, 'o', 00H
 	DB	'u', 00H, ' ', 00H, 'c', 00H, 'a', 00H, 'n', 00H, ' ', 00H, 'e'
@@ -992,9 +990,9 @@ $SG204233 DB	'I', 00H, 'n', 00H, ' ', 00H, 's', 00H, 'o', 00H, 'm', 00H
 	DB	00H, 'e', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 't', 00H, 'o', 00H
 	DB	' ', 00H, 'd', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l'
 	DB	00H, 'e', 00H, ' ', 00H, 'i', 00H, 't', 00H, '.', 00H, 00H, 00H
-$SG224718 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	'3', 00H, 'D', 00H, '9', 00H, 00H, 00H
-$SG204234 DB	'A', 00H, 'M', 00H, 'D', 00H, ' ', 00H, 'G', 00H, 'a', 00H
+$SG224727 DB	'Direct3D9', 00H
+	ORG $+2
+$SG204244 DB	'A', 00H, 'M', 00H, 'D', 00H, ' ', 00H, 'G', 00H, 'a', 00H
 	DB	'm', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'E', 00H, 'v'
 	DB	00H, 'o', 00H, 'l', 00H, 'v', 00H, 'e', 00H, 'd', 00H, ' ', 00H
 	DB	'o', 00H, 'r', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'p', 00H, 't'
@@ -1002,31 +1000,31 @@ $SG204234 DB	'A', 00H, 'M', 00H, 'D', 00H, ' ', 00H, 'G', 00H, 'a', 00H
 	DB	'u', 00H, 'n', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG224715 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
+$SG224725 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG224719 DB	'n', 00H, 'v', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'u', 00H
+$SG224728 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	'3', 00H, 'D', 00H, '9', 00H, 00H, 00H
+$SG224729 DB	'n', 00H, 'v', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'u', 00H
 	DB	'm', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG224720 DB	'nvd3dum.dll', 00H
-$SG224721 DB	'n', 00H, 'v', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'u', 00H
+$SG224730 DB	'nvd3dum.dll', 00H
+$SG224731 DB	'n', 00H, 'v', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'u', 00H
 	DB	'm', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG224725 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG224735 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG224726 DB	'd3d8.dll', 00H
+$SG224736 DB	'd3d8.dll', 00H
 	ORG $+3
-$SG224727 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG224737 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG224731 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG224741 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG224732 DB	'ddraw.dll', 00H
+$SG224742 DB	'ddraw.dll', 00H
 	ORG $+2
-$SG224733 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG224743 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG224737 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG200157 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
+$SG200167 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'o', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H, 'r', 00H
 	DB	'a', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'e'
@@ -1040,49 +1038,54 @@ $SG200157 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'd', 00H, 'L', 00H, 'i', 00H, 'b', 00H, 'r', 00H, 'a', 00H, 'r'
 	DB	00H, 'y', 00H, 'W', 00H, ' ', 00H, '(', 00H, '''', 00H, '%', 00H
 	DB	'w', 00H, 's', 00H, '''', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG200159 DB	' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'L', 00H
+$SG200169 DB	' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'L', 00H
 	DB	'i', 00H, 'b', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 'y', 00H, 'W'
 	DB	00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG224738 DB	'd3d11.dll', 00H
-	ORG $+2
-$SG224739 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
+$SG224747 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG224743 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG224748 DB	'd3d11.dll', 00H
+	ORG $+2
+$SG224749 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG224753 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG224744 DB	'OpenGL32.dll', 00H
+$SG224754 DB	'OpenGL32.dll', 00H
 	ORG $+3
-$SG224745 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG224755 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG224748 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG224758 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG224749 DB	'xinput1_3.dll', 00H
+$SG224759 DB	'xinput1_3.dll', 00H
 	ORG $+2
-$SG200175 DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'P', 00H, 'a', 00H
+$SG200185 DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'P', 00H, 'a', 00H
 	DB	'c', 00H, 'k', 00H, 'a', 00H, 'g', 00H, 'e', 00H, 'd', 00H, 'L'
 	DB	00H, 'i', 00H, 'b', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 'y', 00H
 	DB	00H, 00H
-$SG224752 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG224762 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG224753 DB	'xinput1_4.dll', 00H
+$SG224763 DB	'xinput1_4.dll', 00H
 	ORG $+2
-$SG224756 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG224766 DB	'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG224757 DB	'xinput9_1_0.dll', 00H
-$SG224760 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG224767 DB	'xinput9_1_0.dll', 00H
+$SG224770 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG224761 DB	'dinput8.dll', 00H
-$SG224763 DB	'h', 00H, 'i', 00H, 'd', 00H, '.', 00H, 'd', 00H, 'l', 00H
+$SG224771 DB	'dinput8.dll', 00H
+$SG224773 DB	'h', 00H, 'i', 00H, 'd', 00H, '.', 00H, 'd', 00H, 'l', 00H
 	DB	'l', 00H, 00H, 00H
-$SG224764 DB	'hid.dll', 00H
-$SG200195 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
+$SG224774 DB	'hid.dll', 00H
+$SG89610 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG229924 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, 00H, 00H
+$SG200205 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'o', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H, 'r', 00H
 	DB	'a', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'e'
@@ -1097,16 +1100,14 @@ $SG200195 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	00H, 'y', 00H, 'E', 00H, 'x', 00H, 'A', 00H, ' ', 00H, '(', 00H
 	DB	'''', 00H, '%', 00H, 'h', 00H, 's', 00H, '''', 00H, ')', 00H, '!'
 	DB	00H, 00H, 00H
-$SG200197 DB	'LoadLibraryExA', 00H
+$SG200207 DB	'LoadLibraryExA', 00H
 	ORG $+1
-$SG89610 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG229912 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'C', 00H, 'L', 00H
+$SG229922 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'C', 00H, 'L', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG229913 DB	'OpenCL', 00H
+$SG229923 DB	'OpenCL', 00H
 	ORG $+1
-$SG200217 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
+$SG200227 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'o', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H, 'r', 00H
 	DB	'a', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'e'
@@ -1121,50 +1122,49 @@ $SG200217 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	00H, 'y', 00H, 'E', 00H, 'x', 00H, 'W', 00H, ' ', 00H, '(', 00H
 	DB	'''', 00H, '%', 00H, 'w', 00H, 's', 00H, '''', 00H, ')', 00H, '!'
 	DB	00H, 00H, 00H
-$SG229914 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, 00H, 00H
-$SG229915 DB	'CEGUI', 00H
+$SG229925 DB	'CEGUI', 00H
 	ORG $+2
-$SG200219 DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'L', 00H, 'i', 00H
+$SG200229 DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 'y', 00H, 'E', 00H, 'x'
 	DB	00H, 'W', 00H, 00H, 00H
 	ORG $+2
-$SG229916 DB	'p', 00H, 'e', 00H, 'r', 00H, 'f', 00H, 'o', 00H, 's', 00H
+$SG229926 DB	'p', 00H, 'e', 00H, 'r', 00H, 'f', 00H, 'o', 00H, 's', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG229917 DB	'perfos', 00H
+$SG229927 DB	'perfos', 00H
 	ORG $+1
-$SG229918 DB	'a', 00H, 'v', 00H, 'r', 00H, 't', 00H, 00H, 00H
+$SG229928 DB	'a', 00H, 'v', 00H, 'r', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG229919 DB	'avrt', 00H
+$SG229929 DB	'avrt', 00H
 	ORG $+3
-$SG229920 DB	'A', 00H, 'U', 00H, 'D', 00H, 'I', 00H, 'O', 00H, 'S', 00H
+$SG229930 DB	'A', 00H, 'U', 00H, 'D', 00H, 'I', 00H, 'O', 00H, 'S', 00H
 	DB	'E', 00H, 'S', 00H, 00H, 00H
 	ORG $+2
-$SG229921 DB	'AUDIOSES', 00H
+$SG229931 DB	'AUDIOSES', 00H
 	ORG $+3
-$SG229922 DB	'H', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG229923 DB	'HID', 00H
-$SG229924 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '1', 00H, '1', 00H
+$SG229932 DB	'H', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG229933 DB	'HID', 00H
+$SG229934 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '1', 00H, '1', 00H
 	DB	'_', 00H, '4', 00H, '3', 00H, 00H, 00H
-$SG229925 DB	'd3dx11_43', 00H
+$SG229935 DB	'd3dx11_43', 00H
 	ORG $+2
-$SG229926 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
+$SG229936 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
 	DB	'4', 00H, '3', 00H, 00H, 00H
 	ORG $+2
-$SG229927 DB	'd3dx9_43', 00H
+$SG229937 DB	'd3dx9_43', 00H
 	ORG $+3
-$SG229928 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG229938 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'a', 00H, 'p', 00H, 'i', 00H, 00H, 00H
-$SG229929 DB	'steam_api', 00H
+$SG229939 DB	'steam_api', 00H
 	ORG $+2
-$SG229930 DB	'n', 00H, 'v', 00H, 'a', 00H, 'p', 00H, 'i', 00H, 00H, 00H
-$SG229931 DB	'nvapi', 00H
+$SG229940 DB	'n', 00H, 'v', 00H, 'a', 00H, 'p', 00H, 'i', 00H, 00H, 00H
+$SG229941 DB	'nvapi', 00H
 	ORG $+2
-$SG229932 DB	'd', 00H, '3', 00H, 'd', 00H, 'c', 00H, 'o', 00H, 'm', 00H
+$SG229942 DB	'd', 00H, '3', 00H, 'd', 00H, 'c', 00H, 'o', 00H, 'm', 00H
 	DB	'p', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'r', 00H, '_', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG229933 DB	'd3dcompiler_', 00H
+$SG229943 DB	'd3dcompiler_', 00H
 	ORG $+3
 $SG89657 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
@@ -1185,37 +1185,37 @@ $SG103014 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 $SG89704 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG200303 DB	'LoadLibraryA', 00H
+$SG200313 DB	'LoadLibraryA', 00H
 	ORG $+3
-$SG200304 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG200314 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG200306 DB	'LoadLibraryW', 00H
+$SG200316 DB	'LoadLibraryW', 00H
 	ORG $+3
-$SG200307 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG200317 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG200309 DB	'LoadPackagedLibrary', 00H
-$SG200310 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG200319 DB	'LoadPackagedLibrary', 00H
+$SG200320 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG200312 DB	'LoadPackagedLibrary', 00H
-$SG200313 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG200322 DB	'LoadPackagedLibrary', 00H
+$SG200323 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG200315 DB	'LoadLibraryExA', 00H
+$SG200325 DB	'LoadLibraryExA', 00H
 	ORG $+1
-$SG200316 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG200326 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG200318 DB	'LoadLibraryExW', 00H
+$SG200328 DB	'LoadLibraryExW', 00H
 	ORG $+1
-$SG200319 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG200329 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
@@ -1226,21 +1226,25 @@ $SG89751 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 $SG89798 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG222944 DB	'a', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H
+$SG222954 DB	'a', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H
 	DB	'_', 00H, 'x', 00H, '8', 00H, '6', 00H, 00H, 00H
 	ORG $+2
-$SG222945 DB	'action_x86', 00H
+$SG222955 DB	'action_x86', 00H
 	ORG $+1
-$SG222947 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
+$SG222957 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, 'H', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 's', 00H, 00H, 00H
-$SG222948 DB	'RTSSHooks', 00H
+$SG222958 DB	'RTSSHooks', 00H
 	ORG $+2
-$SG222951 DB	'l', 00H, 't', 00H, 'c', 00H, '_', 00H, 'g', 00H, 'a', 00H
+$SG222961 DB	'l', 00H, 't', 00H, 'c', 00H, '_', 00H, 'g', 00H, 'a', 00H
 	DB	'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG222952 DB	'ltc_game', 00H
+$SG222962 DB	'ltc_game', 00H
 	ORG $+3
-$SG222953 DB	'[', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H
+$SG89845 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
+	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG222963 DB	'[', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H
 	DB	' ', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'P', 00H, 'r', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'n', 00H
 	DB	't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'R', 00H, 'a'
@@ -1253,134 +1257,136 @@ $SG222953 DB	'[', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H
 	DB	00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'g', 00H
 	DB	'a', 00H, 'm', 00H, 'e', 00H, 's', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG222956 DB	'r', 00H, 'x', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG222966 DB	'r', 00H, 'x', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'p', 00H, 'a', 00H, 'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u'
 	DB	00H, 't', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG222957 DB	'rxgamepadinput.dll', 00H
+$SG222967 DB	'rxgamepadinput.dll', 00H
 	ORG $+1
-$SG222958 DB	'r', 00H, 'x', 00H, 'c', 00H, 'o', 00H, 'r', 00H, 'e', 00H
+$SG222968 DB	'r', 00H, 'x', 00H, 'c', 00H, 'o', 00H, 'r', 00H, 'e', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG222959 DB	'rxcore.dll', 00H
+$SG222969 DB	'rxcore.dll', 00H
 	ORG $+1
-$SG222960 DB	'n', 00H, 'v', 00H, 'i', 00H, 'n', 00H, 'j', 00H, 'e', 00H
+$SG222970 DB	'n', 00H, 'v', 00H, 'i', 00H, 'n', 00H, 'j', 00H, 'e', 00H
 	DB	'c', 00H, 't', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG222961 DB	'nvinject.dll', 00H
+$SG222971 DB	'nvinject.dll', 00H
 	ORG $+3
-$SG222962 DB	'r', 00H, 'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG222972 DB	'r', 00H, 'x', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG222963 DB	'rxinput.dll', 00H
-$SG89845 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
-	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
-	ORG $+2
+$SG222973 DB	'rxinput.dll', 00H
 $SG89892 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG230209 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'C', 00H, 'L', 00H
+$SG230219 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'C', 00H, 'L', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG230210 DB	'OpenCL', 00H
+$SG230220 DB	'OpenCL', 00H
 	ORG $+1
-$SG230211 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, 00H, 00H
-$SG230212 DB	'CEGUI', 00H
+$SG230221 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, 00H, 00H
+$SG230222 DB	'CEGUI', 00H
 	ORG $+2
-$SG230213 DB	'p', 00H, 'e', 00H, 'r', 00H, 'f', 00H, 'o', 00H, 's', 00H
+$SG230223 DB	'p', 00H, 'e', 00H, 'r', 00H, 'f', 00H, 'o', 00H, 's', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG230214 DB	'perfos', 00H
+$SG230224 DB	'perfos', 00H
 	ORG $+1
-$SG230215 DB	'a', 00H, 'v', 00H, 'r', 00H, 't', 00H, 00H, 00H
+$SG230225 DB	'a', 00H, 'v', 00H, 'r', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG230216 DB	'avrt', 00H
+$SG230226 DB	'avrt', 00H
 	ORG $+3
-$SG230217 DB	'A', 00H, 'U', 00H, 'D', 00H, 'I', 00H, 'O', 00H, 'S', 00H
+$SG230227 DB	'A', 00H, 'U', 00H, 'D', 00H, 'I', 00H, 'O', 00H, 'S', 00H
 	DB	'E', 00H, 'S', 00H, 00H, 00H
 	ORG $+2
-$SG230218 DB	'AUDIOSES', 00H
-	ORG $+3
-$SG230219 DB	'H', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG230220 DB	'HID', 00H
-$SG230221 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '1', 00H, '1', 00H
-	DB	'_', 00H, '4', 00H, '3', 00H, 00H, 00H
-$SG230222 DB	'd3dx11_43', 00H
-	ORG $+2
-$SG230223 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
-	DB	'4', 00H, '3', 00H, 00H, 00H
-	ORG $+2
-$SG230224 DB	'd3dx9_43', 00H
-	ORG $+3
-$SG230225 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
-	DB	'a', 00H, 'p', 00H, 'i', 00H, 00H, 00H
-$SG230226 DB	'steam_api', 00H
-	ORG $+2
-$SG230227 DB	'n', 00H, 'v', 00H, 'a', 00H, 'p', 00H, 'i', 00H, 00H, 00H
 $SG89939 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG230228 DB	'nvapi', 00H
+$SG230228 DB	'AUDIOSES', 00H
+	ORG $+3
+$SG230229 DB	'H', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG230230 DB	'HID', 00H
+$SG230231 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '1', 00H, '1', 00H
+	DB	'_', 00H, '4', 00H, '3', 00H, 00H, 00H
+$SG230232 DB	'd3dx11_43', 00H
 	ORG $+2
-$SG230229 DB	'd', 00H, '3', 00H, 'd', 00H, 'c', 00H, 'o', 00H, 'm', 00H
+$SG230233 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '9', 00H, '_', 00H
+	DB	'4', 00H, '3', 00H, 00H, 00H
+	ORG $+2
+$SG230234 DB	'd3dx9_43', 00H
+	ORG $+3
+$SG230235 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+	DB	'a', 00H, 'p', 00H, 'i', 00H, 00H, 00H
+$SG230236 DB	'steam_api', 00H
+	ORG $+2
+$SG230237 DB	'n', 00H, 'v', 00H, 'a', 00H, 'p', 00H, 'i', 00H, 00H, 00H
+$SG230238 DB	'nvapi', 00H
+	ORG $+2
+$SG230239 DB	'd', 00H, '3', 00H, 'd', 00H, 'c', 00H, 'o', 00H, 'm', 00H
 	DB	'p', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'r', 00H, '_', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG230230 DB	'd3dcompiler_', 00H
+$SG230240 DB	'd3dcompiler_', 00H
 	ORG $+3
-$SG205673 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+$SG205683 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, ' ', 00H, 'W', 00H, 'r', 00H, 'a', 00H, 'p', 00H, 'p'
 	DB	00H, 'e', 00H, 'r', 00H, ' ', 00H, 'D', 00H, 'L', 00H, 'L', 00H
 	DB	00H, 00H
-$SG205674 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
+$SG205684 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'e', 00H, ' ', 00H, 'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, '-'
 	DB	00H, 'I', 00H, 'n', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG205675 DB	'R', 00H, 'e', 00H, 's', 00H, 'e', 00H, 't', 00H, ' ', 00H
+$SG205685 DB	'R', 00H, 'e', 00H, 's', 00H, 'e', 00H, 't', 00H, ' ', 00H
 	DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG205676 DB	'U', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H
+$SG205686 DB	'U', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	'a', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'W', 00H, 'r', 00H, 'a'
 	DB	00H, 'p', 00H, 'p', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'D', 00H
 	DB	'L', 00H, 'L', 00H, 00H, 00H
-$SG205677 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
+$SG205687 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'e', 00H, ' ', 00H, 'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, '-'
 	DB	00H, 'I', 00H, 'n', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG205678 DB	'R', 00H, 'e', 00H, 's', 00H, 'e', 00H, 't', 00H, ' ', 00H
+$SG205688 DB	'R', 00H, 'e', 00H, 's', 00H, 'e', 00H, 't', 00H, ' ', 00H
 	DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG205679 DB	'U', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H
+$SG205689 DB	'U', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	'a', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd'
 	DB	00H, 00H, 00H
-$SG205680 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
+$SG205690 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'e', 00H, ' ', 00H, 'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, '-'
 	DB	00H, 'I', 00H, 'n', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG205681 DB	'R', 00H, 'e', 00H, 's', 00H, 'e', 00H, 't', 00H, ' ', 00H
+$SG205691 DB	'R', 00H, 'e', 00H, 's', 00H, 'e', 00H, 't', 00H, ' ', 00H
 	DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG205684 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
+$SG205694 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
 	ORG $+2
-$SG205686 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
-$SG205688 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG205696 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
+$SG205698 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG205690 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
+$SG89986 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
+	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG205692 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG205700 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
+	ORG $+2
+$SG205702 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG205694 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
+$SG205704 DB	'v', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	'-', 00H, '1', 00H, 00H, 00H
 	ORG $+2
-$SG205695 DB	'(', 00H, 00H, 00H
-$SG205696 DB	')', 00H, 00H, 00H
-$SG205698 DB	' ', 00H, ' ', 00H, '{', 00H, ' ', 00H, 'I', 00H, 'm', 00H
+$SG205705 DB	'(', 00H, 00H, 00H
+$SG205706 DB	')', 00H, 00H, 00H
+$SG205710 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	'3', 00H, 'D', 00H, '8', 00H, 00H, 00H
+$SG205708 DB	' ', 00H, ' ', 00H, '{', 00H, ' ', 00H, 'I', 00H, 'm', 00H
 	DB	'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'A', 00H, 'd'
 	DB	00H, 'd', 00H, 'r', 00H, 'e', 00H, 's', 00H, 's', 00H, ' ', 00H
 	DB	'T', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H, ' ', 00H, 'F'
@@ -1391,50 +1397,39 @@ $SG205698 DB	' ', 00H, ' ', 00H, '{', 00H, ' ', 00H, 'I', 00H, 'm', 00H
 	DB	00H, ' ', 00H, 'W', 00H, 'r', 00H, 'o', 00H, 'n', 00H, 'g', 00H
 	DB	' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG89986 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
-	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG205699 DB	'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+$SG205709 DB	'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 'A', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'A', 00H, 'P'
 	DB	00H, 'I', 00H, 's', 00H, 00H, 00H
-$SG205700 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	'3', 00H, 'D', 00H, '8', 00H, 00H, 00H
-$SG205701 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG205711 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
 	ORG $+2
-$SG205702 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG205712 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'3', 00H, 'D', 00H, '9', 00H, '{', 00H, 'E', 00H, 'x', 00H, '}'
 	DB	00H, 00H, 00H
-$SG205703 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG205713 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'3', 00H, 'D', 00H, '1', 00H, '1', 00H, 00H, 00H
 	ORG $+2
-$SG205704 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG205714 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG205718 DB	00H, 00H
-	ORG $+2
-$SG205705 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG205715 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'm'
 	DB	00H, 'p', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'b', 00H, 'i', 00H
 	DB	'l', 00H, 'i', 00H, 't', 00H, 'y', 00H, ' ', 00H, 'L', 00H, 'a'
 	DB	00H, 'y', 00H, 'e', 00H, 'r', 00H, ' ', 00H, '(', 00H, 'v', 00H
-	DB	' ', 00H, '0', 00H, '.', 00H, '8', 00H, '.', 00H, '4', 00H, '8'
-	DB	00H, ')', 00H, 00H, 00H
+	DB	' ', 00H, '0', 00H, '.', 00H, '8', 00H, '.', 00H, '4', 00H, '9'
+	DB	00H, '.', 00H, '2', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG205721 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG205710 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG205720 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'j'
 	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H
 	DB	' ', 00H, 'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'a', 00H, 't'
 	DB	00H, 'i', 00H, 'b', 00H, 'i', 00H, 'l', 00H, 'i', 00H, 't', 00H
 	DB	'y', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 't', 00H, 'i', 00H, 'o'
 	DB	00H, 'n', 00H, 's', 00H, 00H, 00H
-$SG205722 DB	00H, 00H
+$SG205728 DB	00H, 00H
 	ORG $+2
-$SG205711 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'a', 00H, 't', 00H
+$SG205721 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'a', 00H, 't', 00H
 	DB	'i', 00H, 'b', 00H, 'i', 00H, 'l', 00H, 'i', 00H, 't', 00H, 'y'
 	DB	00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, ' ', 00H
 	DB	'h', 00H, 'a', 00H, 's', 00H, ' ', 00H, 'b', 00H, 'e', 00H, 'e'
@@ -1456,10 +1451,10 @@ $SG205711 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'a', 00H, 't', 00H
 	DB	'y', 00H, ' ', 00H, 't', 00H, 'h', 00H, 'e', 00H, ' ', 00H, 's'
 	DB	00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H, 'r', 00H
 	DB	'e', 00H, 00H, 00H
-$SG203678 DB	'[', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, ' ', 00H
-	DB	'V', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 0aH, 00H, 00H, 00H
-$SG205714 DB	'W', 00H, 'A', 00H, 'R', 00H, 'N', 00H, 'I', 00H, 'N', 00H
+$SG205731 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG205724 DB	'W', 00H, 'A', 00H, 'R', 00H, 'N', 00H, 'I', 00H, 'N', 00H
 	DB	'G', 00H, ':', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H
 	DB	' ', 00H, 't', 00H, 'h', 00H, 'e', 00H, ' ', 00H, 'w', 00H, 'r'
@@ -1474,9 +1469,9 @@ $SG205714 DB	'W', 00H, 'A', 00H, 'R', 00H, 'N', 00H, 'I', 00H, 'N', 00H
 	DB	00H, 'o', 00H, 'u', 00H, 'b', 00H, 't', 00H, ',', 00H, ' ', 00H
 	DB	'u', 00H, 's', 00H, 'e', 00H, ' ', 00H, 'A', 00H, 'U', 00H, 'T'
 	DB	00H, 'O', 00H, '.', 00H, 00H, 00H
-$SG205727 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG205732 DB	00H, 00H
 	ORG $+2
-$SG205715 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
+$SG205725 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'e', 00H, ' ', 00H, 'G', 00H, 'l', 00H, 'o', 00H, 'b', 00H, 'a'
 	DB	00H, 'l', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H
 	DB	'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'f'
@@ -1484,7 +1479,7 @@ $SG205715 DB	'D', 00H, 'i', 00H, 's', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	's', 00H, ' ', 00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG203673 DB	'[', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'u', 00H
+$SG203683 DB	'[', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'u', 00H
 	DB	'l', 00H, 'e', 00H, ' ', 00H, ']', 00H, ' ', 00H, ' ', 00H, '('
 	DB	00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ' ', 00H, '+', 00H
 	DB	' ', 00H, '%', 00H, '0', 00H, '8', 00H, 'u', 00H, ' ', 00H, ')'
@@ -1493,8 +1488,10 @@ $SG203673 DB	'[', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'u', 00H
 	DB	00H, ' ', 00H, '>', 00H, ':', 00H, '-', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG203679 DB	0aH, 00H, 00H, 00H
-$SG203675 DB	'[', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'u', 00H
+$SG203688 DB	'[', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, ' ', 00H
+	DB	'V', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 0aH, 00H, 00H, 00H
+$SG203685 DB	'[', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'u', 00H
 	DB	'l', 00H, 'e', 00H, ' ', 00H, ']', 00H, ' ', 00H, ' ', 00H, '('
 	DB	00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ' ', 00H, '+', 00H
 	DB	' ', 00H, '%', 00H, '0', 00H, '8', 00H, 'i', 00H, ' ', 00H, ')'
@@ -1503,61 +1500,64 @@ $SG203675 DB	'[', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'u', 00H
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG203677 DB	' ', 00H, ' ', 00H, 00H, 00H
+$SG203687 DB	' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG205730 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
+$SG205737 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG205733 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG203689 DB	0aH, 00H, 00H, 00H
+$SG205740 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
+	ORG $+2
+$SG205743 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG205736 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
-	ORG $+2
-$SG205738 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
-$SG205743 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
-	ORG $+3
 $SG90033 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG205748 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
-	ORG $+3
+$SG205746 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
+	ORG $+2
+$SG205748 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
 $SG205753 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
 	ORG $+3
 $SG205758 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
 	ORG $+3
 $SG205763 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
 	ORG $+3
-$SG205770 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
+$SG205768 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
 	ORG $+3
-$SG205777 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
+$SG205773 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
 	ORG $+3
-$SG205780 DB	'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H
+$SG205780 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
+	ORG $+3
+$SG205787 DB	'%ws\My Mods\SpecialK\SpecialK%lu.dll', 00H
+	ORG $+3
+$SG205790 DB	'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H
 	DB	'.', 00H, 'R', 00H, 'e', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd'
 	DB	00H, 'e', 00H, '3', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG205783 DB	'F', 00H, 'A', 00H, 'R', 00H, '.', 00H, 'i', 00H, 'n', 00H
-	DB	'i', 00H, 00H, 00H
-$SG205784 DB	'U', 00H, 'n', 00H, 'X', 00H, '.', 00H, 'i', 00H, 'n', 00H
-	DB	'i', 00H, 00H, 00H
-$SG205785 DB	'P', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'n', 00H
-	DB	'y', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG205786 DB	'T', 00H, 'B', 00H, 'F', 00H, 'i', 00H, 'x', 00H, '.', 00H
-	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG205787 DB	'T', 00H, 'S', 00H, 'F', 00H, 'i', 00H, 'x', 00H, '.', 00H
-	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG205788 DB	'T', 00H, 'Z', 00H, 'F', 00H, 'i', 00H, 'x', 00H, '.', 00H
-	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG205791 DB	'Possible API Detection Problems', 00H
-$SG205796 DB	'w', 00H, 00H, 00H
-$SG205792 DB	'API detection may be incorrect, delete ''%ws.dll'' manua'
-	DB	'lly if Special K does not inject itself.', 00H
-	ORG $+1
 $SG90080 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG205793 DB	'e', 00H, 'x', 00H, 'p', 00H, 'l', 00H, 'o', 00H, 'r', 00H
+$SG205793 DB	'F', 00H, 'A', 00H, 'R', 00H, '.', 00H, 'i', 00H, 'n', 00H
+	DB	'i', 00H, 00H, 00H
+$SG205794 DB	'U', 00H, 'n', 00H, 'X', 00H, '.', 00H, 'i', 00H, 'n', 00H
+	DB	'i', 00H, 00H, 00H
+$SG205795 DB	'P', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'n', 00H
+	DB	'y', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
+$SG205796 DB	'T', 00H, 'B', 00H, 'F', 00H, 'i', 00H, 'x', 00H, '.', 00H
+	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
+$SG205797 DB	'T', 00H, 'S', 00H, 'F', 00H, 'i', 00H, 'x', 00H, '.', 00H
+	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
+$SG205798 DB	'T', 00H, 'Z', 00H, 'F', 00H, 'i', 00H, 'x', 00H, '.', 00H
+	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
+$SG205801 DB	'Possible API Detection Problems', 00H
+$SG205806 DB	'w', 00H, 00H, 00H
+$SG205802 DB	'API detection may be incorrect, delete ''%ws.dll'' manua'
+	DB	'lly if Special K does not inject itself.', 00H
+	ORG $+1
+$SG205803 DB	'e', 00H, 'x', 00H, 'p', 00H, 'l', 00H, 'o', 00H, 'r', 00H
 	DB	'e', 00H, 00H, 00H
-$SG205802 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG205812 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	_ReadAcquire
@@ -10351,216 +10351,6 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	edx, OFFSET $SG230210
-	mov	ecx, OFFSET $SG230209
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	edx, OFFSET $SG230212
-	mov	ecx, OFFSET $SG230211
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp+4], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	edx, OFFSET $SG230214
-	mov	ecx, OFFSET $SG230213
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp+8], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	edx, OFFSET $SG230216
-	mov	ecx, OFFSET $SG230215
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp+12], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	edx, OFFSET $SG230218
-	mov	ecx, OFFSET $SG230217
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp+16], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
 	mov	edx, OFFSET $SG230220
 	mov	ecx, OFFSET $SG230219
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
@@ -10592,7 +10382,7 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	DWORD PTR $T2[ebp+20], ecx
+	mov	DWORD PTR $T2[ebp], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -10634,28 +10424,19 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	DWORD PTR $T2[ebp+24], ecx
+	mov	DWORD PTR $T2[ebp+4], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
 
 	call	edi
-	add	esp, 64					; 00000040H
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	ecx, OFFSET $SG230223
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
 	test	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
 
 ; 319  :   {
 
 	mov	edx, OFFSET $SG230224
+	mov	ecx, OFFSET $SG230223
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -10666,18 +10447,26 @@ $LN2@SK_LoadLib:
 ; 319  :   {
 
 	test	al, al
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
 	cmove	ecx, edx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
 
 	push	OFFSET ??_R0_W@8+4
-	push	OFFSET ??_R0_W@8+4
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
 
 ; 319  :   {
 
-	mov	DWORD PTR $T2[ebp+28], ecx
+	mov	DWORD PTR $T2[ebp+8], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -10719,7 +10508,7 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	DWORD PTR $T2[ebp+32], ecx
+	mov	DWORD PTR $T2[ebp+12], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -10732,6 +10521,217 @@ $LN2@SK_LoadLib:
 
 	mov	edx, OFFSET $SG230228
 	mov	ecx, OFFSET $SG230227
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+16], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG230230
+	mov	ecx, OFFSET $SG230229
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+20], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG230232
+	mov	ecx, OFFSET $SG230231
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+24], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	add	esp, 64					; 00000040H
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	ecx, OFFSET $SG230233
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG230234
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+28], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG230236
+	mov	ecx, OFFSET $SG230235
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+32], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG230238
+	mov	ecx, OFFSET $SG230237
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -10787,7 +10787,7 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	edx, OFFSET $SG230230
+	mov	edx, OFFSET $SG230240
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 
 ; 477  : 		_Mylast(),
@@ -10812,7 +10812,7 @@ $LN2@SK_LoadLib:
 ; 319  :   {
 
 	test	al, al
-	mov	ecx, OFFSET $SG230229
+	mov	ecx, OFFSET $SG230239
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 
 ; 800  : 		_Range_construct_or_tidy(_Ilist.begin(), _Ilist.end(), random_access_iterator_tag{});
@@ -13137,216 +13137,6 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	edx, OFFSET $SG229913
-	mov	ecx, OFFSET $SG229912
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0D@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	edx, OFFSET $SG229915
-	mov	ecx, OFFSET $SG229914
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0D@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp+4], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	edx, OFFSET $SG229917
-	mov	ecx, OFFSET $SG229916
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0D@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp+8], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	edx, OFFSET $SG229919
-	mov	ecx, OFFSET $SG229918
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0D@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp+12], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	edx, OFFSET $SG229921
-	mov	ecx, OFFSET $SG229920
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	sete	al
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	test	al, al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0_W@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	cmove	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	push	OFFSET ??_R0D@8+4
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	DWORD PTR $T2[ebp+16], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
-	call	edi
-	test	eax, eax
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
 	mov	edx, OFFSET $SG229923
 	mov	ecx, OFFSET $SG229922
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
@@ -13378,7 +13168,7 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	DWORD PTR $T2[ebp+20], ecx
+	mov	DWORD PTR $T2[ebp], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -13420,28 +13210,19 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	DWORD PTR $T2[ebp+24], ecx
+	mov	DWORD PTR $T2[ebp+4], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
 
 	call	edi
-	add	esp, 64					; 00000040H
-; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
-
-; 319  :   {
-
-	mov	ecx, OFFSET $SG229926
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
-
-; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
-
 	test	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
 
 ; 319  :   {
 
 	mov	edx, OFFSET $SG229927
+	mov	ecx, OFFSET $SG229926
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -13452,18 +13233,26 @@ $LN2@SK_LoadLib:
 ; 319  :   {
 
 	test	al, al
-	cmove	ecx, edx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
 
 	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
 	push	OFFSET ??_R0D@8+4
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
 
 ; 319  :   {
 
-	mov	DWORD PTR $T2[ebp+28], ecx
+	mov	DWORD PTR $T2[ebp+8], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -13505,7 +13294,7 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	DWORD PTR $T2[ebp+32], ecx
+	mov	DWORD PTR $T2[ebp+12], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -13518,6 +13307,217 @@ $LN2@SK_LoadLib:
 
 	mov	edx, OFFSET $SG229931
 	mov	ecx, OFFSET $SG229930
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0D@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+16], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG229933
+	mov	ecx, OFFSET $SG229932
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0D@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+20], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG229935
+	mov	ecx, OFFSET $SG229934
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0D@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+24], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	add	esp, 64					; 00000040H
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	ecx, OFFSET $SG229936
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG229937
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+	push	OFFSET ??_R0D@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+28], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG229939
+	mov	ecx, OFFSET $SG229938
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	sete	al
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	test	al, al
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0_W@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	cmove	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	push	OFFSET ??_R0D@8+4
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	DWORD PTR $T2[ebp+32], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
+
+; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
+
+	call	edi
+	test	eax, eax
+; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
+
+; 319  :   {
+
+	mov	edx, OFFSET $SG229941
+	mov	ecx, OFFSET $SG229940
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -13573,7 +13573,7 @@ $LN2@SK_LoadLib:
 
 ; 319  :   {
 
-	mov	edx, OFFSET $SG229933
+	mov	edx, OFFSET $SG229943
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 
 ; 477  : 		_Mylast(),
@@ -13598,7 +13598,7 @@ $LN2@SK_LoadLib:
 ; 319  :   {
 
 	test	al, al
-	mov	ecx, OFFSET $SG229932
+	mov	ecx, OFFSET $SG229942
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 
 ; 800  : 		_Range_construct_or_tidy(_Ilist.begin(), _Ilist.end(), random_access_iterator_tag{});
@@ -19942,39 +19942,39 @@ $LN2@SK_Bypass_:
 ; 2109 :   SK_TestRenderImports (GetModuleHandle (nullptr), &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
 
 	lea	eax, DWORD PTR _glide$[ebp]
-	mov	DWORD PTR _buttons_global$[ebp+4], OFFSET $SG205673
+	mov	DWORD PTR _buttons_global$[ebp+4], OFFSET $SG205683
 	mov	DWORD PTR _buttons_global$[ebp+8], 2
-	mov	DWORD PTR _buttons_global$[ebp+12], OFFSET $SG205674
+	mov	DWORD PTR _buttons_global$[ebp+12], OFFSET $SG205684
 	push	eax
 	lea	eax, DWORD PTR _ddraw$[ebp]
 	mov	DWORD PTR _buttons_global$[ebp+16], 3
 	push	eax
 	lea	eax, DWORD PTR _d3d8$[ebp]
-	mov	DWORD PTR _buttons_global$[ebp+20], OFFSET $SG205675
+	mov	DWORD PTR _buttons_global$[ebp+20], OFFSET $SG205685
 	push	eax
 	lea	eax, DWORD PTR _d3d11$[ebp]
 	mov	DWORD PTR _buttons_local$[ebp], 0
 	push	eax
 	lea	eax, DWORD PTR _dxgi$[ebp]
-	mov	DWORD PTR _buttons_local$[ebp+4], OFFSET $SG205676
+	mov	DWORD PTR _buttons_local$[ebp+4], OFFSET $SG205686
 	push	eax
 	lea	eax, DWORD PTR _d3d9$[ebp]
 	mov	DWORD PTR _buttons_local$[ebp+8], 2
 	push	eax
 	lea	eax, DWORD PTR _vulkan$[ebp]
-	mov	DWORD PTR _buttons_local$[ebp+12], OFFSET $SG205677
+	mov	DWORD PTR _buttons_local$[ebp+12], OFFSET $SG205687
 	push	eax
 	lea	eax, DWORD PTR _gl$[ebp]
 	mov	DWORD PTR _buttons_local$[ebp+16], 3
 	push	eax
 	push	0
-	mov	DWORD PTR _buttons_local$[ebp+20], OFFSET $SG205678
+	mov	DWORD PTR _buttons_local$[ebp+20], OFFSET $SG205688
 	mov	DWORD PTR _buttons_standalone$[ebp], 0
-	mov	DWORD PTR _buttons_standalone$[ebp+4], OFFSET $SG205679
+	mov	DWORD PTR _buttons_standalone$[ebp+4], OFFSET $SG205689
 	mov	DWORD PTR _buttons_standalone$[ebp+8], 2
-	mov	DWORD PTR _buttons_standalone$[ebp+12], OFFSET $SG205680
+	mov	DWORD PTR _buttons_standalone$[ebp+12], OFFSET $SG205690
 	mov	DWORD PTR _buttons_standalone$[ebp+16], 3
-	mov	DWORD PTR _buttons_standalone$[ebp+20], OFFSET $SG205681
+	mov	DWORD PTR _buttons_standalone$[ebp+20], OFFSET $SG205691
 	mov	BYTE PTR _gl$[ebp], 0
 	mov	BYTE PTR _vulkan$[ebp], 0
 	mov	BYTE PTR _d3d9$[ebp], 0
@@ -20033,7 +20033,7 @@ $LN83@SK_Bypass_:
 ; 2139 : 
 ; 2140 :   if (config.apis.last_known != SK_RenderAPI::Reserved)
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+792
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+796
 	mov	bl, al
 	cmp	ecx, 1
 	je	$LN3@SK_Bypass_
@@ -20055,7 +20055,7 @@ $LN11@SK_Bypass_:
 ; 2161 :       case SK_RenderAPI::D3D9Ex:
 ; 2162 :         __SK_DLL_Backend = L"d3d9";
 
-	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205690 ; __SK_DLL_Backend
+	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205700 ; __SK_DLL_Backend
 
 ; 2163 :         SK_SetDLLRole (DLL_ROLE::D3D9);
 
@@ -20069,7 +20069,7 @@ $LN12@SK_Bypass_:
 ; 2165 :       case SK_RenderAPI::OpenGL:
 ; 2166 :         __SK_DLL_Backend = L"OpenGL32";
 
-	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205692 ; __SK_DLL_Backend
+	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205702 ; __SK_DLL_Backend
 
 ; 2167 :         SK_SetDLLRole (DLL_ROLE::OpenGL);
 
@@ -20083,7 +20083,7 @@ $LN13@SK_Bypass_:
 ; 2169 :       case SK_RenderAPI::Vulkan:
 ; 2170 :         __SK_DLL_Backend = L"vulkan-1";
 
-	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205694 ; __SK_DLL_Backend
+	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205704 ; __SK_DLL_Backend
 
 ; 2171 :         SK_SetDLLRole (DLL_ROLE::Vulkan);
 
@@ -20108,7 +20108,7 @@ $LN8@SK_Bypass_:
 ; 2145 :       case SK_RenderAPI::D3D8On11:
 ; 2146 :         __SK_DLL_Backend = L"d3d8";
 
-	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205684 ; __SK_DLL_Backend
+	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205694 ; __SK_DLL_Backend
 
 ; 2147 :         SK_SetDLLRole (DLL_ROLE::D3D8);
 
@@ -20125,7 +20125,7 @@ $LN10@SK_Bypass_:
 ; 2156 :       case SK_RenderAPI::D3D12:
 ; 2157 :         __SK_DLL_Backend = L"dxgi";
 
-	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205688 ; __SK_DLL_Backend
+	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205698 ; __SK_DLL_Backend
 
 ; 2158 :         SK_SetDLLRole (DLL_ROLE::DXGI);
 
@@ -20149,7 +20149,7 @@ $LN9@SK_Bypass_:
 ; 2150 :       case SK_RenderAPI::DDrawOn11:
 ; 2151 :         __SK_DLL_Backend = L"ddraw";
 
-	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205686 ; __SK_DLL_Backend
+	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, OFFSET $SG205696 ; __SK_DLL_Backend
 
 ; 2152 :         SK_SetDLLRole (DLL_ROLE::DDraw);
 
@@ -20167,7 +20167,7 @@ $LN3@SK_Bypass_:
 ; 2177 :        lstrcatW (wszAPIName, L"(");
 
 	mov	esi, DWORD PTR __imp__lstrcatW@8
-	push	OFFSET $SG205695
+	push	OFFSET $SG205705
 	push	OFFSET ?wszAPIName@?1??SK_Bypass_CRT@@YGKPAX@Z@4PA_WA
 	call	esi
 
@@ -20179,7 +20179,7 @@ $LN3@SK_Bypass_:
 
 ; 2179 :        lstrcatW (wszAPIName, L")");
 
-	push	OFFSET $SG205696
+	push	OFFSET $SG205706
 	push	OFFSET ?wszAPIName@?1??SK_Bypass_CRT@@YGKPAX@Z@4PA_WA
 	call	esi
 
@@ -20188,12 +20188,12 @@ $LN3@SK_Bypass_:
 
 	test	bh, bh
 	je	SHORT $LN14@SK_Bypass_
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+792, 1
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+796, 1
 	jne	SHORT $LN14@SK_Bypass_
 
 ; 2182 :     lstrcatW (wszAPIName, L"  { Import Address Table FAIL -> Detected API May Be Wrong }");
 
-	push	OFFSET $SG205698
+	push	OFFSET $SG205708
 	push	OFFSET ?wszAPIName@?1??SK_Bypass_CRT@@YGKPAX@Z@4PA_WA
 	call	esi
 $LN14@SK_Bypass_:
@@ -20207,29 +20207,29 @@ $LN14@SK_Bypass_:
 ; 2185 :                                            { 1, L"Enable All APIs"  },
 
 	mov	DWORD PTR _rbuttons$[ebp+8], 1
-	mov	DWORD PTR _rbuttons$[ebp+12], OFFSET $SG205699
+	mov	DWORD PTR _rbuttons$[ebp+12], OFFSET $SG205709
 
 ; 2186 : #ifndef _WIN64
 ; 2187 :                                            { 7, L"Direct3D8"        },
 
 	mov	DWORD PTR _rbuttons$[ebp+16], 7
-	mov	DWORD PTR _rbuttons$[ebp+20], OFFSET $SG205700
+	mov	DWORD PTR _rbuttons$[ebp+20], OFFSET $SG205710
 
 ; 2188 :                                            { 8, L"DirectDraw"       },
 
 	mov	DWORD PTR _rbuttons$[ebp+24], 8
-	mov	DWORD PTR _rbuttons$[ebp+28], OFFSET $SG205701
+	mov	DWORD PTR _rbuttons$[ebp+28], OFFSET $SG205711
 
 ; 2189 : #endif                                                              
 ; 2190 :                                            { 2, L"Direct3D9{Ex}"    },
 
 	mov	DWORD PTR _rbuttons$[ebp+32], 2
-	mov	DWORD PTR _rbuttons$[ebp+36], OFFSET $SG205702
+	mov	DWORD PTR _rbuttons$[ebp+36], OFFSET $SG205712
 
 ; 2191 :                                            { 3, L"Direct3D11"       },
 
 	mov	DWORD PTR _rbuttons$[ebp+40], 3
-	mov	DWORD PTR _rbuttons$[ebp+44], OFFSET $SG205703
+	mov	DWORD PTR _rbuttons$[ebp+44], OFFSET $SG205713
 
 ; 2192 : #ifdef _WIN64                                                       
 ; 2193 :                                            { 4, L"Direct3D12"       },
@@ -20237,7 +20237,7 @@ $LN14@SK_Bypass_:
 ; 2195 :                                            { 5, L"OpenGL"           },
 
 	mov	DWORD PTR _rbuttons$[ebp+48], 5
-	mov	DWORD PTR _rbuttons$[ebp+52], OFFSET $SG205704
+	mov	DWORD PTR _rbuttons$[ebp+52], OFFSET $SG205714
 
 ; 2196 : #ifdef _WIN64                                                       
 ; 2197 :                                            { 6, L"Vulkan"           }
@@ -20269,7 +20269,7 @@ $LN14@SK_Bypass_:
 ; 2209 :   if (SK_IsInjected ())
 
 	push	0
-	mov	DWORD PTR _task_config$[ebp+20], OFFSET $SG205705
+	mov	DWORD PTR _task_config$[ebp+20], OFFSET $SG205715
 	mov	DWORD PTR _task_config$[ebp+16], 1
 	mov	DWORD PTR _task_config$[ebp+52], eax
 	mov	DWORD PTR _task_config$[ebp+48], 7
@@ -20338,9 +20338,9 @@ $LN571@SK_Bypass_:
 	mov	DWORD PTR _task_config$[ebp+84], OFFSET ?TaskDialogCallback@@YGJPAUHWND__@@IIJJ@Z ; TaskDialogCallback
 	mov	DWORD PTR _task_config$[ebp+88], 0
 	mov	DWORD PTR _task_config$[ebp+44], 1
-	mov	DWORD PTR _task_config$[ebp+28], OFFSET $SG205710
+	mov	DWORD PTR _task_config$[ebp+28], OFFSET $SG205720
 	mov	DWORD PTR _task_config$[ebp+24], 65532	; 0000fffcH
-	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG205711
+	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG205721
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN19@SK_Bypass_
@@ -20352,12 +20352,12 @@ $LN571@SK_Bypass_:
 
 ; 2246 :     task_config.pszFooter           = L"WARNING: Installing the wrong API wrapper may require "
 
-	mov	DWORD PTR _task_config$[ebp+80], OFFSET $SG205714
+	mov	DWORD PTR _task_config$[ebp+80], OFFSET $SG205724
 
 ; 2247 :                                       L"manual recovery; if in doubt, use AUTO.";
 ; 2248 :     task_config.pszVerificationText = L"Disable Global Injection for this Game";
 
-	mov	DWORD PTR _task_config$[ebp+60], OFFSET $SG205715
+	mov	DWORD PTR _task_config$[ebp+60], OFFSET $SG205725
 
 ; 2249 :   }
 ; 2250 : 
@@ -20436,7 +20436,7 @@ $LN559@SK_Bypass_:
 
 ; 2276 :   if (SK_IsInjected ())
 
-	mov	edi, OFFSET $SG205721
+	mov	edi, OFFSET $SG205731
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -20462,7 +20462,7 @@ $LN559@SK_Bypass_:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG205722
+	push	OFFSET $SG205732
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -20534,7 +20534,7 @@ $LL561@SK_Bypass_:
 ; 2290 : 
 ; 2291 :   config.apis.d3d9.hook       = false;
 
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+783, 0
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+787, 0
 
 ; 2292 :   config.apis.d3d9ex.hook     = false;
 ; 2293 :   config.apis.dxgi.d3d11.hook = false;
@@ -20547,7 +20547,7 @@ $LL561@SK_Bypass_:
 ; 2300 : #else
 ; 2301 :   config.apis.d3d8.hook       = false;
 
-	mov	WORD PTR ?config@@3Usk_config_t@@A+781, 0
+	mov	WORD PTR ?config@@3Usk_config_t@@A+785, 0
 
 ; 2302 :   config.apis.ddraw.hook      = false;
 ; 2303 : #endif
@@ -20567,7 +20567,7 @@ $LL561@SK_Bypass_:
 ; 2309 :       if (! _wcsicmp (__SK_DLL_Backend, L"dxgi"))
 
 	mov	esi, DWORD PTR __imp___wcsicmp
-	push	OFFSET $SG205727
+	push	OFFSET $SG205737
 	push	DWORD PTR ?__SK_DLL_Backend@@3PB_WB	; __SK_DLL_Backend
 	call	esi
 	add	esp, 8
@@ -20583,7 +20583,7 @@ $LL561@SK_Bypass_:
 ; 2316 : 
 ; 2317 :       else if (! _wcsicmp (__SK_DLL_Backend, L"d3d9"))
 
-	push	OFFSET $SG205730
+	push	OFFSET $SG205740
 	push	DWORD PTR ?__SK_DLL_Backend@@3PB_WB	; __SK_DLL_Backend
 	call	esi
 	add	esp, 8
@@ -20593,7 +20593,7 @@ $LL561@SK_Bypass_:
 ; 2318 :       {
 ; 2319 :         config.apis.d3d9.hook   = true;
 
-	mov	WORD PTR ?config@@3Usk_config_t@@A+783, 257 ; 00000101H
+	mov	WORD PTR ?config@@3Usk_config_t@@A+787, 257 ; 00000101H
 
 ; 2320 :         config.apis.d3d9ex.hook = true;
 
@@ -20604,7 +20604,7 @@ $LN29@SK_Bypass_:
 ; 2322 : 
 ; 2323 :       else if (! _wcsicmp (__SK_DLL_Backend, L"OpenGL32"))
 
-	push	OFFSET $SG205733
+	push	OFFSET $SG205743
 	push	DWORD PTR ?__SK_DLL_Backend@@3PB_WB	; __SK_DLL_Backend
 	call	esi
 	add	esp, 8
@@ -20614,7 +20614,7 @@ $LN29@SK_Bypass_:
 ; 2324 :       {
 ; 2325 :         config.apis.OpenGL.hook = true;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+786, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+790, 1
 	jmp	SHORT $LN564@SK_Bypass_
 $LN31@SK_Bypass_:
 
@@ -20623,7 +20623,7 @@ $LN31@SK_Bypass_:
 ; 2328 : #ifndef _WIN64
 ; 2329 :       else if (! _wcsicmp (__SK_DLL_Backend, L"d3d8"))
 
-	push	OFFSET $SG205736
+	push	OFFSET $SG205746
 	push	DWORD PTR ?__SK_DLL_Backend@@3PB_WB	; __SK_DLL_Backend
 	call	esi
 	add	esp, 8
@@ -20633,7 +20633,7 @@ $LN31@SK_Bypass_:
 ; 2330 :       {
 ; 2331 :         config.apis.d3d8.hook       = true;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+781, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+785, 1
 
 ; 2332 :         config.apis.dxgi.d3d11.hook = true;
 
@@ -20644,7 +20644,7 @@ $LN33@SK_Bypass_:
 ; 2334 : 
 ; 2335 :       else if (! _wcsicmp (__SK_DLL_Backend, L"ddraw"))
 
-	push	OFFSET $SG205738
+	push	OFFSET $SG205748
 	push	DWORD PTR ?__SK_DLL_Backend@@3PB_WB	; __SK_DLL_Backend
 	call	esi
 	add	esp, 8
@@ -20654,12 +20654,12 @@ $LN33@SK_Bypass_:
 ; 2336 :       {
 ; 2337 :         config.apis.ddraw.hook      = true;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+782, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+786, 1
 $LN572@SK_Bypass_:
 
 ; 2338 :         config.apis.dxgi.d3d11.hook = true;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+785, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+789, 1
 $LN564@SK_Bypass_:
 
 ; 2339 :       }
@@ -20742,7 +20742,7 @@ $LN184@SK_Bypass_:
 	mov	eax, esp
 	push	32					; 00000020H
 	push	ecx
-	push	OFFSET $SG205743
+	push	OFFSET $SG205753
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
 	add	esp, 16					; 00000010H
@@ -20793,8 +20793,8 @@ $LN40@SK_Bypass_:
 ; 2384 :         if (nButtonPressed == BUTTON_INSTALL)
 
 	cmp	DWORD PTR _nButtonPressed$[ebp], 0
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+783, 16843009 ; 01010101H
-	mov	WORD PTR ?config@@3Usk_config_t@@A+781, 257 ; 00000101H
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+787, 16843009 ; 01010101H
+	mov	WORD PTR ?config@@3Usk_config_t@@A+785, 257 ; 00000101H
 	jne	$LN566@SK_Bypass_
 
 ; 2385 :         {
@@ -20857,7 +20857,7 @@ $LN203@SK_Bypass_:
 	mov	eax, esp
 	push	32					; 00000020H
 	push	ecx
-	push	OFFSET $SG205748
+	push	OFFSET $SG205758
 
 ; 2392 :                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
 ; 2393 :                            SK_GetDocumentsDir ().c_str (),
@@ -20883,7 +20883,7 @@ $LN44@SK_Bypass_:
 ; 2409 :         if (nButtonPressed == BUTTON_INSTALL)
 
 	cmp	DWORD PTR _nButtonPressed$[ebp], 0
-	mov	WORD PTR ?config@@3Usk_config_t@@A+783, 257 ; 00000101H
+	mov	WORD PTR ?config@@3Usk_config_t@@A+787, 257 ; 00000101H
 	jne	$LN566@SK_Bypass_
 
 ; 2410 :         {
@@ -20945,7 +20945,7 @@ $LN222@SK_Bypass_:
 	mov	eax, esp
 	push	32					; 00000020H
 	push	ecx
-	push	OFFSET $SG205753
+	push	OFFSET $SG205763
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
 	add	esp, 16					; 00000010H
@@ -20991,7 +20991,7 @@ $LN48@SK_Bypass_:
 ; 2437 :         if (nButtonPressed == BUTTON_INSTALL)
 
 	cmp	DWORD PTR _nButtonPressed$[ebp], 0
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+785, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+789, 1
 	jne	$LN566@SK_Bypass_
 
 ; 2438 :         {
@@ -21058,7 +21058,7 @@ $LN241@SK_Bypass_:
 	mov	eax, esp
 	push	32					; 00000020H
 	push	ecx
-	push	OFFSET $SG205758
+	push	OFFSET $SG205768
 
 ; 2449 :                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
 ; 2450 :                            SK_GetDocumentsDir ().c_str (),
@@ -21113,7 +21113,7 @@ $LN52@SK_Bypass_:
 ; 2495 :         if (nButtonPressed == BUTTON_INSTALL)
 
 	cmp	DWORD PTR _nButtonPressed$[ebp], 0
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+786, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+790, 1
 	jne	$LN566@SK_Bypass_
 
 ; 2496 :         {
@@ -21180,7 +21180,7 @@ $LN260@SK_Bypass_:
 	mov	eax, esp
 	push	32					; 00000020H
 	push	ecx
-	push	OFFSET $SG205763
+	push	OFFSET $SG205773
 
 ; 2507 :                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
 ; 2508 :                            SK_GetDocumentsDir ().c_str (),
@@ -21209,11 +21209,11 @@ $LN56@SK_Bypass_:
 ; 2527 :       case 7:
 ; 2528 :         config.apis.dxgi.d3d11.hook = true;  // D3D8 on D3D11 (not native D3D8)
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+785, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+789, 1
 
 ; 2529 :         config.apis.d3d8.hook       = true;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+781, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+785, 1
 
 ; 2530 : 
 ; 2531 :         if (has_dgvoodoo || dgVooodoo_Nag ())
@@ -21295,7 +21295,7 @@ $LN279@SK_Bypass_:
 	mov	eax, esp
 	push	32					; 00000020H
 	push	ecx
-	push	OFFSET $SG205770
+	push	OFFSET $SG205780
 
 ; 2544 :                            SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
 ; 2545 :                              SK_GetDocumentsDir ().c_str (),
@@ -21322,8 +21322,8 @@ $LN62@SK_Bypass_:
 ; 2562 :         if (nButtonPressed == BUTTON_INSTALL)
 
 	cmp	DWORD PTR _nButtonPressed$[ebp], 0
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+785, 1
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+782, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+789, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+786, 1
 	jne	$LN566@SK_Bypass_
 
 ; 2563 :         {
@@ -21397,7 +21397,7 @@ $LN298@SK_Bypass_:
 	mov	eax, esp
 	push	32					; 00000020H
 	push	ecx
-	push	OFFSET $SG205777
+	push	OFFSET $SG205787
 $LN574@SK_Bypass_:
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
@@ -21451,7 +21451,7 @@ $LN566@SK_Bypass_:
 ; 2600 :       dll_ini->remove_section (L"Import.ReShade32");
 
 	mov	eax, DWORD PTR ?dll_ini@@3PAUiSK_INI@@A	; dll_ini
-	push	OFFSET $SG205780
+	push	OFFSET $SG205790
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+36]
@@ -21539,7 +21539,7 @@ $LL562@SK_Bypass_:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	7
-	push	OFFSET $SG205783
+	push	OFFSET $SG205793
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -21574,7 +21574,7 @@ $LL562@SK_Bypass_:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	7
-	push	OFFSET $SG205784
+	push	OFFSET $SG205794
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -21609,7 +21609,7 @@ $LL562@SK_Bypass_:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	11					; 0000000bH
-	push	OFFSET $SG205785
+	push	OFFSET $SG205795
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -21647,7 +21647,7 @@ $LL562@SK_Bypass_:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	9
-	push	OFFSET $SG205786
+	push	OFFSET $SG205796
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -21682,7 +21682,7 @@ $LL562@SK_Bypass_:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	9
-	push	OFFSET $SG205787
+	push	OFFSET $SG205797
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -21717,7 +21717,7 @@ $LL562@SK_Bypass_:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	9
-	push	OFFSET $SG205788
+	push	OFFSET $SG205798
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -21776,14 +21776,14 @@ $LN72@SK_Bypass_:
 	je	SHORT $LN73@SK_Bypass_
 	cmp	DWORD PTR _nRadioPressed$[ebp], 0
 	jne	SHORT $LN73@SK_Bypass_
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+792, 1
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+796, 1
 	jne	SHORT $LN73@SK_Bypass_
 
 ; 2624 :       MessageBoxA   ( HWND_DESKTOP,
 
 	push	DWORD PTR ?__SK_DLL_Backend@@3PB_WB	; __SK_DLL_Backend
 	lea	eax, DWORD PTR $T9[ebp]
-	push	OFFSET $SG205792
+	push	OFFSET $SG205802
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
 	add	esp, 12					; 0000000cH
@@ -21807,7 +21807,7 @@ $LN485@SK_Bypass_:
 ; 2624 :       MessageBoxA   ( HWND_DESKTOP,
 
 	push	64					; 00000040H
-	push	OFFSET $SG205791
+	push	OFFSET $SG205801
 	push	eax
 	push	0
 	call	DWORD PTR __imp__MessageBoxA@16
@@ -21827,7 +21827,7 @@ $LN485@SK_Bypass_:
 	push	0
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
-	push	OFFSET $SG205793
+	push	OFFSET $SG205803
 	push	0
 	call	DWORD PTR __imp__ShellExecuteW@24
 $LN73@SK_Bypass_:
@@ -21843,7 +21843,7 @@ $LN73@SK_Bypass_:
 ; 2636 :       FILE* fDeny =
 ; 2637 :         _wfopen (wszBlacklist, L"w");
 
-	push	OFFSET $SG205796
+	push	OFFSET $SG205806
 	push	OFFSET ?__bypass@@3Usk_bypass_s@@A+4
 	call	DWORD PTR __imp___wfopen
 	mov	esi, eax
@@ -21971,7 +21971,7 @@ $LN77@SK_Bypass_:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG205802
+	push	OFFSET $SG205812
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -25135,7 +25135,7 @@ _wszCommand$ = 40					; size = 4
 ; 1965 :   task_config.pszMainInstruction = wszMainInstruction;
 
 	mov	eax, DWORD PTR _wszMainInstruction$[ebp]
-	mov	DWORD PTR _task_config$[ebp+20], OFFSET $SG204203
+	mov	DWORD PTR _task_config$[ebp+20], OFFSET $SG204213
 	mov	DWORD PTR _task_config$[ebp+16], 1
 	mov	DWORD PTR _button$[ebp], -559087186	; dead01aeH
 	mov	DWORD PTR _task_config$[ebp+36], 1
@@ -25211,11 +25211,11 @@ $LN2@SK_TaskBox:
 ; 1988 : 
 ; 1989 :   if (nButtonPressed == 0xdead01ae)
 
-	movzx	ecx, BYTE PTR ?config@@3Usk_config_t@@A+765
+	movzx	ecx, BYTE PTR ?config@@3Usk_config_t@@A+769
 	mov	edx, 1
 	cmp	DWORD PTR _nButtonPressed$[ebp], -559087186 ; dead01aeH
 	cmove	ecx, edx
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+765, cl
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+769, cl
 
 ; 1990 :     config.compatibility.disable_raptr = true;
 ; 1991 : 
@@ -25328,7 +25328,7 @@ _verify$ = 36						; size = 4
 ; 1912 :   if (verify != nullptr && *verify)
 
 	mov	eax, DWORD PTR _verify$[ebp]
-	mov	DWORD PTR _task_config$[ebp+20], OFFSET $SG204184
+	mov	DWORD PTR _task_config$[ebp+20], OFFSET $SG204194
 	mov	DWORD PTR _task_config$[ebp+16], 1
 	mov	DWORD PTR _task_config$[ebp+40], 0
 	mov	DWORD PTR _task_config$[ebp+36], 0
@@ -25432,7 +25432,7 @@ $LN4@TaskDialog:
 	push	0
 	push	0
 	push	DWORD PTR _lParam$[ebp]
-	push	OFFSET $SG204069
+	push	OFFSET $SG204079
 	push	0
 	call	DWORD PTR __imp__ShellExecuteW@24
 
@@ -25704,7 +25704,7 @@ $LN33@SK_WalkMod:
 
 	cmp	DWORD PTR ?third_party_dlls@@3USK_ThirdPartyDLLs@@A, 0
 	jne	SHORT $LN7@SK_WalkMod
-	push	OFFSET $SG203996
+	push	OFFSET $SG204006
 	lea	eax, DWORD PTR _wszModName$2[ebp]
 	push	eax
 	call	esi
@@ -25736,7 +25736,7 @@ $LN7@SK_WalkMod:
 
 	cmp	DWORD PTR ?third_party_dlls@@3USK_ThirdPartyDLLs@@A+4, 0
 	jne	SHORT $LN10@SK_WalkMod
-	push	OFFSET $SG204000
+	push	OFFSET $SG204010
 	lea	eax, DWORD PTR _wszModName$2[ebp]
 	push	eax
 	call	esi
@@ -25768,7 +25768,7 @@ $LN10@SK_WalkMod:
 
 	cmp	DWORD PTR ?third_party_dlls@@3USK_ThirdPartyDLLs@@A+8, 0
 	jne	SHORT $LN13@SK_WalkMod
-	push	OFFSET $SG204004
+	push	OFFSET $SG204014
 	lea	eax, DWORD PTR _wszModName$2[ebp]
 	push	eax
 	call	esi
@@ -25792,7 +25792,7 @@ $LN32@SK_WalkMod:
 ; 1448 : 
 ; 1449 :           if (config.compatibility.rehook_loadlibrary)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+766, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
 	je	SHORT $LN17@SK_WalkMod
 
 ; 1450 :           {
@@ -25815,15 +25815,15 @@ $LN13@SK_WalkMod:
 ; 1455 : 
 ; 1456 :         else if ( StrStrIW (wszModName, L"ltc_help") && (! (config.compatibility.ignore_raptr || config.compatibility.disable_raptr)) )
 
-	push	OFFSET $SG204007
+	push	OFFSET $SG204017
 	lea	eax, DWORD PTR _wszModName$2[ebp]
 	push	eax
 	call	esi
 	test	eax, eax
 	je	SHORT $LN17@SK_WalkMod
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+764, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	jne	SHORT $LN17@SK_WalkMod
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+765, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+769, 0
 	jne	SHORT $LN17@SK_WalkMod
 
 ; 1457 :         {
@@ -26006,13 +26006,13 @@ _wszModName$ = 8					; size = 4
 ; 1320 :   {
 ; 1321 :     if ( config.apis.OpenGL.hook && StrStrIW (wszModName, L"opengl32.dll") &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+786, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+790, 0
 	push	esi
 	mov	esi, DWORD PTR _wszModName$[ebp]
 	push	edi
 	mov	edi, DWORD PTR __imp__StrStrIW@8
 	je	SHORT $LN3@SK_BootMod
-	push	OFFSET $SG203958
+	push	OFFSET $SG203968
 	push	esi
 	call	edi
 	test	eax, eax
@@ -26070,9 +26070,9 @@ $LN3@SK_BootMod:
 ; 1346 : 
 ; 1347 :   else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"d3d11.dll") &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
 	je	SHORT $LN6@SK_BootMod
-	push	OFFSET $SG203962
+	push	OFFSET $SG203972
 	push	esi
 	call	edi
 	test	eax, eax
@@ -26122,9 +26122,9 @@ $LN6@SK_BootMod:
 ; 1364 : 
 ; 1365 :   else if ( config.apis.d3d9.hook && StrStrIW (wszModName, L"d3d9.dll") &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+783, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+787, 0
 	je	SHORT $LN9@SK_BootMod
-	push	OFFSET $SG203966
+	push	OFFSET $SG203976
 	push	esi
 	call	edi
 	test	eax, eax
@@ -26165,9 +26165,9 @@ $LN9@SK_BootMod:
 ; 1373 : #ifndef _WIN64
 ; 1374 :   else if ( config.apis.d3d8.hook && StrStrIW (wszModName, L"d3d8.dll") &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+781, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, 0
 	je	SHORT $LN12@SK_BootMod
-	push	OFFSET $SG203970
+	push	OFFSET $SG203980
 	push	esi
 	call	edi
 	test	eax, eax
@@ -26207,9 +26207,9 @@ $LN12@SK_BootMod:
 ; 1381 : 
 ; 1382 :   else if ( config.apis.ddraw.hook && StrStrIW (wszModName, L"\\ddraw.dll") &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+782, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+786, 0
 	je	SHORT $LN18@SK_BootMod
-	push	OFFSET $SG203973
+	push	OFFSET $SG203983
 	push	esi
 	call	edi
 	test	eax, eax
@@ -27074,7 +27074,7 @@ _pLogger$ = 28						; size = 4
 	push	ecx
 	push	DWORD PTR _mod_size$[ebp]
 	push	DWORD PTR _base_addr$[ebp]
-	push	OFFSET $SG203673
+	push	OFFSET $SG203683
 
 ; 1192 :                    static_cast   <void *>   (base_addr),
 ; 1193 :                      static_cast <uint32_t> (mod_size),
@@ -27089,10 +27089,10 @@ $LN2@SK_Summari:
 ; 1198 :   {
 ; 1199 :     pLogger->Log ( L"[ Module ]  ( %ph + %08i )       %-64hs       %s",
 
-	push	OFFSET $SG203674
+	push	OFFSET $SG203684
 	push	DWORD PTR _mod_size$[ebp]
 	push	DWORD PTR _base_addr$[ebp]
-	push	OFFSET $SG203675
+	push	OFFSET $SG203685
 $LN61@SK_Summari:
 	push	esi
 	call	DWORD PTR [eax+32]
@@ -27108,7 +27108,7 @@ $LN61@SK_Summari:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG203677
+	push	OFFSET $SG203687
 	lea	ecx, DWORD PTR _ver_str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
 
@@ -27153,7 +27153,7 @@ $LN61@SK_Summari:
 ; 1210 :     pLogger->LogEx ( true,
 
 	push	ecx
-	push	OFFSET $SG203678
+	push	OFFSET $SG203688
 	push	1
 	push	esi
 	call	DWORD PTR [eax+24]
@@ -27163,7 +27163,7 @@ $LN4@SK_Summari:
 ; 1215 :   pLogger->LogEx (false, L"\n");
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG203679
+	push	OFFSET $SG203689
 	push	0
 	push	esi
 	call	DWORD PTR [eax+24]
@@ -33585,19 +33585,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHINSTANCE__@@PB_WPAXK@Z@@YAPAPAXPAP6GPAUHINSTANCE__@@PB_WPAXK@Z@Z PROC ; static_cast_p2p<void,HINSTANCE__ * __stdcall(wchar_t const *,void *,unsigned long)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -33610,19 +33610,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHINSTANCE__@@PBDPAXK@Z@@YAPAPAXPAP6GPAUHINSTANCE__@@PBDPAXK@Z@Z PROC ; static_cast_p2p<void,HINSTANCE__ * __stdcall(char const *,void *,unsigned long)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -33635,19 +33635,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHINSTANCE__@@PB_WK@Z@@YAPAPAXPAP6GPAUHINSTANCE__@@PB_WK@Z@Z PROC ; static_cast_p2p<void,HINSTANCE__ * __stdcall(wchar_t const *,unsigned long)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -33660,19 +33660,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHINSTANCE__@@PB_W@Z@@YAPAPAXPAP6GPAUHINSTANCE__@@PB_W@Z@Z PROC ; static_cast_p2p<void,HINSTANCE__ * __stdcall(wchar_t const *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -33685,19 +33685,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHINSTANCE__@@PBD@Z@@YAPAPAXPAP6GPAUHINSTANCE__@@PBD@Z@Z PROC ; static_cast_p2p<void,HINSTANCE__ * __stdcall(char const *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -34006,7 +34006,7 @@ $LN15@LoadLibrar:
 
 	mov	edi, DWORD PTR _compliant_path$[ebp]
 	push	edi
-	push	OFFSET $SG200217
+	push	OFFSET $SG200227
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -34037,7 +34037,7 @@ $LN17@LoadLibrar:
 ; 928  :     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
 
 	push	esi
-	push	OFFSET $SG200219
+	push	OFFSET $SG200229
 	push	edi
 	push	esi
 	call	?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z ; SK_GetCallingDLL
@@ -34329,7 +34329,7 @@ $LN15@LoadLibrar:
 
 	mov	edi, DWORD PTR _compliant_path$[ebp]
 	push	edi
-	push	OFFSET $SG200195
+	push	OFFSET $SG200205
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -34361,7 +34361,7 @@ $LN17@LoadLibrar:
 ; 851  :     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
 
 	push	esi
-	push	OFFSET $SG200197
+	push	OFFSET $SG200207
 	push	edi
 	push	esi
 	call	?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z ; SK_GetCallingDLL
@@ -34579,7 +34579,7 @@ $LN4@LoadPackag:
 ; 773  :     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
 
 	push	edi
-	push	OFFSET $SG200175
+	push	OFFSET $SG200185
 	push	esi
 	push	edi
 	call	?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z ; SK_GetCallingDLL
@@ -35182,7 +35182,7 @@ $LN80@SK_TraceLo:
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	esi
 	push	eax
-	push	OFFSET $SG224692
+	push	OFFSET $SG224702
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQBDZZ		; iSK_Logger::Log
 
@@ -35224,7 +35224,7 @@ $LN9@SK_TraceLo:
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	esi
 	push	eax
-	push	OFFSET $SG224693
+	push	OFFSET $SG224703
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 $LN257@SK_TraceLo:
@@ -35257,7 +35257,7 @@ $LN130@SK_TraceLo:
 ; 450  :   {
 ; 451  :     if (config.compatibility.rehook_loadlibrary)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+766, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
 	je	$LN13@SK_TraceLo
 
 ; 452  :     {
@@ -35271,49 +35271,49 @@ $LN130@SK_TraceLo:
 ; 460  :            StrStrIW (wszModName, L"Nahimic2DevProps")    ||
 ; 461  :            StrStrIW (wszModName, L"ReShade")             ||
 
-	push	OFFSET $SG224698
+	push	OFFSET $SG224708
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG224699
+	push	OFFSET $SG224709
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG224700
+	push	OFFSET $SG224710
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG224701
+	push	OFFSET $SG224711
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG224702
+	push	OFFSET $SG224712
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG224703
+	push	OFFSET $SG224713
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG224704
+	push	OFFSET $SG224714
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG224705
+	push	OFFSET $SG224715
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -35355,7 +35355,7 @@ $LN13@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	al, 2
 	jne	$LN16@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+783, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+787, 0
 	je	$LN16@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -35369,7 +35369,7 @@ $LN13@SK_TraceLo:
 
 ; 483  :     if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
 
-	mov	edx, OFFSET $SG224711
+	mov	edx, OFFSET $SG224721
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35379,7 +35379,7 @@ $LN13@SK_TraceLo:
 
 ; 483  :     if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
 
-	mov	ecx, OFFSET $SG224710
+	mov	ecx, OFFSET $SG224720
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35396,7 +35396,7 @@ $LN13@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@_W@@YGXPAUHINSTANCE__@@PB_W1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<wchar_t>'::`2'::StrStrI
 	test	eax, eax
 	jne	$LN18@SK_TraceLo
-	push	OFFSET $SG224712
+	push	OFFSET $SG224722
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -35425,15 +35425,15 @@ $LN13@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG224714
-	mov	ecx, OFFSET $SG224713
+	mov	edx, OFFSET $SG224724
+	mov	ecx, OFFSET $SG224723
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@_W@@YGXPAUHINSTANCE__@@PB_W1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<wchar_t>'::`2'::StrStrI
 	test	eax, eax
 	jne	$LN18@SK_TraceLo
-	push	OFFSET $SG224715
+	push	OFFSET $SG224725
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -35462,15 +35462,15 @@ $LN13@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG224717
-	mov	ecx, OFFSET $SG224716
+	mov	edx, OFFSET $SG224727
+	mov	ecx, OFFSET $SG224726
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@_W@@YGXPAUHINSTANCE__@@PB_W1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<wchar_t>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN18@SK_TraceLo
-	push	OFFSET $SG224718
+	push	OFFSET $SG224728
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -35499,15 +35499,15 @@ $LN13@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG224720
-	mov	ecx, OFFSET $SG224719
+	mov	edx, OFFSET $SG224730
+	mov	ecx, OFFSET $SG224729
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@_W@@YGXPAUHINSTANCE__@@PB_W1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<wchar_t>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN18@SK_TraceLo
-	push	OFFSET $SG224721
+	push	OFFSET $SG224731
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -35538,7 +35538,7 @@ $LN16@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	eax, -1073741808			; c0000010H
 	jne	SHORT $LN19@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+781, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, 0
 	je	SHORT $LN19@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -35552,7 +35552,7 @@ $LN16@SK_TraceLo:
 
 ; 498  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D8)) && config.apis.d3d8.hook &&
 
-	mov	edx, OFFSET $SG224726
+	mov	edx, OFFSET $SG224736
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35562,7 +35562,7 @@ $LN16@SK_TraceLo:
 
 ; 498  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D8)) && config.apis.d3d8.hook &&
 
-	mov	ecx, OFFSET $SG224725
+	mov	ecx, OFFSET $SG224735
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35579,7 +35579,7 @@ $LN16@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@_W@@YGXPAUHINSTANCE__@@PB_W1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<wchar_t>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN21@SK_TraceLo
-	push	OFFSET $SG224727
+	push	OFFSET $SG224737
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -35600,7 +35600,7 @@ $LN19@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	eax, -1073741792			; c0000020H
 	jne	SHORT $LN22@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+782, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+786, 0
 	je	SHORT $LN22@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -35614,7 +35614,7 @@ $LN19@SK_TraceLo:
 
 ; 502  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DDraw)) && config.apis.ddraw.hook &&
 
-	mov	edx, OFFSET $SG224732
+	mov	edx, OFFSET $SG224742
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35624,7 +35624,7 @@ $LN19@SK_TraceLo:
 
 ; 502  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DDraw)) && config.apis.ddraw.hook &&
 
-	mov	ecx, OFFSET $SG224731
+	mov	ecx, OFFSET $SG224741
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35641,7 +35641,7 @@ $LN19@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@_W@@YGXPAUHINSTANCE__@@PB_W1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<wchar_t>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN24@SK_TraceLo
-	push	OFFSET $SG224733
+	push	OFFSET $SG224743
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -35662,7 +35662,7 @@ $LN22@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	al, 1
 	jne	SHORT $LN25@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
 	je	SHORT $LN25@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -35676,7 +35676,7 @@ $LN22@SK_TraceLo:
 
 ; 507  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
 
-	mov	edx, OFFSET $SG224738
+	mov	edx, OFFSET $SG224748
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35686,7 +35686,7 @@ $LN22@SK_TraceLo:
 
 ; 507  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
 
-	mov	ecx, OFFSET $SG224737
+	mov	ecx, OFFSET $SG224747
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35703,7 +35703,7 @@ $LN22@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@_W@@YGXPAUHINSTANCE__@@PB_W1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<wchar_t>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN27@SK_TraceLo
-	push	OFFSET $SG224739
+	push	OFFSET $SG224749
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -35724,7 +35724,7 @@ $LN25@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	al, 4
 	jne	SHORT $LN28@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+786, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+790, 0
 	je	SHORT $LN28@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -35738,7 +35738,7 @@ $LN25@SK_TraceLo:
 
 ; 520  :     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
 
-	mov	edx, OFFSET $SG224744
+	mov	edx, OFFSET $SG224754
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35748,7 +35748,7 @@ $LN25@SK_TraceLo:
 
 ; 520  :     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
 
-	mov	ecx, OFFSET $SG224743
+	mov	ecx, OFFSET $SG224753
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35765,7 +35765,7 @@ $LN25@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@_W@@YGXPAUHINSTANCE__@@PB_W1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<wchar_t>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN30@SK_TraceLo
-	push	OFFSET $SG224745
+	push	OFFSET $SG224755
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -35795,7 +35795,7 @@ $LN28@SK_TraceLo:
 
 ; 524  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
 
-	mov	edx, OFFSET $SG224749
+	mov	edx, OFFSET $SG224759
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35805,7 +35805,7 @@ $LN28@SK_TraceLo:
 
 ; 524  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
 
-	mov	ecx, OFFSET $SG224748
+	mov	ecx, OFFSET $SG224758
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35843,7 +35843,7 @@ $LN31@SK_TraceLo:
 
 ; 526  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_4.dll")) )
 
-	mov	edx, OFFSET $SG224753
+	mov	edx, OFFSET $SG224763
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35853,7 +35853,7 @@ $LN31@SK_TraceLo:
 
 ; 526  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_4.dll")) )
 
-	mov	ecx, OFFSET $SG224752
+	mov	ecx, OFFSET $SG224762
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35891,7 +35891,7 @@ $LN33@SK_TraceLo:
 
 ; 528  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput9_1_0.dll")) )
 
-	mov	edx, OFFSET $SG224757
+	mov	edx, OFFSET $SG224767
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35901,7 +35901,7 @@ $LN33@SK_TraceLo:
 
 ; 528  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput9_1_0.dll")) )
 
-	mov	ecx, OFFSET $SG224756
+	mov	ecx, OFFSET $SG224766
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -35950,8 +35950,8 @@ $LN35@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG224761
-	mov	ecx, OFFSET $SG224760
+	mov	edx, OFFSET $SG224771
+	mov	ecx, OFFSET $SG224770
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
@@ -35990,8 +35990,8 @@ $LN37@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG224764
-	mov	ecx, OFFSET $SG224763
+	mov	edx, OFFSET $SG224774
+	mov	ecx, OFFSET $SG224773
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
@@ -36179,8 +36179,8 @@ $LN2@BlacklistL:
 
 ; 183  :   if (StrStrI (lpFileName, SK_TEXT("action_x86")))
 
-	mov	edx, OFFSET $SG224431
-	mov	ecx, OFFSET $SG224430
+	mov	edx, OFFSET $SG224441
+	mov	ecx, OFFSET $SG224440
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -36250,7 +36250,7 @@ $LN11@BlacklistL:
 
 ; 213  :   if (StrStrI (lpFileName, SK_TEXT ("RTSSHooks")))
 
-	mov	edx, OFFSET $SG224434
+	mov	edx, OFFSET $SG224444
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -36260,7 +36260,7 @@ $LN11@BlacklistL:
 
 ; 213  :   if (StrStrI (lpFileName, SK_TEXT ("RTSSHooks")))
 
-	mov	ecx, OFFSET $SG224433
+	mov	ecx, OFFSET $SG224443
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -36310,7 +36310,7 @@ $LN6@BlacklistL:
 ; 224  :   //
 ; 225  :   if (config.compatibility.disable_raptr)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+765, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+769, 0
 	je	SHORT $LN15@BlacklistL
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -36324,7 +36324,7 @@ $LN6@BlacklistL:
 
 ; 227  :     if ( StrStrI (lpFileName, SK_TEXT("ltc_game")) )
 
-	mov	edx, OFFSET $SG224438
+	mov	edx, OFFSET $SG224448
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -36334,7 +36334,7 @@ $LN6@BlacklistL:
 
 ; 227  :     if ( StrStrI (lpFileName, SK_TEXT("ltc_game")) )
 
-	mov	ecx, OFFSET $SG224437
+	mov	ecx, OFFSET $SG224447
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -36355,7 +36355,7 @@ $LN6@BlacklistL:
 ; 228  :     {
 ; 229  :       dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
 
-	push	OFFSET $SG224439
+	push	OFFSET $SG224449
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -36383,7 +36383,7 @@ $LN15@BlacklistL:
 ; 233  : 
 ; 234  :   if (config.compatibility.disable_nv_bloat)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+767, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
 	je	$LN9@BlacklistL
 
 ; 239  :                 nv_blacklist;
@@ -36410,7 +36410,7 @@ $LN7@BlacklistL:
 
 ; 243  :       nv_blacklist.emplace_back (SK_TEXT("rxgamepadinput.dll"));
 
-	mov	edx, OFFSET $SG224443
+	mov	edx, OFFSET $SG224453
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -36420,7 +36420,7 @@ $LN7@BlacklistL:
 
 ; 243  :       nv_blacklist.emplace_back (SK_TEXT("rxgamepadinput.dll"));
 
-	mov	ecx, OFFSET $SG224442
+	mov	ecx, OFFSET $SG224452
 	lea	eax, DWORD PTR $T5[ebp]
 	cmovne	ecx, edx
 	mov	DWORD PTR $T5[ebp], ecx
@@ -36439,7 +36439,7 @@ $LN7@BlacklistL:
 
 ; 244  :       nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
 
-	mov	edx, OFFSET $SG224445
+	mov	edx, OFFSET $SG224455
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -36449,7 +36449,7 @@ $LN7@BlacklistL:
 
 ; 244  :       nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
 
-	mov	ecx, OFFSET $SG224444
+	mov	ecx, OFFSET $SG224454
 	lea	eax, DWORD PTR $T4[ebp]
 	cmovne	ecx, edx
 	mov	DWORD PTR $T4[ebp], ecx
@@ -36468,7 +36468,7 @@ $LN7@BlacklistL:
 
 ; 245  :       nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
 
-	mov	edx, OFFSET $SG224447
+	mov	edx, OFFSET $SG224457
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -36478,7 +36478,7 @@ $LN7@BlacklistL:
 
 ; 245  :       nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
 
-	mov	ecx, OFFSET $SG224446
+	mov	ecx, OFFSET $SG224456
 	lea	eax, DWORD PTR $T3[ebp]
 	cmovne	ecx, edx
 	mov	DWORD PTR $T3[ebp], ecx
@@ -36497,7 +36497,7 @@ $LN7@BlacklistL:
 
 ; 246  :       nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
 
-	mov	edx, OFFSET $SG224448
+	mov	edx, OFFSET $SG224458
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -36507,7 +36507,7 @@ $LN7@BlacklistL:
 
 ; 246  :       nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
 
-	mov	esi, OFFSET $SG224449
+	mov	esi, OFFSET $SG224459
 	lea	eax, DWORD PTR $T2[ebp]
 	mov	ecx, OFFSET ?nv_blacklist@?BD@???$BlacklistLibrary@_W@@YGHPB_W@Z@4V?$vector@PB_WV?$allocator@PB_W@std@@@std@@A ; `BlacklistLibrary<wchar_t>'::`19'::nv_blacklist
 	cmovne	edx, esi
@@ -36972,7 +36972,7 @@ $LN14@LoadLibrar:
 
 	mov	esi, DWORD PTR _compliant_path$[ebp]
 	push	esi
-	push	OFFSET $SG200157
+	push	OFFSET $SG200167
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -36999,7 +36999,7 @@ $LN16@LoadLibrar:
 ; 720  :     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
 
 	push	edi
-	push	OFFSET $SG200159
+	push	OFFSET $SG200169
 	push	esi
 	push	edi
 	call	?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z ; SK_GetCallingDLL
@@ -37602,7 +37602,7 @@ $LN80@SK_TraceLo:
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	esi
 	push	eax
-	push	OFFSET $SG223298
+	push	OFFSET $SG223308
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQBDZZ		; iSK_Logger::Log
 
@@ -37644,7 +37644,7 @@ $LN9@SK_TraceLo:
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	esi
 	push	eax
-	push	OFFSET $SG223299
+	push	OFFSET $SG223309
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 $LN257@SK_TraceLo:
@@ -37677,7 +37677,7 @@ $LN130@SK_TraceLo:
 ; 450  :   {
 ; 451  :     if (config.compatibility.rehook_loadlibrary)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+766, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
 	je	$LN13@SK_TraceLo
 
 ; 452  :     {
@@ -37691,49 +37691,49 @@ $LN130@SK_TraceLo:
 ; 460  :            StrStrIW (wszModName, L"Nahimic2DevProps")    ||
 ; 461  :            StrStrIW (wszModName, L"ReShade")             ||
 
-	push	OFFSET $SG223304
+	push	OFFSET $SG223314
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG223305
+	push	OFFSET $SG223315
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG223306
+	push	OFFSET $SG223316
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG223307
+	push	OFFSET $SG223317
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG223308
+	push	OFFSET $SG223318
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG223309
+	push	OFFSET $SG223319
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG223310
+	push	OFFSET $SG223320
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN14@SK_TraceLo
-	push	OFFSET $SG223311
+	push	OFFSET $SG223321
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -37775,7 +37775,7 @@ $LN13@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	al, 2
 	jne	$LN16@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+783, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+787, 0
 	je	$LN16@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -37789,7 +37789,7 @@ $LN13@SK_TraceLo:
 
 ; 483  :     if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
 
-	mov	edx, OFFSET $SG223317
+	mov	edx, OFFSET $SG223327
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -37799,7 +37799,7 @@ $LN13@SK_TraceLo:
 
 ; 483  :     if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
 
-	mov	ecx, OFFSET $SG223316
+	mov	ecx, OFFSET $SG223326
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -37816,7 +37816,7 @@ $LN13@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@D@@YGXPAUHINSTANCE__@@PBD1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<char>'::`2'::StrStrI
 	test	eax, eax
 	jne	$LN18@SK_TraceLo
-	push	OFFSET $SG223318
+	push	OFFSET $SG223328
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -37845,15 +37845,15 @@ $LN13@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG223320
-	mov	ecx, OFFSET $SG223319
+	mov	edx, OFFSET $SG223330
+	mov	ecx, OFFSET $SG223329
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@D@@YGXPAUHINSTANCE__@@PBD1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<char>'::`2'::StrStrI
 	test	eax, eax
 	jne	$LN18@SK_TraceLo
-	push	OFFSET $SG223321
+	push	OFFSET $SG223331
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -37882,15 +37882,15 @@ $LN13@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG223323
-	mov	ecx, OFFSET $SG223322
+	mov	edx, OFFSET $SG223333
+	mov	ecx, OFFSET $SG223332
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@D@@YGXPAUHINSTANCE__@@PBD1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<char>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN18@SK_TraceLo
-	push	OFFSET $SG223324
+	push	OFFSET $SG223334
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -37919,15 +37919,15 @@ $LN13@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG223326
-	mov	ecx, OFFSET $SG223325
+	mov	edx, OFFSET $SG223336
+	mov	ecx, OFFSET $SG223335
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@D@@YGXPAUHINSTANCE__@@PBD1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<char>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN18@SK_TraceLo
-	push	OFFSET $SG223327
+	push	OFFSET $SG223337
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -37958,7 +37958,7 @@ $LN16@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	eax, -1073741808			; c0000010H
 	jne	SHORT $LN19@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+781, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, 0
 	je	SHORT $LN19@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -37972,7 +37972,7 @@ $LN16@SK_TraceLo:
 
 ; 498  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D8)) && config.apis.d3d8.hook &&
 
-	mov	edx, OFFSET $SG223332
+	mov	edx, OFFSET $SG223342
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -37982,7 +37982,7 @@ $LN16@SK_TraceLo:
 
 ; 498  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D8)) && config.apis.d3d8.hook &&
 
-	mov	ecx, OFFSET $SG223331
+	mov	ecx, OFFSET $SG223341
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -37999,7 +37999,7 @@ $LN16@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@D@@YGXPAUHINSTANCE__@@PBD1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<char>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN21@SK_TraceLo
-	push	OFFSET $SG223333
+	push	OFFSET $SG223343
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -38020,7 +38020,7 @@ $LN19@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	eax, -1073741792			; c0000020H
 	jne	SHORT $LN22@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+782, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+786, 0
 	je	SHORT $LN22@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -38034,7 +38034,7 @@ $LN19@SK_TraceLo:
 
 ; 502  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DDraw)) && config.apis.ddraw.hook &&
 
-	mov	edx, OFFSET $SG223338
+	mov	edx, OFFSET $SG223348
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38044,7 +38044,7 @@ $LN19@SK_TraceLo:
 
 ; 502  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DDraw)) && config.apis.ddraw.hook &&
 
-	mov	ecx, OFFSET $SG223337
+	mov	ecx, OFFSET $SG223347
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38061,7 +38061,7 @@ $LN19@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@D@@YGXPAUHINSTANCE__@@PBD1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<char>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN24@SK_TraceLo
-	push	OFFSET $SG223339
+	push	OFFSET $SG223349
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -38082,7 +38082,7 @@ $LN22@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	al, 1
 	jne	SHORT $LN25@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+785, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
 	je	SHORT $LN25@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -38096,7 +38096,7 @@ $LN22@SK_TraceLo:
 
 ; 507  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
 
-	mov	edx, OFFSET $SG223344
+	mov	edx, OFFSET $SG223354
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38106,7 +38106,7 @@ $LN22@SK_TraceLo:
 
 ; 507  :     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
 
-	mov	ecx, OFFSET $SG223343
+	mov	ecx, OFFSET $SG223353
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38123,7 +38123,7 @@ $LN22@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@D@@YGXPAUHINSTANCE__@@PBD1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<char>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN27@SK_TraceLo
-	push	OFFSET $SG223345
+	push	OFFSET $SG223355
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -38144,7 +38144,7 @@ $LN25@SK_TraceLo:
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	al, 4
 	jne	SHORT $LN28@SK_TraceLo
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+786, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+790, 0
 	je	SHORT $LN28@SK_TraceLo
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -38158,7 +38158,7 @@ $LN25@SK_TraceLo:
 
 ; 520  :     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
 
-	mov	edx, OFFSET $SG223350
+	mov	edx, OFFSET $SG223360
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38168,7 +38168,7 @@ $LN25@SK_TraceLo:
 
 ; 520  :     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
 
-	mov	ecx, OFFSET $SG223349
+	mov	ecx, OFFSET $SG223359
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38185,7 +38185,7 @@ $LN25@SK_TraceLo:
 	call	DWORD PTR ?StrStrI@?1???$SK_TraceLoadLibrary@D@@YGXPAUHINSTANCE__@@PBD1PAX@Z@4P6GPADPBX3@ZA ; `SK_TraceLoadLibrary<char>'::`2'::StrStrI
 	test	eax, eax
 	jne	SHORT $LN30@SK_TraceLo
-	push	OFFSET $SG223351
+	push	OFFSET $SG223361
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	edi
@@ -38215,7 +38215,7 @@ $LN28@SK_TraceLo:
 
 ; 524  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
 
-	mov	edx, OFFSET $SG223355
+	mov	edx, OFFSET $SG223365
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38225,7 +38225,7 @@ $LN28@SK_TraceLo:
 
 ; 524  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
 
-	mov	ecx, OFFSET $SG223354
+	mov	ecx, OFFSET $SG223364
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38263,7 +38263,7 @@ $LN31@SK_TraceLo:
 
 ; 526  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_4.dll")) )
 
-	mov	edx, OFFSET $SG223359
+	mov	edx, OFFSET $SG223369
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38273,7 +38273,7 @@ $LN31@SK_TraceLo:
 
 ; 526  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput1_4.dll")) )
 
-	mov	ecx, OFFSET $SG223358
+	mov	ecx, OFFSET $SG223368
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38311,7 +38311,7 @@ $LN33@SK_TraceLo:
 
 ; 528  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput9_1_0.dll")) )
 
-	mov	edx, OFFSET $SG223363
+	mov	edx, OFFSET $SG223373
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38321,7 +38321,7 @@ $LN33@SK_TraceLo:
 
 ; 528  :     else if (   StrStrI (lpFileName, SK_TEXT("xinput9_1_0.dll")) )
 
-	mov	ecx, OFFSET $SG223362
+	mov	ecx, OFFSET $SG223372
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38370,8 +38370,8 @@ $LN35@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG223367
-	mov	ecx, OFFSET $SG223366
+	mov	edx, OFFSET $SG223377
+	mov	ecx, OFFSET $SG223376
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
@@ -38410,8 +38410,8 @@ $LN37@SK_TraceLo:
 
 	call	??8type_index@std@@QBE_NABV01@@Z	; std::type_index::operator==
 	test	al, al
-	mov	edx, OFFSET $SG223370
-	mov	ecx, OFFSET $SG223369
+	mov	edx, OFFSET $SG223380
+	mov	ecx, OFFSET $SG223379
 	cmove	ecx, edx
 	push	ecx
 	push	ebx
@@ -38599,8 +38599,8 @@ $LN2@BlacklistL:
 
 ; 183  :   if (StrStrI (lpFileName, SK_TEXT("action_x86")))
 
-	mov	edx, OFFSET $SG222945
-	mov	ecx, OFFSET $SG222944
+	mov	edx, OFFSET $SG222955
+	mov	ecx, OFFSET $SG222954
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38670,7 +38670,7 @@ $LN11@BlacklistL:
 
 ; 213  :   if (StrStrI (lpFileName, SK_TEXT ("RTSSHooks")))
 
-	mov	edx, OFFSET $SG222948
+	mov	edx, OFFSET $SG222958
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38680,7 +38680,7 @@ $LN11@BlacklistL:
 
 ; 213  :   if (StrStrI (lpFileName, SK_TEXT ("RTSSHooks")))
 
-	mov	ecx, OFFSET $SG222947
+	mov	ecx, OFFSET $SG222957
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38730,7 +38730,7 @@ $LN6@BlacklistL:
 ; 224  :   //
 ; 225  :   if (config.compatibility.disable_raptr)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+765, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+769, 0
 	je	SHORT $LN15@BlacklistL
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
@@ -38744,7 +38744,7 @@ $LN6@BlacklistL:
 
 ; 227  :     if ( StrStrI (lpFileName, SK_TEXT("ltc_game")) )
 
-	mov	edx, OFFSET $SG222952
+	mov	edx, OFFSET $SG222962
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38754,7 +38754,7 @@ $LN6@BlacklistL:
 
 ; 227  :     if ( StrStrI (lpFileName, SK_TEXT("ltc_game")) )
 
-	mov	ecx, OFFSET $SG222951
+	mov	ecx, OFFSET $SG222961
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38775,7 +38775,7 @@ $LN6@BlacklistL:
 ; 228  :     {
 ; 229  :       dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
 
-	push	OFFSET $SG222953
+	push	OFFSET $SG222963
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -38803,7 +38803,7 @@ $LN15@BlacklistL:
 ; 233  : 
 ; 234  :   if (config.compatibility.disable_nv_bloat)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+767, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
 	je	$LN9@BlacklistL
 
 ; 239  :                 nv_blacklist;
@@ -38830,7 +38830,7 @@ $LN7@BlacklistL:
 
 ; 243  :       nv_blacklist.emplace_back (SK_TEXT("rxgamepadinput.dll"));
 
-	mov	edx, OFFSET $SG222957
+	mov	edx, OFFSET $SG222967
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38840,7 +38840,7 @@ $LN7@BlacklistL:
 
 ; 243  :       nv_blacklist.emplace_back (SK_TEXT("rxgamepadinput.dll"));
 
-	mov	ecx, OFFSET $SG222956
+	mov	ecx, OFFSET $SG222966
 	lea	eax, DWORD PTR $T5[ebp]
 	cmovne	ecx, edx
 	mov	DWORD PTR $T5[ebp], ecx
@@ -38859,7 +38859,7 @@ $LN7@BlacklistL:
 
 ; 244  :       nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
 
-	mov	edx, OFFSET $SG222959
+	mov	edx, OFFSET $SG222969
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38869,7 +38869,7 @@ $LN7@BlacklistL:
 
 ; 244  :       nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
 
-	mov	ecx, OFFSET $SG222958
+	mov	ecx, OFFSET $SG222968
 	lea	eax, DWORD PTR $T4[ebp]
 	cmovne	ecx, edx
 	mov	DWORD PTR $T4[ebp], ecx
@@ -38888,7 +38888,7 @@ $LN7@BlacklistL:
 
 ; 245  :       nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
 
-	mov	edx, OFFSET $SG222961
+	mov	edx, OFFSET $SG222971
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38898,7 +38898,7 @@ $LN7@BlacklistL:
 
 ; 245  :       nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
 
-	mov	ecx, OFFSET $SG222960
+	mov	ecx, OFFSET $SG222970
 	lea	eax, DWORD PTR $T3[ebp]
 	cmovne	ecx, edx
 	mov	DWORD PTR $T3[ebp], ecx
@@ -38917,7 +38917,7 @@ $LN7@BlacklistL:
 
 ; 246  :       nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
 
-	mov	edx, OFFSET $SG222962
+	mov	edx, OFFSET $SG222972
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_typeinfo.h
 
 ; 76   :         return __std_type_info_compare(&_Data, &_Other._Data) == 0;
@@ -38927,7 +38927,7 @@ $LN7@BlacklistL:
 
 ; 246  :       nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
 
-	mov	esi, OFFSET $SG222963
+	mov	esi, OFFSET $SG222973
 	lea	eax, DWORD PTR $T2[ebp]
 	mov	ecx, OFFSET ?nv_blacklist@?BD@???$BlacklistLibrary@D@@YGHPBD@Z@4V?$vector@PBDV?$allocator@PBD@std@@@std@@A ; `BlacklistLibrary<char>'::`19'::nv_blacklist
 	cmovne	edx, esi
@@ -39396,7 +39396,7 @@ $LN14@LoadLibrar:
 
 	mov	esi, DWORD PTR _compliant_path$[ebp]
 	push	esi
-	push	OFFSET $SG200129
+	push	OFFSET $SG200139
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -39423,7 +39423,7 @@ $LN16@LoadLibrar:
 ; 659  :     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
 
 	push	edi
-	push	OFFSET $SG200131
+	push	OFFSET $SG200141
 	push	esi
 	push	edi
 	call	?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z ; SK_GetCallingDLL
@@ -39601,7 +39601,7 @@ $LN2@FreeLibrar:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG200092
+	push	OFFSET $SG200102
 	lea	ecx, DWORD PTR _name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
 
@@ -39665,7 +39665,7 @@ $LN51@FreeLibrar:
 ; 3228 : 		return (static_cast<size_type>(
 
 	push	5
-	push	OFFSET $SG200096
+	push	OFFSET $SG200106
 	push	0
 	push	DWORD PTR [ecx]
 	push	eax
@@ -39750,7 +39750,7 @@ $LN112@FreeLibrar:
 ; 3228 : 		return (static_cast<size_type>(
 
 	push	5
-	push	OFFSET $SG200099
+	push	OFFSET $SG200109
 	push	0
 	push	DWORD PTR [ecx]
 	push	eax
@@ -39797,7 +39797,7 @@ $LN12@FreeLibrar:
 ; 581  :     {
 ; 582  :       if (config.system.log_level > 2)
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 2
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 2
 	jle	$LN6@FreeLibrar
 
 ; 583  :       {
@@ -39870,7 +39870,7 @@ $LN169@FreeLibrar:
 	push	edx
 	push	ecx
 	push	eax
-	push	OFFSET $SG200101
+	push	OFFSET $SG200111
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -40025,7 +40025,7 @@ __$EHRec$ = -12						; size = 12
 
 ; 1664 :   if (config.system.ignore_rtss_delay)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+813, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+817, 0
 	je	SHORT $LN9@SK_Validat
 
 ; 1665 :     return TRUE;
@@ -40175,7 +40175,7 @@ $LN52@SK_Validat:
 
 ; 1687 :   lstrcatW (wszRTSSHooks, L"\\Profiles\\Global");
 
-	push	OFFSET $SG204118
+	push	OFFSET $SG204128
 	lea	eax, DWORD PTR _wszRTSSHooks$[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrcatW@8
@@ -40200,7 +40200,7 @@ $LN52@SK_Validat:
 ; 1693 : 
 ; 1694 :   iSK_INISection& rtss_hooking =
 
-	push	OFFSET $SG204119
+	push	OFFSET $SG204129
 	lea	eax, DWORD PTR _rtss_global$[ebp]
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
@@ -40217,7 +40217,7 @@ $LN52@SK_Validat:
 ; 1700 : 
 ; 1701 :   if ( (! rtss_hooking.contains_key (L"InjectionDelay")) )
 
-	push	OFFSET $SG204122
+	push	OFFSET $SG204132
 	push	esi
 	mov	ecx, DWORD PTR [esi]
 	mov	ecx, DWORD PTR [ecx+20]
@@ -40229,8 +40229,8 @@ $LN52@SK_Validat:
 
 	mov	eax, DWORD PTR [esi]
 	jne	SHORT $LN12@SK_Validat
-	push	OFFSET $SG204123
-	push	OFFSET $SG204124
+	push	OFFSET $SG204133
+	push	OFFSET $SG204134
 	push	esi
 	call	DWORD PTR [eax+24]
 
@@ -40241,7 +40241,7 @@ $LN12@SK_Validat:
 
 ; 1707 :   else if (_wtol (rtss_hooking.get_value (L"InjectionDelay").c_str()) < 10000)
 
-	push	OFFSET $SG204126
+	push	OFFSET $SG204136
 	push	esi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40273,7 +40273,7 @@ $LN91@SK_Validat:
 ; 1709 :     rtss_hooking.get_value (L"InjectionDelay") = L"10000";
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG204127
+	push	OFFSET $SG204137
 	push	esi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40281,7 +40281,7 @@ $LN91@SK_Validat:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG204128
+	push	OFFSET $SG204138
 	mov	ecx, eax
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 $LN247@SK_Validat:
@@ -40300,7 +40300,7 @@ $LN14@SK_Validat:
 
 	mov	eax, DWORD PTR [esi]
 	push	edi
-	push	OFFSET $SG204131
+	push	OFFSET $SG204141
 	push	esi
 	mov	eax, DWORD PTR [eax+20]
 	call	eax
@@ -40311,8 +40311,8 @@ $LN14@SK_Validat:
 
 	mov	eax, DWORD PTR [esi]
 	jne	SHORT $LN15@SK_Validat
-	push	OFFSET $SG204132
-	push	OFFSET $SG204133
+	push	OFFSET $SG204142
+	push	OFFSET $SG204143
 	push	esi
 	call	DWORD PTR [eax+24]
 
@@ -40330,7 +40330,7 @@ $LN15@SK_Validat:
 ; 1724 :   {
 ; 1725 :     std::wstring& triggers =
 
-	push	OFFSET $SG204134
+	push	OFFSET $SG204144
 	push	esi
 	call	DWORD PTR [eax+12]
 	mov	esi, eax
@@ -40339,19 +40339,19 @@ $LN15@SK_Validat:
 ; 1727 : 
 ; 1728 :     const wchar_t* delay_dlls [] = { L"SpecialK32.dll",
 
-	mov	DWORD PTR _delay_dlls$4[ebp], OFFSET $SG204135
+	mov	DWORD PTR _delay_dlls$4[ebp], OFFSET $SG204145
 
 ; 1729 :                                      L"d3d9.dll",
 
-	mov	DWORD PTR _delay_dlls$4[ebp+4], OFFSET $SG204136
+	mov	DWORD PTR _delay_dlls$4[ebp+4], OFFSET $SG204146
 
 ; 1738 :     for (auto& delay_dll : delay_dlls)
 
 	lea	edi, DWORD PTR _delay_dlls$4[ebp]
-	mov	DWORD PTR _delay_dlls$4[ebp+8], OFFSET $SG204137
-	mov	DWORD PTR _delay_dlls$4[ebp+12], OFFSET $SG204138
-	mov	DWORD PTR _delay_dlls$4[ebp+16], OFFSET $SG204139
-	mov	DWORD PTR _delay_dlls$4[ebp+20], OFFSET $SG204140
+	mov	DWORD PTR _delay_dlls$4[ebp+8], OFFSET $SG204147
+	mov	DWORD PTR _delay_dlls$4[ebp+12], OFFSET $SG204148
+	mov	DWORD PTR _delay_dlls$4[ebp+16], OFFSET $SG204149
+	mov	DWORD PTR _delay_dlls$4[ebp+20], OFFSET $SG204150
 	npad	7
 $LL6@SK_Validat:
 
@@ -40416,7 +40416,7 @@ $LN130@SK_Validat:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG204142
+	push	OFFSET $SG204152
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\compatibility.cpp
 
@@ -40545,14 +40545,14 @@ $LN19@SK_Validat:
 	lea	eax, DWORD PTR _wszFooter$[ebp]
 	push	0
 	push	eax
-	mov	DWORD PTR _task_config$[ebp+20], OFFSET $SG204147
+	mov	DWORD PTR _task_config$[ebp+20], OFFSET $SG204157
 	mov	DWORD PTR _task_config$[ebp+16], 1
 	mov	DWORD PTR _task_config$[ebp+40], 0
 	mov	DWORD PTR _task_config$[ebp+36], 0
 	mov	DWORD PTR _task_config$[ebp+12], 1
 	mov	DWORD PTR _task_config$[ebp+84], OFFSET ?TaskDialogCallback@@YGJPAUHWND__@@IIJJ@Z ; TaskDialogCallback
 	mov	DWORD PTR _task_config$[ebp+88], 0
-	mov	DWORD PTR _task_config$[ebp+28], OFFSET $SG204148
+	mov	DWORD PTR _task_config$[ebp+28], OFFSET $SG204158
 	call	_memset
 	add	esp, 12					; 0000000cH
 
@@ -40585,11 +40585,11 @@ $LN19@SK_Validat:
 	push	0
 	push	0
 	lea	eax, DWORD PTR _task_config$[ebp]
-	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG204151
+	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG204161
 	push	eax
 	mov	DWORD PTR _task_config$[ebp+76], 65532	; 0000fffcH
-	mov	DWORD PTR _task_config$[ebp+80], OFFSET $SG204152
-	mov	DWORD PTR _task_config$[ebp+60], OFFSET $SG204153
+	mov	DWORD PTR _task_config$[ebp+80], OFFSET $SG204162
+	mov	DWORD PTR _task_config$[ebp+60], OFFSET $SG204163
 	call	DWORD PTR __imp__TaskDialogIndirect@16
 
 ; 1792 : 
@@ -40600,7 +40600,7 @@ $LN19@SK_Validat:
 
 ; 1794 :       config.system.ignore_rtss_delay = true;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+813, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+817, 1
 $LN242@SK_Validat:
 	mov	edi, 1
 $LN24@SK_Validat:
@@ -40638,22 +40638,22 @@ $LN20@SK_Validat:
 
 ; 1809 :     wsprintf ( wszFooter,
 
-	push	OFFSET $SG204157
+	push	OFFSET $SG204167
 	lea	eax, DWORD PTR _rtss_global$[ebp]
 	mov	DWORD PTR _task_config$[ebp+24], 65533	; 0000fffdH
 	push	eax
-	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG204156
+	mov	DWORD PTR _task_config$[ebp+32], OFFSET $SG204166
 	mov	DWORD PTR _task_config$[ebp+16], 6
 	mov	DWORD PTR _task_config$[ebp+44], 7
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
 	mov	esi, eax
 	lea	eax, DWORD PTR _rtss_global$[ebp]
-	push	OFFSET $SG204159
+	push	OFFSET $SG204169
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
 	mov	ecx, DWORD PTR [esi]
 	mov	edi, eax
-	push	OFFSET $SG204158
+	push	OFFSET $SG204168
 	push	esi
 	call	DWORD PTR [ecx+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40680,7 +40680,7 @@ $LN162@SK_Validat:
 ; 1809 :     wsprintf ( wszFooter,
 
 	mov	eax, DWORD PTR [edi]
-	push	OFFSET $SG204160
+	push	OFFSET $SG204170
 	push	edi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40708,7 +40708,7 @@ $LN181@SK_Validat:
 	push	eax
 	push	eax
 	lea	eax, DWORD PTR _wszFooter$[ebp]
-	push	OFFSET $SG204161
+	push	OFFSET $SG204171
 	push	eax
 	call	DWORD PTR __imp__wsprintfW
 	add	esp, 24					; 00000018H
@@ -40731,7 +40731,7 @@ $LN181@SK_Validat:
 ; 1825 :     task_config.pszExpandedInformation = wszFooter;
 ; 1826 :     task_config.pszExpandedControlText = L"Apply Proposed Config Changes?";
 
-	mov	DWORD PTR _task_config$[ebp+68], OFFSET $SG204162
+	mov	DWORD PTR _task_config$[ebp+68], OFFSET $SG204172
 	lea	eax, DWORD PTR _wszFooter$[ebp]
 	mov	DWORD PTR _task_config$[ebp+64], eax
 
@@ -40756,18 +40756,18 @@ $LN181@SK_Validat:
 
 ; 1835 :       dll_log.Log ( L"[RTSSCompat] NEW Global Profile:  InjectDelay=%s,  DelayTriggers=%s",
 
-	push	OFFSET $SG204164
+	push	OFFSET $SG204174
 	lea	eax, DWORD PTR _rtss_global$[ebp]
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
 	mov	esi, eax
 	lea	eax, DWORD PTR _rtss_global$[ebp]
-	push	OFFSET $SG204166
+	push	OFFSET $SG204176
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
 	mov	ecx, DWORD PTR [esi]
 	mov	edi, eax
-	push	OFFSET $SG204165
+	push	OFFSET $SG204175
 	push	esi
 	call	DWORD PTR [ecx+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40794,7 +40794,7 @@ $LN200@SK_Validat:
 ; 1835 :       dll_log.Log ( L"[RTSSCompat] NEW Global Profile:  InjectDelay=%s,  DelayTriggers=%s",
 
 	mov	eax, DWORD PTR [edi]
-	push	OFFSET $SG204167
+	push	OFFSET $SG204177
 	push	edi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40818,7 +40818,7 @@ $LN219@SK_Validat:
 
 	push	esi
 	push	eax
-	push	OFFSET $SG204168
+	push	OFFSET $SG204178
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -40956,15 +40956,15 @@ _user$ = 8						; size = 4
 ; 2027 : 
 ; 2028 :   SK_TaskBoxWithConfirmEx ( L"AMD Gaming Evolved or Raptr is running",
 
-	push	OFFSET $SG204231
-	push	OFFSET ?config@@3Usk_config_t@@A+764
-	push	OFFSET $SG204232
+	push	OFFSET $SG204241
+	push	OFFSET ?config@@3Usk_config_t@@A+768
+	push	OFFSET $SG204242
 	push	0
 	push	0
 	push	0
-	push	OFFSET $SG204233
+	push	OFFSET $SG204243
 	push	65535					; 0000ffffH
-	push	OFFSET $SG204234
+	push	OFFSET $SG204244
 	call	?SK_TaskBoxWithConfirmEx@@YGJPA_WPB_W00010PAH0@Z ; SK_TaskBoxWithConfirmEx
 $LN4@SK_RaptrWa:
 
@@ -41003,12 +41003,12 @@ _TEXT	SEGMENT
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::unlock, COMDAT
 ; _this$ = ecx
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 249  :   }
+; 267  :   }
 
 	ret	0
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::unlock
@@ -41020,12 +41020,12 @@ _TEXT	SEGMENT
 ?lock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::lock, COMDAT
 ; _this$ = ecx
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 244  :   }
+; 262  :   }
 
 	ret	0
 ?lock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::lock
@@ -48622,11 +48622,11 @@ _TEXT	SEGMENT
 
 ; 143  :   if (config.system.strict_compliance)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+841, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+845, 0
 	je	SHORT $LN2@SK_UnlockD
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 248  :     LeaveCriticalSection (cs_);
+; 266  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?loader_lock@@3PAVSK_Thread_HybridSpinlock@@A ; loader_lock
 	push	DWORD PTR [eax]
@@ -48648,11 +48648,11 @@ _TEXT	SEGMENT
 
 ; 126  :   if (config.system.strict_compliance)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+841, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+845, 0
 	je	SHORT $LN2@SK_LockDll
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 243  :     EnterCriticalSection (cs_);
+; 261  :     EnterCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?loader_lock@@3PAVSK_Thread_HybridSpinlock@@A ; loader_lock
 	push	DWORD PTR [eax]
@@ -48872,7 +48872,7 @@ _TEXT	SEGMENT
 
 ; 974  :   if (! config.system.trace_load_library)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+840, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+844, 0
 	je	$LN1@SK_ReHookL
 
 ; 975  :     return;
@@ -48919,8 +48919,8 @@ $LN4@SK_ReHookL:
 	push	OFFSET ?_loader_hooks@@3Usk_loader_hooks_t@@A+4
 	push	OFFSET ?LoadLibraryA_Original@@3P6GPAUHINSTANCE__@@PBD@ZA ; LoadLibraryA_Original
 	push	OFFSET ?LoadLibraryA_Detour@@YGPAUHINSTANCE__@@PBD@Z ; LoadLibraryA_Detour
-	push	OFFSET $SG200303
-	push	OFFSET $SG200304
+	push	OFFSET $SG200313
+	push	OFFSET $SG200314
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 995  :                             "LoadLibraryA",
@@ -48959,8 +48959,8 @@ $LN5@SK_ReHookL:
 	push	OFFSET ?_loader_hooks@@3Usk_loader_hooks_t@@A+12
 	push	OFFSET ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	push	OFFSET ?LoadLibraryW_Detour@@YGPAUHINSTANCE__@@PB_W@Z ; LoadLibraryW_Detour
-	push	OFFSET $SG200306
-	push	OFFSET $SG200307
+	push	OFFSET $SG200316
+	push	OFFSET $SG200317
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1010 :                             "LoadLibraryW",
@@ -48977,8 +48977,8 @@ $LN5@SK_ReHookL:
 ; 1017 : 
 ; 1018 :   if (GetProcAddress (GetModuleHandle (L"kernel32.dll"), "LoadPackagedLibrary") != nullptr)
 
-	push	OFFSET $SG200309
-	push	OFFSET $SG200310
+	push	OFFSET $SG200319
+	push	OFFSET $SG200320
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -49010,8 +49010,8 @@ $LN7@SK_ReHookL:
 	push	OFFSET ?_loader_hooks@@3Usk_loader_hooks_t@@A+20
 	push	OFFSET ?LoadPackagedLibrary_Original@@3P6GPAUHINSTANCE__@@PB_WK@ZA ; LoadPackagedLibrary_Original
 	push	OFFSET ?LoadPackagedLibrary_Detour@@YGPAUHINSTANCE__@@PB_WK@Z ; LoadPackagedLibrary_Detour
-	push	OFFSET $SG200312
-	push	OFFSET $SG200313
+	push	OFFSET $SG200322
+	push	OFFSET $SG200323
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1027 :                               "LoadPackagedLibrary",
@@ -49052,8 +49052,8 @@ $LN8@SK_ReHookL:
 	push	OFFSET ?_loader_hooks@@3Usk_loader_hooks_t@@A+8
 	push	OFFSET ?LoadLibraryExA_Original@@3P6GPAUHINSTANCE__@@PBDPAXK@ZA ; LoadLibraryExA_Original
 	push	OFFSET ?LoadLibraryExA_Detour@@YGPAUHINSTANCE__@@PBDPAXK@Z ; LoadLibraryExA_Detour
-	push	OFFSET $SG200315
-	push	OFFSET $SG200316
+	push	OFFSET $SG200325
+	push	OFFSET $SG200326
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1043 :                             "LoadLibraryExA",
@@ -49092,8 +49092,8 @@ $LN9@SK_ReHookL:
 	push	OFFSET ?_loader_hooks@@3Usk_loader_hooks_t@@A+16
 	push	OFFSET ?LoadLibraryExW_Original@@3P6GPAUHINSTANCE__@@PB_WPAXK@ZA ; LoadLibraryExW_Original
 	push	OFFSET ?LoadLibraryExW_Detour@@YGPAUHINSTANCE__@@PB_WPAXK@Z ; LoadLibraryExW_Detour
-	push	OFFSET $SG200318
-	push	OFFSET $SG200319
+	push	OFFSET $SG200328
+	push	OFFSET $SG200329
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1058 :                             "LoadLibraryExW",
@@ -49273,7 +49273,7 @@ _when$ = 8						; size = 4
 
 ; 1506 :                pLogger  = SK_CreateLog (L"logs/modules.log");
 
-	push	OFFSET $SG204031
+	push	OFFSET $SG204041
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	call	?SK_CreateLog@@YGPAUiSK_Logger@@QB_W@Z	; SK_CreateLog
 	push	OFFSET ?$TSS0@?1??SK_EnumLoadedModules@@YGXW4SK_ModuleEnum@@@Z@4HA
@@ -49383,7 +49383,7 @@ $LN4@SK_EnumLoa:
 ; 1531 :     pLogger->LogEx (
 
 	mov	eax, DWORD PTR [ecx]
-	push	OFFSET $SG204035
+	push	OFFSET $SG204045
 	push	0
 	push	ecx
 	call	DWORD PTR [eax+24]
@@ -49574,7 +49574,7 @@ $LN10@SK_EnumLoa:
 ; 1579 : #else
 ; 1580 :   else if ( GetModuleHandle (L"RTSSHooks.dll") )
 
-	push	OFFSET $SG204044
+	push	OFFSET $SG204054
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	test	eax, eax
 	je	SHORT $LN12@SK_EnumLoa
@@ -49590,7 +49590,7 @@ $LN10@SK_EnumLoa:
 ; 1586 :     //   The software is probably going to crash.
 ; 1587 :     dll_log.Log ( L"[RTSSCompat] RTSS appears to be in High App Detection or Stealth mode, "
 
-	push	OFFSET $SG204045
+	push	OFFSET $SG204055
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8

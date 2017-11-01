@@ -1068,8 +1068,8 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 {
   BehaviorFlags &= ~D3DCREATE_FPU_PRESERVE;
   BehaviorFlags &= ~D3DCREATE_NOWINDOWCHANGES;
-  BehaviorFlags &= ~D3DCREATE_SOFTWARE_VERTEXPROCESSING;
-  BehaviorFlags |=  D3DCREATE_HARDWARE_VERTEXPROCESSING;
+  //BehaviorFlags &= ~D3DCREATE_SOFTWARE_VERTEXPROCESSING;
+  //BehaviorFlags |=  D3DCREATE_HARDWARE_VERTEXPROCESSING;
 
   if (BehaviorFlags & D3DCREATE_SOFTWARE_VERTEXPROCESSING)
   {
@@ -3500,7 +3500,10 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
         else
         {
-          dll_log.Log (L"[  D3D9  ] Could not force windowed mode, game has no device window?!");
+          SK_LOG0 ( ( L" *** Could not force windowed mode, game has no device window?!" ),
+                      L"   D3D9   ");
+          pparams->Windowed                   = FALSE;
+          pparams->FullScreen_RefreshRateInHz = std::max (pparams->FullScreen_RefreshRateInHz, 60U);
         }
       }
 
@@ -3992,20 +3995,21 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
     if (pPresentationParameters != nullptr)
     {
       dll_log.LogEx (true,
-                L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%04i, "
+                L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%ws, "
                                         L"Count=%lu - "
-                                        L"SwapEffect: 0x%02X, Flags: 0x%04X,"
-                                        L"AutoDepthStencil: %s "
+                                        L"SwapEffect: %ws, Flags: 0x%04X, "
+                                        L"AutoDepthStencil: %ws "
                                         L"PresentationInterval: %u\n",
-                   pPresentationParameters->BackBufferWidth,
-                   pPresentationParameters->BackBufferHeight,
-                   pPresentationParameters->BackBufferFormat,
-                   pPresentationParameters->BackBufferCount,
-                   pPresentationParameters->SwapEffect,
-                   pPresentationParameters->Flags,
-                   pPresentationParameters->EnableAutoDepthStencil ? L"true" :
-                                                                     L"false",
-                   pPresentationParameters->PresentationInterval);
+                         pPresentationParameters->BackBufferWidth,
+                         pPresentationParameters->BackBufferHeight,
+    SK_D3D9_FormatToStr (pPresentationParameters->BackBufferFormat).c_str (),
+                         pPresentationParameters->BackBufferCount,
+SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
+                         pPresentationParameters->Flags,
+                         pPresentationParameters->EnableAutoDepthStencil ?
+    SK_D3D9_FormatToStr (pPresentationParameters->AutoDepthStencilFormat).c_str () :
+                         L"N/A",
+                         pPresentationParameters->PresentationInterval);
 
       if (! pPresentationParameters->Windowed)
       {

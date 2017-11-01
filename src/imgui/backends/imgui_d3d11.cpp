@@ -11,6 +11,7 @@
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/framerate.h>
+#include <SpecialK/config.h>
 
 // DirectX
 #include <d3d11.h>
@@ -159,7 +160,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
   if (pDevCtx->Map (g_pIB, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
   {
-    // If for some reason the first one succceeded, but this one failed.... unmap the first one
+    // If for some reason the first one succeeded, but this one failed.... unmap the first one
     //   then abandon all hope.
     pDevCtx->Unmap (g_pVB, 0);
     return;
@@ -172,6 +173,31 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   {
     const ImDrawList* cmd_list =
       draw_data->CmdLists [n];
+
+    if (config.imgui.render.disable_alpha)
+    {
+      for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
+      {
+        ImU32& color =
+          cmd_list->VtxBuffer.Data [i].col;
+
+        uint8_t alpha = (((color & 0xFF000000U) >> 24U) & 0xFFU);
+
+        // Boost alpha for visibility
+        if (alpha < 93 && alpha != 0)
+          alpha += (93  - alpha) / 2;
+
+        float a = ((float)                       alpha / 255.0f);
+        float r = ((float)((color & 0xFF0000U) >> 16U) / 255.0f);
+        float g = ((float)((color & 0x00FF00U) >>  8U) / 255.0f);
+        float b = ((float)((color & 0x0000FFU)       ) / 255.0f);
+
+        color =                    0xFF000000U  |
+                ((UINT)((r * a) * 255U) << 16U) |
+                ((UINT)((g * a) * 255U) <<  8U) |
+                ((UINT)((b * a) * 255U)       );
+      }
+    }
 
     memcpy (vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
     memcpy (idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));

@@ -30,6 +30,7 @@
 
 bool SK_ImGui_WantGamepadCapture  (void);
 bool SK_ImGui_WantMouseCapture    (void);
+bool SK_ImGui_WantMouseCaptureEx  (DWORD dwReasonMask = 0xFFFF);
 bool SK_ImGui_WantKeyboardCapture (void);
 bool SK_ImGui_WantTextCapture     (void);
 

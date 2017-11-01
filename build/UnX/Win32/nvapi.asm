@@ -34,53 +34,53 @@ _NvAPI_GetGPUIDFromPhysicalGPU DD 01H DUP (?)
 ?nv_hardware@NVAPI@sk@@3_NA DB 01H DUP (?)		; sk::NVAPI::nv_hardware
 _BSS	ENDS
 CONST	SEGMENT
-$SG166133 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166141 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166134 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166142 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166135 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166143 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166136 DB	'DRS_CreateSession (&hSession)', 00H
+$SG166144 DB	'DRS_CreateSession (&hSession)', 00H
 	ORG $+2
-$SG166138 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166146 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166139 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166147 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166140 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166148 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166141 DB	'DRS_LoadSettings (hSession)', 00H
-$SG166144 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
+$SG166149 DB	'DRS_LoadSettings (hSession)', 00H
+$SG166152 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
 	DB	't', 00H, 00H, 00H
-$SG166147 DB	'a', 00H, 'u', 00H, 't', 00H, 'o', 00H, 00H, 00H
+$SG166155 DB	'a', 00H, 'u', 00H, 't', 00H, 'o', 00H, 00H, 00H
 	ORG $+2
-$SG166150 DB	's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H
+$SG166158 DB	's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG166153 DB	'a', 00H, 'f', 00H, 'r', 00H, 00H, 00H
-$SG166156 DB	'a', 00H, 'f', 00H, 'r', 00H, '2', 00H, 00H, 00H
+$SG166161 DB	'a', 00H, 'f', 00H, 'r', 00H, 00H, 00H
+$SG166164 DB	'a', 00H, 'f', 00H, 'r', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG166159 DB	's', 00H, 'f', 00H, 'r', 00H, 00H, 00H
-$SG166163 DB	'3', 00H, 'a', 00H, 'f', 00H, 'r', 00H, 00H, 00H
+$SG166167 DB	's', 00H, 'f', 00H, 'r', 00H, 00H, 00H
+$SG166171 DB	'3', 00H, 'a', 00H, 'f', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG166164 DB	'a', 00H, 'f', 00H, 'r', 00H, ' ', 00H, 'o', 00H, 'f', 00H
+$SG166172 DB	'a', 00H, 'f', 00H, 'r', 00H, ' ', 00H, 'o', 00H, 'f', 00H
 	DB	' ', 00H, 's', 00H, 'f', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG166165 DB	'a', 00H, 'f', 00H, 'r', 00H, '3', 00H, 00H, 00H
+$SG166173 DB	'a', 00H, 'f', 00H, 'r', 00H, '3', 00H, 00H, 00H
 	ORG $+2
-$SG166166 DB	'a', 00H, 'f', 00H, 'r', 00H, ' ', 00H, 'o', 00H, 'f', 00H
+$SG166174 DB	'a', 00H, 'f', 00H, 'r', 00H, ' ', 00H, 'o', 00H, 'f', 00H
 	DB	' ', 00H, 's', 00H, 'f', 00H, 'r', 00H, ' ', 00H, ' ', 00H, 'f'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, 'b', 00H, 'a', 00H, 'c', 00H
 	DB	'k', 00H, ' ', 00H, '3', 00H, 'a', 00H, 'f', 00H, 'r', 00H, 00H
 	DB	00H
-$SG166167 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+$SG166175 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '>', 00H, '>', 00H, ' ', 00H, 'U', 00H, 'n', 00H, 'k', 00H
 	DB	'n', 00H, 'o', 00H, 'w', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'L'
@@ -91,26 +91,26 @@ $SG166167 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, '''', 00H, 'A', 00H
 	DB	'u', 00H, 't', 00H, 'o', 00H, '''', 00H, 00H, 00H
 	ORG $+2
-$SG166170 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
+$SG166178 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
 	DB	't', 00H, 00H, 00H
-$SG166173 DB	'a', 00H, 'u', 00H, 't', 00H, 'o', 00H, 00H, 00H
+$SG166181 DB	'a', 00H, 'u', 00H, 't', 00H, 'o', 00H, 00H, 00H
 	ORG $+2
-$SG166177 DB	'o', 00H, 'n', 00H, 'e', 00H, 00H, 00H
-$SG166178 DB	'1', 00H, 00H, 00H
-$SG166182 DB	't', 00H, 'w', 00H, 'o', 00H, 00H, 00H
-$SG166183 DB	'2', 00H, 00H, 00H
-$SG166187 DB	't', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 00H, 00H
-$SG166188 DB	'3', 00H, 00H, 00H
-$SG166192 DB	'f', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 00H, 00H
+$SG166185 DB	'o', 00H, 'n', 00H, 'e', 00H, 00H, 00H
+$SG166186 DB	'1', 00H, 00H, 00H
+$SG166190 DB	't', 00H, 'w', 00H, 'o', 00H, 00H, 00H
+$SG166191 DB	'2', 00H, 00H, 00H
+$SG166195 DB	't', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 00H, 00H
+$SG166196 DB	'3', 00H, 00H, 00H
+$SG166200 DB	'f', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG166193 DB	'4', 00H, 00H, 00H
-$SG166196 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166201 DB	'4', 00H, 00H, 00H
+$SG166204 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166194 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+$SG166202 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '>', 00H, '>', 00H, ' ', 00H, 'U', 00H, 'n', 00H, 'k', 00H
 	DB	'n', 00H, 'o', 00H, 'w', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'L'
@@ -121,123 +121,123 @@ $SG166194 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	00H, ' ', 00H, 'b', 00H, 'a', 00H, 'c', 00H, 'k', 00H, ' ', 00H
 	DB	't', 00H, 'o', 00H, ' ', 00H, '''', 00H, 'A', 00H, 'u', 00H, 't'
 	DB	00H, 'o', 00H, '''', 00H, 00H, 00H
-$SG166197 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166205 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166198 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166206 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166199 DB	'DRS_FindApplicationByName ( hSession, (NvU16 *)app_name.'
+$SG166207 DB	'DRS_FindApplicationByName ( hSession, (NvU16 *)app_name.'
 	DB	'c_str (), &hProfile, &app )', 00H
-$SG166202 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166210 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166203 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166211 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166204 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166212 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166205 DB	'DRS_CreateProfile (hSession, &custom_profile, &hProfile)'
+$SG166213 DB	'DRS_CreateProfile (hSession, &custom_profile, &hProfile)'
 	DB	00H
 	ORG $+3
-$SG166208 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166216 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166209 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166217 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166210 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166218 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166211 DB	'DRS_FindProfileByName ( hSession, (NvU16 *)friendly_name'
+$SG166219 DB	'DRS_FindProfileByName ( hSession, (NvU16 *)friendly_name'
 	DB	'.c_str (), &hProfile)', 00H
 	ORG $+2
-$SG166214 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166222 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166215 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166223 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166216 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166224 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166217 DB	'DRS_CreateApplication (hSession, hProfile, &app)', 00H
+$SG166225 DB	'DRS_CreateApplication (hSession, hProfile, &app)', 00H
 	ORG $+3
-$SG166219 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166227 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166220 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166228 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166221 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166229 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166222 DB	'DRS_SaveSettings (hSession)', 00H
-$SG166224 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166230 DB	'DRS_SaveSettings (hSession)', 00H
+$SG166232 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166225 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166233 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166226 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166234 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166229 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166237 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166227 DB	'DRS_GetSetting (hSession, hProfile, render_mode_enum, &m'
+$SG166235 DB	'DRS_GetSetting (hSession, hProfile, render_mode_enum, &m'
 	DB	'ode_val)', 00H
 	ORG $+3
-$SG166230 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166238 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166231 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166239 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166234 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166242 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166232 DB	'DRS_GetSetting (hSession, hProfile, gpu_count_enum, &gpu'
+$SG166240 DB	'DRS_GetSetting (hSession, hProfile, gpu_count_enum, &gpu'
 	DB	'_count_val)', 00H
-$SG166235 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166243 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166236 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166244 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166240 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166248 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166237 DB	'DRS_GetSetting (hSession, hProfile, compat_bits_enum, &c'
+$SG166245 DB	'DRS_GetSetting (hSession, hProfile, compat_bits_enum, &c'
 	DB	'ompat_bits_val)', 00H
-$SG166241 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166249 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166242 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166250 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166243 DB	'DRS_SetSetting (hSession, hProfile, &compat_bits_val)', 00H
+$SG166251 DB	'DRS_SetSetting (hSession, hProfile, &compat_bits_val)', 00H
 	ORG $+2
-$SG166245 DB	'I', 00H, 'n', 00H, 's', 00H, 'u', 00H, 'f', 00H, 'f', 00H
+$SG166253 DB	'I', 00H, 'n', 00H, 's', 00H, 'u', 00H, 'f', 00H, 'f', 00H
 	DB	'i', 00H, 'c', 00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, ' '
 	DB	00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'P', 00H
 	DB	'r', 00H, 'i', 00H, 'v', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'g'
 	DB	00H, 'e', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG166249 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166257 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166246 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
+$SG166254 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
 	DB	' ', 00H, 'r', 00H, 'u', 00H, 'n', 00H, ' ', 00H, 't', 00H, 'h'
 	DB	00H, 'i', 00H, 's', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H
 	DB	'e', 00H, ' ', 00H, 'a', 00H, 's', 00H, ' ', 00H, 'A', 00H, 'd'
@@ -257,69 +257,69 @@ $SG166246 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
 	DB	'I', 00H, ' ', 00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r'
 	DB	00H, 'i', 00H, 'd', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG166250 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166258 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166251 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166259 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166252 DB	'DRS_DestroySession (hSession)', 00H
+$SG166260 DB	'DRS_DestroySession (hSession)', 00H
 	ORG $+2
-$SG166256 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166264 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166257 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166265 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166258 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166266 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166259 DB	'DRS_SetSetting (hSession, hProfile, &mode_val)', 00H
+$SG166267 DB	'DRS_SetSetting (hSession, hProfile, &mode_val)', 00H
 	ORG $+1
-$SG166262 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166270 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166263 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166271 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166264 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166272 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166265 DB	'DRS_SetSetting (hSession, hProfile, &gpu_count_val)', 00H
-$SG166268 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166273 DB	'DRS_SetSetting (hSession, hProfile, &gpu_count_val)', 00H
+$SG166276 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166269 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166277 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166270 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166278 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166271 DB	'DRS_SaveSettings (hSession)', 00H
-$SG166273 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166279 DB	'DRS_SaveSettings (hSession)', 00H
+$SG166281 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166274 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166282 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166275 DB	'sk::NVAPI::SetSLIOverride', 00H
+$SG166283 DB	'sk::NVAPI::SetSLIOverride', 00H
 	ORG $+2
-$SG166276 DB	'DRS_DestroySession (hSession)', 00H
+$SG166284 DB	'DRS_DestroySession (hSession)', 00H
 	ORG $+2
-$SG166334 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166342 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166335 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166343 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166336 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166344 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG165312 DB	'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H, ' ', 00H, '%', 00H
+$SG165320 DB	'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H, ' ', 00H, '%', 00H
 	DB	'u', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' ', 00H, '%', 00H, 'h'
 	DB	00H, 's', 00H, ' ', 00H, '(', 00H, 'i', 00H, 'n', 00H, ' ', 00H
 	DB	'%', 00H, 'h', 00H, 's', 00H, ' ', 00H, '(', 00H, '.', 00H, '.'
@@ -333,242 +333,242 @@ $SG165312 DB	'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H, ' ', 00H, '%', 00H
 	DB	' ', 00H, '%', 00H, 'h', 00H, 's', 00H, ' ', 00H, '<', 00H, '<'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG166337 DB	'DRS_CreateSession (&hSession)', 00H
+$SG166345 DB	'DRS_CreateSession (&hSession)', 00H
 	ORG $+2
-$SG166339 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166347 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166340 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166348 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166341 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166349 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG166342 DB	'DRS_LoadSettings (hSession)', 00H
-$SG166344 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166350 DB	'DRS_LoadSettings (hSession)', 00H
+$SG166352 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166345 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166353 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166346 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166354 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG165326 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165334 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166347 DB	'DRS_FindApplicationByName ( hSession, (NvU16 *)app_name.'
+$SG166355 DB	'DRS_FindApplicationByName ( hSession, (NvU16 *)app_name.'
 	DB	'c_str (), &hProfile, &app )', 00H
-$SG166351 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166359 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165327 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165335 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166352 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166360 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165328 DB	'sk::NVAPI::CountPhysicalGPUs', 00H
+$SG165336 DB	'sk::NVAPI::CountPhysicalGPUs', 00H
 	ORG $+3
-$SG166353 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166361 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG165329 DB	'EnumPhysicalGPUs (gpus, &gpu_count)', 00H
-$SG166354 DB	'DRS_CreateProfile (hSession, &custom_profile, &hProfile)'
+$SG165337 DB	'EnumPhysicalGPUs (gpus, &gpu_count)', 00H
+$SG166362 DB	'DRS_CreateProfile (hSession, &custom_profile, &hProfile)'
 	DB	00H
 	ORG $+3
-$SG166357 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166365 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166358 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166366 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166359 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166367 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG166360 DB	'DRS_FindProfileByName ( hSession, (NvU16 *)friendly_name'
+$SG166368 DB	'DRS_FindProfileByName ( hSession, (NvU16 *)friendly_name'
 	DB	'.c_str (), &hProfile)', 00H
 	ORG $+2
-$SG166363 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166371 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166364 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166372 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166365 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166373 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG166366 DB	'DRS_CreateApplication (hSession, hProfile, &app)', 00H
+$SG166374 DB	'DRS_CreateApplication (hSession, hProfile, &app)', 00H
 	ORG $+3
-$SG166368 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166376 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166369 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166377 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166370 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166378 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG166371 DB	'DRS_SaveSettings (hSession)', 00H
-$SG166373 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166379 DB	'DRS_SaveSettings (hSession)', 00H
+$SG166381 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166374 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166382 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166375 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166383 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG166376 DB	'DRS_CreateApplication (hSession, hProfile, &app)', 00H
+$SG166384 DB	'DRS_CreateApplication (hSession, hProfile, &app)', 00H
 	ORG $+3
-$SG166378 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166386 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166379 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166387 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166380 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166388 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG166381 DB	'DRS_SaveSettings (hSession)', 00H
-$SG166383 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166389 DB	'DRS_SaveSettings (hSession)', 00H
+$SG166391 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166384 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166392 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166385 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166393 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG166386 DB	'DRS_SaveSettings (hSession)', 00H
-$SG166388 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG166394 DB	'DRS_SaveSettings (hSession)', 00H
+$SG166396 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166389 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG166397 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG166390 DB	'SK_NvAPI_AddLauncherToProf', 00H
+$SG166398 DB	'SK_NvAPI_AddLauncherToProf', 00H
 	ORG $+1
-$SG166391 DB	'DRS_DestroySession (hSession)', 00H
+$SG166399 DB	'DRS_DestroySession (hSession)', 00H
 	ORG $+2
-$SG166396 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
+$SG166404 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
 	DB	'o', 00H, 'f', 00H, ' ', 00H, 'Z', 00H, 'e', 00H, 's', 00H, 't'
 	DB	00H, 'i', 00H, 'r', 00H, 'i', 00H, 'a', 00H, 00H, 00H
-$SG165392 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165400 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165393 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165401 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165394 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
+$SG165402 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
 	ORG $+3
-$SG165395 DB	'EnumPhysicalGPUs (_nv_dxgi_gpus, &gpu_count)', 00H
+$SG165403 DB	'EnumPhysicalGPUs (_nv_dxgi_gpus, &gpu_count)', 00H
 	ORG $+3
-$SG165397 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165405 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165398 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165406 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165399 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
+$SG165407 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
 	ORG $+3
-$SG165400 DB	'EnumPhysicalGPUs (_nv_dxgi_gpus, &gpu_count)', 00H
+$SG165408 DB	'EnumPhysicalGPUs (_nv_dxgi_gpus, &gpu_count)', 00H
 	ORG $+3
-$SG166426 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
+$SG166434 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
 	DB	'O', 00H, 'f', 00H, ' ', 00H, 'Z', 00H, 'e', 00H, 's', 00H, 't'
 	DB	00H, 'i', 00H, 'r', 00H, 'i', 00H, 'a', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
-$SG165402 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165410 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165403 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165411 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165404 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
+$SG165412 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
 	ORG $+3
-$SG165405 DB	'GetLogicalGPUFromPhysicalGPU (_nv_dxgi_gpus [i], &logica'
+$SG165413 DB	'GetLogicalGPUFromPhysicalGPU (_nv_dxgi_gpus [i], &logica'
 	DB	'l)', 00H
 	ORG $+1
-$SG165407 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165415 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG166432 DB	00H, 00H
+$SG166440 DB	00H, 00H
 	ORG $+2
-$SG165408 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165416 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165409 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
+$SG165417 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
 	ORG $+3
-$SG165410 DB	'GetPhysicalGPUsFromLogicalGPU (logical, phys, &phys_coun'
+$SG165418 DB	'GetPhysicalGPUsFromLogicalGPU (logical, phys, &phys_coun'
 	DB	't)', 00H
 	ORG $+1
-$SG165412 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165420 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165413 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165421 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165414 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
+$SG165422 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
 	ORG $+3
-$SG165415 DB	'GPU_GetFullName (_nv_dxgi_gpus [i], name)', 00H
+$SG165423 DB	'GPU_GetFullName (_nv_dxgi_gpus [i], name)', 00H
 	ORG $+2
-$SG165417 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165425 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165418 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165426 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165419 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
+$SG165427 DB	'sk::NVAPI::EnumGPUs_DXGI', 00H
 	ORG $+3
-$SG165420 DB	'GPU_GetMemoryInfo (_nv_dxgi_gpus [i], &meminfo)', 00H
-$SG165445 DB	'%', 00H, 'u', 00H, '.', 00H, '%', 00H, 'u', 00H, 00H, 00H
-$SG165480 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165428 DB	'GPU_GetMemoryInfo (_nv_dxgi_gpus [i], &meminfo)', 00H
+$SG165453 DB	'%', 00H, 'u', 00H, '.', 00H, '%', 00H, 'u', 00H, 00H, 00H
+$SG165488 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165481 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165489 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165482 DB	'sk::NVAPI::InitializeLibrary', 00H
+$SG165490 DB	'sk::NVAPI::InitializeLibrary', 00H
 	ORG $+3
-$SG165483 DB	'Initialize ()', 00H
+$SG165491 DB	'Initialize ()', 00H
 	ORG $+2
-$SG165486 DB	'n', 00H, 'v', 00H, 'a', 00H, 'p', 00H, 'i', 00H, '.', 00H
+$SG165494 DB	'n', 00H, 'v', 00H, 'a', 00H, 'p', 00H, 'i', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG165489 DB	'nvapi_QueryInterface', 00H
+$SG165497 DB	'nvapi_QueryInterface', 00H
 	ORG $+3
-$SG165491 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
+$SG165499 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, '_', 00H, 'G', 00H, 'P', 00H, 'U', 00H, '_', 00H, 'G', 00H
 	DB	'e', 00H, 't', 00H, 'R', 00H, 'a', 00H, 'm', 00H, 'T', 00H, 'y'
 	DB	00H, 'p', 00H, 'e', 00H, ' ', 00H, 00H, 00H
-$SG165493 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
+$SG165501 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, '_', 00H, 'G', 00H, 'P', 00H, 'U', 00H, '_', 00H, 'G', 00H
 	DB	'e', 00H, 't', 00H, 'F', 00H, 'B', 00H, 'W', 00H, 'i', 00H, 'd'
@@ -576,19 +576,19 @@ $SG165493 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
 	DB	'o', 00H, 'c', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
 	DB	00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG165495 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
+$SG165503 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, '_', 00H, 'G', 00H, 'P', 00H, 'U', 00H, '_', 00H, 'G', 00H
 	DB	'e', 00H, 't', 00H, 'P', 00H, 'C', 00H, 'I', 00H, 'E', 00H, 'I'
 	DB	00H, 'n', 00H, 'f', 00H, 'o', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG165648 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165656 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165497 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
+$SG165505 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, '_', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H, 'h', 00H
 	DB	'y', 00H, 's', 00H, 'i', 00H, 'c', 00H, 'a', 00H, 'l', 00H, 'G'
@@ -596,7 +596,7 @@ $SG165497 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
 	DB	'G', 00H, 'P', 00H, 'U', 00H, 'I', 00H, 'D', 00H, ' ', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG165499 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
+$SG165507 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, '_', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'G', 00H, 'P', 00H
 	DB	'U', 00H, 'I', 00H, 'D', 00H, 'F', 00H, 'r', 00H, 'o', 00H, 'm'
@@ -604,149 +604,149 @@ $SG165499 DB	'm', 00H, 'i', 00H, 's', 00H, 's', 00H, 'i', 00H, 'n', 00H
 	DB	'a', 00H, 'l', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ' ', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG165500 DB	'u', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+$SG165508 DB	'u', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H, ' ', 00H
 	DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'L', 00H, 'i', 00H, 'b'
 	DB	00H, 'r', 00H, 'a', 00H, 'r', 00H, 'y', 00H, ' ', 00H, '(', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, ')', 00H, ' ', 00H, 00H, 00H
-$SG165649 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165657 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165650 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165658 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165651 DB	'DRS_CreateSession (&hSession)', 00H
+$SG165659 DB	'DRS_CreateSession (&hSession)', 00H
 	ORG $+2
-$SG165653 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165661 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165654 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165662 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165655 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165663 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165656 DB	'DRS_LoadSettings (hSession)', 00H
-$SG165659 DB	'O', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H
+$SG165664 DB	'DRS_LoadSettings (hSession)', 00H
+$SG165667 DB	'O', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H
 	DB	'd', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG165663 DB	'Y', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG165664 DB	'O', 00H, 'n', 00H, 00H, 00H
+$SG165671 DB	'Y', 00H, 'e', 00H, 's', 00H, 00H, 00H
+$SG165672 DB	'O', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165668 DB	'N', 00H, 'o', 00H, 00H, 00H
+$SG165676 DB	'N', 00H, 'o', 00H, 00H, 00H
 	ORG $+2
-$SG165669 DB	'O', 00H, 'f', 00H, 'f', 00H, 00H, 00H
-$SG165671 DB	'E', 00H, 'n', 00H, 'h', 00H, 'a', 00H, 'n', 00H, 'c', 00H
+$SG165677 DB	'O', 00H, 'f', 00H, 'f', 00H, 00H, 00H
+$SG165679 DB	'E', 00H, 'n', 00H, 'h', 00H, 'a', 00H, 'n', 00H, 'c', 00H
 	DB	'e', 00H, 00H, 00H
-$SG165674 DB	'M', 00H, 'e', 00H, 't', 00H, 'h', 00H, 'o', 00H, 'd', 00H
+$SG165682 DB	'M', 00H, 'e', 00H, 't', 00H, 'h', 00H, 'o', 00H, 'd', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG165677 DB	'2', 00H, 'x', 00H, 'M', 00H, 'S', 00H, 'A', 00H, 'A', 00H
+$SG165685 DB	'2', 00H, 'x', 00H, 'M', 00H, 'S', 00H, 'A', 00H, 'A', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG165680 DB	'4', 00H, 'x', 00H, 'M', 00H, 'S', 00H, 'A', 00H, 'A', 00H
+$SG165688 DB	'4', 00H, 'x', 00H, 'M', 00H, 'S', 00H, 'A', 00H, 'A', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG165683 DB	'8', 00H, 'x', 00H, 'M', 00H, 'S', 00H, 'A', 00H, 'A', 00H
+$SG165691 DB	'8', 00H, 'x', 00H, 'M', 00H, 'S', 00H, 'A', 00H, 'A', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG165686 DB	'1', 00H, '6', 00H, 'x', 00H, 'M', 00H, 'S', 00H, 'A', 00H
+$SG165694 DB	'1', 00H, '6', 00H, 'x', 00H, 'M', 00H, 'S', 00H, 'A', 00H
 	DB	'A', 00H, 00H, 00H
-$SG165688 DB	'0', 00H, 'x', 00H, 00H, 00H
+$SG165696 DB	'0', 00H, 'x', 00H, 00H, 00H
 	ORG $+2
-$SG165691 DB	'R', 00H, 'e', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H
+$SG165699 DB	'R', 00H, 'e', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H
 	DB	'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG165694 DB	'2', 00H, 'x', 00H, 'S', 00H, 'G', 00H, 'S', 00H, 'S', 00H
+$SG165702 DB	'2', 00H, 'x', 00H, 'S', 00H, 'G', 00H, 'S', 00H, 'S', 00H
 	DB	'A', 00H, 'A', 00H, 00H, 00H
 	ORG $+2
-$SG165697 DB	'4', 00H, 'x', 00H, 'S', 00H, 'G', 00H, 'S', 00H, 'S', 00H
+$SG165705 DB	'4', 00H, 'x', 00H, 'S', 00H, 'G', 00H, 'S', 00H, 'S', 00H
 	DB	'A', 00H, 'A', 00H, 00H, 00H
 	ORG $+2
-$SG165700 DB	'8', 00H, 'x', 00H, 'S', 00H, 'G', 00H, 'S', 00H, 'S', 00H
+$SG165708 DB	'8', 00H, 'x', 00H, 'S', 00H, 'G', 00H, 'S', 00H, 'S', 00H
 	DB	'A', 00H, 'A', 00H, 00H, 00H
 	ORG $+2
-$SG165702 DB	'0', 00H, 'x', 00H, 00H, 00H
+$SG165710 DB	'0', 00H, 'x', 00H, 00H, 00H
 	ORG $+2
-$SG165705 DB	'A', 00H, 'n', 00H, 't', 00H, 'i', 00H, 'A', 00H, 'l', 00H
+$SG165713 DB	'A', 00H, 'n', 00H, 't', 00H, 'i', 00H, 'A', 00H, 'l', 00H
 	DB	'i', 00H, 'a', 00H, 's', 00H, 'F', 00H, 'i', 00H, 'x', 00H, 00H
 	DB	00H
-	ORG $+2
-$SG165709 DB	'O', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG165710 DB	'Y', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG165713 DB	'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'B', 00H, 'i', 00H
-	DB	'a', 00H, 's', 00H, 'A', 00H, 'd', 00H, 'j', 00H, 'u', 00H, 's'
-	DB	00H, 't', 00H, 00H, 00H
 	ORG $+2
 $SG165717 DB	'O', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
 $SG165718 DB	'Y', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG165720 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'a', 00H, 't', 00H
+$SG165721 DB	'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'B', 00H, 'i', 00H
+	DB	'a', 00H, 's', 00H, 'A', 00H, 'd', 00H, 'j', 00H, 'u', 00H, 's'
+	DB	00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG165725 DB	'O', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG165726 DB	'Y', 00H, 'e', 00H, 's', 00H, 00H, 00H
+$SG165728 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'a', 00H, 't', 00H
 	DB	'i', 00H, 'b', 00H, 'i', 00H, 'l', 00H, 'i', 00H, 't', 00H, 'y'
 	DB	00H, 'B', 00H, 'i', 00H, 't', 00H, 's', 00H, 00H, 00H
-$SG165722 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165730 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165723 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165731 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165724 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165732 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165725 DB	'DRS_FindApplicationByName ( hSession, (NvU16 *)app_name.'
+$SG165733 DB	'DRS_FindApplicationByName ( hSession, (NvU16 *)app_name.'
 	DB	'c_str (), &hProfile, &app )', 00H
-$SG165728 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165736 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165729 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165737 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165730 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165738 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165731 DB	'DRS_CreateProfile (hSession, &custom_profile, &hProfile)'
+$SG165739 DB	'DRS_CreateProfile (hSession, &custom_profile, &hProfile)'
 	DB	00H
 	ORG $+3
-$SG165734 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165742 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165735 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165743 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165736 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165744 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165737 DB	'DRS_FindProfileByName ( hSession, (NvU16 *)friendly_name'
+$SG165745 DB	'DRS_FindProfileByName ( hSession, (NvU16 *)friendly_name'
 	DB	'.c_str (), &hProfile)', 00H
 	ORG $+2
-$SG165741 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165749 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165742 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165750 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165743 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165751 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165744 DB	'DRS_CreateApplication (hSession, hProfile, &app)', 00H
+$SG165752 DB	'DRS_CreateApplication (hSession, hProfile, &app)', 00H
 	ORG $+3
-$SG165746 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165754 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165747 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165755 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165748 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165756 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165749 DB	'DRS_SaveSettings (hSession)', 00H
-$SG165750 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+$SG165757 DB	'DRS_SaveSettings (hSession)', 00H
+$SG165758 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'f', 00H, 'i', 00H, 'n'
@@ -758,119 +758,119 @@ $SG165750 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H, '''', 00H, '%', 00H, 's'
 	DB	00H, '''', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	00H, 00H
-$SG165752 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165760 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165753 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165761 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165754 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165762 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165755 DB	'DRS_DestroySession (hSession)', 00H
+$SG165763 DB	'DRS_DestroySession (hSession)', 00H
 	ORG $+2
-$SG165757 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165765 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165758 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165766 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165759 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165767 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165760 DB	'DRS_GetSetting (hSession, hProfile, method_enum, &method'
+$SG165768 DB	'DRS_GetSetting (hSession, hProfile, method_enum, &method'
 	DB	'_val)', 00H
 	ORG $+2
-$SG165762 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165770 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165763 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165771 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165764 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165772 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165767 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165775 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165765 DB	'DRS_GetSetting (hSession, hProfile, replay_mode_enum, &r'
+$SG165773 DB	'DRS_GetSetting (hSession, hProfile, replay_mode_enum, &r'
 	DB	'eplay_mode_val)', 00H
-$SG165768 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165776 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165769 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165777 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165770 DB	'DRS_GetSetting (hSession, hProfile, aa_fix_enum, &aa_fix'
+$SG165778 DB	'DRS_GetSetting (hSession, hProfile, aa_fix_enum, &aa_fix'
 	DB	'_val)', 00H
 	ORG $+2
-$SG165772 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165780 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165773 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165781 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165774 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165782 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165777 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165785 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165775 DB	'DRS_GetSetting (hSession, hProfile, override_enum, &over'
+$SG165783 DB	'DRS_GetSetting (hSession, hProfile, override_enum, &over'
 	DB	'ride_val)', 00H
 	ORG $+2
-$SG165778 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165786 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165779 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165787 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165782 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165790 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165780 DB	'DRS_GetSetting (hSession, hProfile, autobias_enum, &auto'
+$SG165788 DB	'DRS_GetSetting (hSession, hProfile, autobias_enum, &auto'
 	DB	'bias_val)', 00H
 	ORG $+2
-$SG165783 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165791 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165784 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165792 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165788 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165796 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165785 DB	'DRS_GetSetting (hSession, hProfile, compat_bits_enum, &c'
+$SG165793 DB	'DRS_GetSetting (hSession, hProfile, compat_bits_enum, &c'
 	DB	'ompat_bits_val)', 00H
-$SG165789 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165797 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165790 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165798 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165791 DB	'DRS_SetSetting (hSession, hProfile, &compat_bits_val)', 00H
+$SG165799 DB	'DRS_SetSetting (hSession, hProfile, &compat_bits_val)', 00H
 	ORG $+2
-$SG165793 DB	'I', 00H, 'n', 00H, 's', 00H, 'u', 00H, 'f', 00H, 'f', 00H
+$SG165801 DB	'I', 00H, 'n', 00H, 's', 00H, 'u', 00H, 'f', 00H, 'f', 00H
 	DB	'i', 00H, 'c', 00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, ' '
 	DB	00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'P', 00H
 	DB	'r', 00H, 'i', 00H, 'v', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'g'
 	DB	00H, 'e', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG165797 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165805 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165794 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
+$SG165802 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
 	DB	' ', 00H, 'r', 00H, 'u', 00H, 'n', 00H, ' ', 00H, 't', 00H, 'h'
 	DB	00H, 'i', 00H, 's', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H
 	DB	'e', 00H, ' ', 00H, 'a', 00H, 's', 00H, ' ', 00H, 'A', 00H, 'd'
@@ -891,48 +891,36 @@ $SG165794 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
 	DB	00H, ' ', 00H, 'A', 00H, 'A', 00H, ' ', 00H, 'O', 00H, 'v', 00H
 	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 00H
 	DB	00H
-$SG165798 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165806 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165799 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165807 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165800 DB	'DRS_DestroySession (hSession)', 00H
+$SG165808 DB	'DRS_DestroySession (hSession)', 00H
 	ORG $+2
-$SG165802 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165810 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165803 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165811 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165804 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165812 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165805 DB	'DRS_DestroySession (hSession)', 00H
+$SG165813 DB	'DRS_DestroySession (hSession)', 00H
 	ORG $+2
-$SG165808 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165816 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165809 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165817 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165810 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165818 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165811 DB	'DRS_SetSetting (hSession, hProfile, &method_val)', 00H
+$SG165819 DB	'DRS_SetSetting (hSession, hProfile, &method_val)', 00H
 	ORG $+3
-$SG165814 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
-	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
-	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
-	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
-	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG165815 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
-	ORG $+1
-$SG165816 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
-	ORG $+3
-$SG165817 DB	'DRS_SetSetting (hSession, hProfile, &replay_mode_val)', 00H
-	ORG $+2
 $SG165822 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
@@ -943,15 +931,27 @@ $SG165823 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
 $SG165824 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165825 DB	'DRS_SetSetting (hSession, hProfile, &aa_fix_val)', 00H
-	ORG $+3
-$SG165829 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165825 DB	'DRS_SetSetting (hSession, hProfile, &replay_mode_val)', 00H
+	ORG $+2
+$SG165830 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165826 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+$SG165831 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+	ORG $+1
+$SG165832 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+	ORG $+3
+$SG165833 DB	'DRS_SetSetting (hSession, hProfile, &aa_fix_val)', 00H
+	ORG $+3
+$SG165837 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
+	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
+	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
+	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG165834 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H, 'a', 00H
 	DB	'n', 00H, 'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 's', 00H, 'e'
@@ -966,46 +966,46 @@ $SG165826 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, '.', 00H, '.', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG165830 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165838 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165831 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165839 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165832 DB	'DRS_SetSetting (hSession, hProfile, &autobias_val)', 00H
+$SG165840 DB	'DRS_SetSetting (hSession, hProfile, &autobias_val)', 00H
 	ORG $+1
-$SG165835 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165843 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165836 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165844 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165837 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165845 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165838 DB	'DRS_SetSetting (hSession, hProfile, &override_val)', 00H
+$SG165846 DB	'DRS_SetSetting (hSession, hProfile, &override_val)', 00H
 	ORG $+1
-$SG165841 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165849 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165842 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165850 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165843 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165851 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165844 DB	'DRS_SaveSettings (hSession)', 00H
-$SG165846 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
+$SG165852 DB	'DRS_SaveSettings (hSession)', 00H
+$SG165854 DB	'E', 00H, 'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, ' ', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'P', 00H, 'I', 00H
 	DB	' ', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG165847 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
+$SG165855 DB	'c:\users\andon\source\repos\specialk\src\nvapi.cpp', 00H
 	ORG $+1
-$SG165848 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
+$SG165856 DB	'SK_NvAPI_SetAntiAliasingOverride', 00H
 	ORG $+3
-$SG165849 DB	'DRS_DestroySession (hSession)', 00H
+$SG165857 DB	'DRS_DestroySession (hSession)', 00H
 CONST	ENDS
 PUBLIC	?wcsstr@@YAPA_WPA_WPB_W@Z			; wcsstr
 PUBLIC	_wmemcmp
@@ -1799,7 +1799,7 @@ text$di	SEGMENT
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG166432
+	push	OFFSET $SG166440
 	mov	ecx, OFFSET ?launcher_name@NVAPI@sk@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@A ; sk::NVAPI::launcher_name
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -1953,7 +1953,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG166426
+	push	OFFSET $SG166434
 	mov	ecx, OFFSET ?app_name@NVAPI@sk@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@A ; sk::NVAPI::app_name
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -2107,7 +2107,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG166396
+	push	OFFSET $SG166404
 	mov	ecx, OFFSET ?friendly_name@NVAPI@sk@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@A ; sk::NVAPI::friendly_name
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -2270,10 +2270,10 @@ $LN2@SK_NvAPI_A:
 	je	SHORT $LN53@SK_NvAPI_A
 	test	eax, eax
 	je	SHORT $LN53@SK_NvAPI_A
-	push	OFFSET $SG166335
-	push	OFFSET $SG166336
+	push	OFFSET $SG166343
+	push	OFFSET $SG166344
 	push	1317					; 00000525H
-	push	OFFSET $SG166337
+	push	OFFSET $SG166345
 	push	eax
 	lea	eax, DWORD PTR $T14[ebp]
 	push	eax
@@ -2299,7 +2299,7 @@ $LN43@SK_NvAPI_A:
 ; 1317 :   NVAPI_CALL (DRS_CreateSession (&hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166334
+	push	OFFSET $SG166342
 	push	eax
 	push	0
 	call	edi
@@ -2343,10 +2343,10 @@ $LN53@SK_NvAPI_A:
 	je	SHORT $LN102@SK_NvAPI_A
 	test	eax, eax
 	je	SHORT $LN102@SK_NvAPI_A
-	push	OFFSET $SG166340
-	push	OFFSET $SG166341
+	push	OFFSET $SG166348
+	push	OFFSET $SG166349
 	push	1318					; 00000526H
-	push	OFFSET $SG166342
+	push	OFFSET $SG166350
 	push	eax
 	lea	eax, DWORD PTR $T13[ebp]
 	push	eax
@@ -2372,7 +2372,7 @@ $LN92@SK_NvAPI_A:
 ; 1318 :   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166339
+	push	OFFSET $SG166347
 	push	eax
 	push	0
 	call	edi
@@ -2449,10 +2449,10 @@ $LN102@SK_NvAPI_A:
 	je	SHORT $LN170@SK_NvAPI_A
 	test	esi, esi
 	je	SHORT $LN170@SK_NvAPI_A
-	push	OFFSET $SG166345
-	push	OFFSET $SG166346
+	push	OFFSET $SG166353
+	push	OFFSET $SG166354
 	push	1333					; 00000535H
-	push	OFFSET $SG166347
+	push	OFFSET $SG166355
 	lea	eax, DWORD PTR $T12[ebp]
 	push	esi
 	push	eax
@@ -2478,7 +2478,7 @@ $LN160@SK_NvAPI_A:
 ; 1329 :   NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166344
+	push	OFFSET $SG166352
 	push	eax
 	push	0
 	call	edi
@@ -2568,10 +2568,10 @@ $LN170@SK_NvAPI_A:
 	je	SHORT $LN8@SK_NvAPI_A
 	test	esi, esi
 	je	SHORT $LN8@SK_NvAPI_A
-	push	OFFSET $SG166352
-	push	OFFSET $SG166353
+	push	OFFSET $SG166360
+	push	OFFSET $SG166361
 	push	1349					; 00000545H
-	push	OFFSET $SG166354
+	push	OFFSET $SG166362
 	lea	eax, DWORD PTR $T11[ebp]
 	push	esi
 	push	eax
@@ -2597,7 +2597,7 @@ $LN228@SK_NvAPI_A:
 ; 1349 :       NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166351
+	push	OFFSET $SG166359
 	push	eax
 	push	0
 	call	edi
@@ -2646,10 +2646,10 @@ $LN8@SK_NvAPI_A:
 	je	SHORT $LN10@SK_NvAPI_A
 	test	esi, esi
 	je	SHORT $LN522@SK_NvAPI_A
-	push	OFFSET $SG166358
-	push	OFFSET $SG166359
+	push	OFFSET $SG166366
+	push	OFFSET $SG166367
 	push	1358					; 0000054eH
-	push	OFFSET $SG166360
+	push	OFFSET $SG166368
 	lea	eax, DWORD PTR $T10[ebp]
 	push	esi
 	push	eax
@@ -2675,7 +2675,7 @@ $LN266@SK_NvAPI_A:
 ; 1355 :       NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166357
+	push	OFFSET $SG166365
 	push	eax
 	push	0
 	call	edi
@@ -2771,10 +2771,10 @@ $LN522@SK_NvAPI_A:
 	je	SHORT $LN12@SK_NvAPI_A
 	test	eax, eax
 	je	SHORT $LN12@SK_NvAPI_A
-	push	OFFSET $SG166364
-	push	OFFSET $SG166365
+	push	OFFSET $SG166372
+	push	OFFSET $SG166373
 	push	1372					; 0000055cH
-	push	OFFSET $SG166366
+	push	OFFSET $SG166374
 	push	eax
 	lea	eax, DWORD PTR $T9[ebp]
 	push	eax
@@ -2800,7 +2800,7 @@ $LN323@SK_NvAPI_A:
 ; 1372 :       NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166363
+	push	OFFSET $SG166371
 	push	eax
 	push	0
 	call	edi
@@ -2817,10 +2817,10 @@ $LN12@SK_NvAPI_A:
 	je	$LN15@SK_NvAPI_A
 	test	eax, eax
 	je	$LN15@SK_NvAPI_A
-	push	OFFSET $SG166369
-	push	OFFSET $SG166370
+	push	OFFSET $SG166377
+	push	OFFSET $SG166378
 	push	1373					; 0000055dH
-	push	OFFSET $SG166371
+	push	OFFSET $SG166379
 	push	eax
 	lea	eax, DWORD PTR $T8[ebp]
 	push	eax
@@ -2846,7 +2846,7 @@ $LN342@SK_NvAPI_A:
 ; 1373 :       NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166368
+	push	OFFSET $SG166376
 
 ; 1374 :     }
 ; 1375 :   } else {
@@ -2927,10 +2927,10 @@ $LN6@SK_NvAPI_A:
 	je	SHORT $LN14@SK_NvAPI_A
 	test	eax, eax
 	je	SHORT $LN14@SK_NvAPI_A
-	push	OFFSET $SG166374
-	push	OFFSET $SG166375
+	push	OFFSET $SG166382
+	push	OFFSET $SG166383
 	push	1386					; 0000056aH
-	push	OFFSET $SG166376
+	push	OFFSET $SG166384
 	push	eax
 	lea	eax, DWORD PTR $T7[ebp]
 	push	eax
@@ -2956,7 +2956,7 @@ $LN399@SK_NvAPI_A:
 ; 1386 :     NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166373
+	push	OFFSET $SG166381
 	push	eax
 	push	0
 	call	edi
@@ -2973,10 +2973,10 @@ $LN14@SK_NvAPI_A:
 	je	SHORT $LN15@SK_NvAPI_A
 	test	eax, eax
 	je	SHORT $LN15@SK_NvAPI_A
-	push	OFFSET $SG166379
-	push	OFFSET $SG166380
+	push	OFFSET $SG166387
+	push	OFFSET $SG166388
 	push	1387					; 0000056bH
-	push	OFFSET $SG166381
+	push	OFFSET $SG166389
 	push	eax
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
@@ -3002,7 +3002,7 @@ $LN418@SK_NvAPI_A:
 ; 1387 :     NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166378
+	push	OFFSET $SG166386
 $LN523@SK_NvAPI_A:
 	push	eax
 	push	0
@@ -3022,10 +3022,10 @@ $LN15@SK_NvAPI_A:
 	je	SHORT $LN447@SK_NvAPI_A
 	test	eax, eax
 	je	SHORT $LN447@SK_NvAPI_A
-	push	OFFSET $SG166384
-	push	OFFSET $SG166385
+	push	OFFSET $SG166392
+	push	OFFSET $SG166393
 	push	1390					; 0000056eH
-	push	OFFSET $SG166386
+	push	OFFSET $SG166394
 	push	eax
 	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
@@ -3051,7 +3051,7 @@ $LN437@SK_NvAPI_A:
 ; 1390 :   NVAPI_CALL (DRS_SaveSettings   (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166383
+	push	OFFSET $SG166391
 	push	eax
 	push	0
 	call	edi
@@ -3095,10 +3095,10 @@ $LN447@SK_NvAPI_A:
 	je	SHORT $LN496@SK_NvAPI_A
 	test	eax, eax
 	je	SHORT $LN496@SK_NvAPI_A
-	push	OFFSET $SG166389
-	push	OFFSET $SG166390
+	push	OFFSET $SG166397
+	push	OFFSET $SG166398
 	push	1391					; 0000056fH
-	push	OFFSET $SG166391
+	push	OFFSET $SG166399
 	push	eax
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -3124,7 +3124,7 @@ $LN486@SK_NvAPI_A:
 ; 1391 :   NVAPI_CALL (DRS_DestroySession (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166388
+	push	OFFSET $SG166396
 	push	eax
 	push	0
 	call	edi
@@ -3788,10 +3788,10 @@ $LN6@SK_NvAPI_S:
 	je	SHORT $LN7@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN7@SK_NvAPI_S
-	push	OFFSET $SG165649
-	push	OFFSET $SG165650
+	push	OFFSET $SG165657
+	push	OFFSET $SG165658
 	push	526					; 0000020eH
-	push	OFFSET $SG165651
+	push	OFFSET $SG165659
 	push	eax
 	lea	eax, DWORD PTR $T32[ebp]
 	push	eax
@@ -3817,7 +3817,7 @@ $LN124@SK_NvAPI_S:
 ; 526  :   NVAPI_CALL (DRS_CreateSession (&hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165648
+	push	OFFSET $SG165656
 	push	eax
 	push	0
 	call	esi
@@ -3834,10 +3834,10 @@ $LN7@SK_NvAPI_S:
 	je	SHORT $LN8@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN8@SK_NvAPI_S
-	push	OFFSET $SG165654
-	push	OFFSET $SG165655
+	push	OFFSET $SG165662
+	push	OFFSET $SG165663
 	push	527					; 0000020fH
-	push	OFFSET $SG165656
+	push	OFFSET $SG165664
 	push	eax
 	lea	eax, DWORD PTR $T31[ebp]
 	push	eax
@@ -3863,7 +3863,7 @@ $LN143@SK_NvAPI_S:
 ; 527  :   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165653
+	push	OFFSET $SG165661
 	push	eax
 	push	0
 	call	esi
@@ -3989,7 +3989,7 @@ $LN9@SK_NvAPI_S:
 ; 560  : 
 ; 561  :     if (! _wcsicmp (prop.wszName, L"Override"))
 
-	push	OFFSET $SG165659
+	push	OFFSET $SG165667
 	push	ebx
 	call	edi
 	add	esp, 8
@@ -3999,13 +3999,13 @@ $LN9@SK_NvAPI_S:
 ; 562  :     {
 ; 563  :       if ( (! _wcsicmp (prop.wszValue, L"Yes")) ||
 
-	push	OFFSET $SG165663
+	push	OFFSET $SG165671
 	push	esi
 	call	edi
 	add	esp, 8
 	test	eax, eax
 	je	SHORT $LN13@SK_NvAPI_S
-	push	OFFSET $SG165664
+	push	OFFSET $SG165672
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4015,13 +4015,13 @@ $LN9@SK_NvAPI_S:
 ; 566  : 
 ; 567  :       else if ( (! _wcsicmp (prop.wszValue, L"No")) ||
 
-	push	OFFSET $SG165668
+	push	OFFSET $SG165676
 	push	esi
 	call	edi
 	add	esp, 8
 	test	eax, eax
 	je	SHORT $LN16@SK_NvAPI_S
-	push	OFFSET $SG165669
+	push	OFFSET $SG165677
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4031,7 +4031,7 @@ $LN9@SK_NvAPI_S:
 ; 570  : 
 ; 571  :       else if ( (! _wcsicmp (prop.wszValue, L"Enhance")) )
 
-	push	OFFSET $SG165671
+	push	OFFSET $SG165679
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4061,7 +4061,7 @@ $LN17@SK_NvAPI_S:
 ; 574  : 
 ; 575  :     if (! _wcsicmp (prop.wszName, L"Method"))
 
-	push	OFFSET $SG165674
+	push	OFFSET $SG165682
 	push	ebx
 	call	edi
 	add	esp, 8
@@ -4071,7 +4071,7 @@ $LN17@SK_NvAPI_S:
 ; 576  :     {
 ; 577  :       if (! _wcsicmp (prop.wszValue, L"2xMSAA"))
 
-	push	OFFSET $SG165677
+	push	OFFSET $SG165685
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4101,7 +4101,7 @@ $LN20@SK_NvAPI_S:
 ; 579  : 
 ; 580  :       else if (! _wcsicmp (prop.wszValue, L"4xMSAA"))
 
-	push	OFFSET $SG165680
+	push	OFFSET $SG165688
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4131,7 +4131,7 @@ $LN22@SK_NvAPI_S:
 ; 582  : 
 ; 583  :       else if (! _wcsicmp (prop.wszValue, L"8xMSAA"))
 
-	push	OFFSET $SG165683
+	push	OFFSET $SG165691
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4161,7 +4161,7 @@ $LN24@SK_NvAPI_S:
 ; 585  : 
 ; 586  :       else if (! _wcsicmp (prop.wszValue, L"16xMSAA"))
 
-	push	OFFSET $SG165686
+	push	OFFSET $SG165694
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4196,7 +4196,7 @@ $LN26@SK_NvAPI_S:
 ; 593  :       //   hexadecimal number.
 ; 594  :       else if (wcsstr (prop.wszValue, L"0x") == prop.wszValue)
 
-	push	OFFSET $SG165688
+	push	OFFSET $SG165696
 	push	esi
 	call	DWORD PTR __imp__wcsstr
 	add	esp, 8
@@ -4219,7 +4219,7 @@ $LN18@SK_NvAPI_S:
 ; 597  : 
 ; 598  :     else if (! _wcsicmp (prop.wszName, L"ReplayMode"))
 
-	push	OFFSET $SG165691
+	push	OFFSET $SG165699
 	push	ebx
 	call	edi
 	add	esp, 8
@@ -4229,7 +4229,7 @@ $LN18@SK_NvAPI_S:
 ; 599  :     {
 ; 600  :       if (! _wcsicmp (prop.wszValue, L"2xSGSSAA"))
 
-	push	OFFSET $SG165694
+	push	OFFSET $SG165702
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4259,7 +4259,7 @@ $LN31@SK_NvAPI_S:
 ; 602  : 
 ; 603  :       else if (! _wcsicmp (prop.wszValue, L"4xSGSSAA"))
 
-	push	OFFSET $SG165697
+	push	OFFSET $SG165705
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4289,7 +4289,7 @@ $LN33@SK_NvAPI_S:
 ; 605  : 
 ; 606  :       else if (! _wcsicmp (prop.wszValue, L"8xSGSSAA"))
 
-	push	OFFSET $SG165700
+	push	OFFSET $SG165708
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4321,7 +4321,7 @@ $LN35@SK_NvAPI_S:
 ; 610  :       //   hexadecimal number.
 ; 611  :       else if (wcsstr (prop.wszValue, L"0x") == prop.wszValue)
 
-	push	OFFSET $SG165702
+	push	OFFSET $SG165710
 	push	esi
 	call	DWORD PTR __imp__wcsstr
 	add	esp, 8
@@ -4344,7 +4344,7 @@ $LN29@SK_NvAPI_S:
 ; 614  : 
 ; 615  :     else if (! _wcsicmp (prop.wszName, L"AntiAliasFix"))
 
-	push	OFFSET $SG165705
+	push	OFFSET $SG165713
 	push	ebx
 	call	edi
 	add	esp, 8
@@ -4354,13 +4354,13 @@ $LN29@SK_NvAPI_S:
 ; 616  :     {
 ; 617  :       if ( (! _wcsicmp (prop.wszValue, L"On")) ||
 
-	push	OFFSET $SG165709
+	push	OFFSET $SG165717
 	push	esi
 	call	edi
 	add	esp, 8
 	test	eax, eax
 	je	SHORT $LN42@SK_NvAPI_S
-	push	OFFSET $SG165710
+	push	OFFSET $SG165718
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4414,7 +4414,7 @@ $LN38@SK_NvAPI_S:
 ; 624  : 
 ; 625  :     else if (! _wcsicmp (prop.wszName, L"AutoBiasAdjust"))
 
-	push	OFFSET $SG165713
+	push	OFFSET $SG165721
 	push	ebx
 	call	edi
 	add	esp, 8
@@ -4424,13 +4424,13 @@ $LN38@SK_NvAPI_S:
 ; 626  :     {
 ; 627  :       if ( (! _wcsicmp (prop.wszValue, L"On")) ||
 
-	push	OFFSET $SG165717
+	push	OFFSET $SG165725
 	push	esi
 	call	edi
 	add	esp, 8
 	test	eax, eax
 	je	SHORT $LN47@SK_NvAPI_S
-	push	OFFSET $SG165718
+	push	OFFSET $SG165726
 	push	esi
 	call	edi
 	add	esp, 8
@@ -4483,7 +4483,7 @@ $LN43@SK_NvAPI_S:
 ; 633  : 
 ; 634  :     else if (! _wcsicmp (prop.wszName, L"CompatibilityBits"))
 
-	push	OFFSET $SG165720
+	push	OFFSET $SG165728
 	push	ebx
 	call	edi
 	add	esp, 8
@@ -4561,10 +4561,10 @@ $LN3@SK_NvAPI_S:
 	je	SHORT $LN727@SK_NvAPI_S
 	test	esi, esi
 	je	SHORT $LN727@SK_NvAPI_S
-	push	OFFSET $SG165723
-	push	OFFSET $SG165724
+	push	OFFSET $SG165731
+	push	OFFSET $SG165732
 	push	652					; 0000028cH
-	push	OFFSET $SG165725
+	push	OFFSET $SG165733
 	lea	eax, DWORD PTR $T30[ebp]
 	push	esi
 	push	eax
@@ -4591,7 +4591,7 @@ $LN199@SK_NvAPI_S:
 
 	mov	ebx, DWORD PTR __imp__MessageBoxW@16
 	push	327744					; 00050040H
-	push	OFFSET $SG165722
+	push	OFFSET $SG165730
 	push	eax
 	push	0
 	call	ebx
@@ -4664,10 +4664,10 @@ $LN49@SK_NvAPI_S:
 	je	SHORT $LN51@SK_NvAPI_S
 	test	esi, esi
 	je	SHORT $LN51@SK_NvAPI_S
-	push	OFFSET $SG165729
-	push	OFFSET $SG165730
+	push	OFFSET $SG165737
+	push	OFFSET $SG165738
 	push	668					; 0000029cH
-	push	OFFSET $SG165731
+	push	OFFSET $SG165739
 	lea	eax, DWORD PTR $T29[ebp]
 	push	esi
 	push	eax
@@ -4693,7 +4693,7 @@ $LN237@SK_NvAPI_S:
 ; 668  :       NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165728
+	push	OFFSET $SG165736
 	push	eax
 	push	0
 	call	ebx
@@ -4742,10 +4742,10 @@ $LN51@SK_NvAPI_S:
 	je	SHORT $LN53@SK_NvAPI_S
 	test	esi, esi
 	je	SHORT $LN722@SK_NvAPI_S
-	push	OFFSET $SG165735
-	push	OFFSET $SG165736
+	push	OFFSET $SG165743
+	push	OFFSET $SG165744
 	push	677					; 000002a5H
-	push	OFFSET $SG165737
+	push	OFFSET $SG165745
 	lea	eax, DWORD PTR $T28[ebp]
 	push	esi
 	push	eax
@@ -4771,7 +4771,7 @@ $LN275@SK_NvAPI_S:
 ; 674  :       NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165734
+	push	OFFSET $SG165742
 	push	eax
 	push	0
 	call	ebx
@@ -4870,10 +4870,10 @@ $LN722@SK_NvAPI_S:
 	je	SHORT $LN56@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN56@SK_NvAPI_S
-	push	OFFSET $SG165742
-	push	OFFSET $SG165743
+	push	OFFSET $SG165750
+	push	OFFSET $SG165751
 	push	690					; 000002b2H
-	push	OFFSET $SG165744
+	push	OFFSET $SG165752
 	push	eax
 	lea	eax, DWORD PTR $T27[ebp]
 	push	eax
@@ -4899,7 +4899,7 @@ $LN332@SK_NvAPI_S:
 ; 690  :       NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165741
+	push	OFFSET $SG165749
 	push	eax
 	push	0
 	call	ebx
@@ -4916,10 +4916,10 @@ $LN56@SK_NvAPI_S:
 	je	SHORT $LN55@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN55@SK_NvAPI_S
-	push	OFFSET $SG165747
-	push	OFFSET $SG165748
+	push	OFFSET $SG165755
+	push	OFFSET $SG165756
 	push	691					; 000002b3H
-	push	OFFSET $SG165749
+	push	OFFSET $SG165757
 	push	eax
 	lea	eax, DWORD PTR $T26[ebp]
 	push	eax
@@ -4945,7 +4945,7 @@ $LN351@SK_NvAPI_S:
 ; 691  :       NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165746
+	push	OFFSET $SG165754
 	push	eax
 	push	0
 	call	ebx
@@ -5043,10 +5043,10 @@ $LN55@SK_NvAPI_S:
 	je	SHORT $LN59@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN59@SK_NvAPI_S
-	push	OFFSET $SG165758
-	push	OFFSET $SG165759
+	push	OFFSET $SG165766
+	push	OFFSET $SG165767
 	push	732					; 000002dcH
-	push	OFFSET $SG165760
+	push	OFFSET $SG165768
 	push	eax
 	lea	eax, DWORD PTR $T24[ebp]
 	push	eax
@@ -5072,7 +5072,7 @@ $LN427@SK_NvAPI_S:
 ; 732  :   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, method_enum,      &method_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165757
+	push	OFFSET $SG165765
 	push	eax
 	push	0
 	call	ebx
@@ -5093,10 +5093,10 @@ $LN59@SK_NvAPI_S:
 	je	SHORT $LN60@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN60@SK_NvAPI_S
-	push	OFFSET $SG165763
-	push	OFFSET $SG165764
+	push	OFFSET $SG165771
+	push	OFFSET $SG165772
 	push	733					; 000002ddH
-	push	OFFSET $SG165765
+	push	OFFSET $SG165773
 	push	eax
 	lea	eax, DWORD PTR $T23[ebp]
 	push	eax
@@ -5122,7 +5122,7 @@ $LN446@SK_NvAPI_S:
 ; 733  :   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, replay_mode_enum, &replay_mode_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165762
+	push	OFFSET $SG165770
 	push	eax
 	push	0
 	call	ebx
@@ -5143,10 +5143,10 @@ $LN60@SK_NvAPI_S:
 	je	SHORT $LN61@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN61@SK_NvAPI_S
-	push	OFFSET $SG165768
-	push	OFFSET $SG165769
+	push	OFFSET $SG165776
+	push	OFFSET $SG165777
 	push	734					; 000002deH
-	push	OFFSET $SG165770
+	push	OFFSET $SG165778
 	push	eax
 	lea	eax, DWORD PTR $T22[ebp]
 	push	eax
@@ -5172,7 +5172,7 @@ $LN465@SK_NvAPI_S:
 ; 734  :   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, aa_fix_enum,      &aa_fix_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165767
+	push	OFFSET $SG165775
 	push	eax
 	push	0
 	call	ebx
@@ -5193,10 +5193,10 @@ $LN61@SK_NvAPI_S:
 	je	SHORT $LN62@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN62@SK_NvAPI_S
-	push	OFFSET $SG165773
-	push	OFFSET $SG165774
+	push	OFFSET $SG165781
+	push	OFFSET $SG165782
 	push	735					; 000002dfH
-	push	OFFSET $SG165775
+	push	OFFSET $SG165783
 	push	eax
 	lea	eax, DWORD PTR $T21[ebp]
 	push	eax
@@ -5222,7 +5222,7 @@ $LN484@SK_NvAPI_S:
 ; 735  :   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, override_enum,    &override_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165772
+	push	OFFSET $SG165780
 	push	eax
 	push	0
 	call	ebx
@@ -5243,10 +5243,10 @@ $LN62@SK_NvAPI_S:
 	je	SHORT $LN63@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN63@SK_NvAPI_S
-	push	OFFSET $SG165778
-	push	OFFSET $SG165779
+	push	OFFSET $SG165786
+	push	OFFSET $SG165787
 	push	736					; 000002e0H
-	push	OFFSET $SG165780
+	push	OFFSET $SG165788
 	push	eax
 	lea	eax, DWORD PTR $T20[ebp]
 	push	eax
@@ -5272,7 +5272,7 @@ $LN503@SK_NvAPI_S:
 ; 736  :   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, autobias_enum,    &autobias_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165777
+	push	OFFSET $SG165785
 	push	eax
 	push	0
 	call	ebx
@@ -5294,10 +5294,10 @@ $LN63@SK_NvAPI_S:
 	je	SHORT $LN64@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN64@SK_NvAPI_S
-	push	OFFSET $SG165783
-	push	OFFSET $SG165784
+	push	OFFSET $SG165791
+	push	OFFSET $SG165792
 	push	737					; 000002e1H
-	push	OFFSET $SG165785
+	push	OFFSET $SG165793
 	push	eax
 	lea	eax, DWORD PTR $T19[ebp]
 	push	eax
@@ -5323,7 +5323,7 @@ $LN522@SK_NvAPI_S:
 ; 737  :   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, compat_bits_enum, &compat_bits_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165782
+	push	OFFSET $SG165790
 	push	eax
 	push	0
 	call	ebx
@@ -5390,10 +5390,10 @@ $LN64@SK_NvAPI_S:
 	je	SHORT $LN66@SK_NvAPI_S
 	test	esi, esi
 	je	SHORT $LN66@SK_NvAPI_S
-	push	OFFSET $SG165789
-	push	OFFSET $SG165790
+	push	OFFSET $SG165797
+	push	OFFSET $SG165798
 	push	753					; 000002f1H
-	push	OFFSET $SG165791
+	push	OFFSET $SG165799
 	lea	eax, DWORD PTR $T18[ebp]
 	push	esi
 	push	eax
@@ -5419,7 +5419,7 @@ $LN541@SK_NvAPI_S:
 ; 753  :     NVAPI_CALL2     (DRS_SetSetting (hSession, hProfile, &compat_bits_val), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165788
+	push	OFFSET $SG165796
 	push	eax
 	push	0
 	call	ebx
@@ -5443,8 +5443,8 @@ $LN66@SK_NvAPI_S:
 ; 760  :         MessageBox ( nullptr,
 
 	push	327745					; 00050041H
-	push	OFFSET $SG165793
-	push	OFFSET $SG165794
+	push	OFFSET $SG165801
+	push	OFFSET $SG165802
 	push	0
 	call	ebx
 
@@ -5459,10 +5459,10 @@ $LN66@SK_NvAPI_S:
 	je	SHORT $LN69@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN69@SK_NvAPI_S
-	push	OFFSET $SG165798
-	push	OFFSET $SG165799
+	push	OFFSET $SG165806
+	push	OFFSET $SG165807
 	push	771					; 00000303H
-	push	OFFSET $SG165800
+	push	OFFSET $SG165808
 	push	eax
 	lea	eax, DWORD PTR $T17[ebp]
 	push	eax
@@ -5488,7 +5488,7 @@ $LN560@SK_NvAPI_S:
 ; 771  :         NVAPI_CALL (DRS_DestroySession (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165797
+	push	OFFSET $SG165805
 $LN732@SK_NvAPI_S:
 	push	eax
 	push	0
@@ -5546,7 +5546,7 @@ $LN54@SK_NvAPI_S:
 ; 696  :       dll_log.Log ( L"[  NvAPI   ] Could not find or create application profile for '%s' (%s)",
 
 	push	edi
-	push	OFFSET $SG165750
+	push	OFFSET $SG165758
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -5559,10 +5559,10 @@ $LN54@SK_NvAPI_S:
 	je	SHORT $LN69@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN69@SK_NvAPI_S
-	push	OFFSET $SG165753
-	push	OFFSET $SG165754
+	push	OFFSET $SG165761
+	push	OFFSET $SG165762
 	push	699					; 000002bbH
-	push	OFFSET $SG165755
+	push	OFFSET $SG165763
 	push	eax
 	lea	eax, DWORD PTR $T25[ebp]
 	push	eax
@@ -5588,7 +5588,7 @@ $LN408@SK_NvAPI_S:
 ; 699  :       NVAPI_CALL (DRS_DestroySession (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165752
+	push	OFFSET $SG165760
 
 ; 700  : 
 ; 701  :       LeaveCriticalSection (&cs_aa_override);
@@ -5606,10 +5606,10 @@ $LN68@SK_NvAPI_S:
 	je	SHORT $LN70@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN70@SK_NvAPI_S
-	push	OFFSET $SG165803
-	push	OFFSET $SG165804
+	push	OFFSET $SG165811
+	push	OFFSET $SG165812
 	push	778					; 0000030aH
-	push	OFFSET $SG165805
+	push	OFFSET $SG165813
 	push	eax
 	lea	eax, DWORD PTR $T16[ebp]
 	push	eax
@@ -5635,7 +5635,7 @@ $LN579@SK_NvAPI_S:
 ; 778  :       NVAPI_CALL (DRS_DestroySession (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165802
+	push	OFFSET $SG165810
 	push	eax
 	push	0
 	call	ebx
@@ -5713,10 +5713,10 @@ $LN65@SK_NvAPI_S:
 	je	SHORT $LN72@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN72@SK_NvAPI_S
-	push	OFFSET $SG165809
-	push	OFFSET $SG165810
+	push	OFFSET $SG165817
+	push	OFFSET $SG165818
 	push	795					; 0000031bH
-	push	OFFSET $SG165811
+	push	OFFSET $SG165819
 	push	eax
 	lea	eax, DWORD PTR $T15[ebp]
 	push	eax
@@ -5742,7 +5742,7 @@ $LN598@SK_NvAPI_S:
 ; 795  :     NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &method_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165808
+	push	OFFSET $SG165816
 	push	eax
 	push	0
 	call	ebx
@@ -5798,10 +5798,10 @@ $LN71@SK_NvAPI_S:
 	je	SHORT $LN74@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN74@SK_NvAPI_S
-	push	OFFSET $SG165815
-	push	OFFSET $SG165816
+	push	OFFSET $SG165823
+	push	OFFSET $SG165824
 	push	806					; 00000326H
-	push	OFFSET $SG165817
+	push	OFFSET $SG165825
 	push	eax
 	lea	eax, DWORD PTR $T14[ebp]
 	push	eax
@@ -5827,7 +5827,7 @@ $LN617@SK_NvAPI_S:
 ; 806  :     NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &replay_mode_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165814
+	push	OFFSET $SG165822
 	push	eax
 	push	0
 	call	ebx
@@ -5890,10 +5890,10 @@ $LN73@SK_NvAPI_S:
 	je	SHORT $LN78@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN78@SK_NvAPI_S
-	push	OFFSET $SG165823
-	push	OFFSET $SG165824
+	push	OFFSET $SG165831
+	push	OFFSET $SG165832
 	push	819					; 00000333H
-	push	OFFSET $SG165825
+	push	OFFSET $SG165833
 	push	eax
 	lea	eax, DWORD PTR $T13[ebp]
 	push	eax
@@ -5919,7 +5919,7 @@ $LN636@SK_NvAPI_S:
 ; 819  :       NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &aa_fix_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165822
+	push	OFFSET $SG165830
 	push	eax
 	push	0
 	call	ebx
@@ -5944,7 +5944,7 @@ $LN75@SK_NvAPI_S:
 ; 827  :     dll_log.Log ( L"[  NvAPI   ] *** Cannot set NvDRS Profile Setting '%x' as a normal user, skipping...",
 
 	push	547063					; 000858f7H
-	push	OFFSET $SG165826
+	push	OFFSET $SG165834
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5994,10 +5994,10 @@ $LN76@SK_NvAPI_S:
 	je	SHORT $LN80@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN80@SK_NvAPI_S
-	push	OFFSET $SG165830
-	push	OFFSET $SG165831
+	push	OFFSET $SG165838
+	push	OFFSET $SG165839
 	push	839					; 00000347H
-	push	OFFSET $SG165832
+	push	OFFSET $SG165840
 	push	eax
 	lea	eax, DWORD PTR $T12[ebp]
 	push	eax
@@ -6023,7 +6023,7 @@ $LN655@SK_NvAPI_S:
 ; 839  :     NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &autobias_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165829
+	push	OFFSET $SG165837
 	push	eax
 	push	0
 	call	ebx
@@ -6083,10 +6083,10 @@ $LN79@SK_NvAPI_S:
 	je	SHORT $LN82@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN82@SK_NvAPI_S
-	push	OFFSET $SG165836
-	push	OFFSET $SG165837
+	push	OFFSET $SG165844
+	push	OFFSET $SG165845
 	push	851					; 00000353H
-	push	OFFSET $SG165838
+	push	OFFSET $SG165846
 	push	eax
 	lea	eax, DWORD PTR $T11[ebp]
 	push	eax
@@ -6112,7 +6112,7 @@ $LN674@SK_NvAPI_S:
 ; 851  :     NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &override_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165835
+	push	OFFSET $SG165843
 	push	eax
 	push	0
 	call	ebx
@@ -6144,10 +6144,10 @@ $LN723@SK_NvAPI_S:
 	je	SHORT $LN84@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN84@SK_NvAPI_S
-	push	OFFSET $SG165842
-	push	OFFSET $SG165843
+	push	OFFSET $SG165850
+	push	OFFSET $SG165851
 	push	875					; 0000036bH
-	push	OFFSET $SG165844
+	push	OFFSET $SG165852
 	push	eax
 	lea	eax, DWORD PTR $T10[ebp]
 	push	eax
@@ -6173,7 +6173,7 @@ $LN693@SK_NvAPI_S:
 ; 875  :     NVAPI_CALL (DRS_SaveSettings (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165841
+	push	OFFSET $SG165849
 	push	eax
 	push	0
 	call	ebx
@@ -6190,10 +6190,10 @@ $LN84@SK_NvAPI_S:
 	je	SHORT $LN85@SK_NvAPI_S
 	test	eax, eax
 	je	SHORT $LN85@SK_NvAPI_S
-	push	OFFSET $SG165847
-	push	OFFSET $SG165848
+	push	OFFSET $SG165855
+	push	OFFSET $SG165856
 	push	878					; 0000036eH
-	push	OFFSET $SG165849
+	push	OFFSET $SG165857
 	push	eax
 	lea	eax, DWORD PTR $T9[ebp]
 	push	eax
@@ -6219,7 +6219,7 @@ $LN712@SK_NvAPI_S:
 ; 878  :   NVAPI_CALL (DRS_DestroySession (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165846
+	push	OFFSET $SG165854
 	push	eax
 	push	0
 	call	ebx
@@ -6307,7 +6307,7 @@ _file_name$ = 28					; size = 4
 	push	DWORD PTR _function_name$[ebp]
 	push	DWORD PTR _file_name$[ebp]
 	push	DWORD PTR _line_no$[ebp]
-	push	OFFSET $SG165312
+	push	OFFSET $SG165320
 	push	1024					; 00000400H
 	push	eax
 	call	_swprintf
@@ -6459,7 +6459,7 @@ _pVer$ = 12						; size = 4
 	lea	eax, DWORD PTR _ver_wstr$[ebp]
 	push	ecx
 	push	edx
-	push	OFFSET $SG165445
+	push	OFFSET $SG165453
 	push	63					; 0000003fH
 	push	eax
 	call	__snwprintf
@@ -6798,10 +6798,10 @@ $LN3@SetSLIOver:
 	je	SHORT $LN4@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN4@SetSLIOver
-	push	OFFSET $SG166134
-	push	OFFSET $SG166135
+	push	OFFSET $SG166142
+	push	OFFSET $SG166143
 	push	1069					; 0000042dH
-	push	OFFSET $SG166136
+	push	OFFSET $SG166144
 	push	eax
 	lea	eax, DWORD PTR $T22[ebp]
 	push	eax
@@ -6827,7 +6827,7 @@ $LN92@SetSLIOver:
 ; 1069 :   NVAPI_CALL (DRS_CreateSession (&hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166133
+	push	OFFSET $SG166141
 	push	eax
 	push	0
 	call	esi
@@ -6844,10 +6844,10 @@ $LN4@SetSLIOver:
 	je	SHORT $LN5@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN5@SetSLIOver
-	push	OFFSET $SG166139
-	push	OFFSET $SG166140
+	push	OFFSET $SG166147
+	push	OFFSET $SG166148
 	push	1070					; 0000042eH
-	push	OFFSET $SG166141
+	push	OFFSET $SG166149
 	push	eax
 	lea	eax, DWORD PTR $T21[ebp]
 	push	eax
@@ -6873,7 +6873,7 @@ $LN111@SetSLIOver:
 ; 1070 :   NVAPI_CALL (DRS_LoadSettings  (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166138
+	push	OFFSET $SG166146
 	push	eax
 	push	0
 	call	esi
@@ -6981,7 +6981,7 @@ $LL628@SetSLIOver:
 ; 3844 : 	return (_Left._Equal(_Right));
 
 	lea	ecx, DWORD PTR _mode_str$[ebp]
-	push	OFFSET $SG166144
+	push	OFFSET $SG166152
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
 
@@ -7002,7 +7002,7 @@ $LN6@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166147
+	push	OFFSET $SG166155
 	lea	ecx, DWORD PTR _mode_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7024,7 +7024,7 @@ $LN8@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166150
+	push	OFFSET $SG166158
 	lea	ecx, DWORD PTR _mode_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7046,7 +7046,7 @@ $LN10@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166153
+	push	OFFSET $SG166161
 	lea	ecx, DWORD PTR _mode_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7068,7 +7068,7 @@ $LN12@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166156
+	push	OFFSET $SG166164
 	lea	ecx, DWORD PTR _mode_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7090,7 +7090,7 @@ $LN14@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166159
+	push	OFFSET $SG166167
 	lea	ecx, DWORD PTR _mode_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7112,7 +7112,7 @@ $LN16@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166163
+	push	OFFSET $SG166171
 	lea	ecx, DWORD PTR _mode_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7125,7 +7125,7 @@ $LN16@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166164
+	push	OFFSET $SG166172
 	lea	ecx, DWORD PTR _mode_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7138,7 +7138,7 @@ $LN16@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166165
+	push	OFFSET $SG166173
 	lea	ecx, DWORD PTR _mode_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7151,7 +7151,7 @@ $LN16@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166166
+	push	OFFSET $SG166174
 	lea	ecx, DWORD PTR _mode_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7165,7 +7165,7 @@ $LN16@SetSLIOver:
 ; 1111 :     dll_log.Log ( L"[  NvAPI   ] >> Unknown SLI Mode: '%s', falling back to 'Auto'",
 
 	push	DWORD PTR _wszModeName$[ebp]
-	push	OFFSET $SG166167
+	push	OFFSET $SG166175
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7251,7 +7251,7 @@ $LL629@SetSLIOver:
 ; 3844 : 	return (_Left._Equal(_Right));
 
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
-	push	OFFSET $SG166170
+	push	OFFSET $SG166178
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
 
@@ -7272,7 +7272,7 @@ $LN21@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166173
+	push	OFFSET $SG166181
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7294,7 +7294,7 @@ $LN23@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166177
+	push	OFFSET $SG166185
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7307,7 +7307,7 @@ $LN23@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166178
+	push	OFFSET $SG166186
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7320,7 +7320,7 @@ $LN23@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166182
+	push	OFFSET $SG166190
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7333,7 +7333,7 @@ $LN23@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166183
+	push	OFFSET $SG166191
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7346,7 +7346,7 @@ $LN23@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166187
+	push	OFFSET $SG166195
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7359,7 +7359,7 @@ $LN23@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166188
+	push	OFFSET $SG166196
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7372,7 +7372,7 @@ $LN23@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166192
+	push	OFFSET $SG166200
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7385,7 +7385,7 @@ $LN23@SetSLIOver:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG166193
+	push	OFFSET $SG166201
 	lea	ecx, DWORD PTR _gpu_count_str$[ebp]
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\nvapi.cpp
@@ -7398,7 +7398,7 @@ $LN23@SetSLIOver:
 ; 1131 :     dll_log.Log ( L"[  NvAPI   ] >> Unknown SLI GPU Count: '%s', falling back to 'Auto'",
 
 	push	edi
-	push	OFFSET $SG166194
+	push	OFFSET $SG166202
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7483,10 +7483,10 @@ $LN35@SetSLIOver:
 	je	SHORT $LN37@SetSLIOver
 	test	edi, edi
 	je	SHORT $LN37@SetSLIOver
-	push	OFFSET $SG166197
-	push	OFFSET $SG166198
+	push	OFFSET $SG166205
+	push	OFFSET $SG166206
 	push	1145					; 00000479H
-	push	OFFSET $SG166199
+	push	OFFSET $SG166207
 	lea	eax, DWORD PTR $T20[ebp]
 	push	edi
 	push	eax
@@ -7512,7 +7512,7 @@ $LN237@SetSLIOver:
 ; 1141 :   NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166196
+	push	OFFSET $SG166204
 	push	eax
 	push	0
 	call	esi
@@ -7581,10 +7581,10 @@ $LN37@SetSLIOver:
 	je	SHORT $LN39@SetSLIOver
 	test	edi, edi
 	je	SHORT $LN39@SetSLIOver
-	push	OFFSET $SG166203
-	push	OFFSET $SG166204
+	push	OFFSET $SG166211
+	push	OFFSET $SG166212
 	push	1161					; 00000489H
-	push	OFFSET $SG166205
+	push	OFFSET $SG166213
 	lea	eax, DWORD PTR $T19[ebp]
 	push	edi
 	push	eax
@@ -7610,7 +7610,7 @@ $LN275@SetSLIOver:
 ; 1161 :       NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166202
+	push	OFFSET $SG166210
 	push	eax
 	push	0
 	call	esi
@@ -7659,10 +7659,10 @@ $LN39@SetSLIOver:
 	je	SHORT $LN41@SetSLIOver
 	test	edi, edi
 	je	SHORT $LN626@SetSLIOver
-	push	OFFSET $SG166209
-	push	OFFSET $SG166210
+	push	OFFSET $SG166217
+	push	OFFSET $SG166218
 	push	1170					; 00000492H
-	push	OFFSET $SG166211
+	push	OFFSET $SG166219
 	lea	eax, DWORD PTR $T18[ebp]
 	push	edi
 	push	eax
@@ -7688,7 +7688,7 @@ $LN313@SetSLIOver:
 ; 1167 :       NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166208
+	push	OFFSET $SG166216
 	push	eax
 	push	0
 	call	esi
@@ -7779,10 +7779,10 @@ $LN626@SetSLIOver:
 	je	SHORT $LN43@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN43@SetSLIOver
-	push	OFFSET $SG166215
-	push	OFFSET $SG166216
+	push	OFFSET $SG166223
+	push	OFFSET $SG166224
 	push	1183					; 0000049fH
-	push	OFFSET $SG166217
+	push	OFFSET $SG166225
 	push	eax
 	lea	eax, DWORD PTR $T17[ebp]
 	push	eax
@@ -7808,7 +7808,7 @@ $LN370@SetSLIOver:
 ; 1183 :       NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166214
+	push	OFFSET $SG166222
 	push	eax
 	push	0
 	call	esi
@@ -7825,10 +7825,10 @@ $LN43@SetSLIOver:
 	je	SHORT $LN44@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN44@SetSLIOver
-	push	OFFSET $SG166220
-	push	OFFSET $SG166221
+	push	OFFSET $SG166228
+	push	OFFSET $SG166229
 	push	1184					; 000004a0H
-	push	OFFSET $SG166222
+	push	OFFSET $SG166230
 	push	eax
 	lea	eax, DWORD PTR $T16[ebp]
 	push	eax
@@ -7854,7 +7854,7 @@ $LN389@SetSLIOver:
 ; 1184 :       NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166219
+	push	OFFSET $SG166227
 	push	eax
 	push	0
 	call	esi
@@ -7910,10 +7910,10 @@ $LN44@SetSLIOver:
 	je	SHORT $LN45@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN45@SetSLIOver
-	push	OFFSET $SG166225
-	push	OFFSET $SG166226
+	push	OFFSET $SG166233
+	push	OFFSET $SG166234
 	push	1199					; 000004afH
-	push	OFFSET $SG166227
+	push	OFFSET $SG166235
 	push	eax
 	lea	eax, DWORD PTR $T15[ebp]
 	push	eax
@@ -7939,7 +7939,7 @@ $LN408@SetSLIOver:
 ; 1199 :   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, render_mode_enum, &mode_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166224
+	push	OFFSET $SG166232
 	push	eax
 	push	0
 	call	esi
@@ -7960,10 +7960,10 @@ $LN45@SetSLIOver:
 	je	SHORT $LN46@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN46@SetSLIOver
-	push	OFFSET $SG166230
-	push	OFFSET $SG166231
+	push	OFFSET $SG166238
+	push	OFFSET $SG166239
 	push	1200					; 000004b0H
-	push	OFFSET $SG166232
+	push	OFFSET $SG166240
 	push	eax
 	lea	eax, DWORD PTR $T14[ebp]
 	push	eax
@@ -7989,7 +7989,7 @@ $LN427@SetSLIOver:
 ; 1200 :   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, gpu_count_enum,   &gpu_count_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166229
+	push	OFFSET $SG166237
 	push	eax
 	push	0
 	call	esi
@@ -8010,10 +8010,10 @@ $LN46@SetSLIOver:
 	je	SHORT $LN47@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN47@SetSLIOver
-	push	OFFSET $SG166235
-	push	OFFSET $SG166236
+	push	OFFSET $SG166243
+	push	OFFSET $SG166244
 	push	1201					; 000004b1H
-	push	OFFSET $SG166237
+	push	OFFSET $SG166245
 	push	eax
 	lea	eax, DWORD PTR $T13[ebp]
 	push	eax
@@ -8039,7 +8039,7 @@ $LN446@SetSLIOver:
 ; 1201 :   NVAPI_CALL (DRS_GetSetting (hSession, hProfile, compat_bits_enum, &compat_bits_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166234
+	push	OFFSET $SG166242
 	push	eax
 	push	0
 	call	esi
@@ -8105,10 +8105,10 @@ $LN47@SetSLIOver:
 	je	SHORT $LN49@SetSLIOver
 	test	edi, edi
 	je	SHORT $LN49@SetSLIOver
-	push	OFFSET $SG166241
-	push	OFFSET $SG166242
+	push	OFFSET $SG166249
+	push	OFFSET $SG166250
 	push	1217					; 000004c1H
-	push	OFFSET $SG166243
+	push	OFFSET $SG166251
 	lea	eax, DWORD PTR $T12[ebp]
 	push	edi
 	push	eax
@@ -8134,7 +8134,7 @@ $LN465@SetSLIOver:
 ; 1217 :     NVAPI_CALL2     (DRS_SetSetting (hSession, hProfile, &compat_bits_val), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166240
+	push	OFFSET $SG166248
 	push	eax
 	push	0
 	call	esi
@@ -8158,8 +8158,8 @@ $LN49@SetSLIOver:
 ; 1224 :         MessageBox ( nullptr,
 
 	push	327745					; 00050041H
-	push	OFFSET $SG166245
-	push	OFFSET $SG166246
+	push	OFFSET $SG166253
+	push	OFFSET $SG166254
 	push	0
 	call	esi
 
@@ -8185,10 +8185,10 @@ $LN49@SetSLIOver:
 	je	SHORT $LN52@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN52@SetSLIOver
-	push	OFFSET $SG166250
-	push	OFFSET $SG166251
+	push	OFFSET $SG166258
+	push	OFFSET $SG166259
 	push	1234					; 000004d2H
-	push	OFFSET $SG166252
+	push	OFFSET $SG166260
 	push	eax
 	lea	eax, DWORD PTR $T11[ebp]
 	push	eax
@@ -8214,7 +8214,7 @@ $LN484@SetSLIOver:
 ; 1234 :         NVAPI_CALL (DRS_DestroySession (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166249
+	push	OFFSET $SG166257
 	push	eax
 	push	0
 	call	esi
@@ -8296,10 +8296,10 @@ $LN48@SetSLIOver:
 	je	SHORT $LN54@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN54@SetSLIOver
-	push	OFFSET $SG166257
-	push	OFFSET $SG166258
+	push	OFFSET $SG166265
+	push	OFFSET $SG166266
 	push	1249					; 000004e1H
-	push	OFFSET $SG166259
+	push	OFFSET $SG166267
 	push	eax
 	lea	eax, DWORD PTR $T10[ebp]
 	push	eax
@@ -8325,7 +8325,7 @@ $LN503@SetSLIOver:
 ; 1249 :     NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &mode_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166256
+	push	OFFSET $SG166264
 	push	eax
 	push	0
 	call	esi
@@ -8379,10 +8379,10 @@ $LN53@SetSLIOver:
 	je	SHORT $LN56@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN56@SetSLIOver
-	push	OFFSET $SG166263
-	push	OFFSET $SG166264
+	push	OFFSET $SG166271
+	push	OFFSET $SG166272
 	push	1260					; 000004ecH
-	push	OFFSET $SG166265
+	push	OFFSET $SG166273
 	push	eax
 	lea	eax, DWORD PTR $T9[ebp]
 	push	eax
@@ -8408,7 +8408,7 @@ $LN522@SetSLIOver:
 ; 1260 :     NVAPI_CALL      (DRS_SetSetting (hSession, hProfile, &gpu_count_val));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166262
+	push	OFFSET $SG166270
 	push	eax
 	push	0
 	call	esi
@@ -8440,10 +8440,10 @@ $LN627@SetSLIOver:
 	je	SHORT $LN58@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN58@SetSLIOver
-	push	OFFSET $SG166269
-	push	OFFSET $SG166270
+	push	OFFSET $SG166277
+	push	OFFSET $SG166278
 	push	1266					; 000004f2H
-	push	OFFSET $SG166271
+	push	OFFSET $SG166279
 	push	eax
 	lea	eax, DWORD PTR $T8[ebp]
 	push	eax
@@ -8469,7 +8469,7 @@ $LN541@SetSLIOver:
 ; 1266 :     NVAPI_CALL (DRS_SaveSettings (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166268
+	push	OFFSET $SG166276
 	push	eax
 	push	0
 	call	esi
@@ -8486,10 +8486,10 @@ $LN58@SetSLIOver:
 	je	SHORT $LN59@SetSLIOver
 	test	eax, eax
 	je	SHORT $LN59@SetSLIOver
-	push	OFFSET $SG166274
-	push	OFFSET $SG166275
+	push	OFFSET $SG166282
+	push	OFFSET $SG166283
 	push	1268					; 000004f4H
-	push	OFFSET $SG166276
+	push	OFFSET $SG166284
 	push	eax
 	lea	eax, DWORD PTR $T7[ebp]
 	push	eax
@@ -8515,7 +8515,7 @@ $LN560@SetSLIOver:
 ; 1268 :   NVAPI_CALL (DRS_DestroySession (hSession));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG166273
+	push	OFFSET $SG166281
 	push	eax
 	push	0
 	call	esi
@@ -9120,10 +9120,10 @@ $LN6@EnumGPUs_D:
 	je	SHORT $LN7@EnumGPUs_D
 	test	eax, eax
 	je	SHORT $LN7@EnumGPUs_D
-	push	OFFSET $SG165393
-	push	OFFSET $SG165394
+	push	OFFSET $SG165401
+	push	OFFSET $SG165402
 	push	232					; 000000e8H
-	push	OFFSET $SG165395
+	push	OFFSET $SG165403
 	push	eax
 	lea	eax, DWORD PTR $T10[ebp]
 	push	eax
@@ -9149,7 +9149,7 @@ $LN33@EnumGPUs_D:
 ; 232  :   NVAPI_CALL (EnumPhysicalGPUs (_nv_dxgi_gpus, &gpu_count));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165392
+	push	OFFSET $SG165400
 	push	eax
 	push	0
 	call	ebx
@@ -9197,10 +9197,10 @@ $LL4@EnumGPUs_D:
 	je	SHORT $LN62@EnumGPUs_D
 	test	eax, eax
 	je	SHORT $LN62@EnumGPUs_D
-	push	OFFSET $SG165398
-	push	OFFSET $SG165399
+	push	OFFSET $SG165406
+	push	OFFSET $SG165407
 	push	242					; 000000f2H
-	push	OFFSET $SG165400
+	push	OFFSET $SG165408
 	push	eax
 	lea	eax, DWORD PTR $T9[ebp]
 	push	eax
@@ -9226,7 +9226,7 @@ $LN52@EnumGPUs_D:
 ; 242  :     NVAPI_CALL (EnumPhysicalGPUs (_nv_dxgi_gpus,     &gpu_count));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165397
+	push	OFFSET $SG165405
 	push	eax
 	push	0
 	call	ebx
@@ -9272,10 +9272,10 @@ $LN62@EnumGPUs_D:
 	je	SHORT $LN111@EnumGPUs_D
 	test	eax, eax
 	je	SHORT $LN111@EnumGPUs_D
-	push	OFFSET $SG165403
-	push	OFFSET $SG165404
+	push	OFFSET $SG165411
+	push	OFFSET $SG165412
 	push	247					; 000000f7H
-	push	OFFSET $SG165405
+	push	OFFSET $SG165413
 	push	eax
 	lea	eax, DWORD PTR $T8[ebp]
 	push	eax
@@ -9301,7 +9301,7 @@ $LN101@EnumGPUs_D:
 ; 247  :     NVAPI_CALL (GetLogicalGPUFromPhysicalGPU  (_nv_dxgi_gpus [i], &logical));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165402
+	push	OFFSET $SG165410
 	push	eax
 	push	0
 	call	ebx
@@ -9348,10 +9348,10 @@ $LN111@EnumGPUs_D:
 	je	SHORT $LN160@EnumGPUs_D
 	test	eax, eax
 	je	SHORT $LN160@EnumGPUs_D
-	push	OFFSET $SG165408
-	push	OFFSET $SG165409
+	push	OFFSET $SG165416
+	push	OFFSET $SG165417
 	push	248					; 000000f8H
-	push	OFFSET $SG165410
+	push	OFFSET $SG165418
 	push	eax
 	lea	eax, DWORD PTR $T7[ebp]
 	push	eax
@@ -9377,7 +9377,7 @@ $LN150@EnumGPUs_D:
 ; 248  :     NVAPI_CALL (GetPhysicalGPUsFromLogicalGPU (logical, phys, &phys_count));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165407
+	push	OFFSET $SG165415
 	push	eax
 	push	0
 	call	ebx
@@ -9429,10 +9429,10 @@ $LN160@EnumGPUs_D:
 	je	SHORT $LN209@EnumGPUs_D
 	test	eax, eax
 	je	SHORT $LN209@EnumGPUs_D
-	push	OFFSET $SG165413
-	push	OFFSET $SG165414
+	push	OFFSET $SG165421
+	push	OFFSET $SG165422
 	push	253					; 000000fdH
-	push	OFFSET $SG165415
+	push	OFFSET $SG165423
 	push	eax
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
@@ -9458,7 +9458,7 @@ $LN199@EnumGPUs_D:
 ; 253  :     NVAPI_CALL (GPU_GetFullName (_nv_dxgi_gpus [i], name));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165412
+	push	OFFSET $SG165420
 	push	eax
 	push	0
 	call	ebx
@@ -9505,10 +9505,10 @@ $LN209@EnumGPUs_D:
 	je	SHORT $LN258@EnumGPUs_D
 	test	eax, eax
 	je	SHORT $LN258@EnumGPUs_D
-	push	OFFSET $SG165418
-	push	OFFSET $SG165419
+	push	OFFSET $SG165426
+	push	OFFSET $SG165427
 	push	259					; 00000103H
-	push	OFFSET $SG165420
+	push	OFFSET $SG165428
 	push	eax
 	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
@@ -9534,7 +9534,7 @@ $LN248@EnumGPUs_D:
 ; 259  :     NVAPI_CALL (GPU_GetMemoryInfo (_nv_dxgi_gpus [i], &meminfo));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165417
+	push	OFFSET $SG165425
 	push	eax
 	push	0
 	call	ebx
@@ -9712,10 +9712,10 @@ _gpu_count$3 = -4					; size = 4
 	je	SHORT $LN5@CountPhysi
 	test	eax, eax
 	je	SHORT $LN5@CountPhysi
-	push	OFFSET $SG165327
-	push	OFFSET $SG165328
+	push	OFFSET $SG165335
+	push	OFFSET $SG165336
 	push	127					; 0000007fH
-	push	OFFSET $SG165329
+	push	OFFSET $SG165337
 	push	eax
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -9741,7 +9741,7 @@ $LN22@CountPhysi:
 ; 127  :       NVAPI_CALL (EnumPhysicalGPUs (gpus, &gpu_count));
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165326
+	push	OFFSET $SG165334
 	push	eax
 	push	0
 	call	DWORD PTR __imp__MessageBoxW@16
@@ -10027,7 +10027,7 @@ $LL54@Initialize:
 
 ; 391  :   if (! config.apis.NvAPI.enable) {
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+787, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+791, 0
 	je	SHORT $LN58@Initialize
 
 ; 392  :     nv_hardware = false;
@@ -10048,10 +10048,10 @@ $LL54@Initialize:
 	je	SHORT $LN6@Initialize
 	test	esi, esi
 	je	SHORT $LN6@Initialize
-	push	OFFSET $SG165481
-	push	OFFSET $SG165482
+	push	OFFSET $SG165489
+	push	OFFSET $SG165490
 	push	400					; 00000190H
-	push	OFFSET $SG165483
+	push	OFFSET $SG165491
 	lea	eax, DWORD PTR $T1[ebp]
 	push	esi
 	push	eax
@@ -10077,7 +10077,7 @@ $LN46@Initialize:
 ; 400  :     NVAPI_CALL2 (Initialize (), ret);
 
 	push	327744					; 00050040H
-	push	OFFSET $SG165480
+	push	OFFSET $SG165488
 	push	eax
 	push	0
 	call	DWORD PTR __imp__MessageBoxW@16
@@ -10132,7 +10132,7 @@ $LN7@Initialize:
 ; 422  :       GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
 
 	push	OFFSET ?hLib@?BE@??InitializeLibrary@NVAPI@sk@@YAHPB_W@Z@4PAUHINSTANCE__@@A
-	push	OFFSET $SG165486
+	push	OFFSET $SG165494
 	push	1
 	mov	BYTE PTR ?nv_hardware@NVAPI@sk@@3_NA, 1	; sk::NVAPI::nv_hardware
 	call	DWORD PTR __imp__GetModuleHandleExW@12
@@ -10203,7 +10203,7 @@ $LN2@Initialize:
 
 ; 446  :         dll_log.LogEx (false, L"missing NvAPI_GPU_GetRamType ");
 
-	push	OFFSET $SG165491
+	push	OFFSET $SG165499
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -10227,7 +10227,7 @@ $LN11@Initialize:
 
 ; 451  :         dll_log.LogEx (false, L"missing NvAPI_GPU_GetFBWidthAndLocation ");
 
-	push	OFFSET $SG165493
+	push	OFFSET $SG165501
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -10248,7 +10248,7 @@ $LN12@Initialize:
 
 ; 456  :         dll_log.LogEx (false, L"missing NvAPI_GPU_GetPCIEInfo ");
 
-	push	OFFSET $SG165495
+	push	OFFSET $SG165503
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -10269,7 +10269,7 @@ $LN13@Initialize:
 
 ; 461  :         dll_log.LogEx (false, L"missing NvAPI_GetPhysicalGPUFromGPUID ");
 
-	push	OFFSET $SG165497
+	push	OFFSET $SG165505
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -10290,7 +10290,7 @@ $LN14@Initialize:
 
 ; 466  :         dll_log.LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
 
-	push	OFFSET $SG165499
+	push	OFFSET $SG165507
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -10316,7 +10316,7 @@ $LN9@Initialize:
 
 ; 472  :       dll_log.Log (L"unable to complete LoadLibrary (...) ");
 
-	push	OFFSET $SG165500
+	push	OFFSET $SG165508
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -10363,7 +10363,7 @@ $LN59@Initialize:
 ; 430  :         reinterpret_cast <NvAPI_QueryInterface_pfn> (
 ; 431  :           GetProcAddress (hLib, "nvapi_QueryInterface")
 
-	push	OFFSET $SG165489
+	push	OFFSET $SG165497
 	push	DWORD PTR ?hLib@?BE@??InitializeLibrary@NVAPI@sk@@YAHPB_W@Z@4PAUHINSTANCE__@@A
 	call	DWORD PTR __imp__GetProcAddress@8
 	push	OFFSET ?$TSS0@?BH@??InitializeLibrary@NVAPI@sk@@YAHPB_W@Z@4HA

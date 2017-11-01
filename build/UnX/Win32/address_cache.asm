@@ -14,23 +14,23 @@ _BSS	SEGMENT
 ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A DD 01H DUP (?) ; SK_Inject_AddressManager
 _BSS	ENDS
 CONST	SEGMENT
-$SG149771 DB	00H, 00H
+$SG149776 DB	00H, 00H
 	ORG $+2
-$SG149772 DB	']', 00H, 0aH, 00H, 00H, 00H
+$SG149777 DB	']', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG149773 DB	'[', 00H, 00H, 00H
-$SG149774 DB	'=', 00H, 00H, 00H
-$SG149775 DB	0aH, 00H, 00H, 00H
-$SG149776 DB	0aH, 00H, 00H, 00H
-$SG149929 DB	'%', 00H, 'p', 00H, 00H, 00H
+$SG149778 DB	'[', 00H, 00H, 00H
+$SG149779 DB	'=', 00H, 00H, 00H
+$SG149780 DB	0aH, 00H, 00H, 00H
+$SG149781 DB	0aH, 00H, 00H, 00H
+$SG149934 DB	'%', 00H, 'p', 00H, 00H, 00H
 	ORG $+2
-$SG149948 DB	'%', 00H, 'p', 00H, 00H, 00H
+$SG149953 DB	'%', 00H, 'p', 00H, 00H, 00H
 	ORG $+2
-$SG149949 DB	'%', 00H, 'p', 00H, 00H, 00H
+$SG149954 DB	'%', 00H, 'p', 00H, 00H, 00H
 	ORG $+2
-$SG149979 DB	'%', 00H, 'p', 00H, 00H, 00H
+$SG149984 DB	'%', 00H, 'p', 00H, 00H, 00H
 	ORG $+6
-$SG149401 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG149406 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 'G', 00H
 	DB	'l', 00H, 'o', 00H, 'b', 00H, 'a', 00H, 'l', 00H, '\', 00H, 'i'
@@ -5476,7 +5476,7 @@ $LN40@getAddress:
 
 	lea	eax, DWORD PTR _addr$[ebp]
 	push	eax
-	push	OFFSET $SG149979
+	push	OFFSET $SG149984
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -6391,7 +6391,7 @@ $LL255@storeNamed:
 	test	al, al
 	lea	eax, DWORD PTR $T3[ebp]
 	je	SHORT $LN2@storeNamed
-	push	OFFSET $SG149948
+	push	OFFSET $SG149953
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -6436,7 +6436,7 @@ $LN2@storeNamed:
 
 ; 122  :     ini_sec.add_key_value (wide_name.c_str (), SK_FormatStringW (L"%p", addr).c_str ());
 
-	push	OFFSET $SG149949
+	push	OFFSET $SG149954
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -6749,7 +6749,7 @@ $LN35@getNamedAd:
 
 	lea	eax, DWORD PTR _addr$[ebp]
 	push	eax
-	push	OFFSET $SG149929
+	push	OFFSET $SG149934
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -7064,7 +7064,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG149771
+	push	OFFSET $SG149776
 	lea	ecx, DWORD PTR _export_data$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
@@ -7117,7 +7117,7 @@ $LL4@SK_Inject_:
 
 ; 43   :     export_data += L"[" + it.first + L"]\n";
 
-	push	OFFSET $SG149772
+	push	OFFSET $SG149777
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 
 ; 540  : 		return ((reference)_Pnode->_Myval);
@@ -7138,7 +7138,7 @@ $LL4@SK_Inject_:
 
 ; 43   :     export_data += L"[" + it.first + L"]\n";
 
-	push	OFFSET $SG149773
+	push	OFFSET $SG149778
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@QB_WABV10@@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	add	esp, 12					; 0000000cH
@@ -7408,7 +7408,7 @@ $LL7@SK_Inject_:
 ; 46   :     {
 ; 47   :       export_data += it2 + L"=";
 
-	push	OFFSET $SG149774
+	push	OFFSET $SG149779
 	lea	eax, DWORD PTR $T4[ebp]
 	push	esi
 	push	eax
@@ -7572,7 +7572,7 @@ $LN324@SK_Inject_:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG149775
+	push	OFFSET $SG149780
 	lea	ecx, DWORD PTR _export_data$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -7595,7 +7595,7 @@ $LN6@SK_Inject_:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG149776
+	push	OFFSET $SG149781
 	lea	ecx, DWORD PTR _export_data$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 
@@ -8246,7 +8246,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG149401
+	push	OFFSET $SG149406
 	push	eax
 	lea	eax, DWORD PTR _injection_config$[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 1

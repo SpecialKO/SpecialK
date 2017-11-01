@@ -14,146 +14,146 @@ _DATA	SEGMENT
 ?xinput_enabled@@3HA DD 01H				; xinput_enabled
 _DATA	ENDS
 CONST	SEGMENT
-$SG132100 DB	'XInputGetBatteryInformation1_3_Detour', 00H
+$SG132111 DB	'XInputGetBatteryInformation1_3_Detour', 00H
 	ORG $+2
-$SG132101 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132112 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132118 DB	'XInputSetState1_3_Detour', 00H
+$SG132129 DB	'XInputSetState1_3_Detour', 00H
 	ORG $+3
-$SG132119 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132130 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132141 DB	'XInputGetState1_4_Detour', 00H
+$SG132152 DB	'XInputGetState1_4_Detour', 00H
 	ORG $+3
-$SG132142 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132153 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132161 DB	'XInputGetStateEx1_4_Detour', 00H
+$SG132172 DB	'XInputGetStateEx1_4_Detour', 00H
 	ORG $+1
-$SG132162 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132173 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132182 DB	'XInputGetCapabilities1_4_Detour', 00H
+$SG132193 DB	'XInputGetCapabilities1_4_Detour', 00H
 	ORG $+4
-$SG132183 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132194 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132203 DB	'XInputGetBatteryInformation1_4_Detour', 00H
+$SG132214 DB	'XInputGetBatteryInformation1_4_Detour', 00H
 	ORG $+6
-$SG132204 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132215 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132222 DB	'XInputSetState1_4_Detour', 00H
+$SG132233 DB	'XInputSetState1_4_Detour', 00H
 	ORG $+3
-$SG132223 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132234 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132241 DB	'XInputGetState9_1_0_Detour', 00H
+$SG132252 DB	'XInputGetState9_1_0_Detour', 00H
 	ORG $+1
-$SG132242 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132253 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132263 DB	'XInputGetCapabilities9_1_0_Detour', 00H
+$SG132274 DB	'XInputGetCapabilities9_1_0_Detour', 00H
 	ORG $+2
-$SG132264 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132275 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132282 DB	'XInputSetState9_1_0_Detour', 00H
+$SG132293 DB	'XInputSetState9_1_0_Detour', 00H
 	ORG $+1
-$SG132283 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132294 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132326 DB	'XInputGetState', 00H
+$SG132337 DB	'XInputGetState', 00H
 	ORG $+1
-$SG132327 DB	'XInputGetState', 00H
+$SG132338 DB	'XInputGetState', 00H
 	ORG $+1
-$SG132328 DB	'XInputGetCapabilities', 00H
+$SG132339 DB	'XInputGetCapabilities', 00H
 	ORG $+2
-$SG132329 DB	'XInputGetCapabilities', 00H
+$SG132340 DB	'XInputGetCapabilities', 00H
 	ORG $+2
-$SG132330 DB	'XInputSetState', 00H
+$SG132341 DB	'XInputSetState', 00H
 	ORG $+1
-$SG132331 DB	'XInputSetState', 00H
+$SG132342 DB	'XInputSetState', 00H
 	ORG $+1
-$SG132332 DB	'XInputGetBatteryInformation', 00H
-$SG132334 DB	'XInputGetBatteryInformation', 00H
-$SG132336 DB	'XInputEnable', 00H
+$SG132343 DB	'XInputGetBatteryInformation', 00H
+$SG132345 DB	'XInputGetBatteryInformation', 00H
+$SG132347 DB	'XInputEnable', 00H
 	ORG $+3
-$SG132338 DB	'XInputEnable', 00H
+$SG132349 DB	'XInputEnable', 00H
 	ORG $+7
-$SG132354 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132365 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, 00H, 00H
 	ORG $+2
-$SG132355 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132366 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132366 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132377 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '3', 00H, 00H, 00H
 	ORG $+2
-$SG132367 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132378 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132378 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132389 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, 00H, 00H
-$SG132379 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132390 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG132398 DB	'XInputGetState', 00H
+$SG132409 DB	'XInputGetState', 00H
 	ORG $+5
-$SG132400 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132411 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -161,7 +161,7 @@ $SG132400 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%'
 	DB	00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+6
-$SG132405 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132416 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -171,7 +171,7 @@ $SG132405 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, 00H, 00H
 	ORG $+6
-$SG132407 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132418 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -180,9 +180,9 @@ $SG132407 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'o', 00H, 'o', 00H, 'k', 00H, ' ', 00H, 'f', 00H, 'r', 00H
 	DB	'o', 00H, 'm', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, ''''
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG132415 DB	'XInputSetState', 00H
+$SG132426 DB	'XInputSetState', 00H
 	ORG $+1
-$SG132417 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132428 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -191,7 +191,7 @@ $SG132417 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H
 	DB	's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132422 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132433 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -202,7 +202,7 @@ $SG132422 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG132424 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132435 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -212,9 +212,9 @@ $SG132424 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, ' ', 00H, 'f', 00H, 'r', 00H, 'o'
 	DB	00H, 'm', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG132432 DB	'XInputGetCapabilities', 00H
+$SG132443 DB	'XInputGetCapabilities', 00H
 	ORG $+6
-$SG132434 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132445 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -223,7 +223,7 @@ $SG132434 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H
 	DB	00H
-$SG132439 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132450 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -233,7 +233,7 @@ $SG132439 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'u', 00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H
 	DB	'.', 00H, 00H, 00H
-$SG132441 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132452 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -244,9 +244,9 @@ $SG132441 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'o', 00H, 'm', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
 	DB	'''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132450 DB	'XInputGetBatteryInformation', 00H
+$SG132461 DB	'XInputGetBatteryInformation', 00H
 	ORG $+4
-$SG132452 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132463 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -256,7 +256,7 @@ $SG132452 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132456 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132467 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -267,7 +267,7 @@ $SG132456 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
 	DB	'''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132458 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132469 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -279,7 +279,7 @@ $SG132458 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, 00H, 00H
 	ORG $+4
-$SG132468 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132479 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -288,7 +288,7 @@ $SG132468 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
 	DB	'''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132472 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132483 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -298,7 +298,7 @@ $SG132472 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%'
 	DB	00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132474 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132485 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -309,9 +309,9 @@ $SG132474 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H
 	DB	'.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132483 DB	'XInputEnable', 00H
+$SG132494 DB	'XInputEnable', 00H
 	ORG $+7
-$SG132485 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132496 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -321,7 +321,7 @@ $SG132485 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.'
 	DB	00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132489 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132500 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -332,7 +332,7 @@ $SG132489 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132491 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132502 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -344,7 +344,7 @@ $SG132491 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H
 	DB	00H
 	ORG $+6
-$SG132561 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133785 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o'
@@ -363,26 +363,26 @@ $SG132561 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, ' ', 00H, 'a', 00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H
 	DB	't', 00H, 'e', 00H, 'n', 00H, 'd', 00H, 'e', 00H, 'd', 00H, '.'
 	DB	00H, 00H, 00H
-$SG132562 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133786 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132564 DB	'XInputGetState', 00H
+$SG133788 DB	'XInputGetState', 00H
 	ORG $+1
-$SG132567 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133791 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132569 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133793 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132571 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133795 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG132587 DB	'XInput1_3.dll', 00H
+$SG133816 DB	'XInput1_3.dll', 00H
 	ORG $+2
-$SG132588 DB	'XInput1_4.dll', 00H
+$SG133817 DB	'XInput1_4.dll', 00H
 	ORG $+2
-$SG132589 DB	'XInput9_1_0.dll', 00H
-$SG132595 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG133818 DB	'XInput9_1_0.dll', 00H
+$SG133829 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'u', 00H
 	DB	's', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'X', 00H, 'I', 00H, 'n'
@@ -392,17 +392,17 @@ $SG132595 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'u', 00H, 't', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o', 00H, 'k'
 	DB	00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132600 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133834 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132602 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133836 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132604 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133838 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+4
-$SG132009 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132020 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, 'W', 00H, 'A', 00H, 'R', 00H, 'N', 00H, 'I', 00H, 'N', 00H
 	DB	'G', 00H, ':', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'i', 00H, 'r'
@@ -429,27 +429,27 @@ $SG132009 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'l', 00H, 'y', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG132040 DB	'XInputGetState1_3_Detour', 00H
+$SG132051 DB	'XInputGetState1_3_Detour', 00H
 	ORG $+7
-$SG132041 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132052 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132060 DB	'XInputGetStateEx1_3_Detour', 00H
+$SG132071 DB	'XInputGetStateEx1_3_Detour', 00H
 	ORG $+1
-$SG132061 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132072 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132080 DB	'XInputGetCapabilities1_3_Detour', 00H
+$SG132091 DB	'XInputGetCapabilities1_3_Detour', 00H
 	ORG $+4
-$SG132081 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132092 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
@@ -471,6 +471,14 @@ PUBLIC	?assign@?$char_traits@_W@std@@SAXAA_WAB_W@Z	; std::char_traits<wchar_t>::
 PUBLIC	?_Orphan_all@_Container_base0@std@@QAEXXZ	; std::_Container_base0::_Orphan_all
 PUBLIC	?_Adopt@_Iterator_base0@std@@QAEXPBX@Z		; std::_Iterator_base0::_Adopt
 PUBLIC	?_Getcont@_Iterator_base0@std@@QBEPBU_Container_base0@2@XZ ; std::_Iterator_base0::_Getcont
+PUBLIC	??0_Container_proxy@std@@QAE@XZ			; std::_Container_proxy::_Container_proxy
+PUBLIC	??0_Container_base12@std@@QAE@XZ		; std::_Container_base12::_Container_base12
+PUBLIC	??1_Container_base12@std@@QAE@XZ		; std::_Container_base12::~_Container_base12
+PUBLIC	?_Orphan_all@_Container_base12@std@@QAEXXZ	; std::_Container_base12::_Orphan_all
+PUBLIC	??0_Iterator_base12@std@@QAE@XZ			; std::_Iterator_base12::_Iterator_base12
+PUBLIC	??1_Iterator_base12@std@@QAE@XZ			; std::_Iterator_base12::~_Iterator_base12
+PUBLIC	?_Adopt@_Iterator_base12@std@@QAEXPBU_Container_base12@2@@Z ; std::_Iterator_base12::_Adopt
+PUBLIC	?_Getcont@_Iterator_base12@std@@QBEPBU_Container_base12@2@XZ ; std::_Iterator_base12::_Getcont
 PUBLIC	?_Allocate@std@@YAPAXII_N@Z			; std::_Allocate
 PUBLIC	?_Deallocate@std@@YAXPAXII@Z			; std::_Deallocate
 PUBLIC	?deallocate@?$allocator@_W@std@@QAEXPA_WI@Z	; std::allocator<wchar_t>::deallocate
@@ -687,22 +695,99 @@ PUBLIC	?SK_XInput_RehookIfNeeded@@YAXXZ		; SK_XInput_RehookIfNeeded
 PUBLIC	??$min@H@std@@YAABHABH0@Z			; std::min<int>
 PUBLIC	??$max@H@std@@YAABHABH0@Z			; std::max<int>
 PUBLIC	??$min@M@std@@YAABMABM0@Z			; std::min<float>
+PUBLIC	??0?$allocator@K@std@@QAE@ABV01@@Z		; std::allocator<unsigned long>::allocator<unsigned long>
+PUBLIC	?deallocate@?$allocator@K@std@@QAEXPAKI@Z	; std::allocator<unsigned long>::deallocate
+PUBLIC	?allocate@?$allocator@K@std@@QAEPAKI@Z		; std::allocator<unsigned long>::allocate
+PUBLIC	?max_size@?$allocator@K@std@@QBEIXZ		; std::allocator<unsigned long>::max_size
+PUBLIC	?max_size@?$allocator_traits@V?$allocator@K@std@@@std@@SAIABV?$allocator@K@2@@Z ; std::allocator_traits<std::allocator<unsigned long> >::max_size
+PUBLIC	?select_on_container_copy_construction@?$allocator_traits@V?$allocator@K@std@@@std@@SA?AV?$allocator@K@2@ABV32@@Z ; std::allocator_traits<std::allocator<unsigned long> >::select_on_container_copy_construction
+PUBLIC	?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBE?AU12@U_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::select_on_container_copy_construction
+PUBLIC	??0?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAU01@@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::_Wrap_alloc<std::allocator<unsigned long> >
+PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEPAKI@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::allocate
+PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKI@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::deallocate
+PUBLIC	?max_size@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBEIU_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::max_size
+PUBLIC	?deallocate@?$allocator@PAK@std@@QAEXPAPAKI@Z	; std::allocator<unsigned long *>::deallocate
+PUBLIC	?allocate@?$allocator@PAK@std@@QAEPAPAKI@Z	; std::allocator<unsigned long *>::allocate
+PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAEPAPAKI@Z ; std::_Wrap_alloc<std::allocator<unsigned long *> >::allocate
+PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAEXPAPAKI@Z ; std::_Wrap_alloc<std::allocator<unsigned long *> >::deallocate
+PUBLIC	?_Getblock@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEII@Z ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getblock
+PUBLIC	??1?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::~_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >
+PUBLIC	?_Alloc_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Alloc_proxy
+PUBLIC	?_Free_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Free_proxy
+PUBLIC	?_Myproxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAPAU_Container_proxy@2@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myproxy
+PUBLIC	?_Orphan_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Orphan_all
+PUBLIC	?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getal
+PUBLIC	?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getal
+PUBLIC	?_Get_data@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Get_data
+PUBLIC	?_Get_data@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Get_data
+PUBLIC	?_Map@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAPAPAKXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Map
+PUBLIC	?_Mapsize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Mapsize
+PUBLIC	?_Myoff@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myoff
+PUBLIC	?_Myoff@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABIXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myoff
+PUBLIC	?_Mysize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Mysize
+PUBLIC	?_Mysize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABIXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Mysize
+PUBLIC	??0?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QAE@XZ ; std::_Deque_val<std::_Deque_simple_types<unsigned long> >::_Deque_val<std::_Deque_simple_types<unsigned long> >
+PUBLIC	?_Getblock@?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QBEII@Z ; std::_Deque_val<std::_Deque_simple_types<unsigned long> >::_Getblock
+PUBLIC	??1?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QAE@XZ ; std::_Deque_val<std::_Deque_simple_types<unsigned long> >::~_Deque_val<std::_Deque_simple_types<unsigned long> >
+PUBLIC	?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_first
+PUBLIC	?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_first
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAEAAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_second
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QBEABV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_second
+PUBLIC	??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::~_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>
+PUBLIC	??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
+PUBLIC	??1?$deque@KV?$allocator@K@std@@@std@@QAE@XZ	; std::deque<unsigned long,std::allocator<unsigned long> >::~deque<unsigned long,std::allocator<unsigned long> >
+PUBLIC	?begin@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ ; std::deque<unsigned long,std::allocator<unsigned long> >::begin
+PUBLIC	?end@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ ; std::deque<unsigned long,std::allocator<unsigned long> >::end
+PUBLIC	?max_size@?$deque@KV?$allocator@K@std@@@std@@QBEIXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::max_size
+PUBLIC	?empty@?$deque@KV?$allocator@K@std@@@std@@QBE_NXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::empty
+PUBLIC	?pop_back@?$deque@KV?$allocator@K@std@@@std@@QAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::pop_back
+PUBLIC	?_Xlen@?$deque@KV?$allocator@K@std@@@std@@IBEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Xlen
+PUBLIC	?_Growmap@?$deque@KV?$allocator@K@std@@@std@@IAEXI@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::_Growmap
+PUBLIC	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+PUBLIC	??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::~queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >
+PUBLIC	??0?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@ABV01@@Z ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >
 PUBLIC	??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@0@0@Z ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > > >
+PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@X@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > ><std::_Wrap_alloc<std::allocator<unsigned long> >,void>
+PUBLIC	??0?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAE@IPBU_Container_base12@1@@Z ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
+PUBLIC	??D?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBEABKXZ ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator*
+PUBLIC	??E?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAEAAV01@XZ ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator++
+PUBLIC	??8?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBE_NABV01@@Z ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator==
+PUBLIC	??9?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBE_NABV01@@Z ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator!=
+PUBLIC	?_Compat@?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBEXABV12@@Z ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Compat
+PUBLIC	?_Setcont@?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAEXPBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@@Z ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Setcont
+PUBLIC	??1?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAE@XZ ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::~_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
+PUBLIC	??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::_Construct<std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > > >
+PUBLIC	??$?0V?$allocator@K@std@@@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAV?$allocator@K@1@@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::_Wrap_alloc<std::allocator<unsigned long> ><std::allocator<unsigned long> >
 PUBLIC	??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@1@0@Z ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > > ><std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,void,0>
 PUBLIC	??$?0ABV?$allocator@PAUHINSTANCE__@@@std@@@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@QAE@ABV?$allocator@PAUHINSTANCE__@@@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > >::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > ><std::allocator<HINSTANCE__ *> const &>
 PUBLIC	??$?0AAU?$hash@PAUHINSTANCE__@@@std@@U_One_then_variadic_args_t@1@AAU?$equal_to@PAUHINSTANCE__@@@1@M@?$_Compressed_pair@U?$hash@PAUHINSTANCE__@@@std@@V?$_Compressed_pair@U?$equal_to@PAUHINSTANCE__@@@std@@M$00@2@$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$hash@PAUHINSTANCE__@@@1@$$QAU21@AAU?$equal_to@PAUHINSTANCE__@@@1@$$QAM@Z ; std::_Compressed_pair<std::hash<HINSTANCE__ *>,std::_Compressed_pair<std::equal_to<HINSTANCE__ *>,float,1>,1>::_Compressed_pair<std::hash<HINSTANCE__ *>,std::_Compressed_pair<std::equal_to<HINSTANCE__ *>,float,1>,1><std::hash<HINSTANCE__ *> &,std::_One_then_variadic_args_t,std::equal_to<HINSTANCE__ *> &,float>
+PUBLIC	??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ; std::_Wrap_alloc<std::allocator<unsigned long *> >::_Wrap_alloc<std::allocator<unsigned long *> ><std::_Wrap_alloc<std::allocator<unsigned long> > &>
+PUBLIC	??$addressof@PAK@std@@YAPAPAKAAPAK@Z		; std::addressof<unsigned long *>
+PUBLIC	??$destroy@PAK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAPAK@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::destroy<unsigned long *>
+PUBLIC	??$addressof@$$CBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@ABV10@@Z ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > const >
 PUBLIC	??$addressof@PA_W@std@@YAPAPA_WAAPA_W@Z		; std::addressof<wchar_t *>
 PUBLIC	??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::destroy<wchar_t *>
+PUBLIC	?deallocate@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@2@I@Z ; std::allocator<std::_Container_proxy>::deallocate
+PUBLIC	?allocate@?$allocator@U_Container_proxy@std@@@std@@QAEPAU_Container_proxy@2@I@Z ; std::allocator<std::_Container_proxy>::allocate
+PUBLIC	?address@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QBEPAU_Container_proxy@2@AAU32@@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::address
+PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEPAU_Container_proxy@2@I@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::allocate
+PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@2@I@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::deallocate
+PUBLIC	??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::_Wrap_alloc<std::allocator<std::_Container_proxy> ><std::_Wrap_alloc<std::allocator<unsigned long> > &>
+PUBLIC	??$destroy@U_Container_proxy@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::destroy<std::_Container_proxy>
 PUBLIC	??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@X@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@2@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@@Z ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0>,std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > > >::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0>,std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > const &,void>
 PUBLIC	??$?0ABV?$allocator@PAUHINSTANCE__@@@std@@X@?$_List_buy@PAUHINSTANCE__@@V?$allocator@PAUHINSTANCE__@@@std@@@std@@QAE@ABV?$allocator@PAUHINSTANCE__@@@1@@Z ; std::_List_buy<HINSTANCE__ *,std::allocator<HINSTANCE__ *> >::_List_buy<HINSTANCE__ *,std::allocator<HINSTANCE__ *> ><std::allocator<HINSTANCE__ *> const &,void>
 PUBLIC	??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@QAE@PAU?$_List_node@PAUHINSTANCE__@@PAX@1@PBV?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@1@@Z ; std::_List_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >::_List_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >
+PUBLIC	??$_Unfancy@K@std@@YAPAKPAK@Z			; std::_Unfancy<unsigned long>
+PUBLIC	??$destroy@K@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAK@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::destroy<unsigned long>
 PUBLIC	??$_Unfancy@_W@std@@YAPA_WPA_W@Z		; std::_Unfancy<wchar_t>
+PUBLIC	?pointer_to@?$pointer_traits@PAU_Container_proxy@std@@@std@@SAPAU_Container_proxy@2@AAU32@@Z ; std::pointer_traits<std::_Container_proxy *>::pointer_to
 PUBLIC	??$_Destroy_range@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@2@@std@@YAXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@@Z ; std::_Destroy_range<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > >,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *>
 PUBLIC	??$_Fill_unchecked@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@V12@@std@@YAXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@0ABV10@@Z ; std::_Fill_unchecked<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
 PUBLIC	??$addressof@PAU?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@YAPAPAU?$_List_node@PAUHINSTANCE__@@PAX@0@AAPAU10@@Z ; std::addressof<std::_List_node<HINSTANCE__ *,void *> *>
 PUBLIC	??$destroy@PAU?$_List_node@PAUHINSTANCE__@@PAX@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@PAUHINSTANCE__@@PAX@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > >::destroy<std::_List_node<HINSTANCE__ *,void *> *>
 PUBLIC	??$addressof@$$CBV?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@0@ABV10@@Z ; std::addressof<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > const >
 PUBLIC	??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@QAE@PAU?$_List_node@PAUHINSTANCE__@@PAX@1@PBV?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@1@@Z ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >
+PUBLIC	??$addressof@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@AAU10@@Z ; std::addressof<std::_Container_proxy>
 PUBLIC	??$_Uninitialized_fill_n@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@@Z ; std::_Uninitialized_fill_n<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >
 PUBLIC	??$addressof@PAUHINSTANCE__@@@std@@YAPAPAUHINSTANCE__@@AAPAU1@@Z ; std::addressof<HINSTANCE__ *>
 PUBLIC	??$destroy@PAUHINSTANCE__@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@@std@@QAEXPAPAUHINSTANCE__@@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > >::destroy<HINSTANCE__ *>
@@ -711,6 +796,10 @@ PUBLIC	??$_Fn@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_
 PUBLIC	??$_Uninitialized_move@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@@Z ; std::_Uninitialized_move<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >
 PUBLIC	??$_Insert@ABQAUHINSTANCE__@@U_Nil@std@@@?$_Hash@V?$_Uset_traits@PAUHINSTANCE__@@V?$_Uhash_compare@PAUHINSTANCE__@@U?$hash@PAUHINSTANCE__@@@std@@U?$equal_to@PAUHINSTANCE__@@@3@@std@@V?$allocator@PAUHINSTANCE__@@@3@$0A@@std@@@std@@IAE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@_N@1@ABQAUHINSTANCE__@@U_Nil@1@@Z ; std::_Hash<std::_Uset_traits<HINSTANCE__ *,std::_Uhash_compare<HINSTANCE__ *,std::hash<HINSTANCE__ *>,std::equal_to<HINSTANCE__ *> >,std::allocator<HINSTANCE__ *>,0> >::_Insert<HINSTANCE__ * const &,std::_Nil>
 PUBLIC	??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z ; std::_Distance1<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > > >
+PUBLIC	??$forward@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<unsigned long> > >
+PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1><std::_Wrap_alloc<std::allocator<unsigned long> > >
+PUBLIC	??$emplace_back@ABK@?$deque@KV?$allocator@K@std@@@std@@QAEXABK@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::emplace_back<unsigned long const &>
+PUBLIC	??$forward@V?$allocator@K@std@@@std@@YA$$QAV?$allocator@K@0@AAV10@@Z ; std::forward<std::allocator<unsigned long> >
 PUBLIC	??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z ; std::forward<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > > >
 PUBLIC	??$forward@ABV?$allocator@PAUHINSTANCE__@@@std@@@std@@YAABV?$allocator@PAUHINSTANCE__@@@0@ABV10@@Z ; std::forward<std::allocator<HINSTANCE__ *> const &>
 PUBLIC	??$?0PAUHINSTANCE__@@@?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@QAE@ABV?$allocator@PAUHINSTANCE__@@@1@@Z ; std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> ><HINSTANCE__ *>
@@ -719,10 +808,16 @@ PUBLIC	??$forward@U_One_then_variadic_args_t@std@@@std@@YA$$QAU_One_then_variadi
 PUBLIC	??$forward@AAU?$equal_to@PAUHINSTANCE__@@@std@@@std@@YAAAU?$equal_to@PAUHINSTANCE__@@@0@AAU10@@Z ; std::forward<std::equal_to<HINSTANCE__ *> &>
 PUBLIC	??$forward@M@std@@YA$$QAMAAM@Z			; std::forward<float>
 PUBLIC	??$?0AAU?$equal_to@PAUHINSTANCE__@@@std@@M@?$_Compressed_pair@U?$equal_to@PAUHINSTANCE__@@@std@@M$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$equal_to@PAUHINSTANCE__@@@1@$$QAM@Z ; std::_Compressed_pair<std::equal_to<HINSTANCE__ *>,float,1>::_Compressed_pair<std::equal_to<HINSTANCE__ *>,float,1><std::equal_to<HINSTANCE__ *> &,float>
+PUBLIC	??$forward@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<unsigned long> > &>
+PUBLIC	??$?0K@?$allocator@PAK@std@@QAE@ABV?$allocator@K@1@@Z ; std::allocator<unsigned long *>::allocator<unsigned long *><unsigned long>
+PUBLIC	??$destroy@PAK@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAPAK@Z ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long *>
 PUBLIC	??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z ; std::allocator_traits<std::allocator<wchar_t> >::destroy<wchar_t *>
+PUBLIC	??$?0K@?$allocator@U_Container_proxy@std@@@std@@QAE@ABV?$allocator@K@1@@Z ; std::allocator<std::_Container_proxy>::allocator<std::_Container_proxy><unsigned long>
+PUBLIC	??$destroy@U_Container_proxy@std@@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@@Z ; std::allocator_traits<std::allocator<std::_Container_proxy> >::destroy<std::_Container_proxy>
 PUBLIC	??$forward@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@YAABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@0@ABU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > const &>
 PUBLIC	??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > >,1>::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > >,1><std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > const &>
 PUBLIC	??$?0ABV?$allocator@PAUHINSTANCE__@@@std@@X@?$_List_alloc@U?$_List_base_types@PAUHINSTANCE__@@V?$allocator@PAUHINSTANCE__@@@std@@@std@@@std@@QAE@ABV?$allocator@PAUHINSTANCE__@@@1@@Z ; std::_List_alloc<std::_List_base_types<HINSTANCE__ *,std::allocator<HINSTANCE__ *> > >::_List_alloc<std::_List_base_types<HINSTANCE__ *,std::allocator<HINSTANCE__ *> > ><std::allocator<HINSTANCE__ *> const &,void>
+PUBLIC	??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long>
 PUBLIC	??$_Destroy_range1@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@2@@std@@YAXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ; std::_Destroy_range1<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > >,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *>
 PUBLIC	??$_Fill_memset_is_safe@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@V12@@std@@YA?AU?$integral_constant@_N$0A@@0@ABQAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@ABV20@@Z ; std::_Fill_memset_is_safe<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
 PUBLIC	??$_Fill_unchecked1@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@V12@@std@@YAXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@0ABV10@U?$integral_constant@_N$0A@@0@@Z ; std::_Fill_unchecked1<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
@@ -736,34 +831,58 @@ PUBLIC	??$move@AAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_
 PUBLIC	??$_Uninitialized_move_al_unchecked@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z ; std::_Uninitialized_move_al_unchecked<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >
 PUBLIC	??$?0U?$integral_constant@_N$0A@@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$0A@@1@@Z ; std::_Any_tag::_Any_tag<std::integral_constant<bool,0> >
 PUBLIC	??$_Rechecked@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@PAV12@@std@@YAAAPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@AAPAV10@PAV10@@Z ; std::_Rechecked<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *>
+PUBLIC	??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z ; std::_Unfancy<std::_Container_proxy>
+PUBLIC	??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>
+PUBLIC	??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
 PUBLIC	??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@_NX$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@_N@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@1@$$QA_N@Z ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,bool>::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,bool><std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,bool,void,0>
 PUBLIC	??$forward@ABQAUHINSTANCE__@@@std@@YAABQAUHINSTANCE__@@ABQAU1@@Z ; std::forward<HINSTANCE__ * const &>
 PUBLIC	??$_Buynode_if_nil@ABQAUHINSTANCE__@@@?$_Hash@V?$_Uset_traits@PAUHINSTANCE__@@V?$_Uhash_compare@PAUHINSTANCE__@@U?$hash@PAUHINSTANCE__@@@std@@U?$equal_to@PAUHINSTANCE__@@@3@@std@@V?$allocator@PAUHINSTANCE__@@@3@$0A@@std@@@std@@IAE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@ABQAUHINSTANCE__@@U_Nil@1@@Z ; std::_Hash<std::_Uset_traits<HINSTANCE__ *,std::_Uhash_compare<HINSTANCE__ *,std::hash<HINSTANCE__ *>,std::equal_to<HINSTANCE__ *> >,std::allocator<HINSTANCE__ *>,0> >::_Buynode_if_nil<HINSTANCE__ * const &>
 PUBLIC	??$_Buynode_if_nil@ABQAUHINSTANCE__@@@?$_Hash@V?$_Uset_traits@PAUHINSTANCE__@@V?$_Uhash_compare@PAUHINSTANCE__@@U?$hash@PAUHINSTANCE__@@@std@@U?$equal_to@PAUHINSTANCE__@@@3@@std@@V?$allocator@PAUHINSTANCE__@@@3@$0A@@std@@@std@@IAE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@ABQAUHINSTANCE__@@V21@@Z ; std::_Hash<std::_Uset_traits<HINSTANCE__ *,std::_Uhash_compare<HINSTANCE__ *,std::hash<HINSTANCE__ *>,std::equal_to<HINSTANCE__ *> >,std::allocator<HINSTANCE__ *>,0> >::_Buynode_if_nil<HINSTANCE__ * const &>
+PUBLIC	??$forward@ABK@std@@YAABKABK@Z			; std::forward<unsigned long const &>
+PUBLIC	??$construct@KABK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKABK@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::construct<unsigned long,unsigned long const &>
+PUBLIC	??$destroy@PAK@?$allocator@K@std@@QAEXPAPAK@Z	; std::allocator<unsigned long>::destroy<unsigned long *>
 PUBLIC	??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z ; std::allocator<wchar_t>::destroy<wchar_t *>
+PUBLIC	??$destroy@U_Container_proxy@std@@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@@Z ; std::allocator<std::_Container_proxy>::destroy<std::_Container_proxy>
 PUBLIC	??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > const &>
 PUBLIC	??$?0ABV?$allocator@PAUHINSTANCE__@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABV?$allocator@PAUHINSTANCE__@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > >,std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > >,std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,1><std::allocator<HINSTANCE__ *> const &>
+PUBLIC	??$destroy@K@?$allocator@K@std@@QAEXPAK@Z	; std::allocator<unsigned long>::destroy<unsigned long>
 PUBLIC	??$destroy@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::destroy<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
 PUBLIC	??$destroy@PAU?$_List_node@PAUHINSTANCE__@@PAX@std@@@?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@QAEXPAPAU?$_List_node@PAUHINSTANCE__@@PAX@1@@Z ; std::allocator<std::_List_node<HINSTANCE__ *,void *> >::destroy<std::_List_node<HINSTANCE__ *,void *> *>
 PUBLIC	??$construct@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@ABV12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@ABV21@@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::construct<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0>,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> const &>
 PUBLIC	??$destroy@PAUHINSTANCE__@@@?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@QAEXPAPAUHINSTANCE__@@@Z ; std::allocator<std::_List_node<HINSTANCE__ *,void *> >::destroy<HINSTANCE__ *>
 PUBLIC	??$construct@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@V12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@$$QAV21@@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::construct<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0>,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
+PUBLIC	??$forward@U_Container_proxy@std@@@std@@YA$$QAU_Container_proxy@0@AAU10@@Z ; std::forward<std::_Container_proxy>
+PUBLIC	??$construct@U_Container_proxy@std@@U12@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@$$QAU31@@Z ; std::allocator_traits<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>
+PUBLIC	??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ; std::move<std::_Wrap_alloc<std::allocator<unsigned long> > &>
+PUBLIC	??$_Uninitialized_copy@PAPAKPAPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ; std::_Uninitialized_copy<unsigned long * *,unsigned long * *,std::allocator<unsigned long *> >
+PUBLIC	??$_Uninitialized_default_fill_n@PAPAKIV?$allocator@PAK@std@@@std@@YAPAPAKPAPAKIAAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ; std::_Uninitialized_default_fill_n<unsigned long * *,unsigned int,std::allocator<unsigned long *> >
+PUBLIC	??$_Destroy_range@V?$allocator@PAK@std@@PAPAK@std@@YAXPAPAK0AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ; std::_Destroy_range<std::allocator<unsigned long *>,unsigned long * *>
 PUBLIC	??$construct@PAU?$_List_node@PAUHINSTANCE__@@PAX@std@@AAPAU12@@?$_Wrap_alloc@V?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@PAUHINSTANCE__@@PAX@1@AAPAU21@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > >::construct<std::_List_node<HINSTANCE__ *,void *> *,std::_List_node<HINSTANCE__ *,void *> * &>
 PUBLIC	??$_Insert@ABQAUHINSTANCE__@@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@?$_Hash@V?$_Uset_traits@PAUHINSTANCE__@@V?$_Uhash_compare@PAUHINSTANCE__@@U?$hash@PAUHINSTANCE__@@@std@@U?$equal_to@PAUHINSTANCE__@@@3@@std@@V?$allocator@PAUHINSTANCE__@@@3@$0A@@std@@@std@@IAE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@_N@1@ABQAUHINSTANCE__@@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@@Z ; std::_Hash<std::_Uset_traits<HINSTANCE__ *,std::_Uhash_compare<HINSTANCE__ *,std::hash<HINSTANCE__ *>,std::equal_to<HINSTANCE__ *> >,std::allocator<HINSTANCE__ *>,0> >::_Insert<HINSTANCE__ * const &,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
 PUBLIC	??$forward@_N@std@@YA$$QA_NAA_N@Z		; std::forward<bool>
+PUBLIC	??$construct@KABK@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAKABK@Z ; std::allocator_traits<std::allocator<unsigned long> >::construct<unsigned long,unsigned long const &>
 PUBLIC	??$?0ABV?$allocator@PAUHINSTANCE__@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@@std@@QAE@ABV?$allocator@PAUHINSTANCE__@@@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > >::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > ><std::allocator<HINSTANCE__ *> const &>
 PUBLIC	??$destroy@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::destroy<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
 PUBLIC	??$forward@ABV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@YAABV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@ABV10@@Z ; std::forward<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> const &>
 PUBLIC	??$construct@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@ABV31@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::construct<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0>,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> const &>
 PUBLIC	??$forward@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@YA$$QAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@AAV10@@Z ; std::forward<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
 PUBLIC	??$construct@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@$$QAV31@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::construct<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0>,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
+PUBLIC	??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ; std::allocator<std::_Container_proxy>::construct<std::_Container_proxy,std::_Container_proxy>
+PUBLIC	??$_Unchecked@PAPAK@std@@YAPAPAKPAPAK@Z		; std::_Unchecked<unsigned long * *>
+PUBLIC	??$_Ptr_copy_cat@PAKPAK@std@@YA?AU_Really_trivial_ptr_iterator_tag@0@ABQAPAK0@Z ; std::_Ptr_copy_cat<unsigned long *,unsigned long *>
+PUBLIC	??$_Uninitialized_copy_al_unchecked@PAKPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U_Really_trivial_ptr_iterator_tag@0@U?$integral_constant@_N$00@0@@Z ; std::_Uninitialized_copy_al_unchecked<unsigned long *,unsigned long *,std::allocator<unsigned long *> >
+PUBLIC	??$_Rechecked@PAPAKPAPAK@std@@YAAAPAPAKAAPAPAKPAPAK@Z ; std::_Rechecked<unsigned long * *,unsigned long * *>
+PUBLIC	??$_Uninitialized_default_fill_n1@PAPAKIV?$allocator@PAK@std@@@std@@YAPAPAKPAPAKIAAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U?$integral_constant@_N$00@0@@Z ; std::_Uninitialized_default_fill_n1<unsigned long * *,unsigned int,std::allocator<unsigned long *> >
+PUBLIC	??$_Destroy_range1@V?$allocator@PAK@std@@PAPAK@std@@YAXPAPAK0AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U?$integral_constant@_N$00@0@@Z ; std::_Destroy_range1<std::allocator<unsigned long *>,unsigned long * *>
 PUBLIC	??$forward@AAPAU?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@YAAAPAU?$_List_node@PAUHINSTANCE__@@PAX@0@AAPAU10@@Z ; std::forward<std::_List_node<HINSTANCE__ *,void *> * &>
 PUBLIC	??$construct@PAU?$_List_node@PAUHINSTANCE__@@PAX@std@@AAPAU12@@?$allocator_traits@V?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@1@PAPAU?$_List_node@PAUHINSTANCE__@@PAX@1@AAPAU31@@Z ; std::allocator_traits<std::allocator<std::_List_node<HINSTANCE__ *,void *> > >::construct<std::_List_node<HINSTANCE__ *,void *> *,std::_List_node<HINSTANCE__ *,void *> * &>
 PUBLIC	??$_Insert@ABQAUHINSTANCE__@@@?$list@PAUHINSTANCE__@@V?$allocator@PAUHINSTANCE__@@@std@@@std@@QAEXV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@ABQAUHINSTANCE__@@@Z ; std::list<HINSTANCE__ *,std::allocator<HINSTANCE__ *> >::_Insert<HINSTANCE__ * const &>
+PUBLIC	??$construct@KABK@?$allocator@K@std@@QAEXPAKABK@Z ; std::allocator<unsigned long>::construct<unsigned long,unsigned long const &>
 PUBLIC	??$?0PAUHINSTANCE__@@@?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@QAE@ABV?$allocator@PAUHINSTANCE__@@@1@@Z ; std::allocator<std::_List_node<HINSTANCE__ *,void *> >::allocator<std::_List_node<HINSTANCE__ *,void *> ><HINSTANCE__ *>
 PUBLIC	??$_Destroy1@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@U?$integral_constant@_N$00@1@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::_Destroy1<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
 PUBLIC	??$_Construct1@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@ABV41@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::_Construct1<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0>,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> const &>
 PUBLIC	??$_Construct1@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@$$QAV41@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::_Construct1<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0>,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
+PUBLIC	??$_Copy_memmove@PAPAKPAPAK@std@@YAPAPAKPAPAK00@Z ; std::_Copy_memmove<unsigned long * *,unsigned long * *>
 PUBLIC	??$construct@PAU?$_List_node@PAUHINSTANCE__@@PAX@std@@AAPAU12@@?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@QAEXPAPAU?$_List_node@PAUHINSTANCE__@@PAX@1@AAPAU21@@Z ; std::allocator<std::_List_node<HINSTANCE__ *,void *> >::construct<std::_List_node<HINSTANCE__ *,void *> *,std::_List_node<HINSTANCE__ *,void *> * &>
 PUBLIC	??$_Buynode@ABQAUHINSTANCE__@@@?$_List_buy@PAUHINSTANCE__@@V?$allocator@PAUHINSTANCE__@@@std@@@std@@QAEPAU?$_List_node@PAUHINSTANCE__@@PAX@1@PAU21@0ABQAUHINSTANCE__@@@Z ; std::_List_buy<HINSTANCE__ *,std::allocator<HINSTANCE__ *> >::_Buynode<HINSTANCE__ * const &>
 PUBLIC	??$construct@PAUHINSTANCE__@@ABQAU1@@?$_Wrap_alloc@V?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@@std@@QAEXPAPAUHINSTANCE__@@ABQAU2@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > >::construct<HINSTANCE__ *,HINSTANCE__ * const &>
@@ -772,6 +891,7 @@ PUBLIC	??$construct@PAUHINSTANCE__@@ABQAU1@@?$allocator@U?$_List_node@PAUHINSTAN
 PUBLIC	??_C@_11LOCGONAA@?$AA?$AA@			; `string'
 PUBLIC	?xinput_ctx@@3USK_XInputContext@@A		; xinput_ctx
 PUBLIC	??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ ; `string'
+PUBLIC	??_C@_0BC@KBDMBKEH@deque?$DMT?$DO?5too?5long?$AA@ ; `string'
 PUBLIC	??_C@_0BB@MOGOBHAF@list?$DMT?$DO?5too?5long?$AA@ ; `string'
 PUBLIC	__real@3f7fff58
 PUBLIC	__real@477fff00
@@ -783,6 +903,7 @@ EXTRN	__Init_thread_header:PROC
 EXTRN	__Init_thread_abort:PROC
 EXTRN	__Init_thread_footer:PROC
 EXTRN	__imp___invalid_parameter_noinfo_noreturn:PROC
+EXTRN	__imp__memmove:PROC
 EXTRN	__imp__GetModuleHandleW@4:PROC
 EXTRN	__imp__GetProcAddress@8:PROC
 EXTRN	__imp__timeGetTime@0:PROC
@@ -805,10 +926,13 @@ EXTRN	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ:PROC	; SK_ApplyQueuedHooks
 EXTRN	?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z:PROC	; SK_GetCallingDLL
 EXTRN	?SK_GetModuleName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z:PROC ; SK_GetModuleName
 EXTRN	?SK_GetProcAddress@@YAPAXPB_WPBD@Z:PROC		; SK_GetProcAddress
+EXTRN	?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ:PROC ; SK_SuspendAllOtherThreads
+EXTRN	?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z:PROC ; SK_ResumeThreads
 EXTRN	?SK_TestImports@@YGXPAUHINSTANCE__@@PAUsk_import_test_s@@H@Z:PROC ; SK_TestImports
 EXTRN	?SK_ImGui_FilterXInput@@YA_NKPAU_XINPUT_STATE@@@Z:PROC ; SK_ImGui_FilterXInput
 EXTRN	__CxxThrowException@8:PROC
 EXTRN	___CxxFrameHandler3:PROC
+EXTRN	_memset:PROC
 EXTRN	__Init_thread_epoch:DWORD
 EXTRN	?SK_XInput_Backend@@3Usk_input_api_context_s@@A:BYTE ; SK_XInput_Backend
 EXTRN	?dll_log@@3UiSK_Logger@@A:BYTE			; dll_log
@@ -920,6 +1044,10 @@ CONST	ENDS
 CONST	SEGMENT
 ??_C@_0BB@MOGOBHAF@list?$DMT?$DO?5too?5long?$AA@ DB 'list<T> too long', 00H ; `string'
 CONST	ENDS
+;	COMDAT ??_C@_0BC@KBDMBKEH@deque?$DMT?$DO?5too?5long?$AA@
+CONST	SEGMENT
+??_C@_0BC@KBDMBKEH@deque?$DMT?$DO?5too?5long?$AA@ DB 'deque<T> too long', 00H ; `string'
+CONST	ENDS
 ;	COMDAT ??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@
 CONST	SEGMENT
 ??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ DB 'vector<T> too long'
@@ -927,13 +1055,13 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A
 _DATA	SEGMENT
-?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG132587 ; `SK_Input_PreHookXInput'::`7'::tests
+?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG133816 ; `SK_Input_PreHookXInput'::`7'::tests
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG132588
+	DD	FLAT:$SG133817
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG132589
+	DD	FLAT:$SG133818
 	DB	00H
 	ORG $+3
 _DATA	ENDS
@@ -1010,6 +1138,42 @@ __ehfuncinfo$??$_Insert@ABQAUHINSTANCE__@@U_Nil@std@@@?$_Hash@V?$_Uset_traits@PA
 xdata$x	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
+__catchsym$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z$2 DD 040H
+	DD	00H
+	DD	00H
+	DD	FLAT:__catch$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z$0
+__unwindtable$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z DD 0ffffffffH
+	DD	00H
+	DD	0ffffffffH
+	DD	00H
+__tryblocktable$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z DD 00H
+	DD	00H
+	DD	01H
+	DD	01H
+	DD	FLAT:__catchsym$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z$2
+__ehfuncinfo$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z DD 019930522H
+	DD	02H
+	DD	FLAT:__unwindtable$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z
+	DD	01H
+	DD	FLAT:__tryblocktable$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
+__unwindtable$??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z$0
+__ehfuncinfo$??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
 __catchsym$?_Reallocate_exactly@?$vector@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@2@@std@@AAEXI@Z$49 DD 040H
 	DD	00H
 	DD	00H
@@ -1049,9 +1213,29 @@ xdata$x	ENDS
 xdata$x	SEGMENT
 __unwindtable$?SK_XInput_EstablishPrimaryHook@@YAXPAUHINSTANCE__@@PAUinstance_s@SK_XInputContext@@@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_XInput_EstablishPrimaryHook@@YAXPAUHINSTANCE__@@PAUinstance_s@SK_XInputContext@@@Z$0
+__unwindtable$?SK_Input_PreHookXInput@@YAXXZ DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_Input_PreHookXInput@@YAXXZ$0
+__unwindtable$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z$0
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z$2
 __ehfuncinfo$?SK_XInput_EstablishPrimaryHook@@YAXPAUHINSTANCE__@@PAUinstance_s@SK_XInputContext@@@Z DD 019930522H
 	DD	01H
 	DD	FLAT:__unwindtable$?SK_XInput_EstablishPrimaryHook@@YAXPAUHINSTANCE__@@PAUinstance_s@SK_XInputContext@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+__ehfuncinfo$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z DD 019930522H
+	DD	02H
+	DD	FLAT:__unwindtable$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+__ehfuncinfo$?SK_Input_PreHookXInput@@YAXXZ DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?SK_Input_PreHookXInput@@YAXXZ
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
 	DD	00H
@@ -1230,6 +1414,53 @@ $LN3@construct:
 ??$construct@PAU?$_List_node@PAUHINSTANCE__@@PAX@std@@AAPAU12@@?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@QAEXPAPAU?$_List_node@PAUHINSTANCE__@@PAX@1@AAPAU21@@Z ENDP ; std::allocator<std::_List_node<HINSTANCE__ *,void *> >::construct<std::_List_node<HINSTANCE__ *,void *> *,std::_List_node<HINSTANCE__ *,void *> * &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Copy_memmove@PAPAKPAPAK@std@@YAPAPAKPAPAK00@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+__Dest$ = 16						; size = 4
+??$_Copy_memmove@PAPAKPAPAK@std@@YAPAPAKPAPAK00@Z PROC	; std::_Copy_memmove<unsigned long * *,unsigned long * *>, COMDAT
+
+; 2295 : 	{	// implement copy-like function as memmove
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 2296 : 	const char * const _First_ch = reinterpret_cast<const char *>(_First);
+; 2297 : 	const char * const _Last_ch = reinterpret_cast<const char *>(_Last);
+; 2298 : 	char * const _Dest_ch = reinterpret_cast<char *>(_Dest);
+; 2299 : 	const size_t _Count = _Last_ch - _First_ch;
+
+	mov	eax, DWORD PTR __First$[ebp]
+	push	esi
+
+; 2300 : 	_CSTD memmove(_Dest_ch, _First_ch, _Count);
+
+	mov	esi, DWORD PTR __Dest$[ebp]
+	push	edi
+	mov	edi, DWORD PTR __Last$[ebp]
+	sub	edi, eax
+	push	edi
+	push	eax
+	push	esi
+	call	DWORD PTR __imp__memmove
+	add	esp, 12					; 0000000cH
+
+; 2301 : 	return (reinterpret_cast<_OutIt>(_Dest_ch + _Count));
+
+	lea	eax, DWORD PTR [edi+esi]
+	pop	edi
+	pop	esi
+
+; 2302 : 	}
+
+	pop	ebp
+	ret	0
+??$_Copy_memmove@PAPAKPAPAK@std@@YAPAPAKPAPAK00@Z ENDP	; std::_Copy_memmove<unsigned long * *,unsigned long * *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$_Construct1@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@$$QAV41@@Z
 _TEXT	SEGMENT
@@ -1323,6 +1554,37 @@ ___formal$ = 8						; size = 4
 	mov	eax, ecx
 	ret	4
 ??$?0PAUHINSTANCE__@@@?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@QAE@ABV?$allocator@PAUHINSTANCE__@@@1@@Z ENDP ; std::allocator<std::_List_node<HINSTANCE__ *,void *> >::allocator<std::_List_node<HINSTANCE__ *,void *> ><HINSTANCE__ *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@KABK@?$allocator@K@std@@QAEXPAKABK@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@KABK@?$allocator@K@std@@QAEXPAKABK@Z PROC	; std::allocator<unsigned long>::construct<unsigned long,unsigned long const &>, COMDAT
+; _this$ = ecx
+
+; 839  : 		{	// construct _Objty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN3@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN3@construct:
+
+; 841  : 		}
+
+	pop	ebp
+	ret	8
+??$construct@KABK@?$allocator@K@std@@QAEXPAKABK@Z ENDP	; std::allocator<unsigned long>::construct<unsigned long,unsigned long const &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -1453,6 +1715,228 @@ __Arg$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$forward@AAPAU?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@YAAAPAU?$_List_node@PAUHINSTANCE__@@PAX@0@AAPAU10@@Z ENDP ; std::forward<std::_List_node<HINSTANCE__ *,void *> * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Destroy_range1@V?$allocator@PAK@std@@PAPAK@std@@YAXPAPAK0AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U?$integral_constant@_N$00@0@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+___formal$ = 12						; size = 4
+___formal$ = 16						; size = 4
+___formal$ = 20						; size = 1
+??$_Destroy_range1@V?$allocator@PAK@std@@PAPAK@std@@YAXPAPAK0AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U?$integral_constant@_N$00@0@@Z PROC ; std::_Destroy_range1<std::allocator<unsigned long *>,unsigned long * *>, COMDAT
+
+; 1208 : 		// nothing to do
+; 1209 : 	}
+
+	ret	0
+??$_Destroy_range1@V?$allocator@PAK@std@@PAPAK@std@@YAXPAPAK0AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U?$integral_constant@_N$00@0@@Z ENDP ; std::_Destroy_range1<std::allocator<unsigned long *>,unsigned long * *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+;	COMDAT ??$_Uninitialized_default_fill_n1@PAPAKIV?$allocator@PAK@std@@@std@@YAPAPAKPAPAKIAAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U?$integral_constant@_N$00@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Count$ = 12						; size = 4
+___formal$ = 16						; size = 4
+___formal$ = 20						; size = 1
+??$_Uninitialized_default_fill_n1@PAPAKIV?$allocator@PAK@std@@@std@@YAPAPAKPAPAKIAAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U?$integral_constant@_N$00@0@@Z PROC ; std::_Uninitialized_default_fill_n1<unsigned long * *,unsigned int,std::allocator<unsigned long *> >, COMDAT
+
+; 250  : 	{	// value-initialize _Count objects to raw _First, using default _Alloc construct, all-bits-zero type
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 251  : 	_CSTD memset(_First, 0, _Count * sizeof(_Iter_value_t<_FwdIt>));
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	push	esi
+	mov	esi, DWORD PTR __First$[ebp]
+	push	edi
+	lea	edi, DWORD PTR [eax*4]
+	push	edi
+	push	0
+	push	esi
+	call	_memset
+	add	esp, 12					; 0000000cH
+
+; 252  : 	return (_First + _Count);
+
+	lea	eax, DWORD PTR [edi+esi]
+	pop	edi
+	pop	esi
+
+; 253  : 	}
+
+	pop	ebp
+	ret	0
+??$_Uninitialized_default_fill_n1@PAPAKIV?$allocator@PAK@std@@@std@@YAPAPAKPAPAKIAAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U?$integral_constant@_N$00@0@@Z ENDP ; std::_Uninitialized_default_fill_n1<unsigned long * *,unsigned int,std::allocator<unsigned long *> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Rechecked@PAPAKPAPAK@std@@YAAAPAPAKAAPAPAKPAPAK@Z
+_TEXT	SEGMENT
+__Dest$ = 8						; size = 4
+__Src$ = 12						; size = 4
+??$_Rechecked@PAPAKPAPAK@std@@YAAAPAPAKAAPAPAKPAPAK@Z PROC ; std::_Rechecked<unsigned long * *,unsigned long * *>, COMDAT
+
+; 480  : 	{	// reset checked from unchecked, generic
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 481  : 	_Dest = _Src;
+
+	mov	eax, DWORD PTR __Dest$[ebp]
+	mov	ecx, DWORD PTR __Src$[ebp]
+	mov	DWORD PTR [eax], ecx
+
+; 482  : 	return (_Dest);
+; 483  : 	}
+
+	pop	ebp
+	ret	0
+??$_Rechecked@PAPAKPAPAK@std@@YAAAPAPAKAAPAPAKPAPAK@Z ENDP ; std::_Rechecked<unsigned long * *,unsigned long * *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+;	COMDAT ??$_Uninitialized_copy_al_unchecked@PAKPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U_Really_trivial_ptr_iterator_tag@0@U?$integral_constant@_N$00@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+__Dest$ = 16						; size = 4
+___formal$ = 20						; size = 4
+___formal$ = 24						; size = 1
+___formal$ = 28						; size = 1
+??$_Uninitialized_copy_al_unchecked@PAKPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U_Really_trivial_ptr_iterator_tag@0@U?$integral_constant@_N$00@0@@Z PROC ; std::_Uninitialized_copy_al_unchecked<unsigned long *,unsigned long *,std::allocator<unsigned long *> >, COMDAT
+
+; 108  : 	{	// copy [_First, _Last) to raw _Dest, using default _Alloc construct, memmove optimization
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2299 : 	const size_t _Count = _Last_ch - _First_ch;
+
+	mov	eax, DWORD PTR __First$[ebp]
+	push	esi
+
+; 2300 : 	_CSTD memmove(_Dest_ch, _First_ch, _Count);
+
+	mov	esi, DWORD PTR __Dest$[ebp]
+	push	edi
+
+; 2299 : 	const size_t _Count = _Last_ch - _First_ch;
+
+	mov	edi, DWORD PTR __Last$[ebp]
+	sub	edi, eax
+
+; 2300 : 	_CSTD memmove(_Dest_ch, _First_ch, _Count);
+
+	push	edi
+	push	eax
+	push	esi
+	call	DWORD PTR __imp__memmove
+	add	esp, 12					; 0000000cH
+
+; 2301 : 	return (reinterpret_cast<_OutIt>(_Dest_ch + _Count));
+
+	lea	eax, DWORD PTR [edi+esi]
+	pop	edi
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 110  : 	}
+
+	pop	ebp
+	ret	0
+??$_Uninitialized_copy_al_unchecked@PAKPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@U_Really_trivial_ptr_iterator_tag@0@U?$integral_constant@_N$00@0@@Z ENDP ; std::_Uninitialized_copy_al_unchecked<unsigned long *,unsigned long *,std::allocator<unsigned long *> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Ptr_copy_cat@PAKPAK@std@@YA?AU_Really_trivial_ptr_iterator_tag@0@ABQAPAK0@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+___formal$ = 12						; size = 4
+___formal$ = 16						; size = 4
+??$_Ptr_copy_cat@PAKPAK@std@@YA?AU_Really_trivial_ptr_iterator_tag@0@ABQAPAK0@Z PROC ; std::_Ptr_copy_cat<unsigned long *,unsigned long *>, COMDAT
+
+; 875  : 	{	// return pointer copy optimization category for pointers
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 876  : 	return {};
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 877  : 	}
+
+	pop	ebp
+	ret	0
+??$_Ptr_copy_cat@PAKPAK@std@@YA?AU_Really_trivial_ptr_iterator_tag@0@ABQAPAK0@Z ENDP ; std::_Ptr_copy_cat<unsigned long *,unsigned long *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Unchecked@PAPAK@std@@YAPAPAKPAPAK@Z
+_TEXT	SEGMENT
+__Src$ = 8						; size = 4
+??$_Unchecked@PAPAK@std@@YAPAPAKPAPAK@Z PROC		; std::_Unchecked<unsigned long * *>, COMDAT
+
+; 450  : 	{	// construct unchecked from checked, generic
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 451  : 	return (_Src);
+
+	mov	eax, DWORD PTR __Src$[ebp]
+
+; 452  : 	}
+
+	pop	ebp
+	ret	0
+??$_Unchecked@PAPAK@std@@YAPAPAKPAPAK@Z ENDP		; std::_Unchecked<unsigned long * *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z PROC ; std::allocator<std::_Container_proxy>::construct<std::_Container_proxy,std::_Container_proxy>, COMDAT
+; _this$ = ecx
+
+; 839  : 		{	// construct _Objty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	edx, DWORD PTR __Ptr$[ebp]
+	test	edx, edx
+	je	SHORT $LN3@construct
+	mov	ecx, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [ecx]
+	mov	DWORD PTR [edx], eax
+	mov	eax, DWORD PTR [ecx+4]
+	mov	DWORD PTR [edx+4], eax
+$LN3@construct:
+
+; 841  : 		}
+
+	pop	ebp
+	ret	8
+??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ENDP ; std::allocator<std::_Container_proxy>::construct<std::_Container_proxy,std::_Container_proxy>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -1593,6 +2077,38 @@ __Right$ = 8						; size = 4
 	mov	eax, ecx
 	ret	4
 ??$?0ABV?$allocator@PAUHINSTANCE__@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@PAUHINSTANCE__@@PAX@std@@@std@@@std@@QAE@ABV?$allocator@PAUHINSTANCE__@@@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > >::_Wrap_alloc<std::allocator<std::_List_node<HINSTANCE__ *,void *> > ><std::allocator<HINSTANCE__ *> const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@KABK@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAKABK@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+_<_Args_0>$ = 16					; size = 4
+??$construct@KABK@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAKABK@Z PROC ; std::allocator_traits<std::allocator<unsigned long> >::construct<unsigned long,unsigned long const &>, COMDAT
+
+; 958  : 		{	// construct _Objty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN8@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN8@construct:
+
+; 959  : 		_Al.construct(_Ptr, _STD forward<_Types>(_Args)...);
+; 960  : 		}
+
+	pop	ebp
+	ret	0
+??$construct@KABK@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAKABK@Z ENDP ; std::allocator_traits<std::allocator<unsigned long> >::construct<unsigned long,unsigned long const &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
@@ -2148,6 +2664,209 @@ $LN13@construct:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Destroy_range@V?$allocator@PAK@std@@PAPAK@std@@YAXPAPAK0AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+__Al$ = 16						; size = 4
+??$_Destroy_range@V?$allocator@PAK@std@@PAPAK@std@@YAXPAPAK0AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z PROC ; std::_Destroy_range<std::allocator<unsigned long *>,unsigned long * *>, COMDAT
+
+; 1215 : 		// note that this is an optimization for debug mode codegen;
+; 1216 : 		// in release mode the BE removes all of this
+; 1217 : 	typedef typename _Alloc::value_type _Val;
+; 1218 : 	_Destroy_range1(_First, _Last, _Al, _Conjunction_t<
+; 1219 : 		is_trivially_destructible<_Val>,
+; 1220 : 		_Uses_default_destroy<_Alloc, _Val *>>());
+; 1221 : 	}
+
+	ret	0
+??$_Destroy_range@V?$allocator@PAK@std@@PAPAK@std@@YAXPAPAK0AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ENDP ; std::_Destroy_range<std::allocator<unsigned long *>,unsigned long * *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+;	COMDAT ??$_Uninitialized_default_fill_n@PAPAKIV?$allocator@PAK@std@@@std@@YAPAPAKPAPAKIAAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Count$ = 12						; size = 4
+__Al$ = 16						; size = 4
+??$_Uninitialized_default_fill_n@PAPAKIV?$allocator@PAK@std@@@std@@YAPAPAKPAPAKIAAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z PROC ; std::_Uninitialized_default_fill_n<unsigned long * *,unsigned int,std::allocator<unsigned long *> >, COMDAT
+
+; 260  : 	{	// value-initialize _Count objects to raw _First, using _Al
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 251  : 	_CSTD memset(_First, 0, _Count * sizeof(_Iter_value_t<_FwdIt>));
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	push	esi
+	mov	esi, DWORD PTR __First$[ebp]
+	push	edi
+	lea	edi, DWORD PTR [eax*4]
+	push	edi
+	push	0
+	push	esi
+	call	_memset
+	add	esp, 12					; 0000000cH
+
+; 252  : 	return (_First + _Count);
+
+	lea	eax, DWORD PTR [edi+esi]
+	pop	edi
+	pop	esi
+
+; 261  : 	typedef _Iter_value_t<_FwdIt> _Ty;
+; 262  : 	return (_Uninitialized_default_fill_n1(_First, _Count, _Al,
+; 263  : 		_Conjunction_t<
+; 264  : 			is_pointer<_FwdIt>,
+; 265  : 			is_scalar<_Ty>,
+; 266  : 			negation<is_volatile<_Ty>>,
+; 267  : 			negation<is_member_pointer<_Ty>>,
+; 268  : 			_Uses_default_construct<_Alloc, decltype(_Unfancy(_First))>>()));
+; 269  : 	}
+
+	pop	ebp
+	ret	0
+??$_Uninitialized_default_fill_n@PAPAKIV?$allocator@PAK@std@@@std@@YAPAPAKPAPAKIAAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ENDP ; std::_Uninitialized_default_fill_n<unsigned long * *,unsigned int,std::allocator<unsigned long *> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+;	COMDAT ??$_Uninitialized_copy@PAPAKPAPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+__Dest$ = 16						; size = 4
+__Al$ = 20						; size = 4
+??$_Uninitialized_copy@PAPAKPAPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z PROC ; std::_Uninitialized_copy<unsigned long * *,unsigned long * *,std::allocator<unsigned long *> >, COMDAT
+
+; 117  : 	{	// copy [_First, _Last) to raw _Dest, using _Al
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2299 : 	const size_t _Count = _Last_ch - _First_ch;
+
+	mov	eax, DWORD PTR __First$[ebp]
+	push	esi
+
+; 2300 : 	_CSTD memmove(_Dest_ch, _First_ch, _Count);
+
+	mov	esi, DWORD PTR __Dest$[ebp]
+	push	edi
+
+; 2299 : 	const size_t _Count = _Last_ch - _First_ch;
+
+	mov	edi, DWORD PTR __Last$[ebp]
+	sub	edi, eax
+
+; 2300 : 	_CSTD memmove(_Dest_ch, _First_ch, _Count);
+
+	push	edi
+	push	eax
+	push	esi
+	call	DWORD PTR __imp__memmove
+	add	esp, 12					; 0000000cH
+
+; 2301 : 	return (reinterpret_cast<_OutIt>(_Dest_ch + _Count));
+
+	lea	eax, DWORD PTR [edi+esi]
+	pop	edi
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 127  : 	}
+
+	pop	ebp
+	ret	0
+??$_Uninitialized_copy@PAPAKPAPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ENDP ; std::_Uninitialized_copy<unsigned long * *,unsigned long * *,std::allocator<unsigned long *> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z PROC ; std::move<std::_Wrap_alloc<std::allocator<unsigned long> > &>, COMDAT
+
+; 1350 : 	{	// forward _Arg as movable
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1352 : 	}
+
+	pop	ebp
+	ret	0
+??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ENDP ; std::move<std::_Wrap_alloc<std::allocator<unsigned long> > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@U_Container_proxy@std@@U12@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@$$QAU31@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+_<_Args_0>$ = 16					; size = 4
+??$construct@U_Container_proxy@std@@U12@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@$$QAU31@@Z PROC ; std::allocator_traits<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>, COMDAT
+
+; 958  : 		{	// construct _Objty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	edx, DWORD PTR __Ptr$[ebp]
+	test	edx, edx
+	je	SHORT $LN8@construct
+	mov	ecx, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [ecx]
+	mov	DWORD PTR [edx], eax
+	mov	eax, DWORD PTR [ecx+4]
+	mov	DWORD PTR [edx+4], eax
+$LN8@construct:
+
+; 959  : 		_Al.construct(_Ptr, _STD forward<_Types>(_Args)...);
+; 960  : 		}
+
+	pop	ebp
+	ret	0
+??$construct@U_Container_proxy@std@@U12@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@$$QAU31@@Z ENDP ; std::allocator_traits<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@U_Container_proxy@std@@@std@@YA$$QAU_Container_proxy@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@U_Container_proxy@std@@@std@@YA$$QAU_Container_proxy@0@AAU10@@Z PROC ; std::forward<std::_Container_proxy>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@U_Container_proxy@std@@@std@@YA$$QAU_Container_proxy@0@AAU10@@Z ENDP ; std::forward<std::_Container_proxy>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@V12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@$$QAV21@@Z
 _TEXT	SEGMENT
 __Ptr$ = 8						; size = 4
@@ -2255,6 +2974,20 @@ __Ptr$ = 8						; size = 4
 ??$destroy@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@1@@Z ENDP ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >::destroy<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@K@?$allocator@K@std@@QAEXPAK@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@K@?$allocator@K@std@@QAEXPAK@Z PROC		; std::allocator<unsigned long>::destroy<unsigned long>, COMDAT
+; _this$ = ecx
+
+; 846  : 		_Ptr->~_Uty();
+; 847  : 		}
+
+	ret	4
+??$destroy@K@?$allocator@K@std@@QAEXPAK@Z ENDP		; std::allocator<unsigned long>::destroy<unsigned long>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -2304,6 +3037,20 @@ __Right$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@U_Container_proxy@std@@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@U_Container_proxy@std@@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@@Z PROC ; std::allocator<std::_Container_proxy>::destroy<std::_Container_proxy>, COMDAT
+; _this$ = ecx
+
+; 846  : 		_Ptr->~_Uty();
+; 847  : 		}
+
+	ret	4
+??$destroy@U_Container_proxy@std@@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@@Z ENDP ; std::allocator<std::_Container_proxy>::destroy<std::_Container_proxy>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z
 _TEXT	SEGMENT
 __Ptr$ = 8						; size = 4
@@ -2315,6 +3062,76 @@ __Ptr$ = 8						; size = 4
 
 	ret	4
 ??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z ENDP	; std::allocator<wchar_t>::destroy<wchar_t *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@PAK@?$allocator@K@std@@QAEXPAPAK@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@PAK@?$allocator@K@std@@QAEXPAPAK@Z PROC	; std::allocator<unsigned long>::destroy<unsigned long *>, COMDAT
+; _this$ = ecx
+
+; 846  : 		_Ptr->~_Uty();
+; 847  : 		}
+
+	ret	4
+??$destroy@PAK@?$allocator@K@std@@QAEXPAPAK@Z ENDP	; std::allocator<unsigned long>::destroy<unsigned long *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@KABK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKABK@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@KABK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKABK@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::construct<unsigned long,unsigned long const &>, COMDAT
+; _this$ = ecx
+
+; 1095 : 		{	// construct _Ty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN13@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN13@construct:
+
+; 1096 : 		_Mytraits::construct(*this, _Ptr,
+; 1097 : 			_STD forward<_Types>(_Args)...);
+; 1098 : 		}
+
+	pop	ebp
+	ret	8
+??$construct@KABK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKABK@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::construct<unsigned long,unsigned long const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@ABK@std@@YAABKABK@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@ABK@std@@YAABKABK@Z PROC			; std::forward<unsigned long const &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@ABK@std@@YAABKABK@Z ENDP			; std::forward<unsigned long const &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -2499,6 +3316,87 @@ __Val2$ = 12						; size = 4
 	pop	ebp
 	ret	8
 ??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@_NX$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@_N@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@1@$$QA_N@Z ENDP ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,bool>::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,bool><std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,bool,void,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z PROC ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z ENDP ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>, COMDAT
+; _this$ = ecx
+
+; 1095 : 		{	// construct _Ty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	edx, DWORD PTR __Ptr$[ebp]
+	test	edx, edx
+	je	SHORT $LN13@construct
+	mov	ecx, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [ecx]
+	mov	DWORD PTR [edx], eax
+	mov	eax, DWORD PTR [ecx+4]
+	mov	DWORD PTR [edx+4], eax
+$LN13@construct:
+
+; 1096 : 		_Mytraits::construct(*this, _Ptr,
+; 1097 : 			_STD forward<_Types>(_Args)...);
+; 1098 : 		}
+
+	pop	ebp
+	ret	8
+??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z PROC ; std::_Unfancy<std::_Container_proxy>, COMDAT
+
+; 642  : 	{	// do nothing for plain pointers
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR __Ptr$[ebp]
+
+; 644  : 	}
+
+	pop	ebp
+	ret	0
+??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z ENDP ; std::_Unfancy<std::_Container_proxy>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -2934,6 +3832,20 @@ ___formal$ = 20						; size = 1
 ??$_Destroy_range1@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@2@@std@@YAXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ENDP ; std::_Destroy_range1<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > >,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z PROC ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long>, COMDAT
+
+; 965  : 		_Al.destroy(_Ptr);
+; 966  : 		}
+
+	ret	0
+??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z ENDP ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 ;	COMDAT ??$?0ABV?$allocator@PAUHINSTANCE__@@@std@@X@?$_List_alloc@U?$_List_base_types@PAUHINSTANCE__@@V?$allocator@PAUHINSTANCE__@@@std@@@std@@@std@@QAE@ABV?$allocator@PAUHINSTANCE__@@@1@@Z
 _TEXT	SEGMENT
@@ -3038,6 +3950,34 @@ __Arg$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@U_Container_proxy@std@@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+??$destroy@U_Container_proxy@std@@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@@Z PROC ; std::allocator_traits<std::allocator<std::_Container_proxy> >::destroy<std::_Container_proxy>, COMDAT
+
+; 965  : 		_Al.destroy(_Ptr);
+; 966  : 		}
+
+	ret	0
+??$destroy@U_Container_proxy@std@@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@@Z ENDP ; std::allocator_traits<std::allocator<std::_Container_proxy> >::destroy<std::_Container_proxy>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0K@?$allocator@U_Container_proxy@std@@@std@@QAE@ABV?$allocator@K@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??$?0K@?$allocator@U_Container_proxy@std@@@std@@QAE@ABV?$allocator@K@1@@Z PROC ; std::allocator<std::_Container_proxy>::allocator<std::_Container_proxy><unsigned long>, COMDAT
+; _this$ = ecx
+
+; 813  : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0K@?$allocator@U_Container_proxy@std@@@std@@QAE@ABV?$allocator@K@1@@Z ENDP ; std::allocator<std::_Container_proxy>::allocator<std::_Container_proxy><unsigned long>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z
 _TEXT	SEGMENT
 __Al$ = 8						; size = 4
@@ -3049,6 +3989,57 @@ __Ptr$ = 12						; size = 4
 
 	ret	0
 ??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z ENDP ; std::allocator_traits<std::allocator<wchar_t> >::destroy<wchar_t *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@PAK@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAPAK@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+??$destroy@PAK@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAPAK@Z PROC ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long *>, COMDAT
+
+; 965  : 		_Al.destroy(_Ptr);
+; 966  : 		}
+
+	ret	0
+??$destroy@PAK@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAPAK@Z ENDP ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0K@?$allocator@PAK@std@@QAE@ABV?$allocator@K@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??$?0K@?$allocator@PAK@std@@QAE@ABV?$allocator@K@1@@Z PROC ; std::allocator<unsigned long *>::allocator<unsigned long *><unsigned long>, COMDAT
+; _this$ = ecx
+
+; 813  : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0K@?$allocator@PAK@std@@QAE@ABV?$allocator@K@1@@Z ENDP ; std::allocator<unsigned long *>::allocator<unsigned long *><unsigned long>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z PROC ; std::forward<std::_Wrap_alloc<std::allocator<unsigned long> > &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ENDP ; std::forward<std::_Wrap_alloc<std::allocator<unsigned long> > &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -3230,6 +4221,207 @@ __Arg$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z ENDP ; std::forward<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@V?$allocator@K@std@@@std@@YA$$QAV?$allocator@K@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@V?$allocator@K@std@@@std@@YA$$QAV?$allocator@K@0@AAV10@@Z PROC ; std::forward<std::allocator<unsigned long> >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@V?$allocator@K@std@@@std@@YA$$QAV?$allocator@K@0@AAV10@@Z ENDP ; std::forward<std::allocator<unsigned long> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??$emplace_back@ABK@?$deque@KV?$allocator@K@std@@@std@@QAEXABK@Z
+_TEXT	SEGMENT
+_<_Val_0>$ = 8						; size = 4
+??$emplace_back@ABK@?$deque@KV?$allocator@K@std@@@std@@QAEXABK@Z PROC ; std::deque<unsigned long,std::allocator<unsigned long> >::emplace_back<unsigned long const &>, COMDAT
+; _this$ = ecx
+
+; 1184 : 		{	// insert element at end
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+	mov	esi, ecx
+
+; 1186 : 		_PUSH_BACK_BEGIN;
+
+	mov	eax, DWORD PTR [esi+12]
+	mov	ecx, DWORD PTR [esi+16]
+	add	eax, ecx
+	test	al, 3
+	jne	SHORT $LN2@emplace_ba
+	lea	eax, DWORD PTR [ecx+4]
+	shr	eax, 2
+	cmp	DWORD PTR [esi+8], eax
+	ja	SHORT $LN2@emplace_ba
+	push	1
+	mov	ecx, esi
+	call	?_Growmap@?$deque@KV?$allocator@K@std@@@std@@IAEXI@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::_Growmap
+$LN2@emplace_ba:
+	mov	eax, DWORD PTR [esi+8]
+	push	ebx
+	push	edi
+	lea	eax, DWORD PTR [eax*4-1]
+	and	DWORD PTR [esi+12], eax
+	mov	edi, DWORD PTR [esi+16]
+	add	edi, DWORD PTR [esi+12]
+
+; 762  : 		return ((_Off / _DEQUESIZ) & (_Mapsize - 1));
+
+	mov	ecx, DWORD PTR [esi+8]
+	mov	eax, edi
+	shr	eax, 2
+	dec	ecx
+	and	ecx, eax
+
+; 1186 : 		_PUSH_BACK_BEGIN;
+
+	mov	eax, DWORD PTR [esi+4]
+	lea	ebx, DWORD PTR [ecx*4]
+	cmp	DWORD PTR [ebx+eax], 0
+	jne	SHORT $LN3@emplace_ba
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	16					; 00000010H
+	call	??2@YAPAXI@Z				; operator new
+	mov	ecx, eax
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	ecx, ecx
+	jne	SHORT $LN113@emplace_ba
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN177@emplace_ba:
+$LN113@emplace_ba:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1186 : 		_PUSH_BACK_BEGIN;
+
+	mov	eax, DWORD PTR [esi+4]
+	mov	DWORD PTR [ebx+eax], ecx
+$LN3@emplace_ba:
+
+; 1187 : 		this->_Getal().construct(
+
+	mov	eax, DWORD PTR [esi+4]
+	and	edi, 3
+	mov	eax, DWORD PTR [ebx+eax]
+	lea	ecx, DWORD PTR [eax+edi*4]
+	pop	edi
+	pop	ebx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	test	ecx, ecx
+	je	SHORT $LN159@emplace_ba
+	mov	eax, DWORD PTR _<_Val_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN159@emplace_ba:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1190 : 		_PUSH_BACK_END;
+
+	inc	DWORD PTR [esi+16]
+	pop	esi
+
+; 1191 : 		}
+
+	pop	ebp
+	ret	4
+$LN176@emplace_ba:
+??$emplace_back@ABK@?$deque@KV?$allocator@K@std@@@std@@QAEXABK@Z ENDP ; std::deque<unsigned long,std::allocator<unsigned long> >::emplace_back<unsigned long const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+__Val1$ = 12						; size = 4
+??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1><std::_Wrap_alloc<std::allocator<unsigned long> > >, COMDAT
+; _this$ = ecx
+
+; 99   : 		: _Myproxy(0)
+
+	mov	DWORD PTR [ecx], 0
+
+; 313  : 		}
+
+	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 752  : 		: _Map(),
+
+	mov	DWORD PTR [ecx+4], 0
+
+; 753  : 		_Mapsize(0),
+
+	mov	DWORD PTR [ecx+8], 0
+
+; 754  : 		_Myoff(0),
+
+	mov	DWORD PTR [ecx+12], 0
+
+; 755  : 		_Mysize(0)
+
+	mov	DWORD PTR [ecx+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 313  : 		}
+
+	ret	8
+??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1><std::_Wrap_alloc<std::allocator<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z PROC ; std::forward<std::_Wrap_alloc<std::allocator<unsigned long> > >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ENDP ; std::forward<std::_Wrap_alloc<std::allocator<unsigned long> > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -3985,6 +5177,29 @@ __Al$ = 20						; size = 4
 ??$_Uninitialized_fill_n@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@@Z ENDP ; std::_Uninitialized_fill_n<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@AAU10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@AAU10@@Z PROC ; std::addressof<std::_Container_proxy>, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@AAU10@@Z ENDP ; std::addressof<std::_Container_proxy>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 ;	COMDAT ??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@QAE@PAU?$_List_node@PAUHINSTANCE__@@PAX@1@PBV?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@1@@Z
 _TEXT	SEGMENT
@@ -4129,6 +5344,29 @@ __Al$ = 16						; size = 4
 ??$_Destroy_range@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@2@@std@@YAXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@@Z ENDP ; std::_Destroy_range<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> > >,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> >,std::_Iterator_base0> *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?pointer_to@?$pointer_traits@PAU_Container_proxy@std@@@std@@SAPAU_Container_proxy@2@AAU32@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+?pointer_to@?$pointer_traits@PAU_Container_proxy@std@@@std@@SAPAU_Container_proxy@2@AAU32@@Z PROC ; std::pointer_traits<std::_Container_proxy *>::pointer_to, COMDAT
+
+; 289  : 		{	// convert raw reference to pointer
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 290  : 		return (_STD addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 291  : 		}
+
+	pop	ebp
+	ret	0
+?pointer_to@?$pointer_traits@PAU_Container_proxy@std@@@std@@SAPAU_Container_proxy@2@AAU32@@Z ENDP ; std::pointer_traits<std::_Container_proxy *>::pointer_to
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ;	COMDAT ??$_Unfancy@_W@std@@YAPA_WPA_W@Z
 _TEXT	SEGMENT
@@ -4150,6 +5388,43 @@ __Ptr$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$_Unfancy@_W@std@@YAPA_WPA_W@Z ENDP			; std::_Unfancy<wchar_t>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@K@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAK@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@K@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAK@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::destroy<unsigned long>, COMDAT
+; _this$ = ecx
+
+; 1103 : 		_Mytraits::destroy(*this, _Ptr);
+; 1104 : 		}
+
+	ret	4
+??$destroy@K@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAK@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::destroy<unsigned long>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$_Unfancy@K@std@@YAPAKPAK@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$_Unfancy@K@std@@YAPAKPAK@Z PROC			; std::_Unfancy<unsigned long>, COMDAT
+
+; 642  : 	{	// do nothing for plain pointers
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR __Ptr$[ebp]
+
+; 644  : 	}
+
+	pop	ebp
+	ret	0
+??$_Unfancy@K@std@@YAPAKPAK@Z ENDP			; std::_Unfancy<unsigned long>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -4261,6 +5536,258 @@ __Al$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@U_Container_proxy@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@U_Container_proxy@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::destroy<std::_Container_proxy>, COMDAT
+; _this$ = ecx
+
+; 1103 : 		_Mytraits::destroy(*this, _Ptr);
+; 1104 : 		}
+
+	ret	4
+??$destroy@U_Container_proxy@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::destroy<std::_Container_proxy>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::_Wrap_alloc<std::allocator<std::_Container_proxy> ><std::_Wrap_alloc<std::allocator<unsigned long> > &>, COMDAT
+; _this$ = ecx
+
+; 1054 : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::_Wrap_alloc<std::allocator<std::_Container_proxy> ><std::_Wrap_alloc<std::allocator<unsigned long> > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@2@I@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@2@I@Z PROC ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::deallocate, COMDAT
+; _this$ = ecx
+
+; 1087 : 		{	// deallocate object at _Ptr, ignore size
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 1088 : 		_Mybase::deallocate(_Ptr, _Count);
+; 1089 : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@2@I@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEPAU_Container_proxy@2@I@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEPAU_Container_proxy@2@I@Z PROC ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::allocate, COMDAT
+; _this$ = ecx
+
+; 1076 : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1078 : 		}
+
+	pop	ebp
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	jmp	?allocate@?$allocator@U_Container_proxy@std@@@std@@QAEPAU_Container_proxy@2@I@Z ; std::allocator<std::_Container_proxy>::allocate
+?allocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEPAU_Container_proxy@2@I@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?address@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QBEPAU_Container_proxy@2@AAU32@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+?address@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QBEPAU_Container_proxy@2@AAU32@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::address, COMDAT
+; _this$ = ecx
+
+; 1026 : 		{	// return address of mutable _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1027 : 		return (pointer_traits<pointer>::pointer_to(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 1028 : 		}
+
+	pop	ebp
+	ret	4
+?address@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QBEPAU_Container_proxy@2@AAU32@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::address
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$allocator@U_Container_proxy@std@@@std@@QAEPAU_Container_proxy@2@I@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$allocator@U_Container_proxy@std@@@std@@QAEPAU_Container_proxy@2@I@Z PROC ; std::allocator<std::_Container_proxy>::allocate, COMDAT
+; _this$ = ecx
+
+; 827  : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 53   : 	if (_Count == 0)
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	test	eax, eax
+	jne	SHORT $LN4@allocate
+$LN12@allocate:
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN4@allocate:
+
+; 57   : 	if ((size_t)(-1) / _Sz < _Count)
+
+	cmp	eax, 536870911				; 1fffffffH
+	jbe	SHORT $LN5@allocate
+
+; 58   : 		_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN15@allocate:
+$LN5@allocate:
+
+; 59   : 	const size_t _User_size = _Count * _Sz;
+
+	shl	eax, 3
+
+; 60   : 
+; 61   :  #if defined(_M_IX86) || defined(_M_X64)
+; 62   : 	if (_Try_aligned_allocation
+; 63   : 		&& _BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN6@allocate
+
+; 64   : 		{	// allocate large block
+; 65   : 		static_assert(sizeof (void *) < _BIG_ALLOCATION_ALIGNMENT,
+; 66   : 			"Big allocations should at least match vector register size");
+; 67   : 		const size_t _Block_size = _NON_USER_SIZE + _User_size;
+
+	lea	ecx, DWORD PTR [eax+35]
+
+; 68   : 		if (_Block_size <= _User_size)
+
+	cmp	ecx, eax
+	ja	SHORT $LN8@allocate
+
+; 69   : 			_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN16@allocate:
+$LN8@allocate:
+
+; 70   : 		const uintptr_t _Ptr_container =
+; 71   : 			reinterpret_cast<uintptr_t>(::operator new(_Block_size));
+
+	push	ecx
+	call	??2@YAPAXI@Z				; operator new
+	mov	ecx, eax
+	add	esp, 4
+
+; 72   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container != 0);
+
+	test	ecx, ecx
+	jne	SHORT $LN9@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN17@allocate:
+$LN9@allocate:
+
+; 73   : 		_Ptr = reinterpret_cast<void *>((_Ptr_container + _NON_USER_SIZE)
+
+	lea	eax, DWORD PTR [ecx+35]
+	and	eax, -32				; ffffffe0H
+
+; 74   : 			& ~(_BIG_ALLOCATION_ALIGNMENT - 1));
+; 75   : 		static_cast<uintptr_t *>(_Ptr)[-1] = _Ptr_container;
+
+	mov	DWORD PTR [eax-4], ecx
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN6@allocate:
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	eax
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN12@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN18@allocate:
+$LN14@allocate:
+	int	3
+?allocate@?$allocator@U_Container_proxy@std@@@std@@QAEPAU_Container_proxy@2@I@Z ENDP ; std::allocator<std::_Container_proxy>::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@2@I@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@2@I@Z PROC ; std::allocator<std::_Container_proxy>::deallocate, COMDAT
+; _this$ = ecx
+
+; 822  : 		{	// deallocate object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 824  : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@2@I@Z ENDP ; std::allocator<std::_Container_proxy>::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z
 _TEXT	SEGMENT
 __Ptr$ = 8						; size = 4
@@ -4295,6 +5822,80 @@ __Val$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$addressof@PA_W@std@@YAPAPA_WAAPA_W@Z ENDP		; std::addressof<wchar_t *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@$$CBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@ABV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@$$CBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@ABV10@@Z PROC ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > const >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@$$CBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@ABV10@@Z ENDP ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > const >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@PAK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAPAK@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@PAK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAPAK@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::destroy<unsigned long *>, COMDAT
+; _this$ = ecx
+
+; 1103 : 		_Mytraits::destroy(*this, _Ptr);
+; 1104 : 		}
+
+	ret	4
+??$destroy@PAK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAPAK@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::destroy<unsigned long *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@PAK@std@@YAPAPAKAAPAK@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@PAK@std@@YAPAPAKAAPAK@Z PROC		; std::addressof<unsigned long *>, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@PAK@std@@YAPAPAKAAPAK@Z ENDP		; std::addressof<unsigned long *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long *> >::_Wrap_alloc<std::allocator<unsigned long *> ><std::_Wrap_alloc<std::allocator<unsigned long> > &>, COMDAT
+; _this$ = ecx
+
+; 1054 : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long *> >::_Wrap_alloc<std::allocator<unsigned long *> ><std::_Wrap_alloc<std::allocator<unsigned long> > &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -4376,6 +5977,538 @@ __Val2$ = 12						; size = 4
 ??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@1@0@Z ENDP ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > > ><std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > >,void,0>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0V?$allocator@K@std@@@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAV?$allocator@K@1@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??$?0V?$allocator@K@std@@@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAV?$allocator@K@1@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::_Wrap_alloc<std::allocator<unsigned long> ><std::allocator<unsigned long> >, COMDAT
+; _this$ = ecx
+
+; 1054 : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0V?$allocator@K@std@@@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAV?$allocator@K@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::_Wrap_alloc<std::allocator<unsigned long> ><std::allocator<unsigned long> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z
+_TEXT	SEGMENT
+_this$ = -20						; size = 4
+__$EHRec$ = -16						; size = 16
+__First$ = 8						; size = 12
+__Last$ = 20						; size = 12
+??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z PROC ; std::deque<unsigned long,std::allocator<unsigned long> >::_Construct<std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > > >, COMDAT
+; _this$ = ecx
+
+; 1047 : 		{	// initialize from [_First, _Last), input iterators
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 8
+
+; 1048 : 		_TRY_BEGIN
+
+	mov	eax, DWORD PTR __First$[ebp+8]
+	push	ebx
+	push	esi
+	push	edi
+	mov	edi, ecx
+	mov	DWORD PTR __$EHRec$[ebp], esp
+	mov	DWORD PTR _this$[ebp], edi
+	mov	DWORD PTR __$EHRec$[ebp+12], 0
+$LL4@Construct:
+
+; 462  : 		return (this->_Myoff == _Right._Myoff);
+
+	cmp	eax, DWORD PTR __Last$[ebp+8]
+
+; 1049 : 
+; 1050 : 		for (; _First != _Last; ++_First)
+
+	je	SHORT $LN3@Construct
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 204  : 		return (_Myproxy == 0 ? 0 : _Myproxy->_Mycont);
+
+	mov	ecx, DWORD PTR __First$[ebp]
+	test	ecx, ecx
+	jne	SHORT $LN23@Construct
+	xor	esi, esi
+	jmp	SHORT $LN24@Construct
+$LN23@Construct:
+	mov	esi, DWORD PTR [ecx]
+$LN24@Construct:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 762  : 		return ((_Off / _DEQUESIZ) & (_Mapsize - 1));
+
+	mov	edx, DWORD PTR [esi+8]
+	mov	ecx, eax
+	shr	ecx, 2
+	dec	edx
+	and	edx, ecx
+
+; 339  : 		size_type _Off = _Myoff % _DEQUESIZ;
+
+	and	eax, 3
+
+; 340  : 		return (_Mycont->_Map[_Block][_Off]);
+
+	mov	ecx, DWORD PTR [esi+4]
+	mov	ecx, DWORD PTR [ecx+edx*4]
+	lea	eax, DWORD PTR [ecx+eax*4]
+
+; 1051 : 			emplace_back(*_First);
+
+	mov	ecx, edi
+	push	eax
+	call	??$emplace_back@ABK@?$deque@KV?$allocator@K@std@@@std@@QAEXABK@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::emplace_back<unsigned long const &>
+
+; 364  : 		++_Myoff;
+
+	mov	eax, DWORD PTR __First$[ebp+8]
+	inc	eax
+	mov	DWORD PTR __First$[ebp+8], eax
+	jmp	SHORT $LL4@Construct
+__catch$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z$0:
+
+; 1052 : 
+; 1053 : 		_CATCH_ALL
+; 1054 : 		_Tidy();
+
+	mov	ecx, DWORD PTR _this$[ebp]
+	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+
+; 1055 : 		_RERAISE;
+
+	push	0
+	push	0
+	call	__CxxThrowException@8
+$LN32@Construct:
+$LN3@Construct:
+
+; 1056 : 		_CATCH_END
+; 1057 : 		}
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp+4]
+	pop	edi
+	pop	esi
+	mov	DWORD PTR fs:0, ecx
+	pop	ebx
+	mov	esp, ebp
+	pop	ebp
+	ret	24					; 00000018H
+$LN31@Construct:
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__ehhandler$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z:
+	mov	eax, OFFSET __ehfuncinfo$??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z ENDP ; std::deque<unsigned long,std::allocator<unsigned long> >::_Construct<std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > > >
+; Function compile flags: /Ogtp
+;	COMDAT ??1?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAE@XZ PROC ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::~_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >, COMDAT
+; _this$ = ecx
+	ret	0
+??1?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAE@XZ ENDP ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::~_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Setcont@?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAEXPBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@@Z
+_TEXT	SEGMENT
+__Pdeque$ = 8						; size = 4
+?_Setcont@?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAEXPBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@@Z PROC ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Setcont, COMDAT
+; _this$ = ecx
+
+; 511  : 		{	// set container pointer
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 170  : 		if (_Parent == 0)
+
+	mov	eax, DWORD PTR __Pdeque$[ebp]
+	test	eax, eax
+	je	SHORT $LN5@Setcont
+
+; 171  : 			{	// no future parent, just disown current parent
+; 172  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 173  : 			_Lockit _Lock(_LOCK_DEBUG);
+; 174  : 			_Orphan_me();
+; 175  :  #endif /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 176  : 			}
+; 177  : 		else
+; 178  : 			{	// have a parent, do adoption
+; 179  : 			_Container_proxy *_Parent_proxy = _Parent->_Myproxy;
+; 180  : 
+; 181  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 182  : 			if (_Myproxy != _Parent_proxy)
+; 183  : 				{	// change parentage
+; 184  : 				_Lockit _Lock(_LOCK_DEBUG);
+; 185  : 				_Orphan_me();
+; 186  : 				_Mynextiter = _Parent_proxy->_Myfirstiter;
+; 187  : 				_Parent_proxy->_Myfirstiter = this;
+; 188  : 				_Myproxy = _Parent_proxy;
+; 189  : 				}
+; 190  : 
+; 191  :  #else /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 192  : 			_Myproxy = _Parent_proxy;
+
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN5@Setcont:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 513  : 		}
+
+	pop	ebp
+	ret	4
+?_Setcont@?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAEXPBV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@@Z ENDP ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Setcont
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Compat@?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBEXABV12@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+?_Compat@?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBEXABV12@@Z PROC ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Compat, COMDAT
+; _this$ = ecx
+
+; 507  : 		}
+
+	ret	4
+?_Compat@?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBEXABV12@@Z ENDP ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Compat
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??9?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBE_NABV01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??9?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBE_NABV01@@Z PROC ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator!=, COMDAT
+; _this$ = ecx
+
+; 466  : 		{	// test for iterator inequality
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR __Right$[ebp]
+	mov	ecx, DWORD PTR [ecx+8]
+	cmp	ecx, DWORD PTR [eax+8]
+	setne	al
+
+; 467  : 		return (!(*this == _Right));
+; 468  : 		}
+
+	pop	ebp
+	ret	4
+??9?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBE_NABV01@@Z ENDP ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator!=
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??8?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBE_NABV01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??8?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBE_NABV01@@Z PROC ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator==, COMDAT
+; _this$ = ecx
+
+; 460  : 		{	// test for iterator equality
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR __Right$[ebp]
+	mov	ecx, DWORD PTR [ecx+8]
+	cmp	ecx, DWORD PTR [eax+8]
+	sete	al
+
+; 461  : 		_Compat(_Right);
+; 462  : 		return (this->_Myoff == _Right._Myoff);
+; 463  : 		}
+
+	pop	ebp
+	ret	4
+??8?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBE_NABV01@@Z ENDP ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator==
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??E?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAEAAV01@XZ
+_TEXT	SEGMENT
+??E?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAEAAV01@XZ PROC ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator++, COMDAT
+; _this$ = ecx
+
+; 350  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 351  : 		const auto _Mycont = static_cast<const _Mydeque *>(this->_Getcont());
+; 352  : 		if (_Mycont == 0
+; 353  : 			|| _Mycont->_Myoff + _Mycont->_Mysize <= this->_Myoff)
+; 354  : 		{	// report error
+; 355  : 		_DEBUG_ERROR("deque iterator not incrementable");
+; 356  : 		}
+; 357  : 
+; 358  :  #elif _ITERATOR_DEBUG_LEVEL == 1
+; 359  : 		const auto _Mycont = static_cast<const _Mydeque *>(this->_Getcont());
+; 360  : 		_SCL_SECURE_VALIDATE(_Mycont != 0);
+; 361  : 		_SCL_SECURE_VALIDATE_RANGE(this->_Myoff < _Mycont->_Myoff + _Mycont->_Mysize);
+; 362  :  #endif /* _ITERATOR_DEBUG_LEVEL */
+; 363  : 
+; 364  : 		++_Myoff;
+
+	inc	DWORD PTR [ecx+8]
+
+; 365  : 		return (*this);
+
+	mov	eax, ecx
+
+; 366  : 		}
+
+	ret	0
+??E?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAEAAV01@XZ ENDP ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator++
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??D?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBEABKXZ
+_TEXT	SEGMENT
+??D?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBEABKXZ PROC ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator*, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 204  : 		return (_Myproxy == 0 ? 0 : _Myproxy->_Mycont);
+
+	mov	eax, DWORD PTR [ecx]
+	push	esi
+	test	eax, eax
+	jne	SHORT $LN5@operator
+	xor	esi, esi
+	jmp	SHORT $LN6@operator
+$LN5@operator:
+	mov	esi, DWORD PTR [eax]
+$LN6@operator:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 762  : 		return ((_Off / _DEQUESIZ) & (_Mapsize - 1));
+
+	mov	edx, DWORD PTR [ecx+8]
+	mov	ecx, edx
+	mov	eax, DWORD PTR [esi+8]
+
+; 321  : 		const auto _Mycont = static_cast<const _Mydeque *>(this->_Getcont());
+; 322  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 323  : 		if (_Mycont == 0
+; 324  : 			|| this->_Myoff < _Mycont->_Myoff
+; 325  : 			|| _Mycont->_Myoff + _Mycont->_Mysize <= this->_Myoff)
+; 326  : 		{	// report error
+; 327  : 		_DEBUG_ERROR("deque iterator not dereferencable");
+; 328  : 		}
+; 329  : 
+; 330  :  #elif _ITERATOR_DEBUG_LEVEL == 1
+; 331  : 		_SCL_SECURE_VALIDATE(_Mycont != 0);
+; 332  : 		_SCL_SECURE_VALIDATE_RANGE(_Mycont->_Myoff <= this->_Myoff
+; 333  : 			&& this->_Myoff < _Mycont->_Myoff + _Mycont->_Mysize);
+; 334  :  #endif /* _ITERATOR_DEBUG_LEVEL */
+; 335  : 
+; 336  : 		_Analysis_assume_(_Mycont != 0);
+; 337  : 
+; 338  : 		size_type _Block = _Mycont->_Getblock(_Myoff);
+; 339  : 		size_type _Off = _Myoff % _DEQUESIZ;
+
+	and	edx, 3
+
+; 762  : 		return ((_Off / _DEQUESIZ) & (_Mapsize - 1));
+
+	dec	eax
+	shr	ecx, 2
+	and	ecx, eax
+
+; 340  : 		return (_Mycont->_Map[_Block][_Off]);
+
+	mov	eax, DWORD PTR [esi+4]
+	pop	esi
+	mov	eax, DWORD PTR [eax+ecx*4]
+	lea	eax, DWORD PTR [eax+edx*4]
+
+; 341  : 		}
+
+	ret	0
+??D?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBEABKXZ ENDP ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator*
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??0?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAE@IPBU_Container_base12@1@@Z
+_TEXT	SEGMENT
+__Off$ = 8						; size = 4
+__Pdeque$ = 12						; size = 4
+??0?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAE@IPBU_Container_base12@1@@Z PROC ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >, COMDAT
+; _this$ = ecx
+
+; 302  : 		{	// construct with offset _Off in *_Pdeque
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 301  : 		: _Myoff(_Off)
+
+	mov	eax, DWORD PTR __Off$[ebp]
+	mov	DWORD PTR [ecx+8], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 170  : 		if (_Parent == 0)
+
+	mov	eax, DWORD PTR __Pdeque$[ebp]
+
+; 133  : 		: _Myproxy(0), _Mynextiter(0)
+
+	mov	DWORD PTR [ecx], 0
+	mov	DWORD PTR [ecx+4], 0
+
+; 170  : 		if (_Parent == 0)
+
+	test	eax, eax
+	je	SHORT $LN11@Deque_cons
+
+; 171  : 			{	// no future parent, just disown current parent
+; 172  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 173  : 			_Lockit _Lock(_LOCK_DEBUG);
+; 174  : 			_Orphan_me();
+; 175  :  #endif /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 176  : 			}
+; 177  : 		else
+; 178  : 			{	// have a parent, do adoption
+; 179  : 			_Container_proxy *_Parent_proxy = _Parent->_Myproxy;
+; 180  : 
+; 181  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 182  : 			if (_Myproxy != _Parent_proxy)
+; 183  : 				{	// change parentage
+; 184  : 				_Lockit _Lock(_LOCK_DEBUG);
+; 185  : 				_Orphan_me();
+; 186  : 				_Mynextiter = _Parent_proxy->_Myfirstiter;
+; 187  : 				_Parent_proxy->_Myfirstiter = this;
+; 188  : 				_Myproxy = _Parent_proxy;
+; 189  : 				}
+; 190  : 
+; 191  :  #else /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 192  : 			_Myproxy = _Parent_proxy;
+
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN11@Deque_cons:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 304  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??0?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAE@IPBU_Container_base12@1@@Z ENDP ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@X@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@X@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > ><std::_Wrap_alloc<std::allocator<unsigned long> >,void>, COMDAT
+; _this$ = ecx
+
+; 807  : 		{	// construct allocator from _Al
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 99   : 		: _Myproxy(0)
+
+	mov	DWORD PTR [esi], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 752  : 		: _Map(),
+
+	mov	DWORD PTR [esi+4], 0
+
+; 753  : 		_Mapsize(0),
+
+	mov	DWORD PTR [esi+8], 0
+
+; 754  : 		_Myoff(0),
+
+	mov	DWORD PTR [esi+12], 0
+
+; 755  : 		_Mysize(0)
+
+	mov	DWORD PTR [esi+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN34@allocator
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN101@allocator:
+$LN34@allocator:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 854  : 		_Myproxy() = _Unfancy(_Alproxy.allocate(1));
+
+	mov	DWORD PTR [esi], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	DWORD PTR [eax], 0
+	mov	DWORD PTR [eax+4], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 856  : 		_Myproxy()->_Mycont = _STD addressof(_Get_data());
+
+	mov	eax, DWORD PTR [esi]
+	mov	DWORD PTR [eax], esi
+
+; 808  : 		_Alloc_proxy();
+; 809  : 		}
+
+	mov	eax, esi
+	pop	esi
+	ret	4
+$LN100@allocator:
+??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@X@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > ><std::_Wrap_alloc<std::allocator<unsigned long> >,void>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -4441,6 +6574,1976 @@ $LN5@distance:
 	pop	ebp
 	ret	0
 ??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHINSTANCE__@@@std@@@std@@@0@0@Z ENDP ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<HINSTANCE__ *> > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+;	COMDAT ??0?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@ABV01@@Z
+_TEXT	SEGMENT
+_this$ = -4						; size = 4
+___that$ = 8						; size = 4
+??0?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@ABV01@@Z PROC ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >, COMDAT
+; _this$ = ecx
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+	push	esi
+	push	DWORD PTR ___that$[ebp]
+	mov	esi, ecx
+	mov	DWORD PTR _this$[ebp], esi
+	call	??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
+	mov	eax, esi
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+??0?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@ABV01@@Z ENDP ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ PROC ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::~queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >, COMDAT
+; _this$ = ecx
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1244 : 		_Tidy();
+
+	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	1
+	push	DWORD PTR [esi]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 866  : 		_Myproxy() = 0;
+
+	mov	DWORD PTR [esi], 0
+	pop	esi
+	ret	0
+??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ ENDP ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::~queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ
+_TEXT	SEGMENT
+?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ PROC	; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy, COMDAT
+; _this$ = ecx
+
+; 1863 : 		{	// free all storage
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1397 : 		return (this->_Mysize() == 0);
+
+	cmp	DWORD PTR [esi+16], 0
+
+; 1864 : 		_Alpty _Almap(this->_Getal());
+; 1865 : 		while (!empty())
+
+	je	SHORT $LN3@Tidy
+	npad	5
+$LL2@Tidy:
+
+; 1535 : 		if (--this->_Mysize() == 0)
+
+	add	DWORD PTR [esi+16], -1
+	jne	SHORT $LN29@Tidy
+
+; 1536 : 			this->_Myoff() = 0;
+
+	mov	DWORD PTR [esi+12], 0
+$LN29@Tidy:
+
+; 1397 : 		return (this->_Mysize() == 0);
+
+	cmp	DWORD PTR [esi+16], 0
+
+; 1864 : 		_Alpty _Almap(this->_Getal());
+; 1865 : 		while (!empty())
+
+	jne	SHORT $LL2@Tidy
+$LN3@Tidy:
+	push	edi
+
+; 1867 : 		for (size_type _Block = this->_Mapsize(); 0 < _Block; )
+
+	mov	edi, DWORD PTR [esi+8]
+	test	edi, edi
+	je	SHORT $LN5@Tidy
+	npad	5
+$LL4@Tidy:
+
+; 1868 : 			{	// free storage for a block and destroy pointer
+; 1869 : 			if (this->_Map()[--_Block] != pointer())
+
+	mov	eax, DWORD PTR [esi+4]
+	dec	edi
+	mov	eax, DWORD PTR [eax+edi*4]
+	test	eax, eax
+	je	SHORT $LN7@Tidy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 140  : 	::operator delete(_Ptr);
+
+	push	eax
+	call	??3@YAXPAX@Z				; operator delete
+	add	esp, 4
+$LN7@Tidy:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1867 : 		for (size_type _Block = this->_Mapsize(); 0 < _Block; )
+
+	test	edi, edi
+	jne	SHORT $LL4@Tidy
+$LN5@Tidy:
+
+; 1870 : 				{	// free block and destroy its pointer
+; 1871 : 				this->_Getal().deallocate(this->_Map()[_Block], _DEQUESIZ);
+; 1872 : 				this->_Getal().destroy(_STD addressof(this->_Map()[_Block]));
+; 1873 : 				}
+; 1874 : 			}
+; 1875 : 
+; 1876 : 		if (this->_Map() != _Mapptr())
+
+	mov	ecx, DWORD PTR [esi+4]
+	pop	edi
+	test	ecx, ecx
+	je	SHORT $LN198@Tidy
+
+; 1877 : 			_Almap.deallocate(this->_Map(),
+
+	mov	eax, DWORD PTR [esi+8]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
+
+	cmp	eax, 1073741823				; 3fffffffH
+	jbe	SHORT $LN192@Tidy
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN232@Tidy:
+$LN192@Tidy:
+
+; 99   : 	const size_t _User_size = _Count * _Sz;
+
+	shl	eax, 2
+
+; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN193@Tidy
+
+; 101  : 		{	// deallocate large block
+; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
+; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+
+	test	cl, 31					; 0000001fH
+	je	SHORT $LN194@Tidy
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN233@Tidy:
+$LN194@Tidy:
+
+; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
+; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
+; 106  : 		const uintptr_t _Ptr_container =
+; 107  : 			*reinterpret_cast<uintptr_t *>(_Ptr_ptr);
+
+	mov	eax, DWORD PTR [ecx-4]
+
+; 108  : 
+; 109  :  #ifdef _DEBUG
+; 110  : 		// If the following asserts, it likely means that we are performing
+; 111  : 		// an aligned delete on memory coming from an unaligned allocation.
+; 112  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+; 113  : 			reinterpret_cast<uintptr_t *>(_Ptr_ptr)[-1] ==
+; 114  : 				_BIG_ALLOCATION_SENTINEL);
+; 115  :  #endif /* _DEBUG */
+; 116  : 
+; 117  : 		// Extra paranoia on aligned allocation/deallocation
+; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
+
+	cmp	eax, ecx
+	jb	SHORT $LN195@Tidy
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN234@Tidy:
+$LN195@Tidy:
+
+; 119  : 
+; 120  :  #ifdef _DEBUG
+; 121  : 		_SCL_SECURE_ALWAYS_VALIDATE(2 * sizeof(void *)
+; 122  : 			<= _Ptr_user - _Ptr_container);
+; 123  : 
+; 124  :  #else /* _DEBUG */
+; 125  : 		_SCL_SECURE_ALWAYS_VALIDATE(sizeof(void *)
+
+	sub	ecx, eax
+	cmp	ecx, 4
+	jae	SHORT $LN196@Tidy
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN235@Tidy:
+$LN196@Tidy:
+
+; 126  : 			<= _Ptr_user - _Ptr_container);
+; 127  :  #endif /* _DEBUG */
+; 128  : 
+; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
+
+	cmp	ecx, 35					; 00000023H
+	jbe	SHORT $LN197@Tidy
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN236@Tidy:
+$LN197@Tidy:
+
+; 130  : 			<= _NON_USER_SIZE);
+; 131  : 
+; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
+
+	mov	ecx, eax
+$LN193@Tidy:
+
+; 140  : 	::operator delete(_Ptr);
+
+	push	ecx
+	call	??3@YAXPAX@Z				; operator delete
+	add	esp, 4
+$LN198@Tidy:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1879 : 		this->_Mapsize() = 0;
+
+	mov	DWORD PTR [esi+8], 0
+
+; 1880 : 		this->_Map() = _Mapptr();
+
+	mov	DWORD PTR [esi+4], 0
+	pop	esi
+
+; 1881 : 		}
+
+	ret	0
+$LN231@Tidy:
+?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ENDP	; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Growmap@?$deque@KV?$allocator@K@std@@@std@@IAEXI@Z
+_TEXT	SEGMENT
+__Myptr$1$ = -12					; size = 4
+_this$1$ = -8						; size = 4
+__Myboff$1$ = -4					; size = 4
+__Newmap$1$ = 8						; size = 4
+__Count$ = 8						; size = 4
+__Almap$ = 11						; size = 1
+?_Growmap@?$deque@KV?$allocator@K@std@@@std@@IAEXI@Z PROC ; std::deque<unsigned long,std::allocator<unsigned long> >::_Growmap, COMDAT
+; _this$ = ecx
+
+; 1807 : 		{	// grow map by at least _Count pointers, _Mapsize() a power of 2
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	sub	esp, 12					; 0000000cH
+
+; 1808 : 		static_assert(1 < _DEQUEMAPSIZ,
+; 1809 : 			"The _Xlen() test should always be performed.");
+; 1810 : 
+; 1811 : 		typedef typename _Alpty::pointer _Blockptr;
+; 1812 : 		_Alpty _Almap(this->_Getal());
+; 1813 : 		size_type _Newsize = 0 < this->_Mapsize() ? this->_Mapsize() : 1;
+
+	mov	edx, DWORD PTR __Count$[ebp]
+	push	ebx
+	push	esi
+	push	edi
+	mov	edi, ecx
+	mov	esi, 1
+	mov	DWORD PTR _this$1$[ebp], edi
+	mov	ecx, DWORD PTR [edi+8]
+	test	ecx, ecx
+	cmovne	esi, ecx
+$LL2@Growmap:
+
+; 1814 : 		while (_Newsize - this->_Mapsize() < _Count
+; 1815 : 			|| _Newsize < _DEQUEMAPSIZ)
+
+	mov	eax, esi
+	sub	eax, ecx
+	cmp	eax, edx
+	jb	SHORT $LN4@Growmap
+	cmp	esi, 8
+	jae	SHORT $LN3@Growmap
+$LN4@Growmap:
+
+; 1816 : 			{	// scale _Newsize to 2^N >= _Mapsize() + _Count
+; 1817 : 			if (max_size() / _DEQUESIZ - _Newsize < _Newsize)
+
+	mov	eax, 268435455				; 0fffffffH
+	sub	eax, esi
+	cmp	eax, esi
+	jb	$LN333@Growmap
+
+; 1819 : 			_Newsize *= 2;
+
+	add	esi, esi
+
+; 1820 : 			}
+
+	jmp	SHORT $LL2@Growmap
+$LN3@Growmap:
+
+; 1821 : 		_Count = _Newsize - this->_Mapsize();
+; 1822 : 
+; 1823 : 		size_type _Myboff = this->_Myoff() / _DEQUESIZ;
+
+	mov	ebx, DWORD PTR [edi+12]
+	sub	esi, ecx
+	shr	ebx, 2
+	mov	DWORD PTR __Myboff$1$[ebp], ebx
+
+; 1824 : 		_Mapptr _Newmap = _Almap.allocate(this->_Mapsize() + _Count);
+
+	lea	eax, DWORD PTR [ecx+esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	push	eax
+	lea	ecx, DWORD PTR __Almap$[ebp]
+	call	?allocate@?$allocator@PAK@std@@QAEPAPAKI@Z ; std::allocator<unsigned long *>::allocate
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1827 : 		_Myptr = _Uninitialized_copy(this->_Map() + _Myboff,
+
+	mov	ecx, DWORD PTR [edi+4]
+	mov	edi, DWORD PTR [edi+8]
+	shl	ebx, 2
+	shl	edi, 2
+	mov	DWORD PTR __Newmap$1$[ebp], eax
+	lea	edx, DWORD PTR [ecx+ebx]
+	add	ebx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2299 : 	const size_t _Count = _Last_ch - _First_ch;
+
+	sub	edi, edx
+	add	edi, ecx
+
+; 2300 : 	_CSTD memmove(_Dest_ch, _First_ch, _Count);
+
+	push	edi
+	push	edx
+	push	ebx
+	call	DWORD PTR __imp__memmove
+	add	esp, 12					; 0000000cH
+
+; 2301 : 	return (reinterpret_cast<_OutIt>(_Dest_ch + _Count));
+
+	lea	edx, DWORD PTR [edi+ebx]
+	mov	DWORD PTR __Myptr$1$[ebp], edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1830 : 		if (_Myboff <= _Count)
+
+	cmp	DWORD PTR __Myboff$1$[ebp], esi
+	ja	SHORT $LN6@Growmap
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2296 : 	const char * const _First_ch = reinterpret_cast<const char *>(_First);
+
+	mov	ebx, DWORD PTR _this$1$[ebp]
+	mov	eax, DWORD PTR [ebx+4]
+
+; 2299 : 	const size_t _Count = _Last_ch - _First_ch;
+
+	mov	edi, eax
+	mov	ebx, DWORD PTR __Myboff$1$[ebp]
+	sub	edi, eax
+	lea	ecx, DWORD PTR [ebx*4]
+	add	edi, ecx
+
+; 2300 : 	_CSTD memmove(_Dest_ch, _First_ch, _Count);
+
+	push	edi
+	push	eax
+	mov	eax, DWORD PTR __imp__memmove
+	push	edx
+	call	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 251  : 	_CSTD memset(_First, 0, _Count * sizeof(_Iter_value_t<_FwdIt>));
+
+	mov	eax, esi
+	sub	eax, ebx
+	shl	eax, 2
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2301 : 	return (reinterpret_cast<_OutIt>(_Dest_ch + _Count));
+
+	mov	eax, DWORD PTR __Myptr$1$[ebp]
+	add	eax, edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 251  : 	_CSTD memset(_First, 0, _Count * sizeof(_Iter_value_t<_FwdIt>));
+
+	push	0
+	push	eax
+	call	_memset
+	mov	edi, DWORD PTR __Newmap$1$[ebp]
+	mov	ecx, ebx
+	lea	eax, DWORD PTR [ecx*4]
+	push	eax
+	push	0
+	push	edi
+	call	_memset
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1840 : 		else
+
+	jmp	SHORT $LN332@Growmap
+$LN6@Growmap:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2296 : 	const char * const _First_ch = reinterpret_cast<const char *>(_First);
+
+	mov	edi, DWORD PTR _this$1$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1842 : 			_Uninitialized_copy(this->_Map(),
+
+	lea	ebx, DWORD PTR [esi*4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2300 : 	_CSTD memmove(_Dest_ch, _First_ch, _Count);
+
+	mov	eax, DWORD PTR __imp__memmove
+	push	ebx
+	mov	ecx, DWORD PTR [edi+4]
+	push	ecx
+	push	edx
+	call	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1845 : 			_Myptr = _Uninitialized_copy(this->_Map() + _Count,
+
+	mov	edi, DWORD PTR [edi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2299 : 	const size_t _Count = _Last_ch - _First_ch;
+
+	mov	edx, DWORD PTR __Myboff$1$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1845 : 			_Myptr = _Uninitialized_copy(this->_Map() + _Count,
+
+	lea	eax, DWORD PTR [ebx+edi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2299 : 	const size_t _Count = _Last_ch - _First_ch;
+
+	sub	edi, eax
+	lea	ecx, DWORD PTR [edx*4]
+	add	edi, ecx
+
+; 2300 : 	_CSTD memmove(_Dest_ch, _First_ch, _Count);
+
+	push	edi
+	push	eax
+	push	DWORD PTR __Newmap$1$[ebp]
+	call	DWORD PTR __imp__memmove
+
+; 2301 : 	return (reinterpret_cast<_OutIt>(_Dest_ch + _Count));
+
+	mov	eax, DWORD PTR __Newmap$1$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 251  : 	_CSTD memset(_First, 0, _Count * sizeof(_Iter_value_t<_FwdIt>));
+
+	push	ebx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2301 : 	return (reinterpret_cast<_OutIt>(_Dest_ch + _Count));
+
+	add	eax, edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 251  : 	_CSTD memset(_First, 0, _Count * sizeof(_Iter_value_t<_FwdIt>));
+
+	push	0
+	push	eax
+	call	_memset
+	mov	edi, DWORD PTR __Newmap$1$[ebp]
+$LN332@Growmap:
+	mov	ebx, DWORD PTR _this$1$[ebp]
+	add	esp, 36					; 00000024H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1854 : 		if (this->_Map() != _Mapptr())
+
+	mov	eax, DWORD PTR [ebx+4]
+	test	eax, eax
+	je	SHORT $LN8@Growmap
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR [ebx+8]
+	push	eax
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN8@Growmap:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1858 : 		this->_Map() = _Newmap;	// point at new
+
+	mov	DWORD PTR [ebx+4], edi
+
+; 1859 : 		this->_Mapsize() += _Count;
+
+	add	DWORD PTR [ebx+8], esi
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 1860 : 		}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+$LN333@Growmap:
+
+; 1818 : 				_Xlen();	// result too long
+
+	mov	ecx, edi
+	call	?_Xlen@?$deque@KV?$allocator@K@std@@@std@@IBEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Xlen
+$LN334@Growmap:
+$LN331@Growmap:
+	int	3
+?_Growmap@?$deque@KV?$allocator@K@std@@@std@@IAEXI@Z ENDP ; std::deque<unsigned long,std::allocator<unsigned long> >::_Growmap
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Xlen@?$deque@KV?$allocator@K@std@@@std@@IBEXXZ
+_TEXT	SEGMENT
+?_Xlen@?$deque@KV?$allocator@K@std@@@std@@IBEXXZ PROC	; std::deque<unsigned long,std::allocator<unsigned long> >::_Xlen, COMDAT
+; _this$ = ecx
+
+; 1798 : 		_Xlength_error("deque<T> too long");
+
+	push	OFFSET ??_C@_0BC@KBDMBKEH@deque?$DMT?$DO?5too?5long?$AA@
+	call	DWORD PTR __imp_?_Xlength_error@std@@YAXPBD@Z
+$LN4@Xlen:
+$LN3@Xlen:
+	int	3
+?_Xlen@?$deque@KV?$allocator@K@std@@@std@@IBEXXZ ENDP	; std::deque<unsigned long,std::allocator<unsigned long> >::_Xlen
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?pop_back@?$deque@KV?$allocator@K@std@@@std@@QAEXXZ
+_TEXT	SEGMENT
+?pop_back@?$deque@KV?$allocator@K@std@@@std@@QAEXXZ PROC ; std::deque<unsigned long,std::allocator<unsigned long> >::pop_back, COMDAT
+; _this$ = ecx
+
+; 1514 :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 1515 : 		if (empty())
+; 1516 : 			{
+; 1517 : 			_DEBUG_ERROR("deque empty before pop");
+; 1518 : 			}
+; 1519 : 		else
+; 1520 : 			{	// something to erase, do it
+; 1521 : 			size_type _Newoff = this->_Myoff() + this->_Mysize() - 1;
+; 1522 : 			_Orphan_off(_Newoff);
+; 1523 : 			size_type _Block = this->_Getblock(_Newoff);
+; 1524 : 			this->_Getal().destroy(
+; 1525 : 				_Unfancy(this->_Map()[_Block] + _Newoff % _DEQUESIZ));
+; 1526 : 			if (--this->_Mysize() == 0)
+; 1527 : 				this->_Myoff() = 0;
+; 1528 : 			}
+; 1529 : 
+; 1530 :  #else /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 1531 : 		size_type _Newoff = this->_Myoff() + this->_Mysize() - 1;
+; 1532 : 		size_type _Block = this->_Getblock(_Newoff);
+; 1533 : 		this->_Getal().destroy(
+; 1534 : 			_Unfancy(this->_Map()[_Block] + _Newoff % _DEQUESIZ));
+; 1535 : 		if (--this->_Mysize() == 0)
+
+	add	DWORD PTR [ecx+16], -1
+	jne	SHORT $LN2@pop_back
+
+; 1536 : 			this->_Myoff() = 0;
+
+	mov	DWORD PTR [ecx+12], 0
+$LN2@pop_back:
+
+; 1537 :  #endif /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 1538 : 		}
+
+	ret	0
+?pop_back@?$deque@KV?$allocator@K@std@@@std@@QAEXXZ ENDP ; std::deque<unsigned long,std::allocator<unsigned long> >::pop_back
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?empty@?$deque@KV?$allocator@K@std@@@std@@QBE_NXZ
+_TEXT	SEGMENT
+?empty@?$deque@KV?$allocator@K@std@@@std@@QBE_NXZ PROC	; std::deque<unsigned long,std::allocator<unsigned long> >::empty, COMDAT
+; _this$ = ecx
+
+; 1396 : 		{	// test if sequence is empty
+
+	cmp	DWORD PTR [ecx+16], 0
+	sete	al
+
+; 1397 : 		return (this->_Mysize() == 0);
+; 1398 : 		}
+
+	ret	0
+?empty@?$deque@KV?$allocator@K@std@@@std@@QBE_NXZ ENDP	; std::deque<unsigned long,std::allocator<unsigned long> >::empty
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?max_size@?$deque@KV?$allocator@K@std@@@std@@QBEIXZ
+_TEXT	SEGMENT
+?max_size@?$deque@KV?$allocator@K@std@@@std@@QBEIXZ PROC ; std::deque<unsigned long,std::allocator<unsigned long> >::max_size, COMDAT
+; _this$ = ecx
+
+; 1392 : 		return (this->_Getal().max_size());
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 1393 : 		}
+
+	ret	0
+?max_size@?$deque@KV?$allocator@K@std@@@std@@QBEIXZ ENDP ; std::deque<unsigned long,std::allocator<unsigned long> >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?end@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?end@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ PROC ; std::deque<unsigned long,std::allocator<unsigned long> >::end, COMDAT
+; _this$ = ecx
+
+; 1299 : 		{	// return iterator for end of nonmutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 133  : 		: _Myproxy(0), _Mynextiter(0)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1300 : 		return (const_iterator(this->_Myoff() + this->_Mysize(),
+
+	mov	edx, DWORD PTR [ecx+16]
+	add	edx, DWORD PTR [ecx+12]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 192  : 			_Myproxy = _Parent_proxy;
+
+	mov	ecx, DWORD PTR [ecx]
+
+; 133  : 		: _Myproxy(0), _Mynextiter(0)
+
+	mov	DWORD PTR [eax+4], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 301  : 		: _Myoff(_Off)
+
+	mov	DWORD PTR [eax+8], edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 192  : 			_Myproxy = _Parent_proxy;
+
+	mov	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1302 : 		}
+
+	pop	ebp
+	ret	4
+?end@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ ENDP ; std::deque<unsigned long,std::allocator<unsigned long> >::end
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?begin@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?begin@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ PROC ; std::deque<unsigned long,std::allocator<unsigned long> >::begin, COMDAT
+; _this$ = ecx
+
+; 1288 : 		{	// return iterator for beginning of nonmutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 133  : 		: _Myproxy(0), _Mynextiter(0)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 301  : 		: _Myoff(_Off)
+
+	mov	edx, DWORD PTR [ecx+12]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 192  : 			_Myproxy = _Parent_proxy;
+
+	mov	ecx, DWORD PTR [ecx]
+
+; 133  : 		: _Myproxy(0), _Mynextiter(0)
+
+	mov	DWORD PTR [eax+4], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 301  : 		: _Myoff(_Off)
+
+	mov	DWORD PTR [eax+8], edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 192  : 			_Myproxy = _Parent_proxy;
+
+	mov	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1290 : 		}
+
+	pop	ebp
+	ret	4
+?begin@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ ENDP ; std::deque<unsigned long,std::allocator<unsigned long> >::begin
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??1?$deque@KV?$allocator@K@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$deque@KV?$allocator@K@std@@@std@@QAE@XZ PROC	; std::deque<unsigned long,std::allocator<unsigned long> >::~deque<unsigned long,std::allocator<unsigned long> >, COMDAT
+; _this$ = ecx
+
+; 1243 : 		{	// destroy the deque
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1244 : 		_Tidy();
+
+	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	1
+	push	DWORD PTR [esi]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 866  : 		_Myproxy() = 0;
+
+	mov	DWORD PTR [esi], 0
+	pop	esi
+
+; 1245 : 		}
+
+	ret	0
+??1?$deque@KV?$allocator@K@std@@@std@@QAE@XZ ENDP	; std::deque<unsigned long,std::allocator<unsigned long> >::~deque<unsigned long,std::allocator<unsigned long> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z
+_TEXT	SEGMENT
+_this$ = -16						; size = 4
+__$EHRec$ = -12						; size = 12
+__Right$ = 8						; size = 4
+??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z PROC	; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >, COMDAT
+; _this$ = ecx
+
+; 1017 : 		{	// construct by copying _Right
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 8
+	push	edi
+	mov	edi, ecx
+	mov	DWORD PTR _this$[ebp], edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 99   : 		: _Myproxy(0)
+
+	mov	DWORD PTR [edi], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 752  : 		: _Map(),
+
+	mov	DWORD PTR [edi+4], 0
+
+; 753  : 		_Mapsize(0),
+
+	mov	DWORD PTR [edi+8], 0
+
+; 754  : 		_Myoff(0),
+
+	mov	DWORD PTR [edi+12], 0
+
+; 755  : 		_Mysize(0)
+
+	mov	DWORD PTR [edi+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN52@deque
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN120@deque:
+$LN52@deque:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 854  : 		_Myproxy() = _Unfancy(_Alproxy.allocate(1));
+
+	mov	DWORD PTR [edi], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	DWORD PTR [eax], 0
+	mov	DWORD PTR [eax+4], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 856  : 		_Myproxy()->_Mycont = _STD addressof(_Get_data());
+
+	mov	eax, DWORD PTR [edi]
+	mov	DWORD PTR [eax], edi
+
+; 1018 : 		_Construct(_Right.begin(), _Right.end());
+
+	mov	ecx, DWORD PTR __Right$[ebp]
+	sub	esp, 12					; 0000000cH
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	push	esp
+	call	?end@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ ; std::deque<unsigned long,std::allocator<unsigned long> >::end
+	mov	ecx, DWORD PTR __Right$[ebp]
+	sub	esp, 12					; 0000000cH
+	push	esp
+	call	?begin@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ ; std::deque<unsigned long,std::allocator<unsigned long> >::begin
+	mov	ecx, edi
+	call	??$_Construct@V?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@@?$deque@KV?$allocator@K@std@@@std@@QAEXV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@1@0@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::_Construct<std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > > >
+
+; 1019 : 		}
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	eax, edi
+	mov	DWORD PTR fs:0, ecx
+	pop	edi
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+$LN119@deque:
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__unwindfunclet$??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z$0:
+	mov	ecx, DWORD PTR _this$[ebp]
+	jmp	??1?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::~_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >
+__ehhandler$??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z:
+	mov	eax, OFFSET __ehfuncinfo$??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ENDP	; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
+; Function compile flags: /Ogtp
+;	COMDAT ??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::~_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>, COMDAT
+; _this$ = ecx
+	ret	0
+??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::~_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QBEABV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QBEABV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 343  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 344  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QBEABV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAEAAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAEAAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 338  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 339  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAEAAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_first, COMDAT
+; _this$ = ecx
+
+; 323  : 		return (*this);
+
+	mov	eax, ecx
+
+; 324  : 		}
+
+	ret	0
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_first
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_first, COMDAT
+; _this$ = ecx
+
+; 318  : 		return (*this);
+
+	mov	eax, ecx
+
+; 319  : 		}
+
+	ret	0
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Get_first
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+;	COMDAT ??1?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QAE@XZ PROC ; std::_Deque_val<std::_Deque_simple_types<unsigned long> >::~_Deque_val<std::_Deque_simple_types<unsigned long> >, COMDAT
+; _this$ = ecx
+	ret	0
+??1?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QAE@XZ ENDP ; std::_Deque_val<std::_Deque_simple_types<unsigned long> >::~_Deque_val<std::_Deque_simple_types<unsigned long> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Getblock@?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QBEII@Z
+_TEXT	SEGMENT
+__Off$ = 8						; size = 4
+?_Getblock@?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QBEII@Z PROC ; std::_Deque_val<std::_Deque_simple_types<unsigned long> >::_Getblock, COMDAT
+; _this$ = ecx
+
+; 760  : 		{	// determine block from offset
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 761  : 			// NB: _Mapsize and _DEQUESIZ are guaranteed to be powers of 2
+; 762  : 		return ((_Off / _DEQUESIZ) & (_Mapsize - 1));
+
+	mov	eax, DWORD PTR [ecx+8]
+	mov	ecx, DWORD PTR __Off$[ebp]
+	dec	eax
+	shr	ecx, 2
+	and	eax, ecx
+
+; 763  : 		}
+
+	pop	ebp
+	ret	4
+?_Getblock@?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QBEII@Z ENDP ; std::_Deque_val<std::_Deque_simple_types<unsigned long> >::_Getblock
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??0?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??0?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QAE@XZ PROC ; std::_Deque_val<std::_Deque_simple_types<unsigned long> >::_Deque_val<std::_Deque_simple_types<unsigned long> >, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 99   : 		: _Myproxy(0)
+
+	mov	DWORD PTR [ecx], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 757  : 		}
+
+	mov	eax, ecx
+	mov	DWORD PTR [ecx+4], 0
+	mov	DWORD PTR [ecx+8], 0
+	mov	DWORD PTR [ecx+12], 0
+	mov	DWORD PTR [ecx+16], 0
+	ret	0
+??0?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@QAE@XZ ENDP ; std::_Deque_val<std::_Deque_simple_types<unsigned long> >::_Deque_val<std::_Deque_simple_types<unsigned long> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Mysize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABIXZ
+_TEXT	SEGMENT
+?_Mysize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABIXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Mysize, COMDAT
+; _this$ = ecx
+
+; 951  : 		return (_Get_data()._Mysize);
+
+	lea	eax, DWORD PTR [ecx+16]
+
+; 952  : 		}
+
+	ret	0
+?_Mysize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABIXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Mysize
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Mysize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ
+_TEXT	SEGMENT
+?_Mysize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Mysize, COMDAT
+; _this$ = ecx
+
+; 946  : 		return (_Get_data()._Mysize);
+
+	lea	eax, DWORD PTR [ecx+16]
+
+; 947  : 		}
+
+	ret	0
+?_Mysize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Mysize
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Myoff@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABIXZ
+_TEXT	SEGMENT
+?_Myoff@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABIXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myoff, COMDAT
+; _this$ = ecx
+
+; 941  : 		return (_Get_data()._Myoff);
+
+	lea	eax, DWORD PTR [ecx+12]
+
+; 942  : 		}
+
+	ret	0
+?_Myoff@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABIXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myoff
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Myoff@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ
+_TEXT	SEGMENT
+?_Myoff@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myoff, COMDAT
+; _this$ = ecx
+
+; 936  : 		return (_Get_data()._Myoff);
+
+	lea	eax, DWORD PTR [ecx+12]
+
+; 937  : 		}
+
+	ret	0
+?_Myoff@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myoff
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Mapsize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ
+_TEXT	SEGMENT
+?_Mapsize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Mapsize, COMDAT
+; _this$ = ecx
+
+; 926  : 		return (_Get_data()._Mapsize);
+
+	lea	eax, DWORD PTR [ecx+8]
+
+; 927  : 		}
+
+	ret	0
+?_Mapsize@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAIXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Mapsize
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Map@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAPAPAKXZ
+_TEXT	SEGMENT
+?_Map@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAPAPAKXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Map, COMDAT
+; _this$ = ecx
+
+; 916  : 		return (_Get_data()._Map);
+
+	lea	eax, DWORD PTR [ecx+4]
+
+; 917  : 		}
+
+	ret	0
+?_Map@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAPAPAKXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Map
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Get_data@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_data@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Get_data, COMDAT
+; _this$ = ecx
+
+; 911  : 		return (_Mypair._Get_second());
+
+	mov	eax, ecx
+
+; 912  : 		}
+
+	ret	0
+?_Get_data@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Get_data
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Get_data@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_data@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Get_data, COMDAT
+; _this$ = ecx
+
+; 906  : 		return (_Mypair._Get_second());
+
+	mov	eax, ecx
+
+; 907  : 		}
+
+	ret	0
+?_Get_data@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Get_data
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ
+_TEXT	SEGMENT
+?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getal, COMDAT
+; _this$ = ecx
+
+; 901  : 		return (_Mypair._Get_first());
+
+	mov	eax, ecx
+
+; 902  : 		}
+
+	ret	0
+?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getal
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ
+_TEXT	SEGMENT
+?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getal, COMDAT
+; _this$ = ecx
+
+; 896  : 		return (_Mypair._Get_first());
+
+	mov	eax, ecx
+
+; 897  : 		}
+
+	ret	0
+?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getal
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Orphan_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ
+_TEXT	SEGMENT
+?_Orphan_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Orphan_all, COMDAT
+; _this$ = ecx
+
+; 886  : 		_Get_data()._Orphan_all();
+; 887  : 		}
+
+	ret	0
+?_Orphan_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Orphan_all
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Myproxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAPAU_Container_proxy@2@XZ
+_TEXT	SEGMENT
+?_Myproxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAPAU_Container_proxy@2@XZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myproxy, COMDAT
+; _this$ = ecx
+
+; 876  : 		return (_Get_data()._Myproxy);
+
+	mov	eax, ecx
+
+; 877  : 		}
+
+	ret	0
+?_Myproxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAPAU_Container_proxy@2@XZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myproxy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Free_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ
+_TEXT	SEGMENT
+?_Free_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Free_proxy, COMDAT
+; _this$ = ecx
+
+; 860  : 		{	// destroy proxy
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	1
+	push	DWORD PTR [esi]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 866  : 		_Myproxy() = 0;
+
+	mov	DWORD PTR [esi], 0
+	pop	esi
+
+; 867  : 		}
+
+	ret	0
+?_Free_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Free_proxy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Alloc_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ
+_TEXT	SEGMENT
+?_Alloc_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Alloc_proxy, COMDAT
+; _this$ = ecx
+
+; 851  : 		{	// construct proxy
+
+	npad	2
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 851  : 		{	// construct proxy
+
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN20@Alloc_prox
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN86@Alloc_prox:
+$LN20@Alloc_prox:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 854  : 		_Myproxy() = _Unfancy(_Alproxy.allocate(1));
+
+	mov	DWORD PTR [esi], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	DWORD PTR [eax], 0
+	mov	DWORD PTR [eax+4], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 856  : 		_Myproxy()->_Mycont = _STD addressof(_Get_data());
+
+	mov	eax, DWORD PTR [esi]
+	mov	DWORD PTR [eax], esi
+	pop	esi
+
+; 857  : 		}
+
+	ret	0
+$LN85@Alloc_prox:
+?_Alloc_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Alloc_proxy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??1?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@XZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::~_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >, COMDAT
+; _this$ = ecx
+
+; 812  : 		{	// destroy proxy
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	1
+	push	DWORD PTR [esi]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 866  : 		_Myproxy() = 0;
+
+	mov	DWORD PTR [esi], 0
+	pop	esi
+
+; 813  : 		_Free_proxy();
+; 814  : 		}
+
+	ret	0
+??1?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@XZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::~_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Getblock@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEII@Z
+_TEXT	SEGMENT
+__Off$ = 8						; size = 4
+?_Getblock@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEII@Z PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getblock, COMDAT
+; _this$ = ecx
+
+; 792  : 		{	// determine block from offset
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 762  : 		return ((_Off / _DEQUESIZ) & (_Mapsize - 1));
+
+	mov	eax, DWORD PTR [ecx+8]
+	mov	ecx, DWORD PTR __Off$[ebp]
+	dec	eax
+	shr	ecx, 2
+	and	eax, ecx
+
+; 793  : 		return (_Get_data()._Getblock(_Off));
+; 794  : 		}
+
+	pop	ebp
+	ret	4
+?_Getblock@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEII@Z ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getblock
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAEXPAPAKI@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAEXPAPAKI@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long *> >::deallocate, COMDAT
+; _this$ = ecx
+
+; 1087 : 		{	// deallocate object at _Ptr, ignore size
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 1088 : 		_Mybase::deallocate(_Ptr, _Count);
+; 1089 : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAEXPAPAKI@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long *> >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAEPAPAKI@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAEPAPAKI@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long *> >::allocate, COMDAT
+; _this$ = ecx
+
+; 1076 : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1078 : 		}
+
+	pop	ebp
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	jmp	?allocate@?$allocator@PAK@std@@QAEPAPAKI@Z ; std::allocator<unsigned long *>::allocate
+?allocate@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAEPAPAKI@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long *> >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$allocator@PAK@std@@QAEPAPAKI@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$allocator@PAK@std@@QAEPAPAKI@Z PROC		; std::allocator<unsigned long *>::allocate, COMDAT
+; _this$ = ecx
+
+; 827  : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 53   : 	if (_Count == 0)
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	test	eax, eax
+	jne	SHORT $LN4@allocate
+$LN12@allocate:
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN4@allocate:
+
+; 57   : 	if ((size_t)(-1) / _Sz < _Count)
+
+	cmp	eax, 1073741823				; 3fffffffH
+	jbe	SHORT $LN5@allocate
+
+; 58   : 		_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN15@allocate:
+$LN5@allocate:
+
+; 59   : 	const size_t _User_size = _Count * _Sz;
+
+	shl	eax, 2
+
+; 60   : 
+; 61   :  #if defined(_M_IX86) || defined(_M_X64)
+; 62   : 	if (_Try_aligned_allocation
+; 63   : 		&& _BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN6@allocate
+
+; 64   : 		{	// allocate large block
+; 65   : 		static_assert(sizeof (void *) < _BIG_ALLOCATION_ALIGNMENT,
+; 66   : 			"Big allocations should at least match vector register size");
+; 67   : 		const size_t _Block_size = _NON_USER_SIZE + _User_size;
+
+	lea	ecx, DWORD PTR [eax+35]
+
+; 68   : 		if (_Block_size <= _User_size)
+
+	cmp	ecx, eax
+	ja	SHORT $LN8@allocate
+
+; 69   : 			_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN16@allocate:
+$LN8@allocate:
+
+; 70   : 		const uintptr_t _Ptr_container =
+; 71   : 			reinterpret_cast<uintptr_t>(::operator new(_Block_size));
+
+	push	ecx
+	call	??2@YAPAXI@Z				; operator new
+	mov	ecx, eax
+	add	esp, 4
+
+; 72   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container != 0);
+
+	test	ecx, ecx
+	jne	SHORT $LN9@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN17@allocate:
+$LN9@allocate:
+
+; 73   : 		_Ptr = reinterpret_cast<void *>((_Ptr_container + _NON_USER_SIZE)
+
+	lea	eax, DWORD PTR [ecx+35]
+	and	eax, -32				; ffffffe0H
+
+; 74   : 			& ~(_BIG_ALLOCATION_ALIGNMENT - 1));
+; 75   : 		static_cast<uintptr_t *>(_Ptr)[-1] = _Ptr_container;
+
+	mov	DWORD PTR [eax-4], ecx
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN6@allocate:
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	eax
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN12@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN18@allocate:
+$LN14@allocate:
+	int	3
+?allocate@?$allocator@PAK@std@@QAEPAPAKI@Z ENDP		; std::allocator<unsigned long *>::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$allocator@PAK@std@@QAEXPAPAKI@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$allocator@PAK@std@@QAEXPAPAKI@Z PROC	; std::allocator<unsigned long *>::deallocate, COMDAT
+; _this$ = ecx
+
+; 822  : 		{	// deallocate object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 824  : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$allocator@PAK@std@@QAEXPAPAKI@Z ENDP	; std::allocator<unsigned long *>::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBEIU_Nil@2@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+?max_size@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBEIU_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::max_size, COMDAT
+; _this$ = ecx
+
+; 1108 : 		return (_Mytraits::max_size(*this));
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 1109 : 		}
+
+	ret	4
+?max_size@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBEIU_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKI@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKI@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::deallocate, COMDAT
+; _this$ = ecx
+
+; 1087 : 		{	// deallocate object at _Ptr, ignore size
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 1088 : 		_Mybase::deallocate(_Ptr, _Count);
+; 1089 : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKI@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEPAKI@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEPAKI@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::allocate, COMDAT
+; _this$ = ecx
+
+; 1076 : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1078 : 		}
+
+	pop	ebp
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	jmp	?allocate@?$allocator@K@std@@QAEPAKI@Z	; std::allocator<unsigned long>::allocate
+?allocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEPAKI@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??0?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAU01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??0?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAU01@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::_Wrap_alloc<std::allocator<unsigned long> >, COMDAT
+; _this$ = ecx
+
+; 1048 : 		}
+
+	mov	eax, ecx
+	ret	4
+??0?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAU01@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::_Wrap_alloc<std::allocator<unsigned long> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBE?AU12@U_Nil@2@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+___formal$ = 12						; size = 1
+?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBE?AU12@U_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::select_on_container_copy_construction, COMDAT
+; _this$ = ecx
+
+; 1013 : 		{	// get allocator to use
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1014 : 		return (_Mytraits::select_on_container_copy_construction(*this));
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 1015 : 		}
+
+	pop	ebp
+	ret	8
+?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBE?AU12@U_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::select_on_container_copy_construction
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?select_on_container_copy_construction@?$allocator_traits@V?$allocator@K@std@@@std@@SA?AV?$allocator@K@2@ABV32@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Al$ = 12						; size = 4
+?select_on_container_copy_construction@?$allocator_traits@V?$allocator@K@std@@@std@@SA?AV?$allocator@K@2@ABV32@@Z PROC ; std::allocator_traits<std::allocator<unsigned long> >::select_on_container_copy_construction, COMDAT
+
+; 975  : 		{	// get allocator to use
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 976  : 		return (_Al);
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 977  : 		}
+
+	pop	ebp
+	ret	0
+?select_on_container_copy_construction@?$allocator_traits@V?$allocator@K@std@@@std@@SA?AV?$allocator@K@2@ABV32@@Z ENDP ; std::allocator_traits<std::allocator<unsigned long> >::select_on_container_copy_construction
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$allocator_traits@V?$allocator@K@std@@@std@@SAIABV?$allocator@K@2@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+?max_size@?$allocator_traits@V?$allocator@K@std@@@std@@SAIABV?$allocator@K@2@@Z PROC ; std::allocator_traits<std::allocator<unsigned long> >::max_size, COMDAT
+
+; 970  : 		return (_Al.max_size());
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 971  : 		}
+
+	ret	0
+?max_size@?$allocator_traits@V?$allocator@K@std@@@std@@SAIABV?$allocator@K@2@@Z ENDP ; std::allocator_traits<std::allocator<unsigned long> >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$allocator@K@std@@QBEIXZ
+_TEXT	SEGMENT
+?max_size@?$allocator@K@std@@QBEIXZ PROC		; std::allocator<unsigned long>::max_size, COMDAT
+; _this$ = ecx
+
+; 851  : 		return ((size_t)(-1) / sizeof (_Ty));
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 852  : 		}
+
+	ret	0
+?max_size@?$allocator@K@std@@QBEIXZ ENDP		; std::allocator<unsigned long>::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$allocator@K@std@@QAEPAKI@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$allocator@K@std@@QAEPAKI@Z PROC		; std::allocator<unsigned long>::allocate, COMDAT
+; _this$ = ecx
+
+; 827  : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 53   : 	if (_Count == 0)
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	test	eax, eax
+	jne	SHORT $LN4@allocate
+$LN12@allocate:
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN4@allocate:
+
+; 57   : 	if ((size_t)(-1) / _Sz < _Count)
+
+	cmp	eax, 1073741823				; 3fffffffH
+	jbe	SHORT $LN5@allocate
+
+; 58   : 		_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN15@allocate:
+$LN5@allocate:
+
+; 59   : 	const size_t _User_size = _Count * _Sz;
+
+	shl	eax, 2
+
+; 60   : 
+; 61   :  #if defined(_M_IX86) || defined(_M_X64)
+; 62   : 	if (_Try_aligned_allocation
+; 63   : 		&& _BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN6@allocate
+
+; 64   : 		{	// allocate large block
+; 65   : 		static_assert(sizeof (void *) < _BIG_ALLOCATION_ALIGNMENT,
+; 66   : 			"Big allocations should at least match vector register size");
+; 67   : 		const size_t _Block_size = _NON_USER_SIZE + _User_size;
+
+	lea	ecx, DWORD PTR [eax+35]
+
+; 68   : 		if (_Block_size <= _User_size)
+
+	cmp	ecx, eax
+	ja	SHORT $LN8@allocate
+
+; 69   : 			_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN16@allocate:
+$LN8@allocate:
+
+; 70   : 		const uintptr_t _Ptr_container =
+; 71   : 			reinterpret_cast<uintptr_t>(::operator new(_Block_size));
+
+	push	ecx
+	call	??2@YAPAXI@Z				; operator new
+	mov	ecx, eax
+	add	esp, 4
+
+; 72   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container != 0);
+
+	test	ecx, ecx
+	jne	SHORT $LN9@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN17@allocate:
+$LN9@allocate:
+
+; 73   : 		_Ptr = reinterpret_cast<void *>((_Ptr_container + _NON_USER_SIZE)
+
+	lea	eax, DWORD PTR [ecx+35]
+	and	eax, -32				; ffffffe0H
+
+; 74   : 			& ~(_BIG_ALLOCATION_ALIGNMENT - 1));
+; 75   : 		static_cast<uintptr_t *>(_Ptr)[-1] = _Ptr_container;
+
+	mov	DWORD PTR [eax-4], ecx
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN6@allocate:
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	eax
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN12@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN18@allocate:
+$LN14@allocate:
+	int	3
+?allocate@?$allocator@K@std@@QAEPAKI@Z ENDP		; std::allocator<unsigned long>::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$allocator@K@std@@QAEXPAKI@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$allocator@K@std@@QAEXPAKI@Z PROC		; std::allocator<unsigned long>::deallocate, COMDAT
+; _this$ = ecx
+
+; 822  : 		{	// deallocate object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 824  : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$allocator@K@std@@QAEXPAKI@Z ENDP		; std::allocator<unsigned long>::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??0?$allocator@K@std@@QAE@ABV01@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??0?$allocator@K@std@@QAE@ABV01@@Z PROC			; std::allocator<unsigned long>::allocator<unsigned long>, COMDAT
+; _this$ = ecx
+
+; 807  : 		{	// construct by copying (do nothing)
+; 808  : 		}
+
+	mov	eax, ecx
+	ret	4
+??0?$allocator@K@std@@QAE@ABV01@@Z ENDP			; std::allocator<unsigned long>::allocator<unsigned long>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -4609,7 +8712,7 @@ $LN102@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+12]
 	push	eax
 	push	DWORD PTR [ebx+8]
-	push	OFFSET $SG132398
+	push	OFFSET $SG132409
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -4623,10 +8726,10 @@ $LN102@SK_XInput_:
 ; 935  :       {
 ; 936  :         SK_LOG0 ( ( L" Re-hooked XInput using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
 	jl	SHORT $LN11@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132400
+	push	OFFSET $SG132411
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -4686,10 +8789,10 @@ $LN9@SK_XInput_:
 ; 949  :       {
 ; 950  :         SK_LOG0 ( ( L" Failed to re-hook XInput using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN16@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132405
+	push	OFFSET $SG132416
 
 ; 951  :                pCtx->wszModuleName ),
 ; 952  :             L"Input Mgr." );
@@ -4704,10 +8807,10 @@ $LN7@SK_XInput_:
 ; 957  :     {
 ; 958  :       SK_LOG0 ( ( L" Failed to remove XInput hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN16@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132407
+	push	OFFSET $SG132418
 $LN120@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -4774,7 +8877,7 @@ $LN105@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+120]
 	push	eax
 	push	DWORD PTR [ebx+116]
-	push	OFFSET $SG132415
+	push	OFFSET $SG132426
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -4788,10 +8891,10 @@ $LN105@SK_XInput_:
 ; 984  :       {
 ; 985  :         SK_LOG0 ( ( L" Re-hooked XInput (Set) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
 	jl	SHORT $LN24@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132417
+	push	OFFSET $SG132428
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -4851,10 +8954,10 @@ $LN22@SK_XInput_:
 ; 998  :       {
 ; 999  :         SK_LOG0 ( ( L" Failed to re-hook XInput (Set) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN29@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132422
+	push	OFFSET $SG132433
 
 ; 1000 :                pCtx->wszModuleName ),
 ; 1001 :             L"Input Mgr." );
@@ -4869,10 +8972,10 @@ $LN20@SK_XInput_:
 ; 1006 :     {
 ; 1007 :       SK_LOG0 ( ( L" Failed to remove XInput (Set) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN29@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132424
+	push	OFFSET $SG132435
 $LN121@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -4938,7 +9041,7 @@ $LN108@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+48]
 	push	eax
 	push	DWORD PTR [ebx+44]
-	push	OFFSET $SG132432
+	push	OFFSET $SG132443
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -4952,10 +9055,10 @@ $LN108@SK_XInput_:
 ; 1033 :       {
 ; 1034 :         SK_LOG0 ( ( L" Re-hooked XInput (Caps) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
 	jl	SHORT $LN37@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132434
+	push	OFFSET $SG132445
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5015,10 +9118,10 @@ $LN35@SK_XInput_:
 ; 1047 :       {
 ; 1048 :         SK_LOG0 ( ( L" Failed to re-hook XInput (Caps) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN42@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132439
+	push	OFFSET $SG132450
 
 ; 1049 :                pCtx->wszModuleName ),
 ; 1050 :             L"Input Mgr." );
@@ -5033,10 +9136,10 @@ $LN33@SK_XInput_:
 ; 1055 :     {
 ; 1056 :       SK_LOG0 ( ( L" Failed to remove XInput (Caps) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN42@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132441
+	push	OFFSET $SG132452
 $LN122@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -5111,7 +9214,7 @@ $LN111@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+84]
 	push	eax
 	push	DWORD PTR [ebx+80]
-	push	OFFSET $SG132450
+	push	OFFSET $SG132461
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -5125,10 +9228,10 @@ $LN111@SK_XInput_:
 ; 1085 :         {
 ; 1086 :           SK_LOG0 ( ( L" Re-hooked XInput (Battery) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
 	jl	SHORT $LN51@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132452
+	push	OFFSET $SG132463
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5174,10 +9277,10 @@ $LN49@SK_XInput_:
 ; 1097 :         {
 ; 1098 :           SK_LOG0 ( ( L" Failed to re-hook XInput (Battery) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN55@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132456
+	push	OFFSET $SG132467
 
 ; 1099 :                  pCtx->wszModuleName ),
 ; 1100 :               L"Input Mgr." );
@@ -5192,10 +9295,10 @@ $LN47@SK_XInput_:
 ; 1105 :       {
 ; 1106 :         SK_LOG0 ( ( L" Failed to remove XInput (Battery) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN55@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132458
+	push	OFFSET $SG132469
 $LN123@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -5283,10 +9386,10 @@ $LN114@SK_XInput_:
 ; 1135 :         {
 ; 1136 :           SK_LOG0 ( ( L" Re-hooked XInput (Ex) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
 	jl	SHORT $LN64@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132468
+	push	OFFSET $SG132479
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5332,10 +9435,10 @@ $LN62@SK_XInput_:
 ; 1147 :         {
 ; 1148 :           SK_LOG0 ( ( L" Failed to re-hook XInput (Ex) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN68@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132472
+	push	OFFSET $SG132483
 
 ; 1149 :                  pCtx->wszModuleName ),
 ; 1150 :               L"Input Mgr." );
@@ -5350,10 +9453,10 @@ $LN60@SK_XInput_:
 ; 1155 :       {
 ; 1156 :         SK_LOG0 ( ( L" Failed to remove XInput (Ex) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN68@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132474
+	push	OFFSET $SG132485
 $LN124@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -5427,7 +9530,7 @@ $LN117@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+156]
 	push	eax
 	push	DWORD PTR [ebx+152]
-	push	OFFSET $SG132483
+	push	OFFSET $SG132494
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -5441,10 +9544,10 @@ $LN117@SK_XInput_:
 ; 1185 :         {
 ; 1186 :           SK_LOG0 ( ( L" Re-hooked XInput (Enable) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
 	jl	SHORT $LN77@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132485
+	push	OFFSET $SG132496
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5490,10 +9593,10 @@ $LN75@SK_XInput_:
 ; 1197 :         {
 ; 1198 :           SK_LOG0 ( ( L" Failed to re-hook XInput (Enable) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN81@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132489
+	push	OFFSET $SG132500
 
 ; 1199 :                  pCtx->wszModuleName ),
 ; 1200 :               L"Input Mgr." );
@@ -5508,10 +9611,10 @@ $LN73@SK_XInput_:
 ; 1205 :       {
 ; 1206 :         SK_LOG0 ( ( L" Failed to remove XInput (Enable) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN81@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132491
+	push	OFFSET $SG132502
 $LN125@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -5649,19 +9752,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXH@Z@@YAPAPAXPAP6GXH@Z@Z PROC	; static_cast_p2p<void,void __stdcall(int)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -5674,19 +9777,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GKKPAU_XINPUT_STATE_EX@@@Z@@YAPAPAXPAP6GKKPAU_XINPUT_STATE_EX@@@Z@Z PROC ; static_cast_p2p<void,unsigned long __stdcall(unsigned long,_XINPUT_STATE_EX *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -5699,19 +9802,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GKKEPAU_XINPUT_BATTERY_INFORMATION@@@Z@@YAPAPAXPAP6GKKEPAU_XINPUT_BATTERY_INFORMATION@@@Z@Z PROC ; static_cast_p2p<void,unsigned long __stdcall(unsigned long,unsigned char,_XINPUT_BATTERY_INFORMATION *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -5724,19 +9827,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GKKPAU_XINPUT_VIBRATION@@@Z@@YAPAPAXPAP6GKKPAU_XINPUT_VIBRATION@@@Z@Z PROC ; static_cast_p2p<void,unsigned long __stdcall(unsigned long,_XINPUT_VIBRATION *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -5749,19 +9852,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GKKKPAU_XINPUT_CAPABILITIES@@@Z@@YAPAPAXPAP6GKKKPAU_XINPUT_CAPABILITIES@@@Z@Z PROC ; static_cast_p2p<void,unsigned long __stdcall(unsigned long,unsigned long,_XINPUT_CAPABILITIES *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -5774,19 +9877,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GKKPAU_XINPUT_STATE@@@Z@@YAPAPAXPAP6GKKPAU_XINPUT_STATE@@@Z@Z PROC ; static_cast_p2p<void,unsigned long __stdcall(unsigned long,_XINPUT_STATE *)>, COMDAT
 
-; 53   :     {
+; 50   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 54   :       return static_cast <T **> (
+; 51   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 55   :                static_cast <T*>   ( p2p )
-; 56   :                                 );
-; 57   :     };
+; 52   :                static_cast <T*>   ( p2p )
+; 53   :                                 );
+; 54   :     };
 
 	pop	ebp
 	ret	0
@@ -5808,7 +9911,7 @@ _pCtx$ = 8						; size = 4
 ; 715  :   pCtx->XInputGetState_Target =
 
 	mov	esi, DWORD PTR _pCtx$[ebp]
-	push	OFFSET $SG132326
+	push	OFFSET $SG132337
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -5823,7 +9926,7 @@ _pCtx$ = 8						; size = 4
 	push	0
 	push	eax
 	push	DWORD PTR [esi+8]
-	push	OFFSET $SG132327
+	push	OFFSET $SG132338
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -5833,7 +9936,7 @@ _pCtx$ = 8						; size = 4
 ; 723  : 
 ; 724  :   pCtx->XInputGetCapabilities_Target =
 
-	push	OFFSET $SG132328
+	push	OFFSET $SG132339
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -5848,7 +9951,7 @@ _pCtx$ = 8						; size = 4
 	push	0
 	push	eax
 	push	DWORD PTR [esi+44]
-	push	OFFSET $SG132329
+	push	OFFSET $SG132340
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -5858,7 +9961,7 @@ _pCtx$ = 8						; size = 4
 ; 732  : 
 ; 733  :   pCtx->XInputSetState_Target =
 
-	push	OFFSET $SG132330
+	push	OFFSET $SG132341
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -5873,7 +9976,7 @@ _pCtx$ = 8						; size = 4
 	push	0
 	push	eax
 	push	DWORD PTR [esi+116]
-	push	OFFSET $SG132331
+	push	OFFSET $SG132342
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -5883,7 +9986,7 @@ _pCtx$ = 8						; size = 4
 ; 741  : 
 ; 742  :   pCtx->XInputGetBatteryInformation_Target =
 
-	push	OFFSET $SG132332
+	push	OFFSET $SG132343
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -5906,7 +10009,7 @@ _pCtx$ = 8						; size = 4
 	lea	eax, DWORD PTR [esi+84]
 	push	eax
 	push	DWORD PTR [esi+80]
-	push	OFFSET $SG132334
+	push	OFFSET $SG132345
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN2@SK_Input_H:
@@ -5953,7 +10056,7 @@ $LN3@SK_Input_H:
 ; 769  : 
 ; 770  :   pCtx->XInputEnable_Target =
 
-	push	OFFSET $SG132336
+	push	OFFSET $SG132347
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -5976,7 +10079,7 @@ $LN3@SK_Input_H:
 	lea	eax, DWORD PTR [esi+156]
 	push	eax
 	push	DWORD PTR [esi+152]
-	push	OFFSET $SG132338
+	push	OFFSET $SG132349
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN4@SK_Input_H:
@@ -6152,10 +10255,10 @@ _pVibration$ = 12					; size = 4
 	cmp	BYTE PTR ?called@?2??XInputSetState9_1_0_Detour@@YGKKPAU_XINPUT_VIBRATION@@@Z@4_NA, 0
 	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputSetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputSetS
-	push	OFFSET $SG132282
-	push	OFFSET $SG132283
+	push	OFFSET $SG132293
+	push	OFFSET $SG132294
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -6164,7 +10267,7 @@ $LN3@XInputSetS:
 $LN2@XInputSetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 106  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
+; 107  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+56
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -6363,10 +10466,10 @@ _pCapabilities$ = 16					; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetCapabilities9_1_0_Detour@@YGKKKPAU_XINPUT_CAPABILITIES@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetC
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetC
-	push	OFFSET $SG132263
-	push	OFFSET $SG132264
+	push	OFFSET $SG132274
+	push	OFFSET $SG132275
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -6375,7 +10478,7 @@ $LN3@XInputGetC:
 $LN2@XInputGetC:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -6529,10 +10632,10 @@ _pState$ = 12						; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetState9_1_0_Detour@@YGKKPAU_XINPUT_STATE@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132241
-	push	OFFSET $SG132242
+	push	OFFSET $SG132252
+	push	OFFSET $SG132253
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -6541,7 +10644,7 @@ $LN3@XInputGetS:
 $LN2@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -6719,10 +10822,10 @@ _pVibration$ = 12					; size = 4
 	cmp	BYTE PTR ?called@?2??XInputSetState1_4_Detour@@YGKKPAU_XINPUT_VIBRATION@@@Z@4_NA, 0
 	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputSetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputSetS
-	push	OFFSET $SG132222
-	push	OFFSET $SG132223
+	push	OFFSET $SG132233
+	push	OFFSET $SG132234
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -6731,7 +10834,7 @@ $LN3@XInputSetS:
 $LN2@XInputSetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 106  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
+; 107  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+56
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -6929,10 +11032,10 @@ _pBatteryInformation$ = 16				; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetBatteryInformation1_4_Detour@@YGKKEPAU_XINPUT_BATTERY_INFORMATION@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetB
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetB
-	push	OFFSET $SG132203
-	push	OFFSET $SG132204
+	push	OFFSET $SG132214
+	push	OFFSET $SG132215
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -6941,7 +11044,7 @@ $LN3@XInputGetB:
 $LN2@XInputGetB:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7095,10 +11198,10 @@ _pCapabilities$ = 16					; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetCapabilities1_4_Detour@@YGKKKPAU_XINPUT_CAPABILITIES@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetC
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetC
-	push	OFFSET $SG132182
-	push	OFFSET $SG132183
+	push	OFFSET $SG132193
+	push	OFFSET $SG132194
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7107,7 +11210,7 @@ $LN3@XInputGetC:
 $LN2@XInputGetC:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7261,10 +11364,10 @@ _pState$ = 12						; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetStateEx1_4_Detour@@YGKKPAU_XINPUT_STATE_EX@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132161
-	push	OFFSET $SG132162
+	push	OFFSET $SG132172
+	push	OFFSET $SG132173
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7273,7 +11376,7 @@ $LN3@XInputGetS:
 $LN2@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7452,10 +11555,10 @@ _pState$ = 12						; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetState1_4_Detour@@YGKKPAU_XINPUT_STATE@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132141
-	push	OFFSET $SG132142
+	push	OFFSET $SG132152
+	push	OFFSET $SG132153
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7464,7 +11567,7 @@ $LN3@XInputGetS:
 $LN2@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7686,10 +11789,10 @@ _pVibration$ = 12					; size = 4
 	cmp	BYTE PTR ?called@?2??XInputSetState1_3_Detour@@YGKKPAU_XINPUT_VIBRATION@@@Z@4_NA, 0
 	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputSetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputSetS
-	push	OFFSET $SG132118
-	push	OFFSET $SG132119
+	push	OFFSET $SG132129
+	push	OFFSET $SG132130
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7698,7 +11801,7 @@ $LN3@XInputSetS:
 $LN2@XInputSetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 106  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
+; 107  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+56
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7896,10 +11999,10 @@ _pBatteryInformation$ = 16				; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetBatteryInformation1_3_Detour@@YGKKEPAU_XINPUT_BATTERY_INFORMATION@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetB
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetB
-	push	OFFSET $SG132100
-	push	OFFSET $SG132101
+	push	OFFSET $SG132111
+	push	OFFSET $SG132112
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7908,7 +12011,7 @@ $LN3@XInputGetB:
 $LN2@XInputGetB:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8062,10 +12165,10 @@ _pCapabilities$ = 16					; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetCapabilities1_3_Detour@@YGKKKPAU_XINPUT_CAPABILITIES@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetC
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetC
-	push	OFFSET $SG132080
-	push	OFFSET $SG132081
+	push	OFFSET $SG132091
+	push	OFFSET $SG132092
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -8074,7 +12177,7 @@ $LN3@XInputGetC:
 $LN2@XInputGetC:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8228,10 +12331,10 @@ _pState$ = 12						; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetStateEx1_3_Detour@@YGKKPAU_XINPUT_STATE_EX@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132060
-	push	OFFSET $SG132061
+	push	OFFSET $SG132071
+	push	OFFSET $SG132072
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -8240,7 +12343,7 @@ $LN3@XInputGetS:
 $LN2@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8447,10 +12550,10 @@ _pState$ = 12						; size = 4
 	cmp	BYTE PTR ?called@?2??XInputGetState1_3_Detour@@YGKKPAU_XINPUT_STATE@@@Z@4_NA, 0
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132040
-	push	OFFSET $SG132041
+	push	OFFSET $SG132051
+	push	OFFSET $SG132052
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -8459,7 +12562,7 @@ $LN3@XInputGetS:
 $LN2@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	lock	 inc	 (null) PTR ?SK_XInput_Backend@@3Usk_input_api_context_s@@A+40
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -15534,7 +19637,7 @@ $LN83@SK_XInput_:
 
 ; 116  :       SK_LOG0 ( ( L"WARNING: Third-party module '%s' uses different XInput interface version "
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN7@SK_XInput_
 	push	DWORD PTR _hModCaller$[ebp]
 	lea	eax, DWORD PTR $T2[ebp]
@@ -15565,7 +19668,7 @@ $LN71@SK_XInput_:
 	push	DWORD PTR [eax]
 	push	DWORD PTR [edi]
 	push	ecx
-	push	OFFSET $SG132009
+	push	OFFSET $SG132020
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -16462,6 +20565,193 @@ $LN4@Allocate:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Getcont@_Iterator_base12@std@@QBEPBU_Container_base12@2@XZ
+_TEXT	SEGMENT
+?_Getcont@_Iterator_base12@std@@QBEPBU_Container_base12@2@XZ PROC ; std::_Iterator_base12::_Getcont, COMDAT
+; _this$ = ecx
+
+; 204  : 		return (_Myproxy == 0 ? 0 : _Myproxy->_Mycont);
+
+	mov	eax, DWORD PTR [ecx]
+	test	eax, eax
+	jne	SHORT $LN3@Getcont
+
+; 205  : 		}
+
+	ret	0
+$LN3@Getcont:
+
+; 204  : 		return (_Myproxy == 0 ? 0 : _Myproxy->_Mycont);
+
+	mov	eax, DWORD PTR [eax]
+
+; 205  : 		}
+
+	ret	0
+?_Getcont@_Iterator_base12@std@@QBEPBU_Container_base12@2@XZ ENDP ; std::_Iterator_base12::_Getcont
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Adopt@_Iterator_base12@std@@QAEXPBU_Container_base12@2@@Z
+_TEXT	SEGMENT
+__Parent$ = 8						; size = 4
+?_Adopt@_Iterator_base12@std@@QAEXPBU_Container_base12@2@@Z PROC ; std::_Iterator_base12::_Adopt, COMDAT
+; _this$ = ecx
+
+; 169  : 		{	// adopt this iterator by parent
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 170  : 		if (_Parent == 0)
+
+	mov	eax, DWORD PTR __Parent$[ebp]
+	test	eax, eax
+	je	SHORT $LN3@Adopt
+
+; 171  : 			{	// no future parent, just disown current parent
+; 172  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 173  : 			_Lockit _Lock(_LOCK_DEBUG);
+; 174  : 			_Orphan_me();
+; 175  :  #endif /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 176  : 			}
+; 177  : 		else
+; 178  : 			{	// have a parent, do adoption
+; 179  : 			_Container_proxy *_Parent_proxy = _Parent->_Myproxy;
+; 180  : 
+; 181  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 182  : 			if (_Myproxy != _Parent_proxy)
+; 183  : 				{	// change parentage
+; 184  : 				_Lockit _Lock(_LOCK_DEBUG);
+; 185  : 				_Orphan_me();
+; 186  : 				_Mynextiter = _Parent_proxy->_Myfirstiter;
+; 187  : 				_Parent_proxy->_Myfirstiter = this;
+; 188  : 				_Myproxy = _Parent_proxy;
+; 189  : 				}
+; 190  : 
+; 191  :  #else /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 192  : 			_Myproxy = _Parent_proxy;
+
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN3@Adopt:
+
+; 193  :  #endif /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 194  : 			}
+; 195  : 		}
+
+	pop	ebp
+	ret	4
+?_Adopt@_Iterator_base12@std@@QAEXPBU_Container_base12@2@@Z ENDP ; std::_Iterator_base12::_Adopt
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??1_Iterator_base12@std@@QAE@XZ
+_TEXT	SEGMENT
+??1_Iterator_base12@std@@QAE@XZ PROC			; std::_Iterator_base12::~_Iterator_base12, COMDAT
+; _this$ = ecx
+
+; 162  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 163  : 		_Lockit _Lock(_LOCK_DEBUG);
+; 164  : 		_Orphan_me();
+; 165  :  #endif /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 166  : 		}
+
+	ret	0
+??1_Iterator_base12@std@@QAE@XZ ENDP			; std::_Iterator_base12::~_Iterator_base12
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??0_Iterator_base12@std@@QAE@XZ
+_TEXT	SEGMENT
+??0_Iterator_base12@std@@QAE@XZ PROC			; std::_Iterator_base12::_Iterator_base12, COMDAT
+; _this$ = ecx
+
+; 133  : 		: _Myproxy(0), _Mynextiter(0)
+
+	mov	DWORD PTR [ecx], 0
+
+; 135  : 		}
+
+	mov	eax, ecx
+	mov	DWORD PTR [ecx+4], 0
+	ret	0
+??0_Iterator_base12@std@@QAE@XZ ENDP			; std::_Iterator_base12::_Iterator_base12
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Orphan_all@_Container_base12@std@@QAEXXZ
+_TEXT	SEGMENT
+?_Orphan_all@_Container_base12@std@@QAEXXZ PROC		; std::_Container_base12::_Orphan_all, COMDAT
+; _this$ = ecx
+
+; 239  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 240  : 	if (_Myproxy != 0)
+; 241  : 		{	// proxy allocated, drain it
+; 242  : 		_Lockit _Lock(_LOCK_DEBUG);
+; 243  : 
+; 244  : 		for (_Iterator_base12 **_Pnext = &_Myproxy->_Myfirstiter;
+; 245  : 			*_Pnext != 0; *_Pnext = (*_Pnext)->_Mynextiter)
+; 246  : 			(*_Pnext)->_Myproxy = 0;
+; 247  : 		_Myproxy->_Myfirstiter = 0;
+; 248  : 		}
+; 249  :  #endif /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 250  : 	}
+
+	ret	0
+?_Orphan_all@_Container_base12@std@@QAEXXZ ENDP		; std::_Container_base12::_Orphan_all
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??1_Container_base12@std@@QAE@XZ
+_TEXT	SEGMENT
+??1_Container_base12@std@@QAE@XZ PROC			; std::_Container_base12::~_Container_base12, COMDAT
+; _this$ = ecx
+
+; 115  : 		_Orphan_all();
+; 116  : 		}
+
+	ret	0
+??1_Container_base12@std@@QAE@XZ ENDP			; std::_Container_base12::~_Container_base12
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??0_Container_base12@std@@QAE@XZ
+_TEXT	SEGMENT
+??0_Container_base12@std@@QAE@XZ PROC			; std::_Container_base12::_Container_base12, COMDAT
+; _this$ = ecx
+
+; 99   : 		: _Myproxy(0)
+
+	mov	DWORD PTR [ecx], 0
+
+; 101  : 		}
+
+	mov	eax, ecx
+	ret	0
+??0_Container_base12@std@@QAE@XZ ENDP			; std::_Container_base12::_Container_base12
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??0_Container_proxy@std@@QAE@XZ
+_TEXT	SEGMENT
+??0_Container_proxy@std@@QAE@XZ PROC			; std::_Container_proxy::_Container_proxy, COMDAT
+; _this$ = ecx
+
+; 87   : 		: _Mycont(0), _Myfirstiter(0)
+
+	mov	DWORD PTR [ecx], 0
+
+; 89   : 		}
+
+	mov	eax, ecx
+	mov	DWORD PTR [ecx+4], 0
+	ret	0
+??0_Container_proxy@std@@QAE@XZ ENDP			; std::_Container_proxy::_Container_proxy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ;	COMDAT ?_Getcont@_Iterator_base0@std@@QBEPBU_Container_base0@2@XZ
 _TEXT	SEGMENT
 ?_Getcont@_Iterator_base0@std@@QBEPBU_Container_base0@2@XZ PROC ; std::_Iterator_base0::_Getcont, COMDAT
@@ -16629,19 +20919,19 @@ $T1 = -4						; size = 4
 _iJoyID$ = 8						; size = 4
 ?SK_XInput_ZeroHaptics@@YAXH@Z PROC			; SK_XInput_ZeroHaptics
 
-; 1457 : {
+; 1471 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ecx
 
-; 1458 :   SK_XInput_RehookIfNeeded ();
+; 1472 :   SK_XInput_RehookIfNeeded ();
 
 	call	?SK_XInput_RehookIfNeeded@@YAXXZ	; SK_XInput_RehookIfNeeded
 
-; 1459 : 
-; 1460 :   if (! (xinput_enabled && xinput_ctx.primary_hook))
+; 1473 : 
+; 1474 :   if (! (xinput_enabled && xinput_ctx.primary_hook))
 
 	cmp	DWORD PTR ?xinput_enabled@@3HA, 0	; xinput_enabled
 	je	SHORT $LN3@SK_XInput_
@@ -16657,7 +20947,7 @@ _iJoyID$ = 8						; size = 4
 	lea	eax, DWORD PTR $T1[ebp]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 
-; 1464 :   iJoyID =
+; 1478 :   iJoyID =
 
 	mov	DWORD PTR $T1[ebp], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -16675,32 +20965,32 @@ _iJoyID$ = 8						; size = 4
 	cmovg	ecx, eax
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 
-; 1464 :   iJoyID =
+; 1478 :   iJoyID =
 
 	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
 
-; 1465 :     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
-; 1466 : 
-; 1467 :   if (iJoyID >= XUSER_MAX_COUNT) return;
+; 1479 :     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
+; 1480 : 
+; 1481 :   if (iJoyID >= XUSER_MAX_COUNT) return;
 
 	cmp	esi, 4
 	jge	SHORT $LN14@SK_XInput_
 
-; 1468 : 
-; 1469 :   if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
+; 1482 : 
+; 1483 :   if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
 
 	mov	eax, DWORD PTR [edx+156]
 	test	eax, eax
 	je	SHORT $LN5@SK_XInput_
 
-; 1470 :     xinput_ctx.primary_hook->XInputEnable_Original (false);
+; 1484 :     xinput_ctx.primary_hook->XInputEnable_Original (false);
 
 	push	0
 	call	eax
 $LN5@SK_XInput_:
 
-; 1471 : 
-; 1472 :   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
+; 1485 : 
+; 1486 :   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
 
 	sub	esp, 8
 	mov	DWORD PTR [esp+4], 0
@@ -16708,8 +20998,8 @@ $LN5@SK_XInput_:
 	push	esi
 	call	?SK_XInput_PulseController@@YA_NHMM@Z	; SK_XInput_PulseController
 
-; 1473 : 
-; 1474 :   if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
+; 1487 : 
+; 1488 :   if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	add	esp, 12					; 0000000cH
@@ -16717,7 +21007,7 @@ $LN5@SK_XInput_:
 	test	eax, eax
 	je	SHORT $LN14@SK_XInput_
 
-; 1475 :     xinput_ctx.primary_hook->XInputEnable_Original (xinput_enabled);
+; 1489 :     xinput_ctx.primary_hook->XInputEnable_Original (xinput_enabled);
 
 	push	DWORD PTR ?xinput_enabled@@3HA		; xinput_enabled
 	call	eax
@@ -16725,7 +21015,7 @@ $LN14@SK_XInput_:
 	pop	esi
 $LN3@SK_XInput_:
 
-; 1476 : }
+; 1490 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -16884,9 +21174,26 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 _TEXT	SEGMENT
-_xstate$ = -24						; size = 20
-$T1 = -4						; size = 4
+_suspended_tids$2 = -80					; size = 20
+_suspended_tids$3 = -60					; size = 20
+_xstate$ = -40						; size = 20
+$T4 = -20						; size = 4
+$T5 = -16						; size = 4
+__$EHRec$ = -12						; size = 12
+_this$ = 8						; size = 4
+_this$ = 8						; size = 4
 _iJoyID$ = 8						; size = 4
 _pState$ = 12						; size = 4
 ?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z PROC ; SK_XInput_PollController
@@ -16896,53 +21203,61 @@ _pState$ = 12						; size = 4
 	npad	2
 	push	ebp
 	mov	ebp, esp
-	sub	esp, 24					; 00000018H
+	push	-1
+	push	__ehhandler$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 68					; 00000044H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
 
 ; 3779 : 	return (_DEBUG_LT(_Right, _Left) ? _Right : _Left);
 
 	cmp	DWORD PTR _iJoyID$[ebp], 3
-	lea	ecx, DWORD PTR _iJoyID$[ebp]
-	lea	eax, DWORD PTR $T1[ebp]
+	lea	eax, DWORD PTR _iJoyID$[ebp]
+	lea	ecx, DWORD PTR $T5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 
 ; 1277 :   iJoyID =
 
-	mov	DWORD PTR $T1[ebp], 3
+	mov	DWORD PTR $T5[ebp], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
 
 ; 3779 : 	return (_DEBUG_LT(_Right, _Left) ? _Right : _Left);
 
-	cmovle	eax, ecx
+	cmovle	ecx, eax
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+
+; 1277 :   iJoyID =
+
+	mov	DWORD PTR $T4[ebp], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
 
 ; 3743 : 	return (_DEBUG_LT(_Left, _Right) ? _Right : _Left);
 
-	xor	ecx, ecx
+	lea	eax, DWORD PTR $T4[ebp]
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+
+; 1276 : {
+
 	push	esi
-	mov	eax, DWORD PTR [eax]
-	test	eax, eax
-	cmovg	ecx, eax
+	push	edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+
+; 3743 : 	return (_DEBUG_LT(_Left, _Right) ? _Right : _Left);
+
+	cmp	DWORD PTR [ecx], 0
+	cmovg	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 
 ; 1280 :   if (! config.input.gamepad.hook_xinput)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
-	jne	SHORT $LN2@SK_XInput_
-$LN38@SK_XInput_:
+	mov	eax, DWORD PTR [eax]
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+688]
+	je	$LN20@SK_XInput_
 
 ; 1281 :     return false;
-
-	xor	al, al
-	pop	esi
-
-; 1415 : }
-
-	mov	esp, ebp
-	pop	ebp
-	ret	0
-$LN2@SK_XInput_:
-
 ; 1282 : 
 ; 1283 :   SK_XInputContext::instance_s* pCtx =
 ; 1284 :     xinput_ctx.primary_hook;
@@ -16957,7 +21272,7 @@ $LN2@SK_XInput_:
 	test	eax, eax
 	je	SHORT $LN4@SK_XInput_
 	cmp	DWORD PTR [eax+12], 0
-	jne	$LN3@SK_XInput_
+	jne	$LN49@SK_XInput_
 $LN4@SK_XInput_:
 
 ; 1289 :   {
@@ -16966,27 +21281,35 @@ $LN4@SK_XInput_:
 ; 1292 :     if (tried_to_hook)
 
 	cmp	BYTE PTR ?tried_to_hook@?6??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4_NA, 0
-	jne	SHORT $LN38@SK_XInput_
+	jne	$LN20@SK_XInput_
 
 ; 1293 :       return false;
 ; 1294 : 
 ; 1295 :     tried_to_hook = true;
-
-	mov	BYTE PTR ?tried_to_hook@?6??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4_NA, 1
-
 ; 1296 : 
-; 1297 :     // First try 1.3, that's generally available.
-; 1298 :     SK_Input_HookXInput1_3 ();
+; 1297 :     std::queue <DWORD> suspended_tids =
+; 1298 :       SK_SuspendAllOtherThreads ();
+
+	lea	eax, DWORD PTR _suspended_tids$2[ebp]
+	mov	BYTE PTR ?tried_to_hook@?6??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4_NA, 1
+	push	eax
+	call	?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ ; SK_SuspendAllOtherThreads
+	add	esp, 4
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+
+; 1299 : 
+; 1300 :     // First try 1.3, that's generally available.
+; 1301 :     SK_Input_HookXInput1_3 ();
 
 	call	?SK_Input_HookXInput1_3@@YAXXZ		; SK_Input_HookXInput1_3
 
-; 1299 :     pCtx = xinput_ctx.primary_hook;
+; 1302 :     pCtx = xinput_ctx.primary_hook;
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 
-; 1300 : 
-; 1301 :     // Then 1.4
-; 1302 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
+; 1303 : 
+; 1304 :     // Then 1.4
+; 1305 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
 
 	test	eax, eax
 	je	SHORT $LN7@SK_XInput_
@@ -16994,20 +21317,20 @@ $LN4@SK_XInput_:
 	jne	SHORT $LN6@SK_XInput_
 $LN7@SK_XInput_:
 
-; 1303 :     {
-; 1304 :       SK_Input_HookXInput1_4 ();
+; 1306 :     {
+; 1307 :       SK_Input_HookXInput1_4 ();
 
 	call	?SK_Input_HookXInput1_4@@YAXXZ		; SK_Input_HookXInput1_4
 
-; 1305 :       pCtx = xinput_ctx.primary_hook;
+; 1308 :       pCtx = xinput_ctx.primary_hook;
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 $LN6@SK_XInput_:
 
-; 1306 :     }
-; 1307 : 
-; 1308 :     // Down-level 9_1_0 if all else fails (does not support XInputEx)
-; 1309 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
+; 1309 :     }
+; 1310 : 
+; 1311 :     // Down-level 9_1_0 if all else fails (does not support XInputEx)
+; 1312 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
 
 	test	eax, eax
 	je	SHORT $LN9@SK_XInput_
@@ -17015,21 +21338,21 @@ $LN6@SK_XInput_:
 	jne	SHORT $LN8@SK_XInput_
 $LN9@SK_XInput_:
 
-; 1310 :     {
-; 1311 :       SK_Input_HookXInput9_1_0 ();
+; 1313 :     {
+; 1314 :       SK_Input_HookXInput9_1_0 ();
 
 	call	?SK_Input_HookXInput9_1_0@@YAXXZ	; SK_Input_HookXInput9_1_0
 
-; 1312 :       pCtx = xinput_ctx.primary_hook;
+; 1315 :       pCtx = xinput_ctx.primary_hook;
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 $LN8@SK_XInput_:
 
-; 1313 :     }
-; 1314 : 
-; 1315 : 
-; 1316 :     // No XInput?! User shouldn't be playing games :P
-; 1317 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
+; 1316 :     }
+; 1317 : 
+; 1318 : 
+; 1319 :     // No XInput?! User shouldn't be playing games :P
+; 1320 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
 
 	test	eax, eax
 	je	SHORT $LN11@SK_XInput_
@@ -17037,153 +21360,225 @@ $LN8@SK_XInput_:
 	jne	SHORT $LN13@SK_XInput_
 $LN11@SK_XInput_:
 
-; 1318 :     {
-; 1319 :       SK_LOG0 ( ( L"Unable to hook XInput, attempting to enter limp-mode..."
+; 1321 :     {
+; 1322 :       SK_LOG0 ( ( L"Unable to hook XInput, attempting to enter limp-mode..."
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN12@SK_XInput_
-	push	OFFSET $SG132561
+	push	OFFSET $SG133785
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN12@SK_XInput_:
 
-; 1320 :                   L" input-related features may not work as intended." ),
-; 1321 :                   L"Input Mgr." );
-; 1322 :       xinput_ctx.primary_hook =
-; 1323 :         &xinput_ctx.XInput1_3;
-; 1324 : 
-; 1325 :       pCtx = xinput_ctx.primary_hook;
-; 1326 : 
-; 1327 :       HMODULE hModXInput1_3 =
-; 1328 :         LoadLibraryW_Original (L"XInput1_3.dll");
+; 1323 :                   L" input-related features may not work as intended." ),
+; 1324 :                   L"Input Mgr." );
+; 1325 :       xinput_ctx.primary_hook =
+; 1326 :         &xinput_ctx.XInput1_3;
+; 1327 : 
+; 1328 :       pCtx = xinput_ctx.primary_hook;
+; 1329 : 
+; 1330 :       HMODULE hModXInput1_3 =
+; 1331 :         LoadLibraryW_Original (L"XInput1_3.dll");
 
-	push	OFFSET $SG132562
+	push	OFFSET $SG133786
 	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672, OFFSET ?xinput_ctx@@3USK_XInputContext@@A ; xinput_ctx
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 
-; 1329 : 
-; 1330 :       if (hModXInput1_3 != nullptr)
+; 1332 : 
+; 1333 :       if (hModXInput1_3 != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN13@SK_XInput_
 
-; 1331 :       {
-; 1332 :         pCtx->XInputGetState_Original =
+; 1334 :       {
+; 1335 :         pCtx->XInputGetState_Original =
 
-	push	OFFSET $SG132564
+	push	OFFSET $SG133788
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+12, eax
 $LN13@SK_XInput_:
 
-; 1333 :           (XInputGetState_pfn)
-; 1334 :             GetProcAddress ( hModXInput1_3,
-; 1335 :                              "XInputGetState" );
-; 1336 :       }
-; 1337 :     }
-; 1338 : 
-; 1339 :     SK_ApplyQueuedHooks ();
+; 1336 :           (XInputGetState_pfn)
+; 1337 :             GetProcAddress ( hModXInput1_3,
+; 1338 :                              "XInputGetState" );
+; 1339 :       }
+; 1340 :     }
+; 1341 : 
+; 1342 :     SK_ApplyQueuedHooks ();
 
 	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
-$LN3@SK_XInput_:
 
-; 1340 :   }
-; 1341 : 
-; 1342 :   // Lazy-load DLLs if somehow a game uses an XInput DLL not listed
-; 1343 :   //   in its import table and also not caught by our LoadLibrary hook
-; 1344 :   if (first_frame)
+; 1343 : 
+; 1344 :     SK_ResumeThreads (suspended_tids);
+
+	sub	esp, 20					; 00000014H
+	lea	eax, DWORD PTR _suspended_tids$2[ebp]
+	mov	ecx, esp
+	mov	DWORD PTR _this$[ebp], ecx
+	push	eax
+	call	??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
+	call	?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z ; SK_ResumeThreads
+	add	esp, 20					; 00000014H
+
+; 1345 :   }
+
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1244 : 		_Tidy();
+
+	lea	ecx, DWORD PTR _suspended_tids$2[ebp]
+	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	1
+	push	DWORD PTR _suspended_tids$2[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN49@SK_XInput_:
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+
+; 1349 :   if (first_frame)
 
 	cmp	BYTE PTR ?first_frame@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4_NA, 0
-	push	edi
-	je	SHORT $LN14@SK_XInput_
+	je	$LN107@SK_XInput_
 
-; 1345 :   {
-; 1346 :     if (GetModuleHandle (L"XInput1_3.dll"))
+; 1350 :   {
+; 1351 :     std::queue <DWORD> suspended_tids =
+; 1352 :       SK_SuspendAllOtherThreads ();
+
+	lea	eax, DWORD PTR _suspended_tids$3[ebp]
+	push	eax
+	call	?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ ; SK_SuspendAllOtherThreads
+	add	esp, 4
+
+; 1353 : 
+; 1354 :     if (GetModuleHandle (L"XInput1_3.dll"))
 
 	mov	edi, DWORD PTR __imp__GetModuleHandleW@4
-	push	OFFSET $SG132567
+	push	OFFSET $SG133791
+	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	call	edi
 	test	eax, eax
 	je	SHORT $LN15@SK_XInput_
 
-; 1347 :       SK_Input_HookXInput1_3 ();
+; 1355 :       SK_Input_HookXInput1_3 ();
 
 	call	?SK_Input_HookXInput1_3@@YAXXZ		; SK_Input_HookXInput1_3
 $LN15@SK_XInput_:
 
-; 1348 : 
-; 1349 :     if (GetModuleHandle (L"XInput1_4.dll"))
+; 1356 : 
+; 1357 :     if (GetModuleHandle (L"XInput1_4.dll"))
 
-	push	OFFSET $SG132569
+	push	OFFSET $SG133793
 	call	edi
 	test	eax, eax
 	je	SHORT $LN16@SK_XInput_
 
-; 1350 :       SK_Input_HookXInput1_4 ();
+; 1358 :       SK_Input_HookXInput1_4 ();
 
 	call	?SK_Input_HookXInput1_4@@YAXXZ		; SK_Input_HookXInput1_4
 $LN16@SK_XInput_:
 
-; 1351 : 
-; 1352 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
+; 1359 : 
+; 1360 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
 
-	push	OFFSET $SG132571
+	push	OFFSET $SG133795
 	call	edi
 	test	eax, eax
 	je	SHORT $LN17@SK_XInput_
 
-; 1353 :       SK_Input_HookXInput9_1_0 ();
+; 1361 :       SK_Input_HookXInput9_1_0 ();
 
 	call	?SK_Input_HookXInput9_1_0@@YAXXZ	; SK_Input_HookXInput9_1_0
 $LN17@SK_XInput_:
 
-; 1354 : 
-; 1355 :     first_frame = false;
+; 1362 : 
+; 1363 :     first_frame = false;
 
 	mov	BYTE PTR ?first_frame@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4_NA, 0
 
-; 1356 : 
-; 1357 :     SK_ApplyQueuedHooks ();
+; 1364 : 
+; 1365 :     SK_ApplyQueuedHooks ();
 
 	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
-$LN14@SK_XInput_:
 
-; 1358 :   }
-; 1359 : 
-; 1360 :   if (iJoyID == -1)
+; 1366 :     SK_ResumeThreads    (suspended_tids);
+
+	sub	esp, 20					; 00000014H
+	lea	eax, DWORD PTR _suspended_tids$3[ebp]
+	mov	ecx, esp
+	mov	DWORD PTR _this$[ebp], ecx
+	push	eax
+	call	??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
+	call	?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z ; SK_ResumeThreads
+	add	esp, 20					; 00000014H
+
+; 1367 :   }
+
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1244 : 		_Tidy();
+
+	lea	ecx, DWORD PTR _suspended_tids$3[ebp]
+	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	1
+	push	DWORD PTR _suspended_tids$3[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 866  : 		_Myproxy() = 0;
+
+	mov	DWORD PTR _suspended_tids$3[ebp], 0
+$LN107@SK_XInput_:
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+
+; 1369 :   if (iJoyID == -1)
 
 	cmp	esi, -1
 	je	$LN27@SK_XInput_
 
-; 1361 :     return true;
-; 1362 : 
-; 1363 :   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
+; 1370 :     return true;
+; 1371 : 
+; 1372 :   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
 
 	cmp	esi, 3
 	ja	$LN20@SK_XInput_
 
-; 1365 : 
-; 1366 : 
-; 1367 : 
-; 1368 :   SK_XInput_RehookIfNeeded ();
+; 1373 :     return false;
+; 1374 : 
+; 1375 : 
+; 1376 : 
+; 1377 :   SK_XInput_RehookIfNeeded ();
 
 	call	?SK_XInput_RehookIfNeeded@@YAXXZ	; SK_XInput_RehookIfNeeded
 
-; 1369 : 
-; 1370 : 
-; 1371 : 
-; 1372 : 
-; 1373 :   XINPUT_STATE_EX xstate = { };
-; 1374 :   xstate.dwPacketNumber  =  1;
-; 1375 : 
-; 1376 :   static DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
-; 1377 :   static DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
-; 1378 :                                                ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
+; 1378 : 
 ; 1379 : 
-; 1380 :   // This function is actually a performance hazzard when no controllers
-; 1381 :   //   are plugged in, so ... throttle the sucker.
-; 1382 :   if (last_poll [iJoyID] < timeGetTime () - 500UL)
+; 1380 : 
+; 1381 : 
+; 1382 :   XINPUT_STATE_EX xstate = { };
+; 1383 :   xstate.dwPacketNumber  =  1;
+; 1384 : 
+; 1385 :   static DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
+; 1386 :   static DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
+; 1387 :                                                ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
+; 1388 : 
+; 1389 :   // This function is actually a performance hazzard when no controllers
+; 1390 :   //   are plugged in, so ... throttle the sucker.
+; 1391 :   if (last_poll [iJoyID] < timeGetTime () - 500UL)
 
 	mov	edi, DWORD PTR __imp__timeGetTime@0
 	xorps	xmm0, xmm0
@@ -17195,118 +21590,127 @@ $LN14@SK_XInput_:
 	cmp	DWORD PTR ?last_poll@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], eax
 	jae	SHORT $LN25@SK_XInput_
 
-; 1383 :   {
-; 1384 :     if (xinput_ctx.primary_hook->XInputGetStateEx_Original != nullptr)
+; 1392 :   {
+; 1393 :     if (xinput_ctx.primary_hook->XInputGetStateEx_Original != nullptr)
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	mov	ecx, DWORD PTR [eax+192]
 	test	ecx, ecx
 	je	SHORT $LN22@SK_XInput_
 
-; 1385 :     {
-; 1386 :       dwRet [iJoyID] =
+; 1394 :     {
+; 1395 :       dwRet [iJoyID] =
 
 	lea	eax, DWORD PTR _xstate$[ebp]
 	push	eax
 	push	esi
 	call	ecx
 
-; 1387 :         xinput_ctx.primary_hook->XInputGetStateEx_Original (iJoyID, &xstate);
-; 1388 :     }
-; 1389 : 
-; 1390 :     // Down-level XInput
-; 1391 :     else
+; 1396 :         xinput_ctx.primary_hook->XInputGetStateEx_Original (iJoyID, &xstate);
+; 1397 :     }
+; 1398 : 
+; 1399 :     // Down-level XInput
+; 1400 :     else
 
-	jmp	SHORT $LN36@SK_XInput_
+	jmp	SHORT $LN156@SK_XInput_
 $LN22@SK_XInput_:
 
-; 1392 :     {
-; 1393 :       if (xinput_ctx.primary_hook->XInputGetState_Original != nullptr)
+; 1401 :     {
+; 1402 :       if (xinput_ctx.primary_hook->XInputGetState_Original != nullptr)
 
 	mov	eax, DWORD PTR [eax+12]
 	test	eax, eax
 	je	SHORT $LN24@SK_XInput_
 
-; 1394 :       {
-; 1395 :         dwRet [iJoyID] =
+; 1403 :       {
+; 1404 :         dwRet [iJoyID] =
 
 	lea	ecx, DWORD PTR _xstate$[ebp]
 	push	ecx
 	push	esi
 	call	eax
-$LN36@SK_XInput_:
+$LN156@SK_XInput_:
 	mov	DWORD PTR ?dwRet@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], eax
 $LN24@SK_XInput_:
 
-; 1396 :           xinput_ctx.primary_hook->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate);
-; 1397 :       }
-; 1398 :     }
-; 1399 : 
-; 1400 :     if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
+; 1405 :           xinput_ctx.primary_hook->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate);
+; 1406 :       }
+; 1407 :     }
+; 1408 : 
+; 1409 :     if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
 
 	cmp	DWORD PTR ?dwRet@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], 1167 ; 0000048fH
 	jne	SHORT $LN26@SK_XInput_
 
-; 1401 :       last_poll [iJoyID] = timeGetTime ();
+; 1410 :       last_poll [iJoyID] = timeGetTime ();
 
 	call	edi
 	mov	DWORD PTR ?last_poll@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], eax
 $LN25@SK_XInput_:
 
-; 1402 :   }
-; 1403 : 
-; 1404 :   if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
+; 1411 :   }
+; 1412 : 
+; 1413 :   if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
 
 	cmp	DWORD PTR ?dwRet@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], 1167 ; 0000048fH
 	je	SHORT $LN20@SK_XInput_
 $LN26@SK_XInput_:
 
-; 1405 :     return false;
-; 1406 : 
-; 1407 :   last_poll [iJoyID] = 0; // Feel free to poll this controller again immediately,
-; 1408 :                           //   the performance penalty from a disconnected controller
-; 1409 :                           //     won't be there.
-; 1410 : 
-; 1411 :   if (pState != nullptr)
+; 1414 :     return false;
+; 1415 : 
+; 1416 :   last_poll [iJoyID] = 0; // Feel free to poll this controller again immediately,
+; 1417 :                           //   the performance penalty from a disconnected controller
+; 1418 :                           //     won't be there.
+; 1419 : 
+; 1420 :   if (pState != nullptr)
 
 	mov	eax, DWORD PTR _pState$[ebp]
 	mov	DWORD PTR ?last_poll@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], 0
 	test	eax, eax
 	je	SHORT $LN27@SK_XInput_
 
-; 1412 :     memcpy (pState, &xstate, sizeof XINPUT_STATE);
+; 1421 :     memcpy (pState, &xstate, sizeof XINPUT_STATE);
 
 	movups	xmm0, XMMWORD PTR _xstate$[ebp]
 	movups	XMMWORD PTR [eax], xmm0
 $LN27@SK_XInput_:
 
-; 1413 : 
-; 1414 :   return true;
+; 1422 : 
+; 1423 :   return true;
 
-	pop	edi
 	mov	al, 1
+
+; 1424 : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	edi
 	pop	esi
-
-; 1415 : }
-
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN20@SK_XInput_:
-	pop	edi
-
-; 1364 :     return false;
-
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	xor	al, al
+	pop	edi
+	mov	DWORD PTR fs:0, ecx
 	pop	esi
-
-; 1415 : }
-
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z ENDP ; SK_XInput_PollController
 _TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z$0:
+	lea	ecx, DWORD PTR _suspended_tids$2[ebp]
+	jmp	??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ
+__unwindfunclet$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z$2:
+	lea	ecx, DWORD PTR _suspended_tids$3[ebp]
+	jmp	??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ
+__ehhandler$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z ENDP ; SK_XInput_PollController
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 ;	COMDAT ?markWrite@sk_input_api_context_s@@QAEXW4sk_input_dev_type@@@Z
@@ -17315,7 +21719,7 @@ _type$ = 8						; size = 4
 ?markWrite@sk_input_api_context_s@@QAEXW4sk_input_dev_type@@@Z PROC ; sk_input_api_context_s::markWrite, COMDAT
 ; _this$ = ecx
 
-; 106  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
+; 107  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	npad	2
 	push	ebp
@@ -17326,36 +21730,36 @@ _type$ = 8						; size = 4
 	xor	eax, eax
 	lock	 inc	 DWORD PTR [ecx+eax*4+48]
 
-; 107  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
-; 108  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+; 108  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
+; 109  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
 
 	pop	ebp
 	ret	4
 $LN5@markWrite:
 
-; 106  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
+; 107  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	cmp	edx, 2
 	jne	SHORT $LN3@markWrite
 	mov	eax, 1
 	lock	 inc	 DWORD PTR [ecx+eax*4+48]
 
-; 107  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
-; 108  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+; 108  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
+; 109  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
 
 	pop	ebp
 	ret	4
 $LN3@markWrite:
 
-; 106  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
+; 107  :   void markWrite  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	xor	eax, eax
 	cmp	edx, 4
 	setne	al
 	lock	 inc	 DWORD PTR [ecx+eax*4+56]
 
-; 107  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
-; 108  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+; 108  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
+; 109  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
 
 	pop	ebp
 	ret	4
@@ -17369,7 +21773,7 @@ _type$ = 8						; size = 4
 ?markRead@sk_input_api_context_s@@QAEXW4sk_input_dev_type@@@Z PROC ; sk_input_api_context_s::markRead, COMDAT
 ; _this$ = ecx
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	npad	2
 	push	ebp
@@ -17380,36 +21784,36 @@ _type$ = 8						; size = 4
 	xor	eax, eax
 	lock	 inc	 DWORD PTR [ecx+eax*4+32]
 
-; 104  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
-; 105  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+; 105  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
+; 106  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
 
 	pop	ebp
 	ret	4
 $LN5@markRead:
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	cmp	edx, 2
 	jne	SHORT $LN3@markRead
 	mov	eax, 1
 	lock	 inc	 DWORD PTR [ecx+eax*4+32]
 
-; 104  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
-; 105  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+; 105  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
+; 106  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
 
 	pop	ebp
 	ret	4
 $LN3@markRead:
 
-; 103  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
+; 104  :   void markRead  (sk_input_dev_type type) { InterlockedIncrement (&last_frame.reads    [ type == sk_input_dev_type::Mouse    ? 0 :
 
 	xor	eax, eax
 	cmp	edx, 4
 	setne	al
 	lock	 inc	 DWORD PTR [ecx+eax*4+40]
 
-; 104  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
-; 105  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+; 105  :                                                                                          type == sk_input_dev_type::Keyboard ? 1 :
+; 106  :                                                                                          type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
 
 	pop	ebp
 	ret	4
@@ -17417,29 +21821,47 @@ $LN3@markRead:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 _TEXT	SEGMENT
+_suspended_tids$2 = -36					; size = 20
+_this$ = -16						; size = 4
+__$EHRec$ = -12						; size = 12
 ?SK_Input_PreHookXInput@@YAXXZ PROC			; SK_Input_PreHookXInput
 
-; 1422 :   if (! config.input.gamepad.hook_xinput)
+; 1430 : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR fs:0
+	push	-1
+	push	__ehhandler$?SK_Input_PreHookXInput@@YAXXZ
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 24					; 00000018H
+
+; 1431 :   if (! config.input.gamepad.hook_xinput)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
-	je	$LN12@SK_Input_P
+	push	esi
+	je	$LN26@SK_Input_P
 
-; 1423 :     return;
-; 1424 : 
-; 1425 :   if (xinput_ctx.primary_hook == nullptr)
+; 1432 :     return;
+; 1433 : 
+; 1434 :   if (xinput_ctx.primary_hook == nullptr)
 
 	cmp	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672, 0
-	jne	$LN12@SK_Input_P
+	jne	$LN26@SK_Input_P
 
-; 1426 :   {
-; 1427 :     static sk_import_test_s tests [] = { { "XInput1_3.dll",   false },
-; 1428 :                                          { "XInput1_4.dll",   false },
-; 1429 :                                          { "XInput9_1_0.dll", false } };
-; 1430 : 
-; 1431 :     SK_TestImports (GetModuleHandle (nullptr), tests, 3);
+; 1435 :   {
+; 1436 :     static sk_import_test_s tests [] = { { "XInput1_3.dll",   false },
+; 1437 :                                          { "XInput1_4.dll",   false },
+; 1438 :                                          { "XInput9_1_0.dll", false } };
+; 1439 : 
+; 1440 :     SK_TestImports (GetModuleHandle (nullptr), tests, 3);
 
-	push	esi
 	mov	esi, DWORD PTR __imp__GetModuleHandleW@4
 	push	3
 	push	OFFSET ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A
@@ -17448,10 +21870,20 @@ _TEXT	SEGMENT
 	push	eax
 	call	?SK_TestImports@@YGXPAUHINSTANCE__@@PAUsk_import_test_s@@H@Z ; SK_TestImports
 
-; 1432 : 
-; 1433 :     if (tests [0].used || tests [1].used || tests [2].used)
+; 1441 : 
+; 1442 :     std::queue <DWORD> suspended_tids =
+; 1443 :       SK_SuspendAllOtherThreads ();
+
+	lea	eax, DWORD PTR _suspended_tids$2[ebp]
+	push	eax
+	call	?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ ; SK_SuspendAllOtherThreads
+	add	esp, 4
+
+; 1444 : 
+; 1445 :     if (tests [0].used || tests [1].used || tests [2].used)
 
 	mov	al, BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+4
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	test	al, al
 	jne	SHORT $LN5@SK_Input_P
 	cmp	BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+12, al
@@ -17460,84 +21892,127 @@ _TEXT	SEGMENT
 	je	SHORT $LN9@SK_Input_P
 $LN5@SK_Input_P:
 
-; 1434 :     {
-; 1435 :       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
+; 1446 :     {
+; 1447 :       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
 	jl	SHORT $LN6@SK_Input_P
-	push	OFFSET $SG132595
+	push	OFFSET $SG133829
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	mov	al, BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+4
 	add	esp, 8
 $LN6@SK_Input_P:
 
-; 1436 :                   L"   Input  " );
-; 1437 :       if (tests [0].used) SK_Input_HookXInput1_3   ();
+; 1448 :                   L"   Input  " );
+; 1449 :       if (tests [0].used) SK_Input_HookXInput1_3   ();
 
 	test	al, al
 	je	SHORT $LN7@SK_Input_P
 	call	?SK_Input_HookXInput1_3@@YAXXZ		; SK_Input_HookXInput1_3
 $LN7@SK_Input_P:
 
-; 1438 :       if (tests [1].used) SK_Input_HookXInput1_4   ();
+; 1450 :       if (tests [1].used) SK_Input_HookXInput1_4   ();
 
 	cmp	BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+12, 0
 	je	SHORT $LN8@SK_Input_P
 	call	?SK_Input_HookXInput1_4@@YAXXZ		; SK_Input_HookXInput1_4
 $LN8@SK_Input_P:
 
-; 1439 :       if (tests [2].used) SK_Input_HookXInput9_1_0 ();
+; 1451 :       if (tests [2].used) SK_Input_HookXInput9_1_0 ();
 
 	cmp	BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+20, 0
 	je	SHORT $LN9@SK_Input_P
 	call	?SK_Input_HookXInput9_1_0@@YAXXZ	; SK_Input_HookXInput9_1_0
 $LN9@SK_Input_P:
 
-; 1440 :     }
-; 1441 : 
-; 1442 :     if (GetModuleHandle (L"XInput1_3.dll"))
+; 1452 :     }
+; 1453 : 
+; 1454 :     if (GetModuleHandle (L"XInput1_3.dll"))
 
-	push	OFFSET $SG132600
+	push	OFFSET $SG133834
 	call	esi
 	test	eax, eax
 	je	SHORT $LN10@SK_Input_P
 
-; 1443 :       SK_Input_HookXInput1_3 ();
+; 1455 :       SK_Input_HookXInput1_3 ();
 
 	call	?SK_Input_HookXInput1_3@@YAXXZ		; SK_Input_HookXInput1_3
 $LN10@SK_Input_P:
 
-; 1444 : 
-; 1445 :     if (GetModuleHandle (L"XInput1_4.dll"))
+; 1456 : 
+; 1457 :     if (GetModuleHandle (L"XInput1_4.dll"))
 
-	push	OFFSET $SG132602
+	push	OFFSET $SG133836
 	call	esi
 	test	eax, eax
 	je	SHORT $LN11@SK_Input_P
 
-; 1446 :       SK_Input_HookXInput1_4 ();
+; 1458 :       SK_Input_HookXInput1_4 ();
 
 	call	?SK_Input_HookXInput1_4@@YAXXZ		; SK_Input_HookXInput1_4
 $LN11@SK_Input_P:
 
-; 1447 :     
-; 1448 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
+; 1459 :     
+; 1460 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
 
-	push	OFFSET $SG132604
+	push	OFFSET $SG133838
 	call	esi
-	pop	esi
 	test	eax, eax
-	jne	?SK_Input_HookXInput9_1_0@@YAXXZ	; SK_Input_HookXInput9_1_0
+	je	SHORT $LN12@SK_Input_P
+
+; 1461 :       SK_Input_HookXInput9_1_0 ();
+
+	call	?SK_Input_HookXInput9_1_0@@YAXXZ	; SK_Input_HookXInput9_1_0
 $LN12@SK_Input_P:
 
-; 1449 :       SK_Input_HookXInput9_1_0 ();
-; 1450 :   }
-; 1451 : }
+; 1462 : 
+; 1463 :     SK_ResumeThreads (suspended_tids);
 
+	sub	esp, 20					; 00000014H
+	lea	eax, DWORD PTR _suspended_tids$2[ebp]
+	mov	ecx, esp
+	mov	DWORD PTR _this$[ebp], ecx
+	push	eax
+	call	??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
+	call	?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z ; SK_ResumeThreads
+	add	esp, 20					; 00000014H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1244 : 		_Tidy();
+
+	lea	ecx, DWORD PTR _suspended_tids$2[ebp]
+	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	1
+	push	DWORD PTR _suspended_tids$2[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN26@SK_Input_P:
+; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
+
+; 1465 : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
 	ret	0
-?SK_Input_PreHookXInput@@YAXXZ ENDP			; SK_Input_PreHookXInput
 _TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?SK_Input_PreHookXInput@@YAXXZ$0:
+	lea	ecx, DWORD PTR _suspended_tids$2[ebp]
+	jmp	??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ
+__ehhandler$?SK_Input_PreHookXInput@@YAXXZ:
+	mov	eax, OFFSET __ehfuncinfo$?SK_Input_PreHookXInput@@YAXXZ
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?SK_Input_PreHookXInput@@YAXXZ ENDP			; SK_Input_PreHookXInput
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 _TEXT	SEGMENT
@@ -17567,9 +22042,9 @@ _TEXT	SEGMENT
 ; 882  : 
 ; 883  :     SK_LOG0 ( ( L"  >> Hooking XInput9_1_0" ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG132378
+	push	OFFSET $SG132389
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -17580,8 +22055,8 @@ $LN4@SK_Input_H:
 ; 886  :     pCtx->wszModuleName                      = L"XInput9_1_0.dll";
 ; 887  :     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
 
-	push	OFFSET $SG132379
-	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+448, OFFSET $SG132379
+	push	OFFSET $SG132390
+	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+448, OFFSET $SG132390
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
 ; 888  :     pCtx->XInputGetState_Detour              = XInputGetState9_1_0_Detour;
@@ -17648,9 +22123,9 @@ _TEXT	SEGMENT
 ; 817  : 
 ; 818  :     SK_LOG0 ( ( L"  >> Hooking XInput 1.4" ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG132354
+	push	OFFSET $SG132365
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -17661,8 +22136,8 @@ $LN4@SK_Input_H:
 ; 821  :     pCtx->wszModuleName                      = L"XInput1_4.dll";
 ; 822  :     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
 
-	push	OFFSET $SG132355
-	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+224, OFFSET $SG132355
+	push	OFFSET $SG132366
+	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+224, OFFSET $SG132366
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
 ; 823  :     pCtx->XInputEnable_Detour                = XInputEnable1_4_Detour;
@@ -17732,9 +22207,9 @@ _TEXT	SEGMENT
 ; 850  : 
 ; 851  :     SK_LOG0 ( ( L"  >> Hooking XInput 1.3" ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+804, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG132366
+	push	OFFSET $SG132377
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -17745,8 +22220,8 @@ $LN4@SK_Input_H:
 ; 854  :     pCtx->wszModuleName                      = L"XInput1_3.dll";
 ; 855  :     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
 
-	push	OFFSET $SG132367
-	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A, OFFSET $SG132367
+	push	OFFSET $SG132378
+	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A, OFFSET $SG132378
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
 ; 856  :     pCtx->XInputEnable_Detour                = XInputEnable1_3_Detour;

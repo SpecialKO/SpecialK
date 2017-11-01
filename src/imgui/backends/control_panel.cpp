@@ -90,6 +90,8 @@ struct denuvo_file_s
 extern std::vector <denuvo_file_s> denuvo_files;
 
 
+bool __imgui_alpha = true;
+
 __declspec (dllexport)
 void
 SK_ImGui_Toggle (void);
@@ -2337,16 +2339,29 @@ SK_ImGui_ControlPanel (void)
 
     static bool has_own_scale = (hModTZFix || hModTBFix);
 
-    if ((! has_own_scale) && ImGui::CollapsingHeader ("UI Scale"))
+    if ((! has_own_scale) && ImGui::CollapsingHeader ("UI Render Settings"))
     {
       ImGui::TreePush    ("");
 
-      if (ImGui::SliderFloat ("Scale (only 1.0 is officially supported)", &config.imgui.scale, 1.0f, 3.0f))
+      if (ImGui::SliderFloat ("###IMGUI_SCALE", &config.imgui.scale, 1.0f, 3.0f, "UI Scaling Factor %.2f"))
       {
         // ImGui does not perform strict parameter validation, and values out of range for this can be catastrophic.
         config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
         io.FontGlobalScale = config.imgui.scale;
       }
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Optimal UI layout requires 1.0; other scales may not display as intended.");
+
+      ImGui::SameLine        ();
+      ImGui::Checkbox        ("Disable Transparency", &config.imgui.render.disable_alpha);
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Resolves flickering in some DirectDraw and Direct3D 8 / 9 games");
+
+      ImGui::TextUnformatted ("Anti-Aliasing:  ");                                          ImGui::SameLine ();
+      ImGui::Checkbox        ("Lines",             &config.imgui.render.antialias_lines);   ImGui::SameLine ();
+      ImGui::Checkbox        ("Contours",          &config.imgui.render.antialias_contours);
 
       ImGui::TreePop     ();
     }
@@ -2404,54 +2419,54 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::TreePush ("");
 
-        //if (ImGui::Checkbox ("Life is Wired", &wired))
-        //{
-        //  if (wired)
-        //  {
-        //    SK_D3D11_Shaders.pixel.wireframe.emplace (ps_skin);
-        //    SK_D3D11_Shaders.pixel.wireframe.emplace (ps_face);
-        //  }
-        //
-        //  else
-        //  {
-        //    SK_D3D11_Shaders.pixel.wireframe.erase (ps_skin);
-        //    SK_D3D11_Shaders.pixel.wireframe.erase (ps_face);
-        //  }
-        //}
-        //
-        //if (ImGui::Checkbox ("Life is Evil", &evil))
-        //{
-        //  if (evil)
-        //  {
-        //    SK_D3D11_Shaders.vertex.blacklist.emplace (vs_eyes);
-        //  }
-        //
-        //  else
-        //  {
-        //    SK_D3D11_Shaders.vertex.blacklist.erase (vs_eyes);
-        //  }
-        //}
-        //
-        //if (ImGui::Checkbox ("Life is Even Stranger", &even_stranger))
-        //{
-        //  if (even_stranger)
-        //  {
-        //    SK_D3D11_Shaders.pixel.blacklist.emplace (ps_face);
-        //    SK_D3D11_Shaders.pixel.blacklist.emplace (ps_skin);
-        //  }
-        //
-        //  else
-        //  {
-        //    SK_D3D11_Shaders.pixel.blacklist.erase (ps_face);
-        //    SK_D3D11_Shaders.pixel.blacklist.erase (ps_skin);
-        //  }
-        //}
+        if (ImGui::Checkbox ("Life is Wired", &wired))
+        {
+          if (wired)
+          {
+            SK_D3D11_Shaders.pixel.wireframe.emplace (ps_skin);
+            SK_D3D11_Shaders.pixel.wireframe.emplace (ps_face);
+          }
+        
+          else
+          {
+            SK_D3D11_Shaders.pixel.wireframe.erase (ps_skin);
+            SK_D3D11_Shaders.pixel.wireframe.erase (ps_face);
+          }
+        }
+        
+        if (ImGui::Checkbox ("Life is Evil", &evil))
+        {
+          if (evil)
+          {
+            SK_D3D11_Shaders.vertex.blacklist.emplace (vs_eyes);
+          }
+        
+          else
+          {
+            SK_D3D11_Shaders.vertex.blacklist.erase (vs_eyes);
+          }
+        }
+        
+        if (ImGui::Checkbox ("Life is Even Stranger", &even_stranger))
+        {
+          if (even_stranger)
+          {
+            SK_D3D11_Shaders.pixel.blacklist.emplace (ps_face);
+            SK_D3D11_Shaders.pixel.blacklist.emplace (ps_skin);
+          }
+        
+          else
+          {
+            SK_D3D11_Shaders.pixel.blacklist.erase (ps_face);
+            SK_D3D11_Shaders.pixel.blacklist.erase (ps_skin);
+          }
+        }
 
         bool enable = evil || even_stranger || wired;
 
-        ////extern void
-        ////SK_D3D11_EnableTracking (bool state);
-        ////SK_D3D11_EnableTracking (enable || show_shader_mod_dlg);
+        //extern void
+        //SK_D3D11_EnableTracking (bool state);
+        //SK_D3D11_EnableTracking (enable || show_shader_mod_dlg);
 
         ImGui::TreePop ();
       }
@@ -4107,6 +4122,19 @@ extern float SK_ImGui_PulseNav_Strength;
 #endif
 
         ImGui::TreePop        ();
+      }
+
+      bool devices = ImGui::CollapsingHeader ("Enable / Disable Devices");
+
+      if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("The primary use-case for these options is preventing a game from changing input icons.");
+
+      if (devices)
+      {
+        ImGui::TreePush ("");
+        ImGui::Checkbox ("Disable Mouse Input to Game",    &config.input.mouse.disabled_to_game);
+        ImGui::SameLine ();
+        ImGui::Checkbox ("Disable Keyboard Input to Game", &config.input.keyboard.disabled_to_game);
+        ImGui::TreePop  ();
       }
 
       ImGui::TreePop       ( );

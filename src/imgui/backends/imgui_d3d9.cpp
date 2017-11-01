@@ -16,7 +16,7 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
-//#include "config.h"
+#include <SpecialK/config.h>
 //#include "render.h"
 
 #include <SpecialK/window.h>
@@ -134,7 +134,27 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
       vtx_dst->pos [2] = 0.0f;
       vtx_dst->col     = (vtx_src->col & 0xFF00FF00)      |
                         ((vtx_src->col & 0xFF0000) >> 16) |
-                        ((vtx_src->col & 0xFF)     << 16);     // RGBA --> ARGB for DirectX9
+                        ((vtx_src->col & 0xFF)     << 16); // RGBA --> ARGB for DirectX9
+
+      if (config.imgui.render.disable_alpha)
+      {
+        uint8_t alpha = (((vtx_dst->col & 0xFF000000U) >> 24U) & 0xFFU);
+
+        // Boost alpha for visibility
+        if (alpha < 93 && alpha != 0)
+          alpha += (93 - alpha) / 2;
+
+        float a = ((float)                              alpha / 255.0f);
+        float r = ((float)((vtx_src->col & 0xFF0000U) >> 16U) / 255.0f);
+        float g = ((float)((vtx_src->col & 0x00FF00U) >>  8U) / 255.0f);
+        float b = ((float)((vtx_src->col & 0x0000FFU)       ) / 255.0f);
+
+        vtx_dst->col =                    0xFF000000U  |
+                       ((UINT)((b * a) * 255U) << 16U) |
+                       ((UINT)((g * a) * 255U) <<  8U) |
+                       ((UINT)((r * a) * 255U)       );
+      }
+
       vtx_dst->uv  [0] = vtx_src->uv.x;
       vtx_dst->uv  [1] = vtx_src->uv.y;
       vtx_dst++;
@@ -194,7 +214,8 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 
   g_pd3dDevice->SetRenderState       (D3DRS_CULLMODE,          D3DCULL_NONE);
   g_pd3dDevice->SetRenderState       (D3DRS_LIGHTING,          FALSE);
-  g_pd3dDevice->SetRenderState       (D3DRS_ALPHABLENDENABLE,  TRUE);
+
+  g_pd3dDevice->SetRenderState       (D3DRS_ALPHABLENDENABLE,  TRUE);// : FALSE);
   g_pd3dDevice->SetRenderState       (D3DRS_ALPHATESTENABLE,   FALSE);
   g_pd3dDevice->SetRenderState       (D3DRS_BLENDOP,           D3DBLENDOP_ADD);
 //  g_pd3dDevice->SetRenderState       (D3DRS_BLENDOPALPHA,      D3DBLENDOP_ADD);
