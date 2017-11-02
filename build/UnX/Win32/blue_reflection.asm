@@ -127,35 +127,35 @@ _CLSID_Registrar DD 044ec053aH
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG259603			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG259719			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG259601		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG259717		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG259599		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG259715		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG259597		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG259713		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG259595		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG259711		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG259593		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG259709		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG259591		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG259707		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG259589		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG259705		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -287,221 +287,221 @@ _IID_IAxWinHostWindow DD 0b6ea2050H
 	DB	02eH
 CONST	ENDS
 CONST	SEGMENT
-$SG248874 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248849 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG248896 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
+$SG248943 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, 00H, 00H
+$SG267682 DB	00H
+$SG267685 DB	00H
+$SG248990 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG248879 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248995 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
-$SG267566 DB	00H
-$SG267569 DB	00H
-$SG248926 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG267695 DB	00H
+?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+$SG249042 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
-$SG267579 DB	00H
-?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-$SG248973 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	ORG $+2
+$SG249089 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260279 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG260280 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG260281 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+$SG260395 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG260396 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG260397 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
 	DB	's', 00H, 00H, 00H
 	ORG $+2
-$SG260282 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+$SG260398 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
 	DB	'p', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260283 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+$SG260399 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
 	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG260284 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+$SG260400 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG249020 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG249136 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, 00H, 00H
-$SG260285 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+$SG260401 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260286 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG260287 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+$SG260402 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG260403 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
 	DB	'T', 00H, 'Y', 00H, 00H, 00H
 	ORG $+2
-$SG260288 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+$SG260404 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG260289 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG260405 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260290 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG260406 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG248004 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248120 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG267517 DB	'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'o', 00H, 'w', 00H
+$SG267633 DB	'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'o', 00H, 'w', 00H
 	DB	'm', 00H, 'a', 00H, 'p', 00H, ' ', 00H, 'B', 00H, 'i', 00H, 'a'
 	DB	00H, 's', 00H, ':', 00H, ' ', 00H, '%', 00H, 'f', 00H, ',', 00H
 	DB	' ', 00H, '%', 00H, 'f', 00H, ',', 00H, ' ', 00H, '%', 00H, 'f'
 	DB	00H, ',', 00H, ' ', 00H, '%', 00H, 'f', 00H, 00H, 00H
 	ORG $+2
-$SG248075 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248191 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG267565 DB	'Blue Reflection', 00H
-$SG267568 DB	'God Rays', 00H
+$SG267681 DB	'Blue Reflection', 00H
+$SG267684 DB	'God Rays', 00H
 	ORG $+3
-$SG267570 DB	'%.3f', 00H
+$SG267686 DB	'%.3f', 00H
 	ORG $+3
-$SG267571 DB	'Minimum Godray Intensity', 00H
+$SG267687 DB	'Minimum Godray Intensity', 00H
 	ORG $+3
-$SG267572 DB	'%.3f', 00H
+$SG267688 DB	'%.3f', 00H
 	ORG $+3
-$SG267573 DB	'Maximum Godray Intensity', 00H
+$SG267689 DB	'Maximum Godray Intensity', 00H
 	ORG $+3
-$SG267574 DB	'%.3f', 00H
+$SG267690 DB	'%.3f', 00H
 	ORG $+3
-$SG267575 DB	'Current Godray Intensity', 00H
+$SG267691 DB	'Current Godray Intensity', 00H
 	ORG $+3
-$SG267578 DB	'Shadows', 00H
-$SG248122 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG267694 DB	'Shadows', 00H
+$SG248238 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG267581 DB	'Reduce Shadowmap Aliasing', 00H
+$SG267697 DB	'Reduce Shadowmap Aliasing', 00H
 	ORG $+2
-$SG267585 DB	'Trace Shadowmap Biases in Log', 00H
+$SG267701 DB	'Trace Shadowmap Biases in Log', 00H
 	ORG $+2
-$SG267586 DB	'%.3f', 00H
+$SG267702 DB	'%.3f', 00H
 	ORG $+3
-$SG267587 DB	'Minimum Shadow Bias', 00H
-$SG267588 DB	'Shadowmap Steps', 00H
-$SG267589 DB	'Bias Multipliers (LOD0)', 00H
-$SG267590 DB	'Bias Multipliers (LOD1)', 00H
-$SG267591 DB	'Bias Multipliers (LOD2)', 00H
-$SG248169 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG267703 DB	'Minimum Shadow Bias', 00H
+$SG267704 DB	'Shadowmap Steps', 00H
+$SG267705 DB	'Bias Multipliers (LOD0)', 00H
+$SG267706 DB	'Bias Multipliers (LOD1)', 00H
+$SG267707 DB	'Bias Multipliers (LOD2)', 00H
+$SG248285 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG267638 DB	'I', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'g', 00H, 'o', 00H
+$SG267753 DB	'I', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'g', 00H, 'o', 00H
 	DB	' ', 00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's', 00H, 'l'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H
 	DB	'v', 00H, ' ', 00H, '0', 00H, '.', 00H, '0', 00H, '.', 00H, '5'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG267639 DB	'I', 00H, 'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H
+$SG267754 DB	'I', 00H, 'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H
 	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, ':'
 	DB	00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H
 	DB	'e', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 't', 00H, 'u', 00H, 'r'
 	DB	00H, 'e', 00H, '2', 00H, 'D', 00H, 00H, 00H
-$SG267640 DB	'I', 00H, 'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H
+$SG267755 DB	'I', 00H, 'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H
 	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, ':'
 	DB	00H, ':', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG267641 DB	'I', 00H, 'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H
+$SG267756 DB	'I', 00H, 'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H
 	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, ':'
 	DB	00H, ':', 00H, 'U', 00H, 'n', 00H, 'm', 00H, 'a', 00H, 'p', 00H
 	DB	00H, 00H
-$SG267642 DB	'S', 00H, 'K', 00H, '_', 00H, 'P', 00H, 'l', 00H, 'u', 00H
+$SG267757 DB	'S', 00H, 'K', 00H, '_', 00H, 'P', 00H, 'l', 00H, 'u', 00H
 	DB	'g', 00H, 'I', 00H, 'n', 00H, '_', 00H, 'C', 00H, 'o', 00H, 'n'
 	DB	00H, 't', 00H, 'r', 00H, 'o', 00H, 'l', 00H, 'P', 00H, 'a', 00H
 	DB	'n', 00H, 'e', 00H, 'l', 00H, 'W', 00H, 'i', 00H, 'd', 00H, 'g'
 	DB	00H, 'e', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG267643 DB	'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H, 'u', 00H
+$SG267758 DB	'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H, 'u', 00H
 	DB	'm', 00H, ' ', 00H, 'G', 00H, 'o', 00H, 'd', 00H, 'r', 00H, 'a'
 	DB	00H, 'y', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 't', 00H, 'e', 00H
 	DB	'n', 00H, 's', 00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG267644 DB	'M', 00H, 'a', 00H, 'x', 00H, 'i', 00H, 'm', 00H, 'u', 00H
+$SG267759 DB	'M', 00H, 'a', 00H, 'x', 00H, 'i', 00H, 'm', 00H, 'u', 00H
 	DB	'm', 00H, ' ', 00H, 'G', 00H, 'o', 00H, 'd', 00H, 'r', 00H, 'a'
 	DB	00H, 'y', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 't', 00H, 'e', 00H
 	DB	'n', 00H, 's', 00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG267645 DB	'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H, 'u', 00H
+$SG267760 DB	'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H, 'u', 00H
 	DB	'm', 00H, 'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 's'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG267646 DB	'I', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'g', 00H, 'o', 00H
+$SG267761 DB	'I', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'g', 00H, 'o', 00H
 	DB	'.', 00H, 'G', 00H, 'o', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'y'
 	DB	00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG267647 DB	'M', 00H, 'a', 00H, 'x', 00H, 'i', 00H, 'm', 00H, 'u', 00H
+$SG267762 DB	'M', 00H, 'a', 00H, 'x', 00H, 'i', 00H, 'm', 00H, 'u', 00H
 	DB	'm', 00H, 'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 's'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG267648 DB	'I', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'g', 00H, 'o', 00H
+$SG267763 DB	'I', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'g', 00H, 'o', 00H
 	DB	'.', 00H, 'G', 00H, 'o', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'y'
 	DB	00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG267651 DB	'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H, 'u', 00H
+$SG267764 DB	'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H, 'u', 00H
 	DB	'm', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'm', 00H, 'a', 00H, 'p', 00H, ' ', 00H, 'B', 00H
 	DB	'i', 00H, 'a', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG267652 DB	'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H, 'u', 00H
+$SG267765 DB	'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H, 'u', 00H
 	DB	'm', 00H, 'B', 00H, 'i', 00H, 'a', 00H, 's', 00H, 00H, 00H
-$SG267653 DB	'I', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'g', 00H, 'o', 00H
+$SG267766 DB	'I', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'g', 00H, 'o', 00H
 	DB	'.', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'o', 00H, 'w'
 	DB	00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG248216 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248332 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG248263 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248379 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG248310 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248426 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG259589 DB	'S', 00H, 00H, 00H
-$SG259591 DB	'M', 00H, 00H, 00H
-$SG259593 DB	'D', 00H, 00H, 00H
-$SG259595 DB	'B', 00H, 00H, 00H
-$SG259597 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG259599 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG259705 DB	'S', 00H, 00H, 00H
+$SG259707 DB	'M', 00H, 00H, 00H
+$SG259709 DB	'D', 00H, 00H, 00H
+$SG259711 DB	'B', 00H, 00H, 00H
+$SG259713 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG259715 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG259601 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG259717 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG259603 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG259719 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG248357 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248473 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG248404 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248520 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG248451 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248567 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG248498 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248614 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG248545 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248661 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG248592 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248708 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG248639 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248755 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG248686 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG248802 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
-	ORG $+2
-$SG248733 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG248780 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
-	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG248827 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
-	DB	00H, 'g', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
@@ -1304,6 +1304,7 @@ PUBLIC	??$?0ABU?$less@PAUID3D11Resource@@@std@@U_Zero_then_variadic_args_t@1@@?$
 PUBLIC	??$forward@ABU?$less@PAUID3D11Resource@@@std@@@std@@YAABU?$less@PAUID3D11Resource@@@0@ABU10@@Z ; std::forward<std::less<ID3D11Resource *> const &>
 PUBLIC	??$forward@U_Zero_then_variadic_args_t@std@@@std@@YA$$QAU_Zero_then_variadic_args_t@0@AAU10@@Z ; std::forward<std::_Zero_then_variadic_args_t>
 PUBLIC	??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_Tree_node@U?$pair@QAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@@std@@PAX@std@@@std@@@std@@V?$_Tree_val@U?$_Tree_simple_types@U?$pair@QAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@@std@@@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_Tree_node<std::pair<ID3D11Resource * const,D3D11_MAPPED_SUBRESOURCE>,void *> > >,std::_Tree_val<std::_Tree_simple_types<std::pair<ID3D11Resource * const,D3D11_MAPPED_SUBRESOURCE> > >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_Tree_node<std::pair<ID3D11Resource * const,D3D11_MAPPED_SUBRESOURCE>,void *> > >,std::_Tree_val<std::_Tree_simple_types<std::pair<ID3D11Resource * const,D3D11_MAPPED_SUBRESOURCE> > >,1><>
+PUBLIC	??_R0?AViParameter@sk@@@8			; sk::iParameter `RTTI Type Descriptor'
 PUBLIC	?atlTraceGeneral@ATL@@3V?$CTraceCategoryEx@$00$0A@@1@A ; ATL::atlTraceGeneral
 PUBLIC	?atlTraceCOM@ATL@@3V?$CTraceCategoryEx@$01$0A@@1@A ; ATL::atlTraceCOM
 PUBLIC	?atlTraceQI@ATL@@3V?$CTraceCategoryEx@$03$0A@@1@A ; ATL::atlTraceQI
@@ -1335,7 +1336,6 @@ PUBLIC	?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A	; shaft_prefs
 PUBLIC	?mapped_shafts@@3V?$unordered_map@PAUID3D11DeviceContext@@V?$map@PAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@U?$less@PAUID3D11Resource@@@std@@V?$allocator@U?$pair@QAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@@std@@@4@@std@@U?$hash@PAUID3D11DeviceContext@@@3@U?$equal_to@PAUID3D11DeviceContext@@@3@V?$allocator@U?$pair@QAUID3D11DeviceContext@@V?$map@PAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@U?$less@PAUID3D11Resource@@@std@@V?$allocator@U?$pair@QAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@@std@@@4@@std@@@std@@@3@@std@@A ; mapped_shafts
 PUBLIC	?mapped_shadows@@3V?$unordered_map@PAUID3D11DeviceContext@@V?$map@PAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@U?$less@PAUID3D11Resource@@@std@@V?$allocator@U?$pair@QAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@@std@@@4@@std@@U?$hash@PAUID3D11DeviceContext@@@3@U?$equal_to@PAUID3D11DeviceContext@@@3@V?$allocator@U?$pair@QAUID3D11DeviceContext@@V?$map@PAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@U?$less@PAUID3D11Resource@@@std@@V?$allocator@U?$pair@QAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@@std@@@4@@std@@@std@@@3@@std@@A ; mapped_shadows
 PUBLIC	__GUID_48570b85_d1ee_4fcd_a250_eb350722b037
-PUBLIC	??_R0?AViParameter@sk@@@8			; sk::iParameter `RTTI Type Descriptor'
 PUBLIC	??_R0?AVParameterFloat@sk@@@8			; sk::ParameterFloat `RTTI Type Descriptor'
 PUBLIC	??_C@_0BA@JFNIOLAK@string?5too?5long?$AA@	; `string'
 PUBLIC	??_C@_0BI@CFPLBAOH@invalid?5string?5position?$AA@ ; `string'
@@ -1368,8 +1368,6 @@ EXTRN	__imp_?_Xbad_alloc@std@@YAXXZ:PROC
 EXTRN	__imp_?_Xlength_error@std@@YAXPBD@Z:PROC
 EXTRN	__imp_?_Xout_of_range@std@@YAXPBD@Z:PROC
 EXTRN	?SK_GetDLLConfig@@YAPAUiSK_INI@@XZ:PROC		; SK_GetDLLConfig
-EXTRN	?load@iParameter@sk@@QAE_NXZ:PROC		; sk::iParameter::load
-EXTRN	?store@iParameter@sk@@QAE_NXZ:PROC		; sk::iParameter::store
 EXTRN	?Log@iSK_Logger@@UAAXQB_WZZ:PROC		; iSK_Logger::Log
 EXTRN	_MH_QueueEnableHook@4:PROC
 EXTRN	_MH_ApplyQueued@0:PROC
@@ -1572,12 +1570,6 @@ data$r	SEGMENT
 	DD	00H
 	DB	'.?AVParameterFloat@sk@@', 00H
 data$r	ENDS
-;	COMDAT ??_R0?AViParameter@sk@@@8
-data$r	SEGMENT
-??_R0?AViParameter@sk@@@8 DD FLAT:??_7type_info@@6B@	; sk::iParameter `RTTI Type Descriptor'
-	DD	00H
-	DB	'.?AViParameter@sk@@', 00H
-data$r	ENDS
 ;	COMDAT __GUID_48570b85_d1ee_4fcd_a250_eb350722b037
 CONST	SEGMENT
 __GUID_48570b85_d1ee_4fcd_a250_eb350722b037 DD 048570b85H
@@ -1603,6 +1595,12 @@ _DATA	SEGMENT
 	DD	FLAT:___pobjMapEntryFirst+4
 	DD	FLAT:___pobjMapEntryLast
 _DATA	ENDS
+;	COMDAT ??_R0?AViParameter@sk@@@8
+data$r	SEGMENT
+??_R0?AViParameter@sk@@@8 DD FLAT:??_7type_info@@6B@	; sk::iParameter `RTTI Type Descriptor'
+	DD	00H
+	DB	'.?AViParameter@sk@@', 00H
+data$r	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
 __unwindtable$??$construct@U?$pair@QAUID3D11DeviceContext@@V?$map@PAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@U?$less@PAUID3D11Resource@@@std@@V?$allocator@U?$pair@QAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@@std@@@4@@std@@@std@@ABUpiecewise_construct_t@2@V?$tuple@ABQAUID3D11DeviceContext@@@2@V?$tuple@$$V@2@@?$allocator@U?$_List_node@U?$pair@QAUID3D11DeviceContext@@V?$map@PAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@U?$less@PAUID3D11Resource@@@std@@V?$allocator@U?$pair@QAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@@std@@@4@@std@@@std@@PAX@std@@@std@@QAEXPAU?$pair@QAUID3D11DeviceContext@@V?$map@PAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@U?$less@PAUID3D11Resource@@@std@@V?$allocator@U?$pair@QAUID3D11Resource@@UD3D11_MAPPED_SUBRESOURCE@@@std@@@4@@std@@@1@ABUpiecewise_construct_t@1@$$QAV?$tuple@ABQAUID3D11DeviceContext@@@1@$$QAV?$tuple@$$V@1@@Z DD 0ffffffffH
@@ -3522,7 +3520,7 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 529  : };
+; 523  : };
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -3946,7 +3944,7 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 529  : };
+; 523  : };
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -4219,7 +4217,7 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 529  : };
+; 523  : };
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -4601,8 +4599,6 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 529  : };
-
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	xorps	xmm0, xmm0
 	mov	eax, DWORD PTR [eax]
@@ -4667,8 +4663,6 @@ _<_Args_2>$ = 20					; size = 4
 	test	esi, esi
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
-
-; 529  : };
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -5260,7 +5254,7 @@ _<_Val_2>$ = 24						; size = 4
 	je	SHORT $LN54@Buynode
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 529  : };
+; 523  : };
 
 	mov	ecx, DWORD PTR _<_Val_1>$[ebp]
 	mov	ecx, DWORD PTR [ecx]
@@ -5309,6 +5303,8 @@ _<_Args_2>$ = 24					; size = 4
 	test	ecx, ecx
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
+
+; 523  : };
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	xorps	xmm0, xmm0
@@ -7881,7 +7877,7 @@ _<_Val_2>$ = 16						; size = 4
 	je	SHORT $LN65@Buynode
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 529  : };
+; 523  : };
 
 	mov	ecx, DWORD PTR _<_Val_1>$[ebp]
 	xorps	xmm0, xmm0
@@ -9739,7 +9735,7 @@ ___that$ = 8						; size = 4
 ??0?$tuple@ABQAUID3D11Resource@@@std@@QAE@$$QAV01@@Z PROC ; std::tuple<ID3D11Resource * const &>::tuple<ID3D11Resource * const &>, COMDAT
 ; _this$ = ecx
 
-; 529  : };
+; 523  : };
 
 	npad	2
 	push	ebp
@@ -10012,7 +10008,7 @@ ___that$ = 8						; size = 4
 ??0?$tuple@ABQAUID3D11DeviceContext@@@std@@QAE@$$QAV01@@Z PROC ; std::tuple<ID3D11DeviceContext * const &>::tuple<ID3D11DeviceContext * const &>, COMDAT
 ; _this$ = ecx
 
-; 529  : };
+; 523  : };
 
 	npad	2
 	push	ebp
@@ -15579,7 +15575,7 @@ __$EHRec$ = -12						; size = 12
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG267638
+	push	OFFSET $SG267753
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -15608,7 +15604,7 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ?_D3D11Dev_CreateTexture2D_Original@@3P6GJPAUID3D11Device@@PBUD3D11_TEXTURE2D_DESC@@PBUD3D11_SUBRESOURCE_DATA@@PAPAUID3D11Texture2D@@@ZA
 	push	OFFSET ?SK_IT_CreateTexture2D@@YGJPAUID3D11Device@@PBUD3D11_TEXTURE2D_DESC@@PBUD3D11_SUBRESOURCE_DATA@@PAPAUID3D11Texture2D@@@Z ; SK_IT_CreateTexture2D
 	push	OFFSET ?D3D11Dev_CreateTexture2D_Override@@YGJPAUID3D11Device@@PBUD3D11_TEXTURE2D_DESC@@PBUD3D11_SUBRESOURCE_DATA@@PAPAUID3D11Texture2D@@@Z ; D3D11Dev_CreateTexture2D_Override
-	push	OFFSET $SG267639
+	push	OFFSET $SG267754
 	call	?SK_CreateFuncHook@@YG?AW4MH_STATUS@@PB_WPAX1PAPAX@Z ; SK_CreateFuncHook
 
 ; 458  :                                D3D11Dev_CreateTexture2D_Override,
@@ -15625,7 +15621,7 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ?_D3D11Dev_Map_Original@@3P6GJPAUID3D11DeviceContext@@PAUID3D11Resource@@IW4D3D11_MAP@@IPAUD3D11_MAPPED_SUBRESOURCE@@@ZA
 	push	OFFSET ?SK_IT_Map@@YGJPAUID3D11DeviceContext@@PAUID3D11Resource@@IW4D3D11_MAP@@IPAUD3D11_MAPPED_SUBRESOURCE@@@Z ; SK_IT_Map
 	push	OFFSET ?D3D11Dev_Map_Override@@YGJPAUID3D11DeviceContext@@PAUID3D11Resource@@IW4D3D11_MAP@@IPAUD3D11_MAPPED_SUBRESOURCE@@@Z ; D3D11Dev_Map_Override
-	push	OFFSET $SG267640
+	push	OFFSET $SG267755
 	call	?SK_CreateFuncHook@@YG?AW4MH_STATUS@@PB_WPAX1PAPAX@Z ; SK_CreateFuncHook
 
 ; 464  :                                   D3D11Dev_Map_Override,
@@ -15642,7 +15638,7 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ?_D3D11Dev_Unmap_Original@@3P6GXPAUID3D11DeviceContext@@PAUID3D11Resource@@I@ZA
 	push	OFFSET ?SK_IT_Unmap@@YGXPAUID3D11DeviceContext@@PAUID3D11Resource@@I@Z ; SK_IT_Unmap
 	push	OFFSET ?D3D11_Unmap_Override@@YGXPAUID3D11DeviceContext@@PAUID3D11Resource@@I@Z ; D3D11_Unmap_Override
-	push	OFFSET $SG267641
+	push	OFFSET $SG267756
 	call	?SK_CreateFuncHook@@YG?AW4MH_STATUS@@PB_WPAX1PAPAX@Z ; SK_CreateFuncHook
 
 ; 470  :                                   D3D11_Unmap_Override,
@@ -15659,7 +15655,7 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ?SK_PlugIn_ControlPanelWidget_Original@@3P6GXXZA
 	push	OFFSET ?SK_IT_ControlPanel@@YGXXZ	; SK_IT_ControlPanel
 	push	OFFSET ?SK_PlugIn_ControlPanelWidget@@YGXXZ ; SK_PlugIn_ControlPanelWidget
-	push	OFFSET $SG267642
+	push	OFFSET $SG267757
 	call	?SK_CreateFuncHook@@YG?AW4MH_STATUS@@PB_WPAX1PAPAX@Z ; SK_CreateFuncHook
 
 ; 476  :                               SK_PlugIn_ControlPanelWidget,
@@ -15678,7 +15674,7 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ??_R0?AVParameterFloat@sk@@@8
 	push	OFFSET ??_R0?AViParameter@sk@@@8
 	push	0
-	push	OFFSET $SG267643
+	push	OFFSET $SG267758
 	mov	ecx, OFFSET ?it_config@@3Uit_cfg_s@@A	; it_config
 	call	??$create_parameter@M@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z ; sk::ParameterFactory::create_parameter<float>
 	push	eax
@@ -15696,7 +15692,7 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ??_R0?AVParameterFloat@sk@@@8
 	push	OFFSET ??_R0?AViParameter@sk@@@8
 	push	0
-	push	OFFSET $SG267644
+	push	OFFSET $SG267759
 	call	??$create_parameter@M@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z ; sk::ParameterFactory::create_parameter<float>
 	push	eax
 	call	___RTDynamicCast
@@ -15717,7 +15713,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	16					; 00000010H
-	push	OFFSET $SG267645
+	push	OFFSET $SG267760
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -15765,7 +15761,7 @@ __$EHRec$ = -12						; size = 12
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG267646
+	push	OFFSET $SG267761
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -15817,7 +15813,7 @@ __$EHRec$ = -12						; size = 12
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG267647
+	push	OFFSET $SG267762
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -15857,7 +15853,7 @@ __$EHRec$ = -12						; size = 12
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG267648
+	push	OFFSET $SG267763
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -15882,54 +15878,34 @@ __$EHRec$ = -12						; size = 12
 ; 494  :                                              L"Indigo.Godrays",
 ; 495  :                                                L"MaximumIntensity" );
 ; 496  : 
-; 497  :   if (it_config.godrays.min->load ())
+; 497  :   it_config.godrays.min->load (shaft_prefs.min_intensity);
 
 	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+12
-	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
-	test	al, al
-	je	SHORT $LN2@SK_IT_Init
-
-; 498  :     shaft_prefs.min_intensity = it_config.godrays.min->get_value ();
-
-	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+12
+	push	OFFSET ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A ; shaft_prefs
 	mov	eax, DWORD PTR [ecx]
-	mov	eax, DWORD PTR [eax+8]
-	call	eax
-	fstp	DWORD PTR ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A
-$LN2@SK_IT_Init:
+	call	DWORD PTR [eax+24]
+
+; 498  :   it_config.godrays.max->load (shaft_prefs.max_intensity);
+
+	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+16
+	push	OFFSET ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A+4
+	mov	eax, DWORD PTR [ecx]
+	call	DWORD PTR [eax+24]
 
 ; 499  : 
-; 500  :   if (it_config.godrays.max->load ())
-
-	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+16
-	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
-	test	al, al
-	je	SHORT $LN3@SK_IT_Init
-
-; 501  :     shaft_prefs.max_intensity = it_config.godrays.max->get_value ();
-
-	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+16
-	mov	eax, DWORD PTR [ecx]
-	mov	eax, DWORD PTR [eax+8]
-	call	eax
-	fstp	DWORD PTR ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A+4
-$LN3@SK_IT_Init:
-
-; 502  : 
-; 503  : 
-; 504  :   it_config.shadows.min_bias =
+; 500  :   it_config.shadows.min_bias =
 
 	push	0
 	push	OFFSET ??_R0?AVParameterFloat@sk@@@8
 	push	OFFSET ??_R0?AViParameter@sk@@@8
 	push	0
-	push	OFFSET $SG267651
+	push	OFFSET $SG267764
 	mov	ecx, OFFSET ?it_config@@3Uit_cfg_s@@A	; it_config
 	call	??$create_parameter@M@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z ; sk::ParameterFactory::create_parameter<float>
 	push	eax
 	call	___RTDynamicCast
 
-; 508  :   it_config.shadows.min_bias->register_to_ini ( SK_GetDLLConfig (),
+; 504  :   it_config.shadows.min_bias->register_to_ini ( SK_GetDLLConfig (),
 
 	push	ecx
 	mov	ecx, esp
@@ -15945,7 +15921,7 @@ $LN3@SK_IT_Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	11					; 0000000bH
-	push	OFFSET $SG267652
+	push	OFFSET $SG267765
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -15966,7 +15942,7 @@ $LN3@SK_IT_Init:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 508  :   it_config.shadows.min_bias->register_to_ini ( SK_GetDLLConfig (),
+; 504  :   it_config.shadows.min_bias->register_to_ini ( SK_GetDLLConfig (),
 
 	sub	esp, 24					; 00000018H
 	mov	DWORD PTR __$EHRec$[ebp+8], 4
@@ -15993,7 +15969,7 @@ $LN3@SK_IT_Init:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG267653
+	push	OFFSET $SG267766
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -16006,64 +15982,54 @@ $LN3@SK_IT_Init:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 508  :   it_config.shadows.min_bias->register_to_ini ( SK_GetDLLConfig (),
+; 504  :   it_config.shadows.min_bias->register_to_ini ( SK_GetDLLConfig (),
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 	call	?SK_GetDLLConfig@@YAPAUiSK_INI@@XZ	; SK_GetDLLConfig
+	push	eax
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+20
-	push	eax
 	call	?register_to_ini@iParameter@sk@@QAEXPAUiSK_INI@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@1@Z ; sk::iParameter::register_to_ini
 
-; 509  :                                                   L"Indigo.Shadows",
-; 510  :                                                     L"MinimumBias" );
-; 511  : 
-; 512  :   if (it_config.shadows.min_bias->load ())
+; 505  :                                                   L"Indigo.Shadows",
+; 506  :                                                     L"MinimumBias" );
+; 507  : 
+; 508  :   if (! it_config.shadows.min_bias->load (min_shadow_bias))
 
 	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+20
-	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
-	test	al, al
-	je	SHORT $LN4@SK_IT_Init
-
-; 513  :     min_shadow_bias = it_config.shadows.min_bias->get_value ();
-
-	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+20
+	push	OFFSET ?min_shadow_bias@@3MA		; min_shadow_bias
 	mov	eax, DWORD PTR [ecx]
-	mov	eax, DWORD PTR [eax+8]
+	mov	eax, DWORD PTR [eax+24]
 	call	eax
-	fstp	DWORD PTR ?min_shadow_bias@@3MA		; min_shadow_bias
+	test	al, al
+	jne	SHORT $LN2@SK_IT_Init
 
-; 514  :   else
-
-	jmp	SHORT $LN5@SK_IT_Init
-$LN4@SK_IT_Init:
-
-; 515  :     min_shadow_bias = 0.000133f;
+; 509  :     min_shadow_bias = 0.000133f;
 
 	mov	DWORD PTR ?min_shadow_bias@@3MA, 957052394 ; 390b75eaH
-$LN5@SK_IT_Init:
+$LN2@SK_IT_Init:
 
-; 516  : 
-; 517  : 
-; 518  :   //SK_CreateFuncHook ( L"SK_ImGUI_DrawEULA_PlugIn",
-; 519  :   //                      SK_ImGui_DrawEULA_PlugIn,
-; 520  :    //                            SK_IT_EULA_Insert,
-; 521  :   //                              &dontcare     );
-; 522  :   //
-; 523  :   //MH_QueueEnableHook (SK_ImGui_DrawEULA_PlugIn);
-; 524  : 
-; 525  :    MH_ApplyQueued ();
+; 510  : 
+; 511  : 
+; 512  :   //SK_CreateFuncHook ( L"SK_ImGUI_DrawEULA_PlugIn",
+; 513  :   //                      SK_ImGui_DrawEULA_PlugIn,
+; 514  :    //                            SK_IT_EULA_Insert,
+; 515  :   //                              &dontcare     );
+; 516  :   //
+; 517  :   //MH_QueueEnableHook (SK_ImGui_DrawEULA_PlugIn);
+; 518  : 
+; 519  :    MH_ApplyQueued ();
 
 	call	_MH_ApplyQueued@0
 
-; 526  : 
-; 527  :   InterlockedExchange (&__IT_init, 1);
+; 520  : 
+; 521  :   InterlockedExchange (&__IT_init, 1);
 
 	mov	eax, 1
 	mov	ecx, OFFSET ?__IT_init@@3JC		; __IT_init
 	xchg	DWORD PTR [ecx], eax
 
-; 528  : };
+; 522  : };
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -16881,7 +16847,7 @@ $LN503@SK_IT_Unma:
 	movss	xmm0, DWORD PTR [esi]
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG267517
+	push	OFFSET $SG267633
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 40					; 00000028H
@@ -28146,7 +28112,7 @@ _enhance$5 = -1						; size = 1
 ; 354  :   if (ImGui::CollapsingHeader ("Blue Reflection", ImGuiTreeNodeFlags_DefaultOpen))
 
 	push	32					; 00000020H
-	push	OFFSET $SG267565
+	push	OFFSET $SG267681
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -28158,7 +28124,7 @@ _enhance$5 = -1						; size = 1
 	push	ebx
 	push	esi
 	push	edi
-	push	OFFSET $SG267566
+	push	OFFSET $SG267682
 	call	?TreePush@ImGui@@YAXPBD@Z		; ImGui::TreePush
 	movaps	xmm0, XMMWORD PTR __xmm@3ee666663ecccccd3ecccccd3f666666
 
@@ -28193,7 +28159,7 @@ _enhance$5 = -1						; size = 1
 ; 362  :     if (ImGui::CollapsingHeader ("God Rays", ImGuiTreeNodeFlags_DefaultOpen))
 
 	push	32					; 00000020H
-	push	OFFSET $SG267568
+	push	OFFSET $SG267684
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 36					; 00000024H
 	test	al, al
@@ -28204,7 +28170,7 @@ _enhance$5 = -1						; size = 1
 ; 365  : 
 ; 366  :       ImGui::TreePush ("");
 
-	push	OFFSET $SG267569
+	push	OFFSET $SG267685
 	call	?TreePush@ImGui@@YAXPBD@Z		; ImGui::TreePush
 
 ; 367  : 
@@ -28212,12 +28178,12 @@ _enhance$5 = -1						; size = 1
 
 	movss	xmm0, DWORD PTR ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A+4
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	push	OFFSET $SG267570
+	push	OFFSET $SG267686
 	sub	esp, 8
 	movss	DWORD PTR [esp+4], xmm0
 	mov	DWORD PTR [esp], 0
 	push	OFFSET ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A ; shaft_prefs
-	push	OFFSET $SG267571
+	push	OFFSET $SG267687
 	call	?SliderFloat@ImGui@@YA_NPBDPAMMM0M@Z	; ImGui::SliderFloat
 
 ; 369  :       changed |= ImGui::SliderFloat ("Maximum Godray Intensity", &shaft_prefs.max_intensity, shaft_prefs.min_intensity, 30.0f);
@@ -28226,12 +28192,12 @@ _enhance$5 = -1						; size = 1
 	add	esp, 20					; 00000014H
 	mov	bl, al
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	push	OFFSET $SG267572
+	push	OFFSET $SG267688
 	sub	esp, 8
 	mov	DWORD PTR [esp+4], 1106247680		; 41f00000H
 	movss	DWORD PTR [esp], xmm0
 	push	OFFSET ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A+4
-	push	OFFSET $SG267573
+	push	OFFSET $SG267689
 	call	?SliderFloat@ImGui@@YA_NPBDPAMMM0M@Z	; ImGui::SliderFloat
 
 ; 370  :       changed |= ImGui::SliderFloat ("Current Godray Intensity", &shaft.power [3], shaft_prefs.min_intensity, shaft_prefs.max_intensity);
@@ -28240,13 +28206,13 @@ _enhance$5 = -1						; size = 1
 	add	esp, 20					; 00000014H
 	or	bl, al
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	push	OFFSET $SG267574
+	push	OFFSET $SG267690
 	sub	esp, 8
 	movss	DWORD PTR [esp+4], xmm0
 	movss	xmm0, DWORD PTR ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A
 	movss	DWORD PTR [esp], xmm0
 	push	OFFSET ?shaft@@3Ulight_shaft_s@@A+28
-	push	OFFSET $SG267575
+	push	OFFSET $SG267691
 	call	?SliderFloat@ImGui@@YA_NPBDPAMMM0M@Z	; ImGui::SliderFloat
 	add	esp, 24					; 00000018H
 	or	al, bl
@@ -28257,27 +28223,23 @@ _enhance$5 = -1						; size = 1
 	je	SHORT $LN4@SK_IT_Cont
 
 ; 373  :       {
-; 374  :         it_config.godrays.max->set_value (shaft_prefs.max_intensity); it_config.godrays.max->store ();
+; 374  :         it_config.godrays.max->store (shaft_prefs.max_intensity);
 
 	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+16
 	movss	xmm0, DWORD PTR ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A+4
 	push	ecx
 	movss	DWORD PTR [esp], xmm0
 	mov	eax, DWORD PTR [ecx]
-	call	DWORD PTR [eax+12]
-	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+16
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 
-; 375  :         it_config.godrays.min->set_value (shaft_prefs.min_intensity); it_config.godrays.min->store ();
+; 375  :         it_config.godrays.min->store (shaft_prefs.min_intensity);
 
 	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+12
 	movss	xmm0, DWORD PTR ?shaft_prefs@@3U<unnamed-type-shaft_prefs>@@A
 	push	ecx
 	movss	DWORD PTR [esp], xmm0
 	mov	eax, DWORD PTR [ecx]
-	call	DWORD PTR [eax+12]
-	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+12
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 
 ; 376  : 
 ; 377  :         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
@@ -28307,7 +28269,7 @@ $LN3@SK_IT_Cont:
 ; 383  :     if (ImGui::CollapsingHeader ("Shadows", ImGuiTreeNodeFlags_DefaultOpen))
 
 	push	32					; 00000020H
-	push	OFFSET $SG267578
+	push	OFFSET $SG267694
 	call	?CollapsingHeader@ImGui@@YA_NPBDH@Z	; ImGui::CollapsingHeader
 	add	esp, 8
 	test	al, al
@@ -28316,7 +28278,7 @@ $LN3@SK_IT_Cont:
 ; 384  :     {
 ; 385  :       ImGui::TreePush ("");
 
-	push	OFFSET $SG267579
+	push	OFFSET $SG267695
 	call	?TreePush@ImGui@@YAXPBD@Z		; ImGui::TreePush
 
 ; 386  : 
@@ -28339,7 +28301,7 @@ $LN12@SK_IT_Cont:
 
 	lea	eax, DWORD PTR _enhance$5[ebp]
 	push	eax
-	push	OFFSET $SG267581
+	push	OFFSET $SG267697
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	add	esp, 8
 	test	al, al
@@ -28361,16 +28323,14 @@ $LN24@SK_IT_Cont:
 ; 396  : 
 ; 397  :       if (changed)
 ; 398  :       {
-; 399  :         it_config.shadows.min_bias->set_value (min_shadow_bias); it_config.shadows.min_bias->store ();
+; 399  :         it_config.shadows.min_bias->store (min_shadow_bias);
 
 	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+20
 	movss	DWORD PTR ?min_shadow_bias@@3MA, xmm0
 	push	ecx
 	movss	DWORD PTR [esp], xmm0
 	mov	eax, DWORD PTR [ecx]
-	call	DWORD PTR [eax+12]
-	mov	ecx, DWORD PTR ?it_config@@3Uit_cfg_s@@A+20
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 
 ; 400  : 
 ; 401  :         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
@@ -28392,7 +28352,7 @@ $LN7@SK_IT_Cont:
 ; 403  : 
 ; 404  :       if (config.system.log_level > 0)
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jle	$LN8@SK_IT_Cont
 
 ; 406  :         if (ImGui::Button ("Trace Shadowmap Biases in Log"))
@@ -28400,7 +28360,7 @@ $LN7@SK_IT_Cont:
 	lea	eax, DWORD PTR $T4[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 36   :     ImVec2 (float _x, float _y) { x = _x; y = _y; }
+; 37   :     ImVec2 (float _x, float _y) { x = _x; y = _y; }
 
 	mov	DWORD PTR $T4[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
@@ -28408,10 +28368,10 @@ $LN7@SK_IT_Cont:
 ; 406  :         if (ImGui::Button ("Trace Shadowmap Biases in Log"))
 
 	push	eax
-	push	OFFSET $SG267585
+	push	OFFSET $SG267701
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 36   :     ImVec2 (float _x, float _y) { x = _x; y = _y; }
+; 37   :     ImVec2 (float _x, float _y) { x = _x; y = _y; }
 
 	mov	DWORD PTR $T4[ebp+4], 0
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
@@ -28433,12 +28393,12 @@ $LN7@SK_IT_Cont:
 	cmovne	ecx, edx
 	add	esp, 4
 	mov	BYTE PTR ?dump_bias@@3_NA, cl		; dump_bias
-	push	OFFSET $SG267586
+	push	OFFSET $SG267702
 	sub	esp, 8
 	mov	DWORD PTR [esp+4], 981668463		; 3a83126fH
 	mov	DWORD PTR [esp], 0
 	push	OFFSET ?min_shadow_bias@@3MA		; min_shadow_bias
-	push	OFFSET $SG267587
+	push	OFFSET $SG267703
 	call	?SliderFloat@ImGui@@YA_NPBDPAMMM0M@Z	; ImGui::SliderFloat
 
 ; 412  : 
@@ -28447,7 +28407,7 @@ $LN7@SK_IT_Cont:
 	push	0
 	push	-1
 	push	OFFSET ?fSteps@@3PAMA			; fSteps
-	push	OFFSET $SG267588
+	push	OFFSET $SG267704
 	call	?InputFloat3@ImGui@@YA_NPBDQAMHH@Z	; ImGui::InputFloat3
 
 ; 414  : 
@@ -28456,7 +28416,7 @@ $LN7@SK_IT_Cont:
 	push	0
 	push	-1
 	push	OFFSET ?fBiasMultipliers@@3PAY03MA	; fBiasMultipliers
-	push	OFFSET $SG267589
+	push	OFFSET $SG267705
 	call	?InputFloat4@ImGui@@YA_NPBDQAMHH@Z	; ImGui::InputFloat4
 
 ; 416  :         ImGui::InputFloat4 ("Bias Multipliers (LOD1)", fBiasMultipliers [1]);
@@ -28464,7 +28424,7 @@ $LN7@SK_IT_Cont:
 	push	0
 	push	-1
 	push	OFFSET ?fBiasMultipliers@@3PAY03MA+16
-	push	OFFSET $SG267590
+	push	OFFSET $SG267706
 	call	?InputFloat4@ImGui@@YA_NPBDQAMHH@Z	; ImGui::InputFloat4
 	add	esp, 72					; 00000048H
 
@@ -28473,7 +28433,7 @@ $LN7@SK_IT_Cont:
 	push	0
 	push	-1
 	push	OFFSET ?fBiasMultipliers@@3PAY03MA+32
-	push	OFFSET $SG267591
+	push	OFFSET $SG267707
 	call	?InputFloat4@ImGui@@YA_NPBDQAMHH@Z	; ImGui::InputFloat4
 	add	esp, 16					; 00000010H
 $LN8@SK_IT_Cont:
@@ -31049,7 +31009,7 @@ _key$ = 36						; size = 24
 ?register_to_ini@iParameter@sk@@QAEXPAUiSK_INI@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@1@Z PROC ; sk::iParameter::register_to_ini, COMDAT
 ; _this$ = ecx
 
-; 65   :   {
+; 67   :   {
 
 	npad	2
 	push	ebp
@@ -31062,14 +31022,14 @@ _key$ = 36						; size = 24
 	push	esi
 	mov	esi, ecx
 
-; 66   :     ini         = file;
+; 68   :     ini         = file;
 
 	mov	eax, DWORD PTR _file$[ebp]
 
-; 67   :     ini_section = section;
+; 69   :     ini_section = section;
 
-	lea	ecx, DWORD PTR [esi+8]
-	mov	DWORD PTR [esi+4], eax
+	lea	ecx, DWORD PTR [esi+12]
+	mov	DWORD PTR [esi+8], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2223 : 		if (this != _STD addressof(_Right))
@@ -31077,7 +31037,7 @@ _key$ = 36						; size = 24
 	lea	eax, DWORD PTR _section$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 65   :   {
+; 67   :   {
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31096,9 +31056,9 @@ _key$ = 36						; size = 24
 $LN6@register_t:
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 68   :     ini_key     = key;
+; 70   :     ini_key     = key;
 
-	lea	ecx, DWORD PTR [esi+32]
+	lea	ecx, DWORD PTR [esi+36]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2223 : 		if (this != _STD addressof(_Right))
@@ -31195,7 +31155,7 @@ $LN93@register_t:
 $LN123@register_t:
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 69   :   }
+; 71   :   }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -31226,7 +31186,7 @@ __y$ = 12						; size = 4
 ??0ImVec2@@QAE@MM@Z PROC				; ImVec2::ImVec2, COMDAT
 ; _this$ = ecx
 
-; 36   :     ImVec2 (float _x, float _y) { x = _x; y = _y; }
+; 37   :     ImVec2 (float _x, float _y) { x = _x; y = _y; }
 
 	npad	2
 	push	ebp
@@ -39530,7 +39490,7 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 529  : };
+; 523  : };
 
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
@@ -39542,7 +39502,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 529  : };
+; 523  : };
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

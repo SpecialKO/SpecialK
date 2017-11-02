@@ -105,8 +105,7 @@ public:
 
                                                            if (param_visible != nullptr)
                                                            {
-                                                             param_visible->set_value (visible);
-                                                             param_visible->store     ();
+                                                             param_visible->store (visible);
                                                            }
                                                                                           return *this; }
   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
@@ -236,11 +235,10 @@ LoadWidgetKeybind (SK_Keybind* binding, iSK_INI* ini_file, const wchar_t* wszDes
 
   ret->register_to_ini ( ini_file, sec_name, key_name );
 
-  if (! ret->load ())
+  if (! ret->load (binding->human_readable))
   {
     binding->parse  ();
-    ret->set_value  (binding->human_readable);
-    ret->store      ();
+    ret->store      (binding->human_readable);
   }
 
   binding->human_readable = ret->get_value ();
@@ -260,10 +258,9 @@ LoadWidgetBool (bool* pbVal, iSK_INI* ini_file, const wchar_t* wszDesc, const wc
 
   ret->register_to_ini ( ini_file, sec_name, key_name );
 
-  if (! ret->load ())
+  if (! ret->load (*pbVal))
   {
-    ret->set_value  (*pbVal);
-    ret->store      ();
+    ret->store    (*pbVal);
   }
 
   *pbVal = ret->get_value ();
@@ -282,10 +279,9 @@ LoadWidgetDocking (SK_Widget::DockAnchor* pdaVal, iSK_INI* ini_file, const wchar
 
   ret->register_to_ini ( ini_file, sec_name, key_name );
 
-  if (! ret->load ())
+  if (! ret->load (*(int *)pdaVal))
   {
-    ret->set_value  (*(int *)pdaVal);
-    ret->store      ();
+    ret->store    (*(int *)pdaVal);
   }
 
   *(int *)pdaVal = ret->get_value ();
@@ -304,10 +300,9 @@ LoadWidgetVec2 (ImVec2* piv2Val, iSK_INI* ini_file, const wchar_t* wszDesc, cons
 
   ret->register_to_ini ( ini_file, sec_name, key_name );
 
-  if (! ret->load ())
+  if (! ret->load (*piv2Val))
   {
-    ret->set_value  (*piv2Val);
-    ret->store      ();
+    ret->store    (*piv2Val);
   }
 
   *piv2Val = ret->get_value ();

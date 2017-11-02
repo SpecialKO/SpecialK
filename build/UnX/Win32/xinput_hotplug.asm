@@ -9,23 +9,30 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
-PUBLIC	?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationA_Original
 PUBLIC	?RegisterDeviceNotificationW_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationW_Original
+PUBLIC	?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationA_Original
 _BSS	SEGMENT
-?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA DD 01H DUP (?) ; RegisterDeviceNotificationA_Original
 ?RegisterDeviceNotificationW_Original@@3P6GPAXPAX0K@ZA DD 01H DUP (?) ; RegisterDeviceNotificationW_Original
+?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA DD 01H DUP (?) ; RegisterDeviceNotificationA_Original
 _BSS	ENDS
 CONST	SEGMENT
-$SG118793 DB	'RegisterDeviceNotificationW_Detour', 00H
-	ORG $+5
-$SG118794 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG128000 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG128001 DB	'RegisterDeviceNotificationA', 00H
+$SG128002 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG118808 DB	'RegisterDeviceNotificationW_Detour', 00H
+	ORG $+1
+$SG118809 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+6
-$SG118798 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118813 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'i', 00H
 	DB	'x', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'Z', 00H, 'e'
@@ -38,16 +45,16 @@ $SG118798 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	00H, 'o', 00H, 't', 00H, 'i', 00H, 'f', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 'W', 00H, ' '
 	DB	00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, 00H, 00H
-$SG118811 DB	'RegisterDeviceNotificationA_Detour', 00H
+$SG118826 DB	'RegisterDeviceNotificationA_Detour', 00H
 	ORG $+5
-$SG118812 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118827 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+6
-$SG118816 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118831 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'i', 00H
 	DB	'x', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'Z', 00H, 'e'
@@ -60,7 +67,7 @@ $SG118816 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	00H, 'o', 00H, 't', 00H, 'i', 00H, 'f', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 'A', 00H, ' '
 	DB	00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, 00H, 00H
-$SG127983 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
+$SG127998 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
 	DB	'0', 00H, '0', 00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0'
 	DB	00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
 	DB	'-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '-', 00H, '0'
@@ -68,13 +75,7 @@ $SG127983 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
 	DB	'0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '}', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG127984 DB	'RegisterDeviceNotificationW', 00H
-$SG127985 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG127986 DB	'RegisterDeviceNotificationA', 00H
-$SG127987 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG127999 DB	'RegisterDeviceNotificationW', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	_IsEqualGUID
@@ -160,10 +161,10 @@ _Flags$ = 16						; size = 4
 
 	cmp	BYTE PTR ?called@?2??RegisterDeviceNotificationA_Detour@@YGPAXPAX0K@Z@4_NA, 0
 	jne	SHORT $LN12@RegisterDe
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@RegisterDe
-	push	OFFSET $SG118811
-	push	OFFSET $SG118812
+	push	OFFSET $SG118826
+	push	OFFSET $SG118827
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -221,9 +222,9 @@ $LL11@RegisterDe:
 ; 370  :       SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationA (...)"),
 
 	or	ebx, 4
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 1
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 1
 	jl	SHORT $LN6@RegisterDe
-	push	OFFSET $SG118816
+	push	OFFSET $SG118831
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -269,10 +270,10 @@ _Flags$ = 16						; size = 4
 
 	cmp	BYTE PTR ?called@?2??RegisterDeviceNotificationW_Detour@@YGPAXPAX0K@Z@4_NA, 0
 	jne	SHORT $LN12@RegisterDe
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@RegisterDe
-	push	OFFSET $SG118793
-	push	OFFSET $SG118794
+	push	OFFSET $SG118808
+	push	OFFSET $SG118809
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -330,9 +331,9 @@ $LL11@RegisterDe:
 ; 331  :       SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationW (...)"),
 
 	or	ebx, 4
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 1
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 1
 	jl	SHORT $LN6@RegisterDe
-	push	OFFSET $SG118798
+	push	OFFSET $SG118813
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -433,7 +434,7 @@ _TEXT	SEGMENT
 ; 384  :   CLSIDFromString (L"{00000000-0000-0000-0000-000000000000}", &GUID_Zero);
 
 	push	OFFSET ?GUID_Zero@@3U_GUID@@A
-	push	OFFSET $SG127983
+	push	OFFSET $SG127998
 	call	DWORD PTR __imp__CLSIDFromString@8
 
 ; 385  : 
@@ -443,8 +444,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?RegisterDeviceNotificationW_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationW_Original
 	push	OFFSET ?RegisterDeviceNotificationW_Detour@@YGPAXPAX0K@Z ; RegisterDeviceNotificationW_Detour
-	push	OFFSET $SG127984
-	push	OFFSET $SG127985
+	push	OFFSET $SG127999
+	push	OFFSET $SG128000
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 388  :                              "RegisterDeviceNotificationW",
@@ -456,8 +457,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationA_Original
 	push	OFFSET ?RegisterDeviceNotificationA_Detour@@YGPAXPAX0K@Z ; RegisterDeviceNotificationA_Detour
-	push	OFFSET $SG127986
-	push	OFFSET $SG127987
+	push	OFFSET $SG128001
+	push	OFFSET $SG128002
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 393  :                              "RegisterDeviceNotificationA",
@@ -624,7 +625,7 @@ $LN3@SK_XInput_:
 	mov	eax, DWORD PTR _dwRet$[ebp]
 	test	eax, eax
 	je	SHORT $LN1@SK_XInput_
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+684], 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+688], 0
 	je	SHORT $LN1@SK_XInput_
 
 ; 229  :        config.input.gamepad.xinput.placehold [dwUserIndex] )
@@ -767,7 +768,7 @@ $LN3@SK_XInput_:
 	mov	eax, DWORD PTR _dwRet$[ebp]
 	test	eax, eax
 	je	SHORT $LN9@SK_XInput_
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+684], 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+688], 0
 	je	SHORT $LN9@SK_XInput_
 
 ; 192  :        config.input.gamepad.xinput.placehold [dwUserIndex] )
@@ -918,7 +919,7 @@ $LN3@SK_XInput_:
 	mov	eax, DWORD PTR _dwRet$[ebp]
 	test	eax, eax
 	je	SHORT $LN9@SK_XInput_
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+684], 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+688], 0
 	je	SHORT $LN9@SK_XInput_
 
 ; 148  :        config.input.gamepad.xinput.placehold [dwUserIndex] )
@@ -1083,7 +1084,7 @@ $LN3@SK_XInput_:
 	mov	BYTE PTR _was_holding$1$[ebp], cl
 	test	eax, eax
 	je	$LN17@SK_XInput_
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A[edi+684], 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A[edi+688], 0
 	je	$LN17@SK_XInput_
 
 ; 83   :        config.input.gamepad.xinput.placehold [dwUserIndex] )
@@ -1279,7 +1280,7 @@ _dwUserIndex$ = 12					; size = 4
 
 ; 50   :   dwUserIndex =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+688]
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+692]
 
 ; 51   :     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 ; 52   : 

@@ -14,146 +14,154 @@ _DATA	SEGMENT
 ?xinput_enabled@@3HA DD 01H				; xinput_enabled
 _DATA	ENDS
 CONST	SEGMENT
-$SG132111 DB	'XInputGetBatteryInformation1_3_Detour', 00H
-	ORG $+2
-$SG132112 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132106 DB	'XInputGetCapabilities1_3_Detour', 00H
+$SG132107 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132129 DB	'XInputSetState1_3_Detour', 00H
-	ORG $+3
-$SG132130 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG132152 DB	'XInputGetState1_4_Detour', 00H
-	ORG $+3
-$SG132153 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG132172 DB	'XInputGetStateEx1_4_Detour', 00H
-	ORG $+1
-$SG132173 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG132193 DB	'XInputGetCapabilities1_4_Detour', 00H
-	ORG $+4
-$SG132194 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG132214 DB	'XInputGetBatteryInformation1_4_Detour', 00H
+$SG132126 DB	'XInputGetBatteryInformation1_3_Detour', 00H
 	ORG $+6
-$SG132215 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132127 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132233 DB	'XInputSetState1_4_Detour', 00H
+$SG132144 DB	'XInputSetState1_3_Detour', 00H
 	ORG $+3
-$SG132234 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132145 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132252 DB	'XInputGetState9_1_0_Detour', 00H
-	ORG $+1
-$SG132253 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG132274 DB	'XInputGetCapabilities9_1_0_Detour', 00H
-	ORG $+2
-$SG132275 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG132293 DB	'XInputSetState9_1_0_Detour', 00H
-	ORG $+1
-$SG132294 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG132337 DB	'XInputGetState', 00H
-	ORG $+1
-$SG132338 DB	'XInputGetState', 00H
-	ORG $+1
-$SG132339 DB	'XInputGetCapabilities', 00H
-	ORG $+2
-$SG132340 DB	'XInputGetCapabilities', 00H
-	ORG $+2
-$SG132341 DB	'XInputSetState', 00H
-	ORG $+1
-$SG132342 DB	'XInputSetState', 00H
-	ORG $+1
-$SG132343 DB	'XInputGetBatteryInformation', 00H
-$SG132345 DB	'XInputGetBatteryInformation', 00H
-$SG132347 DB	'XInputEnable', 00H
+$SG132167 DB	'XInputGetState1_4_Detour', 00H
 	ORG $+3
-$SG132349 DB	'XInputEnable', 00H
+$SG132168 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG132187 DB	'XInputGetStateEx1_4_Detour', 00H
+	ORG $+1
+$SG132188 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG132208 DB	'XInputGetCapabilities1_4_Detour', 00H
+	ORG $+4
+$SG132209 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG132229 DB	'XInputGetBatteryInformation1_4_Detour', 00H
+	ORG $+6
+$SG132230 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG132248 DB	'XInputSetState1_4_Detour', 00H
+	ORG $+3
+$SG132249 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG132267 DB	'XInputGetState9_1_0_Detour', 00H
+	ORG $+1
+$SG132268 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG132289 DB	'XInputGetCapabilities9_1_0_Detour', 00H
+	ORG $+2
+$SG132290 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG132308 DB	'XInputSetState9_1_0_Detour', 00H
+	ORG $+1
+$SG132309 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG132352 DB	'XInputGetState', 00H
+	ORG $+1
+$SG132353 DB	'XInputGetState', 00H
+	ORG $+1
+$SG132354 DB	'XInputGetCapabilities', 00H
+	ORG $+2
+$SG132355 DB	'XInputGetCapabilities', 00H
+	ORG $+2
+$SG132356 DB	'XInputSetState', 00H
+	ORG $+1
+$SG132357 DB	'XInputSetState', 00H
+	ORG $+1
+$SG132358 DB	'XInputGetBatteryInformation', 00H
+$SG132360 DB	'XInputGetBatteryInformation', 00H
+$SG132362 DB	'XInputEnable', 00H
+	ORG $+3
+$SG132364 DB	'XInputEnable', 00H
 	ORG $+7
-$SG132365 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132380 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, 00H, 00H
 	ORG $+2
-$SG132366 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132381 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132377 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132392 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '3', 00H, 00H, 00H
 	ORG $+2
-$SG132378 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132393 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132389 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132404 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, 00H, 00H
-$SG132390 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132405 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG132409 DB	'XInputGetState', 00H
+$SG132424 DB	'XInputGetState', 00H
 	ORG $+5
-$SG132411 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132426 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -161,7 +169,7 @@ $SG132411 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%'
 	DB	00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+6
-$SG132416 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132431 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -171,7 +179,7 @@ $SG132416 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, 00H, 00H
 	ORG $+6
-$SG132418 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132433 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -180,9 +188,9 @@ $SG132418 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'o', 00H, 'o', 00H, 'k', 00H, ' ', 00H, 'f', 00H, 'r', 00H
 	DB	'o', 00H, 'm', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, ''''
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG132426 DB	'XInputSetState', 00H
+$SG132441 DB	'XInputSetState', 00H
 	ORG $+1
-$SG132428 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132443 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -191,7 +199,7 @@ $SG132428 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H
 	DB	's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132433 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132448 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -202,7 +210,7 @@ $SG132433 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG132435 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132450 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -212,9 +220,9 @@ $SG132435 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, ' ', 00H, 'f', 00H, 'r', 00H, 'o'
 	DB	00H, 'm', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG132443 DB	'XInputGetCapabilities', 00H
+$SG132458 DB	'XInputGetCapabilities', 00H
 	ORG $+6
-$SG132445 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132460 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -223,7 +231,7 @@ $SG132445 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H
 	DB	00H
-$SG132450 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132465 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -233,7 +241,7 @@ $SG132450 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'u', 00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H
 	DB	'.', 00H, 00H, 00H
-$SG132452 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132467 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -244,9 +252,9 @@ $SG132452 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'o', 00H, 'm', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
 	DB	'''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132461 DB	'XInputGetBatteryInformation', 00H
+$SG132476 DB	'XInputGetBatteryInformation', 00H
 	ORG $+4
-$SG132463 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132478 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -256,7 +264,7 @@ $SG132463 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132467 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132482 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -267,7 +275,7 @@ $SG132467 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
 	DB	'''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132469 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132484 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -279,7 +287,7 @@ $SG132469 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, 00H, 00H
 	ORG $+4
-$SG132479 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132494 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -288,7 +296,7 @@ $SG132479 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
 	DB	'''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132483 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132498 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -298,7 +306,7 @@ $SG132483 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%'
 	DB	00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132485 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132500 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -309,9 +317,9 @@ $SG132485 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H
 	DB	'.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132494 DB	'XInputEnable', 00H
+$SG132509 DB	'XInputEnable', 00H
 	ORG $+7
-$SG132496 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132511 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -321,7 +329,7 @@ $SG132496 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.'
 	DB	00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132500 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132515 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -332,7 +340,7 @@ $SG132500 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132502 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132517 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -344,7 +352,7 @@ $SG132502 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H
 	DB	00H
 	ORG $+6
-$SG133785 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133800 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o'
@@ -363,26 +371,26 @@ $SG133785 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, ' ', 00H, 'a', 00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H
 	DB	't', 00H, 'e', 00H, 'n', 00H, 'd', 00H, 'e', 00H, 'd', 00H, '.'
 	DB	00H, 00H, 00H
-$SG133786 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133801 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133788 DB	'XInputGetState', 00H
+$SG133803 DB	'XInputGetState', 00H
 	ORG $+1
-$SG133791 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133806 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133793 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133808 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133795 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133810 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG133816 DB	'XInput1_3.dll', 00H
+$SG133831 DB	'XInput1_3.dll', 00H
 	ORG $+2
-$SG133817 DB	'XInput1_4.dll', 00H
+$SG133832 DB	'XInput1_4.dll', 00H
 	ORG $+2
-$SG133818 DB	'XInput9_1_0.dll', 00H
-$SG133829 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG133833 DB	'XInput9_1_0.dll', 00H
+$SG133844 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'u', 00H
 	DB	's', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'X', 00H, 'I', 00H, 'n'
@@ -392,17 +400,17 @@ $SG133829 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'u', 00H, 't', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o', 00H, 'k'
 	DB	00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG133834 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133849 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133836 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133851 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133838 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133853 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+4
-$SG132020 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132035 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, 'W', 00H, 'A', 00H, 'R', 00H, 'N', 00H, 'I', 00H, 'N', 00H
 	DB	'G', 00H, ':', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'i', 00H, 'r'
@@ -429,27 +437,18 @@ $SG132020 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'l', 00H, 'y', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG132051 DB	'XInputGetState1_3_Detour', 00H
+$SG132066 DB	'XInputGetState1_3_Detour', 00H
 	ORG $+7
-$SG132052 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132067 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132071 DB	'XInputGetStateEx1_3_Detour', 00H
+$SG132086 DB	'XInputGetStateEx1_3_Detour', 00H
 	ORG $+1
-$SG132072 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG132091 DB	'XInputGetCapabilities1_3_Detour', 00H
-	ORG $+4
-$SG132092 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132087 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
@@ -1055,13 +1054,13 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A
 _DATA	SEGMENT
-?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG133816 ; `SK_Input_PreHookXInput'::`7'::tests
+?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG133831 ; `SK_Input_PreHookXInput'::`7'::tests
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG133817
+	DD	FLAT:$SG133832
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG133818
+	DD	FLAT:$SG133833
 	DB	00H
 	ORG $+3
 _DATA	ENDS
@@ -8636,7 +8635,7 @@ _TEXT	SEGMENT
 
 ; 905  :   if (! config.input.gamepad.hook_xinput)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+677, 0
 	je	$LN87@SK_XInput_
 
 ; 906  :     return;
@@ -8645,7 +8644,7 @@ _TEXT	SEGMENT
 ; 909  :   //   but may improve compatibility with X360ce.
 ; 910  :   if (! config.input.gamepad.rehook_xinput)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+669, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
 	je	$LN87@SK_XInput_
 
 ; 911  :     return;
@@ -8712,7 +8711,7 @@ $LN102@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+12]
 	push	eax
 	push	DWORD PTR [ebx+8]
-	push	OFFSET $SG132409
+	push	OFFSET $SG132424
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -8726,10 +8725,10 @@ $LN102@SK_XInput_:
 ; 935  :       {
 ; 936  :         SK_LOG0 ( ( L" Re-hooked XInput using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN11@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132411
+	push	OFFSET $SG132426
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -8789,10 +8788,10 @@ $LN9@SK_XInput_:
 ; 949  :       {
 ; 950  :         SK_LOG0 ( ( L" Failed to re-hook XInput using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN16@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132416
+	push	OFFSET $SG132431
 
 ; 951  :                pCtx->wszModuleName ),
 ; 952  :             L"Input Mgr." );
@@ -8807,10 +8806,10 @@ $LN7@SK_XInput_:
 ; 957  :     {
 ; 958  :       SK_LOG0 ( ( L" Failed to remove XInput hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN16@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132418
+	push	OFFSET $SG132433
 $LN120@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -8877,7 +8876,7 @@ $LN105@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+120]
 	push	eax
 	push	DWORD PTR [ebx+116]
-	push	OFFSET $SG132426
+	push	OFFSET $SG132441
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -8891,10 +8890,10 @@ $LN105@SK_XInput_:
 ; 984  :       {
 ; 985  :         SK_LOG0 ( ( L" Re-hooked XInput (Set) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN24@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132428
+	push	OFFSET $SG132443
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -8954,10 +8953,10 @@ $LN22@SK_XInput_:
 ; 998  :       {
 ; 999  :         SK_LOG0 ( ( L" Failed to re-hook XInput (Set) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN29@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132433
+	push	OFFSET $SG132448
 
 ; 1000 :                pCtx->wszModuleName ),
 ; 1001 :             L"Input Mgr." );
@@ -8972,10 +8971,10 @@ $LN20@SK_XInput_:
 ; 1006 :     {
 ; 1007 :       SK_LOG0 ( ( L" Failed to remove XInput (Set) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN29@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132435
+	push	OFFSET $SG132450
 $LN121@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -9041,7 +9040,7 @@ $LN108@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+48]
 	push	eax
 	push	DWORD PTR [ebx+44]
-	push	OFFSET $SG132443
+	push	OFFSET $SG132458
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -9055,10 +9054,10 @@ $LN108@SK_XInput_:
 ; 1033 :       {
 ; 1034 :         SK_LOG0 ( ( L" Re-hooked XInput (Caps) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN37@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132445
+	push	OFFSET $SG132460
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -9118,10 +9117,10 @@ $LN35@SK_XInput_:
 ; 1047 :       {
 ; 1048 :         SK_LOG0 ( ( L" Failed to re-hook XInput (Caps) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN42@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132450
+	push	OFFSET $SG132465
 
 ; 1049 :                pCtx->wszModuleName ),
 ; 1050 :             L"Input Mgr." );
@@ -9136,10 +9135,10 @@ $LN33@SK_XInput_:
 ; 1055 :     {
 ; 1056 :       SK_LOG0 ( ( L" Failed to remove XInput (Caps) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN42@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132452
+	push	OFFSET $SG132467
 $LN122@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -9214,7 +9213,7 @@ $LN111@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+84]
 	push	eax
 	push	DWORD PTR [ebx+80]
-	push	OFFSET $SG132461
+	push	OFFSET $SG132476
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -9228,10 +9227,10 @@ $LN111@SK_XInput_:
 ; 1085 :         {
 ; 1086 :           SK_LOG0 ( ( L" Re-hooked XInput (Battery) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN51@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132463
+	push	OFFSET $SG132478
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -9277,10 +9276,10 @@ $LN49@SK_XInput_:
 ; 1097 :         {
 ; 1098 :           SK_LOG0 ( ( L" Failed to re-hook XInput (Battery) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN55@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132467
+	push	OFFSET $SG132482
 
 ; 1099 :                  pCtx->wszModuleName ),
 ; 1100 :               L"Input Mgr." );
@@ -9295,10 +9294,10 @@ $LN47@SK_XInput_:
 ; 1105 :       {
 ; 1106 :         SK_LOG0 ( ( L" Failed to remove XInput (Battery) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN55@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132469
+	push	OFFSET $SG132484
 $LN123@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -9386,10 +9385,10 @@ $LN114@SK_XInput_:
 ; 1135 :         {
 ; 1136 :           SK_LOG0 ( ( L" Re-hooked XInput (Ex) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN64@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132479
+	push	OFFSET $SG132494
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -9435,10 +9434,10 @@ $LN62@SK_XInput_:
 ; 1147 :         {
 ; 1148 :           SK_LOG0 ( ( L" Failed to re-hook XInput (Ex) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN68@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132483
+	push	OFFSET $SG132498
 
 ; 1149 :                  pCtx->wszModuleName ),
 ; 1150 :               L"Input Mgr." );
@@ -9453,10 +9452,10 @@ $LN60@SK_XInput_:
 ; 1155 :       {
 ; 1156 :         SK_LOG0 ( ( L" Failed to remove XInput (Ex) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN68@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132485
+	push	OFFSET $SG132500
 $LN124@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -9530,7 +9529,7 @@ $LN117@SK_XInput_:
 	lea	eax, DWORD PTR [ebx+156]
 	push	eax
 	push	DWORD PTR [ebx+152]
-	push	OFFSET $SG132494
+	push	OFFSET $SG132509
 	push	DWORD PTR [ebx]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -9544,10 +9543,10 @@ $LN117@SK_XInput_:
 ; 1185 :         {
 ; 1186 :           SK_LOG0 ( ( L" Re-hooked XInput (Enable) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN77@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132496
+	push	OFFSET $SG132511
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -9593,10 +9592,10 @@ $LN75@SK_XInput_:
 ; 1197 :         {
 ; 1198 :           SK_LOG0 ( ( L" Failed to re-hook XInput (Enable) using '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN81@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132500
+	push	OFFSET $SG132515
 
 ; 1199 :                  pCtx->wszModuleName ),
 ; 1200 :               L"Input Mgr." );
@@ -9611,10 +9610,10 @@ $LN73@SK_XInput_:
 ; 1205 :       {
 ; 1206 :         SK_LOG0 ( ( L" Failed to remove XInput (Enable) hook from '%s'...",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN81@SK_XInput_
 	push	DWORD PTR [ebx]
-	push	OFFSET $SG132502
+	push	OFFSET $SG132517
 $LN125@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -9911,7 +9910,7 @@ _pCtx$ = 8						; size = 4
 ; 715  :   pCtx->XInputGetState_Target =
 
 	mov	esi, DWORD PTR _pCtx$[ebp]
-	push	OFFSET $SG132337
+	push	OFFSET $SG132352
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -9926,7 +9925,7 @@ _pCtx$ = 8						; size = 4
 	push	0
 	push	eax
 	push	DWORD PTR [esi+8]
-	push	OFFSET $SG132338
+	push	OFFSET $SG132353
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -9936,7 +9935,7 @@ _pCtx$ = 8						; size = 4
 ; 723  : 
 ; 724  :   pCtx->XInputGetCapabilities_Target =
 
-	push	OFFSET $SG132339
+	push	OFFSET $SG132354
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -9951,7 +9950,7 @@ _pCtx$ = 8						; size = 4
 	push	0
 	push	eax
 	push	DWORD PTR [esi+44]
-	push	OFFSET $SG132340
+	push	OFFSET $SG132355
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -9961,7 +9960,7 @@ _pCtx$ = 8						; size = 4
 ; 732  : 
 ; 733  :   pCtx->XInputSetState_Target =
 
-	push	OFFSET $SG132341
+	push	OFFSET $SG132356
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -9976,7 +9975,7 @@ _pCtx$ = 8						; size = 4
 	push	0
 	push	eax
 	push	DWORD PTR [esi+116]
-	push	OFFSET $SG132342
+	push	OFFSET $SG132357
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -9986,7 +9985,7 @@ _pCtx$ = 8						; size = 4
 ; 741  : 
 ; 742  :   pCtx->XInputGetBatteryInformation_Target =
 
-	push	OFFSET $SG132343
+	push	OFFSET $SG132358
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -10009,7 +10008,7 @@ _pCtx$ = 8						; size = 4
 	lea	eax, DWORD PTR [esi+84]
 	push	eax
 	push	DWORD PTR [esi+80]
-	push	OFFSET $SG132345
+	push	OFFSET $SG132360
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN2@SK_Input_H:
@@ -10056,7 +10055,7 @@ $LN3@SK_Input_H:
 ; 769  : 
 ; 770  :   pCtx->XInputEnable_Target =
 
-	push	OFFSET $SG132347
+	push	OFFSET $SG132362
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -10079,7 +10078,7 @@ $LN3@SK_Input_H:
 	lea	eax, DWORD PTR [esi+156]
 	push	eax
 	push	DWORD PTR [esi+152]
-	push	OFFSET $SG132349
+	push	OFFSET $SG132364
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN4@SK_Input_H:
@@ -10253,12 +10252,12 @@ _pVibration$ = 12					; size = 4
 ; 677  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputSetState9_1_0_Detour@@YGKKPAU_XINPUT_VIBRATION@@@Z@4_NA, 0
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputSetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputSetS
-	push	OFFSET $SG132293
-	push	OFFSET $SG132294
+	push	OFFSET $SG132308
+	push	OFFSET $SG132309
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -10338,12 +10337,12 @@ $LN6@XInputSetS:
 	call	?SK_ImGui_WantGamepadCapture@@YA_NXZ	; SK_ImGui_WantGamepadCapture
 	test	al, al
 	je	SHORT $LN8@XInputSetS
-	cmp	esi, DWORD PTR ?config@@3Usk_config_t@@A+680
+	cmp	esi, DWORD PTR ?config@@3Usk_config_t@@A+684
 	jne	SHORT $LN8@XInputSetS
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+670, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
 	jne	SHORT $LN9@XInputSetS
 $LN8@XInputSetS:
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+704, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+708, 0
 	jne	SHORT $LN9@XInputSetS
 	xor	bl, bl
 	jmp	SHORT $LN10@XInputSetS
@@ -10464,12 +10463,12 @@ _pCapabilities$ = 16					; size = 4
 ; 641  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetCapabilities9_1_0_Detour@@YGKKKPAU_XINPUT_CAPABILITIES@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetC
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetC
-	push	OFFSET $SG132274
-	push	OFFSET $SG132275
+	push	OFFSET $SG132289
+	push	OFFSET $SG132290
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -10630,12 +10629,12 @@ _pState$ = 12						; size = 4
 ; 596  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetState9_1_0_Detour@@YGKKPAU_XINPUT_STATE@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132252
-	push	OFFSET $SG132253
+	push	OFFSET $SG132267
+	push	OFFSET $SG132268
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -10820,12 +10819,12 @@ _pVibration$ = 12					; size = 4
 ; 551  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputSetState1_4_Detour@@YGKKPAU_XINPUT_VIBRATION@@@Z@4_NA, 0
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputSetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputSetS
-	push	OFFSET $SG132233
-	push	OFFSET $SG132234
+	push	OFFSET $SG132248
+	push	OFFSET $SG132249
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -10905,12 +10904,12 @@ $LN6@XInputSetS:
 	call	?SK_ImGui_WantGamepadCapture@@YA_NXZ	; SK_ImGui_WantGamepadCapture
 	test	al, al
 	je	SHORT $LN8@XInputSetS
-	cmp	esi, DWORD PTR ?config@@3Usk_config_t@@A+680
+	cmp	esi, DWORD PTR ?config@@3Usk_config_t@@A+684
 	jne	SHORT $LN8@XInputSetS
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+670, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
 	jne	SHORT $LN9@XInputSetS
 $LN8@XInputSetS:
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+704, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+708, 0
 	jne	SHORT $LN9@XInputSetS
 	xor	bl, bl
 	jmp	SHORT $LN10@XInputSetS
@@ -11030,12 +11029,12 @@ _pBatteryInformation$ = 16				; size = 4
 ; 515  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetBatteryInformation1_4_Detour@@YGKKEPAU_XINPUT_BATTERY_INFORMATION@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetB
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetB
-	push	OFFSET $SG132214
-	push	OFFSET $SG132215
+	push	OFFSET $SG132229
+	push	OFFSET $SG132230
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -11196,12 +11195,12 @@ _pCapabilities$ = 16					; size = 4
 ; 478  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetCapabilities1_4_Detour@@YGKKKPAU_XINPUT_CAPABILITIES@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetC
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetC
-	push	OFFSET $SG132193
-	push	OFFSET $SG132194
+	push	OFFSET $SG132208
+	push	OFFSET $SG132209
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -11362,12 +11361,12 @@ _pState$ = 12						; size = 4
 ; 433  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetStateEx1_4_Detour@@YGKKPAU_XINPUT_STATE_EX@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132172
-	push	OFFSET $SG132173
+	push	OFFSET $SG132187
+	push	OFFSET $SG132188
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -11553,12 +11552,12 @@ _pState$ = 12						; size = 4
 ; 389  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetState1_4_Detour@@YGKKPAU_XINPUT_STATE@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132152
-	push	OFFSET $SG132153
+	push	OFFSET $SG132167
+	push	OFFSET $SG132168
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -11787,12 +11786,12 @@ _pVibration$ = 12					; size = 4
 ; 326  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputSetState1_3_Detour@@YGKKPAU_XINPUT_VIBRATION@@@Z@4_NA, 0
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputSetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputSetS
-	push	OFFSET $SG132129
-	push	OFFSET $SG132130
+	push	OFFSET $SG132144
+	push	OFFSET $SG132145
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -11872,12 +11871,12 @@ $LN6@XInputSetS:
 	call	?SK_ImGui_WantGamepadCapture@@YA_NXZ	; SK_ImGui_WantGamepadCapture
 	test	al, al
 	je	SHORT $LN8@XInputSetS
-	cmp	esi, DWORD PTR ?config@@3Usk_config_t@@A+680
+	cmp	esi, DWORD PTR ?config@@3Usk_config_t@@A+684
 	jne	SHORT $LN8@XInputSetS
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+670, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
 	jne	SHORT $LN9@XInputSetS
 $LN8@XInputSetS:
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+704, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+708, 0
 	jne	SHORT $LN9@XInputSetS
 	xor	bl, bl
 	jmp	SHORT $LN10@XInputSetS
@@ -11997,12 +11996,12 @@ _pBatteryInformation$ = 16				; size = 4
 ; 290  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetBatteryInformation1_3_Detour@@YGKKEPAU_XINPUT_BATTERY_INFORMATION@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetB
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetB
-	push	OFFSET $SG132111
-	push	OFFSET $SG132112
+	push	OFFSET $SG132126
+	push	OFFSET $SG132127
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -12163,12 +12162,12 @@ _pCapabilities$ = 16					; size = 4
 ; 253  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetCapabilities1_3_Detour@@YGKKKPAU_XINPUT_CAPABILITIES@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetC
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetC
-	push	OFFSET $SG132091
-	push	OFFSET $SG132092
+	push	OFFSET $SG132106
+	push	OFFSET $SG132107
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -12329,12 +12328,12 @@ _pState$ = 12						; size = 4
 ; 208  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetStateEx1_3_Detour@@YGKKPAU_XINPUT_STATE_EX@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132071
-	push	OFFSET $SG132072
+	push	OFFSET $SG132086
+	push	OFFSET $SG132087
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -12548,12 +12547,12 @@ _pState$ = 12						; size = 4
 ; 164  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??XInputGetState1_3_Detour@@YGKKPAU_XINPUT_STATE@@@Z@4_NA, 0
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN2@XInputGetS
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132051
-	push	OFFSET $SG132052
+	push	OFFSET $SG132066
+	push	OFFSET $SG132067
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19637,7 +19636,7 @@ $LN83@SK_XInput_:
 
 ; 116  :       SK_LOG0 ( ( L"WARNING: Third-party module '%s' uses different XInput interface version "
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN7@SK_XInput_
 	push	DWORD PTR _hModCaller$[ebp]
 	lea	eax, DWORD PTR $T2[ebp]
@@ -19668,7 +19667,7 @@ $LN71@SK_XInput_:
 	push	DWORD PTR [eax]
 	push	DWORD PTR [edi]
 	push	ecx
-	push	OFFSET $SG132020
+	push	OFFSET $SG132035
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -20967,7 +20966,7 @@ _iJoyID$ = 8						; size = 4
 
 ; 1478 :   iJoyID =
 
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 
 ; 1479 :     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
 ; 1480 : 
@@ -21093,8 +21092,8 @@ $LN3@SK_XInput_:
 
 ; 1253 :   if (config.input.gamepad.xinput.disable_rumble)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+704, 0
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+688]
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+708, 0
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+692]
 	jne	SHORT $LN6@SK_XInput_
 
 ; 1254 :     return false;
@@ -21252,9 +21251,9 @@ _pState$ = 12						; size = 4
 
 ; 1280 :   if (! config.input.gamepad.hook_xinput)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+677, 0
 	mov	eax, DWORD PTR [eax]
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+688]
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+692]
 	je	$LN20@SK_XInput_
 
 ; 1281 :     return false;
@@ -21363,9 +21362,9 @@ $LN11@SK_XInput_:
 ; 1321 :     {
 ; 1322 :       SK_LOG0 ( ( L"Unable to hook XInput, attempting to enter limp-mode..."
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN12@SK_XInput_
-	push	OFFSET $SG133785
+	push	OFFSET $SG133800
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -21381,7 +21380,7 @@ $LN12@SK_XInput_:
 ; 1330 :       HMODULE hModXInput1_3 =
 ; 1331 :         LoadLibraryW_Original (L"XInput1_3.dll");
 
-	push	OFFSET $SG133786
+	push	OFFSET $SG133801
 	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672, OFFSET ?xinput_ctx@@3USK_XInputContext@@A ; xinput_ctx
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 
@@ -21394,7 +21393,7 @@ $LN12@SK_XInput_:
 ; 1334 :       {
 ; 1335 :         pCtx->XInputGetState_Original =
 
-	push	OFFSET $SG133788
+	push	OFFSET $SG133803
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+12, eax
@@ -21461,7 +21460,7 @@ $LN49@SK_XInput_:
 ; 1354 :     if (GetModuleHandle (L"XInput1_3.dll"))
 
 	mov	edi, DWORD PTR __imp__GetModuleHandleW@4
-	push	OFFSET $SG133791
+	push	OFFSET $SG133806
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	call	edi
 	test	eax, eax
@@ -21475,7 +21474,7 @@ $LN15@SK_XInput_:
 ; 1356 : 
 ; 1357 :     if (GetModuleHandle (L"XInput1_4.dll"))
 
-	push	OFFSET $SG133793
+	push	OFFSET $SG133808
 	call	edi
 	test	eax, eax
 	je	SHORT $LN16@SK_XInput_
@@ -21488,7 +21487,7 @@ $LN16@SK_XInput_:
 ; 1359 : 
 ; 1360 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
 
-	push	OFFSET $SG133795
+	push	OFFSET $SG133810
 	call	edi
 	test	eax, eax
 	je	SHORT $LN17@SK_XInput_
@@ -21844,7 +21843,7 @@ __$EHRec$ = -12						; size = 12
 
 ; 1431 :   if (! config.input.gamepad.hook_xinput)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+677, 0
 	push	esi
 	je	$LN26@SK_Input_P
 
@@ -21895,9 +21894,9 @@ $LN5@SK_Input_P:
 ; 1446 :     {
 ; 1447 :       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN6@SK_Input_P
-	push	OFFSET $SG133829
+	push	OFFSET $SG133844
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	mov	al, BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+4
@@ -21930,7 +21929,7 @@ $LN9@SK_Input_P:
 ; 1453 : 
 ; 1454 :     if (GetModuleHandle (L"XInput1_3.dll"))
 
-	push	OFFSET $SG133834
+	push	OFFSET $SG133849
 	call	esi
 	test	eax, eax
 	je	SHORT $LN10@SK_Input_P
@@ -21943,7 +21942,7 @@ $LN10@SK_Input_P:
 ; 1456 : 
 ; 1457 :     if (GetModuleHandle (L"XInput1_4.dll"))
 
-	push	OFFSET $SG133836
+	push	OFFSET $SG133851
 	call	esi
 	test	eax, eax
 	je	SHORT $LN11@SK_Input_P
@@ -21956,7 +21955,7 @@ $LN11@SK_Input_P:
 ; 1459 :     
 ; 1460 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
 
-	push	OFFSET $SG133838
+	push	OFFSET $SG133853
 	call	esi
 	test	eax, eax
 	je	SHORT $LN12@SK_Input_P
@@ -22020,7 +22019,7 @@ _TEXT	SEGMENT
 
 ; 873  :   if (! config.input.gamepad.hook_xinput)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+677, 0
 	je	$LN5@SK_Input_H
 
 ; 874  :     return;
@@ -22042,9 +22041,9 @@ _TEXT	SEGMENT
 ; 882  : 
 ; 883  :     SK_LOG0 ( ( L"  >> Hooking XInput9_1_0" ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG132389
+	push	OFFSET $SG132404
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -22055,8 +22054,8 @@ $LN4@SK_Input_H:
 ; 886  :     pCtx->wszModuleName                      = L"XInput9_1_0.dll";
 ; 887  :     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
 
-	push	OFFSET $SG132390
-	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+448, OFFSET $SG132390
+	push	OFFSET $SG132405
+	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+448, OFFSET $SG132405
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
 ; 888  :     pCtx->XInputGetState_Detour              = XInputGetState9_1_0_Detour;
@@ -22101,7 +22100,7 @@ _TEXT	SEGMENT
 
 ; 808  :   if (! config.input.gamepad.hook_xinput)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+677, 0
 	je	$LN5@SK_Input_H
 
 ; 809  :     return;
@@ -22123,9 +22122,9 @@ _TEXT	SEGMENT
 ; 817  : 
 ; 818  :     SK_LOG0 ( ( L"  >> Hooking XInput 1.4" ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG132365
+	push	OFFSET $SG132380
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -22136,8 +22135,8 @@ $LN4@SK_Input_H:
 ; 821  :     pCtx->wszModuleName                      = L"XInput1_4.dll";
 ; 822  :     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
 
-	push	OFFSET $SG132366
-	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+224, OFFSET $SG132366
+	push	OFFSET $SG132381
+	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+224, OFFSET $SG132381
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
 ; 823  :     pCtx->XInputEnable_Detour                = XInputEnable1_4_Detour;
@@ -22185,7 +22184,7 @@ _TEXT	SEGMENT
 
 ; 841  :   if (! config.input.gamepad.hook_xinput)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+677, 0
 	je	$LN5@SK_Input_H
 
 ; 842  :     return;
@@ -22207,9 +22206,9 @@ _TEXT	SEGMENT
 ; 850  : 
 ; 851  :     SK_LOG0 ( ( L"  >> Hooking XInput 1.3" ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG132377
+	push	OFFSET $SG132392
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -22220,8 +22219,8 @@ $LN4@SK_Input_H:
 ; 854  :     pCtx->wszModuleName                      = L"XInput1_3.dll";
 ; 855  :     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
 
-	push	OFFSET $SG132378
-	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A, OFFSET $SG132378
+	push	OFFSET $SG132393
+	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A, OFFSET $SG132393
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
 ; 856  :     pCtx->XInputEnable_Detour                = XInputEnable1_3_Detour;

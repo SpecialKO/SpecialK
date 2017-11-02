@@ -371,8 +371,8 @@ SK_IT_ControlPanel (void)
 
       if (changed)
       {
-        it_config.godrays.max->set_value (shaft_prefs.max_intensity); it_config.godrays.max->store ();
-        it_config.godrays.min->set_value (shaft_prefs.min_intensity); it_config.godrays.min->store ();
+        it_config.godrays.max->store (shaft_prefs.max_intensity);
+        it_config.godrays.min->store (shaft_prefs.min_intensity);
 
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
       }
@@ -396,7 +396,7 @@ SK_IT_ControlPanel (void)
 
       if (changed)
       {
-        it_config.shadows.min_bias->set_value (min_shadow_bias); it_config.shadows.min_bias->store ();
+        it_config.shadows.min_bias->store (min_shadow_bias);
 
         SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
       }
@@ -494,12 +494,8 @@ SK_IT_InitPlugin (void)
                                              L"Indigo.Godrays",
                                                L"MaximumIntensity" );
 
-  if (it_config.godrays.min->load ())
-    shaft_prefs.min_intensity = it_config.godrays.min->get_value ();
-
-  if (it_config.godrays.max->load ())
-    shaft_prefs.max_intensity = it_config.godrays.max->get_value ();
-
+  it_config.godrays.min->load (shaft_prefs.min_intensity);
+  it_config.godrays.max->load (shaft_prefs.max_intensity);
 
   it_config.shadows.min_bias =
       dynamic_cast <sk::ParameterFloat *>
@@ -509,9 +505,7 @@ SK_IT_InitPlugin (void)
                                                   L"Indigo.Shadows",
                                                     L"MinimumBias" );
 
-  if (it_config.shadows.min_bias->load ())
-    min_shadow_bias = it_config.shadows.min_bias->get_value ();
-  else
+  if (! it_config.shadows.min_bias->load (min_shadow_bias))
     min_shadow_bias = 0.000133f;
 
 

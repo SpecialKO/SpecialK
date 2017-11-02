@@ -105,6 +105,33 @@ sk::ParameterInt::set_value_str (std::wstring str)
 }
 
 
+void
+sk::ParameterInt::store (int val)
+{
+  set_value      (val);
+  iParameter::store ();
+}
+
+void
+sk::ParameterInt::store_str (std::wstring str)
+{
+  set_value_str  (str);
+  iParameter::store ();
+}
+
+bool
+sk::ParameterInt::load (int& ref)
+{
+  bool bRet = 
+    iParameter::load ();
+
+  if (bRet)
+    ref = get_value ();
+
+  return bRet;
+}
+
+
 std::wstring
 sk::ParameterInt64::get_value_str (void)
 {
@@ -131,6 +158,33 @@ void
 sk::ParameterInt64::set_value_str (std::wstring str)
 {
   value = _wtoll (str.c_str ());
+}
+
+
+void
+sk::ParameterInt64::store (int64_t val)
+{
+  set_value      (val);
+  iParameter::store ();
+}
+
+void
+sk::ParameterInt64::store_str (std::wstring str)
+{
+  set_value_str  (str);
+  iParameter::store ();
+}
+
+bool
+sk::ParameterInt64::load (int64_t& ref)
+{
+  bool bRet = 
+    iParameter::load ();
+
+  if (bRet)
+    ref = get_value ();
+
+  return bRet;
 }
 
 
@@ -234,6 +288,33 @@ sk::ParameterBool::set_value_str (std::wstring str)
   }
 }
 
+void
+sk::ParameterBool::store (bool val)
+{
+  set_value      (val);
+  iParameter::store ();
+}
+
+void
+sk::ParameterBool::store_str (std::wstring str)
+{
+  set_value_str  (str);
+  iParameter::store ();
+}
+
+bool
+sk::ParameterBool::load (bool& ref)
+{
+  bool bRet = 
+    iParameter::load ();
+
+  if (bRet)
+    ref = get_value ();
+
+  return bRet;
+}
+
+
 
 std::wstring
 sk::ParameterFloat::get_value_str (void)
@@ -266,6 +347,33 @@ sk::ParameterFloat::set_value_str (std::wstring str)
 }
 
 
+void
+sk::ParameterFloat::store (float val)
+{
+  set_value      (val);
+  iParameter::store ();
+}
+
+void
+sk::ParameterFloat::store_str (std::wstring str)
+{
+  set_value_str  (str);
+  iParameter::store ();
+}
+
+bool
+sk::ParameterFloat::load (float& ref)
+{
+  bool bRet = 
+    iParameter::load ();
+
+  if (bRet)
+    ref = get_value ();
+
+  return bRet;
+}
+
+
 std::wstring
 sk::ParameterStringW::get_value_str (void)
 {
@@ -289,6 +397,32 @@ void
 sk::ParameterStringW::set_value_str (std::wstring str)
 {
   value = str;
+}
+
+void
+sk::ParameterStringW::store (std::wstring val)
+{
+  set_value      (val);
+  iParameter::store ();
+}
+
+void
+sk::ParameterStringW::store_str (std::wstring str)
+{
+  set_value_str  (str);
+  iParameter::store ();
+}
+
+bool
+sk::ParameterStringW::load (std::wstring& ref)
+{
+  bool bRet = 
+    iParameter::load ();
+
+  if (bRet)
+    ref = get_value ();
+
+  return bRet;
 }
 
 
@@ -324,6 +458,32 @@ void
 sk::ParameterVec2f::set_value_str (std::wstring str)
 {
   swscanf (str.c_str (), L"(%f,%f)", &value.x, &value.y);
+}
+
+void
+sk::ParameterVec2f::store (ImVec2 val)
+{
+  set_value      (val);
+  iParameter::store ();
+}
+
+void
+sk::ParameterVec2f::store_str (std::wstring str)
+{
+  set_value_str  (str);
+  iParameter::store ();
+}
+
+bool
+sk::ParameterVec2f::load (ImVec2& ref)
+{
+  bool bRet = 
+    iParameter::load ();
+
+  if (bRet)
+    ref = get_value ();
+
+  return bRet;
 }
 
 

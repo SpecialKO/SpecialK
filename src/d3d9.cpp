@@ -1410,6 +1410,11 @@ SK_D3D9_Present (IDirect3DDevice9 *This,
   return hr;
 }
 
+
+IDirect3DSurface9* pBackBuffer      = nullptr;
+IDirect3DSurface9* pBackBufferCopy  = nullptr;
+
+
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -1501,6 +1506,23 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
     rb.api = SK_RenderAPI::D3D9;
   }
 
+  pBackBuffer     = nullptr;
+  pBackBufferCopy = nullptr;
+
+  static bool zwei2 = (! _wcsicmp (SK_GetHostApp (), L"ZWEI2PDX9.exe"));
+
+  // TEMP HACK
+  if (zwei2)
+  {
+    if (SUCCEEDED (This->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
+    {
+      if (SUCCEEDED (D3D9CreateRenderTarget_Original (This, ImGui::GetIO ( ).DisplaySize.x, ImGui::GetIO ( ).DisplaySize.y, D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE, 0, FALSE, &pBackBufferCopy, nullptr)))
+      {
+        D3D9StretchRect_Original (This, pBackBuffer, nullptr, pBackBufferCopy, nullptr, D3DTEXF_NONE);
+      }
+    }
+  }
+
   SK_BeginBufferSwap ();
 
   HRESULT hr =
@@ -1517,6 +1539,17 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
   }
 
   SK_D3D9_EndFrame ();
+
+  if (zwei2)
+  {
+    if (pBackBufferCopy != nullptr && pBackBuffer != nullptr)
+    {
+      D3D9StretchRect_Original (This, pBackBufferCopy, nullptr, pBackBuffer, nullptr, D3DTEXF_NONE);
+    }
+    
+    if (pBackBuffer)     pBackBuffer->Release      ();
+    if (pBackBufferCopy) pBackBufferCopy->Release  ();
+  }
 
   return hr;
 }
@@ -3430,6 +3463,23 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
     if (pparams != nullptr)
     {
+      static bool zwei2 = (! _wcsicmp (SK_GetHostApp (), L"ZWEI2PDX9.exe"));
+
+      // TEMP HACK
+      if (zwei2)
+      {
+        if (pparams->SwapEffect == D3DSWAPEFFECT_COPY)
+        {
+          pparams->BackBufferFormat       = D3DFMT_X8R8G8B8;
+          pparams->BackBufferCount        = 1;
+          pparams->SwapEffect             = D3DSWAPEFFECT_DISCARD;
+          pparams->MultiSampleType        = D3DMULTISAMPLE_NONE;
+          pparams->MultiSampleQuality     = 0;
+          pparams->EnableAutoDepthStencil = true;
+          pparams->AutoDepthStencilFormat = D3DFMT_D24X8;
+        }
+      }
+
       extern HWND hWndRender;
 
       if (! ReadAcquire (&ImGui_Init))
@@ -3978,6 +4028,23 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
 
   if (config.display.force_windowed)
     hFocusWindow = pPresentationParameters->hDeviceWindow;
+
+  static bool zwei2 = (! _wcsicmp (SK_GetHostApp (), L"ZWEI2PDX9.exe"));
+
+  // TEMP HACK
+  if (zwei2)
+  {
+    if (pPresentationParameters->SwapEffect == D3DSWAPEFFECT_COPY)
+    {
+      pPresentationParameters->BackBufferFormat       = D3DFMT_X8R8G8B8;
+      pPresentationParameters->BackBufferCount        = 1;
+      pPresentationParameters->SwapEffect             = D3DSWAPEFFECT_DISCARD;
+      pPresentationParameters->MultiSampleType        = D3DMULTISAMPLE_NONE;
+      pPresentationParameters->MultiSampleQuality     = 0;
+      pPresentationParameters->EnableAutoDepthStencil = true;
+      pPresentationParameters->AutoDepthStencilFormat = D3DFMT_D24X8;
+    }
+  }
 
   if (ret == E_FAIL)
     D3D9_CALL ( ret, D3D9CreateDevice_Original ( This, Adapter,

@@ -450,34 +450,22 @@ SK_Widget::save (iSK_INI* ini)
 
   if (param_visible)
   {
-    param_visible->set_value  (visible);
-    param_visible->store      ();
+    param_visible->store (visible);
   }
 
   else
     return;
 
-  param_movable->set_value      (     movable      );
-  param_border->set_value       (     border       );
-  param_clickthrough->set_value (     click_through);
-  param_autofit->set_value      (     autofit      );
-  param_resizable->set_value    (     resizable    );
-  param_docking->set_value      ((int)docking      );
-  param_minsize->set_value      (     min_size     );
-  param_maxsize->set_value      (     max_size     );
-  param_size->set_value         (     size         );
-  param_pos->set_value          (     pos          );
-
-  param_movable->store      ();
-  param_border->store       ();
-  param_clickthrough->store ();
-  param_autofit->store      ();
-  param_resizable->store    ();
-  param_docking->store      ();
-  param_minsize->store      ();
-  param_maxsize->store      ();
-  param_size->store         ();
-  param_pos->store          ();
+  param_movable->store      (     movable      );
+  param_border->store       (     border       );
+  param_clickthrough->store (     click_through);
+  param_autofit->store      (     autofit      );
+  param_resizable->store    (     resizable    );
+  param_docking->store      ((int)docking      );
+  param_minsize->store      (     min_size     );
+  param_maxsize->store      (     max_size     );
+  param_size->store         (     size         );
+  param_pos->store          (     pos          );
 
   static DWORD dwLastWrite = 0;
 
@@ -607,8 +595,7 @@ SK_Widget::config_base (void)
 
       if (original_binding != binding->human_readable)
       {
-        param->set_value (binding->human_readable);
-        param->store     ();
+        param->store         (binding->human_readable);
 
         extern iSK_INI* osd_ini;
 

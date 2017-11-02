@@ -54,82 +54,86 @@ _BSS	SEGMENT
 ?SK_RawInput_Backend@@3Usk_input_api_context_s@@A DB 044H DUP (?) ; SK_RawInput_Backend
 _BSS	ENDS
 CONST	SEGMENT
-$SG163840 DB	'GetAsyncKeyState', 00H
+$SG163853 DB	'GetRawInputData', 00H
+$SG163854 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG163855 DB	'GetAsyncKeyState', 00H
 	ORG $+3
-$SG163841 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163856 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163842 DB	'GetKeyState', 00H
-$SG163843 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163857 DB	'GetKeyState', 00H
+$SG163858 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163844 DB	'GetKeyboardState', 00H
+$SG163859 DB	'GetKeyboardState', 00H
 	ORG $+3
-$SG163845 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163860 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163846 DB	'GetCursorPos', 00H
+$SG163861 DB	'GetCursorPos', 00H
 	ORG $+3
-$SG163847 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163862 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163848 DB	'GetCursorInfo', 00H
+$SG163863 DB	'GetCursorInfo', 00H
 	ORG $+2
-$SG163849 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163864 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163850 DB	'GetMouseMovePointsEx', 00H
+$SG163865 DB	'GetMouseMovePointsEx', 00H
 	ORG $+3
-$SG163851 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163866 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163852 DB	'SetCursor', 00H
+$SG163867 DB	'SetCursor', 00H
 	ORG $+2
-$SG163853 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163868 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163854 DB	'SetCursorPos', 00H
+$SG163869 DB	'SetCursorPos', 00H
 	ORG $+3
-$SG163855 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163870 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163856 DB	'SendInput', 00H
+$SG163871 DB	'SendInput', 00H
 	ORG $+2
-$SG163857 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163872 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163858 DB	'mouse_event', 00H
-$SG163859 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163873 DB	'mouse_event', 00H
+$SG163874 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163860 DB	'keybd_event', 00H
-$SG163861 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163875 DB	'keybd_event', 00H
+$SG163876 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163862 DB	'RegisterRawInputDevices', 00H
-$SG163863 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163877 DB	'RegisterRawInputDevices', 00H
+$SG163878 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163864 DB	'GetRegisteredRawInputDevices', 00H
+$SG163879 DB	'GetRegisteredRawInputDevices', 00H
 	ORG $+3
-$SG163865 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163880 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163866 DB	'GetRawInputBuffer', 00H
+$SG163881 DB	'GetRawInputBuffer', 00H
 	ORG $+2
-$SG163867 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163882 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG162856 DB	'RegisterRawInputDevices_Detour', 00H
+$SG162871 DB	'RegisterRawInputDevices_Detour', 00H
 	ORG $+1
-$SG162857 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG162872 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+6
-$SG162859 DB	'[', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H
+$SG162874 DB	'[', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H
 	DB	'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's', 00H, 't', 00H
 	DB	'e', 00H, 'r', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H, 'n'
@@ -144,34 +148,25 @@ $SG162859 DB	'[', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H
 	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
 	DB	' ', 00H, '%', 00H, 'z', 00H, 'u', 00H, 00H, 00H
 	ORG $+2
-$SG162898 DB	'GetRawInputBuffer_Detour', 00H
+$SG162913 DB	'GetRawInputBuffer_Detour', 00H
 	ORG $+3
-$SG162899 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG162914 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG162932 DB	'GetRawInputData_Detour', 00H
+$SG162947 DB	'GetRawInputData_Detour', 00H
 	ORG $+5
-$SG162933 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG162948 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163214 DB	'GetMouseMovePointsEx_Detour', 00H
-$SG163215 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163229 DB	'SetCursor_Detour', 00H
-	ORG $+3
+$SG163229 DB	'GetMouseMovePointsEx_Detour', 00H
 $SG163230 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
@@ -179,103 +174,112 @@ $SG163230 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163263 DB	'GetCursorInfo_Detour', 00H
-	ORG $+7
-$SG163264 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163283 DB	'GetCursorPos_Detour', 00H
-$SG163284 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163301 DB	'SetCursorPos_Detour', 00H
-$SG163302 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163319 DB	'SendInput_Detour', 00H
+$SG163244 DB	'SetCursor_Detour', 00H
 	ORG $+3
-$SG163320 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163245 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163332 DB	'keybd_event_Detour', 00H
-	ORG $+1
-$SG163333 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163346 DB	'mouse_event_Detour', 00H
-	ORG $+1
-$SG163347 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163356 DB	'GetAsyncKeyState_Detour', 00H
-	ORG $+4
-$SG163357 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163372 DB	'GetKeyState_Detour', 00H
-	ORG $+1
-$SG163373 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163389 DB	'GetKeyboardState_Detour', 00H
-	ORG $+4
-$SG163390 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG161407 DB	'HidD_GetPreparsedData_Detour', 00H
+$SG163278 DB	'GetCursorInfo_Detour', 00H
 	ORG $+7
-$SG161408 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163279 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG161442 DB	'HidP_GetData_Detour', 00H
-$SG161443 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163298 DB	'GetCursorPos_Detour', 00H
+$SG163299 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163316 DB	'SetCursorPos_Detour', 00H
+$SG163317 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163334 DB	'SendInput_Detour', 00H
+	ORG $+3
+$SG163335 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163347 DB	'keybd_event_Detour', 00H
+	ORG $+1
+$SG163348 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163361 DB	'mouse_event_Detour', 00H
+	ORG $+1
+$SG163362 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163371 DB	'GetAsyncKeyState_Detour', 00H
+	ORG $+4
+$SG163372 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163387 DB	'GetKeyState_Detour', 00H
+	ORG $+1
+$SG163388 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163404 DB	'GetKeyboardState_Detour', 00H
+	ORG $+4
+$SG163405 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG161422 DB	'HidD_GetPreparsedData_Detour', 00H
+	ORG $+7
+$SG161423 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG161457 DB	'HidP_GetData_Detour', 00H
+$SG161458 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+6
-$SG161477 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG161492 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'u', 00H
 	DB	's', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'H', 00H, 'I', 00H, 'D'
@@ -284,37 +288,33 @@ $SG161477 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, ' ', 00H
 	DB	'h', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 's', 00H, '.', 00H, '.'
 	DB	00H, '.', 00H, 00H, 00H
-$SG161478 DB	'HidP_GetData', 00H
+$SG161493 DB	'HidP_GetData', 00H
 	ORG $+3
-$SG161479 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161494 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161480 DB	'HidD_GetPreparsedData', 00H
+$SG161495 DB	'HidD_GetPreparsedData', 00H
 	ORG $+2
-$SG161481 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161496 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161482 DB	'HidD_FreePreparsedData', 00H
+$SG161497 DB	'HidD_FreePreparsedData', 00H
 	ORG $+1
-$SG161483 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161498 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161484 DB	'HidD_GetFeature', 00H
-$SG161485 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161499 DB	'HidD_GetFeature', 00H
+$SG161500 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161486 DB	'HidP_GetCaps', 00H
+$SG161501 DB	'HidP_GetCaps', 00H
 	ORG $+3
-$SG161487 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161502 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161494 DB	'hid.dll', 00H
-$SG162771 DB	'GetRegisteredRawInputDevices_Detour', 00H
-$SG162772 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG161509 DB	'hid.dll', 00H
+$SG162786 DB	'GetRegisteredRawInputDevices_Detour', 00H
+$SG162787 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163838 DB	'GetRawInputData', 00H
-$SG163839 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	?SK_ImGui_WantGamepadCapture@@YA_NXZ		; SK_ImGui_WantGamepadCapture
 PUBLIC	?SK_ImGui_WantMouseCapture@@YA_NXZ		; SK_ImGui_WantMouseCapture
@@ -710,7 +710,7 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?tests@?1??SK_Input_PreHookHID@@YAXXZ@4PAUsk_import_test_s@@A
 _DATA	SEGMENT
-?tests@?1??SK_Input_PreHookHID@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG161494 ; `SK_Input_PreHookHID'::`2'::tests
+?tests@?1??SK_Input_PreHookHID@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG161509 ; `SK_Input_PreHookHID'::`2'::tests
 	DB	00H
 	ORG $+3
 _DATA	ENDS
@@ -2493,8 +2493,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA ; GetRawInputData_Original
 	push	OFFSET ?GetRawInputData_Detour@@YGIPAUHRAWINPUT__@@IPAXPAII@Z ; GetRawInputData_Detour
-	push	OFFSET $SG163838
-	push	OFFSET $SG163839
+	push	OFFSET $SG163853
+	push	OFFSET $SG163854
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1743 :                              "GetRawInputData",
@@ -2506,8 +2506,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetAsyncKeyState_Original@@3P6GFH@ZA ; GetAsyncKeyState_Original
 	push	OFFSET ?GetAsyncKeyState_Detour@@YGFH@Z	; GetAsyncKeyState_Detour
-	push	OFFSET $SG163840
-	push	OFFSET $SG163841
+	push	OFFSET $SG163855
+	push	OFFSET $SG163856
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1748 :                              "GetAsyncKeyState",
@@ -2519,8 +2519,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetKeyState_Original@@3P6GFH@ZA	; GetKeyState_Original
 	push	OFFSET ?GetKeyState_Detour@@YGFH@Z	; GetKeyState_Detour
-	push	OFFSET $SG163842
-	push	OFFSET $SG163843
+	push	OFFSET $SG163857
+	push	OFFSET $SG163858
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1753 :                              "GetKeyState",
@@ -2532,8 +2532,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetKeyboardState_Original@@3P6GHPAE@ZA ; GetKeyboardState_Original
 	push	OFFSET ?GetKeyboardState_Detour@@YGHPAE@Z ; GetKeyboardState_Detour
-	push	OFFSET $SG163844
-	push	OFFSET $SG163845
+	push	OFFSET $SG163859
+	push	OFFSET $SG163860
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1758 :                              "GetKeyboardState",
@@ -2545,8 +2545,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
 	push	OFFSET ?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z ; GetCursorPos_Detour
-	push	OFFSET $SG163846
-	push	OFFSET $SG163847
+	push	OFFSET $SG163861
+	push	OFFSET $SG163862
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1763 :                              "GetCursorPos",
@@ -2558,8 +2558,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetCursorInfo_Original@@3P6GHPAUtagCURSORINFO@@@ZA ; GetCursorInfo_Original
 	push	OFFSET ?GetCursorInfo_Detour@@YGHPAUtagCURSORINFO@@@Z ; GetCursorInfo_Detour
-	push	OFFSET $SG163848
-	push	OFFSET $SG163849
+	push	OFFSET $SG163863
+	push	OFFSET $SG163864
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1768 :                              "GetCursorInfo",
@@ -2571,8 +2571,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetMouseMovePointsEx_Original@@3P6GHIPAUtagMOUSEMOVEPOINT@@0HK@ZA ; GetMouseMovePointsEx_Original
 	push	OFFSET ?GetMouseMovePointsEx_Detour@@YGHIPAUtagMOUSEMOVEPOINT@@0HK@Z ; GetMouseMovePointsEx_Detour
-	push	OFFSET $SG163850
-	push	OFFSET $SG163851
+	push	OFFSET $SG163865
+	push	OFFSET $SG163866
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1773 :                              "GetMouseMovePointsEx",
@@ -2584,8 +2584,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?SetCursor_Original@@3P6GPAUHICON__@@PAU1@@ZA ; SetCursor_Original
 	push	OFFSET ?SetCursor_Detour@@YGPAUHICON__@@PAU1@@Z ; SetCursor_Detour
-	push	OFFSET $SG163852
-	push	OFFSET $SG163853
+	push	OFFSET $SG163867
+	push	OFFSET $SG163868
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1778 :                              "SetCursor",
@@ -2597,8 +2597,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?SetCursorPos_Original@@3P6GHHH@ZA ; SetCursorPos_Original
 	push	OFFSET ?SetCursorPos_Detour@@YGHHH@Z	; SetCursorPos_Detour
-	push	OFFSET $SG163854
-	push	OFFSET $SG163855
+	push	OFFSET $SG163869
+	push	OFFSET $SG163870
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1783 :                              "SetCursorPos",
@@ -2610,8 +2610,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?SendInput_Original@@3P6GIIPAUtagINPUT@@H@ZA ; SendInput_Original
 	push	OFFSET ?SendInput_Detour@@YGIIPAUtagINPUT@@H@Z ; SendInput_Detour
-	push	OFFSET $SG163856
-	push	OFFSET $SG163857
+	push	OFFSET $SG163871
+	push	OFFSET $SG163872
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1788 :                              "SendInput",
@@ -2623,8 +2623,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?mouse_event_Original@@3P6GXKKKKK@ZA ; mouse_event_Original
 	push	OFFSET ?mouse_event_Detour@@YGXKKKKK@Z	; mouse_event_Detour
-	push	OFFSET $SG163858
-	push	OFFSET $SG163859
+	push	OFFSET $SG163873
+	push	OFFSET $SG163874
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1793 :                              "mouse_event",
@@ -2636,8 +2636,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?keybd_event_Original@@3P6GXEEKK@ZA ; keybd_event_Original
 	push	OFFSET ?keybd_event_Detour@@YGXEEKK@Z	; keybd_event_Detour
-	push	OFFSET $SG163860
-	push	OFFSET $SG163861
+	push	OFFSET $SG163875
+	push	OFFSET $SG163876
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1798 :                              "keybd_event",
@@ -2649,8 +2649,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?RegisterRawInputDevices_Original@@3P6GHPBUtagRAWINPUTDEVICE@@II@ZA ; RegisterRawInputDevices_Original
 	push	OFFSET ?RegisterRawInputDevices_Detour@@YGHPBUtagRAWINPUTDEVICE@@II@Z ; RegisterRawInputDevices_Detour
-	push	OFFSET $SG163862
-	push	OFFSET $SG163863
+	push	OFFSET $SG163877
+	push	OFFSET $SG163878
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1803 :                              "RegisterRawInputDevices",
@@ -2662,8 +2662,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetRegisteredRawInputDevices_Original@@3P6GIPAUtagRAWINPUTDEVICE@@PAII@ZA ; GetRegisteredRawInputDevices_Original
 	push	OFFSET ?GetRegisteredRawInputDevices_Detour@@YGIPAUtagRAWINPUTDEVICE@@PAII@Z ; GetRegisteredRawInputDevices_Detour
-	push	OFFSET $SG163864
-	push	OFFSET $SG163865
+	push	OFFSET $SG163879
+	push	OFFSET $SG163880
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1808 :                              "GetRegisteredRawInputDevices",
@@ -2675,8 +2675,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetRawInputBuffer_Original@@3P6GIPAUtagRAWINPUT@@PAII@ZA ; GetRawInputBuffer_Original
 	push	OFFSET ?GetRawInputBuffer_Detour@@YGIPAUtagRAWINPUT@@PAII@Z ; GetRawInputBuffer_Detour
-	push	OFFSET $SG163866
-	push	OFFSET $SG163867
+	push	OFFSET $SG163881
+	push	OFFSET $SG163882
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1813 :                              "GetRawInputBuffer",
@@ -2685,7 +2685,7 @@ _TEXT	SEGMENT
 ; 1816 : 
 ; 1817 :   if (config.input.gamepad.hook_xinput)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+673, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+677, 0
 	je	SHORT $LN2@SK_Input_P
 
 ; 1818 :     SK_XInput_InitHotPlugHooks ();
@@ -2715,10 +2715,10 @@ _lpKeyState$ = 8					; size = 4
 
 	cmp	BYTE PTR ?called@?2??GetKeyboardState_Detour@@YGHPAE@Z@4_NA, 0
 	jne	SHORT $LN2@GetKeyboar
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@GetKeyboar
-	push	OFFSET $SG163389
-	push	OFFSET $SG163390
+	push	OFFSET $SG163404
+	push	OFFSET $SG163405
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2806,10 +2806,10 @@ _nVirtKey$ = 8						; size = 4
 
 	cmp	BYTE PTR ?called@?2??GetKeyState_Detour@@YGFH@Z@4_NA, 0
 	jne	SHORT $LN2@GetKeyStat
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@GetKeyStat
-	push	OFFSET $SG163372
-	push	OFFSET $SG163373
+	push	OFFSET $SG163387
+	push	OFFSET $SG163388
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2848,7 +2848,7 @@ $LN4@GetKeyStat:
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
 	jne	SHORT $LN5@GetKeyStat
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+752, 0
 	je	SHORT $LN5@GetKeyStat
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	je	SHORT $LN16@GetKeyStat
@@ -2932,10 +2932,10 @@ _vKey$ = 8						; size = 4
 
 	cmp	BYTE PTR ?called@?2??GetAsyncKeyState_Detour@@YGFH@Z@4_NA, 0
 	jne	SHORT $LN2@GetAsyncKe
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@GetAsyncKe
-	push	OFFSET $SG163356
-	push	OFFSET $SG163357
+	push	OFFSET $SG163371
+	push	OFFSET $SG163372
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2974,7 +2974,7 @@ $LN4@GetAsyncKe:
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
 	jne	SHORT $LN5@GetAsyncKe
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+752, 0
 	je	SHORT $LN5@GetAsyncKe
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	je	SHORT $LN16@GetAsyncKe
@@ -3064,10 +3064,10 @@ _dwExtraInfo$ = 24					; size = 4
 
 	cmp	BYTE PTR ?called@?2??mouse_event_Detour@@YGXKKKKK@Z@4_NA, 0
 	jne	SHORT $LN2@mouse_even
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@mouse_even
-	push	OFFSET $SG163346
-	push	OFFSET $SG163347
+	push	OFFSET $SG163361
+	push	OFFSET $SG163362
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3091,7 +3091,7 @@ $LN13@mouse_even:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN1@mouse_even
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -3141,10 +3141,10 @@ _dwExtraInfo$ = 20					; size = 4
 
 	cmp	BYTE PTR ?called@?2??keybd_event_Detour@@YGXEEKK@Z@4_NA, 0
 	jne	SHORT $LN2@keybd_even
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@keybd_even
-	push	OFFSET $SG163332
-	push	OFFSET $SG163333
+	push	OFFSET $SG163347
+	push	OFFSET $SG163348
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3204,10 +3204,10 @@ _cbSize$ = 16						; size = 4
 
 	cmp	BYTE PTR ?called@?2??SendInput_Detour@@YGIIPAUtagINPUT@@H@Z@4_NA, 0
 	jne	SHORT $LN2@SendInput_
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@SendInput_
-	push	OFFSET $SG163319
-	push	OFFSET $SG163320
+	push	OFFSET $SG163334
+	push	OFFSET $SG163335
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3269,10 +3269,10 @@ _y$ = 12						; size = 4
 
 	cmp	BYTE PTR ?called@?2??SetCursorPos_Detour@@YGHHH@Z@4_NA, 0
 	jne	SHORT $LN2@SetCursorP
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@SetCursorP
-	push	OFFSET $SG163301
-	push	OFFSET $SG163302
+	push	OFFSET $SG163316
+	push	OFFSET $SG163317
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3328,7 +3328,7 @@ $LN2@SetCursorP:
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
 	jne	SHORT $LN4@SetCursorP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+752, 0
 	je	SHORT $LN4@SetCursorP
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	je	SHORT $LN10@SetCursorP
@@ -3339,7 +3339,7 @@ $LN4@SetCursorP:
 ; 1468 :   // Prevent Mouse Look while Drag Locked
 ; 1469 :   if (config.window.drag_lock)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+753, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+757, 0
 	jne	SHORT $LN10@SetCursorP
 
 ; 1470 :     return TRUE;
@@ -3365,7 +3365,7 @@ $LN21@SetCursorP:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN10@SetCursorP
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -3446,10 +3446,10 @@ _lpPoint$ = 8						; size = 4
 
 	cmp	BYTE PTR ?called@?2??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4_NA, 0
 	jne	SHORT $LN2@GetCursorP
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@GetCursorP
-	push	OFFSET $SG163283
-	push	OFFSET $SG163284
+	push	OFFSET $SG163298
+	push	OFFSET $SG163299
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3476,7 +3476,7 @@ $LN20@GetCursorP:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+720
+	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+724
 	or	al, bl
 	jne	$LN15@GetCursorP
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
@@ -3580,7 +3580,7 @@ $LN38@GetCursorP:
 ; 1446 : 
 ; 1447 :   return bRet;
 
-	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+720
+	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+724
 	mov	dl, BYTE PTR ?SK_ImGui_Visible@@3_NA	; SK_ImGui_Visible
 	mov	cl, BYTE PTR ?SK_ReShade_Visible@@3_NA	; SK_ReShade_Visible
 $LN15@GetCursorP:
@@ -3783,10 +3783,10 @@ _implicit_capture$1$ = 11				; size = 1
 
 	cmp	BYTE PTR ?called@?2??GetCursorInfo_Detour@@YGHPAUtagCURSORINFO@@@Z@4_NA, 0
 	jne	SHORT $LN2@GetCursorI
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@GetCursorI
-	push	OFFSET $SG163263
-	push	OFFSET $SG163264
+	push	OFFSET $SG163278
+	push	OFFSET $SG163279
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3862,7 +3862,7 @@ $LN21@GetCursorI:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN16@GetCursorI
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -4030,10 +4030,10 @@ _hCursor$ = 8						; size = 4
 
 	cmp	BYTE PTR ?called@?2??SetCursor_Detour@@YGPAUHICON__@@PAU2@@Z@4_NA, 0
 	jne	SHORT $LN2@SetCursor_
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@SetCursor_
-	push	OFFSET $SG163229
-	push	OFFSET $SG163230
+	push	OFFSET $SG163244
+	push	OFFSET $SG163245
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -4068,7 +4068,7 @@ $LN15@SetCursor_:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN4@SetCursor_
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -4135,10 +4135,10 @@ _resolution$ = 24					; size = 4
 
 	cmp	BYTE PTR ?called@?2??GetMouseMovePointsEx_Detour@@YGHIPAUtagMOUSEMOVEPOINT@@0HK@Z@4_NA, 0
 	jne	SHORT $LN2@GetMouseMo
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@GetMouseMo
-	push	OFFSET $SG163214
-	push	OFFSET $SG163215
+	push	OFFSET $SG163229
+	push	OFFSET $SG163230
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -4165,13 +4165,13 @@ $LN18@GetMouseMo:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+720
+	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+724
 	or	al, bl
 	jne	SHORT $LN13@GetMouseMo
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
 	je	SHORT $LN8@GetMouseMo
-	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+720
+	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+724
 	mov	dl, BYTE PTR ?SK_ImGui_Visible@@3_NA	; SK_ImGui_Visible
 	mov	cl, BYTE PTR ?SK_ReShade_Visible@@3_NA	; SK_ReShade_Visible
 $LN13@GetMouseMo:
@@ -4473,7 +4473,7 @@ _ci$ = -20						; size = 20
 ; 1023 :   //
 ; 1024 :   if (config.input.ui.use_hw_cursor)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+664, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+668, 0
 	je	SHORT $LN3@ImGuiCurso
 
 ; 1025 :     SetCursor_Original (ImGui_DesiredCursor ());
@@ -4485,7 +4485,7 @@ _ci$ = -20						; size = 20
 ; 1026 : 
 ; 1027 :   if ( config.input.ui.use_hw_cursor && (ci.flags & CURSOR_SHOWING) )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+664, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+668, 0
 	je	SHORT $LN3@ImGuiCurso
 	test	BYTE PTR _ci$[ebp+4], 1
 	je	SHORT $LN3@ImGuiCurso
@@ -4521,7 +4521,7 @@ $LN14@ImGuiCurso:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN9@ImGuiCurso
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -4752,7 +4752,7 @@ $LN8@SK_ImGui_I:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN3@SK_ImGui_I
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -4933,10 +4933,10 @@ _cbSizeHeader$ = 24					; size = 4
 
 	cmp	BYTE PTR ?called@?2??GetRawInputData_Detour@@YGIPAUHRAWINPUT__@@IPAXPAII@Z@4_NA, 0
 	jne	SHORT $LN2@GetRawInpu
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@GetRawInpu
-	push	OFFSET $SG162932
-	push	OFFSET $SG162933
+	push	OFFSET $SG162947
+	push	OFFSET $SG162948
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -4992,10 +4992,10 @@ _cbSizeHeader$ = 16					; size = 4
 
 	cmp	BYTE PTR ?called@?2??GetRawInputBuffer_Detour@@YGIPAUtagRAWINPUT@@PAII@Z@4_NA, 0
 	jne	SHORT $LN7@GetRawInpu
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN8@GetRawInpu
-	push	OFFSET $SG162898
-	push	OFFSET $SG162899
+	push	OFFSET $SG162913
+	push	OFFSET $SG162914
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5028,7 +5028,7 @@ $LN26@GetRawInpu:
 ; 761  :     if (config.input.ui.capture)
 
 	mov	edx, 1
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+660, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+664, 0
 	movzx	ecx, cl
 	cmovne	ecx, edx
 
@@ -5195,7 +5195,7 @@ $LN18@GetRawInpu:
 ; 812  : 
 ; 813  :           if (config.input.ui.capture)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+660, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+664, 0
 	jne	SHORT $LN55@GetRawInpu
 
 ; 814  :             remove = true;
@@ -5343,10 +5343,10 @@ _cbSize$ = 16						; size = 4
 
 	cmp	BYTE PTR ?called@?2??RegisterRawInputDevices_Detour@@YGHPBUtagRAWINPUTDEVICE@@II@Z@4_NA, 0
 	jne	SHORT $LN14@RegisterRa
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN15@RegisterRa
-	push	OFFSET $SG162856
-	push	OFFSET $SG162857
+	push	OFFSET $SG162871
+	push	OFFSET $SG162872
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5367,7 +5367,7 @@ $LN14@RegisterRa:
 
 	push	12					; 0000000cH
 	push	esi
-	push	OFFSET $SG162859
+	push	OFFSET $SG162874
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -6197,10 +6197,10 @@ _cbSize$ = 16						; size = 4
 
 	cmp	BYTE PTR ?called@?2??GetRegisteredRawInputDevices_Detour@@YGIPAUtagRAWINPUTDEVICE@@PAII@Z@4_NA, 0
 	jne	SHORT $LN5@GetRegiste
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN6@GetRegiste
-	push	OFFSET $SG162771
-	push	OFFSET $SG162772
+	push	OFFSET $SG162786
+	push	OFFSET $SG162787
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -9819,7 +9819,7 @@ _TEXT	SEGMENT
 
 ; 289  :   if (! config.input.gamepad.hook_hid)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+672, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+676, 0
 	je	SHORT $LN3@SK_Input_P
 
 ; 290  :     return;
@@ -9971,10 +9971,10 @@ _ReportLength$ = 28					; size = 4
 
 	cmp	BYTE PTR ?called@?2??HidP_GetData_Detour@@YGJW4_HIDP_REPORT_TYPE@@PAU_HIDP_DATA@@PAKPAU_HIDP_PREPARSED_DATA@@PADK@Z@4_NA, 0
 	jne	SHORT $LN2@HidP_GetDa
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@HidP_GetDa
-	push	OFFSET $SG161442
-	push	OFFSET $SG161443
+	push	OFFSET $SG161457
+	push	OFFSET $SG161458
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -10216,10 +10216,10 @@ _PreparsedData$ = 12					; size = 4
 
 	cmp	BYTE PTR ?called@?2??HidD_GetPreparsedData_Detour@@YGEPAXPAPAU_HIDP_PREPARSED_DATA@@@Z@4_NA, 0
 	jne	SHORT $LN2@HidD_GetPr
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN3@HidD_GetPr
-	push	OFFSET $SG161407
-	push	OFFSET $SG161408
+	push	OFFSET $SG161422
+	push	OFFSET $SG161423
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -10265,7 +10265,7 @@ $LN2@HidD_GetPr:
 	add	esp, 4
 	test	al, al
 	jne	SHORT $LN6@HidD_GetPr
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+668, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+672, al
 	jne	SHORT $LN6@HidD_GetPr
 
 ; 146  : 
@@ -10369,7 +10369,7 @@ $LN5@SK_HID_Fil:
 	call	?SK_ImGui_WantGamepadCapture@@YA_NXZ	; SK_ImGui_WantGamepadCapture
 	test	al, al
 	je	SHORT $LN10@SK_HID_Fil
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+678, 0
 	jne	SHORT $LN10@SK_HID_Fil
 
 ; 92   :           filter = true;
@@ -12917,7 +12917,7 @@ $LN15@activateWi:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN10@activateWi
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -13261,7 +13261,7 @@ $LN16@update:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN11@update
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -13390,7 +13390,7 @@ $LN17@showSystem:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN12@showSystem
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -13481,7 +13481,7 @@ _TEXT	SEGMENT
 
 ; 245  :   if (! config.input.gamepad.hook_hid)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+672, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+676, 0
 	je	$LN5@SK_Input_H
 
 ; 246  :     return;
@@ -13500,9 +13500,9 @@ _TEXT	SEGMENT
 ; 251  :   {
 ; 252  :     SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG161477
+	push	OFFSET $SG161492
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -13515,8 +13515,8 @@ $LN4@SK_Input_H:
 	push	0
 	push	OFFSET ?HidP_GetData_Original@@3P6GJW4_HIDP_REPORT_TYPE@@PAU_HIDP_DATA@@PAKPAU_HIDP_PREPARSED_DATA@@PADK@ZA ; HidP_GetData_Original
 	push	OFFSET ?HidP_GetData_Detour@@YGJW4_HIDP_REPORT_TYPE@@PAU_HIDP_DATA@@PAKPAU_HIDP_PREPARSED_DATA@@PADK@Z ; HidP_GetData_Detour
-	push	OFFSET $SG161478
-	push	OFFSET $SG161479
+	push	OFFSET $SG161493
+	push	OFFSET $SG161494
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 256  :                              "HidP_GetData",
@@ -13528,8 +13528,8 @@ $LN4@SK_Input_H:
 	push	0
 	push	OFFSET ?HidD_GetPreparsedData_Original@@3P6GEPAXPAPAU_HIDP_PREPARSED_DATA@@@ZA ; HidD_GetPreparsedData_Original
 	push	OFFSET ?HidD_GetPreparsedData_Detour@@YGEPAXPAPAU_HIDP_PREPARSED_DATA@@@Z ; HidD_GetPreparsedData_Detour
-	push	OFFSET $SG161480
-	push	OFFSET $SG161481
+	push	OFFSET $SG161495
+	push	OFFSET $SG161496
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 261  :                              "HidD_GetPreparsedData",
@@ -13541,8 +13541,8 @@ $LN4@SK_Input_H:
 	push	0
 	push	OFFSET ?HidD_FreePreparsedData_Original@@3P6GEPAU_HIDP_PREPARSED_DATA@@@ZA ; HidD_FreePreparsedData_Original
 	push	OFFSET ?HidD_FreePreparsedData_Detour@@YGEPAU_HIDP_PREPARSED_DATA@@@Z ; HidD_FreePreparsedData_Detour
-	push	OFFSET $SG161482
-	push	OFFSET $SG161483
+	push	OFFSET $SG161497
+	push	OFFSET $SG161498
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 266  :                              "HidD_FreePreparsedData",
@@ -13554,8 +13554,8 @@ $LN4@SK_Input_H:
 	push	0
 	push	OFFSET ?HidD_GetFeature_Original@@3P6GEPAX0K@ZA ; HidD_GetFeature_Original
 	push	OFFSET ?HidD_GetFeature_Detour@@YGEPAX0K@Z ; HidD_GetFeature_Detour
-	push	OFFSET $SG161484
-	push	OFFSET $SG161485
+	push	OFFSET $SG161499
+	push	OFFSET $SG161500
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 271  :                              "HidD_GetFeature",
@@ -13564,8 +13564,8 @@ $LN4@SK_Input_H:
 ; 274  : 
 ; 275  :     HidP_GetCaps_Original =
 
-	push	OFFSET $SG161486
-	push	OFFSET $SG161487
+	push	OFFSET $SG161501
+	push	OFFSET $SG161502
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -13664,7 +13664,7 @@ $LN2@SK_ImGui_W:
 ; 1115 : 
 ; 1116 :   if (config.input.keyboard.disabled_to_game)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+710, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+714, 0
 	mov	ecx, 1
 	movzx	eax, bl
 	cmovne	eax, ecx
@@ -13713,7 +13713,7 @@ $LN15@SK_ImGui_W:
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
-	or	al, BYTE PTR ?config@@3Usk_config_t@@A+720
+	or	al, BYTE PTR ?config@@3Usk_config_t@@A+724
 	jne	SHORT $LN10@SK_ImGui_W
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
@@ -13744,7 +13744,7 @@ $LN10@SK_ImGui_W:
 ; 1177 : 
 ; 1178 :     if (config.input.ui.capture_mouse || io.WantCaptureMouse/* || io.WantTextInput*/)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+660, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+664, 0
 	jne	SHORT $LN4@SK_ImGui_W
 	cmp	BYTE PTR [eax+840], 0
 	je	SHORT $LN3@SK_ImGui_W
@@ -13758,7 +13758,7 @@ $LN3@SK_ImGui_W:
 ; 1180 : 
 ; 1181 :     if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+661, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+665, 0
 	push	esi
 	mov	esi, 1
 	je	SHORT $LN5@SK_ImGui_W
@@ -13774,7 +13774,7 @@ $LN5@SK_ImGui_W:
 
 	test	BYTE PTR _dwReasonMask$[ebp], 4
 	je	SHORT $LN17@SK_ImGui_W
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+720, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
 	movzx	eax, bl
 	cmovne	eax, esi
 	pop	esi

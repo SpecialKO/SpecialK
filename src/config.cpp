@@ -35,6 +35,7 @@
 #include <SpecialK/widgets/widget.h>
 
 #include <unordered_map>
+#include <typeindex>
 
 #include <Shlwapi.h>
 
@@ -416,6 +417,28 @@ SK_GetConfigPath (void)
 }
 
 
+
+template <typename _Tp>
+_Tp*
+SK_CreateINIParameter ( const wchar_t *wszDescription,
+                        iSK_INI       *pINIFile,
+                        const wchar_t *wszSection,
+                        const wchar_t *wszKey )
+{
+  assert (std::is_polymorphic <_Tp> ());
+
+  auto ret =
+    dynamic_cast <_Tp *> (
+      g_ParameterFactory.create_parameter <_Tp::value_type> (
+        wszDescription )
+    );
+
+  ret->register_to_ini (pINIFile, wszSection, wszKey);
+
+  return ret;
+};
+
+
 bool
 SK_LoadConfigEx (std::wstring name, bool create)
 {
@@ -465,805 +488,262 @@ SK_LoadConfigEx (std::wstring name, bool create)
   achievement_ini =
     SK_CreateINI (achievement_config.c_str ());
 
-  //
-  // Create Parameters
-  //
-  monitoring.io.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (L"Show IO Monitoring"));
-  monitoring.io.show->register_to_ini (osd_ini, L"Monitor.IO", L"Show");
 
-  monitoring.io.interval =
-    dynamic_cast <sk::ParameterFloat *>
-     (g_ParameterFactory.create_parameter <float> (L"IO Monitoring Interval"));
-  monitoring.io.interval->register_to_ini (osd_ini, L"Monitor.IO", L"Interval");
-
-  monitoring.disk.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (L"Show Disk Monitoring"));
-  monitoring.disk.show->register_to_ini (osd_ini, L"Monitor.Disk", L"Show");
-
-  monitoring.disk.interval =
-    dynamic_cast <sk::ParameterFloat *>
-     (g_ParameterFactory.create_parameter <float> (
-       L"Disk Monitoring Interval")
-     );
-  monitoring.disk.interval->register_to_ini (
-    osd_ini,
-      L"Monitor.Disk",
-        L"Interval" );
-
-  monitoring.disk.type =
-    dynamic_cast <sk::ParameterInt *>
-     (g_ParameterFactory.create_parameter <int> (
-       L"Disk Monitoring Type (0 = Physical, 1 = Logical)")
-     );
-  monitoring.disk.type->register_to_ini (
-    osd_ini,
-      L"Monitor.Disk",
-        L"Type" );
-
-
-  monitoring.cpu.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (L"Show CPU Monitoring"));
-  monitoring.cpu.show->register_to_ini (osd_ini, L"Monitor.CPU", L"Show");
-
-  monitoring.cpu.interval =
-    dynamic_cast <sk::ParameterFloat *>
-     (g_ParameterFactory.create_parameter <float> (
-       L"CPU Monitoring Interval (seconds)")
-     );
-  monitoring.cpu.interval->register_to_ini (
-    osd_ini,
-      L"Monitor.CPU",
-        L"Interval" );
-
-  monitoring.cpu.simple =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (L"Minimal CPU info"));
-  monitoring.cpu.simple->register_to_ini (osd_ini, L"Monitor.CPU", L"Simple");
-
-  monitoring.gpu.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (L"Show GPU Monitoring"));
-  monitoring.gpu.show->register_to_ini (osd_ini, L"Monitor.GPU", L"Show");
-
-  monitoring.gpu.print_slowdown =
-    dynamic_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool>(L"Print GPU Slowdown Reason"));
-  monitoring.gpu.print_slowdown->register_to_ini (
-    osd_ini,
-      L"Monitor.GPU",
-        L"PrintSlowdown" );
-
-  monitoring.gpu.interval =
-    dynamic_cast <sk::ParameterFloat *>
-     (g_ParameterFactory.create_parameter <float> (
-       L"GPU Monitoring Interval (seconds)")
-     );
-  monitoring.gpu.interval->register_to_ini (
-    osd_ini,
-      L"Monitor.GPU",
-        L"Interval" );
-
-
-  monitoring.pagefile.show =
+  osd.show =
     dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
-        L"Show Pagefile Monitoring")
+        L"OSD Visibility")
       );
-  monitoring.pagefile.show->register_to_ini (
-    osd_ini,
-      L"Monitor.Pagefile",
-        L"Show" );
-
-  monitoring.pagefile.interval =
-    dynamic_cast <sk::ParameterFloat *>
-     (g_ParameterFactory.create_parameter <float> (
-       L"Pagefile Monitoring Interval (seconds)")
-     );
-  monitoring.pagefile.interval->register_to_ini (
-    osd_ini,
-      L"Monitor.Pagefile",
-        L"Interval" );
-
-
-  monitoring.memory.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Show Memory Monitoring")
-      );
-  monitoring.memory.show->register_to_ini (
-    osd_ini,
-      L"Monitor.Memory",
-        L"Show" );
-
-
-  monitoring.fps.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Show Framerate Monitoring")
-      );
-  monitoring.fps.show->register_to_ini (
-    osd_ini,
-      L"Monitor.FPS",
-        L"Show" );
-
-
-  monitoring.time.show =
-    dynamic_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool> (
-      L"Show Time")
-    );
-  monitoring.time.show->register_to_ini (
-    osd_ini,
-      L"Monitor.Time",
-        L"Show" );
-
-
-  input.keyboard.catch_alt_f4 =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"If the game does not handle Alt+F4, offer a replacement.")
-      );
-  input.keyboard.catch_alt_f4->register_to_ini (
-    dll_ini,
-      L"Input.Keyboard",
-        L"CatchAltF4" );
-
-  input.keyboard.disabled_to_game =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Completely stop all keyboard input from reaching the Game.")
-      );
-  input.keyboard.disabled_to_game->register_to_ini (
-    dll_ini,
-      L"Input.Keyboard",
-        L"DisabledToGame" );
-
-
-  input.mouse.disabled_to_game =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Completely stop all mouse input from reaching the Game.")
-      );
-  input.mouse.disabled_to_game->register_to_ini (
-    dll_ini,
-      L"Input.Mouse",
-        L"DisabledToGame" );
-
-
-  input.cursor.manage =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Manage Cursor Visibility")
-      );
-  input.cursor.manage->register_to_ini (
-    dll_ini,
-      L"Input.Cursor",
-        L"Manage" );
-
-  input.cursor.keys_activate =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Keyboard Input Activates Cursor")
-      );
-  input.cursor.keys_activate->register_to_ini (
-    dll_ini,
-      L"Input.Cursor",
-        L"KeyboardActivates" );
-
-  input.cursor.timeout =
-    dynamic_cast <sk::ParameterFloat *>
-      (g_ParameterFactory.create_parameter <float> (
-        L"Hide Delay")
-      );
-  input.cursor.timeout->register_to_ini (
-    dll_ini,
-      L"Input.Cursor",
-        L"Timeout" );
-
-  input.cursor.ui_capture =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Forcefully Capture Mouse Cursor in UI Mode")
-      );
-  input.cursor.ui_capture->register_to_ini (
-    dll_ini,
-      L"Input.Cursor",
-        L"ForceCaptureInUI" );
-
-  input.cursor.hw_cursor =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Use a Hardware Cursor for Special K's UI Features")
-      );
-  input.cursor.hw_cursor->register_to_ini (
-    dll_ini,
-      L"Input.Cursor",
-        L"UseHardwareCursor" );
-
-  input.cursor.block_invisible =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Block Mouse Input if Hardware Cursor is Invisible")
-      );
-  input.cursor.block_invisible->register_to_ini (
-    dll_ini,
-      L"Input.Cursor",
-        L"BlockInvisibleCursorInput"
-  );
-
-  input.cursor.fix_synaptics =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Fix Synaptic Touchpad Scroll")
-      );
-  input.cursor.fix_synaptics->register_to_ini (
-    dll_ini,
-      L"Input.Cursor",
-        L"FixSynapticTouchpadScroll"
-  );
-
-  input.cursor.use_relative_input =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Use Raw Input Relative Motion if Needed")
-      );
-  input.cursor.use_relative_input->register_to_ini (
-    dll_ini,
-      L"Input.Cursor",
-        L"UseRelativeInput"
-  );
-
-  input.cursor.antiwarp_deadzone =
-    dynamic_cast <sk::ParameterFloat *>
-      (g_ParameterFactory.create_parameter <float> (
-        L"Percentage of Screen that the game may try to "
-        L"move the cursor to for mouselook.")
-      );
-  input.cursor.antiwarp_deadzone->register_to_ini (
-    dll_ini,
-      L"Input.Cursor",
-        L"AntiwarpDeadzonePercent"
-  );
-
-  input.cursor.no_warp_ui =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Prevent Games from Warping Cursor while Config UI is Open")
-      );
-  input.cursor.no_warp_ui->register_to_ini(
-    dll_ini,
-      L"Input.Cursor",
-        L"NoWarpUI"
-  );
-
-  input.cursor.no_warp_visible =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Prevent Games from Warping Cursor while Mouse Cursor is Visible.")
-      );
-  input.cursor.no_warp_visible->register_to_ini(
-    dll_ini,
-      L"Input.Cursor",
-        L"NoWarpVisibleGameCursor"
-  );
-
-
-  input.gamepad.disable_ps4_hid =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Disable PS4 HID Interface (prevent double-input processing in some games)")
-      );
-  input.gamepad.disable_ps4_hid->register_to_ini (
-    dll_ini,
-      L"Input.Gamepad",
-        L"DisablePS4HID"
-  );
-
-  input.gamepad.haptic_ui =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Give tactile feedback on gamepads when navigating the UI")
-      );
-  input.gamepad.haptic_ui->register_to_ini (
-    dll_ini,
-      L"Input.Gamepad",
-        L"AllowHapticUI" );
-
-  input.gamepad.hook_dinput8 =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Install hooks for DirectInput 8")
-      );
-  input.gamepad.hook_dinput8->register_to_ini (
-    dll_ini,
-      L"Input.Gamepad",
-        L"EnableDirectInput8" );
-
-  input.gamepad.hook_hid =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Install hooks for HID")
-      );
-  input.gamepad.hook_hid->register_to_ini (
-    dll_ini,
-      L"Input.Gamepad",
-        L"EnableHID" );
-
-  input.gamepad.native_ps4 =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Native PS4 Mode (temporary)")
-      );
-  input.gamepad.native_ps4->register_to_ini (
-    dll_ini,
-      L"Input.Gamepad",
-        L"EnableNativePS4" );
-
-
-  input.gamepad.hook_xinput =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Install hooks for XInput")
-      );
-  input.gamepad.hook_xinput->register_to_ini (
-    dll_ini,
-      L"Input.XInput",
-        L"Enable" );
-
-  input.gamepad.rehook_xinput =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Re-install XInput hooks if the hook-chain is modified (wrapper compat).")
-      );
-  input.gamepad.rehook_xinput->register_to_ini (
-    dll_ini,
-      L"Input.XInput",
-        L"Rehook" );
-
-  input.gamepad.xinput.ui_slot =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"XInput Controller that owns the config UI.")
-      );
-  input.gamepad.xinput.ui_slot->register_to_ini (
-    dll_ini,
-      L"Input.XInput",
-        L"UISlot" );
-
-  input.gamepad.xinput.placeholders =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"XInput Controllers to Fake.")
-      );
-  input.gamepad.xinput.placeholders->register_to_ini (
-    dll_ini,
-      L"Input.XInput",
-        L"PlaceholderMask" );
-
-  input.gamepad.xinput.disable_rumble =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Disable Rumble")
-      );
-  input.gamepad.xinput.disable_rumble->register_to_ini (
-    dll_ini,
-      L"Input.XInput",
-        L"DisableRumble" );
-
-  input.gamepad.xinput.assignment =
-    dynamic_cast <sk::ParameterStringW *>
-    ( g_ParameterFactory.create_parameter <std::wstring> (
-      L"Re-Assign XInput Slots")
-      );
-  input.gamepad.xinput.assignment->register_to_ini (
-    dll_ini,
-      L"Input.XInput",
-        L"SlotReassignment");
-
-
-  window.borderless =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Borderless Window Mode")
-      );
-  window.borderless->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"Borderless" );
-
-  window.center =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Center the Window")
-      );
-  window.center->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"Center" );
-
-  window.background_render =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Render While Window is in Background")
-      );
-  window.background_render->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"RenderInBackground" );
-
-  window.background_mute =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Mute While Window is in Background")
-      );
-  window.background_mute->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"MuteInBackground" );
-
-  window.offset.x =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"X Offset (Percent or Absolute)")
-      );
-  window.offset.x->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"XOffset" );
-
-  window.offset.y =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"Y Offset")
-      );
-  window.offset.y->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"YOffset" );
-
-  window.confine_cursor =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Confine the Mouse Cursor to the Game Window.")
-      );
-  window.confine_cursor->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"ConfineCursor" );
-
-  window.unconfine_cursor =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Unconfine the Mouse Cursor from the Game Window.")
-      );
-  window.unconfine_cursor->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"UnconfineCursor" );
-
-  window.persistent_drag =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Remember where the window is dragged to.")
-      );
-  window.persistent_drag->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"PersistentDragPos" );
-
-  window.fullscreen =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Make the Game Window Fill the Screen (scale to fit)")
-      );
-  window.fullscreen->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"Fullscreen" );
-
-  window.override =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"Force the Client Region to this Size in Windowed Mode")
-      );
-  window.override->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"OverrideRes" );
-
-  window.fix_mouse_coords =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Re-Compute Mouse Coordinates for Resized Windows")
-      );
-  window.fix_mouse_coords->register_to_ini (
-    dll_ini,
-      L"Window.System",
-        L"FixMouseCoords" );
-
-
-
-  compatibility.ignore_raptr =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Ignore Raptr Warning")
-      );
-  compatibility.ignore_raptr->register_to_ini (
-    dll_ini,
-      L"Compatibility.General",
-        L"IgnoreRaptr" );
-
-  compatibility.disable_raptr =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Forcefully Disable Raptr")
-      );
-  compatibility.disable_raptr->register_to_ini (
-    dll_ini,
-      L"Compatibility.General",
-        L"DisableRaptr" );
-
-  compatibility.disable_nv_bloat =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Disable All NVIDIA BloatWare (GeForce Experience)")
-      );
-  compatibility.disable_nv_bloat->register_to_ini (
-    dll_ini,
-      L"Compatibility.General",
-        L"DisableBloatWare_NVIDIA" );
-
-  compatibility.rehook_loadlibrary =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Rehook LoadLibrary When RTSS/Steam/GeDoSaTo hook it")
-      );
-  compatibility.rehook_loadlibrary->register_to_ini (
-    dll_ini,
-      L"Compatibility.General",
-        L"RehookLoadLibrary" );
-
-
-  apis.last_known =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"Last Known Render API")
-      );
-  apis.last_known->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"LastKnown" );
-
-#ifndef _WIN64
-  apis.ddraw.hook =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable DirectDraw Hooking")
-      );
-  apis.ddraw.hook->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"ddraw" );
-
-  apis.d3d8.hook =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable D3D8 Hooking")
-      );
-  apis.d3d8.hook->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"d3d8" );
-#endif
-
-  apis.d3d9.hook =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable D3D9 Hooking")
-      );
-  apis.d3d9.hook->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"d3d9" );
-
-  apis.d3d9ex.hook =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable D3D9Ex Hooking")
-      );
-  apis.d3d9ex.hook->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"d3d9ex" );
-
-  apis.d3d11.hook =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable D3D11 Hooking")
-      );
-  apis.d3d11.hook->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"d3d11" );
-
-#ifdef _WIN64
-  apis.d3d12.hook =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable D3D11 Hooking")
-      );
-  apis.d3d12.hook->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"d3d12" );
-
-  apis.Vulkan.hook =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable Vulkan Hooking")
-      );
-  apis.Vulkan.hook->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"Vulkan" );
-#endif
-
-  apis.OpenGL.hook =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable OpenGL Hooking")
-      );
-  apis.OpenGL.hook->register_to_ini (
-    dll_ini,
-      L"API.Hook",
-        L"OpenGL" );
-
-
-  mem_reserve =
-    dynamic_cast <sk::ParameterFloat *>
-      (g_ParameterFactory.create_parameter <float> (
-        L"Memory Reserve Percentage")
-      );
-  mem_reserve->register_to_ini (
-    dll_ini,
-      L"Manage.Memory",
-        L"ReservePercent" );
-
-
-  init_delay =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"Initialization Delay (msecs)")
-      );
-  init_delay->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"InitDelay" );
-
-  silent =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Log Silence")
-      );
-  silent->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"Silent" );
-
-  strict_compliance =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Strict DLL Loader Compliance")
-      );
-  strict_compliance->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"StrictCompliant" );
-
-  trace_libraries =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Trace DLL Loading")
-      );
-  trace_libraries->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"TraceLoadLibrary" );
-
-  log_level =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"Log Verbosity")
-      );
-  log_level->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"LogLevel" );
-
-  prefer_fahrenheit =
-    dynamic_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool> (
-      L"Prefer Fahrenheit Units")
-      );
-  prefer_fahrenheit->register_to_ini (
+  osd.show->register_to_ini (
     osd_ini,
       L"SpecialK.OSD",
-        L"PreferFahrenheit" );
+        L"Show" );
 
-  handle_crashes =
+  osd.update_method.pump =
     dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
-        L"Use Custom Crash Handler")
+        L"Refresh the OSD irrespective of frame completion")
       );
-  handle_crashes->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"UseCrashHandler" );
+  osd.update_method.pump->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"AutoPump" );
 
-  debug_output =
+  osd.update_method.pump_interval =
+    dynamic_cast <sk::ParameterFloat *>
+    (g_ParameterFactory.create_parameter <float> (
+      L"Time in seconds between OSD updates")
+    );
+  osd.update_method.pump_interval->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"PumpInterval" );
+
+  osd.text.red =
+    dynamic_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"OSD Color (Red)")
+      );
+  osd.text.red->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"TextColorRed" );
+
+  osd.text.green =
+    dynamic_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"OSD Color (Green)")
+      );
+  osd.text.green->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"TextColorGreen" );
+
+  osd.text.blue =
+    dynamic_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"OSD Color (Blue)")
+      );
+  osd.text.blue->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"TextColorBlue" );
+
+  osd.viewport.pos_x =
+    dynamic_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"OSD Position (X)")
+      );
+  osd.viewport.pos_x->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"PositionX" );
+
+  osd.viewport.pos_y =
+    dynamic_cast <sk::ParameterInt *>
+      (g_ParameterFactory.create_parameter <int> (
+        L"OSD Position (Y)")
+      );
+  osd.viewport.pos_y->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"PositionY" );
+
+  osd.viewport.scale =
+    dynamic_cast <sk::ParameterFloat *>
+      (g_ParameterFactory.create_parameter <float> (
+        L"OSD Scale")
+      );
+  osd.viewport.scale->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"Scale" );
+
+  osd.state.remember =
     dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
-        L"Print Application's Debug Output in real-time")
+        L"Remember status monitoring state")
       );
-  debug_output->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"DebugOutput" );
+  osd.state.remember->register_to_ini (
+    osd_ini,
+      L"SpecialK.OSD",
+        L"RememberMonitoringState" );
 
-  game_output =
+
+  monitoring.SLI.show =
     dynamic_cast <sk::ParameterBool *>
       (g_ParameterFactory.create_parameter <bool> (
-        L"Log Application's Debug Output")
+        L"Show SLI Monitoring")
       );
-  game_output->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"GameOutput" );
+  monitoring.SLI.show->register_to_ini (
+    osd_ini,
+      L"Monitor.SLI",
+        L"Show" );
 
 
-  ignore_rtss_delay =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Ignore RTSS Delay Incompatibilities")
-      );
-  ignore_rtss_delay->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"IgnoreRTSSHookDelay" );
 
-  enable_cegui =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable CEGUI")
-      );
-  enable_cegui->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"EnableCEGUI" );
+  struct param_decl_s
+  {
+    sk::iParameter** parameter_;
+    std::type_index  type_;
+    const wchar_t*   description_;
+    iSK_INI*         ini_;
+    const wchar_t*   section_;
+    const wchar_t*   key_;
+  };
 
-  safe_cegui =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Safely Initialize CEGUI")
-      );
-  safe_cegui->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"SafeInitCEGUI" );
+  #define ConfigEntry(param,descrip,ini,sec,key) { (sk::iParameter **)&(param), std::type_index (typeid ((param))), (descrip), (ini), (sec), (key) }
 
-  version =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"Software Version")
-      );
-  version->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"Version" );
+  param_decl_s params_to_build [] =
+  {
+    // Performance Monitoring
+    //////////////////////////////////////////////////////////////////////////
+
+    ConfigEntry (monitoring.io.show,            L"Show IO Monitoring",                               osd_ini, L"Monitor.IO",       L"Show"),
+    ConfigEntry (monitoring.io.interval,        L"IO Monitoring Interval",                           osd_ini, L"Monitor.IO",       L"Interval"),
+
+    ConfigEntry (monitoring.disk.show,          L"Show Disk Monitoring",                             osd_ini, L"Monitor.Disk",     L"Show"),
+    ConfigEntry (monitoring.disk.interval,      L"Disk Monitoring Interval",                         osd_ini, L"Monitor.Disk",     L"Interval"),
+    ConfigEntry (monitoring.disk.type,          L"Disk Monitoring Type (0 = Physical, 1 = Logical)", osd_ini, L"Monitor.Disk",     L"Type"),
+
+    ConfigEntry (monitoring.cpu.show,           L"Show CPU Monitoring",                              osd_ini, L"Monitor.CPU",      L"Show"),
+    ConfigEntry (monitoring.cpu.interval,       L"CPU Monitoring Interval (seconds)",                osd_ini, L"Monitor.CPU",      L"Interval"),
+    ConfigEntry (monitoring.cpu.simple,         L"Minimal CPU Info",                                 osd_ini, L"Monitor.CPU",      L"Simple"),
+
+    ConfigEntry (monitoring.gpu.show,           L"Show GPU Monitoring",                              osd_ini, L"Monitor.GPU",      L"Show"),
+    ConfigEntry (monitoring.gpu.interval,       L"GPU Monitoring Interval (msecs)",                  osd_ini, L"Monitor.GPU",      L"Interval"),
+    ConfigEntry (monitoring.gpu.print_slowdown, L"Print GPU Slowdown Reason (NVIDIA GPUs)",          osd_ini, L"Monitor.GPU",      L"PrintSlowdown"),
+
+    ConfigEntry (monitoring.pagefile.show,      L"Show Pagefile Monitoring",                         osd_ini, L"Monitor.Pagefile", L"Show"),
+    ConfigEntry (monitoring.pagefile.interval,  L"Pagefile Monitoring INterval (seconds)",           osd_ini, L"Monitor.Pagefile", L"Interval"),
+
+    ConfigEntry (monitoring.memory.show,        L"Show Memory Monitoring",                           osd_ini, L"Monitor.Memory",   L"Show"),
+    ConfigEntry (monitoring.fps.show,           L"Show Framerate Monitoring",                        osd_ini, L"Monitor.FPS",      L"Show"),
+    ConfigEntry (monitoring.time.show,          L"Show System Clock",                                osd_ini, L"Monitor.Time",     L"Show"),
+
+    ConfigEntry (prefer_fahrenheit,             L"Prefer Fahrenheit Units",                          osd_ini, L"SpecialK.OSD",     L"PreferFahrenheit"),
+
+
+    // Input
+    //////////////////////////////////////////////////////////////////////////
+
+    ConfigEntry (input.keyboard.catch_alt_f4,         L"If the game does not handle Alt+F4, offer a replacement",   dll_ini, L"Input.Keyboard", L"CatchAltF4"),
+    ConfigEntry (input.keyboard.disabled_to_game,     L"Completely stop all keyboard input from reaching the Game", dll_ini, L"Input.Keyboard", L"DisabledToGame"),
+
+    ConfigEntry (input.mouse.disabled_to_game,        L"Completely stop all mouse input from reaching the Game",    dll_ini, L"Input.Mouse",    L"DisabledToGame"),
+
+    ConfigEntry (input.cursor.manage,                 L"Manage Cursor Visibility (due to inactivity)",              dll_ini, L"Input.Cursor",   L"Manage"),
+    ConfigEntry (input.cursor.keys_activate,          L"Keyboard Input Activates Cursor",                           dll_ini, L"Input.Cursor",   L"KeyboardActivates"),
+    ConfigEntry (input.cursor.timeout,                L"Inactivity Timeout (in milliseconds)",                      dll_ini, L"Input.Cursor",   L"Timeout"),
+    ConfigEntry (input.cursor.ui_capture,             L"Forcefully Capture Mouse Cursor in UI Mode",                dll_ini, L"Input.Cursor",   L"ForceCaptureInUI"),
+    ConfigEntry (input.cursor.hw_cursor,              L"Use a Hardware Cursor for Special K's UI Features",         dll_ini, L"Input.Cursor",   L"UseHardwareCursor"),
+    ConfigEntry (input.cursor.block_invisible,        L"Block Mouse Input if Hardware Cursor is Invisible",         dll_ini, L"Input.Cursor",   L"BlockInvisibleCursorInput"),
+    ConfigEntry (input.cursor.fix_synaptics,          L"Fix Synaptic Touchpad Scroll",                              dll_ini, L"Input.Cursor",   L"FixSynapticsTouchpadScroll"),
+    ConfigEntry (input.cursor.use_relative_input,     L"Use Raw Input Relative Motion if Needed",                   dll_ini, L"Input.Cursor",   L"UseRelativeInput"),
+    ConfigEntry (input.cursor.antiwarp_deadzone,      L"Percentage of Screen that the game may try to move the "
+                                                      L"cursor to for mouselook.",                                  dll_ini, L"Input.Cursor",   L"AntiwarpDeadzonePercent"),
+    ConfigEntry (input.cursor.no_warp_ui,             L"Prevent Games from Warping Cursor while Config UI is Open", dll_ini, L"Input.Cursor",   L"NoWarpUI"),
+    ConfigEntry (input.cursor.no_warp_visible,        L"Prevent Games from Warping Cursor while Cursor is Visible", dll_ini, L"Input.Cursor",   L"NoWarpVisibleGameCursor"),
+
+    ConfigEntry (input.gamepad.disable_ps4_hid,       L"Disable PS4 HID Interface (prevent double-input)",          dll_ini, L"Input.Gamepad",  L"DisablePS4HID"),
+    ConfigEntry (input.gamepad.haptic_ui,             L"Give tactile feedback on gamepads when navigating the UI",  dll_ini, L"Input.Gamepad",  L"AllowHapticUI"),
+    ConfigEntry (input.gamepad.hook_dinput8,          L"Install hooks for DirectInput 8",                           dll_ini, L"Input.Gamepad",  L"EnableDirectInput8"),
+    ConfigEntry (input.gamepad.hook_hid,              L"Install hooks for HID",                                     dll_ini, L"Input.Gamepad",  L"EnableHID"),
+    ConfigEntry (input.gamepad.native_ps4,            L"Native PS4 Mode (temporary)",                               dll_ini, L"Input.Gamepad",  L"EnableNativePS4"),
+
+    ConfigEntry (input.gamepad.hook_xinput,           L"Install hooks for XInput",                                  dll_ini, L"Input.XInput",  L"Enable"),
+    ConfigEntry (input.gamepad.rehook_xinput,         L"Re-install XInput hooks if hookchain is modified",          dll_ini, L"Input.XInput",  L"Rehook"),
+    ConfigEntry (input.gamepad.xinput.ui_slot,        L"XInput Controller that owns the config UI",                 dll_ini, L"Input.XInput",  L"UISlot"),
+    ConfigEntry (input.gamepad.xinput.placeholders,   L"XInput Controller Slots to Fake Connectivity On",           dll_ini, L"Input.XInput",  L"PlaceholderMask"),
+    ConfigEntry (input.gamepad.xinput.disable_rumble, L"Disable Rumble from ALL SOURCES",                           dll_ini, L"Input.XInput",  L"DisableRumble"),
+    ConfigEntry (input.gamepad.xinput.assignment,     L"Re-Assign XInput Slots",                                    dll_ini, L"Input.XInput",  L"SlotReassignment"),
+
+
+    // Window Management
+    //////////////////////////////////////////////////////////////////////////
+
+    ConfigEntry (window.borderless,                   L"Borderless Window Mode",                                    dll_ini, L"Window.System", L"Borderless"),
+    ConfigEntry (window.center,                       L"Center the Window",                                         dll_ini, L"Window.System", L"Center"),
+    ConfigEntry (window.background_render,            L"Render While Window is in Background",                      dll_ini, L"Window.System", L"RenderInBackground"),
+    ConfigEntry (window.background_mute,              L"Mute While Window is in Background",                        dll_ini, L"Window.System", L"MuteInBackground"),
+    ConfigEntry (window.offset.x,                     L"X Offset (Percent or Absolute)",                            dll_ini, L"Window.System", L"XOffset"),
+    ConfigEntry (window.offset.y,                     L"Y Offset (Percent or Absolute)",                            dll_ini, L"Window.System", L"YOffset"),
+    ConfigEntry (window.confine_cursor,               L"Confine the Mouse Cursor to the Game Window",               dll_ini, L"Window.System", L"ConfineCursor"),
+    ConfigEntry (window.unconfine_cursor,             L"Unconfine the Mouse Cursor from the Game Window",           dll_ini, L"Window.System", L"UnconfineCursor"),
+    ConfigEntry (window.persistent_drag,              L"Remember where the window is dragged to",                   dll_ini, L"Window.System", L"PersistentDragPos"),
+    ConfigEntry (window.fullscreen,                   L"Make the Game Window Fill the Screen (scale to fit)",       dll_ini, L"Window.System", L"Fullscreen"),
+    ConfigEntry (window.override,                     L"Force the Client Region to this Size in Windowed Mode",     dll_ini, L"Window.System", L"OverrideRes"),
+    ConfigEntry (window.fix_mouse_coords,             L"Re-Compute Mouse Coordinates for Resized Windows",          dll_ini, L"Window.System", L"FixMouseCoords"),
+
+    // Compatibility
+    //////////////////////////////////////////////////////////////////////////
+
+    ConfigEntry (compatibility.ignore_raptr,          L"Ignore Raptr Warning",                                      dll_ini, L"Compatibility.General", L"IgnoreRaptr"),
+    ConfigEntry (compatibility.disable_raptr,         L"Forcefully Disable Raptr",                                  dll_ini, L"Compatibility.General", L"DisableRaptr"),
+    ConfigEntry (compatibility.disable_nv_bloat,      L"Disable All NVIDIA BloatWare (GeForce Experience)",         dll_ini, L"Compatibility.General", L"DisableBloatWare_NVIDIA"),
+    ConfigEntry (compatibility.rehook_loadlibrary,    L"Rehook LoadLibrary When RTSS/Steam/ReShade hook it",        dll_ini, L"Compatibility.General", L"RehookLoadLibrary"),
+
+    ConfigEntry (apis.last_known,                     L"Last Known Render API",                                     dll_ini, L"API.Hook",              L"LastKnown"),
+
+#ifndef _WIN64
+    ConfigEntry (apis.ddraw.hook,                     L"Enable DirectDraw Hooking",                                 dll_ini, L"API.Hook",              L"ddraw"),
+    ConfigEntry (apis.d3d8.hook,                      L"Enable Direct3D 8 Hooking",                                 dll_ini, L"API.Hook",              L"d3d8"),
+#endif
+
+    ConfigEntry (apis.d3d9.hook,                      L"Enable Direct3D 9 Hooking",                                 dll_ini, L"API.Hook",              L"d3d9"),
+    ConfigEntry (apis.d3d9ex.hook,                    L"Enable Direct3D 9Ex Hooking",                               dll_ini, L"API.Hook",              L"d3d9ex"),
+    ConfigEntry (apis.d3d11.hook,                     L"Enable Direct3D 11 Hooking",                                dll_ini, L"API.Hook",              L"d3d11"),
+
+#ifdef _WIN64
+    ConfigEntry (apis.d3d12.hook,                     L"Enable Direct3D 12 Hooking",                                dll_ini, L"API.Hook",              L"d3d12"),
+    ConfigEntry (apis.Vulkan.hook,                    L"Enable Vulkan Hooking",                                     dll_ini, L"API.Hook",              L"Vulkan"),
+#endif
+
+    ConfigEntry (apis.OpenGL.hook,                    L"Enable OpenGL Hooking",                                     dll_ini, L"API.Hook",              L"OpenGL"),
+
+
+    // Misc.
+    //////////////////////////////////////////////////////////////////////////
+
+    ConfigEntry (mem_reserve,                         L"Memory Reserve Percentage",                                 dll_ini, L"Manage.Memory",         L"ReservePercent"),
+
+
+    // General Mod System Settings
+    //////////////////////////////////////////////////////////////////////////
+
+    ConfigEntry (init_delay,                          L"Initialization Delay (msecs)",                              dll_ini, L"SpecialK.System",       L"InitDelay"),
+    ConfigEntry (silent,                              L"Log Silence",                                               dll_ini, L"SpecialK.System",       L"Silent"),
+    ConfigEntry (strict_compliance,                   L"Strict DLL Loader Compliance",                              dll_ini, L"SpecialK.System",       L"StrictCompliant"),
+    ConfigEntry (trace_libraries,                     L"Trace DLL Loading (needed for dynamic API detection)",      dll_ini, L"SpecialK.System",       L"TraceLoadLibrary"),
+    ConfigEntry (log_level,                           L"Log Verbosity (0=General, 5=Insane Debug)",                 dll_ini, L"SpecialK.System",       L"LogLevel"),
+    ConfigEntry (handle_crashes,                      L"Use Custom Crash Handler",                                  dll_ini, L"SpecialK.System",       L"UseCrashHandler"),
+    ConfigEntry (debug_output,                        L"Print Application's Debug Output in real-time",             dll_ini, L"SpecialK.System",       L"DebugOutput"),
+    ConfigEntry (game_output,                         L"Log Application's Debug Output",                            dll_ini, L"SpecialK.System",       L"GameOutput"),
+    ConfigEntry (ignore_rtss_delay,                   L"Ignore RTSS Delay Incompatibilities",                       dll_ini, L"SpecialK.System",       L"IgnoreRTSSHookDelay"),
+    ConfigEntry (enable_cegui,                        L"Enable CEGUI (lazy loading)",                               dll_ini, L"SpecialK.System",       L"EnableCEGUI"),
+    ConfigEntry (safe_cegui,                          L"Safely Initialize CEGUI",                                   dll_ini, L"SpecialK.System",       L"SafeInitCEGUI"),
+    ConfigEntry (version,                             L"The last version that wrote the config file",               dll_ini, L"SpecialK.System",       L"Version"),
+  };
 
 
   display.force_fullscreen =
@@ -1943,119 +1423,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"ImGui.Render",
         L"AntialiasContours" );
 
-
-  osd.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"OSD Visibility")
-      );
-  osd.show->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"Show" );
-
-  osd.update_method.pump =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Refresh the OSD irrespective of frame completion")
-      );
-  osd.update_method.pump->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"AutoPump" );
-
-  osd.update_method.pump_interval =
-    dynamic_cast <sk::ParameterFloat *>
-    (g_ParameterFactory.create_parameter <float> (
-      L"Time in seconds between OSD updates")
-    );
-  osd.update_method.pump_interval->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"PumpInterval" );
-
-  osd.text.red =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Color (Red)")
-      );
-  osd.text.red->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"TextColorRed" );
-
-  osd.text.green =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Color (Green)")
-      );
-  osd.text.green->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"TextColorGreen" );
-
-  osd.text.blue =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Color (Blue)")
-      );
-  osd.text.blue->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"TextColorBlue" );
-
-  osd.viewport.pos_x =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Position (X)")
-      );
-  osd.viewport.pos_x->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"PositionX" );
-
-  osd.viewport.pos_y =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Position (Y)")
-      );
-  osd.viewport.pos_y->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"PositionY" );
-
-  osd.viewport.scale =
-    dynamic_cast <sk::ParameterFloat *>
-      (g_ParameterFactory.create_parameter <float> (
-        L"OSD Scale")
-      );
-  osd.viewport.scale->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"Scale" );
-
-  osd.state.remember =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Remember status monitoring state")
-      );
-  osd.state.remember->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"RememberMonitoringState" );
-
-
-  monitoring.SLI.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Show SLI Monitoring")
-      );
-  monitoring.SLI.show->register_to_ini (
-    osd_ini,
-      L"Monitor.SLI",
-        L"Show" );
-
-
   steam.achievements.sound_file =
     dynamic_cast <sk::ParameterStringW *>
       (g_ParameterFactory.create_parameter <std::wstring> (
@@ -2256,6 +1623,62 @@ SK_LoadConfigEx (std::wstring name, bool create)
       L"Steam.DRMWorks",
         L"SpoofBLoggedOn" );
 
+
+  for ( auto decl : params_to_build )
+  {
+    if ( decl.type_ == std::type_index ( typeid ( sk::ParameterBool* ) ) )
+    {
+      *decl.parameter_ =
+        SK_CreateINIParameter <sk::ParameterBool> (decl.description_, decl.ini_, decl.section_, decl.key_);
+
+      continue;
+    }
+
+    if ( decl.type_ == std::type_index ( typeid ( sk::ParameterInt* ) ) )
+    {
+      *decl.parameter_ =
+        SK_CreateINIParameter <sk::ParameterInt> (decl.description_, decl.ini_, decl.section_, decl.key_);
+
+      continue;
+    }
+
+    if ( decl.type_ == std::type_index ( typeid ( sk::ParameterInt64* ) ) )
+    {
+      *decl.parameter_ =
+        SK_CreateINIParameter <sk::ParameterInt64> (decl.description_, decl.ini_, decl.section_, decl.key_);
+
+      continue;
+    }
+
+    if ( decl.type_ == std::type_index ( typeid ( sk::ParameterFloat* ) ) )
+    {
+      *decl.parameter_ =
+        SK_CreateINIParameter <sk::ParameterFloat> (decl.description_, decl.ini_, decl.section_, decl.key_);
+
+      continue;
+    }
+
+    if ( decl.type_ == std::type_index ( typeid ( sk::ParameterStringW* ) ) )
+    {
+      *decl.parameter_ =
+        SK_CreateINIParameter <sk::ParameterStringW> (decl.description_, decl.ini_, decl.section_, decl.key_);
+
+      continue;
+    }
+
+    if ( decl.type_ == std::type_index ( typeid ( sk::ParameterVec2f* ) ) )
+    {
+      *decl.parameter_ =
+        SK_CreateINIParameter <sk::ParameterVec2f> (decl.description_, decl.ini_, decl.section_, decl.key_);
+
+      continue;
+    }
+  }
+
+  //
+  // Create Parameters
+  //
+
   iSK_INI::_TSectionMap& sections =
     dll_ini->get_sections ();
 
@@ -2324,11 +1747,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
           (*sec).first.c_str (),
             L"Blacklist" );
 
-      imports [import].filename->load     ();
-      imports [import].when->load         ();
-      imports [import].role->load         ();
-      imports [import].architecture->load ();
-      imports [import].blacklist->load    ();
+      ((sk::iParameter *)imports [import].filename)->load     ();
+      ((sk::iParameter *)imports [import].when)->load         ();
+      ((sk::iParameter *)imports [import].role)->load         ();
+      ((sk::iParameter *)imports [import].architecture)->load ();
+      ((sk::iParameter *)imports [import].blacklist)->load    ();
 
       imports [import].hLibrary = nullptr;
 
@@ -2676,127 +2099,80 @@ SK_LoadConfigEx (std::wstring name, bool create)
   //
   // Load Parameters
   //
-  if (compatibility.ignore_raptr->load ())
-    config.compatibility.ignore_raptr = compatibility.ignore_raptr->get_value ();
-  if (compatibility.disable_raptr->load ())
-    config.compatibility.disable_raptr = compatibility.disable_raptr->get_value ();
-  if (compatibility.disable_nv_bloat->load ())
-    config.compatibility.disable_nv_bloat = compatibility.disable_nv_bloat->get_value ();
-  if (compatibility.rehook_loadlibrary->load ())
-    config.compatibility.rehook_loadlibrary = compatibility.rehook_loadlibrary->get_value ();
+  compatibility.ignore_raptr->load       (config.compatibility.ignore_raptr);
+  compatibility.disable_raptr->load      (config.compatibility.disable_raptr);
+  compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
+  compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
+
+  osd.state.remember->load (config.osd.remember_state);
+
+  imgui.scale->load              (config.imgui.scale);
+  imgui.show_eula->load          (config.imgui.show_eula);
+  imgui.show_playtime->load      (config.steam.show_playtime);
+  imgui.show_gsync_status->load  (config.apis.NvAPI.gsync_status);
+  imgui.mac_style_menu->load     (config.imgui.use_mac_style_menu);
+  imgui.show_input_apis->load    (config.imgui.show_input_apis);
+
+  imgui.disable_alpha->load      (config.imgui.render.disable_alpha);
+  imgui.antialias_lines->load    (config.imgui.render.antialias_lines);
+  imgui.antialias_contours->load (config.imgui.render.antialias_contours);
 
 
-  if (osd.state.remember->load ())
-    config.osd.remember_state = osd.state.remember->get_value ();
+  if (((sk::iParameter *)monitoring.io.show)->load     () && config.osd.remember_state)
+    config.io.show =     monitoring.io.show->get_value ();
+                         monitoring.io.interval->load  (config.io.interval);
 
-  if (imgui.scale->load ())
-    config.imgui.scale = imgui.scale->get_value ();
+  monitoring.fps.show->load (config.fps.show);
 
-  if (imgui.show_eula->load ())
-    config.imgui.show_eula = imgui.show_eula->get_value ();
+  if (((sk::iParameter *)monitoring.memory.show)->load     () && config.osd.remember_state)
+       config.mem.show = monitoring.memory.show->get_value ();
+  mem_reserve->load (config.mem.reserve);
 
-  if (imgui.show_playtime->load ())
-    config.steam.show_playtime = imgui.show_playtime->get_value ();
+  if (((sk::iParameter *)monitoring.cpu.show)->load     () && config.osd.remember_state)
+    config.cpu.show =    monitoring.cpu.show->get_value ();
+                         monitoring.cpu.interval->load  (config.cpu.interval);
+                         monitoring.cpu.simple->load    (config.cpu.simple);
 
-  if (imgui.show_gsync_status->load ())
-    config.apis.NvAPI.gsync_status = imgui.show_gsync_status->get_value ();
+  monitoring.gpu.show->load           (config.gpu.show);
+  monitoring.gpu.print_slowdown->load (config.gpu.print_slowdown);
+  monitoring.gpu.interval->load       (config.gpu.interval);
 
-  if (imgui.mac_style_menu->load ())
-    config.imgui.use_mac_style_menu = imgui.mac_style_menu->get_value ();
-
-  if (imgui.show_input_apis->load ())
-    config.imgui.show_input_apis = imgui.show_input_apis->get_value ();
-
-  if (imgui.disable_alpha->load      ())
-    config.imgui.render.disable_alpha      = imgui.disable_alpha->get_value      ();
-  if (imgui.antialias_lines->load    ())
-    config.imgui.render.antialias_lines    = imgui.antialias_lines->get_value    ();
-  if (imgui.antialias_contours->load ())
-    config.imgui.render.antialias_contours = imgui.antialias_contours->get_value ();
-
-
-  if (monitoring.io.show->load () && config.osd.remember_state)
-    config.io.show = monitoring.io.show->get_value ();
-  if (monitoring.io.interval->load ())
-    config.io.interval = monitoring.io.interval->get_value ();
-
-  if (monitoring.fps.show->load ())
-    config.fps.show = monitoring.fps.show->get_value ();
-
-  if (monitoring.memory.show->load () && config.osd.remember_state)
-    config.mem.show = monitoring.memory.show->get_value ();
-  if (mem_reserve->load ())
-    config.mem.reserve = mem_reserve->get_value ();
-
-  if (monitoring.cpu.show->load () && config.osd.remember_state)
-    config.cpu.show = monitoring.cpu.show->get_value ();
-  if (monitoring.cpu.interval->load ())
-    config.cpu.interval = monitoring.cpu.interval->get_value ();
-  if (monitoring.cpu.simple->load ())
-    config.cpu.simple = monitoring.cpu.simple->get_value ();
-
-  if (monitoring.gpu.show->load ())
-    config.gpu.show = monitoring.gpu.show->get_value ();
-  if (monitoring.gpu.print_slowdown->load ())
-    config.gpu.print_slowdown = monitoring.gpu.print_slowdown->get_value ();
-  if (monitoring.gpu.interval->load ())
-    config.gpu.interval = monitoring.gpu.interval->get_value ();
-
-  if (monitoring.disk.show->load () && config.osd.remember_state)
-    config.disk.show = monitoring.disk.show->get_value ();
-  if (monitoring.disk.interval->load ())
-    config.disk.interval = monitoring.disk.interval->get_value ();
-  if (monitoring.disk.type->load ())
-    config.disk.type = monitoring.disk.type->get_value ();
+  if (((sk::iParameter *)monitoring.disk.show)->load     () && config.osd.remember_state)
+    config.disk.show =   monitoring.disk.show->get_value ();
+                         monitoring.disk.interval->load  (config.disk.interval);
+                         monitoring.disk.type->load      (config.disk.type);
 
   //if (monitoring.pagefile.show->load () && config.osd.remember_state)
     //config.pagefile.show = monitoring.pagefile.show->get_value ();
-  if (monitoring.pagefile.interval->load ())
-    config.pagefile.interval = monitoring.pagefile.interval->get_value ();
+  monitoring.pagefile.interval->load (config.pagefile.interval);
 
-  if (monitoring.time.show->load ())
-    config.time.show = monitoring.time.show->get_value ();
+  monitoring.time.show->load (config.time.show);
+  monitoring.SLI.show->load  (config.sli.show);
 
-  if (monitoring.SLI.show->load ())
-    config.sli.show = monitoring.SLI.show->get_value ();
-
-
-  if (apis.last_known->load ())
-    config.apis.last_known = (SK_RenderAPI)apis.last_known->get_value ();
+  apis.last_known->load ((int &)config.apis.last_known);
 
 #ifndef _WIN64
-  if (apis.ddraw.hook->load ())
-    config.apis.ddraw.hook = apis.ddraw.hook->get_value ();
-
-  if (apis.d3d8.hook->load ())
-    config.apis.d3d8.hook = apis.d3d8.hook->get_value ();
+  apis.ddraw.hook->load (config.apis.ddraw.hook);
+  apis.d3d8.hook->load  (config.apis.d3d8.hook);
 #endif
 
 
-  if (apis.d3d9.hook->load ())
-    config.apis.d3d9.hook = apis.d3d9.hook->get_value ();
-
-  if (apis.d3d9ex.hook->load ())
-    config.apis.d3d9ex.hook = apis.d3d9ex.hook->get_value ();
-
-  if (apis.d3d11.hook->load ())
-    config.apis.dxgi.d3d11.hook = apis.d3d11.hook->get_value ();
+  apis.d3d9.hook->load   (config.apis.d3d9.hook);
+  apis.d3d9ex.hook->load (config.apis.d3d9ex.hook);
+  apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook);
 
 #ifdef _WIN64
-  if (apis.d3d12.hook->load ())
-    config.apis.dxgi.d3d12.hook = apis.d3d12.hook->get_value ();
+  apis.d3d12.hook->load (config.apis.dxgi.d3d12.hook);
 #endif
 
-  if (apis.OpenGL.hook->load ())
-    config.apis.OpenGL.hook = apis.OpenGL.hook->get_value ();
+  apis.OpenGL.hook->load (config.apis.OpenGL.hook);
 
 #ifdef _WIN64
-  if (apis.Vulkan.hook->load ())
-    config.apis.Vulkan.hook = apis.Vulkan.hook->get_value ();
+  apis.Vulkan.hook->load (config.apis.Vulkan.hook);
 #endif
 
-  if (nvidia.api.disable->load ())
-    config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
+  if (nvidia.api.disable->load (config.apis.NvAPI.enable))
+     config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
 
 
 
@@ -2805,10 +2181,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
   //
   //   Hook Address Policy
   //
-  if (injection.global.use_static_addresses->load ())
+  if (injection.global.use_static_addresses->load (config.injection.global.use_static_addresses))
   {
-    injection.global.has_local_preference        = true;
-    config.injection.global.use_static_addresses = injection.global.use_static_addresses->get_value ();
+    injection.global.has_local_preference = true;
   }
 
   else
@@ -2825,16 +2200,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
       );
     default_usage->register_to_ini (pInjectINI, L"Injection.Policy", L"DefaultStaticAddressUsage");
 
-    if (default_usage->load ())
-    {      
-      config.injection.global.use_static_addresses = default_usage->get_value ();
-    }
-
     // Highly Experimental, so OFF by default
-    else
+    if (! default_usage->load (config.injection.global.use_static_addresses))
     {
-      default_usage->set_value (false);
-      default_usage->store     (     );
+      default_usage->store (false);
 
       config.injection.global.use_static_addresses = false;
 
@@ -2853,107 +2222,54 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
 
-  if (display.force_fullscreen->load ())
-    config.display.force_fullscreen =
-      display.force_fullscreen->get_value ();
-  if (display.force_windowed->load ())
-    config.display.force_windowed =
-      display.force_windowed->get_value ();
+  display.force_fullscreen->load (config.display.force_fullscreen);
+  display.force_windowed->load   (config.display.force_windowed);
 
-
-  if (render.framerate.target_fps->load ())
-    config.render.framerate.target_fps =
-      render.framerate.target_fps->get_value ();
-  if (render.framerate.limiter_tolerance->load ())
-    config.render.framerate.limiter_tolerance =
-      render.framerate.limiter_tolerance->get_value ();
-  if (render.framerate.sleepless_render->load ())
-    config.render.framerate.sleepless_render =
-      render.framerate.sleepless_render->get_value ();
-  if (render.framerate.sleepless_window->load ())
-    config.render.framerate.sleepless_window =
-      render.framerate.sleepless_window->get_value ();
+  render.framerate.target_fps->load        (config.render.framerate.target_fps);
+  render.framerate.limiter_tolerance->load (config.render.framerate.limiter_tolerance);
+  render.framerate.sleepless_render->load  (config.render.framerate.sleepless_render);
+  render.framerate.sleepless_window->load  (config.render.framerate.sleepless_window);
 
   // D3D9/11
   //
 
-  // SLI only works in Direct3D
-  if (nvidia.sli.compatibility->load ())
-    config.nvidia.sli.compatibility =
-      nvidia.sli.compatibility->get_value ();
-  if (nvidia.sli.mode->load ())
-    config.nvidia.sli.mode =
-      nvidia.sli.mode->get_value ();
-  if (nvidia.sli.num_gpus->load ())
-    config.nvidia.sli.num_gpus =
-      nvidia.sli.num_gpus->get_value ();
-  if (nvidia.sli.override->load ())
-    config.nvidia.sli.override =
-      nvidia.sli.override->get_value ();
+  nvidia.sli.compatibility->load (config.nvidia.sli.compatibility);
+  nvidia.sli.mode->load          (config.nvidia.sli.mode);
+  nvidia.sli.num_gpus->load      (config.nvidia.sli.num_gpus);
+  nvidia.sli.override->load      (config.nvidia.sli.override);
 
-  if (render.framerate.wait_for_vblank->load ())
-    config.render.framerate.wait_for_vblank =
-      render.framerate.wait_for_vblank->get_value ();
-  if (render.framerate.buffer_count->load ())
-    config.render.framerate.buffer_count =
-      render.framerate.buffer_count->get_value ();
-  if (render.framerate.prerender_limit->load ())
-    config.render.framerate.pre_render_limit =
-      render.framerate.prerender_limit->get_value ();
-  if (render.framerate.present_interval->load ())
-    config.render.framerate.present_interval =
-      render.framerate.present_interval->get_value ();
+  render.framerate.wait_for_vblank->load  (config.render.framerate.wait_for_vblank);
+  render.framerate.buffer_count->load     (config.render.framerate.buffer_count);
+  render.framerate.prerender_limit->load  (config.render.framerate.pre_render_limit);
+  render.framerate.present_interval->load (config.render.framerate.present_interval);
 
   if (render.framerate.refresh_rate)
   {
-    if (render.framerate.refresh_rate->load ())
-      config.render.framerate.refresh_rate =
-        render.framerate.refresh_rate->get_value ();
+    render.framerate.refresh_rate->load (config.render.framerate.refresh_rate);
   }
 
   // D3D9
   //
-  if (compatibility.d3d9.rehook_present->load ())
-    config.compatibility.d3d9.rehook_present =
-      compatibility.d3d9.rehook_present->get_value ();
-  if (compatibility.d3d9.rehook_reset->load ())
-    config.compatibility.d3d9.rehook_reset =
-      compatibility.d3d9.rehook_reset->get_value ();
+  compatibility.d3d9.rehook_present->load (config.compatibility.d3d9.rehook_present);
+  compatibility.d3d9.rehook_reset->load   (config.compatibility.d3d9.rehook_reset);
 
-  if (compatibility.d3d9.hook_present_vtable->load ())
-    config.compatibility.d3d9.hook_present_vftbl =
-      compatibility.d3d9.hook_present_vtable->get_value ();
-  if (compatibility.d3d9.hook_reset_vtable->load ())
-    config.compatibility.d3d9.hook_reset_vftbl =
-      compatibility.d3d9.hook_reset_vtable->get_value ();
+  compatibility.d3d9.hook_present_vtable->load (config.compatibility.d3d9.hook_present_vftbl);
+  compatibility.d3d9.hook_reset_vtable->load   (config.compatibility.d3d9.hook_reset_vftbl);
 
-  if (render.d3d9.force_d3d9ex->load ())
-    config.render.d3d9.force_d3d9ex =
-      render.d3d9.force_d3d9ex->get_value ();
-  if (render.d3d9.impure->load ())
-    config.render.d3d9.force_impure =
-      render.d3d9.impure->get_value ();
-  if (render.d3d9.enable_texture_mods->load ())
-    config.textures.d3d9_mod =
-      render.d3d9.enable_texture_mods->get_value ();
-  if (render.d3d9.hook_type->load ())
-    config.render.d3d9.hook_type =
-      render.d3d9.hook_type->get_value ();
+  render.d3d9.force_d3d9ex->load        (config.render.d3d9.force_d3d9ex);
+  render.d3d9.impure->load              (config.render.d3d9.force_impure);
+  render.d3d9.enable_texture_mods->load (config.textures.d3d9_mod);
+  render.d3d9.hook_type->load           (config.render.d3d9.hook_type);
 
 
   // DXGI
   //
-  if (render.framerate.max_delta_time->load ())
-    config.render.framerate.max_delta_time =
-      render.framerate.max_delta_time->get_value ();
-  if (render.framerate.flip_discard->load ())
-  {
-    config.render.framerate.flip_discard =
-      render.framerate.flip_discard->get_value ();
+  render.framerate.max_delta_time->load (config.render.framerate.max_delta_time);
 
-    if (render.framerate.allow_dwm_tearing->load ())
+  if (render.framerate.flip_discard->load (config.render.framerate.flip_discard))
+  {
+    if (render.framerate.allow_dwm_tearing->load (config.render.dxgi.allow_tearing))
     {
-      config.render.dxgi.allow_tearing = render.framerate.allow_dwm_tearing->get_value ();
       //if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
     }
 
@@ -2962,18 +2278,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
       SK_DXGI_use_factory1 = true;
   }
 
-  if (render.dxgi.adapter_override->load ())
-    config.render.dxgi.adapter_override =
-      render.dxgi.adapter_override->get_value ();
+  render.dxgi.adapter_override->load (config.render.dxgi.adapter_override);
 
-  if (render.dxgi.max_res->load ())
+  if (((sk::iParameter *)render.dxgi.max_res)->load ())
   {
     swscanf ( render.dxgi.max_res->get_value_str ().c_str (),
                 L"%lux%lu",
                 &config.render.dxgi.res.max.x,
                   &config.render.dxgi.res.max.y );
   }
-  if (render.dxgi.min_res->load ())
+  if (((sk::iParameter *)render.dxgi.min_res)->load ())
   {
     swscanf ( render.dxgi.min_res->get_value_str ().c_str (),
                 L"%lux%lu",
@@ -2981,7 +2295,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
                   &config.render.dxgi.res.min.y );
   }
 
-  if (render.dxgi.scaling_mode->load ())
+  if (((sk::iParameter *)render.dxgi.scaling_mode)->load ())
   {
     if (! _wcsicmp (
             render.dxgi.scaling_mode->get_value_str ().c_str (),
@@ -3011,7 +2325,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     }
   }
 
-  if (render.dxgi.scanline_order->load ())
+  if (((sk::iParameter *)render.dxgi.scanline_order)->load ())
   {
     if (! _wcsicmp (
             render.dxgi.scanline_order->get_value_str ().c_str (),
@@ -3060,10 +2374,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
     }
   }
 
-  if (render.dxgi.debug_layer->load ())
-    config.render.dxgi.debug_layer = render.dxgi.debug_layer->get_value ();
+  render.dxgi.debug_layer->load (config.render.dxgi.debug_layer);
 
-  if (render.dxgi.exception_mode->load ())
+  if (((sk::iParameter *)render.dxgi.exception_mode)->load ())
   {
     if (! _wcsicmp (
             render.dxgi.exception_mode->get_value_str ().c_str (),
@@ -3087,126 +2400,86 @@ SK_LoadConfigEx (std::wstring name, bool create)
       config.render.dxgi.exception_mode = -1;
   }
 
-  if (render.dxgi.test_present->load ())
-    config.render.dxgi.test_present = render.dxgi.test_present->get_value ();
+  render.dxgi.test_present->load       (config.render.dxgi.test_present);
+  render.dxgi.swapchain_wait->load     (config.render.framerate.swapchain_wait);
 
-  if (render.dxgi.swapchain_wait->load ())
-    config.render.framerate.swapchain_wait = render.dxgi.swapchain_wait->get_value ();
+  render.dxgi.safe_fullscreen->load    (config.render.dxgi.safe_fullscreen);
 
-  if (render.dxgi.safe_fullscreen->load ())
-    config.render.dxgi.safe_fullscreen = render.dxgi.safe_fullscreen->get_value ();
-
-  if (render.dxgi.enhanced_depth->load ())
-    config.render.dxgi.enhanced_depth = render.dxgi.enhanced_depth->get_value ();
-
-  if (render.dxgi.deferred_isolation->load ())
-    config.render.dxgi.deferred_isolation = render.dxgi.deferred_isolation->get_value ();
-  if (render.dxgi.rehook_present->load ())
-    config.render.dxgi.rehook_present = render.dxgi.rehook_present->get_value ();
+  render.dxgi.enhanced_depth->load     (config.render.dxgi.enhanced_depth);
+  render.dxgi.deferred_isolation->load (config.render.dxgi.deferred_isolation);
+  render.dxgi.rehook_present->load     (config.render.dxgi.rehook_present);
 
 
-  if (texture.d3d11.cache->load ())
-    config.textures.d3d11.cache = texture.d3d11.cache->get_value ();
-  if (texture.d3d11.precise_hash->load ())
-    config.textures.d3d11.precise_hash = texture.d3d11.precise_hash->get_value ();
-  if (texture.d3d11.dump->load ())
-    config.textures.d3d11.dump = texture.d3d11.dump->get_value ();
-  if (texture.d3d11.inject->load ())
-    config.textures.d3d11.inject = texture.d3d11.inject->get_value ();
-  if (texture.d3d11.res_root->load ())
-    config.textures.d3d11.res_root = texture.d3d11.res_root->get_value ();
-  if (texture.res_root->load ())
-    config.textures.d3d11.res_root = texture.res_root->get_value ();
-  if (texture.d3d11.injection_keeps_format->load ())
-    config.textures.d3d11.injection_keeps_fmt = texture.d3d11.injection_keeps_format->get_value ();
-  if (texture.dump_on_load->load ())
-    config.textures.dump_on_load = texture.dump_on_load->get_value ();
+  texture.d3d11.cache->load        (config.textures.d3d11.cache);
+  texture.d3d11.precise_hash->load (config.textures.d3d11.precise_hash);
+  texture.d3d11.dump->load         (config.textures.d3d11.dump);
+  texture.d3d11.inject->load       (config.textures.d3d11.inject);
+  texture.d3d11.res_root->load     (config.textures.d3d11.res_root);
+        texture.res_root->load     (config.textures.d3d11.res_root);
 
-  if (texture.cache.max_entries->load ())
-    config.textures.cache.max_entries = texture.cache.max_entries->get_value ();
-  if (texture.cache.min_entries->load ())
-    config.textures.cache.min_entries = texture.cache.min_entries->get_value ();
-  if (texture.cache.max_evict->load ())
-    config.textures.cache.max_evict = texture.cache.max_evict->get_value ();
-  if (texture.cache.min_evict->load ())
-    config.textures.cache.min_evict = texture.cache.min_evict->get_value ();
-  if (texture.cache.max_size->load ())
-    config.textures.cache.max_size = texture.cache.max_size->get_value ();
-  if (texture.cache.min_size->load ())
-    config.textures.cache.min_size = texture.cache.min_size->get_value ();
-  if (texture.cache.ignore_non_mipped->load ())
-    config.textures.cache.ignore_nonmipped = texture.cache.ignore_non_mipped->get_value ();
-  if (texture.cache.allow_staging->load ())
-    config.textures.cache.allow_staging = texture.cache.allow_staging->get_value ();
+  texture.d3d11.injection_keeps_format->load (config.textures.d3d11.injection_keeps_fmt);
+                  texture.dump_on_load->load (config.textures.dump_on_load);
+
+  texture.cache.max_entries->load       (config.textures.cache.max_entries);
+  texture.cache.min_entries->load       (config.textures.cache.min_entries);
+  texture.cache.max_evict->load         (config.textures.cache.max_evict);
+  texture.cache.min_evict->load         (config.textures.cache.min_evict);
+  texture.cache.max_size->load          (config.textures.cache.max_size);
+  texture.cache.min_size->load          (config.textures.cache.min_size);
+  texture.cache.ignore_non_mipped->load (config.textures.cache.ignore_nonmipped);
+  texture.cache.allow_staging->load     (config.textures.cache.allow_staging);
 
   extern void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
 
   if (config.render.dxgi.adapter_override != -1)
     SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
 
-  if (input.keyboard.catch_alt_f4->load ())
-    config.input.keyboard.catch_alt_f4 = input.keyboard.catch_alt_f4->get_value ();
-  if (input.keyboard.disabled_to_game->load ())
-    config.input.keyboard.disabled_to_game = input.keyboard.disabled_to_game->get_value ();
+  input.keyboard.catch_alt_f4->load      (config.input.keyboard.catch_alt_f4);
+  input.keyboard.disabled_to_game->load  (config.input.keyboard.disabled_to_game);
 
-  if (input.mouse.disabled_to_game->load ())
-    config.input.mouse.disabled_to_game = input.mouse.disabled_to_game->get_value ();
+  input.mouse.disabled_to_game->load     (config.input.mouse.disabled_to_game);
 
-  if (input.cursor.manage->load ())
-    config.input.cursor.manage = input.cursor.manage->get_value ();
-  if (input.cursor.keys_activate->load ())
-    config.input.cursor.keys_activate = input.cursor.keys_activate->get_value ();
-  if (input.cursor.timeout->load ())
-    config.input.cursor.timeout = (int)(1000.0 * input.cursor.timeout->get_value ());
-  if (input.cursor.ui_capture->load ())
-    config.input.ui.capture = input.cursor.ui_capture->get_value ();
-  if (input.cursor.hw_cursor->load ())
-    config.input.ui.use_hw_cursor = input.cursor.hw_cursor->get_value ();
-  if (input.cursor.no_warp_ui->load ())
-    SK_ImGui_Cursor.prefs.no_warp.ui_open = input.cursor.no_warp_ui->get_value ();
-  if (input.cursor.no_warp_visible->load ())
-    SK_ImGui_Cursor.prefs.no_warp.visible = input.cursor.no_warp_visible->get_value ();
-  if (input.cursor.block_invisible->load ())
-    config.input.ui.capture_hidden = input.cursor.block_invisible->get_value ();
-  if (input.cursor.fix_synaptics->load ())
-    config.input.mouse.fix_synaptics = input.cursor.fix_synaptics->get_value ();
-  if (input.cursor.antiwarp_deadzone->load ())
-    config.input.mouse.antiwarp_deadzone = input.cursor.antiwarp_deadzone->get_value ();
-  if (input.cursor.use_relative_input->load ())
-    config.input.mouse.add_relative_motion = input.cursor.use_relative_input->get_value ();
+  input.cursor.manage->load              (config.input.cursor.manage);
+  input.cursor.keys_activate->load       (config.input.cursor.keys_activate);
 
-  if (input.gamepad.disable_ps4_hid->load ())
-    config.input.gamepad.disable_ps4_hid = input.gamepad.disable_ps4_hid->get_value ();
-  if (input.gamepad.rehook_xinput->load ())
-    config.input.gamepad.rehook_xinput = input.gamepad.rehook_xinput->get_value ();
-  if (input.gamepad.hook_xinput->load ())
-    config.input.gamepad.hook_xinput = input.gamepad.hook_xinput->get_value ();
+                            float fTimeout;
+  if (input.cursor.timeout->load (fTimeout))
+    config.input.cursor.timeout = (int)(1000.0 * fTimeout);
+
+  input.cursor.ui_capture->load         (config.input.ui.capture);
+  input.cursor.hw_cursor->load          (config.input.ui.use_hw_cursor);
+  input.cursor.no_warp_ui->load         (SK_ImGui_Cursor.prefs.no_warp.ui_open);
+  input.cursor.no_warp_visible->load    (SK_ImGui_Cursor.prefs.no_warp.visible);
+  input.cursor.block_invisible->load    (config.input.ui.capture_hidden);
+  input.cursor.fix_synaptics->load      (config.input.mouse.fix_synaptics);
+  input.cursor.antiwarp_deadzone->load  (config.input.mouse.antiwarp_deadzone);
+  input.cursor.use_relative_input->load (config.input.mouse.add_relative_motion);
+
+  input.gamepad.disable_ps4_hid->load   (config.input.gamepad.disable_ps4_hid);
+  input.gamepad.rehook_xinput->load     (config.input.gamepad.rehook_xinput);
+  input.gamepad.hook_xinput->load       (config.input.gamepad.hook_xinput);
 
   // Hidden INI values; they're loaded, but never written
-  if (input.gamepad.hook_dinput8->load ())
-    config.input.gamepad.hook_dinput8 = input.gamepad.hook_dinput8->get_value ();
-  if (input.gamepad.hook_hid->load ())
-    config.input.gamepad.hook_hid = input.gamepad.hook_hid->get_value ();
-  if (input.gamepad.native_ps4->load ())
-    config.input.gamepad.native_ps4 = input.gamepad.native_ps4->get_value ();
+  input.gamepad.hook_dinput8->load      (config.input.gamepad.hook_dinput8);
+  input.gamepad.hook_hid->load          (config.input.gamepad.hook_hid);
+  input.gamepad.native_ps4->load        (config.input.gamepad.native_ps4);
 
-  if (input.gamepad.haptic_ui->load ())
-    config.input.gamepad.haptic_ui = input.gamepad.haptic_ui->get_value ();
+  input.gamepad.haptic_ui->load         (config.input.gamepad.haptic_ui);
 
-  if (input.gamepad.xinput.placeholders->load ()) {
-    int placeholder_mask = input.gamepad.xinput.placeholders->get_value ();
+  int placeholder_mask;
 
+  if (input.gamepad.xinput.placeholders->load (placeholder_mask))
+  {
     config.input.gamepad.xinput.placehold [0] = ( placeholder_mask & 0x1 );
     config.input.gamepad.xinput.placehold [1] = ( placeholder_mask & 0x2 );
     config.input.gamepad.xinput.placehold [2] = ( placeholder_mask & 0x4 );
     config.input.gamepad.xinput.placehold [3] = ( placeholder_mask & 0x8 );
   }
 
-  if (input.gamepad.xinput.disable_rumble->load ())
-    config.input.gamepad.xinput.disable_rumble = input.gamepad.xinput.disable_rumble->get_value ();
+  input.gamepad.xinput.disable_rumble->load (config.input.gamepad.xinput.disable_rumble);
 
 
-  if (input.gamepad.xinput.assignment->load ())
+  if (((sk::iParameter *)input.gamepad.xinput.assignment)->load ())
   {
     wchar_t* wszAssign =
       _wcsdup (input.gamepad.xinput.assignment->get_value ().c_str ());
@@ -3235,21 +2508,18 @@ SK_LoadConfigEx (std::wstring name, bool create)
     free (wszAssign);
   }
 
-  if (input.gamepad.xinput.ui_slot->load ())
-    config.input.gamepad.xinput.ui_slot = input.gamepad.xinput.ui_slot->get_value ();
+  input.gamepad.xinput.ui_slot->load ((int &)config.input.gamepad.xinput.ui_slot);
 
-  if (window.borderless->load ())
-    config.window.borderless = window.borderless->get_value ();
+  window.borderless->load        (config.window.borderless);
 
-  if (window.center->load ())
-    config.window.center = window.center->get_value ();
-  if (window.background_render->load ())
-    config.window.background_render = window.background_render->get_value ();
-  if (window.background_mute->load ())
-    config.window.background_mute = window.background_mute->get_value ();
-  if (window.offset.x->load ()) {
-    std::wstring offset = window.offset.x->get_value ();
+  window.center->load            (config.window.center);
+  window.background_render->load (config.window.background_render);
+  window.background_mute->load   (config.window.background_mute);
 
+  std::wstring offset;
+
+  if (window.offset.x->load (offset))
+  {
     if (wcsstr (offset.c_str (), L"%"))
     {
       config.window.offset.x.absolute = 0;
@@ -3263,10 +2533,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
       swscanf (offset.c_str (), L"%li", &config.window.offset.x.absolute);
     }
   }
-  if (window.offset.y->load ())
-  {
-    std::wstring offset = window.offset.y->get_value ();
 
+  if (window.offset.y->load (offset))
+  {
     if (wcsstr (offset.c_str (), L"%"))
     {
       config.window.offset.y.absolute = 0;
@@ -3281,18 +2550,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
     }
   }
 
-  if (window.confine_cursor->load ())
-    config.window.confine_cursor = window.confine_cursor->get_value ();
-  if (window.unconfine_cursor->load ())
-    config.window.unconfine_cursor = window.unconfine_cursor->get_value ();
-  if (window.persistent_drag->load ())
-    config.window.persistent_drag = window.persistent_drag->get_value ();
-  if (window.fullscreen->load ())
-    config.window.fullscreen = window.fullscreen->get_value ();
-  if (window.fix_mouse_coords->load ())
-    config.window.res.override.fix_mouse =
-      window.fix_mouse_coords->get_value ();
-  if (window.override->load ())
+  window.confine_cursor->load   (config.window.confine_cursor);
+  window.unconfine_cursor->load (config.window.unconfine_cursor);
+  window.persistent_drag->load  (config.window.persistent_drag);
+  window.fullscreen->load       (config.window.fullscreen);
+  window.fix_mouse_coords->load (config.window.res.override.fix_mouse);
+
+  if (((sk::iParameter *)window.override)->load ())
   {
     swscanf ( window.override->get_value_str ().c_str (),
                 L"%lux%lu",
@@ -3300,41 +2564,28 @@ SK_LoadConfigEx (std::wstring name, bool create)
                   &config.window.res.override.y );
   }
 
-  if (steam.achievements.play_sound->load ())
-    config.steam.achievements.play_sound =
-    steam.achievements.play_sound->get_value ();
-  if (steam.achievements.sound_file->load ())
-    config.steam.achievements.sound_file =
-      steam.achievements.sound_file->get_value ();
-  if (steam.achievements.take_screenshot->load ())
-    config.steam.achievements.take_screenshot =
-      steam.achievements.take_screenshot->get_value ();
-  if (steam.achievements.fetch_friend_stats->load ())
-    config.steam.achievements.pull_friend_stats =
-      steam.achievements.fetch_friend_stats->get_value ();
-  if (steam.achievements.popup.animate->load ())
-    config.steam.achievements.popup.animate =
-      steam.achievements.popup.animate->get_value ();
-  if (steam.achievements.popup.show_title->load ())
-    config.steam.achievements.popup.show_title =
-      steam.achievements.popup.show_title->get_value ();
-  if (steam.achievements.popup.origin->load ())
+  steam.achievements.play_sound->load         (config.steam.achievements.play_sound);
+  steam.achievements.sound_file->load         (config.steam.achievements.sound_file);
+  steam.achievements.take_screenshot->load    (config.steam.achievements.take_screenshot);
+  steam.achievements.fetch_friend_stats->load (config.steam.achievements.pull_friend_stats);
+  steam.achievements.popup.animate->load      (config.steam.achievements.popup.animate);
+  steam.achievements.popup.show_title->load   (config.steam.achievements.popup.show_title);
+
+  if (((sk::iParameter *)steam.achievements.popup.origin)->load ())
   {
     config.steam.achievements.popup.origin =
       SK_Steam_PopupOriginWStrToEnum (
         steam.achievements.popup.origin->get_value ().c_str ()
       );
   }
+
   else
   {
     config.steam.achievements.popup.origin = 3;
   }
-  if (steam.achievements.popup.inset->load ())
-    config.steam.achievements.popup.inset =
-      steam.achievements.popup.inset->get_value ();
-  if (steam.achievements.popup.duration->load ())
-    config.steam.achievements.popup.duration =
-      steam.achievements.popup.duration->get_value ();
+
+  steam.achievements.popup.inset->load    (config.steam.achievements.popup.inset);
+  steam.achievements.popup.duration->load (config.steam.achievements.popup.duration);
 
   if (config.steam.achievements.popup.duration == 0)
   {
@@ -3343,91 +2594,52 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.steam.achievements.pull_global_stats = false;
   }
 
-  if (steam.log.silent->load ())
-    config.steam.silent = steam.log.silent->get_value ();
-  if (steam.drm.spoof_BLoggedOn->load ())
-    config.steam.spoof_BLoggedOn = steam.drm.spoof_BLoggedOn->get_value ();
+  steam.log.silent->load          (config.steam.silent);
+  steam.drm.spoof_BLoggedOn->load (config.steam.spoof_BLoggedOn);
 
-  if (steam.system.appid->load ())
-    config.steam.appid = steam.system.appid->get_value ();
-  if (steam.system.init_delay->load ())
-    config.steam.init_delay = steam.system.init_delay->get_value ();
-  if (steam.system.auto_pump->load ())
-    config.steam.auto_pump_callbacks = steam.system.auto_pump->get_value ();
-  if (steam.system.block_stat_callback->load ())
-    config.steam.block_stat_callback = steam.system.block_stat_callback->get_value ();
-  if (steam.system.filter_stat_callbacks->load ())
-    config.steam.filter_stat_callback = steam.system.filter_stat_callbacks->get_value ();
-  if (steam.system.load_early->load ())
-    config.steam.preload_client = steam.system.load_early->get_value ();
-  if (steam.system.early_overlay->load ())
-    config.steam.preload_overlay = steam.system.early_overlay->get_value ();
-  if (steam.system.force_load->load ())
-    config.steam.force_load_steamapi = steam.system.force_load->get_value ();
-  if (steam.system.notify_corner->load ())
+  steam.system.appid->load                 (config.steam.appid);
+  steam.system.init_delay->load            (config.steam.init_delay);
+  steam.system.auto_pump->load             (config.steam.auto_pump_callbacks);
+  steam.system.block_stat_callback->load   (config.steam.block_stat_callback);
+  steam.system.filter_stat_callbacks->load (config.steam.filter_stat_callback);
+  steam.system.load_early->load            (config.steam.preload_client);
+  steam.system.early_overlay->load         (config.steam.preload_overlay);
+  steam.system.force_load->load            (config.steam.force_load_steamapi);
+
+  if (((sk::iParameter *)steam.system.notify_corner)->load ())
+  {
     config.steam.notify_corner =
       SK_Steam_PopupOriginWStrToEnum (
         steam.system.notify_corner->get_value ().c_str ()
     );
+  }
+
+  osd.show->load                        (config.osd.show);
+  osd.update_method.pump->load          (config.osd.pump);
+  osd.update_method.pump_interval->load (config.osd.pump_interval);
+
+  osd.text.red->load       (config.osd.red);
+  osd.text.green->load     (config.osd.green);
+  osd.text.blue->load      (config.osd.blue);
+
+  osd.viewport.pos_x->load (config.osd.pos_x);
+  osd.viewport.pos_y->load (config.osd.pos_y);
+  osd.viewport.scale->load (config.osd.scale);
 
 
-  if (osd.show->load ())
-    config.osd.show = osd.show->get_value ();
-
-  if (osd.update_method.pump->load ())
-    config.osd.pump = osd.update_method.pump->get_value ();
-
-  if (osd.update_method.pump_interval->load ())
-    config.osd.pump_interval = osd.update_method.pump_interval->get_value ();
-
-  if (osd.text.red->load ())
-    config.osd.red = osd.text.red->get_value ();
-  if (osd.text.green->load ())
-    config.osd.green = osd.text.green->get_value ();
-  if (osd.text.blue->load ())
-    config.osd.blue = osd.text.blue->get_value ();
-
-  if (osd.viewport.pos_x->load ())
-    config.osd.pos_x = osd.viewport.pos_x->get_value ();
-  if (osd.viewport.pos_y->load ())
-    config.osd.pos_y = osd.viewport.pos_y->get_value ();
-  if (osd.viewport.scale->load ())
-    config.osd.scale = osd.viewport.scale->get_value ();
-
-
-  if (init_delay->load ())
-    config.system.init_delay = init_delay->get_value ();
-  if (silent->load ())
-    config.system.silent = silent->get_value ();
-  if (trace_libraries->load ())
-    config.system.trace_load_library = trace_libraries->get_value ();
-  if (strict_compliance->load ())
-    config.system.strict_compliance = strict_compliance->get_value ();
-  if (log_level->load ())
-    config.system.log_level = log_level->get_value ();
-  if (prefer_fahrenheit->load ())
-    config.system.prefer_fahrenheit = prefer_fahrenheit->get_value ();
-
-  if (ignore_rtss_delay->load ())
-    config.system.ignore_rtss_delay = ignore_rtss_delay->get_value ();
-
-  if (handle_crashes->load ())
-    config.system.handle_crashes = handle_crashes->get_value ();
-
-  if (debug_output->load ())
-    config.system.display_debug_out = debug_output->get_value ();
-
-  if (game_output->load ())
-    config.system.game_output = game_output->get_value ();
-
-  if (enable_cegui->load ())
-    config.cegui.enable = enable_cegui->get_value ();
-
-  if (safe_cegui->load ())
-    config.cegui.safe_init = safe_cegui->get_value ();
-
-  if (version->load ())
-    config.system.version = version->get_value ();
+  init_delay->load        (config.system.init_delay);
+  silent->load            (config.system.silent);
+  trace_libraries->load   (config.system.trace_load_library);
+  strict_compliance->load (config.system.strict_compliance);
+  log_level->load         (config.system.log_level);
+  prefer_fahrenheit->load (config.system.prefer_fahrenheit);
+  ignore_rtss_delay->load (config.system.ignore_rtss_delay);
+  handle_crashes->load    (config.system.handle_crashes);
+  debug_output->load      (config.system.display_debug_out);
+  game_output->load       (config.system.game_output);
+  enable_cegui->load      (config.cegui.enable);
+  safe_cegui->load        (config.cegui.safe_init);
+  version->load           (config.system.version);
 
 
 
@@ -3695,96 +2907,96 @@ SK_SaveConfig ( std::wstring name,
   if (dll_ini == nullptr)
     return;
 
-  compatibility.ignore_raptr->set_value       (config.compatibility.ignore_raptr);
-  compatibility.disable_raptr->set_value      (config.compatibility.disable_raptr);
-  compatibility.disable_nv_bloat->set_value   (config.compatibility.disable_nv_bloat);
-  compatibility.rehook_loadlibrary->set_value (config.compatibility.rehook_loadlibrary);
+  compatibility.ignore_raptr->store           (config.compatibility.ignore_raptr);
+  compatibility.disable_raptr->store          (config.compatibility.disable_raptr);
+  compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
+  compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
 
   monitoring.memory.show->set_value           (config.mem.show);
-  mem_reserve->set_value                      (config.mem.reserve);
+  mem_reserve->store                          (config.mem.reserve);
 
-  monitoring.fps.show->set_value              (config.fps.show);
+  monitoring.fps.show->store                  (config.fps.show);
 
   monitoring.io.show->set_value               (config.io.show);
-  monitoring.io.interval->set_value           (config.io.interval);
+  monitoring.io.interval->store               (config.io.interval);
 
   monitoring.cpu.show->set_value              (config.cpu.show);
-  monitoring.cpu.interval->set_value          (config.cpu.interval);
-  monitoring.cpu.simple->set_value            (config.cpu.simple);
+  monitoring.cpu.interval->store              (config.cpu.interval);
+  monitoring.cpu.simple->store                (config.cpu.simple);
 
-  monitoring.gpu.show->set_value              (config.gpu.show);
-  monitoring.gpu.print_slowdown->set_value    (config.gpu.print_slowdown);
-  monitoring.gpu.interval->set_value          (config.gpu.interval);
+  monitoring.gpu.show->store                  (config.gpu.show);
+  monitoring.gpu.print_slowdown->store        (config.gpu.print_slowdown);
+  monitoring.gpu.interval->store              (config.gpu.interval);
 
   monitoring.disk.show->set_value             (config.disk.show);
-  monitoring.disk.interval->set_value         (config.disk.interval);
-  monitoring.disk.type->set_value             (config.disk.type);
+  monitoring.disk.interval->store             (config.disk.interval);
+  monitoring.disk.type->store                 (config.disk.type);
 
   monitoring.pagefile.show->set_value         (config.pagefile.show);
-  monitoring.pagefile.interval->set_value     (config.pagefile.interval);
+  monitoring.pagefile.interval->store         (config.pagefile.interval);
 
   if (! (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs () > 1))
     config.sli.show = false;
 
-  monitoring.SLI.show->set_value              (config.sli.show);
-  monitoring.time.show->set_value             (config.time.show);
+  monitoring.SLI.show->store                  (config.sli.show);
+  monitoring.time.show->store                 (config.time.show);
 
-  osd.show->set_value                         (config.osd.show);
-  osd.update_method.pump->set_value           (config.osd.pump);
-  osd.update_method.pump_interval->set_value  (config.osd.pump_interval);
-  osd.text.red->set_value                     (config.osd.red);
-  osd.text.green->set_value                   (config.osd.green);
-  osd.text.blue->set_value                    (config.osd.blue);
-  osd.viewport.pos_x->set_value               (config.osd.pos_x);
-  osd.viewport.pos_y->set_value               (config.osd.pos_y);
-  osd.viewport.scale->set_value               (config.osd.scale);
-  osd.state.remember->set_value               (config.osd.remember_state);
+  osd.show->store                             (config.osd.show);
+  osd.update_method.pump->store               (config.osd.pump);
+  osd.update_method.pump_interval->store      (config.osd.pump_interval);
+  osd.text.red->store                         (config.osd.red);
+  osd.text.green->store                       (config.osd.green);
+  osd.text.blue->store                        (config.osd.blue);
+  osd.viewport.pos_x->store                   (config.osd.pos_x);
+  osd.viewport.pos_y->store                   (config.osd.pos_y);
+  osd.viewport.scale->store                   (config.osd.scale);
+  osd.state.remember->store                   (config.osd.remember_state);
 
-  imgui.scale->set_value                      (config.imgui.scale);
-  imgui.show_eula->set_value                  (config.imgui.show_eula);
-  imgui.show_playtime->set_value              (config.steam.show_playtime);
-  imgui.show_gsync_status->set_value          (config.apis.NvAPI.gsync_status);
-  imgui.mac_style_menu->set_value             (config.imgui.use_mac_style_menu);
-  imgui.show_input_apis->set_value            (config.imgui.show_input_apis);
-  imgui.disable_alpha->set_value              (config.imgui.render.disable_alpha);
-  imgui.antialias_lines->set_value            (config.imgui.render.antialias_lines);
-  imgui.antialias_contours->set_value         (config.imgui.render.antialias_contours);
+  imgui.scale->store                          (config.imgui.scale);
+  imgui.show_eula->store                      (config.imgui.show_eula);
+  imgui.show_playtime->store                  (config.steam.show_playtime);
+  imgui.show_gsync_status->store              (config.apis.NvAPI.gsync_status);
+  imgui.mac_style_menu->store                 (config.imgui.use_mac_style_menu);
+  imgui.show_input_apis->store                (config.imgui.show_input_apis);
+  imgui.disable_alpha->store                  (config.imgui.render.disable_alpha);
+  imgui.antialias_lines->store                (config.imgui.render.antialias_lines);
+  imgui.antialias_contours->store             (config.imgui.render.antialias_contours);
 
-  apis.last_known->set_value                  (static_cast <int> (config.apis.last_known));
+  apis.last_known->store                      (static_cast <int> (config.apis.last_known));
 
 #ifndef _WIN64
-  apis.ddraw.hook->set_value                  (config.apis.ddraw.hook);
-  apis.d3d8.hook->set_value                   (config.apis.d3d8.hook);
+  apis.ddraw.hook->store                      (config.apis.ddraw.hook);
+  apis.d3d8.hook->store                       (config.apis.d3d8.hook);
 #endif
-  apis.d3d9.hook->set_value                   (config.apis.d3d9.hook);
-  apis.d3d9ex.hook->set_value                 (config.apis.d3d9ex.hook);
-  apis.d3d11.hook->set_value                  (config.apis.dxgi.d3d11.hook);
-  apis.OpenGL.hook->set_value                 (config.apis.OpenGL.hook);
+  apis.d3d9.hook->store                       (config.apis.d3d9.hook);
+  apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook);
+  apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook);
+  apis.OpenGL.hook->store                     (config.apis.OpenGL.hook);
 #ifdef _WIN64
-  apis.d3d12.hook->set_value                  (config.apis.dxgi.d3d12.hook);
-  apis.Vulkan.hook->set_value                 (config.apis.Vulkan.hook);
+  apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook);
+  apis.Vulkan.hook->store                     (config.apis.Vulkan.hook);
 #endif
 
-  input.keyboard.catch_alt_f4->set_value      (config.input.keyboard.catch_alt_f4);
-  input.keyboard.disabled_to_game->set_value  (config.input.keyboard.disabled_to_game);
+  input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);
+  input.keyboard.disabled_to_game->store      (config.input.keyboard.disabled_to_game);
 
-  input.mouse.disabled_to_game->set_value     (config.input.mouse.disabled_to_game);
+  input.mouse.disabled_to_game->store         (config.input.mouse.disabled_to_game);
 
-  input.cursor.manage->set_value              (config.input.cursor.manage);
-  input.cursor.keys_activate->set_value       (config.input.cursor.keys_activate);
-  input.cursor.timeout->set_value             (static_cast <float> (config.input.cursor.timeout) / 1000.0f);
-  input.cursor.ui_capture->set_value          (config.input.ui.capture);
-  input.cursor.hw_cursor->set_value           (config.input.ui.use_hw_cursor);
-  input.cursor.block_invisible->set_value     (config.input.ui.capture_hidden);
-  input.cursor.no_warp_ui->set_value          (SK_ImGui_Cursor.prefs.no_warp.ui_open);
-  input.cursor.no_warp_visible->set_value     (SK_ImGui_Cursor.prefs.no_warp.visible);
-  input.cursor.fix_synaptics->set_value       (config.input.mouse.fix_synaptics);
-  input.cursor.antiwarp_deadzone->set_value   (config.input.mouse.antiwarp_deadzone);
-  input.cursor.use_relative_input->set_value  (config.input.mouse.add_relative_motion);
+  input.cursor.manage->store                  (config.input.cursor.manage);
+  input.cursor.keys_activate->store           (config.input.cursor.keys_activate);
+  input.cursor.timeout->store                 (static_cast <float> (config.input.cursor.timeout) / 1000.0f);
+  input.cursor.ui_capture->store              (config.input.ui.capture);
+  input.cursor.hw_cursor->store               (config.input.ui.use_hw_cursor);
+  input.cursor.block_invisible->store         (config.input.ui.capture_hidden);
+  input.cursor.no_warp_ui->store              (SK_ImGui_Cursor.prefs.no_warp.ui_open);
+  input.cursor.no_warp_visible->store         (SK_ImGui_Cursor.prefs.no_warp.visible);
+  input.cursor.fix_synaptics->store           (config.input.mouse.fix_synaptics);
+  input.cursor.antiwarp_deadzone->store       (config.input.mouse.antiwarp_deadzone);
+  input.cursor.use_relative_input->store      (config.input.mouse.add_relative_motion);
 
-  input.gamepad.disable_ps4_hid->set_value    (config.input.gamepad.disable_ps4_hid);
-  input.gamepad.rehook_xinput->set_value      (config.input.gamepad.rehook_xinput);
-  input.gamepad.haptic_ui->set_value          (config.input.gamepad.haptic_ui);
+  input.gamepad.disable_ps4_hid->store        (config.input.gamepad.disable_ps4_hid);
+  input.gamepad.rehook_xinput->store          (config.input.gamepad.rehook_xinput);
+  input.gamepad.haptic_ui->store              (config.input.gamepad.haptic_ui);
 
   int placeholder_mask = 0x0;
 
@@ -3793,8 +3005,8 @@ SK_SaveConfig ( std::wstring name,
   placeholder_mask |= (config.input.gamepad.xinput.placehold [2] ? 0x4 : 0x0);
   placeholder_mask |= (config.input.gamepad.xinput.placehold [3] ? 0x8 : 0x0);
 
-  input.gamepad.xinput.placeholders->set_value (placeholder_mask);
-  input.gamepad.xinput.ui_slot->set_value      (config.input.gamepad.xinput.ui_slot);
+  input.gamepad.xinput.placeholders->store    (placeholder_mask);
+  input.gamepad.xinput.ui_slot->store         (config.input.gamepad.xinput.ui_slot);
 
   std::wstring xinput_assign = L"";
 
@@ -3808,51 +3020,57 @@ SK_SaveConfig ( std::wstring name,
       xinput_assign += L",";
   }
 
-  input.gamepad.xinput.assignment->set_value (xinput_assign);
+  input.gamepad.xinput.assignment->store     (xinput_assign);
+  input.gamepad.xinput.disable_rumble->store (config.input.gamepad.xinput.disable_rumble);
 
-  input.gamepad.xinput.disable_rumble->set_value (config.input.gamepad.xinput.disable_rumble);
-
-  window.borderless->set_value                (config.window.borderless);
-  window.center->set_value                    (config.window.center);
-  window.background_render->set_value         (config.window.background_render);
-  window.background_mute->set_value           (config.window.background_mute);
+  window.borderless->store                   (config.window.borderless);
+  window.center->store                       (config.window.center);
+  window.background_render->store            (config.window.background_render);
+  window.background_mute->store              (config.window.background_mute);
   if (config.window.offset.x.absolute != 0)
   {
-    wchar_t wszAbsolute [16];
+    wchar_t    wszAbsolute [16] = { };
     _swprintf (wszAbsolute, L"%li", config.window.offset.x.absolute);
-    window.offset.x->set_value (wszAbsolute);
+
+    window.offset.x->store (wszAbsolute);
   }
 
   else
   {
-    wchar_t wszPercent [16];
+       wchar_t wszPercent [16] = { };
     _swprintf (wszPercent, L"%08.6f", 100.0f * config.window.offset.x.percent);
+
     SK_RemoveTrailingDecimalZeros (wszPercent);
+
     lstrcatW (wszPercent, L"%");
-    window.offset.x->set_value (wszPercent);
+
+    window.offset.x->store (wszPercent);
   }
 
   if (config.window.offset.y.absolute != 0)
   {
-    wchar_t wszAbsolute [16];
+    wchar_t    wszAbsolute [16] = { };
     _swprintf (wszAbsolute, L"%li", config.window.offset.y.absolute);
-    window.offset.y->set_value (wszAbsolute);
+
+    window.offset.y->store (wszAbsolute);
   }
 
   else
   {
-    wchar_t wszPercent [16];
+       wchar_t wszPercent [16] = { };
     _swprintf (wszPercent, L"%08.6f", 100.0f * config.window.offset.y.percent);
+
     SK_RemoveTrailingDecimalZeros (wszPercent);
-    lstrcatW (wszPercent, L"%");
-    window.offset.y->set_value (wszPercent);
+    lstrcatW                      (wszPercent, L"%");
+
+    window.offset.y->store (wszPercent);
   }
 
-  window.confine_cursor->set_value            (config.window.confine_cursor);
-  window.unconfine_cursor->set_value          (config.window.unconfine_cursor);
-  window.persistent_drag->set_value           (config.window.persistent_drag);
-  window.fullscreen->set_value                (config.window.fullscreen);
-  window.fix_mouse_coords->set_value          (config.window.res.override.fix_mouse);
+  window.confine_cursor->store            (config.window.confine_cursor);
+  window.unconfine_cursor->store          (config.window.unconfine_cursor);
+  window.persistent_drag->store           (config.window.persistent_drag);
+  window.fullscreen->store                (config.window.fullscreen);
+  window.fix_mouse_coords->store          (config.window.res.override.fix_mouse);
 
   wchar_t wszFormattedRes [64] = { };
 
@@ -3860,156 +3078,156 @@ SK_SaveConfig ( std::wstring name,
                config.window.res.override.x,
                  config.window.res.override.y );
 
-  window.override->set_value (wszFormattedRes);
+  window.override->store (wszFormattedRes);
 
   extern float target_fps;
 
-  display.force_fullscreen->set_value (config.display.force_fullscreen);
-  display.force_windowed->set_value   (config.display.force_windowed);
+  display.force_fullscreen->store             (config.display.force_fullscreen);
+  display.force_windowed->store               (config.display.force_windowed);
 
-  render.framerate.target_fps->set_value        (target_fps);
-  render.framerate.limiter_tolerance->set_value (config.render.framerate.limiter_tolerance);
-  render.framerate.sleepless_render->set_value  (config.render.framerate.sleepless_render);
-  render.framerate.sleepless_window->set_value  (config.render.framerate.sleepless_window);
+  render.framerate.target_fps->store          (target_fps);
+  render.framerate.limiter_tolerance->store   (config.render.framerate.limiter_tolerance);
+  render.framerate.sleepless_render->store    (config.render.framerate.sleepless_render);
+  render.framerate.sleepless_window->store    (config.render.framerate.sleepless_window);
 
   if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::DInput8) ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )
   {
-    render.framerate.wait_for_vblank->set_value   (config.render.framerate.wait_for_vblank);
-    render.framerate.prerender_limit->set_value   (config.render.framerate.pre_render_limit);
-    render.framerate.buffer_count->set_value      (config.render.framerate.buffer_count);
-    render.framerate.present_interval->set_value  (config.render.framerate.present_interval);
+    render.framerate.wait_for_vblank->store   (config.render.framerate.wait_for_vblank);
+    render.framerate.prerender_limit->store   (config.render.framerate.pre_render_limit);
+    render.framerate.buffer_count->store      (config.render.framerate.buffer_count);
+    render.framerate.present_interval->store  (config.render.framerate.present_interval);
 
     if (render.framerate.refresh_rate != nullptr)
-      render.framerate.refresh_rate->set_value (config.render.framerate.refresh_rate);
+      render.framerate.refresh_rate->store    (config.render.framerate.refresh_rate);
 
     // SLI only works in Direct3D
-    nvidia.sli.compatibility->set_value          (config.nvidia.sli.compatibility);
-    nvidia.sli.mode->set_value                   (config.nvidia.sli.mode);
-    nvidia.sli.num_gpus->set_value               (config.nvidia.sli.num_gpus);
-    nvidia.sli.override->set_value               (config.nvidia.sli.override);
+    nvidia.sli.compatibility->store           (config.nvidia.sli.compatibility);
+    nvidia.sli.mode->store                    (config.nvidia.sli.mode);
+    nvidia.sli.num_gpus->store                (config.nvidia.sli.num_gpus);
+    nvidia.sli.override->store                (config.nvidia.sli.override);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
         ( SK_GetDLLRole () & DLL_ROLE::DXGI    ) )
     {
-      render.framerate.max_delta_time->set_value    (config.render.framerate.max_delta_time);
-      render.framerate.flip_discard->set_value      (config.render.framerate.flip_discard);
-      render.framerate.allow_dwm_tearing->set_value (config.render.dxgi.allow_tearing);
+      render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
+      render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
+      render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
 
-      texture.d3d11.cache->set_value                  (config.textures.d3d11.cache);
-      texture.d3d11.precise_hash->set_value           (config.textures.d3d11.precise_hash);
-      texture.d3d11.dump->set_value                   (config.textures.d3d11.dump);
-      texture.d3d11.inject->set_value                 (config.textures.d3d11.inject);
-      texture.d3d11.injection_keeps_format->set_value (config.textures.d3d11.injection_keeps_fmt);
-      texture.d3d11.res_root->set_value               (config.textures.d3d11.res_root);
+      texture.d3d11.cache->store                  (config.textures.d3d11.cache);
+      texture.d3d11.precise_hash->store           (config.textures.d3d11.precise_hash);
+      texture.d3d11.dump->store                   (config.textures.d3d11.dump);
+      texture.d3d11.inject->store                 (config.textures.d3d11.inject);
+      texture.d3d11.injection_keeps_format->store (config.textures.d3d11.injection_keeps_fmt);
+      texture.d3d11.res_root->store               (config.textures.d3d11.res_root);
 
-      texture.cache.max_entries->set_value (config.textures.cache.max_entries);
-      texture.cache.min_entries->set_value (config.textures.cache.min_entries);
-      texture.cache.max_evict->set_value   (config.textures.cache.max_evict);
-      texture.cache.min_evict->set_value   (config.textures.cache.min_evict);
-      texture.cache.max_size->set_value    (config.textures.cache.max_size);
-      texture.cache.min_size->set_value    (config.textures.cache.min_size);
+      texture.cache.max_entries->store            (config.textures.cache.max_entries);
+      texture.cache.min_entries->store            (config.textures.cache.min_entries);
+      texture.cache.max_evict->store              (config.textures.cache.max_evict);
+      texture.cache.min_evict->store              (config.textures.cache.min_evict);
+      texture.cache.max_size->store               (config.textures.cache.max_size);
+      texture.cache.min_size->store               (config.textures.cache.min_size);
 
-      texture.cache.ignore_non_mipped->set_value (  config.textures.cache.ignore_nonmipped);
-      texture.cache.allow_staging->set_value     (  config.textures.cache.allow_staging);
+      texture.cache.ignore_non_mipped->store      (config.textures.cache.ignore_nonmipped);
+      texture.cache.allow_staging->store          (config.textures.cache.allow_staging);
 
       wsprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.max.x,
                      config.render.dxgi.res.max.y );
 
-      render.dxgi.max_res->set_value (wszFormattedRes);
+      render.dxgi.max_res->store (wszFormattedRes);
 
       wsprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.min.x,
                      config.render.dxgi.res.min.y );
 
-      render.dxgi.min_res->set_value (wszFormattedRes);
+      render.dxgi.min_res->store (wszFormattedRes);
 
-      render.dxgi.swapchain_wait->set_value (config.render.framerate.swapchain_wait);
+      render.dxgi.swapchain_wait->store (config.render.framerate.swapchain_wait);
 
       switch (config.render.dxgi.scaling_mode)
       {
         case DXGI_MODE_SCALING_UNSPECIFIED:
-          render.dxgi.scaling_mode->set_value (L"Unspecified");
+          render.dxgi.scaling_mode->store (L"Unspecified");
           break;
         case DXGI_MODE_SCALING_CENTERED:
-          render.dxgi.scaling_mode->set_value (L"Centered");
+          render.dxgi.scaling_mode->store (L"Centered");
           break;
         case DXGI_MODE_SCALING_STRETCHED:
-          render.dxgi.scaling_mode->set_value (L"Stretched");
+          render.dxgi.scaling_mode->store (L"Stretched");
           break;
         default:
-          render.dxgi.scaling_mode->set_value (L"DontCare");
+          render.dxgi.scaling_mode->store (L"DontCare");
           break;
       }
 
       switch (config.render.dxgi.scanline_order)
       {
         case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED:
-          render.dxgi.scanline_order->set_value (L"Unspecified");
+          render.dxgi.scanline_order->store (L"Unspecified");
           break;
         case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE:
-          render.dxgi.scanline_order->set_value (L"Progressive");
+          render.dxgi.scanline_order->store (L"Progressive");
           break;
         case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
-          render.dxgi.scanline_order->set_value (L"LowerFieldFirst");
+          render.dxgi.scanline_order->store (L"LowerFieldFirst");
           break;
         case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
-          render.dxgi.scanline_order->set_value (L"UpperFieldFirst");
+          render.dxgi.scanline_order->store (L"UpperFieldFirst");
           break;
         default:
-          render.dxgi.scanline_order->set_value (L"DontCare");
+          render.dxgi.scanline_order->store (L"DontCare");
           break;
       }
 
       switch (config.render.dxgi.exception_mode)
       {
         case D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR:
-          render.dxgi.exception_mode->set_value (L"Raise");
+          render.dxgi.exception_mode->store (L"Raise");
           break;
         case 0:
-          render.dxgi.exception_mode->set_value (L"Ignore");
+          render.dxgi.exception_mode->store (L"Ignore");
           break;
         default:
-          render.dxgi.exception_mode->set_value (L"DontCare");
+          render.dxgi.exception_mode->store (L"DontCare");
           break;
       }
 
-      render.dxgi.debug_layer->set_value        (config.render.dxgi.debug_layer);
-      render.dxgi.safe_fullscreen->set_value    (config.render.dxgi.safe_fullscreen);
-      render.dxgi.enhanced_depth->set_value     (config.render.dxgi.enhanced_depth);
-      render.dxgi.deferred_isolation->set_value (config.render.dxgi.deferred_isolation);
-      render.dxgi.rehook_present->set_value     (config.render.dxgi.rehook_present);
+      render.dxgi.debug_layer->store        (config.render.dxgi.debug_layer);
+      render.dxgi.safe_fullscreen->store    (config.render.dxgi.safe_fullscreen);
+      render.dxgi.enhanced_depth->store     (config.render.dxgi.enhanced_depth);
+      render.dxgi.deferred_isolation->store (config.render.dxgi.deferred_isolation);
+      render.dxgi.rehook_present->store     (config.render.dxgi.rehook_present);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||
                              ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) )
     {
-      render.d3d9.force_d3d9ex->set_value        (config.render.d3d9.force_d3d9ex);
-      render.d3d9.hook_type->set_value           (config.render.d3d9.hook_type);
-      render.d3d9.enable_texture_mods->set_value (config.textures.d3d9_mod);
+      render.d3d9.force_d3d9ex->store        (config.render.d3d9.force_d3d9ex);
+      render.d3d9.hook_type->store           (config.render.d3d9.hook_type);
+      render.d3d9.enable_texture_mods->store (config.textures.d3d9_mod);
     }
   }
 
-  texture.res_root->set_value                      (config.textures.d3d11.res_root);
-  texture.dump_on_load->set_value                  (config.textures.dump_on_load);
+  texture.res_root->store                      (config.textures.d3d11.res_root);
+  texture.dump_on_load->store                  (config.textures.dump_on_load);
 
-  steam.achievements.sound_file->set_value         (config.steam.achievements.sound_file);
-  steam.achievements.play_sound->set_value         (config.steam.achievements.play_sound);
-  steam.achievements.take_screenshot->set_value    (config.steam.achievements.take_screenshot);
-  steam.achievements.fetch_friend_stats->set_value (config.steam.achievements.pull_friend_stats);
-  steam.achievements.popup.origin->set_value       (
+  steam.achievements.sound_file->store         (config.steam.achievements.sound_file);
+  steam.achievements.play_sound->store         (config.steam.achievements.play_sound);
+  steam.achievements.take_screenshot->store    (config.steam.achievements.take_screenshot);
+  steam.achievements.fetch_friend_stats->store (config.steam.achievements.pull_friend_stats);
+  steam.achievements.popup.origin->store       (
     SK_Steam_PopupOriginToWStr (config.steam.achievements.popup.origin)
   );
-  steam.achievements.popup.inset->set_value        (config.steam.achievements.popup.inset);
+  steam.achievements.popup.inset->store        (config.steam.achievements.popup.inset);
 
   if (! config.steam.achievements.popup.show)
     config.steam.achievements.popup.duration = 0;
 
-  steam.achievements.popup.duration->set_value     (config.steam.achievements.popup.duration);
-  steam.achievements.popup.animate->set_value      (config.steam.achievements.popup.animate);
-  steam.achievements.popup.show_title->set_value   (config.steam.achievements.popup.show_title);
+  steam.achievements.popup.duration->store     (config.steam.achievements.popup.duration);
+  steam.achievements.popup.animate->store      (config.steam.achievements.popup.animate);
+  steam.achievements.popup.show_title->store   (config.steam.achievements.popup.show_title);
 
   if (config.steam.appid == 0) {
     if (SK::SteamAPI::AppID () != 0 &&
@@ -4017,26 +3235,27 @@ SK_SaveConfig ( std::wstring name,
       config.steam.appid = SK::SteamAPI::AppID ();
   }
 
-  steam.system.appid->set_value                 (config.steam.appid);
-  steam.system.init_delay->set_value            (config.steam.init_delay);
-  steam.system.auto_pump->set_value             (config.steam.auto_pump_callbacks);
-  steam.system.block_stat_callback->set_value   (config.steam.block_stat_callback);
-  steam.system.filter_stat_callbacks->set_value (config.steam.filter_stat_callback);
-  steam.system.load_early->set_value            (config.steam.preload_client);
-  steam.system.early_overlay->set_value         (config.steam.preload_overlay);
-  steam.system.force_load->set_value            (config.steam.force_load_steamapi);
-  steam.system.notify_corner->set_value         (
+  steam.system.appid->store                 (config.steam.appid);
+  steam.system.init_delay->store            (config.steam.init_delay);
+  steam.system.auto_pump->store             (config.steam.auto_pump_callbacks);
+  steam.system.block_stat_callback->store   (config.steam.block_stat_callback);
+  steam.system.filter_stat_callbacks->store (config.steam.filter_stat_callback);
+  steam.system.load_early->store            (config.steam.preload_client);
+  steam.system.early_overlay->store         (config.steam.preload_overlay);
+  steam.system.force_load->store            (config.steam.force_load_steamapi);
+  steam.system.notify_corner->store         (
     SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );
 
-  steam.log.silent->set_value                (config.steam.silent);
-  steam.drm.spoof_BLoggedOn->set_value       (config.steam.spoof_BLoggedOn);
+  steam.log.silent->store                   (config.steam.silent);
+  steam.drm.spoof_BLoggedOn->store          (config.steam.spoof_BLoggedOn);
 
-  init_delay->set_value                      (config.system.init_delay);
-  silent->set_value                          (config.system.silent);
-  log_level->set_value                       (config.system.log_level);
-  prefer_fahrenheit->set_value               (config.system.prefer_fahrenheit);
+  init_delay->store                         (config.system.init_delay);
+  silent->store                             (config.system.silent);
+  log_level->store                          (config.system.log_level);
+  prefer_fahrenheit->store                  (config.system.prefer_fahrenheit);
 
+#if 0
   apis.last_known->store                  ();
 #ifndef _WIN64
   apis.ddraw.hook->store                  ();
@@ -4123,13 +3342,14 @@ SK_SaveConfig ( std::wstring name,
   window.fullscreen->store                 ();
   window.fix_mouse_coords->store           ();
   window.override->store                   ();
+#endif
 
   if (SK_IsInjected () && injection.global.has_local_preference)
   {
-    injection.global.use_static_addresses->get_value ();
-    injection.global.use_static_addresses->store     ();
+    injection.global.use_static_addresses->store (config.injection.global.use_static_addresses);
   }
 
+#if 0
   nvidia.api.disable->store                ();
 
   display.force_fullscreen->store          ();
@@ -4258,42 +3478,30 @@ SK_SaveConfig ( std::wstring name,
   silent->store                          ();
   log_level->store                       ();
   prefer_fahrenheit->store               ();
+#endif
 
-  ignore_rtss_delay->set_value           (config.system.ignore_rtss_delay);
-  ignore_rtss_delay->store               ();
+  ignore_rtss_delay->store               (config.system.ignore_rtss_delay);
 
 
   // Don't store this setting at shutdown
   if (__SK_DLL_Ending == false)
   {
-    handle_crashes->set_value              (config.system.handle_crashes);
-    handle_crashes->store                  ();
+    handle_crashes->store                (config.system.handle_crashes);
   }
 
-  game_output->set_value                 (config.system.game_output);
-  game_output->store                     ();
+  game_output->store                     (config.system.game_output);
 
   // Only add this to the INI file if it differs from default
   if (config.system.display_debug_out != debug_output->get_value ())
   {
-    debug_output->set_value              (config.system.display_debug_out);
-    debug_output->store                  ();
+    debug_output->store                  (config.system.display_debug_out);
   }
 
-  enable_cegui->set_value                (config.cegui.enable);
-  enable_cegui->store                    ();
-
-  safe_cegui->set_value                  (config.cegui.safe_init);
-  safe_cegui->store                      ();
-
-  trace_libraries->set_value             (config.system.trace_load_library);
-  trace_libraries->store                 ();
-
-  strict_compliance->set_value           (config.system.strict_compliance);
-  strict_compliance->store               ();
-
-  version->set_value                     (SK_VER_STR);
-  version->store                         ();
+  enable_cegui->store                    (config.cegui.enable);
+  safe_cegui->store                      (config.cegui.safe_init);
+  trace_libraries->store                 (config.system.trace_load_library);
+  strict_compliance->store               (config.system.strict_compliance);
+  version->store                         (SK_VER_STR);
 
   if (! (nvapi_init && sk::NVAPI::nv_hardware))
     dll_ini->remove_section (L"NVIDIA.SLI");

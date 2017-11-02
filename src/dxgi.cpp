@@ -5211,6 +5211,17 @@ HookDXGI (LPVOID user)
        SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
        SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
   {
+    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+
+    if (config.render.dxgi.deferred_isolation)
+    {
+      CComPtr <ID3D11Device> pDev = nullptr;
+      pImmediateContext->GetDevice (&pDev);
+
+      pDev->CreateDeferredContext (0x00,  &pDevCtx);
+      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+    }
+
     HookD3D11             (&d3d11_hook_ctx);
     SK_DXGI_HookFactory   (pFactory);
     SK_DXGI_HookSwapChain (pSwapChain);
@@ -5226,9 +5237,6 @@ HookDXGI (LPVOID user)
 
     MH_ApplyQueued  ();
 
-    CComPtr <IDXGIFactory1> pFactory;
-    CreateDXGIFactory_Import (__uuidof (IDXGIFactory1), (void **)&pFactory);
-
     if (SK_GetDLLRole () == DLL_ROLE::DXGI)
     {
       // Load user-defined DLLs (Plug-In)
@@ -5238,18 +5246,6 @@ HookDXGI (LPVOID user)
       SK_LoadPlugIns32 ();
 #endif
     }
-
-    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-
-    if (config.render.dxgi.deferred_isolation)
-    {
-      CComPtr <ID3D11Device> pDev = nullptr;
-      pImmediateContext->GetDevice (&pDev);
-
-      pDev->CreateDeferredContext (0x00,  &pDevCtx);
-      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
-    }
-
     if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
       
 #ifdef _WIN64

@@ -9,9 +9,6 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
-PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
-PUBLIC	_IID_IAxWinHostWindow
-PUBLIC	_IID_IAxWinHostWindowLic
 PUBLIC	_IID_IAxWinAmbientDispatch
 PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
 PUBLIC	_LIBID_ATLLib
@@ -40,10 +37,9 @@ PUBLIC	?szForceRemove@ATL@@3QB_WB			; ATL::szForceRemove
 PUBLIC	?szNoRemove@ATL@@3QB_WB				; ATL::szNoRemove
 PUBLIC	?szDelete@ATL@@3QB_WB				; ATL::szDelete
 PUBLIC	_IID_IDocHostUIHandlerDispatch
-;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
-_BSS	SEGMENT
-?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A DD 01H DUP (?) ; ATL::_pAtlAutoThreadModule
-_BSS	ENDS
+PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
+PUBLIC	_IID_IAxWinHostWindow
+PUBLIC	_IID_IAxWinHostWindowLic
 ;	COMDAT ?_pAtlModule@ATL@@3PAVCAtlModule@1@A
 _BSS	SEGMENT
 ?_pAtlModule@ATL@@3PAVCAtlModule@1@A DD 01H DUP (?)	; ATL::_pAtlModule
@@ -75,6 +71,38 @@ _BSS	ENDS
 _BSS	SEGMENT
 ?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
 _BSS	ENDS
+;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
+_BSS	SEGMENT
+?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A DD 01H DUP (?) ; ATL::_pAtlAutoThreadModule
+_BSS	ENDS
+;	COMDAT _IID_IAxWinHostWindowLic
+CONST	SEGMENT
+_IID_IAxWinHostWindowLic DD 03935bda8H
+	DW	04ed9H
+	DW	0495cH
+	DB	086H
+	DB	050H
+	DB	0e0H
+	DB	01fH
+	DB	0c1H
+	DB	0e3H
+	DB	08aH
+	DB	04bH
+CONST	ENDS
+;	COMDAT _IID_IAxWinHostWindow
+CONST	SEGMENT
+_IID_IAxWinHostWindow DD 0b6ea2050H
+	DW	048aH
+	DW	011d1H
+	DB	082H
+	DB	0b9H
+	DB	00H
+	DB	0c0H
+	DB	04fH
+	DB	0b9H
+	DB	094H
+	DB	02eH
+CONST	ENDS
 ;	COMDAT _IID_IDocHostUIHandlerDispatch
 CONST	SEGMENT
 _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
@@ -91,35 +119,35 @@ _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG165661			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG167574			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG165659		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG167572		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG165657		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG167570		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG165655		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG167568		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG165653		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG167566		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG165651		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG167564		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG165649		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG167562		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG165647		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG167560		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -237,156 +265,129 @@ _IID_IAxWinAmbientDispatch DD 0b6ea2051H
 	DB	094H
 	DB	02eH
 CONST	ENDS
-;	COMDAT _IID_IAxWinHostWindowLic
 CONST	SEGMENT
-_IID_IAxWinHostWindowLic DD 03935bda8H
-	DW	04ed9H
-	DW	0495cH
-	DB	086H
-	DB	050H
-	DB	0e0H
-	DB	01fH
-	DB	0c1H
-	DB	0e3H
-	DB	08aH
-	DB	04bH
-CONST	ENDS
-CONST	SEGMENT
-$SG152620 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG152667 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
-	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG152714 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154627 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG152761 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154674 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG152766 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154679 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG152813 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154726 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG152860 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154773 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG152907 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154820 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, 00H, 00H
-$SG151891 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG153804 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG151962 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG153875 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG166337 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG166338 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG166339 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+$SG168250 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG168251 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG168252 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
 	DB	's', 00H, 00H, 00H
 	ORG $+2
-$SG166340 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+$SG168253 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
 	DB	'p', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG166341 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+$SG168254 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
 	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG166342 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+$SG168255 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG166343 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+$SG168256 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG166344 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG166345 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+$SG168257 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG168258 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
 	DB	'T', 00H, 'Y', 00H, 00H, 00H
 	ORG $+2
-$SG152009 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG153922 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG166346 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+$SG168259 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG166347 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG168260 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG166348 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG168261 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG152056 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG153969 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG152103 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154016 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG152150 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154063 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG152197 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154110 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG152244 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154157 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG152291 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154204 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG165647 DB	'S', 00H, 00H, 00H
-$SG165649 DB	'M', 00H, 00H, 00H
-$SG152338 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167560 DB	'S', 00H, 00H, 00H
+$SG167562 DB	'M', 00H, 00H, 00H
+$SG154251 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG165651 DB	'D', 00H, 00H, 00H
-$SG165653 DB	'B', 00H, 00H, 00H
-$SG165655 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG165657 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG167564 DB	'D', 00H, 00H, 00H
+$SG167566 DB	'B', 00H, 00H, 00H
+$SG167568 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG167570 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG165659 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG167572 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG165661 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG167574 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG152385 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154298 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG172895 DB	't', 00H, 'b', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
+$SG174822 DB	't', 00H, 'b', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG152432 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154345 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG152479 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154392 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG152526 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154439 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG152573 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG154486 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
-CONST	ENDS
-;	COMDAT _IID_IAxWinHostWindow
-CONST	SEGMENT
-_IID_IAxWinHostWindow DD 0b6ea2050H
-	DW	048aH
-	DW	011d1H
-	DB	082H
-	DB	0b9H
-	DB	00H
-	DB	0c0H
-	DB	04fH
-	DB	0b9H
-	DB	094H
-	DB	02eH
+	ORG $+2
+$SG154533 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG154580 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	??0ImVec2@@QAE@MM@Z				; ImVec2::ImVec2
@@ -486,6 +487,7 @@ PUBLIC	?atlTraceISAPI@ATL@@3V?$CTraceCategoryEx@$0EAAAAA@$0A@@1@A ; ATL::atlTrac
 PUBLIC	?m_bInitFailed@CAtlBaseModule@ATL@@2_NA		; ATL::CAtlBaseModule::m_bInitFailed
 PUBLIC	?_AtlComModule@ATL@@3VCAtlComModule@1@A		; ATL::_AtlComModule
 PUBLIC	?_AtlWinModule@ATL@@3VCAtlWinModule@1@A		; ATL::_AtlWinModule
+PUBLIC	__real@3b808081
 PUBLIC	__real@3f000000
 PUBLIC	__real@3f800000
 PUBLIC	__xmm@0000000000000000000000003f800000
@@ -524,6 +526,7 @@ EXTRN	_memcpy:PROC
 EXTRN	_memset:PROC
 EXTRN	__Init_thread_epoch:DWORD
 EXTRN	?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA:DWORD ; QueryPerformanceCounter_Original
+EXTRN	?config@@3Usk_config_t@@A:BYTE			; config
 EXTRN	?_AtlBaseModule@ATL@@3VCAtlBaseModule@1@A:BYTE	; ATL::_AtlBaseModule
 EXTRN	___ImageBase:BYTE
 EXTRN	__fltused:DWORD
@@ -673,6 +676,10 @@ CONST	ENDS
 ;	COMDAT __real@3f000000
 CONST	SEGMENT
 __real@3f000000 DD 03f000000r			; 0.5
+CONST	ENDS
+;	COMDAT __real@3b808081
+CONST	SEGMENT
+__real@3b808081 DD 03b808081r			; 0.00392157
 CONST	ENDS
 ;	COMDAT ?_AtlComModule@ATL@@3VCAtlComModule@1@A
 _DATA	SEGMENT
@@ -950,7 +957,7 @@ _width$ = -8						; size = 4
 _height$ = -4						; size = 4
 ?ImGui_ImplDX9_CreateFontsTexture@@YA_NXZ PROC		; ImGui_ImplDX9_CreateFontsTexture
 
-; 384  : {
+; 405  : {
 
 	npad	2
 	push	ebp
@@ -958,33 +965,33 @@ _height$ = -4						; size = 4
 	sub	esp, 24					; 00000018H
 	push	edi
 
-; 385  :   SK_TLS_Bottom ()->texture_management.injection_thread = TRUE;
+; 406  :   SK_TLS_Bottom ()->texture_management.injection_thread = TRUE;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax+16], 1
 
-; 386  : 
-; 387  :   // Build texture atlas
-; 388  :   ImGuiIO& io (ImGui::GetIO ());
+; 407  : 
+; 408  :   // Build texture atlas
+; 409  :   ImGuiIO& io (ImGui::GetIO ());
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	edi, eax
 
-; 389  : 
-; 390  :   extern void
-; 391  :   SK_ImGui_LoadFonts (void);
-; 392  : 
-; 393  :   SK_ImGui_LoadFonts ();
+; 410  : 
+; 411  :   extern void
+; 412  :   SK_ImGui_LoadFonts (void);
+; 413  : 
+; 414  :   SK_ImGui_LoadFonts ();
 
 	call	?SK_ImGui_LoadFonts@@YAXXZ		; SK_ImGui_LoadFonts
 
-; 394  : 
-; 395  :   unsigned char* pixels;
-; 396  :   int            width,
-; 397  :                  height,
-; 398  :                  bytes_per_pixel;
-; 399  : 
-; 400  :   io.Fonts->GetTexDataAsRGBA32 ( &pixels,
+; 415  : 
+; 416  :   unsigned char* pixels;
+; 417  :   int            width,
+; 418  :                  height,
+; 419  :                  bytes_per_pixel;
+; 420  : 
+; 421  :   io.Fonts->GetTexDataAsRGBA32 ( &pixels,
 
 	mov	ecx, DWORD PTR [edi+128]
 	lea	eax, DWORD PTR _bytes_per_pixel$[ebp]
@@ -997,18 +1004,18 @@ _height$ = -4						; size = 4
 	push	eax
 	call	?GetTexDataAsRGBA32@ImFontAtlas@@QAEXPAPAEPAH11@Z ; ImFontAtlas::GetTexDataAsRGBA32
 
-; 401  :                                    &width, &height,
-; 402  :                                      &bytes_per_pixel );
-; 403  : 
-; 404  :   // Upload texture to graphics system
-; 405  :   g_FontTexture = nullptr;
-; 406  : 
-; 407  :   if ( g_pd3dDevice->CreateTexture ( width, height,
-; 408  :                                        1, D3DUSAGE_DYNAMIC,
-; 409  :                                           D3DFMT_A8R8G8B8,
-; 410  :                                           D3DPOOL_DEFAULT,
-; 411  :                                             &g_FontTexture,
-; 412  :                                               nullptr ) < 0 )
+; 422  :                                    &width, &height,
+; 423  :                                      &bytes_per_pixel );
+; 424  : 
+; 425  :   // Upload texture to graphics system
+; 426  :   g_FontTexture = nullptr;
+; 427  : 
+; 428  :   if ( g_pd3dDevice->CreateTexture ( width, height,
+; 429  :                                        1, D3DUSAGE_DYNAMIC,
+; 430  :                                           D3DFMT_A8R8G8B8,
+; 431  :                                           D3DPOOL_DEFAULT,
+; 432  :                                             &g_FontTexture,
+; 433  :                                               nullptr ) < 0 )
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -1027,30 +1034,30 @@ _height$ = -4						; size = 4
 	jns	SHORT $LN5@ImGui_Impl
 $LN12@ImGui_Impl:
 
-; 413  :   {
-; 414  :     SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
+; 434  :   {
+; 435  :     SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	pop	edi
 	mov	DWORD PTR [eax+16], 0
 
-; 415  :     return false;
+; 436  :     return false;
 
 	xor	al, al
 
-; 443  : }
+; 464  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN5@ImGui_Impl:
 
-; 416  :   }
-; 417  : 
-; 418  :   D3DLOCKED_RECT tex_locked_rect;
-; 419  : 
-; 420  :   if ( g_FontTexture->LockRect ( 0,       &tex_locked_rect,
-; 421  :                                  nullptr, 0 ) != D3D_OK )
+; 437  :   }
+; 438  : 
+; 439  :   D3DLOCKED_RECT tex_locked_rect;
+; 440  : 
+; 441  :   if ( g_FontTexture->LockRect ( 0,       &tex_locked_rect,
+; 442  :                                  nullptr, 0 ) != D3D_OK )
 
 	mov	eax, DWORD PTR ?g_FontTexture@@3PAUIDirect3DTexture9@@A
 	lea	edx, DWORD PTR _tex_locked_rect$[ebp]
@@ -1064,12 +1071,12 @@ $LN5@ImGui_Impl:
 	test	eax, eax
 	jne	SHORT $LN12@ImGui_Impl
 
-; 422  :   {
-; 423  :     SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
-; 424  :     return false;
-; 425  :   }
-; 426  : 
-; 427  :   for (int y = 0; y < height; y++)
+; 443  :   {
+; 444  :     SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
+; 445  :     return false;
+; 446  :   }
+; 447  : 
+; 448  :   for (int y = 0; y < height; y++)
 
 	push	esi
 	xor	esi, esi
@@ -1077,8 +1084,8 @@ $LN5@ImGui_Impl:
 	jle	SHORT $LN3@ImGui_Impl
 $LL4@ImGui_Impl:
 
-; 428  :   {
-; 429  :       memcpy ( (unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y,
+; 449  :   {
+; 450  :       memcpy ( (unsigned char *)tex_locked_rect.pBits + tex_locked_rect.Pitch * y,
 
 	mov	eax, DWORD PTR _width$[ebp]
 	imul	eax, DWORD PTR _bytes_per_pixel$[ebp]
@@ -1099,11 +1106,11 @@ $LL4@ImGui_Impl:
 	jl	SHORT $LL4@ImGui_Impl
 $LN3@ImGui_Impl:
 
-; 430  :                  pixels + (width * bytes_per_pixel) * y,
-; 431  :                    (width * bytes_per_pixel) );
-; 432  :   }
-; 433  : 
-; 434  :   g_FontTexture->UnlockRect (0);
+; 451  :                  pixels + (width * bytes_per_pixel) * y,
+; 452  :                    (width * bytes_per_pixel) );
+; 453  :   }
+; 454  : 
+; 455  :   g_FontTexture->UnlockRect (0);
 
 	mov	eax, DWORD PTR ?g_FontTexture@@3PAUIDirect3DTexture9@@A
 	push	0
@@ -1111,29 +1118,29 @@ $LN3@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+80]
 
-; 435  : 
-; 436  :   // Store our identifier
-; 437  :   io.Fonts->TexID =
+; 456  : 
+; 457  :   // Store our identifier
+; 458  :   io.Fonts->TexID =
 
 	mov	ecx, DWORD PTR [edi+128]
 	mov	eax, DWORD PTR ?g_FontTexture@@3PAUIDirect3DTexture9@@A
 	mov	DWORD PTR [ecx], eax
 
-; 438  :     static_cast <void *> (g_FontTexture);
-; 439  : 
-; 440  :   SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
+; 459  :     static_cast <void *> (g_FontTexture);
+; 460  : 
+; 461  :   SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	pop	esi
 	pop	edi
 	mov	DWORD PTR [eax+16], 0
 
-; 441  : 
-; 442  :   return true;
+; 462  : 
+; 463  :   return true;
 
 	mov	al, 1
 
-; 443  : }
+; 464  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -1379,22 +1386,26 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 _TEXT	SEGMENT
-_caps$ = -648						; size = 304
-_rts$ = -344						; size = 128
-_mat_identity$2 = -216					; size = 64
-_r$3 = -152						; size = 16
-_mat_projection$4 = -136				; size = 64
-_vp$ = -72						; size = 24
-_n$1$ = -48						; size = 4
-tv1540 = -44						; size = 4
-_cmd_i$1$ = -40						; size = 4
-_pBackBuffer$ = -36					; size = 4
-_pDS$ = -32						; size = 4
-_idx_dst$ = -28						; size = 4
+_caps$ = -652						; size = 304
+_rts$ = -348						; size = 128
+_mat_identity$2 = -220					; size = 64
+_r$3 = -156						; size = 16
+_mat_projection$4 = -140				; size = 64
+_vp$ = -76						; size = 24
+_cmd_list$1$ = -52					; size = 4
+_pBackBuffer$ = -48					; size = 4
+_pDS$ = -44						; size = 4
+_n$1$ = -40						; size = 4
+tv1657 = -40						; size = 4
+_idx_dst$ = -36						; size = 4
+_cmd_i$1$ = -32						; size = 4
+_io$1$ = -32						; size = 4
+_n$1$ = -28						; size = 4
+tv1826 = -28						; size = 4
+_a$1$ = -24						; size = 4
 _vtx_offset$1$ = -24					; size = 4
-_n$1$ = -24						; size = 4
 _idx_offset$1$ = -20					; size = 4
-_io$1$ = -20						; size = 4
+_i$1$ = -20						; size = 4
 _vtx_dst$ = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 _draw_data$ = 8						; size = 4
@@ -1410,7 +1421,7 @@ _draw_data$ = 8						; size = 4
 	mov	eax, DWORD PTR fs:0
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 636				; 0000027cH
+	sub	esp, 640				; 00000280H
 	push	edi
 
 ; 53   :   // Avoid rendering when minimized
@@ -1485,7 +1496,7 @@ $LN30@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+104]
 	test	eax, eax
-	js	$LN183@ImGui_Impl
+	js	$LN185@ImGui_Impl
 	mov	edx, DWORD PTR ?g_pVB@@3PAUIDirect3DVertexBuffer9@@A
 $LN31@ImGui_Impl:
 
@@ -1545,7 +1556,7 @@ $LN34@ImGui_Impl:
 	push	ecx
 	call	DWORD PTR [edx+108]
 	test	eax, eax
-	js	$LN183@ImGui_Impl
+	js	$LN185@ImGui_Impl
 	mov	edx, DWORD PTR ?g_pVB@@3PAUIDirect3DVertexBuffer9@@A
 $LN35@ImGui_Impl:
 
@@ -1581,7 +1592,7 @@ $LN35@ImGui_Impl:
 	push	edx
 	call	DWORD PTR [ecx+44]
 	test	eax, eax
-	js	$LN183@ImGui_Impl
+	js	$LN185@ImGui_Impl
 
 ; 115  :     return;
 ; 116  : 
@@ -1602,7 +1613,7 @@ $LN35@ImGui_Impl:
 	push	ecx
 	call	DWORD PTR [edx+44]
 	test	eax, eax
-	js	$LN183@ImGui_Impl
+	js	$LN185@ImGui_Impl
 
 ; 121  :     return;
 ; 122  : 
@@ -1628,63 +1639,159 @@ $LL4@ImGui_Impl:
 ; 129  : 
 ; 130  :     for (int i = 0; i < cmd_list->VtxBuffer.Size; i++)
 
-	xor	edi, edi
+	xor	edx, edx
+	mov	DWORD PTR _i$1$[ebp], edx
 	mov	ebx, DWORD PTR [eax+ecx*4]
-	mov	esi, DWORD PTR [ebx+32]
-	cmp	DWORD PTR [ebx+24], edi
-	jle	SHORT $LN6@ImGui_Impl
+	mov	DWORD PTR _cmd_list$1$[ebp], ebx
+	mov	edi, DWORD PTR [ebx+32]
+	cmp	DWORD PTR [ebx+24], edx
+	jle	$LN6@ImGui_Impl
 	mov	ecx, DWORD PTR _vtx_dst$[ebp]
-	npad	5
 $LL7@ImGui_Impl:
 
 ; 131  :     {
 ; 132  :       vtx_dst->pos [0] = vtx_src->pos.x;
 
-	mov	eax, DWORD PTR [esi]
+	mov	eax, DWORD PTR [edi]
+	mov	DWORD PTR [ecx], eax
 
 ; 133  :       vtx_dst->pos [1] = vtx_src->pos.y;
-; 134  :       vtx_dst->pos [2] = 0.0f;
-; 135  :       vtx_dst->col     = (vtx_src->col & 0xFF00FF00)      |
-; 136  :                         ((vtx_src->col & 0xFF0000) >> 16) |
-; 137  :                         ((vtx_src->col & 0xFF)     << 16);     // RGBA --> ARGB for DirectX9
-; 138  :       vtx_dst->uv  [0] = vtx_src->uv.x;
-; 139  :       vtx_dst->uv  [1] = vtx_src->uv.y;
-; 140  :       vtx_dst++;
-; 141  :       vtx_src++;
 
-	lea	esi, DWORD PTR [esi+20]
-	mov	DWORD PTR [ecx], eax
-	inc	edi
 	mov	eax, DWORD PTR _vtx_dst$[ebp]
-	mov	ecx, DWORD PTR [esi-16]
+	mov	ecx, DWORD PTR [edi+4]
 	mov	DWORD PTR [eax+4], ecx
+
+; 134  :       vtx_dst->pos [2] = 0.0f;
+
 	mov	eax, DWORD PTR _vtx_dst$[ebp]
 	mov	DWORD PTR [eax+8], 0
-	mov	ecx, DWORD PTR [esi-4]
-	movzx	eax, BYTE PTR [esi-2]
-	movzx	edx, cl
-	and	ecx, -16711936				; ff00ff00H
-	shl	edx, 16					; 00000010H
-	or	edx, eax
+
+; 135  :       vtx_dst->col     = (vtx_src->col & 0xFF00FF00)      |
+
+	mov	eax, DWORD PTR [edi+16]
+	movzx	ecx, al
+	and	eax, -16711936				; ff00ff00H
+	shl	ecx, 16					; 00000010H
+	or	ecx, eax
+	movzx	eax, BYTE PTR [edi+18]
+	or	ecx, eax
 	mov	eax, DWORD PTR _vtx_dst$[ebp]
-	or	edx, ecx
-	mov	DWORD PTR [eax+12], edx
+	mov	DWORD PTR [eax+12], ecx
+
+; 136  :                         ((vtx_src->col & 0xFF0000) >> 16) |
+; 137  :                         ((vtx_src->col & 0xFF)     << 16); // RGBA --> ARGB for DirectX9
+; 138  : 
+; 139  :       if (config.imgui.render.disable_alpha)
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+312, 0
+	je	$LN38@ImGui_Impl
+
+; 140  :       {
+; 141  :         uint8_t alpha = (((vtx_dst->col & 0xFF000000U) >> 24U) & 0xFFU);
+
 	mov	eax, DWORD PTR _vtx_dst$[ebp]
-	mov	ecx, DWORD PTR [esi-12]
+	mov	bl, BYTE PTR [eax+15]
+
+; 142  : 
+; 143  :         // Boost alpha for visibility
+; 144  :         if (alpha < 93 && alpha != 0)
+
+	cmp	bl, 93					; 0000005dH
+	jae	SHORT $LN39@ImGui_Impl
+	test	bl, bl
+	je	SHORT $LN39@ImGui_Impl
+
+; 145  :           alpha += (93 - alpha) / 2;
+
+	movzx	ecx, bl
+	mov	eax, 93					; 0000005dH
+	sub	eax, ecx
+	cdq
+	sub	eax, edx
+	sar	eax, 1
+	add	bl, al
+$LN39@ImGui_Impl:
+
+; 146  : 
+; 147  :         float a = ((float)                              alpha / 255.0f);
+
+	movzx	eax, bl
+	movd	xmm1, eax
+
+; 148  :         float r = ((float)((vtx_src->col & 0xFF0000U) >> 16U) / 255.0f);
+; 149  :         float g = ((float)((vtx_src->col & 0x00FF00U) >>  8U) / 255.0f);
+; 150  :         float b = ((float)((vtx_src->col & 0x0000FFU)       ) / 255.0f);
+
+	movzx	eax, BYTE PTR [edi+16]
+	cvtdq2ps xmm1, xmm1
+	movd	xmm0, eax
+	mulss	xmm1, DWORD PTR __real@3b808081
+	shr	eax, 31					; 0000001fH
+	cvtdq2pd xmm0, xmm0
+	movss	DWORD PTR _a$1$[ebp], xmm1
+	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
+	cvtpd2ps xmm0, xmm0
+
+; 151  : 
+; 152  :         vtx_dst->col =                    0xFF000000U  |
+
+	mulss	xmm0, xmm1
+	call	__ftoui3
+	movzx	ecx, BYTE PTR [edi+17]
+	mov	esi, eax
+	or	esi, -256				; ffffff00H
+	shl	esi, 8
+	movd	xmm0, ecx
+	cvtdq2ps xmm0, xmm0
+	mulss	xmm0, DWORD PTR _a$1$[ebp]
+	call	__ftoui3
+	or	esi, eax
+	movzx	eax, BYTE PTR [edi+18]
+	shl	esi, 8
+	movd	xmm0, eax
+	cvtdq2ps xmm0, xmm0
+	mulss	xmm0, DWORD PTR _a$1$[ebp]
+	call	__ftoui3
+	mov	edx, DWORD PTR _i$1$[ebp]
+	or	esi, eax
+	mov	eax, DWORD PTR _vtx_dst$[ebp]
+	mov	ebx, DWORD PTR _cmd_list$1$[ebp]
+	mov	DWORD PTR [eax+12], esi
+$LN38@ImGui_Impl:
+
+; 153  :                        ((UINT)((b * a) * 255U) << 16U) |
+; 154  :                        ((UINT)((g * a) * 255U) <<  8U) |
+; 155  :                        ((UINT)((r * a) * 255U)       );
+; 156  :       }
+; 157  : 
+; 158  :       vtx_dst->uv  [0] = vtx_src->uv.x;
+
+	mov	eax, DWORD PTR _vtx_dst$[ebp]
+	inc	edx
+	mov	ecx, DWORD PTR [edi+8]
+	mov	DWORD PTR _i$1$[ebp], edx
 	mov	DWORD PTR [eax+16], ecx
+
+; 159  :       vtx_dst->uv  [1] = vtx_src->uv.y;
+
 	mov	eax, DWORD PTR _vtx_dst$[ebp]
-	mov	ecx, DWORD PTR [esi-8]
+	mov	ecx, DWORD PTR [edi+12]
+
+; 160  :       vtx_dst++;
+; 161  :       vtx_src++;
+
+	add	edi, 20					; 00000014H
 	mov	DWORD PTR [eax+20], ecx
 	mov	ecx, DWORD PTR _vtx_dst$[ebp]
 	add	ecx, 32					; 00000020H
 	mov	DWORD PTR _vtx_dst$[ebp], ecx
-	cmp	edi, DWORD PTR [ebx+24]
-	jl	SHORT $LL7@ImGui_Impl
+	cmp	edx, DWORD PTR [ebx+24]
+	jl	$LL7@ImGui_Impl
 $LN6@ImGui_Impl:
 
-; 142  :     }
-; 143  : 
-; 144  :     memcpy ( idx_dst,
+; 162  :     }
+; 163  : 
+; 164  :     memcpy ( idx_dst,
 
 	mov	eax, DWORD PTR [ebx+12]
 	add	eax, eax
@@ -1693,10 +1800,10 @@ $LN6@ImGui_Impl:
 	push	DWORD PTR _idx_dst$[ebp]
 	call	_memcpy
 
-; 145  :                cmd_list->IdxBuffer.Data,
-; 146  :                  cmd_list->IdxBuffer.Size * sizeof ImDrawIdx);
-; 147  : 
-; 148  :     idx_dst += cmd_list->IdxBuffer.Size;
+; 165  :                cmd_list->IdxBuffer.Data,
+; 166  :                  cmd_list->IdxBuffer.Size * sizeof ImDrawIdx);
+; 167  : 
+; 168  :     idx_dst += cmd_list->IdxBuffer.Size;
 
 	mov	ecx, DWORD PTR [ebx+12]
 	add	esp, 12					; 0000000cH
@@ -1712,24 +1819,24 @@ $LN6@ImGui_Impl:
 	mov	edi, DWORD PTR _io$1$[ebp]
 $LN3@ImGui_Impl:
 
-; 149  :   }
-; 150  : 
-; 151  :   g_pVB->Unlock ();
+; 169  :   }
+; 170  : 
+; 171  :   g_pVB->Unlock ();
 
 	mov	eax, DWORD PTR ?g_pVB@@3PAUIDirect3DVertexBuffer9@@A
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+48]
 
-; 152  :   g_pIB->Unlock ();
+; 172  :   g_pIB->Unlock ();
 
 	mov	eax, DWORD PTR ?g_pIB@@3PAUIDirect3DIndexBuffer9@@A
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+48]
 
-; 153  : 
-; 154  :   g_pd3dDevice->SetStreamSource (0, g_pVB, 0, sizeof CUSTOMVERTEX);
+; 173  : 
+; 174  :   g_pd3dDevice->SetStreamSource (0, g_pVB, 0, sizeof CUSTOMVERTEX);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	32					; 00000020H
@@ -1740,7 +1847,7 @@ $LN3@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+400]
 
-; 155  :   g_pd3dDevice->SetIndices      (g_pIB);
+; 175  :   g_pd3dDevice->SetIndices      (g_pIB);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	DWORD PTR ?g_pIB@@3PAUIDirect3DIndexBuffer9@@A
@@ -1748,7 +1855,7 @@ $LN3@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+416]
 
-; 156  :   g_pd3dDevice->SetFVF          (D3DFVF_CUSTOMVERTEX);
+; 176  :   g_pd3dDevice->SetFVF          (D3DFVF_CUSTOMVERTEX);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	578					; 00000242H
@@ -1756,30 +1863,30 @@ $LN3@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+356]
 
-; 157  : 
-; 158  :   // Setup viewport
-; 159  :   D3DVIEWPORT9 vp;
-; 160  : 
-; 161  :   vp.X = vp.Y = 0;
+; 177  : 
+; 178  :   // Setup viewport
+; 179  :   D3DVIEWPORT9 vp;
+; 180  : 
+; 181  :   vp.X = vp.Y = 0;
 
 	mov	DWORD PTR _vp$[ebp+4], 0
 	mov	DWORD PTR _vp$[ebp], 0
 
-; 162  :   vp.Width  = (DWORD)io.DisplaySize.x;
+; 182  :   vp.Width  = (DWORD)io.DisplaySize.x;
 
 	movss	xmm0, DWORD PTR [edi]
 	call	__ftoui3
 	mov	DWORD PTR _vp$[ebp+8], eax
 
-; 163  :   vp.Height = (DWORD)io.DisplaySize.y;
+; 183  :   vp.Height = (DWORD)io.DisplaySize.y;
 
 	movss	xmm0, DWORD PTR [edi+4]
 	call	__ftoui3
 	mov	DWORD PTR _vp$[ebp+12], eax
 
-; 164  :   vp.MinZ   = 0.0f;
-; 165  :   vp.MaxZ   = 1.0f;
-; 166  :   g_pd3dDevice->SetViewport (&vp);
+; 184  :   vp.MinZ   = 0.0f;
+; 185  :   vp.MaxZ   = 1.0f;
+; 186  :   g_pd3dDevice->SetViewport (&vp);
 
 	lea	edx, DWORD PTR _vp$[ebp]
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
@@ -1790,9 +1897,9 @@ $LN3@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+188]
 
-; 167  : 
-; 168  :   // Setup render state: fixed-pipeline, alpha-blending, no face culling, no depth testing
-; 169  :   g_pd3dDevice->SetPixelShader       (NULL);
+; 187  : 
+; 188  :   // Setup render state: fixed-pipeline, alpha-blending, no face culling, no depth testing
+; 189  :   g_pd3dDevice->SetPixelShader       (NULL);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -1800,7 +1907,7 @@ $LN3@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+428]
 
-; 170  :   g_pd3dDevice->SetVertexShader      (NULL);
+; 190  :   g_pd3dDevice->SetVertexShader      (NULL);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -1808,9 +1915,9 @@ $LN3@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+368]
 
-; 171  : 
-; 172  :   D3DCAPS9                      caps;
-; 173  :   g_pd3dDevice->GetDeviceCaps (&caps);
+; 191  : 
+; 192  :   D3DCAPS9                      caps;
+; 193  :   g_pd3dDevice->GetDeviceCaps (&caps);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	lea	edx, DWORD PTR _caps$[ebp]
@@ -1825,7 +1932,7 @@ $LN3@ImGui_Impl:
 	mov	DWORD PTR _pBackBuffer$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 176  :   CComPtr <IDirect3DSurface9> rts [32];
+; 196  :   CComPtr <IDirect3DSurface9> rts [32];
 
 	push	OFFSET ??1?$CComPtr@UIDirect3DSurface9@@@ATL@@QAE@XZ
 	push	OFFSET ??0?$CComPtr@UIDirect3DSurface9@@@ATL@@QAE@XZ ; ATL::CComPtr<IDirect3DSurface9>::CComPtr<IDirect3DSurface9>
@@ -1842,22 +1949,23 @@ $LN3@ImGui_Impl:
 	mov	DWORD PTR _pDS$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 179  :   for (UINT target = 0; target < caps.NumSimultaneousRTs; target++)
+; 199  :   for (UINT target = 0; target < caps.NumSimultaneousRTs; target++)
 
 	xor	esi, esi
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 	cmp	DWORD PTR _caps$[ebp+240], esi
 	jbe	SHORT $LN9@ImGui_Impl
 
-; 149  :   }
-; 150  : 
-; 151  :   g_pVB->Unlock ();
+; 169  :   }
+; 170  : 
+; 171  :   g_pVB->Unlock ();
 
 	lea	edi, DWORD PTR _rts$[ebp]
+	npad	3
 $LL10@ImGui_Impl:
 
-; 180  :   {
-; 181  :     g_pd3dDevice->GetRenderTarget (target, &rts [target]);
+; 200  :   {
+; 201  :     g_pd3dDevice->GetRenderTarget (target, &rts [target]);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	edi
@@ -1872,9 +1980,9 @@ $LL10@ImGui_Impl:
 	mov	edi, DWORD PTR _io$1$[ebp]
 $LN9@ImGui_Impl:
 
-; 182  :   }
-; 183  : 
-; 184  :   g_pd3dDevice->GetDepthStencilSurface (&pDS);
+; 202  :   }
+; 203  : 
+; 204  :   g_pd3dDevice->GetDepthStencilSurface (&pDS);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	lea	edx, DWORD PTR _pDS$[ebp]
@@ -1883,8 +1991,8 @@ $LN9@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+160]
 
-; 185  :   
-; 186  :   if (SUCCEEDED (g_pd3dDevice->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
+; 205  :   
+; 206  :   if (SUCCEEDED (g_pd3dDevice->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	lea	edx, DWORD PTR _pBackBuffer$[ebp]
@@ -1898,8 +2006,8 @@ $LN9@ImGui_Impl:
 	test	eax, eax
 	js	SHORT $LN12@ImGui_Impl
 
-; 187  :   {
-; 188  :     g_pd3dDevice->SetRenderTarget        (0, pBackBuffer);
+; 207  :   {
+; 208  :     g_pd3dDevice->SetRenderTarget        (0, pBackBuffer);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	DWORD PTR _pBackBuffer$[ebp]
@@ -1908,7 +2016,7 @@ $LN9@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+148]
 
-; 189  :     g_pd3dDevice->SetDepthStencilSurface (nullptr);
+; 209  :     g_pd3dDevice->SetDepthStencilSurface (nullptr);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -1916,16 +2024,16 @@ $LN9@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+156]
 
-; 190  : 
-; 191  :     for (UINT target = 1; target < caps.NumSimultaneousRTs; target++)
+; 210  : 
+; 211  :     for (UINT target = 1; target < caps.NumSimultaneousRTs; target++)
 
 	mov	esi, 1
 	cmp	DWORD PTR _caps$[ebp+240], esi
 	jbe	SHORT $LN12@ImGui_Impl
-	npad	5
+	npad	6
 $LL13@ImGui_Impl:
 
-; 192  :       g_pd3dDevice->SetRenderTarget (target, nullptr);
+; 212  :       g_pd3dDevice->SetRenderTarget (target, nullptr);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -1938,9 +2046,9 @@ $LL13@ImGui_Impl:
 	jb	SHORT $LL13@ImGui_Impl
 $LN12@ImGui_Impl:
 
-; 193  :   }
-; 194  : 
-; 195  :   g_pd3dDevice->SetRenderState       (D3DRS_CULLMODE,          D3DCULL_NONE);
+; 213  :   }
+; 214  : 
+; 215  :   g_pd3dDevice->SetRenderState       (D3DRS_CULLMODE,          D3DCULL_NONE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	1
@@ -1949,7 +2057,7 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 196  :   g_pd3dDevice->SetRenderState       (D3DRS_LIGHTING,          FALSE);
+; 216  :   g_pd3dDevice->SetRenderState       (D3DRS_LIGHTING,          FALSE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -1958,7 +2066,8 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 197  :   g_pd3dDevice->SetRenderState       (D3DRS_ALPHABLENDENABLE,  TRUE);
+; 217  : 
+; 218  :   g_pd3dDevice->SetRenderState       (D3DRS_ALPHABLENDENABLE,  TRUE);// : FALSE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	1
@@ -1967,7 +2076,7 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 198  :   g_pd3dDevice->SetRenderState       (D3DRS_ALPHATESTENABLE,   FALSE);
+; 219  :   g_pd3dDevice->SetRenderState       (D3DRS_ALPHATESTENABLE,   FALSE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -1976,7 +2085,7 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 199  :   g_pd3dDevice->SetRenderState       (D3DRS_BLENDOP,           D3DBLENDOP_ADD);
+; 220  :   g_pd3dDevice->SetRenderState       (D3DRS_BLENDOP,           D3DBLENDOP_ADD);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	1
@@ -1985,8 +2094,8 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 200  : //  g_pd3dDevice->SetRenderState       (D3DRS_BLENDOPALPHA,      D3DBLENDOP_ADD);
-; 201  :   g_pd3dDevice->SetRenderState       (D3DRS_SRCBLEND,          D3DBLEND_SRCALPHA);
+; 221  : //  g_pd3dDevice->SetRenderState       (D3DRS_BLENDOPALPHA,      D3DBLENDOP_ADD);
+; 222  :   g_pd3dDevice->SetRenderState       (D3DRS_SRCBLEND,          D3DBLEND_SRCALPHA);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	5
@@ -1995,7 +2104,7 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 202  :   g_pd3dDevice->SetRenderState       (D3DRS_DESTBLEND,         D3DBLEND_INVSRCALPHA);
+; 223  :   g_pd3dDevice->SetRenderState       (D3DRS_DESTBLEND,         D3DBLEND_INVSRCALPHA);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	6
@@ -2004,7 +2113,7 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 203  :   g_pd3dDevice->SetRenderState       (D3DRS_STENCILENABLE,     FALSE);
+; 224  :   g_pd3dDevice->SetRenderState       (D3DRS_STENCILENABLE,     FALSE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -2013,7 +2122,7 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 204  :   g_pd3dDevice->SetRenderState       (D3DRS_SCISSORTESTENABLE, TRUE);
+; 225  :   g_pd3dDevice->SetRenderState       (D3DRS_SCISSORTESTENABLE, TRUE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	1
@@ -2022,7 +2131,7 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 205  :   g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           FALSE);
+; 226  :   g_pd3dDevice->SetRenderState       (D3DRS_ZENABLE,           FALSE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -2031,8 +2140,8 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 206  : 
-; 207  :   g_pd3dDevice->SetRenderState       (D3DRS_SRGBWRITEENABLE,   FALSE);
+; 227  : 
+; 228  :   g_pd3dDevice->SetRenderState       (D3DRS_SRGBWRITEENABLE,   FALSE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -2041,7 +2150,7 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 208  :   g_pd3dDevice->SetRenderState       (D3DRS_COLORWRITEENABLE,  D3DCOLORWRITEENABLE_RED   | 
+; 229  :   g_pd3dDevice->SetRenderState       (D3DRS_COLORWRITEENABLE,  D3DCOLORWRITEENABLE_RED   | 
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	15					; 0000000fH
@@ -2050,11 +2159,11 @@ $LN12@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+228]
 
-; 209  :                                                                D3DCOLORWRITEENABLE_GREEN | 
-; 210  :                                                                D3DCOLORWRITEENABLE_BLUE  |
-; 211  :                                                                D3DCOLORWRITEENABLE_ALPHA );
-; 212  : 
-; 213  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_COLOROP,     D3DTOP_MODULATE);
+; 230  :                                                                D3DCOLORWRITEENABLE_GREEN | 
+; 231  :                                                                D3DCOLORWRITEENABLE_BLUE  |
+; 232  :                                                                D3DCOLORWRITEENABLE_ALPHA );
+; 233  : 
+; 234  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_COLOROP,     D3DTOP_MODULATE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	4
@@ -2064,7 +2173,7 @@ $LN12@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+268]
 
-; 214  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_COLORARG1,   D3DTA_TEXTURE);
+; 235  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_COLORARG1,   D3DTA_TEXTURE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	mov	ecx, DWORD PTR [eax]
@@ -2074,7 +2183,7 @@ $LN12@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+268]
 
-; 215  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_COLORARG2,   D3DTA_DIFFUSE);
+; 236  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_COLORARG2,   D3DTA_DIFFUSE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -2084,7 +2193,7 @@ $LN12@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+268]
 
-; 216  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAOP,     D3DTOP_MODULATE);
+; 237  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAOP,     D3DTOP_MODULATE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	4
@@ -2094,7 +2203,7 @@ $LN12@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+268]
 
-; 217  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAARG1,   D3DTA_TEXTURE);
+; 238  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAARG1,   D3DTA_TEXTURE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	2
@@ -2104,7 +2213,7 @@ $LN12@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+268]
 
-; 218  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAARG2,   D3DTA_DIFFUSE);
+; 239  :   g_pd3dDevice->SetTextureStageState   (0, D3DTSS_ALPHAARG2,   D3DTA_DIFFUSE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	0
@@ -2114,7 +2223,7 @@ $LN12@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+268]
 
-; 219  :   g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MINFILTER,  D3DTEXF_LINEAR);
+; 240  :   g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MINFILTER,  D3DTEXF_LINEAR);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	2
@@ -2124,7 +2233,7 @@ $LN12@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+276]
 
-; 220  :   g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MAGFILTER,  D3DTEXF_LINEAR);
+; 241  :   g_pd3dDevice->SetSamplerState        (0, D3DSAMP_MAGFILTER,  D3DTEXF_LINEAR);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	2
@@ -2134,8 +2243,8 @@ $LN12@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+276]
 
-; 221  : 
-; 222  :   for (UINT i = 1; i < caps.MaxTextureBlendStages; i++) {
+; 242  : 
+; 243  :   for (UINT i = 1; i < caps.MaxTextureBlendStages; i++) {
 
 	mov	esi, 1
 	cmp	DWORD PTR _caps$[ebp+148], esi
@@ -2143,7 +2252,7 @@ $LN12@ImGui_Impl:
 	npad	2
 $LL16@ImGui_Impl:
 
-; 223  :     g_pd3dDevice->SetTextureStageState (i, D3DTSS_COLOROP,     D3DTOP_DISABLE);
+; 244  :     g_pd3dDevice->SetTextureStageState (i, D3DTSS_COLOROP,     D3DTOP_DISABLE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	1
@@ -2153,7 +2262,7 @@ $LL16@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+268]
 
-; 224  :     g_pd3dDevice->SetTextureStageState (i, D3DTSS_ALPHAOP,     D3DTOP_DISABLE);
+; 245  :     g_pd3dDevice->SetTextureStageState (i, D3DTSS_ALPHAOP,     D3DTOP_DISABLE);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	1
@@ -2167,36 +2276,36 @@ $LL16@ImGui_Impl:
 	jb	SHORT $LL16@ImGui_Impl
 $LN15@ImGui_Impl:
 
-; 225  :   }
-; 226  : 
-; 227  :   // Setup orthographic projection matrix
-; 228  :   // Being agnostic of whether <d3dx9.h> or <DirectXMath.h> can be used, we aren't relying on D3DXMatrixIdentity()/D3DXMatrixOrthoOffCenterLH() or DirectX::XMMatrixIdentity()/DirectX::XMMatrixOrthographicOffCenterLH()
-; 229  :   {
-; 230  :     const float L = 0.5f,
-; 231  :                 R = io.DisplaySize.x + 0.5f,
+; 246  :   }
+; 247  : 
+; 248  :   // Setup orthographic projection matrix
+; 249  :   // Being agnostic of whether <d3dx9.h> or <DirectXMath.h> can be used, we aren't relying on D3DXMatrixIdentity()/D3DXMatrixOrthoOffCenterLH() or DirectX::XMMatrixIdentity()/DirectX::XMMatrixOrthographicOffCenterLH()
+; 250  :   {
+; 251  :     const float L = 0.5f,
+; 252  :                 R = io.DisplaySize.x + 0.5f,
 
 	movss	xmm4, DWORD PTR __real@3f000000
 
-; 232  :                 T = 0.5f,
-; 233  :                 B = io.DisplaySize.y + 0.5f;
-; 234  : 
-; 235  :     D3DMATRIX mat_identity =
-; 236  :     {
-; 237  :       1.0f, 0.0f, 0.0f, 0.0f,
-; 238  :       0.0f, 1.0f, 0.0f, 0.0f,
-; 239  :       0.0f, 0.0f, 1.0f, 0.0f,
-; 240  :       0.0f, 0.0f, 0.0f, 1.0f
-; 241  :     };
-; 242  : 
-; 243  :     D3DMATRIX mat_projection =
-; 244  :     {
-; 245  :         2.0f/(R-L),   0.0f,         0.0f,  0.0f,
-; 246  :         0.0f,         2.0f/(T-B),   0.0f,  0.0f,
-; 247  :         0.0f,         0.0f,         0.5f,  0.0f,
-; 248  :         (L+R)/(L-R),  (T+B)/(B-T),  0.5f,  1.0f,
-; 249  :     };
-; 250  : 
-; 251  :     g_pd3dDevice->SetTransform (D3DTS_WORLD,      &mat_identity);
+; 253  :                 T = 0.5f,
+; 254  :                 B = io.DisplaySize.y + 0.5f;
+; 255  : 
+; 256  :     D3DMATRIX mat_identity =
+; 257  :     {
+; 258  :       1.0f, 0.0f, 0.0f, 0.0f,
+; 259  :       0.0f, 1.0f, 0.0f, 0.0f,
+; 260  :       0.0f, 0.0f, 1.0f, 0.0f,
+; 261  :       0.0f, 0.0f, 0.0f, 1.0f
+; 262  :     };
+; 263  : 
+; 264  :     D3DMATRIX mat_projection =
+; 265  :     {
+; 266  :         2.0f/(R-L),   0.0f,         0.0f,  0.0f,
+; 267  :         0.0f,         2.0f/(T-B),   0.0f,  0.0f,
+; 268  :         0.0f,         0.0f,         0.5f,  0.0f,
+; 269  :         (L+R)/(L-R),  (T+B)/(B-T),  0.5f,  1.0f,
+; 270  :     };
+; 271  : 
+; 272  :     g_pd3dDevice->SetTransform (D3DTS_WORLD,      &mat_identity);
 
 	lea	edx, DWORD PTR _mat_identity$2[ebp]
 	movaps	xmm0, XMMWORD PTR __xmm@0000000000000000000000003f800000
@@ -2249,7 +2358,7 @@ $LN15@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+176]
 
-; 252  :     g_pd3dDevice->SetTransform (D3DTS_VIEW,       &mat_identity);
+; 273  :     g_pd3dDevice->SetTransform (D3DTS_VIEW,       &mat_identity);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	lea	edx, DWORD PTR _mat_identity$2[ebp]
@@ -2259,7 +2368,7 @@ $LN15@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+176]
 
-; 253  :     g_pd3dDevice->SetTransform (D3DTS_PROJECTION, &mat_projection);
+; 274  :     g_pd3dDevice->SetTransform (D3DTS_PROJECTION, &mat_projection);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	lea	edx, DWORD PTR _mat_projection$4[ebp]
@@ -2269,16 +2378,16 @@ $LN15@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+176]
 
-; 254  :   }
-; 255  : 
-; 256  :   // Render command lists
-; 257  :   int vtx_offset = 0;
+; 275  :   }
+; 276  : 
+; 277  :   // Render command lists
+; 278  :   int vtx_offset = 0;
 
 	xor	esi, esi
 
-; 258  :   int idx_offset = 0;
-; 259  : 
-; 260  :   for (int n = 0; n < draw_data->CmdListsCount; n++)
+; 279  :   int idx_offset = 0;
+; 280  : 
+; 281  :   for (int n = 0; n < draw_data->CmdListsCount; n++)
 
 	xor	ecx, ecx
 	mov	DWORD PTR _vtx_offset$1$[ebp], esi
@@ -2289,79 +2398,79 @@ $LN15@ImGui_Impl:
 	npad	4
 $LL19@ImGui_Impl:
 
-; 261  :   {
-; 262  :     const ImDrawList* cmd_list =
-; 263  :       draw_data->CmdLists [n];
+; 282  :   {
+; 283  :     const ImDrawList* cmd_list =
+; 284  :       draw_data->CmdLists [n];
 
 	mov	eax, DWORD PTR [ebx+4]
 
-; 264  : 
-; 265  :     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+; 285  : 
+; 286  :     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 
 	mov	DWORD PTR _cmd_i$1$[ebp], 0
 	mov	ebx, DWORD PTR [eax+ecx*4]
 	cmp	DWORD PTR [ebx], 0
 	jle	$LN21@ImGui_Impl
 
-; 261  :   {
-; 262  :     const ImDrawList* cmd_list =
-; 263  :       draw_data->CmdLists [n];
+; 282  :   {
+; 283  :     const ImDrawList* cmd_list =
+; 284  :       draw_data->CmdLists [n];
 
 	xor	ecx, ecx
-	mov	DWORD PTR tv1540[ebp], ecx
+	mov	DWORD PTR tv1826[ebp], ecx
 	npad	5
 $LL22@ImGui_Impl:
 
-; 264  : 
-; 265  :     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+; 285  : 
+; 286  :     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 
 	mov	edi, DWORD PTR [ebx+8]
 	add	edi, ecx
 
-; 266  :     {
-; 267  :       const ImDrawCmd* pcmd =
-; 268  :         &cmd_list->CmdBuffer [cmd_i];
-; 269  : 
-; 270  :       if (pcmd->UserCallback)
+; 287  :     {
+; 288  :       const ImDrawCmd* pcmd =
+; 289  :         &cmd_list->CmdBuffer [cmd_i];
+; 290  : 
+; 291  :       if (pcmd->UserCallback)
 
 	mov	eax, DWORD PTR [edi+24]
 	test	eax, eax
-	je	SHORT $LN39@ImGui_Impl
+	je	SHORT $LN41@ImGui_Impl
 
-; 271  :       {
-; 272  :         pcmd->UserCallback (cmd_list, pcmd);
+; 292  :       {
+; 293  :         pcmd->UserCallback (cmd_list, pcmd);
 
 	push	edi
 	push	ebx
 	call	eax
 	add	esp, 8
 
-; 273  :       }
-; 274  : 
-; 275  :       else
+; 294  :       }
+; 295  : 
+; 296  :       else
 
-	jmp	SHORT $LN40@ImGui_Impl
-$LN39@ImGui_Impl:
+	jmp	SHORT $LN42@ImGui_Impl
+$LN41@ImGui_Impl:
 
-; 276  :       {
-; 277  :         const RECT r = {
-; 278  :           static_cast <LONG> (pcmd->ClipRect.x), static_cast <LONG> (pcmd->ClipRect.y),
+; 297  :       {
+; 298  :         const RECT r = {
+; 299  :           static_cast <LONG> (pcmd->ClipRect.x), static_cast <LONG> (pcmd->ClipRect.y),
 
 	xor	ecx, ecx
 	lea	edx, DWORD PTR [edi+4]
 	npad	6
-$LL107@ImGui_Impl:
+$LL109@ImGui_Impl:
 	cvttss2si eax, DWORD PTR [edx]
 	lea	edx, DWORD PTR [edx+4]
 	mov	DWORD PTR _r$3[ebp+ecx*4], eax
 	inc	ecx
 	cmp	ecx, 4
-	jl	SHORT $LL107@ImGui_Impl
+	jl	SHORT $LL109@ImGui_Impl
 
-; 279  :           static_cast <LONG> (pcmd->ClipRect.z), static_cast <LONG> (pcmd->ClipRect.w)
-; 280  :         };
-; 281  : 
-; 282  :         g_pd3dDevice->SetTexture           ( 0, (LPDIRECT3DTEXTURE9)pcmd->TextureId );
+; 300  :           static_cast <LONG> (pcmd->ClipRect.z), static_cast <LONG> (pcmd->ClipRect.w)
+; 301  :         };
+; 302  : 
+; 303  :         g_pd3dDevice->SetTexture           ( 0, (LPDIRECT3DTEXTURE9)pcmd->TextureId );
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	DWORD PTR [edi+20]
@@ -2370,7 +2479,7 @@ $LL107@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+260]
 
-; 283  :         g_pd3dDevice->SetScissorRect       ( &r );
+; 304  :         g_pd3dDevice->SetScissorRect       ( &r );
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	lea	edx, DWORD PTR _r$3[ebp]
@@ -2379,7 +2488,7 @@ $LL107@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+300]
 
-; 284  :         g_pd3dDevice->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST,
+; 305  :         g_pd3dDevice->DrawIndexedPrimitive ( D3DPT_TRIANGLELIST,
 
 	mov	ecx, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	mov	eax, -1431655765			; aaaaaaabH
@@ -2394,35 +2503,35 @@ $LL107@ImGui_Impl:
 	push	4
 	push	ecx
 	call	DWORD PTR [esi+328]
-$LN40@ImGui_Impl:
+$LN42@ImGui_Impl:
 
-; 285  :                                                vtx_offset,
-; 286  :                                                  0,
-; 287  :                                static_cast <UINT> (cmd_list->VtxBuffer.Size),
-; 288  :                                                      idx_offset,
-; 289  :                                                        pcmd->ElemCount / 3 );
-; 290  :       }
-; 291  : 
-; 292  :       idx_offset += pcmd->ElemCount;
+; 306  :                                                vtx_offset,
+; 307  :                                                  0,
+; 308  :                                static_cast <UINT> (cmd_list->VtxBuffer.Size),
+; 309  :                                                      idx_offset,
+; 310  :                                                        pcmd->ElemCount / 3 );
+; 311  :       }
+; 312  : 
+; 313  :       idx_offset += pcmd->ElemCount;
 
 	mov	eax, DWORD PTR _cmd_i$1$[ebp]
 	mov	edx, DWORD PTR _idx_offset$1$[ebp]
 	inc	eax
-	mov	ecx, DWORD PTR tv1540[ebp]
+	mov	ecx, DWORD PTR tv1826[ebp]
 	add	edx, DWORD PTR [edi]
 	add	ecx, 32					; 00000020H
 	mov	DWORD PTR _idx_offset$1$[ebp], edx
 	mov	DWORD PTR _cmd_i$1$[ebp], eax
-	mov	DWORD PTR tv1540[ebp], ecx
+	mov	DWORD PTR tv1826[ebp], ecx
 	cmp	eax, DWORD PTR [ebx]
 	jl	$LL22@ImGui_Impl
 	mov	esi, DWORD PTR _vtx_offset$1$[ebp]
 	mov	ecx, DWORD PTR _n$1$[ebp]
 $LN21@ImGui_Impl:
 
-; 293  :     }
-; 294  : 
-; 295  :     vtx_offset += cmd_list->VtxBuffer.Size;
+; 314  :     }
+; 315  : 
+; 316  :     vtx_offset += cmd_list->VtxBuffer.Size;
 
 	add	esi, DWORD PTR [ebx+24]
 	inc	ecx
@@ -2433,9 +2542,9 @@ $LN21@ImGui_Impl:
 	jl	$LL19@ImGui_Impl
 $LN18@ImGui_Impl:
 
-; 296  :   }
-; 297  : 
-; 298  :   for (UINT target = 0; target < caps.NumSimultaneousRTs; target++)
+; 317  :   }
+; 318  : 
+; 319  :   for (UINT target = 0; target < caps.NumSimultaneousRTs; target++)
 
 	xor	esi, esi
 	cmp	DWORD PTR _caps$[ebp+240], esi
@@ -2443,7 +2552,7 @@ $LN18@ImGui_Impl:
 	npad	8
 $LL25@ImGui_Impl:
 
-; 299  :     g_pd3dDevice->SetRenderTarget (target, rts [target]);
+; 320  :     g_pd3dDevice->SetRenderTarget (target, rts [target]);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	DWORD PTR _rts$[ebp+esi*4]
@@ -2456,8 +2565,8 @@ $LL25@ImGui_Impl:
 	jb	SHORT $LL25@ImGui_Impl
 $LN24@ImGui_Impl:
 
-; 300  : 
-; 301  :   g_pd3dDevice->SetDepthStencilSurface (pDS);
+; 321  : 
+; 322  :   g_pd3dDevice->SetDepthStencilSurface (pDS);
 
 	mov	eax, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	push	DWORD PTR _pDS$[ebp]
@@ -2471,7 +2580,7 @@ $LN24@ImGui_Impl:
 	mov	eax, DWORD PTR _pDS$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 306  : }
+; 327  : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	pop	esi
@@ -2480,17 +2589,17 @@ $LN24@ImGui_Impl:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN73@ImGui_Impl
+	je	SHORT $LN75@ImGui_Impl
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN73@ImGui_Impl:
+$LN75@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 306  : }
+; 327  : }
 
 	push	OFFSET ??1?$CComPtr@UIDirect3DSurface9@@@ATL@@QAE@XZ
 	push	32					; 00000020H
@@ -2506,7 +2615,7 @@ $LN73@ImGui_Impl:
 	mov	eax, DWORD PTR _pBackBuffer$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 306  : }
+; 327  : }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -2514,19 +2623,19 @@ $LN73@ImGui_Impl:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN183@ImGui_Impl
+	je	SHORT $LN185@ImGui_Impl
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN183@ImGui_Impl:
+$LN185@ImGui_Impl:
 	pop	ebx
 $LN27@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 306  : }
+; 327  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -4291,34 +4400,34 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?ImGui_ImplDX9_CreateDeviceObjects@@YA_NXZ PROC		; ImGui_ImplDX9_CreateDeviceObjects
 
-; 448  :   if (! g_pd3dDevice)
+; 469  :   if (! g_pd3dDevice)
 
 	cmp	DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A, 0 ; g_pd3dDevice
 	jne	SHORT $LN2@ImGui_Impl
 
-; 449  :       return false;
+; 470  :       return false;
 
 	xor	al, al
 
-; 452  :       return false;
-; 453  : 
-; 454  :   return true;
-; 455  : }
+; 473  :       return false;
+; 474  : 
+; 475  :   return true;
+; 476  : }
 
 	ret	0
 $LN2@ImGui_Impl:
 
-; 450  : 
-; 451  :   if (! ImGui_ImplDX9_CreateFontsTexture ())
+; 471  : 
+; 472  :   if (! ImGui_ImplDX9_CreateFontsTexture ())
 
 	call	?ImGui_ImplDX9_CreateFontsTexture@@YA_NXZ ; ImGui_ImplDX9_CreateFontsTexture
 	test	al, al
 	setne	al
 
-; 452  :       return false;
-; 453  : 
-; 454  :   return true;
-; 455  : }
+; 473  :       return false;
+; 474  : 
+; 475  :   return true;
+; 476  : }
 
 	ret	0
 ?ImGui_ImplDX9_CreateDeviceObjects@@YA_NXZ ENDP		; ImGui_ImplDX9_CreateDeviceObjects
@@ -4339,108 +4448,108 @@ $T2 = -8						; size = 8
 _pparams$ = 8						; size = 4
 ?ImGui_ImplDX9_InvalidateDeviceObjects@@YAXPAU_D3DPRESENT_PARAMETERS_@@@Z PROC ; ImGui_ImplDX9_InvalidateDeviceObjects
 
-; 459  : {
+; 480  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 8
 
-; 460  :   extern void
-; 461  :   SK_ImGui_ResetExternal (void);
-; 462  :   SK_ImGui_ResetExternal ();
+; 481  :   extern void
+; 482  :   SK_ImGui_ResetExternal (void);
+; 483  :   SK_ImGui_ResetExternal ();
 
 	call	?SK_ImGui_ResetExternal@@YAXXZ		; SK_ImGui_ResetExternal
 
-; 463  : 
-; 464  :   if (! g_pd3dDevice)
+; 484  : 
+; 485  :   if (! g_pd3dDevice)
 
 	cmp	DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A, 0 ; g_pd3dDevice
 	je	$LN6@ImGui_Impl
 
-; 465  :     return;
-; 466  : 
-; 467  :   ImGuiIO& io (ImGui::GetIO ());
+; 486  :     return;
+; 487  : 
+; 488  :   ImGuiIO& io (ImGui::GetIO ());
 
 	push	esi
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 
-; 468  : 
-; 469  :   if (g_pVB)
+; 489  : 
+; 490  :   if (g_pVB)
 
 	mov	edx, DWORD PTR ?g_pVB@@3PAUIDirect3DVertexBuffer9@@A
 	mov	esi, eax
 	test	edx, edx
 	je	SHORT $LN3@ImGui_Impl
 
-; 470  :   {
-; 471  :     g_pVB->Release ();
+; 491  :   {
+; 492  :     g_pVB->Release ();
 
 	mov	ecx, DWORD PTR [edx]
 	push	edx
 	call	DWORD PTR [ecx+8]
 
-; 472  :     g_pVB = NULL;
+; 493  :     g_pVB = NULL;
 
 	mov	DWORD PTR ?g_pVB@@3PAUIDirect3DVertexBuffer9@@A, 0
 $LN3@ImGui_Impl:
 
-; 473  :   }
-; 474  : 
-; 475  :   if (g_pIB)
+; 494  :   }
+; 495  : 
+; 496  :   if (g_pIB)
 
 	mov	ecx, DWORD PTR ?g_pIB@@3PAUIDirect3DIndexBuffer9@@A
 	test	ecx, ecx
 	je	SHORT $LN4@ImGui_Impl
 
-; 476  :   {
-; 477  :     g_pIB->Release ();
+; 497  :   {
+; 498  :     g_pIB->Release ();
 
 	mov	eax, DWORD PTR [ecx]
 	push	ecx
 	call	DWORD PTR [eax+8]
 
-; 478  :     g_pIB = NULL;
+; 499  :     g_pIB = NULL;
 
 	mov	DWORD PTR ?g_pIB@@3PAUIDirect3DIndexBuffer9@@A, 0
 $LN4@ImGui_Impl:
 
-; 479  :   }
-; 480  : 
-; 481  :   if ( LPDIRECT3DTEXTURE9 tex = (LPDIRECT3DTEXTURE9)io.Fonts->TexID )
+; 500  :   }
+; 501  : 
+; 502  :   if ( LPDIRECT3DTEXTURE9 tex = (LPDIRECT3DTEXTURE9)io.Fonts->TexID )
 
 	mov	eax, DWORD PTR [esi+128]
 	mov	ecx, DWORD PTR [eax]
 	test	ecx, ecx
 	je	SHORT $LN5@ImGui_Impl
 
-; 482  :   {
-; 483  :     tex->Release ();
+; 503  :   {
+; 504  :     tex->Release ();
 
 	mov	eax, DWORD PTR [ecx]
 	push	ecx
 	call	DWORD PTR [eax+8]
 
-; 484  :     io.Fonts->TexID = 0;
+; 505  :     io.Fonts->TexID = 0;
 
 	mov	eax, DWORD PTR [esi+128]
 	mov	DWORD PTR [eax], 0
 $LN5@ImGui_Impl:
 
-; 485  :   }
-; 486  : 
-; 487  :   g_FontTexture = NULL;
-; 488  : 
-; 489  : 
-; 490  :   if ( pparams != nullptr )
+; 506  :   }
+; 507  : 
+; 508  :   g_FontTexture = NULL;
+; 509  : 
+; 510  : 
+; 511  :   if ( pparams != nullptr )
 
 	mov	ecx, DWORD PTR _pparams$[ebp]
 	mov	DWORD PTR ?g_FontTexture@@3PAUIDirect3DTexture9@@A, 0
 	test	ecx, ecx
 	je	SHORT $LN12@ImGui_Impl
 
-; 491  :   {
-; 492  :     float width = static_cast <float> (pparams->BackBufferWidth),
+; 512  :   {
+; 513  :     float width = static_cast <float> (pparams->BackBufferWidth),
 
 	mov	eax, DWORD PTR [ecx]
 	movd	xmm0, eax
@@ -4448,7 +4557,7 @@ $LN5@ImGui_Impl:
 	shr	eax, 31					; 0000001fH
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 
-; 493  :          height = static_cast <float> (pparams->BackBufferHeight);
+; 514  :          height = static_cast <float> (pparams->BackBufferHeight);
 
 	mov	eax, DWORD PTR [ecx+4]
 	cvtpd2ps xmm1, xmm0
@@ -4462,11 +4571,11 @@ $LN5@ImGui_Impl:
 	movss	DWORD PTR $T2[ebp], xmm1
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 493  :          height = static_cast <float> (pparams->BackBufferHeight);
+; 514  :          height = static_cast <float> (pparams->BackBufferHeight);
 
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 
-; 495  :     io.DisplayFramebufferScale = ImVec2 ( width, height );
+; 516  :     io.DisplayFramebufferScale = ImVec2 ( width, height );
 
 	mov	eax, DWORD PTR $T2[ebp]
 	mov	DWORD PTR [esi+144], eax
@@ -4477,7 +4586,7 @@ $LN5@ImGui_Impl:
 	movss	DWORD PTR $T1[ebp], xmm1
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 493  :          height = static_cast <float> (pparams->BackBufferHeight);
+; 514  :          height = static_cast <float> (pparams->BackBufferHeight);
 
 	cvtpd2ps xmm0, xmm0
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -4487,12 +4596,12 @@ $LN5@ImGui_Impl:
 	movss	DWORD PTR $T2[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 495  :     io.DisplayFramebufferScale = ImVec2 ( width, height );
+; 516  :     io.DisplayFramebufferScale = ImVec2 ( width, height );
 
 	mov	eax, DWORD PTR $T2[ebp+4]
 	mov	DWORD PTR [esi+148], eax
 
-; 496  :     io.DisplaySize             = ImVec2 ( width, height );
+; 517  :     io.DisplaySize             = ImVec2 ( width, height );
 
 	mov	eax, DWORD PTR $T1[ebp]
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -4502,7 +4611,7 @@ $LN5@ImGui_Impl:
 	movss	DWORD PTR $T1[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 496  :     io.DisplaySize             = ImVec2 ( width, height );
+; 517  :     io.DisplaySize             = ImVec2 ( width, height );
 
 	mov	DWORD PTR [esi], eax
 	mov	eax, DWORD PTR $T1[ebp+4]
@@ -4511,8 +4620,8 @@ $LN12@ImGui_Impl:
 	pop	esi
 $LN6@ImGui_Impl:
 
-; 497  :   }
-; 498  : }
+; 518  :   }
+; 519  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -4546,7 +4655,7 @@ _pSwapChain$ = -16					; size = 4
 __$EHRec$ = -12						; size = 12
 ?ImGui_ImplDX9_NewFrame@@YAXXZ PROC			; ImGui_ImplDX9_NewFrame
 
-; 510  : {
+; 531  : {
 
 	npad	2
 	push	ebp
@@ -4559,24 +4668,24 @@ __$EHRec$ = -12						; size = 12
 	sub	esp, 92					; 0000005cH
 	push	esi
 
-; 511  :   ImGuiIO& io (ImGui::GetIO ());
+; 532  :   ImGuiIO& io (ImGui::GetIO ());
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 
-; 512  : 
-; 513  :   if (! g_FontTexture)
+; 533  : 
+; 534  :   if (! g_FontTexture)
 
 	cmp	DWORD PTR ?g_FontTexture@@3PAUIDirect3DTexture9@@A, 0
 	mov	esi, eax
 	jne	SHORT $LN3@ImGui_Impl
 
-; 514  :     ImGui_ImplDX9_CreateDeviceObjects ();
+; 535  :     ImGui_ImplDX9_CreateDeviceObjects ();
 
 	call	?ImGui_ImplDX9_CreateDeviceObjects@@YA_NXZ ; ImGui_ImplDX9_CreateDeviceObjects
 $LN3@ImGui_Impl:
 
-; 515  : 
-; 516  :   static HMODULE hModTBFix =
+; 536  : 
+; 537  :   static HMODULE hModTBFix =
 
 	mov	edx, DWORD PTR __tls_index
 	mov	ecx, DWORD PTR fs:__tls_array
@@ -4590,9 +4699,9 @@ $LN3@ImGui_Impl:
 	cmp	DWORD PTR ?$TSS0@?1??ImGui_ImplDX9_NewFrame@@YAXXZ@4HA, -1
 	jne	SHORT $LN2@ImGui_Impl
 
-; 517  :     GetModuleHandle (L"tbfix.dll");
+; 538  :     GetModuleHandle (L"tbfix.dll");
 
-	push	OFFSET $SG172895
+	push	OFFSET $SG174822
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	OFFSET ?$TSS0@?1??ImGui_ImplDX9_NewFrame@@YAXXZ@4HA
 	mov	DWORD PTR ?hModTBFix@?1??ImGui_ImplDX9_NewFrame@@YAXXZ@4PAUHINSTANCE__@@A, eax
@@ -4600,18 +4709,18 @@ $LN3@ImGui_Impl:
 	add	esp, 4
 $LN2@ImGui_Impl:
 
-; 518  : 
-; 519  : 
-; 520  :   // Setup display size (every frame to accommodate for window resizing)
-; 521  :   RECT rect;
-; 522  :   GetClientRect (g_hWnd, &rect);
+; 539  : 
+; 540  : 
+; 541  :   // Setup display size (every frame to accommodate for window resizing)
+; 542  :   RECT rect;
+; 543  :   GetClientRect (g_hWnd, &rect);
 
 	lea	eax, DWORD PTR _rect$[ebp]
 	push	eax
 	push	DWORD PTR ?g_hWnd@@3PAUHWND__@@A
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 524  :   io.DisplayFramebufferScale =
+; 545  :   io.DisplayFramebufferScale =
 
 	mov	eax, DWORD PTR _rect$[ebp+8]
 	sub	eax, DWORD PTR _rect$[ebp]
@@ -4628,7 +4737,7 @@ $LN2@ImGui_Impl:
 	movss	DWORD PTR $T4[ebp], xmm1
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 524  :   io.DisplayFramebufferScale =
+; 545  :   io.DisplayFramebufferScale =
 
 	mov	eax, DWORD PTR $T4[ebp]
 	mov	DWORD PTR [esi+144], eax
@@ -4639,16 +4748,16 @@ $LN2@ImGui_Impl:
 	movss	DWORD PTR $T4[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 524  :   io.DisplayFramebufferScale =
+; 545  :   io.DisplayFramebufferScale =
 
 	mov	eax, DWORD PTR $T4[ebp+4]
 	mov	DWORD PTR [esi+148], eax
 
-; 525  :     ImVec2 ( static_cast <float> (rect.right  - rect.left),
-; 526  :              static_cast <float> (rect.bottom - rect.top ) );
-; 527  : 
-; 528  : 
-; 529  :   if (! g_pd3dDevice)
+; 546  :     ImVec2 ( static_cast <float> (rect.right  - rect.left),
+; 547  :              static_cast <float> (rect.bottom - rect.top ) );
+; 548  : 
+; 549  : 
+; 550  :   if (! g_pd3dDevice)
 
 	mov	ecx, DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A ; g_pd3dDevice
 	test	ecx, ecx
@@ -4660,7 +4769,7 @@ $LN2@ImGui_Impl:
 	mov	DWORD PTR _pSwapChain$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 535  :   if (SUCCEEDED (g_pd3dDevice->GetSwapChain ( 0, &pSwapChain )))
+; 556  :   if (SUCCEEDED (g_pd3dDevice->GetSwapChain ( 0, &pSwapChain )))
 
 	mov	eax, DWORD PTR [ecx]
 	lea	edx, DWORD PTR _pSwapChain$[ebp]
@@ -4672,8 +4781,8 @@ $LN2@ImGui_Impl:
 	test	eax, eax
 	js	$LN7@ImGui_Impl
 
-; 536  :   {
-; 537  :     D3DPRESENT_PARAMETERS pp = { };
+; 557  :   {
+; 558  :     D3DPRESENT_PARAMETERS pp = { };
 
 	push	56					; 00000038H
 	lea	eax, DWORD PTR _pp$2[ebp]
@@ -4681,8 +4790,8 @@ $LN2@ImGui_Impl:
 	push	eax
 	call	_memset
 
-; 538  : 
-; 539  :     if (SUCCEEDED (pSwapChain->GetPresentParameters (&pp)))
+; 559  : 
+; 560  :     if (SUCCEEDED (pSwapChain->GetPresentParameters (&pp)))
 
 	mov	eax, DWORD PTR _pSwapChain$[ebp]
 	lea	edx, DWORD PTR _pp$2[ebp]
@@ -4694,8 +4803,8 @@ $LN2@ImGui_Impl:
 	test	eax, eax
 	js	SHORT $LN7@ImGui_Impl
 
-; 540  :     {
-; 541  :       if (pp.BackBufferWidth != 0 && pp.BackBufferHeight != 0)
+; 561  :     {
+; 562  :       if (pp.BackBufferWidth != 0 && pp.BackBufferHeight != 0)
 
 	mov	eax, DWORD PTR _pp$2[ebp]
 	test	eax, eax
@@ -4704,8 +4813,8 @@ $LN2@ImGui_Impl:
 	test	ecx, ecx
 	je	SHORT $LN7@ImGui_Impl
 
-; 542  :       {
-; 543  :         io.DisplaySize.x = static_cast <float> (pp.BackBufferWidth);
+; 563  :       {
+; 564  :         io.DisplaySize.x = static_cast <float> (pp.BackBufferWidth);
 
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
@@ -4714,7 +4823,7 @@ $LN2@ImGui_Impl:
 	cvtpd2ps xmm1, xmm0
 	movd	xmm0, ecx
 
-; 544  :         io.DisplaySize.y = static_cast <float> (pp.BackBufferHeight);
+; 565  :         io.DisplaySize.y = static_cast <float> (pp.BackBufferHeight);
 
 	cvtdq2pd xmm0, xmm0
 	shr	ecx, 31					; 0000001fH
@@ -4725,11 +4834,11 @@ $LN2@ImGui_Impl:
 	movss	DWORD PTR $T3[ebp], xmm1
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 544  :         io.DisplaySize.y = static_cast <float> (pp.BackBufferHeight);
+; 565  :         io.DisplaySize.y = static_cast <float> (pp.BackBufferHeight);
 
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[ecx*8]
 
-; 546  :         io.DisplayFramebufferScale = 
+; 567  :         io.DisplayFramebufferScale = 
 
 	mov	eax, DWORD PTR $T3[ebp]
 	mov	DWORD PTR [esi+144], eax
@@ -4742,32 +4851,32 @@ $LN2@ImGui_Impl:
 	movss	DWORD PTR $T3[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 546  :         io.DisplayFramebufferScale = 
+; 567  :         io.DisplayFramebufferScale = 
 
 	mov	eax, DWORD PTR $T3[ebp+4]
 	movss	DWORD PTR [esi+4], xmm0
 	mov	DWORD PTR [esi+148], eax
 $LN7@ImGui_Impl:
 
-; 547  :           ImVec2 ( static_cast <float> (pp.BackBufferWidth),
-; 548  :                    static_cast <float> (pp.BackBufferHeight) );
-; 549  :       }
-; 550  :     }
-; 551  :   }
-; 552  : 
-; 553  :   // Setup time step
-; 554  :   INT64 current_time;
-; 555  : 
-; 556  :   QueryPerformanceCounter_Original (
+; 568  :           ImVec2 ( static_cast <float> (pp.BackBufferWidth),
+; 569  :                    static_cast <float> (pp.BackBufferHeight) );
+; 570  :       }
+; 571  :     }
+; 572  :   }
+; 573  : 
+; 574  :   // Setup time step
+; 575  :   INT64 current_time;
+; 576  : 
+; 577  :   QueryPerformanceCounter_Original (
 
 	lea	eax, DWORD PTR _current_time$[ebp]
 	push	eax
 	call	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA ; QueryPerformanceCounter_Original
 
-; 557  :     reinterpret_cast <LARGE_INTEGER *> (&current_time)
-; 558  :   );
-; 559  : 
-; 560  :   io.DeltaTime = static_cast <float> (current_time - g_Time) /
+; 578  :     reinterpret_cast <LARGE_INTEGER *> (&current_time)
+; 579  :   );
+; 580  : 
+; 581  :   io.DeltaTime = static_cast <float> (current_time - g_Time) /
 
 	mov	ecx, DWORD PTR _current_time$[ebp]
 	sub	ecx, DWORD PTR ?g_Time@@3_JA
@@ -4784,58 +4893,58 @@ $LN7@ImGui_Impl:
 	divss	xmm1, xmm0
 	movss	DWORD PTR [esi+8], xmm1
 
-; 561  :                  static_cast <float> (g_TicksPerSecond);
-; 562  :   g_Time       =                      current_time;
+; 582  :                  static_cast <float> (g_TicksPerSecond);
+; 583  :   g_Time       =                      current_time;
 
 	mov	eax, DWORD PTR _current_time$[ebp]
 	mov	DWORD PTR ?g_Time@@3_JA, eax
 	mov	eax, DWORD PTR _current_time$[ebp+4]
 	mov	DWORD PTR ?g_Time@@3_JA+4, eax
 
-; 563  : 
-; 564  :   // Read keyboard modifiers inputs
-; 565  :   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
+; 584  : 
+; 585  :   // Read keyboard modifiers inputs
+; 586  :   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
 
 	cmp	BYTE PTR [esi+246], 0
 	setne	al
 	mov	BYTE PTR [esi+225], al
 
-; 566  :   io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
+; 587  :   io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
 
 	cmp	BYTE PTR [esi+245], 0
 	setne	al
 	mov	BYTE PTR [esi+226], al
 
-; 567  :   io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
+; 588  :   io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
 
 	cmp	BYTE PTR [esi+247], 0
 
-; 568  : 
-; 569  :   io.KeySuper  = false;
+; 589  : 
+; 590  :   io.KeySuper  = false;
 
 	mov	BYTE PTR [esi+228], 0
 	setne	al
 	mov	BYTE PTR [esi+227], al
 
-; 570  : 
-; 571  :   SK_ImGui_PollGamepad ();
+; 591  : 
+; 592  :   SK_ImGui_PollGamepad ();
 
 	call	?SK_ImGui_PollGamepad@@YAXXZ		; SK_ImGui_PollGamepad
 
-; 572  : 
-; 573  : 
-; 574  :   // For games that hijack the mouse cursor using Direct Input 8.
-; 575  :   //
-; 576  :   //  -- Acquire actually means release their exclusive ownership : )
-; 577  :   //
-; 578  :   //if (SK_ImGui_WantMouseCapture ())
-; 579  :   //  SK_Input_DI8Mouse_Acquire ();
-; 580  :   //else
-; 581  :   //  SK_Input_DI8Mouse_Release ();
-; 582  : 
-; 583  : 
-; 584  :   // Start the frame
-; 585  :   ImGui::NewFrame ();
+; 593  : 
+; 594  : 
+; 595  :   // For games that hijack the mouse cursor using Direct Input 8.
+; 596  :   //
+; 597  :   //  -- Acquire actually means release their exclusive ownership : )
+; 598  :   //
+; 599  :   //if (SK_ImGui_WantMouseCapture ())
+; 600  :   //  SK_Input_DI8Mouse_Acquire ();
+; 601  :   //else
+; 602  :   //  SK_Input_DI8Mouse_Release ();
+; 603  : 
+; 604  : 
+; 605  :   // Start the frame
+; 606  :   ImGui::NewFrame ();
 
 	call	?NewFrame@ImGui@@YAXXZ			; ImGui::NewFrame
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -4845,7 +4954,7 @@ $LN7@ImGui_Impl:
 	mov	eax, DWORD PTR _pSwapChain$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 586  : }
+; 607  : }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -4863,7 +4972,7 @@ $LN7@ImGui_Impl:
 $LN27@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 586  : }
+; 607  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	esi
@@ -4886,26 +4995,26 @@ text$x	ENDS
 _TEXT	SEGMENT
 ?ImGui_ImplDX9_Shutdown@@YAXXZ PROC			; ImGui_ImplDX9_Shutdown
 
-; 372  :   ImGui_ImplDX9_InvalidateDeviceObjects ( nullptr );
+; 393  :   ImGui_ImplDX9_InvalidateDeviceObjects ( nullptr );
 
 	push	0
 	call	?ImGui_ImplDX9_InvalidateDeviceObjects@@YAXPAU_D3DPRESENT_PARAMETERS_@@@Z ; ImGui_ImplDX9_InvalidateDeviceObjects
 	add	esp, 4
 
-; 373  :   ImGui::Shutdown                       (         );
+; 394  :   ImGui::Shutdown                       (         );
 
 	call	?Shutdown@ImGui@@YAXXZ			; ImGui::Shutdown
 
-; 374  : 
-; 375  :   g_pd3dDevice = nullptr;
+; 395  : 
+; 396  :   g_pd3dDevice = nullptr;
 
 	mov	DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A, 0 ; g_pd3dDevice
 
-; 376  :   g_hWnd       = 0;
+; 397  :   g_hWnd       = 0;
 
 	mov	DWORD PTR ?g_hWnd@@3PAUHWND__@@A, 0
 
-; 377  : }
+; 398  : }
 
 	ret	0
 ?ImGui_ImplDX9_Shutdown@@YAXXZ ENDP			; ImGui_ImplDX9_Shutdown
@@ -4923,25 +5032,25 @@ _device$ = 12						; size = 4
 _pparams$ = 16						; size = 4
 ?ImGui_ImplDX9_Init@@YA_NPAXPAUIDirect3DDevice9@@PAU_D3DPRESENT_PARAMETERS_@@@Z PROC ; ImGui_ImplDX9_Init
 
-; 313  : {
+; 334  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 314  :   g_hWnd       = static_cast <HWND> (hwnd);
+; 335  :   g_hWnd       = static_cast <HWND> (hwnd);
 
 	mov	eax, DWORD PTR _hwnd$[ebp]
 	sub	esp, 8
 	mov	DWORD PTR ?g_hWnd@@3PAUHWND__@@A, eax
 
-; 315  :   g_pd3dDevice = device;
+; 336  :   g_pd3dDevice = device;
 
 	mov	eax, DWORD PTR _device$[ebp]
 	mov	DWORD PTR ?g_pd3dDevice@@3PAUIDirect3DDevice9@@A, eax ; g_pd3dDevice
 
-; 316  : 
-; 317  :   if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
+; 337  : 
+; 338  :   if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
 
 	push	OFFSET ?g_TicksPerSecond@@3_JA
 	call	DWORD PTR __imp__QueryPerformanceFrequency@4
@@ -4949,63 +5058,63 @@ _pparams$ = 16						; size = 4
 	jne	SHORT $LN2@ImGui_Impl
 $LN8@ImGui_Impl:
 
-; 318  :     return false;
+; 339  :     return false;
 
 	xor	al, al
 
-; 366  : }
+; 387  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN2@ImGui_Impl:
 
-; 319  : 
-; 320  :   if (! QueryPerformanceCounter_Original (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
+; 340  : 
+; 341  :   if (! QueryPerformanceCounter_Original (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
 
 	push	OFFSET ?g_Time@@3_JA
 	call	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA ; QueryPerformanceCounter_Original
 	test	eax, eax
 	je	SHORT $LN8@ImGui_Impl
 
-; 321  :     return false;
-; 322  : 
-; 323  :   ImGuiIO& io (ImGui::GetIO ());
+; 342  :     return false;
+; 343  : 
+; 344  :   ImGuiIO& io (ImGui::GetIO ());
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 
-; 324  : 
-; 325  : 
-; 326  :   // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
-; 327  :   io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
-; 328  :   io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
-; 329  :   io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
-; 330  :   io.KeyMap [ImGuiKey_UpArrow]    = VK_UP;
-; 331  :   io.KeyMap [ImGuiKey_DownArrow]  = VK_DOWN;
-; 332  :   io.KeyMap [ImGuiKey_PageUp]     = VK_PRIOR;
-; 333  :   io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
-; 334  :   io.KeyMap [ImGuiKey_Home]       = VK_HOME;
-; 335  :   io.KeyMap [ImGuiKey_End]        = VK_END;
-; 336  :   io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
-; 337  :   io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
-; 338  :   io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
-; 339  :   io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
-; 340  :   io.KeyMap [ImGuiKey_A]          = 'A';
-; 341  :   io.KeyMap [ImGuiKey_C]          = 'C';
-; 342  :   io.KeyMap [ImGuiKey_V]          = 'V';
-; 343  :   io.KeyMap [ImGuiKey_X]          = 'X';
-; 344  :   io.KeyMap [ImGuiKey_Y]          = 'Y';
-; 345  :   io.KeyMap [ImGuiKey_Z]          = 'Z';
+; 345  : 
 ; 346  : 
-; 347  :   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
-; 348  :   io.RenderDrawListsFn = ImGui_ImplDX9_RenderDrawLists;
-; 349  :   io.ImeWindowHandle   = g_hWnd;
-; 350  : 
-; 351  : 
-; 352  :   float width  = 0.0f,
-; 353  :         height = 0.0f;
-; 354  : 
-; 355  :   if ( pparams != nullptr )
+; 347  :   // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
+; 348  :   io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
+; 349  :   io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
+; 350  :   io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
+; 351  :   io.KeyMap [ImGuiKey_UpArrow]    = VK_UP;
+; 352  :   io.KeyMap [ImGuiKey_DownArrow]  = VK_DOWN;
+; 353  :   io.KeyMap [ImGuiKey_PageUp]     = VK_PRIOR;
+; 354  :   io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
+; 355  :   io.KeyMap [ImGuiKey_Home]       = VK_HOME;
+; 356  :   io.KeyMap [ImGuiKey_End]        = VK_END;
+; 357  :   io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
+; 358  :   io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
+; 359  :   io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
+; 360  :   io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
+; 361  :   io.KeyMap [ImGuiKey_A]          = 'A';
+; 362  :   io.KeyMap [ImGuiKey_C]          = 'C';
+; 363  :   io.KeyMap [ImGuiKey_V]          = 'V';
+; 364  :   io.KeyMap [ImGuiKey_X]          = 'X';
+; 365  :   io.KeyMap [ImGuiKey_Y]          = 'Y';
+; 366  :   io.KeyMap [ImGuiKey_Z]          = 'Z';
+; 367  : 
+; 368  :   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
+; 369  :   io.RenderDrawListsFn = ImGui_ImplDX9_RenderDrawLists;
+; 370  :   io.ImeWindowHandle   = g_hWnd;
+; 371  : 
+; 372  : 
+; 373  :   float width  = 0.0f,
+; 374  :         height = 0.0f;
+; 375  : 
+; 376  :   if ( pparams != nullptr )
 
 	mov	edx, DWORD PTR _pparams$[ebp]
 	mov	ecx, eax
@@ -5036,8 +5145,8 @@ $LN2@ImGui_Impl:
 	test	edx, edx
 	je	SHORT $LN4@ImGui_Impl
 
-; 356  :   {
-; 357  :     width  = static_cast <float> (pparams->BackBufferWidth);
+; 377  :   {
+; 378  :     width  = static_cast <float> (pparams->BackBufferWidth);
 
 	mov	eax, DWORD PTR [edx]
 	movd	xmm0, eax
@@ -5045,7 +5154,7 @@ $LN2@ImGui_Impl:
 	shr	eax, 31					; 0000001fH
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 
-; 358  :     height = static_cast <float> (pparams->BackBufferHeight);
+; 379  :     height = static_cast <float> (pparams->BackBufferHeight);
 
 	mov	eax, DWORD PTR [edx+4]
 	cvtpd2ps xmm1, xmm0
@@ -5062,7 +5171,7 @@ $LN4@ImGui_Impl:
 	movss	DWORD PTR $T1[ebp], xmm1
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 361  :   io.DisplayFramebufferScale = ImVec2 ( width, height );
+; 382  :   io.DisplayFramebufferScale = ImVec2 ( width, height );
 
 	mov	eax, DWORD PTR $T1[ebp]
 	mov	DWORD PTR [ecx+144], eax
@@ -5073,19 +5182,19 @@ $LN4@ImGui_Impl:
 	movss	DWORD PTR $T1[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d9.cpp
 
-; 361  :   io.DisplayFramebufferScale = ImVec2 ( width, height );
+; 382  :   io.DisplayFramebufferScale = ImVec2 ( width, height );
 
 	mov	eax, DWORD PTR $T1[ebp+4]
 	mov	DWORD PTR [ecx+148], eax
 
-; 362  :   //io.DisplaySize             = ImVec2 ( width, height );
-; 363  : 
-; 364  : 
-; 365  :   return true;
+; 383  :   //io.DisplaySize             = ImVec2 ( width, height );
+; 384  : 
+; 385  : 
+; 386  :   return true;
 
 	mov	al, 1
 
-; 366  : }
+; 387  : }
 
 	mov	esp, ebp
 	pop	ebp

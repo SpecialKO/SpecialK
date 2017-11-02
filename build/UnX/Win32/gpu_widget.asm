@@ -2863,14 +2863,14 @@ _TEXT	SEGMENT
 ?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ PROC	; SK_Stat_DataHistory<float,96>::calcStats, COMDAT
 ; _this$ = ecx
 
-; 403  :   {
+; 398  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 	push	edi
 
-; 404  :     if (cached_stats.last_calc != updates)
+; 399  :     if (cached_stats.last_calc != updates)
 
 	mov	edi, DWORD PTR [esi]
 	cmp	DWORD PTR [esi+408], edi
@@ -2882,7 +2882,7 @@ _TEXT	SEGMENT
 	movss	xmm3, DWORD PTR __real@7f7fffff
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 412  :       for (auto& val : values)
+; 407  :       for (auto& val : values)
 
 	lea	eax, DWORD PTR [esi+4]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\limits
@@ -2897,7 +2897,7 @@ _TEXT	SEGMENT
 	lea	ecx, DWORD PTR [eax+384]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 406  :       int sample =  0;
+; 401  :       int sample =  0;
 
 	xor	edx, edx
 	xorps	xmm2, xmm2
@@ -2908,21 +2908,21 @@ _TEXT	SEGMENT
 	cmp	eax, ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 412  :       for (auto& val : values)
+; 407  :       for (auto& val : values)
 
 	je	SHORT $LN57@calcStats
 $LL4@calcStats:
 
-; 413  :       {
-; 414  :         if (++sample > updates)
+; 408  :       {
+; 409  :         if (++sample > updates)
 
 	inc	edx
 	cmp	edx, edi
 	jg	SHORT $LN57@calcStats
 
-; 415  :           break;
-; 416  : 
-; 417  :         sum += val;
+; 410  :           break;
+; 411  : 
+; 412  :         sum += val;
 
 	movss	xmm1, DWORD PTR [eax]
 	movaps	xmm0, xmm1
@@ -2959,25 +2959,25 @@ $LN62@calcStats:
 	cmp	eax, ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 412  :       for (auto& val : values)
+; 407  :       for (auto& val : values)
 
 	jne	SHORT $LL4@calcStats
 $LN57@calcStats:
 	movd	xmm0, edx
 
-; 418  : 
-; 419  :         max = std::max (val, max);
-; 420  :         min = std::min (val, min);
-; 421  :       }
-; 422  : 
-; 423  :       cached_stats.avg = sum / sample;
+; 413  : 
+; 414  :         max = std::max (val, max);
+; 415  :         min = std::min (val, min);
+; 416  :       }
+; 417  : 
+; 418  :       cached_stats.avg = sum / sample;
 
 	cvtdq2ps xmm0, xmm0
 
-; 424  :       cached_stats.min = min;
-; 425  :       cached_stats.max = max;
-; 426  : 
-; 427  :       cached_stats.last_calc = updates;
+; 419  :       cached_stats.min = min;
+; 420  :       cached_stats.max = max;
+; 421  : 
+; 422  :       cached_stats.last_calc = updates;
 
 	mov	DWORD PTR [esi+408], edi
 	movss	DWORD PTR [esi+396], xmm3
@@ -2986,8 +2986,8 @@ $LN57@calcStats:
 	movss	DWORD PTR [esi+404], xmm2
 $LN5@calcStats:
 
-; 428  :     }
-; 429  :   }
+; 423  :     }
+; 424  :   }
 
 	pop	edi
 	pop	esi
@@ -3001,7 +3001,7 @@ _TEXT	SEGMENT
 ?getValues@?$SK_Stat_DataHistory@M$0GA@@@QAEAAV?$array@M$0GA@@std@@XZ PROC ; SK_Stat_DataHistory<float,96>::getValues, COMDAT
 ; _this$ = ecx
 
-; 393  :   std::array <_T, max_samples>& getValues (void) { return values;        };
+; 388  :   std::array <_T, max_samples>& getValues (void) { return values;        };
 
 	lea	eax, DWORD PTR [ecx+4]
 	ret	0
@@ -3014,7 +3014,7 @@ _TEXT	SEGMENT
 ?getOffset@?$SK_Stat_DataHistory@M$0GA@@@QAEHXZ PROC	; SK_Stat_DataHistory<float,96>::getOffset, COMDAT
 ; _this$ = ecx
 
-; 392  :   int                           getOffset (void) { return values_offset; };
+; 387  :   int                           getOffset (void) { return values_offset; };
 
 	mov	eax, DWORD PTR [ecx+388]
 	ret	0
@@ -3027,23 +3027,23 @@ _TEXT	SEGMENT
 ?getAvg@?$SK_Stat_DataHistory@M$0GA@@@QAEMXZ PROC	; SK_Stat_DataHistory<float,96>::getAvg, COMDAT
 ; _this$ = ecx
 
-; 384  :   {
+; 379  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 386  : 
-; 387  :     return cached_stats.avg;
+; 381  : 
+; 382  :     return cached_stats.avg;
 
 	fld	DWORD PTR [esi+404]
 	pop	esi
 
-; 388  :   }
+; 383  :   }
 
 	ret	0
 ?getAvg@?$SK_Stat_DataHistory@M$0GA@@@QAEMXZ ENDP	; SK_Stat_DataHistory<float,96>::getAvg
@@ -3055,23 +3055,23 @@ _TEXT	SEGMENT
 ?getMax@?$SK_Stat_DataHistory@M$0GA@@@QAEMXZ PROC	; SK_Stat_DataHistory<float,96>::getMax, COMDAT
 ; _this$ = ecx
 
-; 377  :   {
+; 372  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 379  : 
-; 380  :     return cached_stats.max;
+; 374  : 
+; 375  :     return cached_stats.max;
 
 	fld	DWORD PTR [esi+400]
 	pop	esi
 
-; 381  :   }
+; 376  :   }
 
 	ret	0
 ?getMax@?$SK_Stat_DataHistory@M$0GA@@@QAEMXZ ENDP	; SK_Stat_DataHistory<float,96>::getMax
@@ -3083,23 +3083,23 @@ _TEXT	SEGMENT
 ?getMin@?$SK_Stat_DataHistory@M$0GA@@@QAEMXZ PROC	; SK_Stat_DataHistory<float,96>::getMin, COMDAT
 ; _this$ = ecx
 
-; 370  :   {
+; 365  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 372  : 
-; 373  :     return cached_stats.min;
+; 367  : 
+; 368  :     return cached_stats.min;
 
 	fld	DWORD PTR [esi+396]
 	pop	esi
 
-; 374  :   }
+; 369  :   }
 
 	ret	0
 ?getMin@?$SK_Stat_DataHistory@M$0GA@@@QAEMXZ ENDP	; SK_Stat_DataHistory<float,96>::getMin
@@ -3113,13 +3113,13 @@ _only_if_different$ = 12				; size = 1
 ?addValue@?$SK_Stat_DataHistory@M$0GA@@@QAEXM_N@Z PROC	; SK_Stat_DataHistory<float,96>::addValue, COMDAT
 ; _this$ = ecx
 
-; 348  :   {
+; 343  :   {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 349  :     bool insert = (! only_if_different) || (last_val != val);
+; 344  :     bool insert = (! only_if_different) || (last_val != val);
 
 	cmp	BYTE PTR _only_if_different$[ebp], 0
 	movss	xmm1, DWORD PTR _val$[ebp]
@@ -3131,25 +3131,25 @@ _only_if_different$ = 12				; size = 1
 	jnp	SHORT $LN2@addValue
 $LN4@addValue:
 
-; 350  : 
-; 351  :     if (insert)
-; 352  :     {
-; 353  :       values [values_offset] = val;
+; 345  : 
+; 346  :     if (insert)
+; 347  :     {
+; 348  :       values [values_offset] = val;
 
 	mov	eax, DWORD PTR [ecx+388]
 	push	esi
 
-; 354  :               values_offset  = (values_offset + 1) % getCapacity ();
+; 349  :               values_offset  = (values_offset + 1) % getCapacity ();
 
 	mov	esi, 96					; 00000060H
 	movss	DWORD PTR [ecx+eax*4+4], xmm1
 	mov	eax, DWORD PTR [ecx+388]
 	inc	eax
 
-; 355  : 
-; 356  :       ++updates;
-; 357  : 
-; 358  :       last_val = val;
+; 350  : 
+; 351  :       ++updates;
+; 352  : 
+; 353  :       last_val = val;
 
 	movss	DWORD PTR [ecx+392], xmm1
 	cdq
@@ -3159,8 +3159,8 @@ $LN4@addValue:
 	pop	esi
 $LN2@addValue:
 
-; 359  :     }
-; 360  :   }
+; 354  :     }
+; 355  :   }
 
 	pop	ebp
 	ret	8
@@ -3173,11 +3173,11 @@ _TEXT	SEGMENT
 ?getUpdates@?$SK_Stat_DataHistory@M$0GA@@@QAEHXZ PROC	; SK_Stat_DataHistory<float,96>::getUpdates, COMDAT
 ; _this$ = ecx
 
-; 334  :     return updates;
+; 329  :     return updates;
 
 	mov	eax, DWORD PTR [ecx]
 
-; 335  :   }
+; 330  :   }
 
 	ret	0
 ?getUpdates@?$SK_Stat_DataHistory@M$0GA@@@QAEHXZ ENDP	; SK_Stat_DataHistory<float,96>::getUpdates
@@ -3189,11 +3189,11 @@ _TEXT	SEGMENT
 ?getCapacity@?$SK_Stat_DataHistory@M$0GA@@@QAEHXZ PROC	; SK_Stat_DataHistory<float,96>::getCapacity, COMDAT
 ; _this$ = ecx
 
-; 329  :     return max_samples;
+; 324  :     return max_samples;
 
 	mov	eax, 96					; 00000060H
 
-; 330  :   };
+; 325  :   };
 
 	ret	0
 ?getCapacity@?$SK_Stat_DataHistory@M$0GA@@@QAEHXZ ENDP	; SK_Stat_DataHistory<float,96>::getCapacity
@@ -3398,42 +3398,42 @@ _b$36 = -4						; size = 4
 	lea	esi, DWORD PTR [edi+1088]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	mov	ecx, esi
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 386  : 
-; 387  :     return cached_stats.avg;
+; 381  : 
+; 382  :     return cached_stats.avg;
 
 	movss	xmm0, DWORD PTR [esi+404]
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	mov	ecx, esi
 
-; 387  :     return cached_stats.avg;
+; 382  :     return cached_stats.avg;
 
 	movss	DWORD PTR $T15[ebp], xmm0
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 379  : 
-; 380  :     return cached_stats.max;
+; 374  : 
+; 375  :     return cached_stats.max;
 
 	movss	xmm0, DWORD PTR [esi+400]
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	mov	ecx, esi
 
-; 380  :     return cached_stats.max;
+; 375  :     return cached_stats.max;
 
 	movss	DWORD PTR $T9[ebp], xmm0
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 	movss	xmm0, DWORD PTR $T15[ebp]
@@ -3464,7 +3464,7 @@ _b$36 = -4						; size = 4
 	cvtdq2ps xmm0, xmm0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -3474,7 +3474,7 @@ _b$36 = -4						; size = 4
 	movss	DWORD PTR $T24[ebp], xmm0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -3631,42 +3631,42 @@ _b$36 = -4						; size = 4
 	lea	esi, DWORD PTR [edi+1500]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	mov	ecx, esi
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 386  : 
-; 387  :     return cached_stats.avg;
+; 381  : 
+; 382  :     return cached_stats.avg;
 
 	movss	xmm0, DWORD PTR [esi+404]
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	mov	ecx, esi
 
-; 387  :     return cached_stats.avg;
+; 382  :     return cached_stats.avg;
 
 	movss	DWORD PTR $T23[ebp], xmm0
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 379  : 
-; 380  :     return cached_stats.max;
+; 374  : 
+; 375  :     return cached_stats.max;
 
 	movss	xmm0, DWORD PTR [esi+400]
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	mov	ecx, esi
 
-; 380  :     return cached_stats.max;
+; 375  :     return cached_stats.max;
 
 	movss	DWORD PTR $T32[ebp], xmm0
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 	movss	xmm0, DWORD PTR $T23[ebp]
@@ -3697,7 +3697,7 @@ _b$36 = -4						; size = 4
 	cvtdq2ps xmm0, xmm0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -3707,7 +3707,7 @@ _b$36 = -4						; size = 4
 	movss	DWORD PTR $T14[ebp], xmm0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -3896,42 +3896,42 @@ _b$36 = -4						; size = 4
 	lea	esi, DWORD PTR [edi+264]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	mov	ecx, esi
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 386  : 
-; 387  :     return cached_stats.avg;
+; 381  : 
+; 382  :     return cached_stats.avg;
 
 	movss	xmm0, DWORD PTR [esi+404]
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	mov	ecx, esi
 
-; 387  :     return cached_stats.avg;
+; 382  :     return cached_stats.avg;
 
 	movss	DWORD PTR $T22[ebp], xmm0
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 379  : 
-; 380  :     return cached_stats.max;
+; 374  : 
+; 375  :     return cached_stats.max;
 
 	movss	xmm0, DWORD PTR [esi+400]
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	mov	ecx, esi
 
-; 380  :     return cached_stats.max;
+; 375  :     return cached_stats.max;
 
 	movss	DWORD PTR $T31[ebp], xmm0
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 	movss	xmm0, DWORD PTR $T22[ebp]
@@ -3980,7 +3980,7 @@ _b$36 = -4						; size = 4
 	movss	xmm0, DWORD PTR _font_size$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -3991,24 +3991,24 @@ _b$36 = -4						; size = 4
 	movss	DWORD PTR $T6[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 379  : 
-; 380  :     return cached_stats.max;
+; 374  : 
+; 375  :     return cached_stats.max;
 
 	movss	xmm0, DWORD PTR [esi+400]
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	mov	ecx, esi
 
-; 380  :     return cached_stats.max;
+; 375  :     return cached_stats.max;
 
 	movss	DWORD PTR $T21[ebp], xmm0
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -4056,42 +4056,42 @@ _b$36 = -4						; size = 4
 	lea	esi, DWORD PTR [edi+676]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	mov	ecx, esi
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 386  : 
-; 387  :     return cached_stats.avg;
+; 381  : 
+; 382  :     return cached_stats.avg;
 
 	movss	xmm0, DWORD PTR [esi+404]
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	mov	ecx, esi
 
-; 387  :     return cached_stats.avg;
+; 382  :     return cached_stats.avg;
 
 	movss	DWORD PTR $T20[ebp], xmm0
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 379  : 
-; 380  :     return cached_stats.max;
+; 374  : 
+; 375  :     return cached_stats.max;
 
 	movss	xmm0, DWORD PTR [esi+400]
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	mov	ecx, esi
 
-; 380  :     return cached_stats.max;
+; 375  :     return cached_stats.max;
 
 	movss	DWORD PTR $T29[ebp], xmm0
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 	movss	xmm0, DWORD PTR $T20[ebp]
@@ -4140,7 +4140,7 @@ _b$36 = -4						; size = 4
 	movss	xmm0, DWORD PTR _font_size$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -4151,17 +4151,17 @@ _b$36 = -4						; size = 4
 	movss	DWORD PTR $T5[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 379  : 
-; 380  :     return cached_stats.max;
+; 374  : 
+; 375  :     return cached_stats.max;
 
 	movss	xmm0, DWORD PTR [esi+400]
 	movss	DWORD PTR $T19[ebp], xmm0
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	mov	ecx, esi
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
@@ -4210,13 +4210,13 @@ _b$36 = -4						; size = 4
 	lea	esi, DWORD PTR [edi+1912]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 378  :     calcStats ();
+; 373  :     calcStats ();
 
 	mov	ecx, esi
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 	movss	xmm0, DWORD PTR ?max_use@?1??draw@SKWG_GPU_Monitor@@UAEXXZ@4MA
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	mov	ecx, esi
 	maxss	xmm0, DWORD PTR [esi+400]
@@ -4227,24 +4227,24 @@ _b$36 = -4						; size = 4
 	movss	DWORD PTR ?max_use@?1??draw@SKWG_GPU_Monitor@@UAEXXZ@4MA, xmm0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 
-; 386  : 
-; 387  :     return cached_stats.avg;
+; 381  : 
+; 382  :     return cached_stats.avg;
 
 	movss	xmm0, DWORD PTR [esi+404]
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	mov	ecx, esi
 
-; 387  :     return cached_stats.avg;
+; 382  :     return cached_stats.avg;
 
 	movss	DWORD PTR $T18[ebp], xmm0
 
-; 371  :     calcStats ();
+; 366  :     calcStats ();
 
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
 	movss	xmm0, DWORD PTR $T18[ebp]
@@ -4314,7 +4314,7 @@ _b$36 = -4						; size = 4
 $LN2@draw:
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 385  :     calcStats ();
+; 380  :     calcStats ();
 
 	mov	ecx, esi
 	call	?calcStats@?$SK_Stat_DataHistory@M$0GA@@@IAEXXZ ; SK_Stat_DataHistory<float,96>::calcStats
@@ -4550,7 +4550,7 @@ _val$ = -4						; size = 4
 	call	?SK_GPU_GetClockRateInkHz@@YGIH@Z	; SK_GPU_GetClockRateInkHz
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 354  :               values_offset  = (values_offset + 1) % getCapacity ();
+; 349  :               values_offset  = (values_offset + 1) % getCapacity ();
 
 	mov	ebx, 96					; 00000060H
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -4564,7 +4564,7 @@ _val$ = -4						; size = 4
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	mov	eax, DWORD PTR [esi+652]
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -4575,24 +4575,24 @@ _val$ = -4						; size = 4
 	mulss	xmm0, DWORD PTR __real@358637bd
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	movss	DWORD PTR [esi+eax*4+268], xmm0
 
-; 354  :               values_offset  = (values_offset + 1) % getCapacity ();
+; 349  :               values_offset  = (values_offset + 1) % getCapacity ();
 
 	mov	eax, DWORD PTR [esi+652]
 	inc	eax
 
-; 355  : 
-; 356  :       ++updates;
+; 350  : 
+; 351  :       ++updates;
 
 	inc	DWORD PTR [esi+264]
 	cdq
 	idiv	ebx
 
-; 357  : 
-; 358  :       last_val = val;
+; 352  : 
+; 353  :       last_val = val;
 
 	movss	DWORD PTR [esi+656], xmm0
 	mov	DWORD PTR [esi+652], edx
@@ -4611,7 +4611,7 @@ _val$ = -4						; size = 4
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	mov	eax, DWORD PTR [esi+1064]
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -4622,24 +4622,24 @@ _val$ = -4						; size = 4
 	mulss	xmm0, DWORD PTR __real@358637bd
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	movss	DWORD PTR [esi+eax*4+680], xmm0
 
-; 354  :               values_offset  = (values_offset + 1) % getCapacity ();
+; 349  :               values_offset  = (values_offset + 1) % getCapacity ();
 
 	mov	eax, DWORD PTR [esi+1064]
 	inc	eax
 
-; 355  : 
-; 356  :       ++updates;
+; 350  : 
+; 351  :       ++updates;
 
 	inc	DWORD PTR [esi+676]
 	cdq
 	idiv	ebx
 
-; 357  : 
-; 358  :       last_val = val;
+; 352  : 
+; 353  :       last_val = val;
 
 	movss	DWORD PTR [esi+1068], xmm0
 	mov	DWORD PTR [esi+1064], edx
@@ -4650,7 +4650,7 @@ _val$ = -4						; size = 4
 	call	?SK_GPU_GetGPULoad@@YGMH@Z		; SK_GPU_GetGPULoad
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	mov	eax, DWORD PTR [esi+1476]
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -4660,7 +4660,7 @@ _val$ = -4						; size = 4
 	fstp	DWORD PTR _val$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	movss	xmm0, DWORD PTR _val$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -4670,24 +4670,24 @@ _val$ = -4						; size = 4
 	push	0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	movss	DWORD PTR [esi+eax*4+1092], xmm0
 
-; 354  :               values_offset  = (values_offset + 1) % getCapacity ();
+; 349  :               values_offset  = (values_offset + 1) % getCapacity ();
 
 	mov	eax, DWORD PTR [esi+1476]
 	inc	eax
 
-; 355  : 
-; 356  :       ++updates;
+; 350  : 
+; 351  :       ++updates;
 
 	inc	DWORD PTR [esi+1088]
 	cdq
 	idiv	ebx
 
-; 357  : 
-; 358  :       last_val = val;
+; 352  : 
+; 353  :       last_val = val;
 
 	movss	DWORD PTR [esi+1480], xmm0
 	mov	DWORD PTR [esi+1476], edx
@@ -4698,7 +4698,7 @@ _val$ = -4						; size = 4
 	call	?SK_GPU_GetTempInC@@YGMH@Z		; SK_GPU_GetTempInC
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	mov	eax, DWORD PTR [esi+1888]
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -4708,7 +4708,7 @@ _val$ = -4						; size = 4
 	fstp	DWORD PTR _val$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	movss	xmm0, DWORD PTR _val$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -4718,24 +4718,24 @@ _val$ = -4						; size = 4
 	push	0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	movss	DWORD PTR [esi+eax*4+1504], xmm0
 
-; 354  :               values_offset  = (values_offset + 1) % getCapacity ();
+; 349  :               values_offset  = (values_offset + 1) % getCapacity ();
 
 	mov	eax, DWORD PTR [esi+1888]
 	inc	eax
 
-; 355  : 
-; 356  :       ++updates;
+; 350  : 
+; 351  :       ++updates;
 
 	inc	DWORD PTR [esi+1500]
 	cdq
 	idiv	ebx
 
-; 357  : 
-; 358  :       last_val = val;
+; 352  : 
+; 353  :       last_val = val;
 
 	movss	DWORD PTR [esi+1892], xmm0
 	mov	DWORD PTR [esi+1888], edx
@@ -4748,7 +4748,7 @@ _val$ = -4						; size = 4
 	call	__ultod3
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	mov	eax, DWORD PTR [esi+2300]
 ; File c:\users\andon\source\repos\specialk\src\widgets\gpu_widget.cpp
@@ -4759,17 +4759,17 @@ _val$ = -4						; size = 4
 	mulss	xmm0, DWORD PTR __real@35800000
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 353  :       values [values_offset] = val;
+; 348  :       values [values_offset] = val;
 
 	movss	DWORD PTR [esi+eax*4+1916], xmm0
 
-; 354  :               values_offset  = (values_offset + 1) % getCapacity ();
+; 349  :               values_offset  = (values_offset + 1) % getCapacity ();
 
 	mov	eax, DWORD PTR [esi+2300]
 	inc	eax
 
-; 357  : 
-; 358  :       last_val = val;
+; 352  : 
+; 353  :       last_val = val;
 
 	movss	DWORD PTR [esi+2304], xmm0
 	cdq
@@ -5053,15 +5053,15 @@ _this$ = -4						; size = 4
 	mov	DWORD PTR ?SK_ImGui_Widgets@@3USK_ImGui_WidgetRegistry@@A+12, esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 116  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
+; 115  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
 
 	mov	BYTE PTR [esi+187], 1
 
-; 123  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
+; 122  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
 
 	mov	DWORD PTR [esi+224], 32			; 00000020H
 
-; 118  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
+; 117  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
 
 	mov	BYTE PTR [esi+191], 1
 	pop	esi
@@ -8468,7 +8468,7 @@ _szName$ = 8						; size = 4
 ??0SK_Widget@@IAE@PBD@Z PROC				; SK_Widget::SK_Widget, COMDAT
 ; _this$ = ecx
 
-; 156  :   {
+; 155  :   {
 
 	npad	2
 	push	ebp
@@ -8490,11 +8490,11 @@ _szName$ = 8						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 156  :   {
+; 155  :   {
 
 	mov	DWORD PTR _this$[ebp], edi
 
-; 163  :   SK_Keybind toggle_key = {
+; 162  :   SK_Keybind toggle_key = {
 
 	lea	ecx, DWORD PTR [edi+8]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -8505,11 +8505,11 @@ _szName$ = 8						; size = 4
 	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 156  :   {
+; 155  :   {
 
 	mov	DWORD PTR [edi], OFFSET ??_7SK_Widget@@6B@
 
-; 163  :   SK_Keybind toggle_key = {
+; 162  :   SK_Keybind toggle_key = {
 
 	mov	DWORD PTR [edi+4], OFFSET ??_C@_0BG@LCBJFFOH@Widget?5Toggle?5Keybind?$AA@
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -8533,7 +8533,7 @@ _szName$ = 8						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 163  :   SK_Keybind toggle_key = {
+; 162  :   SK_Keybind toggle_key = {
 
 	xor	eax, eax
 	mov	DWORD PTR [edi+32], 0
@@ -8542,7 +8542,7 @@ _szName$ = 8						; size = 4
 	mov	WORD PTR [edi+44], ax
 	mov	DWORD PTR [edi+48], eax
 
-; 167  :   SK_Keybind focus_key = {
+; 166  :   SK_Keybind focus_key = {
 
 	lea	ecx, DWORD PTR [edi+56]
 	mov	DWORD PTR [edi+52], OFFSET ??_C@_0BF@IHOHKLDA@Widget?5Focus?5Keybind?$AA@
@@ -8565,7 +8565,7 @@ _szName$ = 8						; size = 4
 	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 163  :   SK_Keybind toggle_key = {
+; 162  :   SK_Keybind toggle_key = {
 
 	mov	DWORD PTR __$EHRec$[ebp+8], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -8580,7 +8580,7 @@ _szName$ = 8						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 167  :   SK_Keybind focus_key = {
+; 166  :   SK_Keybind focus_key = {
 
 	xor	eax, eax
 	mov	DWORD PTR [edi+80], 0
@@ -8595,7 +8595,7 @@ _szName$ = 8						; size = 4
 	mov	esi, DWORD PTR _szName$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 155  :   SK_Widget (const char* szName) : name (szName)
+; 154  :   SK_Widget (const char* szName) : name (szName)
 
 	lea	ecx, DWORD PTR [edi+156]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -8614,7 +8614,7 @@ _szName$ = 8						; size = 4
 	mov	DWORD PTR [ecx+20], 15			; 0000000fH
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 167  :   SK_Keybind focus_key = {
+; 166  :   SK_Keybind focus_key = {
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -8641,13 +8641,13 @@ $LL123@SK_Widget:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 195  :   float       scale         = 1.0f;
+; 194  :   float       scale         = 1.0f;
 
 	mov	DWORD PTR [edi+180], 1065353216		; 3f800000H
 	lea	esi, DWORD PTR [edi+228]
 
-; 196  : 
-; 197  :   bool        visible       = false;
+; 195  : 
+; 196  :   bool        visible       = false;
 
 	mov	DWORD PTR [edi+184], 16777216		; 01000000H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -8657,7 +8657,7 @@ $LL123@SK_Widget:
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 201  :   bool        movable       = true;
+; 200  :   bool        movable       = true;
 
 	mov	DWORD PTR [edi+188], 257		; 00000101H
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -8674,7 +8674,7 @@ $LL123@SK_Widget:
 	mov	DWORD PTR [edi+220], 0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 211  :   DockAnchor docking        = DockAnchor::None;
+; 210  :   DockAnchor docking        = DockAnchor::None;
 
 	mov	DWORD PTR [edi+224], 0
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
@@ -8694,7 +8694,7 @@ $LL123@SK_Widget:
 	call	?_Buyheadnode@?$_Tree_comp_alloc@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAViParameter@sk@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAViParameter@sk@@@std@@@2@$0A@@std@@@std@@QAEPAU?$_Tree_node@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAViParameter@sk@@@std@@PAX@2@XZ ; std::_Tree_comp_alloc<std::_Tmap_traits<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,sk::iParameter *,std::less<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::allocator<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,sk::iParameter *> >,0> >::_Buyheadnode
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 159  :   }
+; 158  :   }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -8704,28 +8704,28 @@ $LL123@SK_Widget:
 	mov	DWORD PTR [esi], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 159  :   }
+; 158  :   }
 
 	mov	eax, edi
 
-; 212  : 
-; 213  :   // Custom params
-; 214  :   std::map <std::string, sk::iParameter *> parameters;
+; 211  : 
+; 212  :   // Custom params
+; 213  :   std::map <std::string, sk::iParameter *> parameters;
+; 214  : 
 ; 215  : 
-; 216  : 
-; 217  :   int state__;   // 0 = Normal, 1 = Config, SK_WS_USER = First User-Defined State
-; 218  :   int version__;
-; 219  : 
-; 220  : private:
-; 221  :   bool           run_once__ = false;
+; 216  :   int state__;   // 0 = Normal, 1 = Config, SK_WS_USER = First User-Defined State
+; 217  :   int version__;
+; 218  : 
+; 219  : private:
+; 220  :   bool           run_once__ = false;
 
 	mov	BYTE PTR [edi+244], 0
 
-; 222  :   ImGuiWindow*   pWindow__  = nullptr;
+; 221  :   ImGuiWindow*   pWindow__  = nullptr;
 
 	mov	DWORD PTR [edi+248], 0
 
-; 223  :   bool           moved      = false;
+; 222  :   bool           moved      = false;
 
 	mov	BYTE PTR [edi+252], 0
 	mov	DWORD PTR [edi+240], 1
@@ -8735,7 +8735,7 @@ $LL123@SK_Widget:
 	pop	ebx
 	mov	DWORD PTR fs:0, ecx
 
-; 159  :   }
+; 158  :   }
 
 	mov	esp, ebp
 	pop	ebp
@@ -8768,7 +8768,7 @@ _event$ = 8						; size = 4
 ?OnConfig@SK_Widget@@MAEXW4ConfigEvent@1@@Z PROC	; SK_Widget::OnConfig, COMDAT
 ; _this$ = ecx
 
-; 149  :   virtual void OnConfig (ConfigEvent event) { UNREFERENCED_PARAMETER (event); };
+; 148  :   virtual void OnConfig (ConfigEvent event) { UNREFERENCED_PARAMETER (event); };
 
 	ret	4
 ?OnConfig@SK_Widget@@MAEXW4ConfigEvent@1@@Z ENDP	; SK_Widget::OnConfig
@@ -8781,7 +8781,7 @@ _dock_anchor$ = 8					; size = 4
 ?setDockingPoint@SK_Widget@@QAEAAV1@W4DockAnchor@1@@Z PROC ; SK_Widget::setDockingPoint, COMDAT
 ; _this$ = ecx
 
-; 123  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
+; 122  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
 
 	npad	2
 	push	ebp
@@ -8801,7 +8801,7 @@ _bClickthrough$ = 8					; size = 1
 ?setClickThrough@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setClickThrough, COMDAT
 ; _this$ = ecx
 
-; 118  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
+; 117  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
 
 	npad	2
 	push	ebp
@@ -8821,7 +8821,7 @@ _bAutofit$ = 8						; size = 1
 ?setAutoFit@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setAutoFit, COMDAT
 ; _this$ = ecx
 
-; 116  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
+; 115  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
 
 	npad	2
 	push	ebp

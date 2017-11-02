@@ -444,9 +444,7 @@ RemindMeLater_DlgProc (
                 L"Reminder"
           );
 
-          remind_time->set_value ((int64_t)next);
-          remind_time->store     ();
-
+                 remind_time->store ((int64_t)next);
           delete remind_time;
         }
 
@@ -467,9 +465,7 @@ RemindMeLater_DlgProc (
 
           user_prefs.remove_key (L"Reminder");
 
-          frequency->set_value (L"never");
-          frequency->store     ();
-
+                 frequency->store (L"never");
           delete frequency;
         }
 
@@ -1257,14 +1253,10 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
               L"Update.User",
                 L"KeepDownloads" );
 
-          if (backup_pref->load ())
-            update_dlg_backup = backup_pref->get_value ();
-          else
+          if (! backup_pref->load (update_dlg_backup))
             update_dlg_backup = false;
 
-          if (keep_pref->load ())
-            update_dlg_keep = keep_pref->get_value ();
-          else
+          if (! keep_pref->load (update_dlg_keep))
             update_dlg_keep = true;
 
           wcsncpy ( update_dlg_file,  wszUpdateTempFile, MAX_PATH - 1 );
@@ -1308,14 +1300,11 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
                                    L"KeepDownloads=true\n\n" );
             }
 
-            keep_pref->set_value (update_dlg_keep);
-            keep_pref->store     ();
-
-            backup_pref->set_value (update_dlg_backup);
-            backup_pref->store     ();
+            keep_pref->store      (update_dlg_keep);
+            backup_pref->store    (update_dlg_backup);
 
             installed_ver.get_value (L"InstallPackage") =
-              latest_ver.get_value (L"InstallPackage");
+              latest_ver.get_value  (L"InstallPackage");
 
             // Remove reminder if we successfully install...
             install_ini.get_section (L"Update.User").remove_key (L"Reminder");

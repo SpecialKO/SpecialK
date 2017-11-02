@@ -1866,30 +1866,16 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
 bool
 SK::D3D9::TextureManager::deleteDumpedTexture (D3DFORMAT fmt, uint32_t checksum)
 {
-  wchar_t wszPath [MAX_PATH];
-  _swprintf ( wszPath, L"%s\\dump",
-                SK_D3D11_res_root.c_str () );
+    wchar_t wszPath     [MAX_PATH + 2] = { };
+    wchar_t wszFileName [MAX_PATH + 2] = { };
 
-  if (GetFileAttributesW (wszPath) != FILE_ATTRIBUTE_DIRECTORY)
-    CreateDirectoryW (wszPath, nullptr);
+    _swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
+                  SK_D3D11_res_root.c_str (),
+                    SK_GetHostApp (),
+                      SK_D3D9_FormatToStr (fmt, false).c_str () );
 
-  _swprintf ( wszPath, L"%s\\dump\\textures",
-                SK_D3D11_res_root.c_str () );
-
-  if (GetFileAttributesW (wszPath) != FILE_ATTRIBUTE_DIRECTORY)
-    CreateDirectoryW (wszPath, nullptr);
-
-  _swprintf ( wszPath, L"%s\\%s",
-                wszPath,
-                  SK_D3D9_FormatToStr (fmt, false).c_str () );
-
-  if (GetFileAttributesW (wszPath) != FILE_ATTRIBUTE_DIRECTORY)
-    CreateDirectoryW (wszPath, nullptr);
-
-  wchar_t wszFileName [MAX_PATH] = { L'\0' };
-  _swprintf ( wszFileName, L"%s\\dump\\textures\\%s\\%08x%s",
-                SK_D3D11_res_root.c_str (),
-                  SK_D3D9_FormatToStr (fmt, false).c_str (),
+    _swprintf ( wszFileName, L"%s\\%08x%s",
+                  wszPath,
                     checksum,
                       L".dds" );
 
@@ -1924,32 +1910,21 @@ SK::D3D9::TextureManager::dumpTexture (D3DFORMAT fmt, uint32_t checksum, IDirect
 //    bool compressed =
 //      (fmt_real >= D3DFMT_DXT1 && fmt_real <= D3DFMT_DXT5);
 
-    wchar_t wszPath [MAX_PATH];
-    _swprintf ( wszPath, L"%s\\dump",
-                  SK_D3D11_res_root.c_str () );
+    wchar_t wszPath     [MAX_PATH + 2] = { };
+    wchar_t wszFileName [MAX_PATH + 2] = { };
 
-    if (GetFileAttributesW (wszPath) != FILE_ATTRIBUTE_DIRECTORY)
-      CreateDirectoryW (wszPath, nullptr);
-
-    _swprintf ( wszPath, L"%s\\dump\\textures",
-                  SK_D3D11_res_root.c_str () );
-
-    if (GetFileAttributesW (wszPath) != FILE_ATTRIBUTE_DIRECTORY)
-      CreateDirectoryW (wszPath, nullptr);
-
-    _swprintf ( wszPath, L"%s\\%s",
-                  wszPath,
-                   SK_D3D9_FormatToStr (fmt_real, false).c_str () );
-
-    if (GetFileAttributesW (wszPath) != FILE_ATTRIBUTE_DIRECTORY)
-      CreateDirectoryW (wszPath, nullptr);
-
-    wchar_t wszFileName [MAX_PATH] = { L'\0' };
-    _swprintf ( wszFileName, L"%s\\dump\\textures\\%s\\%08x%s",
+    _swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
                   SK_D3D11_res_root.c_str (),
-                    SK_D3D9_FormatToStr (fmt_real, false).c_str (),
-                      checksum,
-                        L".dds" );
+                    SK_GetHostApp (),
+                      SK_D3D9_FormatToStr (fmt_real, false).c_str () );
+
+    _swprintf ( wszFileName, L"%s\\%08x%s",
+                  wszPath,
+                    checksum,
+                      L".dds" );
+
+    if (GetFileAttributesW (wszFileName) != FILE_ATTRIBUTE_DIRECTORY)
+      SK_CreateDirectories (wszFileName);
 
     injector.beginLoad ();
 
@@ -2218,7 +2193,7 @@ SK::D3D9::TextureManager::Init (void)
 
   InitializeCriticalSectionAndSpinCount (&osd_cs,   32UL);
 
-  InitializeCriticalSectionAndSpinCount (&injector.cs_tex_blacklist, 1000000);
+  InitializeCriticalSectionAndSpinCount (&injector.cs_tex_blacklist, 100000);
   InitializeCriticalSectionAndSpinCount (&injector.cs_tex_resample,  10000);
   InitializeCriticalSectionAndSpinCount (&injector.cs_tex_stream,    10000);
   InitializeCriticalSectionAndSpinCount (&injector.cs_tex_dump,      1000);
@@ -2239,8 +2214,12 @@ SK::D3D9::TextureManager::Init (void)
 
   refreshDataSources ();
 
-  if ( GetFileAttributesW ((SK_D3D11_res_root + L"\\dump\\textures").c_str ()) !=
-         INVALID_FILE_ATTRIBUTES )
+  wchar_t     wszDumpBase [MAX_PATH + 2] = { };
+  _swprintf ( wszDumpBase,
+                L"%s\\dump\\textures\\%s\\",
+                  SK_D3D11_res_root.c_str (), SK_GetHostApp () );
+
+  if ( GetFileAttributesW (wszDumpBase) != INVALID_FILE_ATTRIBUTES )
   {
     WIN32_FIND_DATA fd;
     WIN32_FIND_DATA fd_sub;
@@ -2252,7 +2231,7 @@ SK::D3D9::TextureManager::Init (void)
     tex_log.LogEx ( true, L"[ Dump Tex ] Enumerating dumped textures..." );
 
     hFind =
-      FindFirstFileW ((SK_D3D11_res_root + L"\\dump\\textures\\*").c_str (), &fd);
+      FindFirstFileW ((std::wstring (wszDumpBase) + L"\\*").c_str (), &fd);
 
     if (hFind != INVALID_HANDLE_VALUE)
     {
@@ -2260,8 +2239,10 @@ SK::D3D9::TextureManager::Init (void)
       {
         if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
         {
-          wchar_t wszSubDir [MAX_PATH] = { };
-          _swprintf (wszSubDir, L"%s\\dump\\textures\\%s\\*", SK_D3D11_res_root.c_str (), fd.cFileName);
+          wchar_t     wszSubDir [MAX_PATH + 2] = { };
+          _swprintf ( wszSubDir,
+                        L"%s\\%s\\*",
+                          wszDumpBase, fd.cFileName );
 
           hSubFind =
             FindFirstFileW (wszSubDir, &fd_sub);

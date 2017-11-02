@@ -297,7 +297,6 @@ EXTRN	?GetFont@ImGui@@YAPAUImFont@@XZ:PROC		; ImGui::GetFont
 EXTRN	__imp_?_Xbad_alloc@std@@YAXXZ:PROC
 EXTRN	__imp_?_Xlength_error@std@@YAXPBD@Z:PROC
 EXTRN	__imp_?_Xout_of_range@std@@YAXPBD@Z:PROC
-EXTRN	?store@iParameter@sk@@QAE_NXZ:PROC		; sk::iParameter::store
 EXTRN	?SK_ImGui_DrawGraph_FramePacing@@YAXXZ:PROC	; SK_ImGui_DrawGraph_FramePacing
 EXTRN	?BatteryMeter@SK_ImGui@@YA_NXZ:PROC		; SK_ImGui::BatteryMeter
 EXTRN	__CxxThrowException@8:PROC
@@ -2297,19 +2296,19 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR ?__frame_pacing__@@3VSKWG_FramePacing@@A, OFFSET ??_7SKWG_FramePacing@@6B@
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 114  :   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
+; 113  :   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
 
 	mov	WORD PTR ?__frame_pacing__@@3VSKWG_FramePacing@@A+188, 0
 
-; 116  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
+; 115  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
 
 	mov	BYTE PTR ?__frame_pacing__@@3VSKWG_FramePacing@@A+187, 1
 
-; 123  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
+; 122  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
 
 	mov	DWORD PTR ?__frame_pacing__@@3VSKWG_FramePacing@@A+224, 18 ; 00000012H
 
-; 118  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
+; 117  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
 
 	mov	BYTE PTR ?__frame_pacing__@@3VSKWG_FramePacing@@A+191, 1
 
@@ -2323,16 +2322,11 @@ __$EHRec$ = -12						; size = 12
 	je	SHORT $LN18@dynamic
 
 ; 107  :                                                            {
-; 108  :                                                              param_visible->set_value (visible);
+; 108  :                                                              param_visible->store (visible);
 
 	mov	eax, DWORD PTR [ecx]
 	push	0
-	call	DWORD PTR [eax+12]
-
-; 109  :                                                              param_visible->store     ();
-
-	mov	ecx, DWORD PTR ?__frame_pacing__@@3VSKWG_FramePacing@@A+108
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 $LN18@dynamic:
 ; File c:\users\andon\source\repos\specialk\src\widgets\frame_pacing.cpp
 
@@ -2549,7 +2543,7 @@ $LN5@run:
 	mulss	xmm1, DWORD PTR __real@420c0000
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 128  :         bool         isVisible       (void) const { return    visible &&
+; 127  :         bool         isVisible       (void) const { return    visible &&
 
 	cmp	BYTE PTR [esi+184], 0
 ; File c:\users\andon\source\repos\specialk\src\widgets\frame_pacing.cpp
@@ -2564,7 +2558,7 @@ $LN5@run:
 	movss	DWORD PTR _new_size$[ebp], xmm1
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 121  :   SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
+; 120  :   SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
 
 	mov	eax, DWORD PTR _new_size$[ebp]
 	mov	DWORD PTR [esi+208], eax
@@ -2575,13 +2569,13 @@ $LN5@run:
 	movss	DWORD PTR _new_size$[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 121  :   SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
+; 120  :   SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
 
 	mov	eax, DWORD PTR _new_size$[ebp+4]
 	mov	DWORD PTR [esi+212], eax
 	pop	esi
 
-; 128  :         bool         isVisible       (void) const { return    visible &&
+; 127  :         bool         isVisible       (void) const { return    visible &&
 
 	je	SHORT $LN2@run
 	cmp	BYTE PTR ?SK_ImGui_Widgets@@3USK_ImGui_WidgetRegistry@@A+32, 0
@@ -2649,19 +2643,19 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR [esi], OFFSET ??_7SKWG_FramePacing@@6B@
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 114  :   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
+; 113  :   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
 
 	mov	WORD PTR [esi+188], 0
 
-; 116  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
+; 115  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
 
 	mov	BYTE PTR [esi+187], 1
 
-; 123  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
+; 122  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
 
 	mov	DWORD PTR [esi+224], 18			; 00000012H
 
-; 118  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
+; 117  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
 
 	mov	BYTE PTR [esi+191], 1
 
@@ -2675,16 +2669,11 @@ __$EHRec$ = -12						; size = 12
 	je	SHORT $LN20@SKWG_Frame
 
 ; 107  :                                                            {
-; 108  :                                                              param_visible->set_value (visible);
+; 108  :                                                              param_visible->store (visible);
 
 	mov	eax, DWORD PTR [ecx]
 	push	0
-	call	DWORD PTR [eax+12]
-
-; 109  :                                                              param_visible->store     ();
-
-	mov	ecx, DWORD PTR [esi+108]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 $LN20@SKWG_Frame:
 ; File c:\users\andon\source\repos\specialk\src\widgets\frame_pacing.cpp
 
@@ -6053,7 +6042,7 @@ _szName$ = 8						; size = 4
 ??0SK_Widget@@IAE@PBD@Z PROC				; SK_Widget::SK_Widget, COMDAT
 ; _this$ = ecx
 
-; 156  :   {
+; 155  :   {
 
 	npad	2
 	push	ebp
@@ -6075,11 +6064,11 @@ _szName$ = 8						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 156  :   {
+; 155  :   {
 
 	mov	DWORD PTR _this$[ebp], edi
 
-; 163  :   SK_Keybind toggle_key = {
+; 162  :   SK_Keybind toggle_key = {
 
 	lea	ecx, DWORD PTR [edi+8]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6090,11 +6079,11 @@ _szName$ = 8						; size = 4
 	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 156  :   {
+; 155  :   {
 
 	mov	DWORD PTR [edi], OFFSET ??_7SK_Widget@@6B@
 
-; 163  :   SK_Keybind toggle_key = {
+; 162  :   SK_Keybind toggle_key = {
 
 	mov	DWORD PTR [edi+4], OFFSET ??_C@_0BG@LCBJFFOH@Widget?5Toggle?5Keybind?$AA@
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6118,7 +6107,7 @@ _szName$ = 8						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 163  :   SK_Keybind toggle_key = {
+; 162  :   SK_Keybind toggle_key = {
 
 	xor	eax, eax
 	mov	DWORD PTR [edi+32], 0
@@ -6127,7 +6116,7 @@ _szName$ = 8						; size = 4
 	mov	WORD PTR [edi+44], ax
 	mov	DWORD PTR [edi+48], eax
 
-; 167  :   SK_Keybind focus_key = {
+; 166  :   SK_Keybind focus_key = {
 
 	lea	ecx, DWORD PTR [edi+56]
 	mov	DWORD PTR [edi+52], OFFSET ??_C@_0BF@IHOHKLDA@Widget?5Focus?5Keybind?$AA@
@@ -6150,7 +6139,7 @@ _szName$ = 8						; size = 4
 	push	OFFSET ??_C@_11LOCGONAA@?$AA?$AA@
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 163  :   SK_Keybind toggle_key = {
+; 162  :   SK_Keybind toggle_key = {
 
 	mov	DWORD PTR __$EHRec$[ebp+8], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -6165,7 +6154,7 @@ _szName$ = 8						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 167  :   SK_Keybind focus_key = {
+; 166  :   SK_Keybind focus_key = {
 
 	xor	eax, eax
 	mov	DWORD PTR [edi+80], 0
@@ -6180,7 +6169,7 @@ _szName$ = 8						; size = 4
 	mov	esi, DWORD PTR _szName$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 155  :   SK_Widget (const char* szName) : name (szName)
+; 154  :   SK_Widget (const char* szName) : name (szName)
 
 	lea	ecx, DWORD PTR [edi+156]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -6199,7 +6188,7 @@ _szName$ = 8						; size = 4
 	mov	DWORD PTR [ecx+20], 15			; 0000000fH
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 167  :   SK_Keybind focus_key = {
+; 166  :   SK_Keybind focus_key = {
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -6226,13 +6215,13 @@ $LL123@SK_Widget:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 195  :   float       scale         = 1.0f;
+; 194  :   float       scale         = 1.0f;
 
 	mov	DWORD PTR [edi+180], 1065353216		; 3f800000H
 	lea	esi, DWORD PTR [edi+228]
 
-; 196  : 
-; 197  :   bool        visible       = false;
+; 195  : 
+; 196  :   bool        visible       = false;
 
 	mov	DWORD PTR [edi+184], 16777216		; 01000000H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -6242,7 +6231,7 @@ $LL123@SK_Widget:
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 201  :   bool        movable       = true;
+; 200  :   bool        movable       = true;
 
 	mov	DWORD PTR [edi+188], 257		; 00000101H
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -6259,7 +6248,7 @@ $LL123@SK_Widget:
 	mov	DWORD PTR [edi+220], 0
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 211  :   DockAnchor docking        = DockAnchor::None;
+; 210  :   DockAnchor docking        = DockAnchor::None;
 
 	mov	DWORD PTR [edi+224], 0
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
@@ -6279,7 +6268,7 @@ $LL123@SK_Widget:
 	call	?_Buyheadnode@?$_Tree_comp_alloc@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAViParameter@sk@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAViParameter@sk@@@std@@@2@$0A@@std@@@std@@QAEPAU?$_Tree_node@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAViParameter@sk@@@std@@PAX@2@XZ ; std::_Tree_comp_alloc<std::_Tmap_traits<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,sk::iParameter *,std::less<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::allocator<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,sk::iParameter *> >,0> >::_Buyheadnode
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 159  :   }
+; 158  :   }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -6289,28 +6278,28 @@ $LL123@SK_Widget:
 	mov	DWORD PTR [esi], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 159  :   }
+; 158  :   }
 
 	mov	eax, edi
 
-; 212  : 
-; 213  :   // Custom params
-; 214  :   std::map <std::string, sk::iParameter *> parameters;
+; 211  : 
+; 212  :   // Custom params
+; 213  :   std::map <std::string, sk::iParameter *> parameters;
+; 214  : 
 ; 215  : 
-; 216  : 
-; 217  :   int state__;   // 0 = Normal, 1 = Config, SK_WS_USER = First User-Defined State
-; 218  :   int version__;
-; 219  : 
-; 220  : private:
-; 221  :   bool           run_once__ = false;
+; 216  :   int state__;   // 0 = Normal, 1 = Config, SK_WS_USER = First User-Defined State
+; 217  :   int version__;
+; 218  : 
+; 219  : private:
+; 220  :   bool           run_once__ = false;
 
 	mov	BYTE PTR [edi+244], 0
 
-; 222  :   ImGuiWindow*   pWindow__  = nullptr;
+; 221  :   ImGuiWindow*   pWindow__  = nullptr;
 
 	mov	DWORD PTR [edi+248], 0
 
-; 223  :   bool           moved      = false;
+; 222  :   bool           moved      = false;
 
 	mov	BYTE PTR [edi+252], 0
 	mov	DWORD PTR [edi+240], 1
@@ -6320,7 +6309,7 @@ $LL123@SK_Widget:
 	pop	ebx
 	mov	DWORD PTR fs:0, ecx
 
-; 159  :   }
+; 158  :   }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6353,7 +6342,7 @@ _event$ = 8						; size = 4
 ?OnConfig@SK_Widget@@MAEXW4ConfigEvent@1@@Z PROC	; SK_Widget::OnConfig, COMDAT
 ; _this$ = ecx
 
-; 149  :   virtual void OnConfig (ConfigEvent event) { UNREFERENCED_PARAMETER (event); };
+; 148  :   virtual void OnConfig (ConfigEvent event) { UNREFERENCED_PARAMETER (event); };
 
 	ret	4
 ?OnConfig@SK_Widget@@MAEXW4ConfigEvent@1@@Z ENDP	; SK_Widget::OnConfig
@@ -6365,7 +6354,7 @@ _TEXT	SEGMENT
 ?getSize@SK_Widget@@QBEABUImVec2@@XZ PROC		; SK_Widget::getSize, COMDAT
 ; _this$ = ecx
 
-; 138  :   const ImVec2&      getSize         (void) const { return    size;           }
+; 137  :   const ImVec2&      getSize         (void) const { return    size;           }
 
 	lea	eax, DWORD PTR [ecx+208]
 	ret	0
@@ -6378,7 +6367,7 @@ _TEXT	SEGMENT
 ?isVisible@SK_Widget@@QBE_NXZ PROC			; SK_Widget::isVisible, COMDAT
 ; _this$ = ecx
 
-; 128  :         bool         isVisible       (void) const { return    visible &&
+; 127  :         bool         isVisible       (void) const { return    visible &&
 
 	cmp	BYTE PTR [ecx+184], 0
 	je	SHORT $LN3@isVisible
@@ -6386,16 +6375,16 @@ _TEXT	SEGMENT
 	jne	SHORT $LN3@isVisible
 	mov	al, 1
 
-; 129  :                                                (! SK_ImGui_Widgets.hide_all); }
+; 128  :                                                (! SK_ImGui_Widgets.hide_all); }
 
 	ret	0
 $LN3@isVisible:
 
-; 128  :         bool         isVisible       (void) const { return    visible &&
+; 127  :         bool         isVisible       (void) const { return    visible &&
 
 	xor	al, al
 
-; 129  :                                                (! SK_ImGui_Widgets.hide_all); }
+; 128  :                                                (! SK_ImGui_Widgets.hide_all); }
 
 	ret	0
 ?isVisible@SK_Widget@@QBE_NXZ ENDP			; SK_Widget::isVisible
@@ -6408,7 +6397,7 @@ _dock_anchor$ = 8					; size = 4
 ?setDockingPoint@SK_Widget@@QAEAAV1@W4DockAnchor@1@@Z PROC ; SK_Widget::setDockingPoint, COMDAT
 ; _this$ = ecx
 
-; 123  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
+; 122  :   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
 
 	npad	2
 	push	ebp
@@ -6428,7 +6417,7 @@ _iv2Size$ = 8						; size = 4
 ?setSize@SK_Widget@@QAEAAV1@AAUImVec2@@@Z PROC		; SK_Widget::setSize, COMDAT
 ; _this$ = ecx
 
-; 121  :   SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
+; 120  :   SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
 
 	npad	2
 	push	ebp
@@ -6451,7 +6440,7 @@ _bClickthrough$ = 8					; size = 1
 ?setClickThrough@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setClickThrough, COMDAT
 ; _this$ = ecx
 
-; 118  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
+; 117  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
 
 	npad	2
 	push	ebp
@@ -6471,7 +6460,7 @@ _bAutofit$ = 8						; size = 1
 ?setAutoFit@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setAutoFit, COMDAT
 ; _this$ = ecx
 
-; 116  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
+; 115  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
 
 	npad	2
 	push	ebp
@@ -6491,7 +6480,7 @@ _bResizable$ = 8					; size = 1
 ?setResizable@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setResizable, COMDAT
 ; _this$ = ecx
 
-; 115  :   SK_Widget& setResizable    (bool        bResizable)    { resizable     = bResizable;    return *this; }
+; 114  :   SK_Widget& setResizable    (bool        bResizable)    { resizable     = bResizable;    return *this; }
 
 	npad	2
 	push	ebp
@@ -6511,7 +6500,7 @@ _bMovable$ = 8						; size = 1
 ?setMovable@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setMovable, COMDAT
 ; _this$ = ecx
 
-; 114  :   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
+; 113  :   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
 
 	npad	2
 	push	ebp
@@ -6531,7 +6520,7 @@ _bActive$ = 8						; size = 1
 ?setActive@SK_Widget@@QAEAAV1@_N@Z PROC			; SK_Widget::setActive, COMDAT
 ; _this$ = ecx
 
-; 112  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
+; 111  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
 
 	npad	2
 	push	ebp
@@ -6566,7 +6555,7 @@ _bVisible$ = 8						; size = 1
 	test	dl, dl
 	je	SHORT $LN2@setVisible
 
-; 112  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
+; 111  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
 
 	mov	BYTE PTR [esi+185], dl
 $LN2@setVisible:
@@ -6580,20 +6569,15 @@ $LN2@setVisible:
 	je	SHORT $LN7@setVisible
 
 ; 107  :                                                            {
-; 108  :                                                              param_visible->set_value (visible);
+; 108  :                                                              param_visible->store (visible);
 
 	mov	eax, DWORD PTR [ecx]
 	push	edx
-	call	DWORD PTR [eax+12]
-
-; 109  :                                                              param_visible->store     ();
-
-	mov	ecx, DWORD PTR [esi+108]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 $LN7@setVisible:
 
-; 110  :                                                            }
-; 111  :                                                                                           return *this; }
+; 109  :                                                            }
+; 110  :                                                                                           return *this; }
 
 	mov	eax, esi
 	pop	esi

@@ -1076,9 +1076,7 @@ SK_FAR_OSD_Disclaimer (LPVOID user)
   while ((volatile bool&)config.osd.show)
     SleepEx (66, FALSE);
 
-  far_osd_disclaimer->set_value (false);
-  far_osd_disclaimer->store     ();
-
+  far_osd_disclaimer->store     (false);
   far_prefs->write              (far_prefs_file);
 
   CloseHandle (GetCurrentThread ());
@@ -1227,9 +1225,8 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
                       L"If FAR does not work correctly, this is probably why.",
                         L"Incompatible Third-Party Software", MB_OK | MB_ICONWARNING );
 
-      far_rtss_warned->set_value (true);
-      far_rtss_warned->store     ();
-      far_prefs->write           (far_prefs_file);
+      far_rtss_warned->store (true);
+      far_prefs->write       (far_prefs_file);
     }
   }
 
@@ -2126,11 +2123,8 @@ SK_FAR_InitPlugin (void)
                                       L"FAR.Lighting",
                                         L"GlobalIlluminationWorkgroups" );
 
-    if (far_gi_workgroups->load ())
-      __FAR_GlobalIllumWorkGroupSize = far_gi_workgroups->get_value ();
-
-    far_gi_workgroups->set_value (__FAR_GlobalIllumWorkGroupSize);
-    far_gi_workgroups->store     ();
+    far_gi_workgroups->load  ((int &)__FAR_GlobalIllumWorkGroupSize);
+    far_gi_workgroups->store (       __FAR_GlobalIllumWorkGroupSize);
 
     far_gi_min_light_extent =
         dynamic_cast <sk::ParameterFloat *>
@@ -2140,11 +2134,8 @@ SK_FAR_InitPlugin (void)
                                       L"FAR.Lighting",
                                         L"MinLightVolumeExtent" );
 
-    if (far_gi_min_light_extent->load ())
-      __FAR_MINIMUM_EXT = far_gi_min_light_extent->get_value ();
-
-    far_gi_min_light_extent->set_value (__FAR_MINIMUM_EXT);
-    far_gi_min_light_extent->store     ();
+    far_gi_min_light_extent->load  (__FAR_MINIMUM_EXT);
+    far_gi_min_light_extent->store (__FAR_MINIMUM_EXT);
 
 
     far_limiter_busy = 
@@ -2155,12 +2146,11 @@ SK_FAR_InitPlugin (void)
                                       L"FAR.FrameRate",
                                         L"UseBusyWait" );
 
-    if (! far_limiter_busy->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_limiter_busy)->load ())
     {
       // Enable by default, most people should have enough CPU cores for this
       //   policy to be practical.
-      far_limiter_busy->set_value (true);
-      far_limiter_busy->store     ();
+      far_limiter_busy->store (true);
     }
 
     far_uncap_fps =
@@ -2172,10 +2162,9 @@ SK_FAR_InitPlugin (void)
                                          L"UncapFPS" );
 
     // Disable by default, needs more testing :)
-    if (! far_uncap_fps->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_uncap_fps)->load ())
     {
-      far_uncap_fps->set_value (false);
-      far_uncap_fps->store     ();
+      far_uncap_fps->store (false);
     }
 
 #ifndef WORKING_FPS_UNCAP
@@ -2192,10 +2181,9 @@ SK_FAR_InitPlugin (void)
                                          L"FAR.Compatibility",
                                            L"WarnedAboutRTSS" );
 
-    if (! far_rtss_warned->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_rtss_warned)->load ())
     {
-      far_rtss_warned->set_value (false);
-      far_rtss_warned->store     ();
+      far_rtss_warned->store (false);
     }
 
     //far_slow_state_cache =
@@ -2227,10 +2215,9 @@ SK_FAR_InitPlugin (void)
                                             L"FAR.OSD",
                                               L"ShowDisclaimer" );
 
-    if (! far_osd_disclaimer->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_osd_disclaimer)->load ())
     {
-      far_osd_disclaimer->set_value (true);
-      far_osd_disclaimer->store     ();
+      far_osd_disclaimer->store (true);
     }
 
 
@@ -2242,10 +2229,9 @@ SK_FAR_InitPlugin (void)
                                               L"FAR.System",
                                                 L"AcceptedLicense" );
 
-    if (! far_accepted_license->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_accepted_license)->load ())
     {
-      far_accepted_license->set_value (false);
-      far_accepted_license->store     ();
+      far_accepted_license->store (false);
     }
 
     else
@@ -2260,19 +2246,18 @@ SK_FAR_InitPlugin (void)
                                          L"FAR.Lighting",
                                            L"BloomWidth" );
 
-    if (! far_bloom_width->load ())
+    if (! far_bloom_width->load (far_bloom.width))
     {
-      far_bloom_width->set_value (-1);
-      far_bloom_width->store     (  );
+      far_bloom_width->store (-1);
     }
 
     far_bloom.width = far_bloom_width->get_value ();
 
     // Bloom Width must be > 0 or -1, never 0!
-    if (far_bloom.width <= 0) {
-      far_bloom.width =                -1;
-      far_bloom_width->set_value (far_bloom.width);
-      far_bloom_width->store     (               );
+    if (far_bloom.width <= 0)
+    {
+      far_bloom.width =             -1;
+      far_bloom_width->store (far_bloom.width);
     }
 
 
@@ -2284,10 +2269,9 @@ SK_FAR_InitPlugin (void)
                                            L"FAR.Lighting",
                                              L"DisableBloom" );
 
-    if (! far_bloom_disable->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_bloom_disable)->load ())
     {
-      far_bloom_disable->set_value (false);
-      far_bloom_disable->store     ();
+      far_bloom_disable->store (false);
     }
 
     far_bloom.disable = far_bloom_disable->get_value ();
@@ -2301,10 +2285,9 @@ SK_FAR_InitPlugin (void)
                                         L"FAR.Temporary",
                                           L"BloomSkipLevels" );
 
-    if (! far_bloom_skip->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_bloom_skip)->load ())
     {
-      far_bloom_skip->set_value (0);
-      far_bloom_skip->store     ();
+      far_bloom_skip->store (0);
     }
 
     far_bloom.skip = far_bloom_skip->get_value ();
@@ -2318,10 +2301,9 @@ SK_FAR_InitPlugin (void)
                                              L"FAR.Temporary",
                                                L"FixMotionBlur" );
 
-    if (! far_fix_motion_blur->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_fix_motion_blur)->load ())
     {
-      far_fix_motion_blur->set_value (true);
-      far_fix_motion_blur->store     ();
+      far_fix_motion_blur->store (true);
     }
 
     far_ao.fix_motion_blur = far_fix_motion_blur->get_value ();
@@ -2335,10 +2317,9 @@ SK_FAR_InitPlugin (void)
                                         L"FAR.Lighting",
                                           L"DisableAO" );
 
-    if (! far_ao_disable->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_ao_disable)->load ())
     {
-      far_ao_disable->set_value (false);
-      far_ao_disable->store     ();
+      far_ao_disable->store (false);
     }
 
     far_ao.disable = far_ao_disable->get_value ();
@@ -2352,19 +2333,18 @@ SK_FAR_InitPlugin (void)
                                          L"FAR.Lighting",
                                            L"AOWidth" );
 
-    if (! far_ao_width->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_ao_width)->load ())
     {
-      far_ao_width->set_value (-1);
-      far_ao_width->store     (  );
+      far_ao_width->store (-1);
     }
 
     far_ao.width = far_ao_width->get_value ();
 
     // AO Width must be > 0 or -1, never 0!
-    if (far_ao.width <= 0) {
-      far_ao.width =               -1;
-      far_ao_width->set_value (far_ao.width);
-      far_ao_width->store     (            );
+    if (far_ao.width <= 0)
+    {
+      far_ao.width =           -1;
+      far_ao_width->store (far_ao.width);
     }
 
     far_ao_height =
@@ -2375,19 +2355,18 @@ SK_FAR_InitPlugin (void)
                                        L"FAR.Lighting",
                                          L"AOHeight" );
 
-    if (! far_ao_height->load ())
+    if (! dynamic_cast <sk::iParameter *> (far_ao_height)->load ())
     {
-      far_ao_height->set_value (-1);
-      far_ao_height->store     (  );
+      far_ao_height->store (-1);
     }
 
     far_ao.height = far_ao_height->get_value ();
 
     // AO Height must be > 0 or -1, never 0!
-    if (far_ao.height <= 0) {
-      far_ao.height =               -1;
-      far_ao_height->set_value (far_ao.height);
-      far_ao_height->store     (             );
+    if (far_ao.height <= 0)
+    {
+      far_ao.height =           -1;
+      far_ao_height->store (far_ao.height);
     }
 
 
@@ -2402,11 +2381,10 @@ SK_FAR_InitPlugin (void)
 
           ret->register_to_ini ( far_prefs, L"FAR.Keybinds", ini_name );
 
-          if (! ret->load ())
+          if (! dynamic_cast <sk::iParameter *> (ret)->load ())
           {
             binding->parse ();
-            ret->set_value (binding->human_readable);
-            ret->store     ();
+            ret->store     (binding->human_readable);
           }
 
           binding->human_readable = ret->get_value ();
@@ -2460,8 +2438,7 @@ SK_FAR_ControlPanel (void)
   // Push this to FAR.ini so that mod updates don't repeatedly present the user with a license agreement.
   if ((! config.imgui.show_eula) && (! far_accepted_license->get_value ()))
   {
-    far_accepted_license->set_value (true);
-    far_accepted_license->store     ();
+    far_accepted_license->store     (true);
     far_prefs->write                (far_prefs_file);
   }
 
@@ -2484,8 +2461,7 @@ SK_FAR_ControlPanel (void)
       if (ImGui::Checkbox ("Bloom", &bloom))
       {
         far_bloom.disable = (! bloom);
-        far_bloom_disable->set_value (far_bloom.disable);
-        far_bloom_disable->store     ();
+        far_bloom_disable->store (far_bloom.disable);
 
         changed = true;
       }
@@ -2506,10 +2482,8 @@ SK_FAR_ControlPanel (void)
         {
           changed = true;
 
-          far_bloom_width->set_value (-1);
-          far_bloom_width->store     ();
-
-          far_bloom.width = -1;
+          far_bloom_width->store (-1);
+          far_bloom.width =       -1;
         }
 
         ImGui::SameLine ();
@@ -2517,10 +2491,8 @@ SK_FAR_ControlPanel (void)
         // 1/4 resolution actually, but this is easier to describe to the end-user
         if (ImGui::RadioButton ("Custom Resolution",            &bloom_behavior, 1))
         {
-          far_bloom_width->set_value (static_cast <int> (ImGui::GetIO ().DisplaySize.x));
-          far_bloom_width->store     ();
-
-          far_bloom.width = static_cast <int> (ImGui::GetIO ().DisplaySize.x);
+          far_bloom_width->store (static_cast <int> (ImGui::GetIO ().DisplaySize.x));
+          far_bloom.width       = static_cast <int> (ImGui::GetIO ().DisplaySize.x);
 
           changed = true;
         }
@@ -2552,8 +2524,7 @@ SK_FAR_ControlPanel (void)
       {
         far_ao.disable = (! ao);
 
-        far_ao_disable->set_value (far_ao.disable);
-        far_ao_disable->store     ();
+        far_ao_disable->store (far_ao.disable);
 
         changed = true;
       }
@@ -2573,11 +2544,8 @@ SK_FAR_ControlPanel (void)
         {
           changed = true;
 
-          far_ao_width->set_value (-1);
-          far_ao_width->store     ();
-
-          far_ao_height->set_value (-1);
-          far_ao_height->store     ();
+          far_ao_width->store  (-1);
+          far_ao_height->store (-1);
         }
 
         ImGui::SameLine ();
@@ -2585,11 +2553,8 @@ SK_FAR_ControlPanel (void)
         // 1/4 resolution actually, but this is easier to describe to the end-user
         if (ImGui::RadioButton ("Native AO Res.   ",            &ao_behavior, 3))
         {
-          far_ao_width->set_value  (static_cast <int> (ImGui::GetIO ().DisplaySize.x));
-          far_ao_width->store      ();
-
-          far_ao_height->set_value (static_cast <int> (ImGui::GetIO ().DisplaySize.y));
-          far_ao_height->store     ();
+          far_ao_width->store  (static_cast <int> (ImGui::GetIO ().DisplaySize.x));
+          far_ao_height->store (static_cast <int> (ImGui::GetIO ().DisplaySize.y));
 
           changed = true;
         }
@@ -2660,8 +2625,7 @@ SK_FAR_ControlPanel (void)
         }
       }
 
-      far_gi_workgroups->set_value (__FAR_GlobalIllumWorkGroupSize);
-      far_gi_workgroups->store     ();
+      far_gi_workgroups->store (__FAR_GlobalIllumWorkGroupSize);
 
       if (ImGui::IsItemHovered ())
       {
@@ -2685,8 +2649,7 @@ SK_FAR_ControlPanel (void)
       {
         __FAR_MINIMUM_EXT = std::min (1.0f, std::max (0.0f, extent / 100.0f));
 
-        far_gi_min_light_extent->set_value (__FAR_MINIMUM_EXT);
-        far_gi_min_light_extent->store     ();
+        far_gi_min_light_extent->store     (__FAR_MINIMUM_EXT);
       }
 
       if (ImGui::IsItemHovered ())
@@ -2727,7 +2690,7 @@ SK_FAR_ControlPanel (void)
         changed = true;
 
         SK_FAR_SetFramerateCap (remove_cap);
-        far_uncap_fps->store   ();
+        far_uncap_fps->store   (remove_cap);
       }
 
       if (ImGui::IsItemHovered ()) {
@@ -2757,8 +2720,7 @@ SK_FAR_ControlPanel (void)
         else
           SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Sleep);
 
-        far_limiter_busy->set_value (busy_wait);
-        far_limiter_busy->store     ();
+        far_limiter_busy->store (busy_wait);
       }
 
       if (ImGui::IsItemHovered ())
@@ -2787,8 +2749,7 @@ SK_FAR_ControlPanel (void)
 
           if (original_binding != binding->human_readable)
           {
-            param->set_value (binding->human_readable);
-            param->store     ();
+            param->store (binding->human_readable);
 
             return true;
           }

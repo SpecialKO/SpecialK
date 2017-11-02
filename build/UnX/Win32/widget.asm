@@ -10,157 +10,156 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG147496 DB	'###Widget_%s', 00H
-$SG147728 DB	00H
-	ORG $+2
-$SG147703 DB	'Movable', 00H
-$SG147705 DB	'Resizable', 00H
-	ORG $+2
-$SG147709 DB	'Auto-Fit', 00H
-	ORG $+3
-$SG147712 DB	'Click-Through', 00H
-	ORG $+2
-$SG147714 DB	'Draw Border', 00H
-$SG147715 DB	'Undocked', 00H, 'North', 00H, 'South', 00H, 00H, 00H
-	ORG $+1
-$SG147720 DB	'Vertical Docking Anchor', 00H
-$SG147721 DB	'Undocked', 00H, 'West', 00H, 'East', 00H, 00H, 00H
-	ORG $+3
-$SG147726 DB	'Horizonal Docking Anchor', 00H
-	ORG $+3
-$SG147727 DB	'Key Bindings', 00H
-	ORG $+3
-$SG147730 DB	'Widget Toggle', 00H
-	ORG $+2
-$SG147732 DB	'Widget Focus', 00H
-	ORG $+3
-$SG147735 DB	'%.3f', 00H
-	ORG $+3
-$SG147736 DB	'Widget Scale', 00H
-	ORG $+3
-$SG147737 DB	'  Save  ', 00H
-	ORG $+3
-$SG142231 DB	'T', 00H, 'o', 00H, 'g', 00H, 'g', 00H, 'l', 00H, 'e', 00H
+$SG142486 DB	'T', 00H, 'o', 00H, 'g', 00H, 'g', 00H, 'l', 00H, 'e', 00H
 	DB	'K', 00H, 'e', 00H, 'y', 00H, 00H, 00H
-$SG142232 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142487 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG142233 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG147983 DB	00H
+	ORG $+1
+$SG142488 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'T', 00H, 'o', 00H, 'g', 00H, 'g', 00H, 'l', 00H, 'e'
 	DB	00H, ' ', 00H, 'K', 00H, 'e', 00H, 'y', 00H, 'b', 00H, 'i', 00H
 	DB	'n', 00H, 'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '('
 	DB	00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG142234 DB	'V', 00H, 'i', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l', 00H
+$SG142489 DB	'V', 00H, 'i', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l', 00H
 	DB	'e', 00H, 00H, 00H
-$SG142235 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142490 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142236 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142491 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'V', 00H, 'i', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l'
 	DB	00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H, 's', 00H
 	DB	')', 00H, 00H, 00H
 	ORG $+2
-$SG142237 DB	'M', 00H, 'o', 00H, 'v', 00H, 'a', 00H, 'b', 00H, 'l', 00H
+$SG142492 DB	'M', 00H, 'o', 00H, 'v', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'e', 00H, 00H, 00H
-$SG142238 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142493 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142239 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142494 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'o', 00H, 'v', 00H, 'a', 00H, 'b', 00H, 'l'
 	DB	00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H, 's', 00H
 	DB	')', 00H, 00H, 00H
 	ORG $+2
-$SG142240 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'a', 00H
+$SG142495 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'a', 00H
 	DB	'b', 00H, 'l', 00H, 'e', 00H, 00H, 00H
-$SG142241 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142496 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142242 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142497 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'a'
 	DB	00H, 'b', 00H, 'l', 00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H
 	DB	'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG142243 DB	'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'F', 00H, 'i', 00H
+$SG142498 DB	'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'F', 00H, 'i', 00H
 	DB	't', 00H, 00H, 00H
-$SG142244 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142499 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142245 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142500 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'F', 00H, 'i'
 	DB	00H, 't', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '(', 00H
 	DB	'%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG142246 DB	'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H, 'r', 00H
+$SG142501 DB	'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H, 'r', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG142247 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142502 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142248 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142503 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 's', 00H, ' '
 	DB	00H, 'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H, 'r', 00H
 	DB	' ', 00H, '(', 00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H
 	DB	00H
-$SG142249 DB	'C', 00H, 'l', 00H, 'i', 00H, 'c', 00H, 'k', 00H, 'T', 00H
+$SG142504 DB	'C', 00H, 'l', 00H, 'i', 00H, 'c', 00H, 'k', 00H, 'T', 00H
 	DB	'h', 00H, 'r', 00H, 'o', 00H, 'u', 00H, 'g', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG142250 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142505 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142251 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142506 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'I', 00H, 'g', 00H, 'n', 00H, 'o', 00H, 'r', 00H, 'e'
 	DB	00H, 's', 00H, ' ', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'k', 00H, 's', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H, 's'
 	DB	00H, ')', 00H, 00H, 00H
-$SG142252 DB	'D', 00H, 'o', 00H, 'c', 00H, 'k', 00H, 'i', 00H, 'n', 00H
+$SG142507 DB	'D', 00H, 'o', 00H, 'c', 00H, 'k', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG142253 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142508 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142254 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142509 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'D', 00H, 'o', 00H, 'c', 00H, 'k', 00H, 's', 00H, ' '
 	DB	00H, 't', 00H, 'o', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H
 	DB	'(', 00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG142255 DB	'M', 00H, 'i', 00H, 'n', 00H, 'S', 00H, 'i', 00H, 'z', 00H
+$SG142510 DB	'M', 00H, 'i', 00H, 'n', 00H, 'S', 00H, 'i', 00H, 'z', 00H
 	DB	'e', 00H, 00H, 00H
-$SG142256 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142511 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142257 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142512 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'i'
 	DB	00H, 'z', 00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
-$SG142258 DB	'M', 00H, 'a', 00H, 'x', 00H, 'S', 00H, 'i', 00H, 'z', 00H
+$SG142513 DB	'M', 00H, 'a', 00H, 'x', 00H, 'S', 00H, 'i', 00H, 'z', 00H
 	DB	'e', 00H, 00H, 00H
-$SG142259 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142514 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142260 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142515 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, ' ', 00H, 'S', 00H, 'i'
 	DB	00H, 'z', 00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
-$SG142261 DB	'S', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
+$SG142516 DB	'S', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG142262 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142517 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142263 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142518 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'S', 00H, 'i', 00H, 'z', 00H, 'e', 00H, ' ', 00H, '('
 	DB	00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG142264 DB	'P', 00H, 'o', 00H, 's', 00H, 'i', 00H, 't', 00H, 'i', 00H
+$SG142519 DB	'P', 00H, 'o', 00H, 's', 00H, 'i', 00H, 't', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG142265 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142520 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142266 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142521 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'P', 00H, 'o', 00H, 's', 00H, 'i', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
+$SG147751 DB	'###Widget_%s', 00H
+	ORG $+3
+$SG147958 DB	'Movable', 00H
+$SG147960 DB	'Resizable', 00H
+	ORG $+2
+$SG147964 DB	'Auto-Fit', 00H
+	ORG $+3
+$SG147967 DB	'Click-Through', 00H
+	ORG $+2
+$SG147969 DB	'Draw Border', 00H
+$SG147970 DB	'Undocked', 00H, 'North', 00H, 'South', 00H, 00H, 00H
+	ORG $+1
+$SG147975 DB	'Vertical Docking Anchor', 00H
+$SG147976 DB	'Undocked', 00H, 'West', 00H, 'East', 00H, 00H, 00H
+	ORG $+3
+$SG147981 DB	'Horizonal Docking Anchor', 00H
+	ORG $+3
+$SG147982 DB	'Key Bindings', 00H
+	ORG $+3
+$SG147985 DB	'Widget Toggle', 00H
+	ORG $+2
+$SG147987 DB	'Widget Focus', 00H
+	ORG $+3
+$SG147990 DB	'%.3f', 00H
+	ORG $+3
+$SG147991 DB	'Widget Scale', 00H
+	ORG $+3
+$SG147992 DB	'  Save  ', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	??0ImVec2@@QAE@XZ				; ImVec2::ImVec2
@@ -720,8 +719,8 @@ PUBLIC	??$_Construct1@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_si
 PUBLIC	??$construct@PAU?$_List_node@PAVSK_Widget@@PAX@std@@AAPAU12@@?$allocator@U?$_List_node@PAVSK_Widget@@PAX@std@@@std@@QAEXPAPAU?$_List_node@PAVSK_Widget@@PAX@1@AAPAU21@@Z ; std::allocator<std::_List_node<SK_Widget *,void *> >::construct<std::_List_node<SK_Widget *,void *> *,std::_List_node<SK_Widget *,void *> * &>
 PUBLIC	??$construct@PAVSK_Widget@@QAV1@@?$allocator_traits@V?$allocator@U?$_List_node@PAVSK_Widget@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@PAVSK_Widget@@PAX@std@@@1@PAPAVSK_Widget@@$$QBQAV3@@Z ; std::allocator_traits<std::allocator<std::_List_node<SK_Widget *,void *> > >::construct<SK_Widget *,SK_Widget * const>
 PUBLIC	??$construct@PAVSK_Widget@@QAV1@@?$allocator@U?$_List_node@PAVSK_Widget@@PAX@std@@@std@@QAEXPAPAVSK_Widget@@$$QBQAV2@@Z ; std::allocator<std::_List_node<SK_Widget *,void *> >::construct<SK_Widget *,SK_Widget * const>
-PUBLIC	?SK_Widget_ParameterFactory@@3VParameterFactory@sk@@A ; SK_Widget_ParameterFactory
 PUBLIC	??_R0?AViParameter@sk@@@8			; sk::iParameter `RTTI Type Descriptor'
+PUBLIC	?SK_Widget_ParameterFactory@@3VParameterFactory@sk@@A ; SK_Widget_ParameterFactory
 PUBLIC	??_R0?AVParameterStringW@sk@@@8			; sk::ParameterStringW `RTTI Type Descriptor'
 PUBLIC	??_R0?AVParameterBool@sk@@@8			; sk::ParameterBool `RTTI Type Descriptor'
 PUBLIC	??_R0?AVParameterInt@sk@@@8			; sk::ParameterInt `RTTI Type Descriptor'
@@ -799,8 +798,6 @@ EXTRN	__imp_?_Xbad_alloc@std@@YAXXZ:PROC
 EXTRN	__imp_?_Xlength_error@std@@YAXPBD@Z:PROC
 EXTRN	__imp_?_Xout_of_range@std@@YAXPBD@Z:PROC
 EXTRN	?parse@SK_Keybind@@QAEXXZ:PROC			; SK_Keybind::parse
-EXTRN	?load@iParameter@sk@@QAE_NXZ:PROC		; sk::iParameter::load
-EXTRN	?store@iParameter@sk@@QAE_NXZ:PROC		; sk::iParameter::store
 EXTRN	??$create_parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z:PROC ; sk::ParameterFactory::create_parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 EXTRN	??$create_parameter@_N@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z:PROC ; sk::ParameterFactory::create_parameter<bool>
 EXTRN	??$create_parameter@H@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z:PROC ; sk::ParameterFactory::create_parameter<int>
@@ -1032,17 +1029,17 @@ __ehfuncinfo$??$_Insert@AAPAVSK_Widget@@V?$_List_unchecked_const_iterator@V?$_Li
 xdata$x	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
-__unwindtable$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z DD 0ffffffffH
-	DD	FLAT:__unwindfunclet$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$1
+__unwindtable$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$1
 	DD	00H
-	DD	FLAT:__unwindfunclet$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$2
+	DD	FLAT:__unwindfunclet$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$2
 	DD	0ffffffffH
-	DD	FLAT:__unwindfunclet$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$2
+	DD	FLAT:__unwindfunclet$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$2
 	DD	02H
-	DD	FLAT:__unwindfunclet$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$3
-__ehfuncinfo$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z DD 019930522H
+	DD	FLAT:__unwindfunclet$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$3
+__ehfuncinfo$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z DD 019930522H
 	DD	04H
-	DD	FLAT:__unwindtable$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z
+	DD	FLAT:__unwindtable$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
 	DD	00H
@@ -5914,7 +5911,7 @@ text$di	SEGMENT
 	call	??0?$_Wrap_alloc@V?$allocator@PAViParameter@sk@@@std@@@std@@QAE@XZ ; std::_Wrap_alloc<std::allocator<sk::iParameter *> >::_Wrap_alloc<std::allocator<sk::iParameter *> >
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 722  : sk::ParameterFactory SK_Widget_ParameterFactory;
+; 709  : sk::ParameterFactory SK_Widget_ParameterFactory;
 
 	push	OFFSET ??__FSK_Widget_ParameterFactory@@YAXXZ ; `dynamic atexit destructor for 'SK_Widget_ParameterFactory''
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -5932,7 +5929,7 @@ text$di	SEGMENT
 	mov	DWORD PTR ?SK_Widget_ParameterFactory@@3VParameterFactory@sk@@A+8, 0
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 722  : sk::ParameterFactory SK_Widget_ParameterFactory;
+; 709  : sk::ParameterFactory SK_Widget_ParameterFactory;
 
 	call	_atexit
 	pop	ecx
@@ -6354,7 +6351,7 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
-;	COMDAT ??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z
+;	COMDAT ??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z
 _TEXT	SEGMENT
 $T2 = -92						; size = 24
 _label$ = -68						; size = 24
@@ -6363,16 +6360,16 @@ $T3 = -20						; size = 8
 __$EHRec$ = -12						; size = 12
 _binding$ = 8						; size = 4
 _param$ = 12						; size = 4
-??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z PROC ; <lambda_8b9e868eb4b45a5e008473f6382f52cb>::operator(), COMDAT
+??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z PROC ; <lambda_322f41118d6d58482108aceb62769a04>::operator(), COMDAT
 ; _this$ = ecx
 
-; 594  :     {
+; 582  :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	-1
-	push	__ehhandler$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z
+	push	__ehhandler$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z
 	mov	eax, DWORD PTR fs:0
 	push	eax
 	mov	DWORD PTR fs:0, esp
@@ -6380,7 +6377,7 @@ _param$ = 12						; size = 4
 	push	ebx
 	push	esi
 
-; 595  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+; 583  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
 
 	mov	esi, DWORD PTR _binding$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -6390,11 +6387,11 @@ _param$ = 12						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 594  :     {
+; 582  :     {
 
 	push	edi
 
-; 595  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+; 583  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
 
 	push	OFFSET ??_C@_03OIJOKPOL@?$CD?$CD?$CD?$AA@
 	sub	esp, 24					; 00000018H
@@ -6430,7 +6427,7 @@ _param$ = 12						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 595  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+; 583  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -6449,7 +6446,7 @@ _param$ = 12						; size = 4
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 595  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+; 583  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6477,7 +6474,7 @@ _param$ = 12						; size = 4
 $LN55@operator:
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 596  :                   label += binding->bind_name;
+; 584  :                   label += binding->bind_name;
 
 	mov	edx, DWORD PTR [esi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -6523,7 +6520,7 @@ $LL255@operator:
 	cmp	DWORD PTR _label$[ebp+20], 16		; 00000010H
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 598  :       if (ImGui::Selectable (label.c_str (), false))
+; 586  :       if (ImGui::Selectable (label.c_str (), false))
 
 	lea	ecx, DWORD PTR $T3[ebp]
 	push	ecx
@@ -6545,7 +6542,7 @@ $LL255@operator:
 	cmovae	eax, DWORD PTR _label$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 598  :       if (ImGui::Selectable (label.c_str (), false))
+; 586  :       if (ImGui::Selectable (label.c_str (), false))
 
 	push	0
 	push	eax
@@ -6556,15 +6553,15 @@ $LL255@operator:
 	mov	DWORD PTR $T3[ebp+4], 0
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 598  :       if (ImGui::Selectable (label.c_str (), false))
+; 586  :       if (ImGui::Selectable (label.c_str (), false))
 
 	call	?Selectable@ImGui@@YA_NPBD_NHABUImVec2@@@Z ; ImGui::Selectable
 	add	esp, 16					; 00000010H
 	test	al, al
 	je	SHORT $LN2@operator
 
-; 599  :       {
-; 600  :         ImGui::OpenPopup (binding->bind_name);
+; 587  :       {
+; 588  :         ImGui::OpenPopup (binding->bind_name);
 
 	push	DWORD PTR [esi]
 	call	?OpenPopup@ImGui@@YAXPBD@Z		; ImGui::OpenPopup
@@ -6603,7 +6600,7 @@ $LN2@operator:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 606  :       SK_ImGui_KeybindDialog (binding);
+; 594  :       SK_ImGui_KeybindDialog (binding);
 
 	push	esi
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
@@ -6621,11 +6618,11 @@ $LN2@operator:
 	test	al, al
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 608  :       if (original_binding != binding->human_readable)
+; 596  :       if (original_binding != binding->human_readable)
 
 	jne	SHORT $LN3@operator
 
-; 610  :         param->set_value (binding->human_readable);
+; 598  :         param->store         (binding->human_readable);
 
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -6635,7 +6632,7 @@ $LN2@operator:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 610  :         param->set_value (binding->human_readable);
+; 598  :         param->store         (binding->human_readable);
 
 	mov	ecx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6668,22 +6665,16 @@ $LN2@operator:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 610  :         param->set_value (binding->human_readable);
+; 598  :         param->store         (binding->human_readable);
 
-	mov	esi, DWORD PTR _param$[ebp]
-	mov	ecx, esi
-	mov	eax, DWORD PTR [esi]
-	call	DWORD PTR [eax+12]
+	mov	ecx, DWORD PTR _param$[ebp]
+	mov	eax, DWORD PTR [ecx]
+	call	DWORD PTR [eax+16]
 
-; 611  :         param->store     ();
-
-	mov	ecx, esi
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 612  : 
-; 613  :         extern iSK_INI* osd_ini;
-; 614  : 
-; 615  :         osd_ini->write (osd_ini->get_filename ());
+; 599  : 
+; 600  :         extern iSK_INI* osd_ini;
+; 601  : 
+; 602  :         osd_ini->write (osd_ini->get_filename ());
 
 	mov	eax, DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
 	push	eax
@@ -6696,11 +6687,11 @@ $LN2@operator:
 	jmp	SHORT $LN10@operator
 $LN3@operator:
 
-; 616  : 
-; 617  :         return true;
-; 618  :       }
-; 619  : 
-; 620  :       return false;
+; 603  : 
+; 604  :         return true;
+; 605  :       }
+; 606  : 
+; 607  :       return false;
 
 	xor	bl, bl
 $LN10@operator:
@@ -6787,7 +6778,7 @@ $LN199@operator:
 $LN256@operator:
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 621  :     };
+; 608  :     };
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	al, bl
@@ -6801,20 +6792,20 @@ $LN256@operator:
 _TEXT	ENDS
 ;	COMDAT text$x
 text$x	SEGMENT
-__unwindfunclet$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$1:
+__unwindfunclet$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$1:
 	lea	ecx, DWORD PTR $T2[ebp]
 	jmp	??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::~basic_string<char,std::char_traits<char>,std::allocator<char> >
-__unwindfunclet$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$2:
+__unwindfunclet$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$2:
 	lea	ecx, DWORD PTR _label$[ebp]
 	jmp	??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::~basic_string<char,std::char_traits<char>,std::allocator<char> >
-__unwindfunclet$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$3:
+__unwindfunclet$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z$3:
 	lea	ecx, DWORD PTR _original_binding$[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-__ehhandler$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z:
-	mov	eax, OFFSET __ehfuncinfo$??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z
+__ehhandler$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z
 	jmp	___CxxFrameHandler3
 text$x	ENDS
-??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z ENDP ; <lambda_8b9e868eb4b45a5e008473f6382f52cb>::operator()
+??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z ENDP ; <lambda_322f41118d6d58482108aceb62769a04>::operator()
 ; Function compile flags: /Ogtp
 ;	COMDAT ??__Flast_state_was_config@?1??draw_base@SK_Widget@@QAEXXZ@YAXXZ
 text$yd	SEGMENT
@@ -13696,7 +13687,7 @@ _w$ = 24						; size = 1
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 139  :   const ImVec2&      getPos          (void) const { return    pos;            }
+; 138  :   const ImVec2&      getPos          (void) const { return    pos;            }
 
 	mov	esi, DWORD PTR _pWidget$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
@@ -17219,7 +17210,7 @@ _sec_name$ = 20						; size = 4
 _key_name$ = 24						; size = 4
 ?LoadWidgetVec2@@YAPAVParameterVec2f@sk@@PAUImVec2@@PAUiSK_INI@@PB_W22@Z PROC ; LoadWidgetVec2
 
-; 300  : {
+; 296  : {
 
 	npad	2
 	push	ebp
@@ -17234,7 +17225,7 @@ _key_name$ = 24						; size = 4
 	push	esi
 	push	edi
 
-; 303  :     (SK_Widget_ParameterFactory.create_parameter <ImVec2> (wszDesc));
+; 299  :     (SK_Widget_ParameterFactory.create_parameter <ImVec2> (wszDesc));
 
 	push	0
 	push	OFFSET ??_R0?AVParameterVec2f@sk@@@8
@@ -17252,11 +17243,11 @@ _key_name$ = 24						; size = 4
 	mov	edi, DWORD PTR _key_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 303  :     (SK_Widget_ParameterFactory.create_parameter <ImVec2> (wszDesc));
+; 299  :     (SK_Widget_ParameterFactory.create_parameter <ImVec2> (wszDesc));
 
 	mov	esi, eax
 
-; 305  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 301  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	push	ecx
 	mov	edx, esp
@@ -17313,7 +17304,7 @@ $LL54@LoadWidget:
 	mov	edi, DWORD PTR _sec_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 305  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 301  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	sub	esp, 24					; 00000018H
 	mov	edx, esp
@@ -17365,40 +17356,38 @@ $LL55@LoadWidget:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 305  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 301  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	push	DWORD PTR _ini_file$[ebp]
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	?register_to_ini@iParameter@sk@@QAEXPAUiSK_INI@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@1@Z ; sk::iParameter::register_to_ini
 
-; 306  : 
-; 307  :   if (! ret->load ())
+; 302  : 
+; 303  :   if (! ret->load (*piv2Val))
 
+	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
-	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
 	mov	edi, DWORD PTR _piv2Val$[ebp]
+	push	edi
+	mov	eax, DWORD PTR [eax+24]
+	call	eax
 	test	al, al
 	jne	SHORT $LN2@LoadWidget
 
-; 308  :   {
-; 309  :     ret->set_value  (*piv2Val);
+; 304  :   {
+; 305  :     ret->store    (*piv2Val);
 
 	push	DWORD PTR [edi+4]
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
 	push	DWORD PTR [edi]
-	call	DWORD PTR [eax+12]
-
-; 310  :     ret->store      ();
-
-	mov	ecx, esi
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 $LN2@LoadWidget:
 
-; 311  :   }
-; 312  : 
-; 313  :   *piv2Val = ret->get_value ();
+; 306  :   }
+; 307  : 
+; 308  :   *piv2Val = ret->get_value ();
 
 	mov	eax, DWORD PTR [esi]
 	lea	ecx, DWORD PTR $T2[ebp]
@@ -17409,9 +17398,9 @@ $LN2@LoadWidget:
 	mov	DWORD PTR [edi], ecx
 	mov	eax, DWORD PTR [eax+4]
 
-; 314  : 
-; 315  :   return ret;
-; 316  : }
+; 309  : 
+; 310  :   return ret;
+; 311  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR [edi+4], eax
@@ -17458,7 +17447,7 @@ _sec_name$ = 20						; size = 4
 _key_name$ = 24						; size = 4
 ?LoadWidgetDocking@@YAPAVParameterInt@sk@@PAW4DockAnchor@SK_Widget@@PAUiSK_INI@@PB_W22@Z PROC ; LoadWidgetDocking
 
-; 278  : {
+; 275  : {
 
 	npad	2
 	push	ebp
@@ -17473,7 +17462,7 @@ _key_name$ = 24						; size = 4
 	push	esi
 	push	edi
 
-; 281  :     (SK_Widget_ParameterFactory.create_parameter <int> (wszDesc));
+; 278  :     (SK_Widget_ParameterFactory.create_parameter <int> (wszDesc));
 
 	push	0
 	push	OFFSET ??_R0?AVParameterInt@sk@@@8
@@ -17491,11 +17480,11 @@ _key_name$ = 24						; size = 4
 	mov	edi, DWORD PTR _key_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 281  :     (SK_Widget_ParameterFactory.create_parameter <int> (wszDesc));
+; 278  :     (SK_Widget_ParameterFactory.create_parameter <int> (wszDesc));
 
 	mov	esi, eax
 
-; 283  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 280  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	push	ecx
 	mov	edx, esp
@@ -17552,7 +17541,7 @@ $LL54@LoadWidget:
 	mov	edi, DWORD PTR _sec_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 283  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 280  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	sub	esp, 24					; 00000018H
 	mov	edx, esp
@@ -17604,47 +17593,45 @@ $LL55@LoadWidget:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 283  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 280  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	push	DWORD PTR _ini_file$[ebp]
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	?register_to_ini@iParameter@sk@@QAEXPAUiSK_INI@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@1@Z ; sk::iParameter::register_to_ini
 
-; 284  : 
-; 285  :   if (! ret->load ())
+; 281  : 
+; 282  :   if (! ret->load (*(int *)pdaVal))
 
+	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
-	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
 	mov	edi, DWORD PTR _pdaVal$[ebp]
+	push	edi
+	mov	eax, DWORD PTR [eax+24]
+	call	eax
 	test	al, al
 	jne	SHORT $LN2@LoadWidget
 
-; 286  :   {
-; 287  :     ret->set_value  (*(int *)pdaVal);
+; 283  :   {
+; 284  :     ret->store    (*(int *)pdaVal);
 
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
 	push	DWORD PTR [edi]
-	call	DWORD PTR [eax+12]
-
-; 288  :     ret->store      ();
-
-	mov	ecx, esi
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 $LN2@LoadWidget:
 
-; 289  :   }
-; 290  : 
-; 291  :   *(int *)pdaVal = ret->get_value ();
+; 285  :   }
+; 286  : 
+; 287  :   *(int *)pdaVal = ret->get_value ();
 
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
 	call	DWORD PTR [eax+8]
 
-; 292  : 
-; 293  :   return ret;
-; 294  : }
+; 288  : 
+; 289  :   return ret;
+; 290  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR [edi], eax
@@ -17691,7 +17678,7 @@ _sec_name$ = 20						; size = 4
 _key_name$ = 24						; size = 4
 ?LoadWidgetBool@@YAPAVParameterBool@sk@@PA_NPAUiSK_INI@@PB_W22@Z PROC ; LoadWidgetBool
 
-; 256  : {
+; 254  : {
 
 	npad	2
 	push	ebp
@@ -17706,7 +17693,7 @@ _key_name$ = 24						; size = 4
 	push	esi
 	push	edi
 
-; 259  :     (SK_Widget_ParameterFactory.create_parameter <bool> (wszDesc));
+; 257  :     (SK_Widget_ParameterFactory.create_parameter <bool> (wszDesc));
 
 	push	0
 	push	OFFSET ??_R0?AVParameterBool@sk@@@8
@@ -17724,11 +17711,11 @@ _key_name$ = 24						; size = 4
 	mov	edi, DWORD PTR _key_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 259  :     (SK_Widget_ParameterFactory.create_parameter <bool> (wszDesc));
+; 257  :     (SK_Widget_ParameterFactory.create_parameter <bool> (wszDesc));
 
 	mov	esi, eax
 
-; 261  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 259  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	push	ecx
 	mov	edx, esp
@@ -17785,7 +17772,7 @@ $LL54@LoadWidget:
 	mov	edi, DWORD PTR _sec_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 261  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 259  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	sub	esp, 24					; 00000018H
 	mov	edx, esp
@@ -17837,49 +17824,47 @@ $LL55@LoadWidget:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 261  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 259  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	push	DWORD PTR _ini_file$[ebp]
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	?register_to_ini@iParameter@sk@@QAEXPAUiSK_INI@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@1@Z ; sk::iParameter::register_to_ini
 
-; 262  : 
-; 263  :   if (! ret->load ())
+; 260  : 
+; 261  :   if (! ret->load (*pbVal))
 
+	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
-	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
 	mov	edi, DWORD PTR _pbVal$[ebp]
+	push	edi
+	mov	eax, DWORD PTR [eax+24]
+	call	eax
 	test	al, al
 	jne	SHORT $LN2@LoadWidget
 
-; 264  :   {
-; 265  :     ret->set_value  (*pbVal);
+; 262  :   {
+; 263  :     ret->store    (*pbVal);
 
 	mov	edx, DWORD PTR [esi]
 	mov	ecx, esi
 	movzx	eax, BYTE PTR [edi]
 	push	eax
-	call	DWORD PTR [edx+12]
-
-; 266  :     ret->store      ();
-
-	mov	ecx, esi
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [edx+16]
 $LN2@LoadWidget:
 
-; 267  :   }
-; 268  : 
-; 269  :   *pbVal = ret->get_value ();
+; 264  :   }
+; 265  : 
+; 266  :   *pbVal = ret->get_value ();
 
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
 	mov	eax, DWORD PTR [eax+8]
 	call	eax
 
-; 270  : 
-; 271  :   return ret;
-; 272  : }
+; 267  : 
+; 268  :   return ret;
+; 269  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	BYTE PTR [edi], al
@@ -17922,7 +17907,6 @@ text$x	ENDS
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -17948,8 +17932,8 @@ _TEXT	SEGMENT
 $T2 = -48						; size = 24
 $T3 = -24						; size = 4
 _ret$1$ = -20						; size = 4
-tv780 = -16						; size = 4
-tv777 = -16						; size = 4
+tv781 = -16						; size = 4
+tv778 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 _binding$ = 8						; size = 4
 _ini_file$ = 12						; size = 4
@@ -17958,7 +17942,7 @@ _sec_name$ = 20						; size = 4
 _key_name$ = 24						; size = 4
 ?LoadWidgetKeybind@@YAPAVParameterStringW@sk@@PAUSK_Keybind@@PAUiSK_INI@@PB_W22@Z PROC ; LoadWidgetKeybind
 
-; 232  : {
+; 231  : {
 
 	npad	2
 	push	ebp
@@ -17972,7 +17956,7 @@ _key_name$ = 24						; size = 4
 	push	esi
 	push	edi
 
-; 235  :     (SK_Widget_ParameterFactory.create_parameter <std::wstring> (wszDesc));
+; 234  :     (SK_Widget_ParameterFactory.create_parameter <std::wstring> (wszDesc));
 
 	push	0
 	push	OFFSET ??_R0?AVParameterStringW@sk@@@8
@@ -17987,26 +17971,26 @@ _key_name$ = 24						; size = 4
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
-	mov	edi, DWORD PTR _key_name$[ebp]
+	mov	esi, DWORD PTR _key_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 235  :     (SK_Widget_ParameterFactory.create_parameter <std::wstring> (wszDesc));
+; 234  :     (SK_Widget_ParameterFactory.create_parameter <std::wstring> (wszDesc));
 
-	mov	esi, eax
+	mov	edi, eax
 
-; 237  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 236  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	push	ecx
 	mov	edx, esp
-	mov	DWORD PTR _ret$1$[ebp], esi
+	mov	DWORD PTR _ret$1$[ebp], edi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
-	mov	ecx, edi
+	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 237  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 236  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	mov	DWORD PTR $T3[ebp], esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -18032,31 +18016,31 @@ _key_name$ = 24						; size = 4
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	lea	eax, DWORD PTR [ecx+2]
-	mov	DWORD PTR tv777[ebp], eax
+	mov	DWORD PTR tv778[ebp], eax
 	npad	7
 $LL205@LoadWidget:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
 	jne	SHORT $LL205@LoadWidget
-	sub	ecx, DWORD PTR tv777[ebp]
+	sub	ecx, DWORD PTR tv778[ebp]
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	ecx
-	push	edi
+	push	esi
 	mov	ecx, edx
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
-	mov	edi, DWORD PTR _sec_name$[ebp]
+	mov	esi, DWORD PTR _sec_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 237  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 236  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	sub	esp, 24					; 00000018H
 	mov	edx, esp
@@ -18065,7 +18049,7 @@ $LL205@LoadWidget:
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
-	mov	ecx, edi
+	mov	ecx, esi
 
 ; 326  : 		_Left = _Right;
 
@@ -18088,47 +18072,51 @@ $LL205@LoadWidget:
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	lea	eax, DWORD PTR [ecx+2]
-	mov	DWORD PTR tv780[ebp], eax
+	mov	DWORD PTR tv781[ebp], eax
 $LL206@LoadWidget:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
 	jne	SHORT $LL206@LoadWidget
-	sub	ecx, DWORD PTR tv780[ebp]
+	sub	ecx, DWORD PTR tv781[ebp]
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	ecx
-	push	edi
+	push	esi
 	mov	ecx, edx
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 237  :   ret->register_to_ini ( ini_file, sec_name, key_name );
+; 236  :   ret->register_to_ini ( ini_file, sec_name, key_name );
 
 	push	DWORD PTR _ini_file$[ebp]
-	mov	ecx, esi
+	mov	ecx, edi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	?register_to_ini@iParameter@sk@@QAEXPAUiSK_INI@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@1@Z ; sk::iParameter::register_to_ini
 
-; 238  : 
-; 239  :   if (! ret->load ())
+; 237  : 
+; 238  :   if (! ret->load (binding->human_readable))
 
-	mov	ecx, esi
-	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	mov	esi, DWORD PTR _binding$[ebp]
+	add	esi, 4
+	push	esi
+	mov	eax, DWORD PTR [eax+24]
+	call	eax
 	test	al, al
 	jne	SHORT $LN2@LoadWidget
 
-; 240  :   {
-; 241  :     binding->parse  ();
+; 239  :   {
+; 240  :     binding->parse  ();
 
-	mov	edi, DWORD PTR _binding$[ebp]
-	mov	ecx, edi
+	mov	ecx, DWORD PTR _binding$[ebp]
 	call	?parse@SK_Keybind@@QAEXXZ		; SK_Keybind::parse
 
-; 242  :     ret->set_value  (binding->human_readable);
+; 241  :     ret->store      (binding->human_readable);
 
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -18138,7 +18126,7 @@ $LL206@LoadWidget:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 242  :     ret->set_value  (binding->human_readable);
+; 241  :     ret->store      (binding->human_readable);
 
 	mov	ecx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18146,6 +18134,7 @@ $LL206@LoadWidget:
 ; 2174 : 		assign(_Right, 0, npos);
 
 	push	-1
+	push	eax
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -18157,50 +18146,37 @@ $LL206@LoadWidget:
 
 ; 2174 : 		assign(_Right, 0, npos);
 
-	push	eax
+	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR [ecx], ax
-; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
-
-; 242  :     ret->set_value  (binding->human_readable);
-
-	lea	eax, DWORD PTR [edi+4]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2174 : 		assign(_Right, 0, npos);
 
-	push	eax
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 242  :     ret->set_value  (binding->human_readable);
+; 241  :     ret->store      (binding->human_readable);
 
-	mov	eax, DWORD PTR [esi]
-	mov	ecx, esi
-	call	DWORD PTR [eax+12]
-
-; 243  :     ret->store      ();
-
-	mov	ecx, esi
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	call	DWORD PTR [eax+16]
 $LN2@LoadWidget:
 
-; 244  :   }
-; 245  : 
-; 246  :   binding->human_readable = ret->get_value ();
+; 242  :   }
+; 243  : 
+; 244  :   binding->human_readable = ret->get_value ();
 
-	mov	eax, DWORD PTR [esi]
+	mov	eax, DWORD PTR [edi]
 	lea	ecx, DWORD PTR $T2[ebp]
 	push	ecx
-	mov	ecx, esi
+	mov	ecx, edi
 	mov	eax, DWORD PTR [eax+8]
 	call	eax
-	mov	esi, DWORD PTR _binding$[ebp]
 	mov	edi, eax
-	add	esi, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2076 : 		if (this != _STD addressof(_Right))
@@ -18308,7 +18284,7 @@ $LN173@LoadWidget:
 $LN179@LoadWidget:
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 247  :   binding->parse  ();
+; 245  :   binding->parse  ();
 
 	mov	ecx, DWORD PTR _binding$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -18332,13 +18308,13 @@ $LN179@LoadWidget:
 	mov	WORD PTR $T2[ebp], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 247  :   binding->parse  ();
+; 245  :   binding->parse  ();
 
 	call	?parse@SK_Keybind@@QAEXXZ		; SK_Keybind::parse
 
-; 248  : 
-; 249  :   return ret;
-; 250  : }
+; 246  : 
+; 247  :   return ret;
+; 248  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, DWORD PTR _ret$1$[ebp]
@@ -18387,165 +18363,109 @@ _ini$ = 8						; size = 4
 	je	$LN2@save
 
 ; 452  :   {
-; 453  :     param_visible->set_value  (visible);
+; 453  :     param_visible->store (visible);
 
 	mov	edx, DWORD PTR [ecx]
 	movzx	eax, BYTE PTR [ebx+184]
 	push	eax
-	call	DWORD PTR [edx+12]
+	call	DWORD PTR [edx+16]
 
-; 454  :     param_visible->store      ();
-
-	mov	ecx, DWORD PTR [ebx+108]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 455  :   }
-; 456  : 
-; 457  :   else
-; 458  :     return;
-; 459  : 
-; 460  :   param_movable->set_value      (     movable      );
+; 454  :   }
+; 455  : 
+; 456  :   else
+; 457  :     return;
+; 458  : 
+; 459  :   param_movable->store      (     movable      );
 
 	mov	ecx, DWORD PTR [ebx+112]
 	movzx	eax, BYTE PTR [ebx+188]
 	push	eax
 	mov	edx, DWORD PTR [ecx]
-	call	DWORD PTR [edx+12]
+	call	DWORD PTR [edx+16]
 
-; 461  :   param_border->set_value       (     border       );
+; 460  :   param_border->store       (     border       );
 
 	mov	ecx, DWORD PTR [ebx+124]
 	movzx	eax, BYTE PTR [ebx+190]
 	push	eax
 	mov	edx, DWORD PTR [ecx]
-	call	DWORD PTR [edx+12]
+	call	DWORD PTR [edx+16]
 
-; 462  :   param_clickthrough->set_value (     click_through);
+; 461  :   param_clickthrough->store (     click_through);
 
 	mov	ecx, DWORD PTR [ebx+128]
 	movzx	eax, BYTE PTR [ebx+191]
 	push	eax
 	mov	edx, DWORD PTR [ecx]
-	call	DWORD PTR [edx+12]
+	call	DWORD PTR [edx+16]
 
-; 463  :   param_autofit->set_value      (     autofit      );
+; 462  :   param_autofit->store      (     autofit      );
 
 	mov	ecx, DWORD PTR [ebx+116]
 	movzx	eax, BYTE PTR [ebx+187]
 	push	eax
 	mov	edx, DWORD PTR [ecx]
-	call	DWORD PTR [edx+12]
+	call	DWORD PTR [edx+16]
 
-; 464  :   param_resizable->set_value    (     resizable    );
+; 463  :   param_resizable->store    (     resizable    );
 
 	mov	ecx, DWORD PTR [ebx+120]
 	movzx	eax, BYTE PTR [ebx+189]
 	push	eax
 	mov	edx, DWORD PTR [ecx]
-	call	DWORD PTR [edx+12]
+	call	DWORD PTR [edx+16]
 
-; 465  :   param_docking->set_value      ((int)docking      );
+; 464  :   param_docking->store      ((int)docking      );
 
 	mov	ecx, DWORD PTR [ebx+148]
 	push	DWORD PTR [ebx+224]
 	mov	eax, DWORD PTR [ecx]
-	call	DWORD PTR [eax+12]
+	call	DWORD PTR [eax+16]
 
-; 466  :   param_minsize->set_value      (     min_size     );
+; 465  :   param_minsize->store      (     min_size     );
 
 	mov	ecx, DWORD PTR [ebx+132]
 	push	DWORD PTR [ebx+196]
 	push	DWORD PTR [ebx+192]
 	mov	eax, DWORD PTR [ecx]
-	call	DWORD PTR [eax+12]
+	call	DWORD PTR [eax+16]
 
-; 467  :   param_maxsize->set_value      (     max_size     );
+; 466  :   param_maxsize->store      (     max_size     );
 
 	mov	ecx, DWORD PTR [ebx+136]
 	push	DWORD PTR [ebx+204]
 	push	DWORD PTR [ebx+200]
 	mov	eax, DWORD PTR [ecx]
-	call	DWORD PTR [eax+12]
+	call	DWORD PTR [eax+16]
 
-; 468  :   param_size->set_value         (     size         );
+; 467  :   param_size->store         (     size         );
 
 	mov	ecx, DWORD PTR [ebx+140]
 	push	DWORD PTR [ebx+212]
 	push	DWORD PTR [ebx+208]
 	mov	eax, DWORD PTR [ecx]
-	call	DWORD PTR [eax+12]
+	call	DWORD PTR [eax+16]
 
-; 469  :   param_pos->set_value          (     pos          );
+; 468  :   param_pos->store          (     pos          );
 
 	mov	ecx, DWORD PTR [ebx+144]
 	push	DWORD PTR [ebx+220]
 	push	DWORD PTR [ebx+216]
 	mov	eax, DWORD PTR [ecx]
-	call	DWORD PTR [eax+12]
+	call	DWORD PTR [eax+16]
 
-; 470  : 
-; 471  :   param_movable->store      ();
-
-	mov	ecx, DWORD PTR [ebx+112]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 472  :   param_border->store       ();
-
-	mov	ecx, DWORD PTR [ebx+124]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 473  :   param_clickthrough->store ();
-
-	mov	ecx, DWORD PTR [ebx+128]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 474  :   param_autofit->store      ();
-
-	mov	ecx, DWORD PTR [ebx+116]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 475  :   param_resizable->store    ();
-
-	mov	ecx, DWORD PTR [ebx+120]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 476  :   param_docking->store      ();
-
-	mov	ecx, DWORD PTR [ebx+148]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 477  :   param_minsize->store      ();
-
-	mov	ecx, DWORD PTR [ebx+132]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 478  :   param_maxsize->store      ();
-
-	mov	ecx, DWORD PTR [ebx+136]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 479  :   param_size->store         ();
-
-	mov	ecx, DWORD PTR [ebx+140]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 480  :   param_pos->store          ();
-
-	mov	ecx, DWORD PTR [ebx+144]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
-
-; 481  : 
-; 482  :   static DWORD dwLastWrite = 0;
-; 483  : 
-; 484  :   if (dwLastWrite < timeGetTime () - 250)
+; 469  : 
+; 470  :   static DWORD dwLastWrite = 0;
+; 471  : 
+; 472  :   if (dwLastWrite < timeGetTime () - 250)
 
 	call	DWORD PTR __imp__timeGetTime@0
 	sub	eax, 250				; 000000faH
 	cmp	DWORD PTR ?dwLastWrite@?1??save@SK_Widget@@IAEXPAUiSK_INI@@@Z@4KA, eax
 	jae	SHORT $LN4@save
 
-; 485  :   {
-; 486  :     ini->write (ini->get_filename ());
+; 473  :   {
+; 474  :     ini->write (ini->get_filename ());
 
 	push	esi
 	mov	esi, DWORD PTR _ini$[ebp]
@@ -18557,7 +18477,7 @@ _ini$ = 8						; size = 4
 	push	esi
 	call	DWORD PTR [edi+20]
 
-; 487  :     dwLastWrite = timeGetTime ();
+; 475  :     dwLastWrite = timeGetTime ();
 
 	call	DWORD PTR __imp__timeGetTime@0
 	pop	edi
@@ -18565,9 +18485,9 @@ _ini$ = 8						; size = 4
 	pop	esi
 $LN4@save:
 
-; 488  :   }
-; 489  : 
-; 490  :   OnConfig (ConfigEvent::SaveComplete);
+; 476  :   }
+; 477  : 
+; 478  :   OnConfig (ConfigEvent::SaveComplete);
 
 	mov	eax, DWORD PTR [ebx]
 	mov	ecx, ebx
@@ -18576,7 +18496,7 @@ $LN4@save:
 $LN2@save:
 	pop	ebx
 
-; 491  : }
+; 479  : }
 
 	pop	ebp
 	ret	4
@@ -18589,20 +18509,20 @@ ___formal$ = 8						; size = 4
 ?load@SK_Widget@@IAEXPAUiSK_INI@@@Z PROC		; SK_Widget::load
 ; _this$ = ecx
 
-; 673  : {
+; 660  : {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 674  :   OnConfig (ConfigEvent::LoadStart);
+; 661  :   OnConfig (ConfigEvent::LoadStart);
 
 	push	0
 	mov	eax, DWORD PTR [esi]
 	call	DWORD PTR [eax+8]
 
-; 675  :   // ...
-; 676  :   OnConfig (ConfigEvent::LoadComplete);
+; 662  :   // ...
+; 663  :   OnConfig (ConfigEvent::LoadComplete);
 
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
@@ -18610,7 +18530,7 @@ ___formal$ = 8						; size = 4
 	call	DWORD PTR [eax+8]
 	pop	esi
 
-; 677  : }
+; 664  : }
 
 	ret	4
 ?load@SK_Widget@@IAEXPAUiSK_INI@@@Z ENDP		; SK_Widget::load
@@ -18622,7 +18542,7 @@ _TEXT	SEGMENT
 ?getToggleKey@SK_Widget@@QBEABUSK_Keybind@@XZ PROC	; SK_Widget::getToggleKey, COMDAT
 ; _this$ = ecx
 
-; 142  :   const SK_Keybind&  getToggleKey    (void) const { return    toggle_key;     }
+; 141  :   const SK_Keybind&  getToggleKey    (void) const { return    toggle_key;     }
 
 	lea	eax, DWORD PTR [ecx+4]
 	ret	0
@@ -18635,7 +18555,7 @@ _TEXT	SEGMENT
 ?getDockingPoint@SK_Widget@@QBEABW4DockAnchor@1@XZ PROC	; SK_Widget::getDockingPoint, COMDAT
 ; _this$ = ecx
 
-; 140  :   const DockAnchor&  getDockingPoint (void) const { return    docking;        }
+; 139  :   const DockAnchor&  getDockingPoint (void) const { return    docking;        }
 
 	lea	eax, DWORD PTR [ecx+224]
 	ret	0
@@ -18648,7 +18568,7 @@ _TEXT	SEGMENT
 ?getPos@SK_Widget@@QBEABUImVec2@@XZ PROC		; SK_Widget::getPos, COMDAT
 ; _this$ = ecx
 
-; 139  :   const ImVec2&      getPos          (void) const { return    pos;            }
+; 138  :   const ImVec2&      getPos          (void) const { return    pos;            }
 
 	lea	eax, DWORD PTR [ecx+216]
 	ret	0
@@ -18661,7 +18581,7 @@ _TEXT	SEGMENT
 ?getSize@SK_Widget@@QBEABUImVec2@@XZ PROC		; SK_Widget::getSize, COMDAT
 ; _this$ = ecx
 
-; 138  :   const ImVec2&      getSize         (void) const { return    size;           }
+; 137  :   const ImVec2&      getSize         (void) const { return    size;           }
 
 	lea	eax, DWORD PTR [ecx+208]
 	ret	0
@@ -18674,7 +18594,7 @@ _TEXT	SEGMENT
 ?isMovable@SK_Widget@@QBE_NXZ PROC			; SK_Widget::isMovable, COMDAT
 ; _this$ = ecx
 
-; 131  :         bool         isMovable       (void) const { return    movable;        }
+; 130  :         bool         isMovable       (void) const { return    movable;        }
 
 	mov	al, BYTE PTR [ecx+188]
 	ret	0
@@ -18687,7 +18607,7 @@ _TEXT	SEGMENT
 ?isVisible@SK_Widget@@QBE_NXZ PROC			; SK_Widget::isVisible, COMDAT
 ; _this$ = ecx
 
-; 128  :         bool         isVisible       (void) const { return    visible &&
+; 127  :         bool         isVisible       (void) const { return    visible &&
 
 	cmp	BYTE PTR [ecx+184], 0
 	je	SHORT $LN3@isVisible
@@ -18695,16 +18615,16 @@ _TEXT	SEGMENT
 	jne	SHORT $LN3@isVisible
 	mov	al, 1
 
-; 129  :                                                (! SK_ImGui_Widgets.hide_all); }
+; 128  :                                                (! SK_ImGui_Widgets.hide_all); }
 
 	ret	0
 $LN3@isVisible:
 
-; 128  :         bool         isVisible       (void) const { return    visible &&
+; 127  :         bool         isVisible       (void) const { return    visible &&
 
 	xor	al, al
 
-; 129  :                                                (! SK_ImGui_Widgets.hide_all); }
+; 128  :                                                (! SK_ImGui_Widgets.hide_all); }
 
 	ret	0
 ?isVisible@SK_Widget@@QBE_NXZ ENDP			; SK_Widget::isVisible
@@ -18717,7 +18637,7 @@ _iv2Pos$ = 8						; size = 4
 ?setPos@SK_Widget@@QAEAAV1@AAUImVec2@@@Z PROC		; SK_Widget::setPos, COMDAT
 ; _this$ = ecx
 
-; 122  :   SK_Widget& setPos          (ImVec2&     iv2Pos)        { pos           = iv2Pos;        return *this; }
+; 121  :   SK_Widget& setPos          (ImVec2&     iv2Pos)        { pos           = iv2Pos;        return *this; }
 
 	npad	2
 	push	ebp
@@ -18740,7 +18660,7 @@ _bClickthrough$ = 8					; size = 1
 ?setClickThrough@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setClickThrough, COMDAT
 ; _this$ = ecx
 
-; 118  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
+; 117  :   SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
 
 	npad	2
 	push	ebp
@@ -18760,7 +18680,7 @@ _bBorder$ = 8						; size = 1
 ?setBorder@SK_Widget@@QAEAAV1@_N@Z PROC			; SK_Widget::setBorder, COMDAT
 ; _this$ = ecx
 
-; 117  :   SK_Widget& setBorder       (bool        bBorder)       { border        = bBorder;       return *this; }
+; 116  :   SK_Widget& setBorder       (bool        bBorder)       { border        = bBorder;       return *this; }
 
 	npad	2
 	push	ebp
@@ -18780,7 +18700,7 @@ _bAutofit$ = 8						; size = 1
 ?setAutoFit@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setAutoFit, COMDAT
 ; _this$ = ecx
 
-; 116  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
+; 115  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
 
 	npad	2
 	push	ebp
@@ -18800,7 +18720,7 @@ _bResizable$ = 8					; size = 1
 ?setResizable@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setResizable, COMDAT
 ; _this$ = ecx
 
-; 115  :   SK_Widget& setResizable    (bool        bResizable)    { resizable     = bResizable;    return *this; }
+; 114  :   SK_Widget& setResizable    (bool        bResizable)    { resizable     = bResizable;    return *this; }
 
 	npad	2
 	push	ebp
@@ -18820,7 +18740,7 @@ _bMovable$ = 8						; size = 1
 ?setMovable@SK_Widget@@QAEAAV1@_N@Z PROC		; SK_Widget::setMovable, COMDAT
 ; _this$ = ecx
 
-; 114  :   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
+; 113  :   SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
 
 	npad	2
 	push	ebp
@@ -18840,7 +18760,7 @@ _bActive$ = 8						; size = 1
 ?setActive@SK_Widget@@QAEAAV1@_N@Z PROC			; SK_Widget::setActive, COMDAT
 ; _this$ = ecx
 
-; 112  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
+; 111  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
 
 	npad	2
 	push	ebp
@@ -18875,7 +18795,7 @@ _bVisible$ = 8						; size = 1
 	test	dl, dl
 	je	SHORT $LN2@setVisible
 
-; 112  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
+; 111  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
 
 	mov	BYTE PTR [esi+185], dl
 $LN2@setVisible:
@@ -18889,20 +18809,15 @@ $LN2@setVisible:
 	je	SHORT $LN7@setVisible
 
 ; 107  :                                                            {
-; 108  :                                                              param_visible->set_value (visible);
+; 108  :                                                              param_visible->store (visible);
 
 	mov	eax, DWORD PTR [ecx]
 	push	edx
-	call	DWORD PTR [eax+12]
-
-; 109  :                                                              param_visible->store     ();
-
-	mov	ecx, DWORD PTR [esi+108]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 $LN7@setVisible:
 
-; 110  :                                                            }
-; 111  :                                                                                           return *this; }
+; 109  :                                                            }
+; 110  :                                                                                           return *this; }
 
 	mov	eax, esi
 	pop	esi
@@ -18926,7 +18841,7 @@ _Keybinding$ = -1					; size = 1
 ?config_base@SK_Widget@@QAEXXZ PROC			; SK_Widget::config_base
 ; _this$ = ecx
 
-; 495  : {
+; 483  : {
 
 	npad	2
 	push	ebp
@@ -18937,34 +18852,34 @@ _Keybinding$ = -1					; size = 1
 	push	edi
 	mov	edi, ecx
 
-; 496  :   static bool changed = false;
-; 497  : 
-; 498  :   const  float font_size           =             ImGui::GetFont  ()->FontSize;//                        * scale;//io.FontGlobalScale;
+; 484  :   static bool changed = false;
+; 485  : 
+; 486  :   const  float font_size           =             ImGui::GetFont  ()->FontSize;//                        * scale;//io.FontGlobalScale;
 
 	call	?GetFont@ImGui@@YAPAUImFont@@XZ		; ImGui::GetFont
 
-; 499  :   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+; 487  :   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
 	call	?GetStyle@ImGui@@YAAAUImGuiStyle@@XZ	; ImGui::GetStyle
 	call	?GetStyle@ImGui@@YAAAUImGuiStyle@@XZ	; ImGui::GetStyle
 
-; 500  : 
-; 501  :   if (ImGui::Checkbox ("Movable", &movable))
+; 488  : 
+; 489  :   if (ImGui::Checkbox ("Movable", &movable))
 
 	lea	eax, DWORD PTR [edi+188]
 	push	eax
-	push	OFFSET $SG147703
+	push	OFFSET $SG147958
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	movzx	ecx, BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA
 	test	al, al
 	mov	ebx, 1
 
-; 502  :   {
-; 503  :     setMovable (movable);
-; 504  :     changed = true;
-; 505  :   }
-; 506  : 
-; 507  :   ImGui::SameLine ();
+; 490  :   {
+; 491  :     setMovable (movable);
+; 492  :     changed = true;
+; 493  :   }
+; 494  : 
+; 495  :   ImGui::SameLine ();
 
 	mov	DWORD PTR [esp+4], -1082130432		; bf800000H
 	cmovne	ecx, ebx
@@ -18972,93 +18887,93 @@ _Keybinding$ = -1					; size = 1
 	mov	BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA, cl
 	call	?SameLine@ImGui@@YAXMM@Z		; ImGui::SameLine
 
-; 508  :   if (ImGui::Checkbox ("Resizable", &resizable))
+; 496  :   if (ImGui::Checkbox ("Resizable", &resizable))
 
 	lea	esi, DWORD PTR [edi+189]
 	push	esi
-	push	OFFSET $SG147705
+	push	OFFSET $SG147960
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	movzx	ecx, BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA
 	add	esp, 16					; 00000010H
 	test	al, al
 	cmovne	ecx, ebx
 
-; 509  :   {
-; 510  :     setResizable (resizable);
-; 511  :     changed = true;
-; 512  :   }
-; 513  : 
-; 514  :   if (! resizable)
+; 497  :   {
+; 498  :     setResizable (resizable);
+; 499  :     changed = true;
+; 500  :   }
+; 501  : 
+; 502  :   if (! resizable)
 
 	cmp	BYTE PTR [esi], 0
 	mov	BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA, cl
 	jne	SHORT $LN4@config_bas
 
-; 515  :   {
-; 516  :     ImGui::SameLine ();
+; 503  :   {
+; 504  :     ImGui::SameLine ();
 
 	sub	esp, 8
 	mov	DWORD PTR [esp+4], -1082130432		; bf800000H
 	mov	DWORD PTR [esp], 0
 	call	?SameLine@ImGui@@YAXMM@Z		; ImGui::SameLine
 
-; 517  :     if (ImGui::Checkbox ("Auto-Fit", &autofit))
+; 505  :     if (ImGui::Checkbox ("Auto-Fit", &autofit))
 
 	lea	eax, DWORD PTR [edi+187]
 	push	eax
-	push	OFFSET $SG147709
+	push	OFFSET $SG147964
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	add	esp, 16					; 00000010H
 	test	al, al
 	je	SHORT $LN7@config_bas
 
-; 518  :     {
-; 519  :       setAutoFit (autofit);
-; 520  :       changed = true;
+; 506  :     {
+; 507  :       setAutoFit (autofit);
+; 508  :       changed = true;
 
 	mov	BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA, bl
 
-; 521  :     }
-; 522  :   }
+; 509  :     }
+; 510  :   }
 
 	jmp	SHORT $LN7@config_bas
 $LN4@config_bas:
 
-; 523  : 
-; 524  :   else if (changed)
+; 511  : 
+; 512  :   else if (changed)
 
 	test	cl, cl
 	je	SHORT $LN7@config_bas
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 116  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
+; 115  :   SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
 
 	mov	BYTE PTR [edi+187], 0
 $LN7@config_bas:
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 527  :   ImGui::SameLine ();
+; 515  :   ImGui::SameLine ();
 
 	sub	esp, 8
 	mov	DWORD PTR [esp+4], -1082130432		; bf800000H
 	mov	DWORD PTR [esp], 0
 	call	?SameLine@ImGui@@YAXMM@Z		; ImGui::SameLine
 
-; 528  :   if (ImGui::Checkbox ("Click-Through", &click_through))
+; 516  :   if (ImGui::Checkbox ("Click-Through", &click_through))
 
 	lea	eax, DWORD PTR [edi+191]
 	push	eax
-	push	OFFSET $SG147712
+	push	OFFSET $SG147967
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	movzx	ecx, BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA
 	test	al, al
 
-; 529  :   {
-; 530  :     setClickThrough (click_through);
-; 531  :     changed = true;
-; 532  :   }
-; 533  : 
-; 534  :   ImGui::SameLine ();
+; 517  :   {
+; 518  :     setClickThrough (click_through);
+; 519  :     changed = true;
+; 520  :   }
+; 521  : 
+; 522  :   ImGui::SameLine ();
 
 	mov	DWORD PTR [esp+12], -1082130432		; bf800000H
 	cmovne	ecx, ebx
@@ -19067,22 +18982,22 @@ $LN7@config_bas:
 	mov	BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA, cl
 	call	?SameLine@ImGui@@YAXMM@Z		; ImGui::SameLine
 
-; 535  :   if (ImGui::Checkbox ("Draw Border", &border))
+; 523  :   if (ImGui::Checkbox ("Draw Border", &border))
 
 	lea	eax, DWORD PTR [edi+190]
 	push	eax
-	push	OFFSET $SG147714
+	push	OFFSET $SG147969
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	movzx	ecx, BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA
 	add	esp, 16					; 00000010H
 	test	al, al
 
-; 543  :        e = static_cast <int> (docking) & static_cast <int> (DockAnchor::East),
+; 531  :        e = static_cast <int> (docking) & static_cast <int> (DockAnchor::East),
 
 	mov	eax, DWORD PTR [edi+224]
 	cmovne	ecx, ebx
 
-; 544  :        w = static_cast <int> (docking) & static_cast <int> (DockAnchor::West);
+; 532  :        w = static_cast <int> (docking) & static_cast <int> (DockAnchor::West);
 
 	mov	ebx, eax
 	mov	BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA, cl
@@ -19093,70 +19008,70 @@ $LN7@config_bas:
 	mov	DWORD PTR tv195[ebp], ecx
 	and	bl, 1
 
-; 545  : 
-; 546  :   const char* anchors = "Undocked\0North\0South\0\0";
-; 547  : 
-; 548  :   int dock = 0;
+; 533  : 
+; 534  :   const char* anchors = "Undocked\0North\0South\0\0";
+; 535  : 
+; 536  :   int dock = 0;
 
 	xor	ecx, ecx
 	lea	esi, DWORD PTR [ecx+2]
 	test	al, 1
 
-; 549  : 
-; 550  :        if (n) dock = 1;
+; 537  : 
+; 538  :        if (n) dock = 1;
 
 	je	SHORT $LN10@config_bas
 	mov	DWORD PTR _dock$[ebp], 1
 	jmp	SHORT $LN12@config_bas
 $LN10@config_bas:
 
-; 536  :   {
-; 537  :     setBorder (border);
-; 538  :     changed = true;
-; 539  :   }
-; 540  : 
-; 541  :   bool n = static_cast <int> (docking) & static_cast <int> (DockAnchor::North),
-; 542  :        s = static_cast <int> (docking) & static_cast <int> (DockAnchor::South),
+; 524  :   {
+; 525  :     setBorder (border);
+; 526  :     changed = true;
+; 527  :   }
+; 528  : 
+; 529  :   bool n = static_cast <int> (docking) & static_cast <int> (DockAnchor::North),
+; 530  :        s = static_cast <int> (docking) & static_cast <int> (DockAnchor::South),
 
 	shr	eax, 1
 	test	al, 1
 
-; 551  :   else if (s) dock = 2;
+; 539  :   else if (s) dock = 2;
 
 	cmovne	ecx, esi
 	mov	DWORD PTR _dock$[ebp], ecx
 $LN12@config_bas:
 
-; 552  : 
-; 553  :   if (ImGui::Combo ("Vertical Docking Anchor", &dock, anchors, 3))
+; 540  : 
+; 541  :   if (ImGui::Combo ("Vertical Docking Anchor", &dock, anchors, 3))
 
 	push	3
-	push	OFFSET $SG147715
+	push	OFFSET $SG147970
 	lea	eax, DWORD PTR _dock$[ebp]
 	push	eax
-	push	OFFSET $SG147720
+	push	OFFSET $SG147975
 	call	?Combo@ImGui@@YA_NPBDPAH0H@Z		; ImGui::Combo
 	add	esp, 16					; 00000010H
 	test	al, al
 	je	SHORT $LN13@config_bas
 
-; 554  :   {
-; 555  :     int mask = (dock == 1 ? static_cast <int> (DockAnchor::North) : 0x0) |
+; 542  :   {
+; 543  :     int mask = (dock == 1 ? static_cast <int> (DockAnchor::North) : 0x0) |
 
 	mov	ecx, DWORD PTR _dock$[ebp]
 	xor	edx, edx
 	cmp	ecx, esi
 
-; 556  :                (dock == 2 ? static_cast <int> (DockAnchor::South) : 0x0);
-; 557  : 
-; 558  :     docking = static_cast <DockAnchor> (
-; 559  :                  mask | static_cast <int>     (docking) & ~(
-; 560  :                             static_cast <int> (DockAnchor::North) |
-; 561  :                             static_cast <int> (DockAnchor::South)
-; 562  :                                                            )
-; 563  :               );
-; 564  : 
-; 565  :     changed = true;
+; 544  :                (dock == 2 ? static_cast <int> (DockAnchor::South) : 0x0);
+; 545  : 
+; 546  :     docking = static_cast <DockAnchor> (
+; 547  :                  mask | static_cast <int>     (docking) & ~(
+; 548  :                             static_cast <int> (DockAnchor::North) |
+; 549  :                             static_cast <int> (DockAnchor::South)
+; 550  :                                                            )
+; 551  :               );
+; 552  : 
+; 553  :     changed = true;
 
 	mov	BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA, 1
 	cmove	edx, esi
@@ -19170,16 +19085,16 @@ $LN12@config_bas:
 	mov	DWORD PTR [edi+224], edx
 $LN13@config_bas:
 
-; 566  :   }
-; 567  : 
-; 568  :   anchors = "Undocked\0West\0East\0\0";
-; 569  : 
-; 570  :   dock = 0;
+; 554  :   }
+; 555  : 
+; 556  :   anchors = "Undocked\0West\0East\0\0";
+; 557  : 
+; 558  :   dock = 0;
 
 	xor	eax, eax
 
-; 571  : 
-; 572  :        if (w) dock = 1;
+; 559  : 
+; 560  :        if (w) dock = 1;
 
 	test	bl, bl
 	je	SHORT $LN14@config_bas
@@ -19187,43 +19102,43 @@ $LN13@config_bas:
 	jmp	SHORT $LN16@config_bas
 $LN14@config_bas:
 
-; 573  :   else if (e) dock = 2;
+; 561  :   else if (e) dock = 2;
 
 	cmp	BYTE PTR tv195[ebp], al
 	cmovne	eax, esi
 	mov	DWORD PTR _dock$[ebp], eax
 $LN16@config_bas:
 
-; 574  : 
-; 575  :   if (ImGui::Combo ("Horizonal Docking Anchor", &dock, anchors, 3))
+; 562  : 
+; 563  :   if (ImGui::Combo ("Horizonal Docking Anchor", &dock, anchors, 3))
 
 	push	3
-	push	OFFSET $SG147721
+	push	OFFSET $SG147976
 	lea	eax, DWORD PTR _dock$[ebp]
 	push	eax
-	push	OFFSET $SG147726
+	push	OFFSET $SG147981
 	call	?Combo@ImGui@@YA_NPBDPAH0H@Z		; ImGui::Combo
 	add	esp, 16					; 00000010H
 	test	al, al
 	je	SHORT $LN17@config_bas
 
-; 576  :   {
-; 577  :     int mask = (dock == 1 ? static_cast <int> (DockAnchor::West) : 0x0) |
+; 564  :   {
+; 565  :     int mask = (dock == 1 ? static_cast <int> (DockAnchor::West) : 0x0) |
 
 	mov	ecx, DWORD PTR _dock$[ebp]
 	xor	edx, edx
 	cmp	ecx, 1
 
-; 578  :                (dock == 2 ? static_cast <int> (DockAnchor::East) : 0x0);
-; 579  : 
-; 580  :     docking = static_cast <DockAnchor> (
-; 581  :                  mask | static_cast <int>     (docking) & ~(
-; 582  :                             static_cast <int> (DockAnchor::West) |
-; 583  :                             static_cast <int> (DockAnchor::East)
-; 584  :                                                            )
-; 585  :               );
-; 586  : 
-; 587  :     changed = true;
+; 566  :                (dock == 2 ? static_cast <int> (DockAnchor::East) : 0x0);
+; 567  : 
+; 568  :     docking = static_cast <DockAnchor> (
+; 569  :                  mask | static_cast <int>     (docking) & ~(
+; 570  :                             static_cast <int> (DockAnchor::West) |
+; 571  :                             static_cast <int> (DockAnchor::East)
+; 572  :                                                            )
+; 573  :               );
+; 574  : 
+; 575  :     changed = true;
 
 	mov	BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA, 1
 	mov	eax, 32					; 00000020H
@@ -19239,90 +19154,89 @@ $LN16@config_bas:
 	mov	DWORD PTR [edi+224], edx
 $LN17@config_bas:
 
-; 588  :   }
-; 589  : 
-; 590  :   ImGui::Separator ();
+; 576  :   }
+; 577  : 
+; 578  :   ImGui::Separator ();
 
 	call	?Separator@ImGui@@YAXXZ			; ImGui::Separator
 
-; 591  : 
-; 592  :   auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
-; 593  :     auto
-; 594  :     {
-; 595  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
-; 596  :                   label += binding->bind_name;
-; 597  : 
-; 598  :       if (ImGui::Selectable (label.c_str (), false))
-; 599  :       {
-; 600  :         ImGui::OpenPopup (binding->bind_name);
-; 601  :       }
-; 602  : 
-; 603  :       std::wstring original_binding = binding->human_readable;
-; 604  : 
-; 605  :       extern void __stdcall SK_ImGui_KeybindDialog (SK_Keybind* keybind);
-; 606  :       SK_ImGui_KeybindDialog (binding);
-; 607  : 
-; 608  :       if (original_binding != binding->human_readable)
-; 609  :       {
-; 610  :         param->set_value (binding->human_readable);
-; 611  :         param->store     ();
-; 612  : 
-; 613  :         extern iSK_INI* osd_ini;
-; 614  : 
-; 615  :         osd_ini->write (osd_ini->get_filename ());
-; 616  : 
-; 617  :         return true;
-; 618  :       }
-; 619  : 
-; 620  :       return false;
-; 621  :     };
-; 622  : 
-; 623  :   ImGui::Text       ("Key Bindings");
+; 579  : 
+; 580  :   auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
+; 581  :     auto
+; 582  :     {
+; 583  :       std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+; 584  :                   label += binding->bind_name;
+; 585  : 
+; 586  :       if (ImGui::Selectable (label.c_str (), false))
+; 587  :       {
+; 588  :         ImGui::OpenPopup (binding->bind_name);
+; 589  :       }
+; 590  : 
+; 591  :       std::wstring original_binding = binding->human_readable;
+; 592  : 
+; 593  :       extern void __stdcall SK_ImGui_KeybindDialog (SK_Keybind* keybind);
+; 594  :       SK_ImGui_KeybindDialog (binding);
+; 595  : 
+; 596  :       if (original_binding != binding->human_readable)
+; 597  :       {
+; 598  :         param->store         (binding->human_readable);
+; 599  : 
+; 600  :         extern iSK_INI* osd_ini;
+; 601  : 
+; 602  :         osd_ini->write (osd_ini->get_filename ());
+; 603  : 
+; 604  :         return true;
+; 605  :       }
+; 606  : 
+; 607  :       return false;
+; 608  :     };
+; 609  : 
+; 610  :   ImGui::Text       ("Key Bindings");
 
-	push	OFFSET $SG147727
+	push	OFFSET $SG147982
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
-; 624  :   ImGui::TreePush   ("");
+; 611  :   ImGui::TreePush   ("");
 
-	push	OFFSET $SG147728
+	push	OFFSET $SG147983
 	call	?TreePush@ImGui@@YAXPBD@Z		; ImGui::TreePush
 	add	esp, 8
 
-; 625  : 
-; 626  :   ImGui::BeginGroup (  );
+; 612  : 
+; 613  :   ImGui::BeginGroup (  );
 
 	call	?BeginGroup@ImGui@@YAXXZ		; ImGui::BeginGroup
 
-; 627  :   if (toggle_key_val != nullptr)
+; 614  :   if (toggle_key_val != nullptr)
 
 	cmp	DWORD PTR [edi+100], 0
 	je	SHORT $LN18@config_bas
 
-; 628  :     ImGui::Text       ("Widget Toggle");
+; 615  :     ImGui::Text       ("Widget Toggle");
 
-	push	OFFSET $SG147730
+	push	OFFSET $SG147985
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 4
 $LN18@config_bas:
 
-; 629  :   if (focus_key_val != nullptr)
+; 616  :   if (focus_key_val != nullptr)
 
 	cmp	DWORD PTR [edi+104], 0
 	je	SHORT $LN19@config_bas
 
-; 630  :     ImGui::Text       ("Widget Focus");
+; 617  :     ImGui::Text       ("Widget Focus");
 
-	push	OFFSET $SG147732
+	push	OFFSET $SG147987
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 4
 $LN19@config_bas:
 
-; 631  :   ImGui::EndGroup   (  );
+; 618  :   ImGui::EndGroup   (  );
 
 	call	?EndGroup@ImGui@@YAXXZ			; ImGui::EndGroup
 
-; 632  : 
-; 633  :   ImGui::SameLine   (  );
+; 619  : 
+; 620  :   ImGui::SameLine   (  );
 
 	sub	esp, 8
 	mov	DWORD PTR [esp+4], -1082130432		; bf800000H
@@ -19330,75 +19244,75 @@ $LN19@config_bas:
 	call	?SameLine@ImGui@@YAXMM@Z		; ImGui::SameLine
 	add	esp, 8
 
-; 634  : 
-; 635  :   ImGui::BeginGroup (  );
+; 621  : 
+; 622  :   ImGui::BeginGroup (  );
 
 	call	?BeginGroup@ImGui@@YAXXZ		; ImGui::BeginGroup
 
-; 636  :   if (toggle_key_val != nullptr)
+; 623  :   if (toggle_key_val != nullptr)
 
 	mov	eax, DWORD PTR [edi+100]
 	test	eax, eax
 	je	SHORT $LN20@config_bas
 
-; 637  :     Keybinding        (&toggle_key, toggle_key_val);
+; 624  :     Keybinding        (&toggle_key, toggle_key_val);
 
 	push	eax
 	lea	eax, DWORD PTR [edi+4]
 	push	eax
 	lea	ecx, DWORD PTR _Keybinding$[ebp]
-	call	??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z ; <lambda_8b9e868eb4b45a5e008473f6382f52cb>::operator()
+	call	??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z ; <lambda_322f41118d6d58482108aceb62769a04>::operator()
 $LN20@config_bas:
 
-; 638  :   if (focus_key_val != nullptr)
+; 625  :   if (focus_key_val != nullptr)
 
 	mov	eax, DWORD PTR [edi+104]
 	test	eax, eax
 	je	SHORT $LN21@config_bas
 
-; 639  :     Keybinding        (&focus_key,  focus_key_val);
+; 626  :     Keybinding        (&focus_key,  focus_key_val);
 
 	push	eax
 	lea	eax, DWORD PTR [edi+52]
 	push	eax
 	lea	ecx, DWORD PTR _Keybinding$[ebp]
-	call	??R<lambda_8b9e868eb4b45a5e008473f6382f52cb>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z ; <lambda_8b9e868eb4b45a5e008473f6382f52cb>::operator()
+	call	??R<lambda_322f41118d6d58482108aceb62769a04>@@QBE_NPAUSK_Keybind@@PAVParameterStringW@sk@@@Z ; <lambda_322f41118d6d58482108aceb62769a04>::operator()
 $LN21@config_bas:
 
-; 640  :   ImGui::EndGroup   (  );
+; 627  :   ImGui::EndGroup   (  );
 
 	call	?EndGroup@ImGui@@YAXXZ			; ImGui::EndGroup
 
-; 641  : 
-; 642  :   ImGui::TreePop    (  );
+; 628  : 
+; 629  :   ImGui::TreePop    (  );
 
 	call	?TreePop@ImGui@@YAXXZ			; ImGui::TreePop
 
-; 643  : 
-; 644  :   ImGui::Separator ();
+; 630  : 
+; 631  :   ImGui::Separator ();
 
 	call	?Separator@ImGui@@YAXXZ			; ImGui::Separator
 
-; 645  : 
-; 646  :   ImGui::SliderFloat ("Widget Scale", &scale, 0.25f, 2.0f);
+; 632  : 
+; 633  :   ImGui::SliderFloat ("Widget Scale", &scale, 0.25f, 2.0f);
 
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
 	lea	eax, DWORD PTR [edi+180]
-	push	OFFSET $SG147735
+	push	OFFSET $SG147990
 	sub	esp, 8
 	mov	DWORD PTR [esp+4], 1073741824		; 40000000H
 	mov	DWORD PTR [esp], 1048576000		; 3e800000H
 	push	eax
-	push	OFFSET $SG147736
+	push	OFFSET $SG147991
 	call	?SliderFloat@ImGui@@YA_NPBDPAMMM0M@Z	; ImGui::SliderFloat
 
-; 647  : 
-; 648  :   ImGui::Separator ();
+; 634  : 
+; 635  :   ImGui::Separator ();
 
 	call	?Separator@ImGui@@YAXXZ			; ImGui::Separator
 
-; 652  :   done |= ImGui::Button ("  Save  ");
+; 639  :   done |= ImGui::Button ("  Save  ");
 
 	lea	eax, DWORD PTR $T1[ebp]
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -19408,10 +19322,10 @@ $LN21@config_bas:
 	mov	DWORD PTR $T1[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 652  :   done |= ImGui::Button ("  Save  ");
+; 639  :   done |= ImGui::Button ("  Save  ");
 
 	push	eax
-	push	OFFSET $SG147737
+	push	OFFSET $SG147992
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -19419,41 +19333,41 @@ $LN21@config_bas:
 	mov	DWORD PTR $T1[ebp+4], 0
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 652  :   done |= ImGui::Button ("  Save  ");
+; 639  :   done |= ImGui::Button ("  Save  ");
 
 	call	?Button@ImGui@@YA_NPBDABUImVec2@@@Z	; ImGui::Button
 	add	esp, 32					; 00000020H
 
-; 653  : 
-; 654  :   if (done)
+; 640  : 
+; 641  :   if (done)
 
 	test	al, al
 	je	SHORT $LN22@config_bas
 
-; 655  :   {
-; 656  :     if (changed)
+; 642  :   {
+; 643  :     if (changed)
 
 	cmp	BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA, 0
 	je	SHORT $LN23@config_bas
 
-; 657  :     {
-; 658  :       extern iSK_INI* osd_ini;
-; 659  : 
-; 660  :       save (osd_ini);
+; 644  :     {
+; 645  :       extern iSK_INI* osd_ini;
+; 646  : 
+; 647  :       save (osd_ini);
 
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
 	mov	ecx, edi
 	call	?save@SK_Widget@@IAEXPAUiSK_INI@@@Z	; SK_Widget::save
 
-; 661  : 
-; 662  :       changed = false;
+; 648  : 
+; 649  :       changed = false;
 
 	mov	BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA, 0
 $LN23@config_bas:
 
-; 663  :     }
-; 664  : 
-; 665  :     state__ = 0;
+; 650  :     }
+; 651  : 
+; 652  :     state__ = 0;
 
 	mov	DWORD PTR [edi+236], 0
 $LN22@config_bas:
@@ -19461,8 +19375,8 @@ $LN22@config_bas:
 	pop	esi
 	pop	ebx
 
-; 666  :   }
-; 667  : }
+; 653  :   }
+; 654  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -19592,7 +19506,7 @@ _s$ = -28						; size = 1
 _w$ = -24						; size = 1
 $T13 = -24						; size = 4
 _e$ = -20						; size = 1
-tv1200 = -20						; size = 4
+tv1201 = -20						; size = 4
 $T14 = -20						; size = 4
 $T15 = -20						; size = 4
 $T16 = -20						; size = 4
@@ -19646,9 +19560,9 @@ __$EHRec$ = -12						; size = 12
 ; 304  :                    ImGui::GetFont ()->Scale = scale;
 
 	movss	xmm0, DWORD PTR [esi+180]
-	movss	DWORD PTR tv1200[ebp], xmm0
+	movss	DWORD PTR tv1201[ebp], xmm0
 	call	?GetFont@ImGui@@YAPAUImFont@@XZ		; ImGui::GetFont
-	movss	xmm0, DWORD PTR tv1200[ebp]
+	movss	xmm0, DWORD PTR tv1201[ebp]
 	movss	DWORD PTR [eax+4], xmm0
 
 ; 305  :   ImGui::PushFont (ImGui::GetFont ());
@@ -19789,7 +19703,7 @@ $LN245@draw_base:
 	test	dl, dl
 	je	SHORT $LN76@draw_base
 
-; 112  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
+; 111  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
 
 	mov	BYTE PTR [esi+185], dl
 $LN76@draw_base:
@@ -19801,16 +19715,11 @@ $LN76@draw_base:
 	je	SHORT $LN77@draw_base
 
 ; 107  :                                                            {
-; 108  :                                                              param_visible->set_value (visible);
+; 108  :                                                              param_visible->store (visible);
 
 	mov	eax, DWORD PTR [ecx]
 	push	edx
-	call	DWORD PTR [eax+12]
-
-; 109  :                                                              param_visible->store     ();
-
-	mov	ecx, DWORD PTR [esi+108]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 $LN77@draw_base:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
 
@@ -20310,7 +20219,7 @@ $LN180@draw_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T2[ebp]
-	push	OFFSET $SG147496
+	push	OFFSET $SG147751
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
 	add	esp, 12					; 0000000cH
@@ -21083,7 +20992,7 @@ $LN42@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T13[ebp]
-	push	OFFSET $SG142232
+	push	OFFSET $SG142487
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21122,7 +21031,7 @@ $LN80@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T25[ebp]
-	push	OFFSET $SG142233
+	push	OFFSET $SG142488
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21166,7 +21075,7 @@ $LN98@run_base:
 
 ; 42   :     toggle_key_val =
 
-	push	OFFSET $SG142231
+	push	OFFSET $SG142486
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -21279,7 +21188,7 @@ $LN178@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T12[ebp]
-	push	OFFSET $SG142235
+	push	OFFSET $SG142490
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21318,7 +21227,7 @@ $LN216@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T24[ebp]
-	push	OFFSET $SG142236
+	push	OFFSET $SG142491
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21362,7 +21271,7 @@ $LN234@run_base:
 
 ; 48   :     param_visible =
 
-	push	OFFSET $SG142234
+	push	OFFSET $SG142489
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -21475,7 +21384,7 @@ $LN314@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T11[ebp]
-	push	OFFSET $SG142238
+	push	OFFSET $SG142493
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21514,7 +21423,7 @@ $LN352@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T23[ebp]
-	push	OFFSET $SG142239
+	push	OFFSET $SG142494
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21558,7 +21467,7 @@ $LN370@run_base:
 
 ; 54   :     param_movable =
 
-	push	OFFSET $SG142237
+	push	OFFSET $SG142492
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -21671,7 +21580,7 @@ $LN450@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T10[ebp]
-	push	OFFSET $SG142241
+	push	OFFSET $SG142496
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21710,7 +21619,7 @@ $LN488@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T22[ebp]
-	push	OFFSET $SG142242
+	push	OFFSET $SG142497
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21754,7 +21663,7 @@ $LN506@run_base:
 
 ; 60   :     param_resizable =
 
-	push	OFFSET $SG142240
+	push	OFFSET $SG142495
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -21867,7 +21776,7 @@ $LN586@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T9[ebp]
-	push	OFFSET $SG142244
+	push	OFFSET $SG142499
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21906,7 +21815,7 @@ $LN624@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T21[ebp]
-	push	OFFSET $SG142245
+	push	OFFSET $SG142500
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21950,7 +21859,7 @@ $LN642@run_base:
 
 ; 66   :     param_autofit =
 
-	push	OFFSET $SG142243
+	push	OFFSET $SG142498
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22063,7 +21972,7 @@ $LN722@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T8[ebp]
-	push	OFFSET $SG142247
+	push	OFFSET $SG142502
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22102,7 +22011,7 @@ $LN760@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T20[ebp]
-	push	OFFSET $SG142248
+	push	OFFSET $SG142503
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22146,7 +22055,7 @@ $LN778@run_base:
 
 ; 72   :     param_border =
 
-	push	OFFSET $SG142246
+	push	OFFSET $SG142501
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22259,7 +22168,7 @@ $LN858@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T7[ebp]
-	push	OFFSET $SG142250
+	push	OFFSET $SG142505
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22298,7 +22207,7 @@ $LN896@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T19[ebp]
-	push	OFFSET $SG142251
+	push	OFFSET $SG142506
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22342,7 +22251,7 @@ $LN914@run_base:
 
 ; 78   :     param_clickthrough =
 
-	push	OFFSET $SG142249
+	push	OFFSET $SG142504
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22455,7 +22364,7 @@ $LN994@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T6[ebp]
-	push	OFFSET $SG142253
+	push	OFFSET $SG142508
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22494,7 +22403,7 @@ $LN1032@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T18[ebp]
-	push	OFFSET $SG142254
+	push	OFFSET $SG142509
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22538,7 +22447,7 @@ $LN1050@run_base:
 
 ; 84   :     param_docking =
 
-	push	OFFSET $SG142252
+	push	OFFSET $SG142507
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22651,7 +22560,7 @@ $LN1130@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T5[ebp]
-	push	OFFSET $SG142256
+	push	OFFSET $SG142511
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22690,7 +22599,7 @@ $LN1168@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T17[ebp]
-	push	OFFSET $SG142257
+	push	OFFSET $SG142512
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22734,7 +22643,7 @@ $LN1186@run_base:
 
 ; 90   :     param_minsize =
 
-	push	OFFSET $SG142255
+	push	OFFSET $SG142510
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22847,7 +22756,7 @@ $LN1266@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T4[ebp]
-	push	OFFSET $SG142259
+	push	OFFSET $SG142514
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22886,7 +22795,7 @@ $LN1304@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T16[ebp]
-	push	OFFSET $SG142260
+	push	OFFSET $SG142515
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22930,7 +22839,7 @@ $LN1322@run_base:
 
 ; 96   :     param_maxsize =
 
-	push	OFFSET $SG142258
+	push	OFFSET $SG142513
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -23043,7 +22952,7 @@ $LN1402@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T3[ebp]
-	push	OFFSET $SG142262
+	push	OFFSET $SG142517
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -23082,7 +22991,7 @@ $LN1440@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T15[ebp]
-	push	OFFSET $SG142263
+	push	OFFSET $SG142518
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -23126,7 +23035,7 @@ $LN1458@run_base:
 
 ; 102  :     param_size =
 
-	push	OFFSET $SG142261
+	push	OFFSET $SG142516
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -23239,7 +23148,7 @@ $LN1538@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T2[ebp]
-	push	OFFSET $SG142265
+	push	OFFSET $SG142520
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -23271,7 +23180,7 @@ $LN1575@run_base:
 
 	push	esi
 	lea	eax, DWORD PTR $T14[ebp]
-	push	OFFSET $SG142266
+	push	OFFSET $SG142521
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -23315,7 +23224,7 @@ $LN1594@run_base:
 
 ; 108  :     param_pos =
 
-	push	OFFSET $SG142264
+	push	OFFSET $SG142519
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -23528,7 +23437,7 @@ _TEXT	SEGMENT
 ?SaveConfig@SK_ImGui_WidgetRegistry@@QAEHXZ PROC	; SK_ImGui_WidgetRegistry::SaveConfig
 ; _this$ = ecx
 
-; 709  :   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
+; 696  :   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	edx, DWORD PTR __tls_index
@@ -23555,18 +23464,18 @@ $LN2@SaveConfig:
 $LL5@SaveConfig:
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 711  :   for (auto widget : widgets)
+; 698  :   for (auto widget : widgets)
 
 	mov	ecx, DWORD PTR [esi]
 
-; 712  :   {
-; 713  :     if (widget)
+; 699  :   {
+; 700  :     if (widget)
 
 	test	ecx, ecx
 	je	SHORT $LN3@SaveConfig
 
-; 714  :     {
-; 715  :       widget->save (osd_ini);
+; 701  :     {
+; 702  :       widget->save (osd_ini);
 
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
 	call	?save@SK_Widget@@IAEXPAUiSK_INI@@@Z	; SK_Widget::save
@@ -23579,27 +23488,27 @@ $LN3@SaveConfig:
 	add	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 711  :   for (auto widget : widgets)
+; 698  :   for (auto widget : widgets)
 
 	cmp	edi, ebx
 	jne	SHORT $LL5@SaveConfig
 
-; 716  :     }
-; 717  :   }
-; 718  : 
-; 719  :   return TRUE;
+; 703  :     }
+; 704  :   }
+; 705  : 
+; 706  :   return TRUE;
 
 	pop	edi
 	pop	esi
 	mov	eax, 1
 	pop	ebx
 
-; 720  : }
+; 707  : }
 
 	ret	0
 $LN44@SaveConfig:
 
-; 709  :   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
+; 696  :   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
 
 	push	OFFSET ?$TSS0@?1??SaveConfig@SK_ImGui_WidgetRegistry@@QAEHXZ@4HA
 	call	__Init_thread_header
@@ -23640,7 +23549,7 @@ _vkCode$ = 20						; size = 1
 ?DispatchKeybinds@SK_ImGui_WidgetRegistry@@QAEHHHHE@Z PROC ; SK_ImGui_WidgetRegistry::DispatchKeybinds
 ; _this$ = ecx
 
-; 687  : {
+; 674  : {
 
 	npad	2
 	push	ebp
@@ -23653,10 +23562,10 @@ _vkCode$ = 20						; size = 1
 	sbb	esi, esi
 	mov	edi, ecx
 
-; 688  :   auto uiMaskedKeyCode =
-; 689  :     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
-; 690  : 
-; 691  :   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
+; 675  :   auto uiMaskedKeyCode =
+; 676  :     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
+; 677  : 
+; 678  :   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
 
 	mov	ecx, DWORD PTR __tls_index
 	and	esi, 2048				; 00000800H
@@ -23686,7 +23595,7 @@ $LN2@DispatchKe:
 $LL5@DispatchKe:
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 695  :     if (widget && uiMaskedKeyCode == widget->getToggleKey ().masked_code)
+; 682  :     if (widget && uiMaskedKeyCode == widget->getToggleKey ().masked_code)
 
 	mov	ecx, DWORD PTR [eax]
 	test	ecx, ecx
@@ -23705,30 +23614,29 @@ $LN3@DispatchKe:
 	cmp	eax, OFFSET ?widgets@?1??DispatchKeybinds@SK_ImGui_WidgetRegistry@@QAEHHHHE@Z@4V?$array@PAVSK_Widget@@$04@std@@A+20
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 693  :   for (auto&& widget : widgets)
+; 680  :   for (auto&& widget : widgets)
 
 	jne	SHORT $LL5@DispatchKe
 
-; 700  :     }
-; 701  :   }
-; 702  : 
-; 703  :   return FALSE;
+; 687  :     }
+; 688  :   }
+; 689  : 
+; 690  :   return FALSE;
 
 	pop	edi
 	xor	eax, eax
 	pop	esi
 
-; 704  : }
+; 691  : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN53@DispatchKe:
 ; File c:\users\andon\source\repos\specialk\include\specialk\widgets\widget.h
 
-; 128  :         bool         isVisible       (void) const { return    visible &&
+; 127  :         bool         isVisible       (void) const { return    visible &&
 
-	mov	esi, ecx
-	cmp	BYTE PTR [esi+184], 0
+	cmp	BYTE PTR [ecx+184], 0
 	je	SHORT $LN44@DispatchKe
 	cmp	BYTE PTR ?SK_ImGui_Widgets@@3USK_ImGui_WidgetRegistry@@A+32, 0
 	jne	SHORT $LN44@DispatchKe
@@ -23739,7 +23647,7 @@ $LN44@DispatchKe:
 $LN45@DispatchKe:
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 697  :       widget->setVisible (! widget->isVisible ());
+; 684  :       widget->setVisible (! widget->isVisible ());
 
 	test	al, al
 	sete	dl
@@ -23747,54 +23655,49 @@ $LN45@DispatchKe:
 
 ; 102  :   SK_Widget& setVisible      (bool        bVisible)      { visible       = bVisible;
 
-	mov	BYTE PTR [esi+184], dl
+	mov	BYTE PTR [ecx+184], dl
 
 ; 103  :                                                            if (visible)
 
 	test	dl, dl
 	je	SHORT $LN47@DispatchKe
 
-; 112  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
+; 111  :   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
 
-	mov	BYTE PTR [esi+185], dl
+	mov	BYTE PTR [ecx+185], dl
 $LN47@DispatchKe:
 
 ; 106  :                                                            if (param_visible != nullptr)
 
-	mov	ecx, DWORD PTR [esi+108]
+	mov	ecx, DWORD PTR [ecx+108]
 	test	ecx, ecx
 	je	SHORT $LN48@DispatchKe
 
 ; 107  :                                                            {
-; 108  :                                                              param_visible->set_value (visible);
+; 108  :                                                              param_visible->store (visible);
 
 	mov	eax, DWORD PTR [ecx]
 	push	edx
-	call	DWORD PTR [eax+12]
-
-; 109  :                                                              param_visible->store     ();
-
-	mov	ecx, DWORD PTR [esi+108]
-	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	call	DWORD PTR [eax+16]
 $LN48@DispatchKe:
 	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\widgets\widget.cpp
 
-; 699  :       return TRUE;
+; 686  :       return TRUE;
 
 	mov	eax, 1
 	pop	esi
 
-; 704  : }
+; 691  : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN58@DispatchKe:
 
-; 688  :   auto uiMaskedKeyCode =
-; 689  :     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
-; 690  : 
-; 691  :   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
+; 675  :   auto uiMaskedKeyCode =
+; 676  :     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
+; 677  : 
+; 678  :   static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
 
 	push	OFFSET ?$TSS0@?1??DispatchKeybinds@SK_ImGui_WidgetRegistry@@QAEHHHHE@Z@4HA
 	call	__Init_thread_header
@@ -24384,7 +24287,7 @@ _key$ = 36						; size = 24
 ?register_to_ini@iParameter@sk@@QAEXPAUiSK_INI@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@1@Z PROC ; sk::iParameter::register_to_ini, COMDAT
 ; _this$ = ecx
 
-; 65   :   {
+; 67   :   {
 
 	npad	2
 	push	ebp
@@ -24397,14 +24300,14 @@ _key$ = 36						; size = 24
 	push	esi
 	mov	esi, ecx
 
-; 66   :     ini         = file;
+; 68   :     ini         = file;
 
 	mov	eax, DWORD PTR _file$[ebp]
 
-; 67   :     ini_section = section;
+; 69   :     ini_section = section;
 
-	lea	ecx, DWORD PTR [esi+8]
-	mov	DWORD PTR [esi+4], eax
+	lea	ecx, DWORD PTR [esi+12]
+	mov	DWORD PTR [esi+8], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2223 : 		if (this != _STD addressof(_Right))
@@ -24412,7 +24315,7 @@ _key$ = 36						; size = 24
 	lea	eax, DWORD PTR _section$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 65   :   {
+; 67   :   {
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -24431,9 +24334,9 @@ _key$ = 36						; size = 24
 $LN6@register_t:
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 68   :     ini_key     = key;
+; 70   :     ini_key     = key;
 
-	lea	ecx, DWORD PTR [esi+32]
+	lea	ecx, DWORD PTR [esi+36]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2223 : 		if (this != _STD addressof(_Right))
@@ -24530,7 +24433,7 @@ $LN93@register_t:
 $LN123@register_t:
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 69   :   }
+; 71   :   }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx

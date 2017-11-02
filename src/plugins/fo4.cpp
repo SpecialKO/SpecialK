@@ -105,17 +105,20 @@ SK_FO4_MaximizeBorderless (void)
 
   SK_FO4_InitPlugin ();
 
-  if (fo4w_fullscreen == nullptr) {
+  bool bRet = false;
+
+  if (fo4w_fullscreen == nullptr)
+  {
     fo4w_fullscreen =
       static_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Maximize Borderless Window"));
     fo4w_fullscreen->register_to_ini ( dll_ini,
                                         L"FO4W.PlugIn",
                                           L"FullscreenWindow" );
-    fo4w_fullscreen->load ();
+    fo4w_fullscreen->load (bRet);
   }
 
-  return (fo4w_fullscreen->get_value ());
+  return bRet;
 }
 
 bool
@@ -126,6 +129,8 @@ SK_FO4_CenterWindow (void)
 
   SK_FO4_InitPlugin ();
 
+  bool bRet = false;
+
   if (fo4w_center == nullptr) {
     fo4w_center =
       static_cast <sk::ParameterBool *>
@@ -133,10 +138,10 @@ SK_FO4_CenterWindow (void)
     fo4w_center->register_to_ini ( dll_ini,
                                      L"FO4W.PlugIn",
                                        L"CenterWindow" );
-    fo4w_center->load ();
+    fo4w_center->load (bRet);
   }
 
-  return (fo4w_center->get_value ());
+  return bRet;
 }
 
 bool
@@ -147,17 +152,20 @@ SK_FO4_UseFlipMode (void)
 
   SK_FO4_InitPlugin ();
 
-  if (fo4w_flipmode == nullptr) {
+  bool bRet = false;
+
+  if (fo4w_flipmode == nullptr)
+  {
     fo4w_flipmode =
       static_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Use Flip Mode"));
     fo4w_flipmode->register_to_ini ( dll_ini,
                                        L"FO4W.PlugIn",
                                          L"FlipMode" );
-    fo4w_flipmode->load ();
+    fo4w_flipmode->load (bRet);
   }
 
-  return (fo4w_flipmode->get_value ());
+  return bRet;
 }
 
 bool
@@ -165,7 +173,10 @@ SK_FO4_IsFullscreen (void)
 {
   SK_FO4_InitPlugin ();
 
-  if (fo4_fullscreen == nullptr) {
+  bool bRet = false;
+
+  if (fo4_fullscreen == nullptr)
+  {
     fo4_fullscreen =
       static_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Fullscreen Mode"));
@@ -173,10 +184,10 @@ SK_FO4_IsFullscreen (void)
                                         L"Display",
                                           L"bFull Screen" );
 
-    fo4_fullscreen->load ();
+    fo4_fullscreen->load (bRet);
   }
 
-  return (fo4_fullscreen->get_value ());
+  return bRet;
 }
 
 bool
@@ -184,7 +195,10 @@ SK_FO4_IsBorderlessWindow (void)
 {
   SK_FO4_InitPlugin ();
 
-  if (fo4_borderless == nullptr) {
+  bool bRet = false;
+
+  if (fo4_borderless == nullptr)
+  {
     fo4_borderless =
       static_cast <sk::ParameterBool *>
         (fo4_factory.create_parameter <bool> (L"Borderless Window"));
@@ -192,10 +206,10 @@ SK_FO4_IsBorderlessWindow (void)
                                         L"Display",
                                           L"bBorderless" );
 
-    fo4_borderless->load ();
+    fo4_borderless->load (bRet);
   }
 
-  return (fo4_borderless->get_value ());
+  return bRet;
 }
 
 #include <SpecialK/config.h>

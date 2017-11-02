@@ -3342,7 +3342,7 @@ D3D11_CopyResource_Override (
   {
     return D3D11_CopyResource_Original (This, pDstResource, pSrcResource);
   }
-
+  
   if (! SK_TLS_Bottom ()->imgui.drawing)
     SK_ReShade_CopyResourceCallback.call (pDstResource, pSrcResource);
 
@@ -7839,30 +7839,30 @@ D3D11Dev_CreateTexture2D_Override (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
-  //static HMODULE hModSteamOverlay =
+  static HMODULE hModSteamOverlay =
 #ifndef _WIN64
-        //GetModuleHandle (L"gameoverlayrenderer.dll");
+        GetModuleHandle (L"gameoverlayrenderer.dll");
 #else
-        //GetModuleHandle (L"gameoverlayrenderer64.dll");
+        GetModuleHandle (L"gameoverlayrenderer64.dll");
 #endif
 
-  //HMODULE hModCaller = SK_GetCallingDLL ();
-  //
-  //bool early_out = false;
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
+  bool early_out = false;
 
 #ifndef _WIN64
-  //if (SK_GetCallerName ().find (L"ReShade32") != std::wstring::npos)
-  //  early_out = true;
+  if (SK_GetCallerName ().find (L"ReShade32") != std::wstring::npos)
+    early_out = true;
 #else
-  //if (SK_GetCallerName ().find (L"ReShade64") != std::wstring::npos)
-  //  early_out = true;
+  if (SK_GetCallerName ().find (L"ReShade64") != std::wstring::npos)
+    early_out = true;
 #endif
 
-  //if ( hModCaller == hModSteamOverlay || early_out )
-  //{
-  //  return
-  //    D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
-  //}
+  if ( hModCaller == hModSteamOverlay || early_out )
+  {
+    return
+      D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
+  }
 
   const D3D11_TEXTURE2D_DESC* pDescOrig = pDesc;
 
@@ -7870,15 +7870,15 @@ D3D11Dev_CreateTexture2D_Override (
   //   our copy in order to make changes propagate to other software
   //     that hooks this...
   auto pDescCopy =
-    D3D11_TEXTURE2D_DESC (*pDescOrig);
+    std::make_unique <D3D11_TEXTURE2D_DESC> (*pDescOrig);
 
   HRESULT hr =
-    D3D11Dev_CreateTexture2D_Impl (This, &pDescCopy, pInitialData, ppTexture2D);
+    D3D11Dev_CreateTexture2D_Impl (This, pDescCopy.get (), pInitialData, ppTexture2D);
 
-  __try {
-    *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) = pDescCopy;
-  } __except (EXCEPTION_EXECUTE_HANDLER) {
-  }
+  //__try {
+    *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) = *pDescCopy;
+  //} __except (EXCEPTION_EXECUTE_HANDLER) {
+  //}
 
   return hr;
 }
@@ -13037,3 +13037,93 @@ SK_D3D11_ResetShaders (void)
     }
   }
 }
+
+
+#if 0
+class SK_ExecuteReShadeOnReturn
+{
+public:
+   SK_ExecuteReShadeOnReturn (ID3D11DeviceContext* pCtx) : _ctx (pCtx) { };
+  ~SK_ExecuteReShadeOnReturn (void)
+  {
+    auto TriggerReShade_After = [&]
+    {
+      SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+      SK_TLS_Bottom ()->imgui.drawing = true;
+
+      if (SK_ReShade_PresentCallback.fn && (! SK_D3D11_Shaders.reshade_triggered))
+      {
+        CComPtr <ID3D11DepthStencilView>  pDSV = nullptr;
+        CComPtr <ID3D11DepthStencilState> pDSS = nullptr;
+        CComPtr <ID3D11RenderTargetView>  pRTV = nullptr;
+
+        _ctx->OMGetRenderTargets (1, &pRTV, &pDSV);
+
+        if (pRTV != nullptr)
+        {
+          D3D11_RENDER_TARGET_VIEW_DESC rt_desc = { };
+                        pRTV->GetDesc (&rt_desc);
+
+          if (rt_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D && rt_desc.Texture2D.MipSlice == 0)
+          {
+            CComPtr <ID3D11Resource> pRes = nullptr;
+                 pRTV->GetResource (&pRes);
+
+            CComQIPtr <ID3D11Texture2D> pTex (pRes);
+
+            if (pTex)
+            {
+              D3D11_TEXTURE2D_DESC tex_desc = { };
+
+              if ( ImGui::GetIO ().DisplaySize.x == tex_desc.Width &&
+                   ImGui::GetIO ().DisplaySize.y == tex_desc.Height )
+              {
+                for (int i = 0 ; i < 5; i++)
+                {
+                  SK_D3D11_KnownShaders::ShaderRegistry <IUnknown *>* pShaderReg;
+
+                  switch (i)
+                  {
+                    default:
+                    case 0:
+                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown *> *)&SK_D3D11_Shaders.vertex;
+                      break;
+                    case 1:
+                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown *> *)&SK_D3D11_Shaders.pixel;
+                      break;
+                    case 2:
+                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown *> *)&SK_D3D11_Shaders.geometry;
+                      break;
+                    case 3:
+                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown *> *)&SK_D3D11_Shaders.hull;
+                      break;
+                    case 4:
+                      pShaderReg = (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown *> *)&SK_D3D11_Shaders.domain;
+                      break;
+                  };
+
+                  if ( pShaderReg->current.shader [_ctx] != 0x0    &&
+                    (! pShaderReg->trigger_reshade.after.empty ()) &&
+                       pShaderReg->trigger_reshade.after.count (pShaderReg->current.shader [_ctx]) )
+                  {
+                    SK_D3D11_Shaders.reshade_triggered = true;
+
+                    SK_ReShade_PresentCallback.explicit_draw.calls++;
+                    SK_ReShade_PresentCallback.fn (&SK_ReShade_PresentCallback.explicit_draw);
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+
+    TriggerReShade_After ();
+  }
+
+protected:
+  ID3D11DeviceContext* _ctx;
+};
+#endif

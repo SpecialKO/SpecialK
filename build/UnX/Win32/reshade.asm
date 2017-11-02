@@ -10,9 +10,9 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG111311 DB	'R', 00H, 'e', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H
+$SG111551 DB	'R', 00H, 'e', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H
 	DB	'e', 00H, 00H, 00H
-$SG111312 DB	'SK_SHIM_GetReShade', 00H
+$SG111552 DB	'SK_SHIM_GetReShade', 00H
 CONST	ENDS
 PUBLIC	?SK_ReShade_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_ReShade_GetDLL
 PUBLIC	?assign@?$char_traits@_W@std@@SAXAA_WAB_W@Z	; std::char_traits<wchar_t>::assign
@@ -834,7 +834,7 @@ $LN24@SK_ReShade:
 
 ; 39   :       if (StrStrIW (imports [i].filename->get_value ().c_str (), L"ReShade"))
 
-	push	OFFSET $SG111311
+	push	OFFSET $SG111551
 	push	eax
 	call	DWORD PTR __imp__StrStrIW@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -995,7 +995,7 @@ $LN79@SK_ReShade:
 ; 44   :           (SK_SHIM_GetReShade_pfn)GetProcAddress (imports [i].hLibrary, "SK_SHIM_GetReShade");
 
 	imul	esi, edi, 76
-	push	OFFSET $SG111312
+	push	OFFSET $SG111552
 	push	DWORD PTR ?imports@@3PAUimport_s@@A[esi]
 	call	DWORD PTR __imp__GetProcAddress@8
 

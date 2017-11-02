@@ -9,7 +9,7 @@
  + Fixed the ability to drag ReShade effects to change their order
  + Added options to block Keyboard / Mouse input to games, to prevent them
      from changing input icons if you don't want that.
- + Added Alt + F4 Confirmation Dialog for games that usuually block Alt+F4
+ + Added Alt + F4 Confirmation Dialog for games that usually block Alt+F4
  + Made ReShade Shim Loading a bit more sane
 
   >> (d3d11, d3d9 and GL DLLs are dynamically generated on first load)

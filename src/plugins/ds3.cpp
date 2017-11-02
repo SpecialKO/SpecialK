@@ -730,8 +730,7 @@ SK_DS3_InitPlugin (void)
                                     L"SUS.Display",
                                       L"HUDResX" );
 
-  if (ds3_hud_res_x->load ())
-    ds3_cfg.hud.res_x = ds3_hud_res_x->get_value ();
+  ds3_hud_res_x->load (ds3_cfg.hud.res_x);
 
   ds3_hud_res_y = 
       static_cast <sk::ParameterInt *>
@@ -740,8 +739,7 @@ SK_DS3_InitPlugin (void)
                                     L"SUS.Display",
                                       L"HUDResY" );
 
-  if (ds3_hud_res_y->load ())
-    ds3_cfg.hud.res_y = ds3_hud_res_y->get_value ();
+  ds3_hud_res_y->load (ds3_cfg.hud.res_y);
 
   ds3_hud_offset_x = 
       static_cast <sk::ParameterInt *>
@@ -750,8 +748,7 @@ SK_DS3_InitPlugin (void)
                                         L"SUS.Display",
                                           L"HUDOffsetX" );
 
-  if (ds3_hud_offset_x->load ())
-    ds3_cfg.hud.offset_x = ds3_hud_offset_x->get_value ();
+  ds3_hud_offset_x->load (ds3_cfg.hud.offset_x);
 
   ds3_hud_offset_y = 
       static_cast <sk::ParameterInt *>
@@ -760,8 +757,7 @@ SK_DS3_InitPlugin (void)
                                         L"SUS.Display",
                                           L"HUDOffsetY" );
 
-  if (ds3_hud_offset_y->load ())
-    ds3_cfg.hud.offset_y = ds3_hud_offset_y->get_value ();
+  ds3_hud_offset_y->load (ds3_cfg.hud.offset_y);
 
   ds3_hud_stretch = 
       static_cast <sk::ParameterBool *>
@@ -770,8 +766,7 @@ SK_DS3_InitPlugin (void)
                                         L"SUS.Display",
                                           L"StretchHUD" );
 
-  if (ds3_hud_stretch->load ())
-    ds3_cfg.hud.stretch = ds3_hud_stretch->get_value ();
+  ds3_hud_stretch->load (ds3_cfg.hud.stretch);
 
 
   ds3_flip_mode =
@@ -781,8 +776,7 @@ SK_DS3_InitPlugin (void)
                                      L"SUS.Render",
                                        L"FlipMode" );
 
-  if (ds3_flip_mode->load ())
-    ds3_cfg.render.flip_mode = ds3_flip_mode->get_value ();
+  ds3_flip_mode->load (ds3_cfg.render.flip_mode);
 
   ds3_start_fullscreen =
     static_cast <sk::ParameterBool *>
@@ -791,8 +785,7 @@ SK_DS3_InitPlugin (void)
                                             L"SUS.Render",
                                               L"StartFullscreen" );
 
-  if (ds3_start_fullscreen->load ())
-    ds3_cfg.render.fullscreen = ds3_start_fullscreen->get_value ();
+  ds3_start_fullscreen->load (ds3_cfg.render.fullscreen);
 
 
   ds3_borderless =
@@ -802,8 +795,7 @@ SK_DS3_InitPlugin (void)
                                       L"SUS.Window",
                                         L"Borderless" );
 
-  if (ds3_borderless->load ())
-    ds3_cfg.window.borderless = ds3_borderless->get_value ();
+  ds3_borderless->load (ds3_cfg.window.borderless);
 
 
   ds3_fullscreen =
@@ -813,9 +805,8 @@ SK_DS3_InitPlugin (void)
                                       L"SUS.Window",
                                         L"Fullscreen" );
 
-  if (ds3_fullscreen->load ()) {
-    ds3_cfg.window.fullscreen = ds3_fullscreen->get_value ();
-
+  if (ds3_fullscreen->load (ds3_cfg.window.fullscreen))
+  {
     sus_state.MaxWindow = ds3_cfg.window.fullscreen;
   }
 
@@ -827,9 +818,8 @@ SK_DS3_InitPlugin (void)
                                   L"SUS.Window",
                                     L"Center" );
 
-  if (ds3_center->load ()) {
-    ds3_cfg.window.center = ds3_center->get_value ();
-
+  if (ds3_center->load (ds3_cfg.window.center))
+  {
     sus_state.Center = ds3_cfg.window.center;
   }
 
@@ -850,14 +840,11 @@ SK_DS3_InitPlugin (void)
                                           L"SUS.System",
                                             L"ShowOSDDisclaimer" );
 
-  if (ds3_osd_disclaimer->load ())
-    ds3_cfg.osd.disclaimer = ds3_osd_disclaimer->get_value ();
-  else
+  if (! ds3_osd_disclaimer->load (ds3_cfg.osd.disclaimer))
   {
     ds3_cfg.osd.disclaimer = true;
 
-    ds3_osd_disclaimer->set_value (true);
-    ds3_osd_disclaimer->store     ();
+    ds3_osd_disclaimer->store (true);
 
     ds3_prefs->write (ds3_prefs_file);
   }
@@ -878,7 +865,7 @@ SK_DS3_InitPlugin (void)
                                          L"SUS.Render",
                                            L"DefaultResX" );
 
-  ds3_default_res_x->load ();
+  ((sk::iParameter *)ds3_default_res_x)->load ();
 
   ds3_default_res_y =
     static_cast <sk::ParameterInt *>
@@ -887,7 +874,7 @@ SK_DS3_InitPlugin (void)
                                          L"SUS.Render",
                                            L"DefaultResY" );
 
-  ds3_default_res_y->load ();
+  ((sk::iParameter *)ds3_default_res_y)->load ();
 
 
   ds3_sacrificial_x =
@@ -897,8 +884,7 @@ SK_DS3_InitPlugin (void)
                                          L"SUS.Render",
                                            L"SacrificialResX" );
 
-  if (ds3_sacrificial_x->load ())
-    ds3_cfg.render.sacrifice_x = ds3_sacrificial_x->get_value ();
+  ds3_sacrificial_x->load ((int &)ds3_cfg.render.sacrifice_x);
 
   ds3_sacrificial_y =
     static_cast <sk::ParameterInt *>
@@ -907,8 +893,7 @@ SK_DS3_InitPlugin (void)
                                          L"SUS.Render",
                                            L"SacrificialResY" );
 
-  if (ds3_sacrificial_y->load ())
-    ds3_cfg.render.sacrifice_y = ds3_sacrificial_y->get_value ();
+  ds3_sacrificial_y->load ((int &)ds3_cfg.render.sacrifice_y);
 
 
   uint8_t* sac_x = (uint8_t *)&ds3_cfg.render.sacrifice_x;
@@ -925,8 +910,10 @@ SK_DS3_InitPlugin (void)
 
   void* res_addr = nullptr;
 
-  if (ds3_last_addr->load ()) {
-    res_addr = (void *)ds3_last_addr->get_value ();
+  if (((sk::iParameter *)ds3_last_addr)->load ())
+  {
+    res_addr =
+      (void *)ds3_last_addr->get_value ();
 
     MEMORY_BASIC_INFORMATION mem_info;
     VirtualQuery (res_addr, &mem_info, sizeof mem_info);
@@ -945,18 +932,19 @@ SK_DS3_InitPlugin (void)
   if (res_addr == nullptr)
     res_addr = SK_DS3_Scan (res_sig, 8, nullptr);
 
-  if (res_addr != nullptr) {
-    ds3_last_addr->set_value ((int64_t)res_addr);
-    ds3_last_addr->store     ();
-
-    ds3_prefs->write (ds3_prefs_file);
+  if (res_addr != nullptr)
+  {
+    ds3_last_addr->store ((int64_t)res_addr);
+    ds3_prefs->write     (ds3_prefs_file);
   }
 
   void* res_addr_x = res_addr;
   void* res_addr_y = (uint8_t *)res_addr + 4;
 
-  if (res_addr != nullptr) {
-    if (res_x != ds3_cfg.render.sacrifice_x || res_y != ds3_cfg.render.sacrifice_y) {
+  if (res_addr != nullptr)
+  {
+    if (res_x != ds3_cfg.render.sacrifice_x || res_y != ds3_cfg.render.sacrifice_y)
+    {
       SK_InjectMemory (res_addr_x, (uint8_t *)&res_x, 4, PAGE_EXECUTE_READWRITE);
       SK_InjectMemory (res_addr_y, (uint8_t *)&res_y, 4, PAGE_EXECUTE_READWRITE);
       dll_log.Log ( L"[Asp. Ratio] Custom Default Resolution: (%lux%lu) {%3.2f}",
@@ -1387,8 +1375,7 @@ SK_DS3_OSD_Disclaimer (LPVOID user)
   while ((volatile bool&)config.osd.show)
     Sleep (66);
 
-  ds3_osd_disclaimer->set_value (false);
-  ds3_osd_disclaimer->store     ();
+  ds3_osd_disclaimer->store     (false);
 
   ds3_prefs->write              (ds3_prefs_file);
 

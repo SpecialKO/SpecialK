@@ -1702,7 +1702,7 @@ BACKEND_INIT:
     dll_log.silent = false;
 
 
-  init_tids = SK_SuspendAllOtherThreads ();
+  //init_tids = SK_SuspendAllOtherThreads ();
 
   InterlockedExchangePointer (
     (LPVOID *)&hInitThread,

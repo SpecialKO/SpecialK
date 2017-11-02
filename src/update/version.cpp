@@ -235,7 +235,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
               L"Reminder"
         );
 
-        remind_time->load ();
+        ((sk::iParameter *)remind_time)->load ();
 
         if (uliNow.QuadPart >= static_cast <uint64_t> (remind_time->get_value ()))
         {

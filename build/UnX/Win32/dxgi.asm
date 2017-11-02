@@ -14,15 +14,15 @@ PUBLIC	_LIBID_ATLLib
 PUBLIC	_IID_IAxWinAmbientDispatchEx
 PUBLIC	?SK_DXGI_use_factory1@@3_NA			; SK_DXGI_use_factory1
 PUBLIC	?SK_DXGI_factory_init@@3_NA			; SK_DXGI_factory_init
-PUBLIC	?__dxgi_ready@@3JC				; __dxgi_ready
 PUBLIC	_IID_IInternalConnection
+PUBLIC	?__dxgi_ready@@3JC				; __dxgi_ready
 PUBLIC	___pobjMapEntryFirst
 PUBLIC	___pobjMapEntryLast
 PUBLIC	?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA	; ATL::_pPerfRegFunc
 PUBLIC	?_pPerfUnRegFunc@ATL@@3P6AJXZA			; ATL::_pPerfUnRegFunc
 PUBLIC	?_AtlRegisterPerUser@ATL@@3_NA			; ATL::_AtlRegisterPerUser
-PUBLIC	?bAlwaysAllowFullscreen@@3_NA			; bAlwaysAllowFullscreen
 PUBLIC	?_pModule@ATL@@3PAVCComModule@1@A		; ATL::_pModule
+PUBLIC	?bAlwaysAllowFullscreen@@3_NA			; bAlwaysAllowFullscreen
 PUBLIC	?bFlipMode@@3_NA				; bFlipMode
 PUBLIC	?bWait@@3_NA					; bWait
 PUBLIC	?SK_DXGI_preferred_adapter@@3HA			; SK_DXGI_preferred_adapter
@@ -75,8 +75,8 @@ PUBLIC	?EnumAdapters1_Original@@3P6GJPAUIDXGIFactory1@@IPAPAUIDXGIAdapter1@@@ZA 
 PUBLIC	?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A		; d3d11_hook_ctx
 PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
 PUBLIC	_IID_IAxWinHostWindow
-PUBLIC	?cegD3D11@@3PAVDirect3D11Renderer@CEGUI@@A	; cegD3D11
 PUBLIC	_IID_IAxWinHostWindowLic
+PUBLIC	?cegD3D11@@3PAVDirect3D11Renderer@CEGUI@@A	; cegD3D11
 PUBLIC	?SK_achv_popup@@3PAVWindow@CEGUI@@A		; SK_achv_popup
 PUBLIC	_IID_IAxWinAmbientDispatch
 ;	COMDAT ?_pAtlModule@ATL@@3PAVCAtlModule@1@A
@@ -215,35 +215,35 @@ _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG211484			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG211509			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG211482		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG211507		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG211480		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG211505		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG211478		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG211503		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG211476		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG211501		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG211474		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG211499		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG211472		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG211497		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG211470		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG211495		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -350,59 +350,153 @@ _LIBID_ATLLib DD 044ec0535H
 	DB	0d3H
 CONST	ENDS
 CONST	SEGMENT
-$SG352256 DB	'/animations/', 00H
-$SG352265 DB	00H
-$SG352267 DB	00H
-$SG352269 DB	00H
-$SG352257 DB	'animations', 00H
-$SG352271 DB	00H
-$SG352258 DB	'imagesets', 00H
-$SG352273 DB	00H
-$SG352275 DB	00H
-$SG200706 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG356364 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'e', 00H
+	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's'
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
+$SG352305 DB	00H
+$SG352307 DB	00H
+$SG356365 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
+	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
+	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
+$SG352309 DB	00H
+$SG352311 DB	00H
+$SG356366 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+$SG352313 DB	00H
+$SG352315 DB	00H
+$SG356367 DB	'%', 00H, 'l', 00H, 'u', 00H, ',', 00H, '%', 00H, 'l', 00H
+	DB	'u', 00H, ',', 00H, '%', 00H, 'l', 00H, 'u', 00H, ',', 00H, 'f'
+	DB	00H, 'm', 00H, 't', 00H, '=', 00H, '%', 00H, 'l', 00H, 'u', 00H
+	DB	',', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '8', 00H, 'X'
+	DB	00H, 00H, 00H
+$SG352317 DB	00H
+$SG352327 DB	00H
+$SG356368 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356369 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG352279 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
+	DB	'P', 00H, 'A', 00H, 'R', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_'
+	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, 00H, 00H
+?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+$SG352164 DB	00H
+$SG356372 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'B', 00H, 'u', 00H
+	DB	'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'C', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'O', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ':'
+	DB	00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'b', 00H
+	DB	'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H
+	DB	00H
+$SG356374 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+	DB	' ', 00H, '1', 00H, '.', 00H, '5', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'T', 00H, 'e', 00H
+	DB	'a', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
+	DB	00H, 'p', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ':', 00H
+	DB	' ', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l'
+	DB	00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG200726 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG352280 DB	'%ws', 00H
+$SG352281 DB	'CEGUI/datafiles', 00H
+$SG352282 DB	'/schemes/', 00H
+	ORG $+2
+$SG352283 DB	'schemes', 00H
+$SG200731 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
-$SG352277 DB	00H
-$SG352287 DB	00H
-$SG352259 DB	'fonts', 00H
-?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-$SG352124 DB	00H
-$SG352260 DB	'schemes', 00H
-$SG352261 DB	'looknfeels', 00H
-	ORG $+1
-$SG352262 DB	'layouts', 00H
-$SG352263 DB	'lua_scripts', 00H
-$SG352264 DB	'animations', 00H
-	ORG $+1
-$SG352266 DB	'VanillaSkin.scheme', 00H
-	ORG $+1
-$SG352268 DB	'TaharezLook.scheme', 00H
-	ORG $+1
-$SG352270 DB	'DejaVuSans-10-NoScale.font', 00H
-	ORG $+1
-$SG352272 DB	'DejaVuSans-12-NoScale.font', 00H
-	ORG $+1
-$SG352274 DB	'Jura-18-NoScale.font', 00H
-	ORG $+3
-$SG352276 DB	'Jura-13-NoScale.font', 00H
-	ORG $+3
-$SG352278 DB	'Jura-10-NoScale.font', 00H
-	ORG $+3
-$SG352281 DB	'SchemaDefaultResourceGroup', 00H
-	ORG $+1
-$SG352282 DB	'schemas', 00H
-$SG352283 DB	'SchemaDefaultResourceGroup', 00H
-	ORG $+1
-$SG352285 DB	'root', 00H
-	ORG $+3
-$SG352286 DB	'DefaultWindow', 00H
 	ORG $+2
-$SG352288 DB	'Achievements.layout', 00H
-$SG356395 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'e', 00H
+$SG352284 DB	'/imagesets/', 00H
+$SG352285 DB	'imagesets', 00H
+	ORG $+2
+$SG352286 DB	'/fonts/', 00H
+$SG356383 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
+	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, '-', 00H, ' ', 00H
+	DB	' ', 00H, '<', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'i'
+	DB	00H, 'z', 00H, 'e', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H
+	DB	'e', 00H, 'r', 00H, 's', 00H, '_', 00H, 'O', 00H, 'r', 00H, 'i'
+	DB	00H, 'g', 00H, 'i', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H
+	DB	'(', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'i', 00H, 's', 00H, ','
+	DB	00H, ' ', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H
+	DB	'r', 00H, 'C', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 't', 00H, ','
+	DB	00H, ' ', 00H, 'W', 00H, 'i', 00H, 'd', 00H, 't', 00H, 'h', 00H
+	DB	',', 00H, ' ', 00H, 'H', 00H, 'e', 00H, 'i', 00H, 'g', 00H, 'h'
+	DB	00H, 't', 00H, ',', 00H, ' ', 00H, 'N', 00H, 'e', 00H, 'w', 00H
+	DB	'F', 00H, 'o', 00H, 'r', 00H, 'm', 00H, 'a', 00H, 't', 00H, ','
+	DB	00H, ' ', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H
+	DB	'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'l', 00H, 'a'
+	DB	00H, 'g', 00H, 's', 00H, ' ', 00H, ')', 00H, ' ', 00H, '>', 00H
+	DB	00H, 00H
+$SG352287 DB	'fonts', 00H
+	ORG $+2
+$SG352288 DB	'/layouts/', 00H
+	ORG $+2
+$SG352289 DB	'layouts', 00H
+$SG352290 DB	'/looknfeel/', 00H
+$SG352291 DB	'looknfeels', 00H
+	ORG $+1
+$SG352292 DB	'/lua_scripts/', 00H
+	ORG $+2
+$SG352293 DB	'lua_scripts', 00H
+$SG352294 DB	'/xml_schemas/', 00H
+	ORG $+2
+$SG352295 DB	'schemas', 00H
+$SG352296 DB	'/animations/', 00H
+	ORG $+3
+$SG352297 DB	'animations', 00H
+	ORG $+1
+$SG352298 DB	'imagesets', 00H
+	ORG $+2
+$SG352299 DB	'fonts', 00H
+	ORG $+2
+$SG352300 DB	'schemes', 00H
+$SG352301 DB	'looknfeels', 00H
+	ORG $+1
+$SG352302 DB	'layouts', 00H
+$SG352303 DB	'lua_scripts', 00H
+$SG352304 DB	'animations', 00H
+	ORG $+1
+$SG352306 DB	'VanillaSkin.scheme', 00H
+	ORG $+1
+$SG352308 DB	'TaharezLook.scheme', 00H
+	ORG $+1
+$SG352310 DB	'DejaVuSans-10-NoScale.font', 00H
+	ORG $+1
+$SG352312 DB	'DejaVuSans-12-NoScale.font', 00H
+	ORG $+1
+$SG352314 DB	'Jura-18-NoScale.font', 00H
+	ORG $+3
+$SG352316 DB	'Jura-13-NoScale.font', 00H
+	ORG $+3
+$SG352318 DB	'Jura-10-NoScale.font', 00H
+	ORG $+3
+$SG352321 DB	'SchemaDefaultResourceGroup', 00H
+	ORG $+1
+$SG352322 DB	'schemas', 00H
+$SG352323 DB	'SchemaDefaultResourceGroup', 00H
+	ORG $+1
+$SG352325 DB	'root', 00H
+	ORG $+3
+$SG352326 DB	'DefaultWindow', 00H
+	ORG $+2
+$SG352328 DB	'Achievements.layout', 00H
+$SG200778 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG356435 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'e', 00H
 	DB	'T', 00H, 'a', 00H, 'r', 00H, 'g', 00H, 'e', 00H, 't', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, 00H, 00H
-$SG356393 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356433 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -416,15 +510,15 @@ $SG356393 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, 'e', 00H, 't', 00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a'
 	DB	00H, 'm', 00H, 'e', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's', 00H
 	DB	')', 00H, ' ', 00H, '>', 00H, 00H, 00H
-$SG356396 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
+$SG356436 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
 	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
 	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG356397 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+$SG356437 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG356399 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356398 DB	'{', 00H, ' ', 00H, '(', 00H, '%', 00H, 'l', 00H, 'u', 00H
+$SG356439 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356438 DB	'{', 00H, ' ', 00H, '(', 00H, '%', 00H, 'l', 00H, 'u', 00H
 	DB	'x', 00H, '%', 00H, 'l', 00H, 'u', 00H, '@', 00H, '%', 00H, '3'
 	DB	00H, '.', 00H, '1', 00H, 'f', 00H, ' ', 00H, 'H', 00H, 'z', 00H
 	DB	')', 00H, ',', 00H, 'f', 00H, 'm', 00H, 't', 00H, '=', 00H, '%'
@@ -435,26 +529,26 @@ $SG356398 DB	'{', 00H, ' ', 00H, '(', 00H, '%', 00H, 'l', 00H, 'u', 00H
 	DB	00H, 's', 00H, '=', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H
 	DB	'2', 00H, 'x', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG356400 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356440 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357425 DB	'(', 00H, '*', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a', 00H
+$SG357465 DB	'(', 00H, '*', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a', 00H
 	DB	'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '2', 00H, ')', 00H, '-'
 	DB	00H, '>', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'e', 00H
 	DB	's', 00H, 'c', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG200753 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
-	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG357429 DB	'(', 00H, '*', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a', 00H
+$SG357469 DB	'(', 00H, '*', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a', 00H
 	DB	'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '1', 00H, ')', 00H, '-'
 	DB	00H, '>', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'e', 00H
 	DB	's', 00H, 'c', 00H, '1', 00H, 00H, 00H
 	ORG $+2
-$SG356406 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357472 DB	'(', 00H, '*', 00H, 'p', 00H, 'p', 00H, 'A', 00H, 'd', 00H
+	DB	'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, ')', 00H, '-'
+	DB	00H, '>', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'e', 00H
+	DB	's', 00H, 'c', 00H, 00H, 00H
+$SG356446 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'R', 00H, 'e', 00H
 	DB	'f', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'O'
@@ -464,11 +558,9 @@ $SG356406 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	' ', 00H, '%', 00H, 'f', 00H, ',', 00H, ' ', 00H, 'U', 00H, 's'
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'l', 00H, 'i', 00H, ')', 00H, 00H, 00H
-$SG357432 DB	'(', 00H, '*', 00H, 'p', 00H, 'p', 00H, 'A', 00H, 'd', 00H
-	DB	'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, ')', 00H, '-'
-	DB	00H, '>', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'e', 00H
-	DB	's', 00H, 'c', 00H, 00H, 00H
-$SG354359 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357486 DB	' ', 00H, '[', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+	DB	't', 00H, 'e', 00H, ']', 00H, 00H, 00H
+$SG354399 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'B', 00H
 	DB	'a', 00H, 'c', 00H, 'k', 00H, ' ', 00H, 'b', 00H, 'u', 00H, 'f'
@@ -477,7 +569,7 @@ $SG354359 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'l', 00H, 'e', 00H, '!', 00H, ' ', 00H, '*', 00H, '*', 00H
 	DB	'*', 00H, 00H, 00H
 	ORG $+2
-$SG356408 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356448 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'S', 00H, 'c', 00H
 	DB	'a', 00H, 'n', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'e', 00H, ' '
@@ -487,9 +579,8 @@ $SG356408 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	':', 00H, ' ', 00H, '%', 00H, 's', 00H, ',', 00H, ' ', 00H, 'U'
 	DB	00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H
 	DB	'%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357446 DB	' ', 00H, '[', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
-	DB	't', 00H, 'e', 00H, ']', 00H, 00H, 00H
-$SG356410 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357487 DB	0aH, 00H, 00H, 00H
+$SG356450 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'S', 00H, 'c', 00H
 	DB	'a', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
@@ -500,10 +591,13 @@ $SG356410 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG357443 DB	' ', 00H, '<', 00H, 'S', 00H, 'o', 00H, 'f', 00H, 't', 00H
+$SG357483 DB	' ', 00H, '<', 00H, 'S', 00H, 'o', 00H, 'f', 00H, 't', 00H
 	DB	'w', 00H, 'a', 00H, 'r', 00H, 'e', 00H, '>', 00H, 00H, 00H
-$SG357447 DB	0aH, 00H, 00H, 00H
-$SG357435 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'A', 00H, 's', 00H
+$SG200825 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG357475 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'A', 00H, 's', 00H
 	DB	's', 00H, 'e', 00H, 'r', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
 	DB	00H, ' ', 00H, 'f', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'Z', 00H, 'e', 00H, 'r', 00H, 'o', 00H, '-'
@@ -511,7 +605,7 @@ $SG357435 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'A', 00H, 's', 00H
 	DB	' ', 00H, 'a', 00H, 'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e'
 	DB	00H, 'r', 00H, ' ', 00H, 'n', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG354363 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG354403 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H
 	DB	'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H, 'n', 00H, 'o'
@@ -522,7 +616,7 @@ $SG354363 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'r', 00H, 'f', 00H, 'a', 00H, 'c', 00H, 'e', 00H, '!', 00H
 	DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, 00H, 00H
 	ORG $+2
-$SG357437 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357477 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '>', 00H, '>', 00H, ' ', 00H, '(', 00H, 'H', 00H, 'o', 00H
 	DB	's', 00H, 't', 00H, ' ', 00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l'
@@ -541,11 +635,10 @@ $SG357437 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, ' ', 00H, '''', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, ' ', 00H, '<', 00H, '<', 00H, 0aH
 	DB	00H, 00H, 00H
-$SG200800 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
-	DB	00H
+$SG357519 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG357438 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357478 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '@', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 't', 00H
 	DB	'u', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'A'
@@ -556,7 +649,7 @@ $SG357438 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, '%', 00H, '0', 00H, '8', 00H, 'X', 00H, ':', 00H, '%', 00H
 	DB	'0', 00H, '8', 00H, 'X', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG354366 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG354406 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H
 	DB	'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'D', 00H, 'e'
@@ -567,12 +660,13 @@ $SG354366 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'l', 00H, 'e', 00H, 'd', 00H, '!', 00H, ' ', 00H, '*', 00H
 	DB	'*', 00H, '*', 00H, 00H, 00H
 	ORG $+2
-$SG357444 DB	' ', 00H, '<', 00H, 'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H
+$SG357484 DB	' ', 00H, '<', 00H, 'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H
 	DB	'w', 00H, 'a', 00H, 'r', 00H, 'e', 00H, '>', 00H, 00H, 00H
-$SG357479 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
+$SG357520 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
+	DB	00H
 	ORG $+2
-$SG356415 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356455 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -588,7 +682,7 @@ $SG356415 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'e', 00H, 'r', 00H, 's', 00H, ')', 00H, ' ', 00H, '>', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG356419 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356459 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -602,27 +696,18 @@ $SG356419 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, 'e', 00H, 't', 00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a'
 	DB	00H, 'm', 00H, 'e', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's', 00H
 	DB	')', 00H, ' ', 00H, '>', 00H, 00H, 00H
-$SG357478 DB	'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H, 'd', 00H
+$SG357518 DB	'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H, 'd', 00H
 	DB	'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's', 00H, '1'
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG357480 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG357481 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357482 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357521 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357522 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG366710 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
-	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ':'
-	DB	00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H
-	DB	'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h'
-	DB	00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
-$SG357483 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357523 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -637,36 +722,44 @@ $SG357483 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, ')', 00H, ' ', 00H, '>', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG366713 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG366750 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ':'
+	DB	00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H
+	DB	'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h'
+	DB	00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
+$SG366753 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '1'
 	DB	00H, ':', 00H, ':', 00H, 'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H
 	DB	'A', 00H, 'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r'
 	DB	00H, 's', 00H, '1', 00H, 00H, 00H
 	ORG $+2
-$SG366714 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG366754 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ':'
 	DB	00H, ':', 00H, 'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H
 	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG366719 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG200872 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG366759 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2'
 	DB	00H, ':', 00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C'
 	DB	00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H
 	DB	'r', 00H, 'H', 00H, 'w', 00H, 'n', 00H, 'd', 00H, 00H, 00H
-$SG357507 DB	'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H, 'd', 00H
+$SG357547 DB	'E', 00H, 'n', 00H, 'u', 00H, 'm', 00H, 'A', 00H, 'd', 00H
 	DB	'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 's', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, 00H, 00H
-$SG366720 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG366760 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2'
 	DB	00H, ':', 00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C'
 	DB	00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H
 	DB	'r', 00H, 'C', 00H, 'o', 00H, 'r', 00H, 'e', 00H, 'W', 00H, 'i'
 	DB	00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 00H, 00H
-$SG366721 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
+$SG366761 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2'
 	DB	00H, ':', 00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C'
@@ -674,23 +767,22 @@ $SG366721 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H
 	DB	'r', 00H, 'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 's'
 	DB	00H, 'i', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG357508 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+$SG357548 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG357509 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+$SG357549 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
 	DB	'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG357510 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357511 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357550 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357551 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG200847 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG357512 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357578 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357552 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -704,12 +796,11 @@ $SG357512 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	',', 00H, ' ', 00H, 'p', 00H, 'p', 00H, 'A', 00H, 'd', 00H, 'a'
 	DB	00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, ')', 00H, ' ', 00H
 	DB	'>', 00H, 00H, 00H
-$SG199831 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG199856 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG357538 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357537 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG357580 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357577 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
@@ -717,17 +808,14 @@ $SG357537 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
-$SG357539 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
+$SG357579 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
 	DB	'h', 00H, 00H, 00H
-$SG357540 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357541 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357581 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357567 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357543 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357583 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -740,7 +828,38 @@ $SG357543 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, ',', 00H, ' ', 00H, 'p', 00H, 'p', 00H, 'F', 00H, 'a', 00H
 	DB	'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ')', 00H, ' '
 	DB	00H, '>', 00H, 00H, 00H
-$SG357566 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG212185 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG212186 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG212187 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG212188 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG212189 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG212190 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG212191 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG212192 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG212193 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG212194 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG212195 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG212196 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+	DB	'b', 00H, 00H, 00H
+$SG357607 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357606 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
@@ -748,27 +867,17 @@ $SG357566 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '1', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
-$SG357568 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
+$SG357608 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
 	DB	'h', 00H, 00H, 00H
-$SG212160 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG357569 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG212161 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG357570 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357609 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357610 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG212162 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
+$SG357639 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG212163 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG212164 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG357573 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357613 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'b'
@@ -779,12 +888,7 @@ $SG357573 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'n', 00H, ' ', 00H, 'V', 00H, 'i', 00H, 's', 00H, 't', 00H
 	DB	'a', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG212165 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG212166 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG357575 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357615 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -798,14 +902,10 @@ $SG357575 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ')'
 	DB	00H, ' ', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG212167 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG212168 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
-	ORG $+2
-$SG212169 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG352458 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG199927 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG357641 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG352498 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 't', 00H, 'o'
@@ -819,12 +919,12 @@ $SG352458 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'i', 00H, 'n', 00H, ' ', 00H, 'n', 00H, 'e', 00H, 'x', 00H, 't'
 	DB	00H, ' ', 00H, 'f', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'.', 00H, 00H, 00H
-$SG212170 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG212171 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
-	DB	'b', 00H, 00H, 00H
-$SG357598 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG357642 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG357638 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
@@ -832,20 +932,15 @@ $SG357598 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
-$SG199902 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG357599 DB	'%', 00H, 's', 00H, ' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357600 DB	'0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X', 00H
+$SG357640 DB	'0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X', 00H
 	DB	',', 00H, ' ', 00H, '%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%'
 	DB	00H, 'p', 00H, 'h', 00H, 00H, 00H
-$SG357601 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357602 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357605 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG352532 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
+	DB	00H, 'L', 00H, 'I', 00H, 'N', 00H, 'G', 00H, '_', 00H, 'U', 00H
+	DB	'N', 00H, 'S', 00H, 'P', 00H, 'E', 00H, 'C', 00H, 'I', 00H, 'F'
+	DB	00H, 'I', 00H, 'E', 00H, 'D', 00H, 00H, 00H
+$SG357645 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'b'
@@ -856,12 +951,11 @@ $SG357605 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'o', 00H, 'n', 00H, ' ', 00H, 'V', 00H, 'i', 00H, 's', 00H
 	DB	't', 00H, 'a', 00H, '/', 00H, '7', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, 00H, 00H
-$SG352492 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
-	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
-	DB	00H, 'L', 00H, 'I', 00H, 'N', 00H, 'G', 00H, '_', 00H, 'U', 00H
-	DB	'N', 00H, 'S', 00H, 'P', 00H, 'E', 00H, 'C', 00H, 'I', 00H, 'F'
-	DB	00H, 'I', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-$SG357607 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357674 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
+	DB	00H, 't', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H
+	DB	'c', 00H, 'e', 00H, 00H, 00H
+$SG357647 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -875,44 +969,43 @@ $SG357607 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'i', 00H, 'd', 00H, ',', 00H, ' ', 00H, 'p', 00H, 'p', 00H, 'F'
 	DB	00H, 'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H
 	DB	')', 00H, ' ', 00H, '>', 00H, 00H, 00H
-$SG352490 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352530 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'L', 00H, 'I', 00H, 'N', 00H, 'G', 00H, '_', 00H, 'C', 00H
 	DB	'E', 00H, 'N', 00H, 'T', 00H, 'E', 00H, 'R', 00H, 'E', 00H, 'D'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG352494 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352534 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'L', 00H, 'I', 00H, 'N', 00H, 'G', 00H, '_', 00H, 'S', 00H
 	DB	'T', 00H, 'R', 00H, 'E', 00H, 'T', 00H, 'C', 00H, 'H', 00H, 'E'
 	DB	00H, 'D', 00H, 00H, 00H
-$SG352496 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+$SG352536 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
 	DB	'N', 00H, 00H, 00H
-$SG352503 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352543 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'N', 00H, 'L', 00H, 'I', 00H, 'N', 00H, 'E', 00H, '_', 00H
 	DB	'O', 00H, 'R', 00H, 'D', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'U'
 	DB	00H, 'N', 00H, 'S', 00H, 'P', 00H, 'E', 00H, 'C', 00H, 'I', 00H
 	DB	'F', 00H, 'I', 00H, 'E', 00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG352511 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+$SG352551 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
 	DB	'N', 00H, 00H, 00H
-$SG357634 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+$SG357677 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 't', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H
 	DB	'c', 00H, 'e', 00H, 00H, 00H
-$SG352505 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352545 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'N', 00H, 'L', 00H, 'I', 00H, 'N', 00H, 'E', 00H, '_', 00H
 	DB	'O', 00H, 'R', 00H, 'D', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'P'
 	DB	00H, 'R', 00H, 'O', 00H, 'G', 00H, 'R', 00H, 'E', 00H, 'S', 00H
 	DB	'S', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 00H, 00H
 	ORG $+2
-$SG357637 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
-	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
-	DB	00H, 't', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H
-	DB	'c', 00H, 'e', 00H, 00H, 00H
-$SG352507 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352558 DB	'D', 00H, 'i', 00H, 's', 00H, 'c', 00H, 'a', 00H, 'r', 00H
+	DB	'd', 00H, ' ', 00H, ' ', 00H, '(', 00H, 'B', 00H, 'i', 00H, 't'
+	DB	00H, 'B', 00H, 'l', 00H, 't', 00H, ')', 00H, 00H, 00H
+$SG352547 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'N', 00H, 'L', 00H, 'I', 00H, 'N', 00H, 'E', 00H, '_', 00H
 	DB	'O', 00H, 'R', 00H, 'D', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'U'
@@ -920,9 +1013,9 @@ $SG352507 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'I', 00H, 'E', 00H, 'L', 00H, 'D', 00H, '_', 00H, 'F', 00H, 'I'
 	DB	00H, 'R', 00H, 'S', 00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG357628 DB	'DXGID3D10CreateDevice', 00H
+$SG357668 DB	'DXGID3D10CreateDevice', 00H
 	ORG $+2
-$SG352509 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
+$SG352549 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'C', 00H, 'A'
 	DB	00H, 'N', 00H, 'L', 00H, 'I', 00H, 'N', 00H, 'E', 00H, '_', 00H
 	DB	'O', 00H, 'R', 00H, 'D', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'L'
@@ -930,14 +1023,17 @@ $SG352509 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'M', 00H
 	DB	'I', 00H, 'E', 00H, 'L', 00H, 'D', 00H, '_', 00H, 'F', 00H, 'I'
 	DB	00H, 'R', 00H, 'S', 00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG357635 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+$SG199974 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+	ORG $+2
+$SG357675 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
 	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
 	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
 	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG357636 DB	'(', 00H, 'H', 00H, 'M', 00H, 'O', 00H, 'D', 00H, 'U', 00H
+$SG357676 DB	'(', 00H, 'H', 00H, 'M', 00H, 'O', 00H, 'D', 00H, 'U', 00H
 	DB	'L', 00H, 'E', 00H, ' ', 00H, 'h', 00H, 'M', 00H, 'o', 00H, 'd'
 	DB	00H, 'u', 00H, 'l', 00H, 'e', 00H, ',', 00H, ' ', 00H, 'I', 00H
 	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
@@ -955,10 +1051,12 @@ $SG357636 DB	'(', 00H, 'H', 00H, 'M', 00H, 'O', 00H, 'D', 00H, 'U', 00H
 	DB	' ', 00H, '*', 00H, 'p', 00H, 'p', 00H, 'D', 00H, 'e', 00H, 'v'
 	DB	00H, 'i', 00H, 'c', 00H, 'e', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG352518 DB	'D', 00H, 'i', 00H, 's', 00H, 'c', 00H, 'a', 00H, 'r', 00H
-	DB	'd', 00H, ' ', 00H, ' ', 00H, '(', 00H, 'B', 00H, 'i', 00H, 't'
-	DB	00H, 'B', 00H, 'l', 00H, 't', 00H, ')', 00H, 00H, 00H
-$SG357638 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG352560 DB	'S', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'n', 00H
+	DB	't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '('
+	DB	00H, 'B', 00H, 'i', 00H, 't', 00H, 'B', 00H, 'l', 00H, 't', 00H
+	DB	')', 00H, 00H, 00H
+	ORG $+2
+$SG357678 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
@@ -966,43 +1064,32 @@ $SG357638 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG352520 DB	'S', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'n', 00H
-	DB	't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '('
-	DB	00H, 'B', 00H, 'i', 00H, 't', 00H, 'B', 00H, 'l', 00H, 't', 00H
-	DB	')', 00H, 00H, 00H
-	ORG $+2
-$SG352522 DB	'D', 00H, 'i', 00H, 's', 00H, 'c', 00H, 'a', 00H, 'r', 00H
+$SG352562 DB	'D', 00H, 'i', 00H, 's', 00H, 'c', 00H, 'a', 00H, 'r', 00H
 	DB	'd', 00H, ' ', 00H, ' ', 00H, '(', 00H, 'F', 00H, 'l', 00H, 'i'
 	DB	00H, 'p', 00H, ')', 00H, 00H, 00H
-$SG352524 DB	'S', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'n', 00H
+$SG352564 DB	'S', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 'n', 00H
 	DB	't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '('
 	DB	00H, 'F', 00H, 'l', 00H, 'i', 00H, 'p', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG199949 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
-	ORG $+2
-$SG352526 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+$SG352566 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
 	DB	'N', 00H, 00H, 00H
-$SG352532 DB	00H, 00H
+$SG352572 DB	00H, 00H
 	ORG $+2
-$SG352534 DB	'N', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'P', 00H, 'r', 00H
+$SG352574 DB	'N', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'P', 00H, 'r', 00H
 	DB	'e', 00H, ' ', 00H, 'R', 00H, 'o', 00H, 't', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'd', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG352536 DB	'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'w', 00H, ' ', 00H
+$SG352576 DB	'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'w', 00H, ' ', 00H
 	DB	'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r'
 	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 'e', 00H, ' ', 00H, 'S', 00H, 'w', 00H, 'i', 00H, 't'
 	DB	00H, 'c', 00H, 'h', 00H, 0aH, 00H, 00H, 00H
-$SG352538 DB	'G', 00H, 'D', 00H, 'I', 00H, ' ', 00H, 'C', 00H, 'o', 00H
+$SG352578 DB	'G', 00H, 'D', 00H, 'I', 00H, ' ', 00H, 'C', 00H, 'o', 00H
 	DB	'm', 00H, 'p', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'b', 00H, 'l'
 	DB	00H, 'e', 00H, 0aH, 00H, 00H, 00H
-$SG357660 DB	'DXGID3D10CreateLayeredDevice', 00H
+$SG357700 DB	'DXGID3D10CreateLayeredDevice', 00H
 	ORG $+3
-$SG352544 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c', 00H
-	DB	'y', 00H, ' ', 00H, 'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'a'
-	DB	00H, 'b', 00H, 'l', 00H, 'e', 00H, 0aH, 00H, 00H, 00H
-$SG352540 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+$SG352580 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
 	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
 	DB	'G', 00H, '_', 00H, 'R', 00H, 'E', 00H, 'S', 00H, 'T', 00H, 'R'
@@ -1010,13 +1097,10 @@ $SG352540 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'C', 00H, 'O', 00H, 'N', 00H, 'T', 00H, 'E', 00H, 'N', 00H, 'T'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG357666 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
-	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
-	DB	00H, 't', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H
-	DB	'r', 00H, 'e', 00H, 'd', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i'
-	DB	00H, 'c', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG352542 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+$SG352584 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c', 00H
+	DB	'y', 00H, ' ', 00H, 'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'a'
+	DB	00H, 'b', 00H, 'l', 00H, 'e', 00H, 0aH, 00H, 00H, 00H
+$SG352582 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
 	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
 	DB	'G', 00H, '_', 00H, 'R', 00H, 'E', 00H, 'S', 00H, 'T', 00H, 'R'
@@ -1025,13 +1109,13 @@ $SG352542 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	00H, 'S', 00H, 'O', 00H, 'U', 00H, 'R', 00H, 'C', 00H, 'E', 00H
 	DB	'_', 00H, 'D', 00H, 'R', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 'R'
 	DB	00H, 0aH, 00H, 00H, 00H
-$SG357669 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+$SG357706 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 't', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H
 	DB	'r', 00H, 'e', 00H, 'd', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i'
 	DB	00H, 'c', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG352546 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+$SG352586 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
 	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
 	DB	'G', 00H, '_', 00H, 'F', 00H, 'O', 00H, 'R', 00H, 'E', 00H, 'G'
@@ -1039,23 +1123,32 @@ $SG352546 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'L', 00H, 'A', 00H, 'Y', 00H, 'E', 00H, 'R', 00H, 0aH, 00H, 00H
 	DB	00H
 	ORG $+2
-$SG357667 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+$SG357707 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
 	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
 	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
 	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG357668 DB	'(', 00H, 'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H
+$SG357708 DB	'(', 00H, 'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H
 	DB	'W', 00H, 'N', 00H, '5', 00H, ' ', 00H, 'U', 00H, 'n', 00H, 'k'
 	DB	00H, 'n', 00H, 'o', 00H, 'w', 00H, 'n', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG352548 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+$SG352588 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
 	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
 	DB	'G', 00H, '_', 00H, 'Y', 00H, 'U', 00H, 'V', 00H, '_', 00H, 'V'
 	DB	00H, 'I', 00H, 'D', 00H, 'E', 00H, 'O', 00H, 0aH, 00H, 00H, 00H
-$SG357670 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357709 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+	DB	'D', 00H, '1', 00H, '0', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
+	DB	00H, 't', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H
+	DB	'r', 00H, 'e', 00H, 'd', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i'
+	DB	00H, 'c', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG200021 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG357710 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
@@ -1063,110 +1156,31 @@ $SG357670 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG357688 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+$SG357728 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '1', 00H, '0', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L'
 	DB	00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H
 	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'S'
 	DB	00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
-$SG352550 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+$SG352590 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
 	DB	'W', 00H, 'A', 00H, 'P', 00H, '_', 00H, 'C', 00H, 'H', 00H, 'A'
 	DB	00H, 'I', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'L', 00H, 'A', 00H
 	DB	'G', 00H, '_', 00H, 'H', 00H, 'W', 00H, '_', 00H, 'P', 00H, 'R'
 	DB	00H, 'O', 00H, 'T', 00H, 'E', 00H, 'C', 00H, 'T', 00H, 'E', 00H
 	DB	'D', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG352552 DB	'S', 00H, 'u', 00H, 'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H
+$SG352592 DB	'S', 00H, 'u', 00H, 'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H
 	DB	't', 00H, 's', 00H, ' ', 00H, 'T', 00H, 'e', 00H, 'a', 00H, 'r'
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'i', 00H, 'n', 00H
 	DB	' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w'
 	DB	00H, 'e', 00H, 'd', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd', 00H
 	DB	'e', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG357682 DB	'DXGID3D10GetLayeredDeviceSize', 00H
+$SG357722 DB	'DXGID3D10GetLayeredDeviceSize', 00H
 	ORG $+2
-$SG352567 DB	'N', 00H, '/', 00H, 'A', 00H, 00H, 00H
-$SG352568 DB	00H, 00H
+$SG352607 DB	'N', 00H, '/', 00H, 'A', 00H, 00H, 00H
+$SG352608 DB	00H, 00H
 	ORG $+2
-$SG352570 DB	' ', 00H, '9', 00H, '_', 00H, '1', 00H, 00H, 00H
-	ORG $+2
-$SG357689 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
-	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG357690 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
-	DB	' ', 00H, 'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, ' ', 00H, '*'
-	DB	00H, 'p', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H
-	DB	's', 00H, ',', 00H, ' ', 00H, 'U', 00H, 'I', 00H, 'N', 00H, 'T'
-	DB	00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H, 'L', 00H, 'a', 00H
-	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357691 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
-	DB	'D', 00H, '1', 00H, '0', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L'
-	DB	00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H
-	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'S'
-	DB	00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
-$SG357692 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
-	DB	00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
-	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
-	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG352572 DB	' ', 00H, '9', 00H, '_', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG199996 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG352574 DB	' ', 00H, '9', 00H, '_', 00H, '3', 00H, 00H, 00H
-	ORG $+2
-$SG352576 DB	' ', 00H, '1', 00H, '0', 00H, '_', 00H, '0', 00H, 00H, 00H
-$SG352578 DB	' ', 00H, '1', 00H, '0', 00H, '_', 00H, '1', 00H, 00H, 00H
-$SG352580 DB	' ', 00H, '1', 00H, '1', 00H, '_', 00H, '0', 00H, 00H, 00H
-$SG352582 DB	' ', 00H, '1', 00H, '1', 00H, '_', 00H, '1', 00H, 00H, 00H
-$SG357704 DB	'DXGID3D10RegisterLayers', 00H
-$SG352584 DB	' ', 00H, '1', 00H, '2', 00H, '_', 00H, '0', 00H, 00H, 00H
-$SG352586 DB	' ', 00H, '1', 00H, '2', 00H, '_', 00H, '1', 00H, 00H, 00H
-$SG357710 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
-	DB	'D', 00H, '1', 00H, '0', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i'
-	DB	00H, 's', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'L', 00H, 'a', 00H
-	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
-$SG357711 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
-	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG357712 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
-	DB	' ', 00H, 'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, ' ', 00H, '*'
-	DB	00H, 'p', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H
-	DB	's', 00H, ',', 00H, ' ', 00H, 'U', 00H, 'I', 00H, 'N', 00H, 'T'
-	DB	00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H, 'L', 00H, 'a', 00H
-	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357713 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
-	DB	'D', 00H, '1', 00H, '0', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i'
-	DB	00H, 's', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'L', 00H, 'a', 00H
-	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
-$SG200043 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
-	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG357714 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
-	DB	00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
-	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
-	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG357724 DB	'DXGIDumpJournal', 00H
-$SG357728 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, 'u', 00H
-	DB	'm', 00H, 'p', 00H, 'J', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 'n'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG370033 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG352610 DB	' ', 00H, '9', 00H, '_', 00H, '1', 00H, 00H, 00H
 	ORG $+2
 $SG357729 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1175,38 +1189,17 @@ $SG357729 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
 	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG370018 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H, 'D', 00H
-	DB	' ', 00H, '1', 00H, '1', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'm', 00H
-	DB	'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H, 'i', 00H, 't', 00H, ' '
-	DB	00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'i', 00H, 'z', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o'
-	DB	00H, 'n', 00H, ' ', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'g', 00H
-	DB	'g', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '<'
-	DB	00H, '<', 00H, 00H, 00H
 $SG357730 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
-	DB	' ', 00H, 'c', 00H, 'h', 00H, 'a', 00H, 'r', 00H, ' ', 00H, '*'
-	DB	00H, 's', 00H, 'z', 00H, 'P', 00H, 'a', 00H, 's', 00H, 's', 00H
-	DB	'T', 00H, 'h', 00H, 'r', 00H, 'o', 00H, 'u', 00H, 'g', 00H, 'h'
-	DB	00H, ')', 00H, 00H, 00H
-$SG357731 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, 'u', 00H
-	DB	'm', 00H, 'p', 00H, 'J', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 'n'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG357750 DB	'(', 00H, 'D', 00H, 'W', 00H, 'O', 00H, 'R', 00H, 'D', 00H
-	DB	' ', 00H, 'd', 00H, 'w', 00H, 'U', 00H, 'n', 00H, 'k', 00H, 'n'
-	DB	00H, 'o', 00H, 'w', 00H, 'n', 00H, ')', 00H, 00H, 00H
-$SG370020 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H
-	DB	'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
-	DB	00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H, 'H', 00H
-	DB	'o', 00H, 'o', 00H, 'k', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG357742 DB	'DXGIReportAdapterConfiguration', 00H
-	ORG $+1
-$SG354696 DB	'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n', 00H
-	DB	't', 00H, '1', 00H, 00H, 00H
-	ORG $+2
+	DB	' ', 00H, 'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, ' ', 00H, '*'
+	DB	00H, 'p', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H
+	DB	's', 00H, ',', 00H, ' ', 00H, 'U', 00H, 'I', 00H, 'N', 00H, 'T'
+	DB	00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H, 'L', 00H, 'a', 00H
+	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357731 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+	DB	'D', 00H, '1', 00H, '0', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L'
+	DB	00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H
+	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'S'
+	DB	00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
 $SG357732 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
@@ -1215,10 +1208,109 @@ $SG357732 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG200090 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG352612 DB	' ', 00H, '9', 00H, '_', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG352614 DB	' ', 00H, '9', 00H, '_', 00H, '3', 00H, 00H, 00H
+	ORG $+2
+$SG352616 DB	' ', 00H, '1', 00H, '0', 00H, '_', 00H, '0', 00H, 00H, 00H
+$SG352618 DB	' ', 00H, '1', 00H, '0', 00H, '_', 00H, '1', 00H, 00H, 00H
+$SG352620 DB	' ', 00H, '1', 00H, '1', 00H, '_', 00H, '0', 00H, 00H, 00H
+$SG352622 DB	' ', 00H, '1', 00H, '1', 00H, '_', 00H, '1', 00H, 00H, 00H
+$SG357744 DB	'DXGID3D10RegisterLayers', 00H
+$SG352624 DB	' ', 00H, '1', 00H, '2', 00H, '_', 00H, '0', 00H, 00H, 00H
+$SG352626 DB	' ', 00H, '1', 00H, '2', 00H, '_', 00H, '1', 00H, 00H, 00H
+$SG357750 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+	DB	'D', 00H, '1', 00H, '0', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i'
+	DB	00H, 's', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'L', 00H, 'a', 00H
+	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
+$SG200068 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG357751 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
+	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG357752 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
+	DB	' ', 00H, 'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, ' ', 00H, '*'
+	DB	00H, 'p', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H
+	DB	's', 00H, ',', 00H, ' ', 00H, 'U', 00H, 'I', 00H, 'N', 00H, 'T'
+	DB	00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H, 'L', 00H, 'a', 00H
+	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357753 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, '3', 00H
+	DB	'D', 00H, '1', 00H, '0', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i'
+	DB	00H, 's', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'L', 00H, 'a', 00H
+	DB	'y', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
+$SG370071 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG357754 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
+	DB	00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
+	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
+	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
+$SG357764 DB	'DXGIDumpJournal', 00H
+$SG357790 DB	'(', 00H, 'D', 00H, 'W', 00H, 'O', 00H, 'R', 00H, 'D', 00H
+	DB	' ', 00H, 'd', 00H, 'w', 00H, 'U', 00H, 'n', 00H, 'k', 00H, 'n'
+	DB	00H, 'o', 00H, 'w', 00H, 'n', 00H, ')', 00H, 00H, 00H
+$SG370056 DB	'[', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H, 'D', 00H
+	DB	' ', 00H, '1', 00H, '1', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'm', 00H
+	DB	'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H, 'i', 00H, 't', 00H, ' '
+	DB	00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'i', 00H, 'z', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o'
+	DB	00H, 'n', 00H, ' ', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'g', 00H
+	DB	'g', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '<'
+	DB	00H, '<', 00H, 00H, 00H
+$SG357768 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, 'u', 00H
+	DB	'm', 00H, 'p', 00H, 'J', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 'n'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG354736 DB	'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n', 00H
+	DB	't', 00H, '1', 00H, 00H, 00H
+	ORG $+2
+$SG357769 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
+	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG370058 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H
+	DB	'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
+	DB	00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H, 'H', 00H
+	DB	'o', 00H, 'o', 00H, 'k', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG357770 DB	'(', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 's', 00H, 't', 00H
+	DB	' ', 00H, 'c', 00H, 'h', 00H, 'a', 00H, 'r', 00H, ' ', 00H, '*'
+	DB	00H, 's', 00H, 'z', 00H, 'P', 00H, 'a', 00H, 's', 00H, 's', 00H
+	DB	'T', 00H, 'h', 00H, 'r', 00H, 'o', 00H, 'u', 00H, 'g', 00H, 'h'
+	DB	00H, ')', 00H, 00H, 00H
+$SG357771 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'D', 00H, 'u', 00H
+	DB	'm', 00H, 'p', 00H, 'J', 00H, 'o', 00H, 'u', 00H, 'r', 00H, 'n'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG200115 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG370027 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357772 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
+	DB	00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
+	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
+	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
+$SG200162 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
+	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG370065 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o'
@@ -1228,30 +1320,35 @@ $SG370027 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	':', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, ')'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG357748 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'R', 00H, 'e', 00H
+$SG357782 DB	'DXGIReportAdapterConfiguration', 00H
+	ORG $+1
+$SG357788 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'R', 00H, 'e', 00H
 	DB	'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, 'A', 00H, 'd', 00H, 'a'
 	DB	00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'C', 00H, 'o', 00H
 	DB	'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H, 'u', 00H, 'r', 00H, 'a'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG200137 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
-	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
+$SG370161 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
+	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
+$SG370165 DB	'e', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
+	DB	'%', 00H, 'p', 00H, ',', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'o'
+	DB	00H, 'k', 00H, 'i', 00H, 'e', 00H, '=', 00H, '%', 00H, 'u', 00H
+	DB	0aH, 00H, 00H, 00H
 	ORG $+2
-$SG357749 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+$SG357789 DB	'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
 	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
 	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'd', 00H
 	DB	'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG357751 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'R', 00H, 'e', 00H
+$SG357791 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'R', 00H, 'e', 00H
 	DB	'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, 'A', 00H, 'd', 00H, 'a'
 	DB	00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'C', 00H, 'o', 00H
 	DB	'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H, 'u', 00H, 'r', 00H, 'a'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG357752 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357792 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '['
@@ -1259,12 +1356,10 @@ $SG357752 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'g', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H
 	DB	'0', 00H, '4', 00H, 'x', 00H, ']', 00H, 00H, 00H
-$SG370127 DB	'e', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
-	DB	'%', 00H, 'p', 00H, ',', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'o'
-	DB	00H, 'k', 00H, 'i', 00H, 'e', 00H, '=', 00H, '%', 00H, 'u', 00H
-	DB	0aH, 00H, 00H, 00H
-	ORG $+2
-$SG370120 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370166 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	'!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H, 0aH
+	DB	00H, 00H, 00H
+$SG370158 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '$', 00H, ' ', 00H, 'S', 00H, 'p', 00H
 	DB	'a', 00H, 'w', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
@@ -1273,12 +1368,10 @@ $SG370120 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	00H, ' ', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'n', 00H, 'g', 00H
 	DB	'e', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, '.', 00H, '.', 00H, ':', 00H, ' ', 00H, 00H, 00H
-$SG370123 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
-	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
-$SG370128 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	'!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H, 0aH
-	DB	00H, 00H, 00H
-$SG370124 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370167 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	'!', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG370162 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '%', 00H, '%', 00H, ' ', 00H, 'S', 00H
 	DB	'e', 00H, 't', 00H, 't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
@@ -1289,55 +1382,49 @@ $SG370124 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	00H, 'i', 00H, 'o', 00H, 'n', 00H, '.', 00H, ':', 00H, ' ', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG370129 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	'!', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG370136 DB	' ', 00H, '(', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'a', 00H
-	DB	'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H, ')', 00H, 0aH, 00H, 00H
-	DB	00H
-	ORG $+2
-$SG370130 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370168 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'G', 00H, 'P', 00H, 'U', 00H, ' ', 00H, 'S', 00H, 'c', 00H
 	DB	'h', 00H, 'e', 00H, 'd', 00H, 'u', 00H, 'l', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' ', 00H
 	DB	'P', 00H, 'r', 00H, 'e', 00H, '-', 00H, 'E', 00H, 'm', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG370132 DB	' ', 00H, '(', 00H, 'D', 00H, 'M', 00H, 'A', 00H, ' ', 00H
+$SG370170 DB	' ', 00H, '(', 00H, 'D', 00H, 'M', 00H, 'A', 00H, ' ', 00H
 	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, ')'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370134 DB	' ', 00H, '(', 00H, 'G', 00H, 'r', 00H, 'a', 00H, 'p', 00H
+$SG370172 DB	' ', 00H, '(', 00H, 'G', 00H, 'r', 00H, 'a', 00H, 'p', 00H
 	DB	'h', 00H, 'i', 00H, 'c', 00H, 's', 00H, ' ', 00H, 'P', 00H, 'r'
 	DB	00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'v', 00H
 	DB	'e', 00H, ')', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370138 DB	' ', 00H, '(', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'g', 00H
+$SG370174 DB	' ', 00H, '(', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'a', 00H
+	DB	'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H, ')', 00H, 0aH, 00H, 00H
+	DB	00H
+	ORG $+2
+$SG370176 DB	' ', 00H, '(', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'g', 00H
 	DB	'm', 00H, 'e', 00H, 'n', 00H, 't', 00H, ')', 00H, 0aH, 00H, 00H
 	DB	00H
 	ORG $+2
-$SG370140 DB	' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H
+$SG370178 DB	' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	'r', 00H, 'u', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
 	DB	00H, ')', 00H, 0aH, 00H, 00H, 00H
-$SG370142 DB	'U', 00H, 'N', 00H, 'D', 00H, 'E', 00H, 'F', 00H, 'I', 00H
+$SG370180 DB	'U', 00H, 'N', 00H, 'D', 00H, 'E', 00H, 'F', 00H, 'I', 00H
 	DB	'N', 00H, 'E', 00H, 'D', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370145 DB	0aH, 00H, 00H, 00H
-$SG370143 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370181 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H
 	DB	'M', 00H, 'e', 00H, 'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, 00H, 00H
-$SG370146 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG370183 DB	0aH, 00H, 00H, 00H
+$SG370186 DB	0aH, 00H, 00H, 00H
+$SG370184 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-$SG366050 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG370148 DB	0aH, 00H, 00H, 00H
-$SG370147 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
+$SG370185 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'i', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'e', 00H
 	DB	'r', 00H, 'v', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H, '#'
@@ -1350,16 +1437,38 @@ $SG370147 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'M', 00H
 	DB	'i', 00H, 'B', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG370149 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG366090 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG370189 DB	0aH, 00H, 00H, 00H
+$SG370187 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'N', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'L', 00H, 'o', 00H
 	DB	'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'M', 00H, 'e', 00H, 'm'
 	DB	00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, ':', 00H, 00H, 00H
-$SG366053 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG366093 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG370151 DB	0aH, 00H, 00H, 00H
-$SG366055 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
+$SG370192 DB	0aH, 00H, 00H, 00H
+$SG370190 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
+$SG370191 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
+	DB	'i', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'e', 00H
+	DB	'r', 00H, 'v', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H, '#'
+	DB	00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, '/', 00H
+	DB	' ', 00H, '%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u'
+	DB	00H, ' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, ' ', 00H, '-', 00H
+	DB	' ', 00H, 'B', 00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't'
+	DB	00H, ':', 00H, ' ', 00H, '%', 00H, '#', 00H, '5', 00H, 'l', 00H
+	DB	'l', 00H, 'u', 00H, ' ', 00H, '/', 00H, ' ', 00H, '%', 00H, '#'
+	DB	00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'M', 00H
+	DB	'i', 00H, 'B', 00H, ')', 00H, 00H, 00H
+	ORG $+2
+$SG366095 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
 	DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 's', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a'
@@ -1370,45 +1479,29 @@ $SG366055 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
 	DB	00H, 'r', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG370152 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-$SG366056 DB	'IDXGISwapChain::Present', 00H
-$SG370153 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
-	DB	'i', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'e', 00H
-	DB	'r', 00H, 'v', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H, '#'
-	DB	00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, '/', 00H
-	DB	' ', 00H, '%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u'
-	DB	00H, ' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, ' ', 00H, '-', 00H
-	DB	' ', 00H, 'B', 00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't'
-	DB	00H, ':', 00H, ' ', 00H, '%', 00H, '#', 00H, '5', 00H, 'l', 00H
-	DB	'l', 00H, 'u', 00H, ' ', 00H, '/', 00H, ' ', 00H, '%', 00H, '#'
-	DB	00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'M', 00H
-	DB	'i', 00H, 'B', 00H, ')', 00H, 00H, 00H
+$SG366096 DB	'IDXGISwapChain::Present', 00H
+$SG366097 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG366057 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG370154 DB	0aH, 00H, 00H, 00H
-$SG366063 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG200184 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG200209 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG356859 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG366103 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG356899 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
 	DB	00H, 'i', 00H, 'n', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG357884 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG357924 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG356860 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+$SG356900 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG357885 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356901 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
+	DB	00H, 00H, 00H
+$SG357925 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e'
@@ -1416,10 +1509,8 @@ $SG357885 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'I', 00H, 'F', 00H, 'a', 00H, 'c', 00H, 't', 00H, 'o', 00H, 'r'
 	DB	00H, 'y', 00H, '{', 00H, '1', 00H, '|', 00H, '2', 00H, '}', 00H
 	DB	00H, 00H
-$SG356861 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
-	DB	00H, 00H, 00H
-$SG357886 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356902 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357926 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
@@ -1427,20 +1518,22 @@ $SG357886 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	00H, 00H
-$SG356862 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356863 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356903 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357890 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG211495 DB	'S', 00H, 00H, 00H
+$SG211497 DB	'M', 00H, 00H, 00H
+$SG357930 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG357891 DB	'CreateDXGIFactory', 00H
+$SG357931 DB	'CreateDXGIFactory', 00H
 	ORG $+2
-$SG357893 DB	'CreateDXGIFactory1', 00H
+$SG211499 DB	'D', 00H, 00H, 00H
+$SG357933 DB	'CreateDXGIFactory1', 00H
 	ORG $+1
-$SG357892 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG357932 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '0', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -1448,7 +1541,10 @@ $SG357892 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	':', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG357894 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG211501 DB	'B', 00H, 00H, 00H
+$SG357935 DB	'CreateDXGIFactory2', 00H
+	ORG $+1
+$SG357934 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '1', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -1456,15 +1552,8 @@ $SG357894 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	'1', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG357895 DB	'CreateDXGIFactory2', 00H
-	ORG $+1
-$SG366090 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
-	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
-	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'P', 00H, 'r', 00H, 'e', 00H
-	DB	's', 00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-$SG357898 DB	'CreateDXGIFactory', 00H
-	ORG $+2
-$SG357896 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG211503 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG357936 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '3', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -1472,12 +1561,23 @@ $SG357896 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	'2', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG357899 DB	'CreateDXGIFactory', 00H
+$SG211505 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
+$SG366130 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
+	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'P', 00H, 'r', 00H, 'e', 00H
+	DB	's', 00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
+$SG357938 DB	'CreateDXGIFactory', 00H
 	ORG $+2
-$SG357900 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG357939 DB	'CreateDXGIFactory', 00H
+	ORG $+2
+$SG211507 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+	DB	'v', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG357940 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG354828 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
+$SG354868 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
 	DB	'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 's', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
@@ -1513,12 +1613,12 @@ $SG354828 DB	'[', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, ' ', 00H
 	DB	' ', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i'
 	DB	00H, 'd', 00H, 'e', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG357902 DB	'CreateDXGIFactory1', 00H
+$SG211509 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG357942 DB	'CreateDXGIFactory1', 00H
 	ORG $+1
-$SG211470 DB	'S', 00H, 00H, 00H
-$SG357903 DB	'CreateDXGIFactory1', 00H
-	ORG $+1
-$SG366095 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG366135 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'l', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 'v', 00H, 'f', 00H, 't', 00H, 'a', 00H, 'b'
@@ -1531,30 +1631,37 @@ $SG366095 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n', 00H
 	DB	't', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')'
 	DB	00H, '!', 00H, 00H, 00H
-$SG357904 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG357943 DB	'CreateDXGIFactory1', 00H
+	ORG $+1
+$SG357944 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG211472 DB	'M', 00H, 00H, 00H
-$SG366098 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+$SG366138 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
 	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'P', 00H, 'r', 00H, 'e', 00H
 	DB	's', 00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-$SG357906 DB	'CreateDXGIFactory2', 00H
+$SG357946 DB	'CreateDXGIFactory2', 00H
 	ORG $+1
-$SG211474 DB	'D', 00H, 00H, 00H
-$SG357907 DB	'CreateDXGIFactory2', 00H
+$SG357947 DB	'CreateDXGIFactory2', 00H
 	ORG $+1
-$SG357908 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG357948 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG211476 DB	'B', 00H, 00H, 00H
-$SG357909 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
+$SG357949 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG357910 DB	00H, 00H
+$SG357950 DB	00H, 00H
 	ORG $+2
-$SG211478 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG357911 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370239 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'M', 00H, 'e', 00H
+	DB	'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 'B', 00H, 'u', 00H, 'd'
+	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG370240 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'M', 00H, 'e', 00H
+	DB	'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 'B', 00H, 'u', 00H, 'd'
+	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, '_', 00H, 'S', 00H, 'h', 00H
+	DB	'u', 00H, 't', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n', 00H, 00H
+	DB	00H
+$SG357951 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '0', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -1562,26 +1669,16 @@ $SG357911 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	':', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ' '
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG357912 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
+$SG357952 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG211480 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
-	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG370201 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'M', 00H, 'e', 00H
-	DB	'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 'B', 00H, 'u', 00H, 'd'
-	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, 00H, 00H
+$SG200256 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
+	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG357913 DB	00H, 00H
+$SG357953 DB	00H, 00H
 	ORG $+2
-$SG370202 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'M', 00H, 'e', 00H
-	DB	'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 'B', 00H, 'u', 00H, 'd'
-	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, '_', 00H, 'S', 00H, 'h', 00H
-	DB	'u', 00H, 't', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n', 00H, 00H
-	DB	00H
-$SG211482 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
-	DB	'v', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG357914 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG357954 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '1', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -1589,18 +1686,15 @@ $SG357914 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	'1', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ' '
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG357915 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
+$SG357955 DB	'{', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG357916 DB	00H, 00H
+$SG357956 DB	00H, 00H
 	ORG $+2
-$SG211484 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG357922 DB	'PreRenderLimit', 00H
+$SG357962 DB	'PreRenderLimit', 00H
 	ORG $+1
-$SG357924 DB	'BufferCount', 00H
-$SG357917 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG357964 DB	'BufferCount', 00H
+$SG357957 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '3', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F'
@@ -1608,9 +1702,14 @@ $SG357917 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	'2', 00H, ':', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ' '
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG357920 DB	'PresentationInterval', 00H
+$SG357960 DB	'PresentationInterval', 00H
 	ORG $+3
-$SG366114 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG370250 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H
+	DB	'M', 00H, 'e', 00H, 'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.'
+	DB	00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, 00H, 00H
+$SG366154 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'l', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 'v', 00H, 'f', 00H, 't', 00H, 'a', 00H, 'b'
@@ -1623,33 +1722,25 @@ $SG366114 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, ':', 00H, 'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H
 	DB	'n', 00H, 't', 00H, '1', 00H, ' ', 00H, '(', 00H, '.', 00H, '.'
 	DB	00H, '.', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG366117 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+$SG370253 DB	0aH, 00H, 00H, 00H
+$SG366157 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
 	DB	00H, 'n', 00H, '1', 00H, ':', 00H, ':', 00H, 'P', 00H, 'r', 00H
 	DB	'e', 00H, 's', 00H, 'e', 00H, 'n', 00H, 't', 00H, '1', 00H, 00H
 	DB	00H
-$SG370212 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
-	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H
-	DB	'M', 00H, 'e', 00H, 'm', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.'
-	DB	00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, 00H, 00H
-$SG357926 DB	'UseFlipDiscard', 00H
-	ORG $+1
-$SG370215 DB	0aH, 00H, 00H, 00H
-$SG200231 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
-	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG370216 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG366170 DB	'<', 00H, 'N', 00H, 'O', 00H, 'T', 00H, ' ', 00H, 'I', 00H
+	DB	'M', 00H, 'P', 00H, 'L', 00H, 'E', 00H, 'M', 00H, 'E', 00H, 'N'
+	DB	00H, 'T', 00H, 'E', 00H, 'D', 00H, '>', 00H, 00H, 00H
+$SG370254 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 00H, 00H
-$SG366130 DB	'<', 00H, 'N', 00H, 'O', 00H, 'T', 00H, ' ', 00H, 'I', 00H
-	DB	'M', 00H, 'P', 00H, 'L', 00H, 'E', 00H, 'M', 00H, 'E', 00H, 'N'
-	DB	00H, 'T', 00H, 'E', 00H, 'D', 00H, '>', 00H, 00H, 00H
-$SG370217 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
+$SG357966 DB	'UseFlipDiscard', 00H
+	ORG $+1
+$SG370267 DB	0aH, 00H, 00H, 00H
+$SG370255 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'i', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'e'
 	DB	00H, 'r', 00H, 'v', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, '/'
@@ -1661,24 +1752,20 @@ $SG370217 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'M'
 	DB	00H, 'i', 00H, 'B', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG370229 DB	0aH, 00H, 00H, 00H
-$SG370230 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370270 DB	0aH, 00H, 00H, 00H
+$SG370268 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'N', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'L', 00H, 'o', 00H
 	DB	'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'M', 00H, 'e', 00H, 'm'
 	DB	00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, ':', 00H, 00H, 00H
-$SG370232 DB	0aH, 00H, 00H, 00H
-$SG370235 DB	0aH, 00H, 00H, 00H
-$SG370233 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG370271 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 00H, 00H
-$SG356936 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG370234 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
+$SG370273 DB	0aH, 00H, 00H, 00H
+$SG370272 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'i', 00H, ' ', 00H, '(', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'e'
 	DB	00H, 'r', 00H, 'v', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, '/'
@@ -1690,36 +1777,34 @@ $SG370234 DB	' ', 00H, 'N', 00H, 'o', 00H, 'd', 00H, 'e', 00H, '%', 00H
 	DB	'#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'M'
 	DB	00H, 'i', 00H, 'B', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG356937 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
-	DB	00H, 00H, 00H
-$SG356935 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG356976 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG356975 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
 	DB	00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H, 'r', 00H, 'C', 00H
 	DB	'o', 00H, 'r', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd'
 	DB	00H, 'o', 00H, 'w', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-$SG356938 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356939 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG200303 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
+	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+	ORG $+2
+$SG356977 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
+	DB	00H, 00H, 00H
+$SG356978 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356979 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG370259 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG370297 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG370261 DB	'CreateDXGIFactory', 00H
+$SG370299 DB	'CreateDXGIFactory', 00H
 	ORG $+2
-$SG200278 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
-	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG370286 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
-	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
-	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
-	DB	'-', 00H, 00H, 00H
-	ORG $+2
-$SG370281 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG370319 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 't', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n'
@@ -1730,32 +1815,38 @@ $SG370281 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	00H, 'a', 00H, 'd', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG370284 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
+$SG370322 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
 	DB	00H, 00H
 	ORG $+2
-$SG370285 DB	't', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 'd', 00H, ' ', 00H
+$SG370323 DB	't', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 'd', 00H, ' ', 00H
 	DB	'o', 00H, 'u', 00H, 't', 00H, ' ', 00H, '(', 00H, 'k', 00H, 'i'
 	DB	00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H
 	DB	'm', 00H, 'a', 00H, 'n', 00H, 'u', 00H, 'a', 00H, 'l', 00H, 'l'
 	DB	00H, 'y', 00H, ')', 00H, '!', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370287 DB	'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 'd', 00H, 'o', 00H
+$SG370324 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
+	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+	DB	'-', 00H, 00H, 00H
+	ORG $+2
+$SG370325 DB	'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't'
 	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'i', 00H, 'c', 00H, 's', 00H
 	DB	':', 00H, 00H, 00H
 	ORG $+2
-$SG370288 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG370326 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, 0aH, 00H, 00H, 00H
-$SG370289 DB	' ', 00H, 'M', 00H, 'e', 00H, 'm', 00H, 'o', 00H, 'r', 00H
+$SG370339 DB	0aH, 00H, 00H, 00H
+$SG370327 DB	' ', 00H, 'M', 00H, 'e', 00H, 'm', 00H, 'o', 00H, 'r', 00H
 	DB	'y', 00H, ' ', 00H, 'B', 00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e'
 	DB	00H, 't', 00H, ' ', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'n', 00H
 	DB	'g', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'l'
 	DB	00H, 'u', 00H, ' ', 00H, 't', 00H, 'i', 00H, 'm', 00H, 'e', 00H
 	DB	's', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG370293 DB	' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, '%', 00H, 'i', 00H
+$SG370331 DB	' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, '%', 00H, 'i', 00H
 	DB	':', 00H, ' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'B'
 	DB	00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H, ':', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
@@ -1763,149 +1854,145 @@ $SG370293 DB	' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, '%', 00H, 'i', 00H
 	DB	'u', 00H, ' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H
 	DB	00H
 	ORG $+2
-$SG370294 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG370332 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, ' ', 00H, 'B', 00H, 'u'
 	DB	00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H, ':', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-$SG370301 DB	0aH, 00H, 00H, 00H
-$SG370295 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG357058 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG370333 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'U', 00H, 's'
 	DB	00H, 'a', 00H, 'g', 00H, 'e', 00H, ':', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-$SG357018 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG370296 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG357059 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
+	DB	00H, 00H, 00H
+$SG370334 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, ' ', 00H, 'U', 00H, 's'
 	DB	00H, 'a', 00H, 'g', 00H, 'e', 00H, ':', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-$SG357019 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
-	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
-	DB	00H, 00H, 00H
-$SG370297 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG200350 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
+	DB	00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG357060 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG370335 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, 0aH, 00H, 00H, 00H
-$SG357020 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG370298 DB	' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H
-	DB	'u', 00H, 'm', 00H, ' ', 00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r'
-	DB	00H, ' ', 00H, 'B', 00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e', 00H
-	DB	't', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
-	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-$SG357021 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357061 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG370299 DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, 'i', 00H, 'm', 00H
+$SG370336 DB	' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 'm', 00H
 	DB	'u', 00H, 'm', 00H, ' ', 00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r'
 	DB	00H, ' ', 00H, 'B', 00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e', 00H
 	DB	't', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
-$SG366238 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+$SG366278 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
 	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'R', 00H, 'e', 00H, 's', 00H
 	DB	'i', 00H, 'z', 00H, 'e', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f'
 	DB	00H, 'e', 00H, 'r', 00H, 's', 00H, 00H, 00H
-$SG370300 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
-	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
-	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
-	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
-	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
-	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, 0aH, 00H, 00H, 00H
-$SG200325 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
-	DB	00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG366239 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+$SG370337 DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, 'i', 00H, 'm', 00H
+	DB	'u', 00H, 'm', 00H, ' ', 00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r'
+	DB	00H, ' ', 00H, 'B', 00H, 'u', 00H, 'd', 00H, 'g', 00H, 'e', 00H
+	DB	't', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, '%', 00H, '0', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
+	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 0aH, 00H, 00H, 00H
+$SG366279 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
 	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'R', 00H, 'e', 00H, 's', 00H
 	DB	'i', 00H, 'z', 00H, 'e', 00H, 'T', 00H, 'a', 00H, 'r', 00H, 'g'
 	DB	00H, 'e', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG357017 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG370338 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
+	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
+	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, 0aH, 00H, 00H, 00H
+$SG352982 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
+	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
+	DB	00H, 'd', 00H, '/', 00H, 'W', 00H, 'r', 00H, 'i', 00H, 't', 00H
+	DB	'e', 00H, 00H, 00H
+	ORG $+2
+$SG357057 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
 	DB	00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H, 'r', 00H, 'H', 00H
 	DB	'w', 00H, 'n', 00H, 'd', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-$SG366236 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+$SG366276 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
 	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'S', 00H, 'e', 00H, 't', 00H
 	DB	'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r'
 	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG366237 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
+$SG366277 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H
 	DB	'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i'
 	DB	00H, 'n', 00H, ':', 00H, ':', 00H, 'G', 00H, 'e', 00H, 't', 00H
 	DB	'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r'
 	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG366242 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
+$SG366282 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
 	DB	'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, ':', 00H, ':'
 	DB	00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'i', 00H, 's', 00H
 	DB	'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'M', 00H, 'o', 00H, 'd'
 	DB	00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 00H, 00H
-$SG366243 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
+$SG366283 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
 	DB	'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, ':', 00H, ':'
 	DB	00H, 'F', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'C', 00H, 'l', 00H
 	DB	'o', 00H, 's', 00H, 'e', 00H, 's', 00H, 't', 00H, 'M', 00H, 'a'
 	DB	00H, 't', 00H, 'c', 00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H
 	DB	'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG366244 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
+$SG366284 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O', 00H
 	DB	'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, ':', 00H, ':'
 	DB	00H, 'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'F', 00H, 'o', 00H
 	DB	'r', 00H, 'V', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'n', 00H, 'k'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG352938 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
+$SG200397 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
+	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
+$SG352978 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
 	DB	'e', 00H, 00H, 00H
-$SG352940 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
+$SG352980 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
 	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, '-', 00H, 'O', 00H, 'n', 00H, 'l', 00H, 'y', 00H
 	DB	00H, 00H
-$SG352942 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
-	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
-	DB	00H, 'd', 00H, '/', 00H, 'W', 00H, 'r', 00H, 'i', 00H, 't', 00H
-	DB	'e', 00H, 00H, 00H
-	ORG $+2
-$SG352944 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
+$SG352986 DB	'N', 00H, 'o', 00H, ' ', 00H, 'A', 00H, 'c', 00H, 'c', 00H
+	DB	'e', 00H, 's', 00H, 's', 00H, 00H, 00H
+$SG352984 DB	'E', 00H, 'x', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 't', 00H
 	DB	'e', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'a'
 	DB	00H, 'd', 00H, '-', 00H, 'O', 00H, 'n', 00H, 'l', 00H, 'y', 00H
 	DB	' ', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'p'
 	DB	00H, 'y', 00H, '-', 00H, 'o', 00H, 'n', 00H, '-', 00H, 'W', 00H
 	DB	'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, ')', 00H, 00H, 00H
-$SG352946 DB	'N', 00H, 'o', 00H, ' ', 00H, 'A', 00H, 'c', 00H, 'c', 00H
-	DB	'e', 00H, 's', 00H, 's', 00H, 00H, 00H
-$SG352948 DB	'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '-', 00H, 'O', 00H
+$SG352988 DB	'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '-', 00H, 'O', 00H
 	DB	'n', 00H, 'l', 00H, 'y', 00H, 00H, 00H
-$SG200372 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
-	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG352950 DB	'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '/', 00H, 'W', 00H
+$SG352990 DB	'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '/', 00H, 'W', 00H
 	DB	'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG352952 DB	' ', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '-', 00H
+$SG352992 DB	' ', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '-', 00H
 	DB	'O', 00H, 'n', 00H, 'l', 00H, 'y', 00H, ' ', 00H, 'o', 00H, 'r'
 	DB	00H, ' ', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H, '-', 00H
 	DB	'o', 00H, 'n', 00H, '-', 00H, 'W', 00H, 'r', 00H, 'i', 00H, 't'
 	DB	00H, 'e', 00H, 00H, 00H
-$SG357051 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG357050 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG357090 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a'
 	DB	00H, 'i', 00H, 'n', 00H, 'F', 00H, 'o', 00H, 'r', 00H, 'C', 00H
 	DB	'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 's', 00H, 'i', 00H, 't'
@@ -1913,21 +2000,21 @@ $SG357050 DB	'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG352954 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+$SG352994 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
 	DB	'N', 00H, 00H, 00H
-$SG357052 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+$SG357091 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357092 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
 	DB	'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h'
 	DB	00H, 00H, 00H
-$SG357053 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357054 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357093 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357094 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG200466 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
-	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG357055 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357095 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -1949,39 +2036,38 @@ $SG357055 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'p', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H, 'h'
 	DB	00H, 'a', 00H, 'i', 00H, 'n', 00H, ' ', 00H, ')', 00H, ' ', 00H
 	DB	'>', 00H, 00H, 00H
-$SG352986 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a'
-	DB	00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG352989 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
-	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
-	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '1', 00H, 00H, 00H
-	ORG $+2
-$SG352992 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
-	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
-	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG352995 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
-	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
-	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '3', 00H, 00H, 00H
-	ORG $+2
-$SG200419 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG200444 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG352998 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+$SG353026 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a'
+	DB	00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG353029 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
+	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '1', 00H, 00H, 00H
+	ORG $+2
+$SG353032 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
+	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG353035 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
+	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '3', 00H, 00H, 00H
+	ORG $+2
+$SG353038 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
 	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
 	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '4', 00H, 00H, 00H
 	ORG $+2
-$SG353001 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
+$SG353041 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H
 	DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'F', 00H, 'a', 00H, 'c'
 	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '5', 00H, 00H, 00H
 	ORG $+2
-$SG355113 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, 00H, 00H
-$SG355114 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG357107 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG200491 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
+	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+$SG357147 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '!', 00H, '!', 00H, '!', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
@@ -1994,15 +2080,11 @@ $SG357107 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 's', 00H, '''', 00H, ')', 00H, ' ', 00H, '!', 00H, '!', 00H
 	DB	'!', 00H, 00H, 00H
 	ORG $+2
-$SG356147 DB	'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'i', 00H, 's', 00H
-	DB	'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'M', 00H, 'o', 00H, 'd'
-	DB	00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, 00H, 00H
-$SG356149 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
+$SG355153 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, 00H, 00H
+$SG355154 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG357108 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357148 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '!', 00H, '!', 00H, '!', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
@@ -2015,8 +2097,11 @@ $SG357108 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 's', 00H, '''', 00H, ')', 00H, ' ', 00H, '!', 00H, '!', 00H
 	DB	'!', 00H, 00H, 00H
 	ORG $+2
-$SG356151 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG357109 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG200538 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG357149 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '!', 00H, '!', 00H, '!', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
@@ -2027,12 +2112,10 @@ $SG357109 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'n', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, ' ', 00H, '!', 00H, '!', 00H, '!'
 	DB	00H, 00H, 00H
-$SG356152 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG357117 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
+$SG356189 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, 00H, 00H
+	ORG $+2
+$SG357157 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
 	DB	't', 00H, 'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, '2', 00H, '_'
 	DB	00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H
 	DB	'd', 00H, 'e', 00H, ':', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'o'
@@ -2043,21 +2126,23 @@ $SG357117 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
 	DB	00H, 'U', 00H, ' ', 00H, 'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' '
 	DB	00H, 00H, 00H
-$SG357120 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG357160 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG357121 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
+$SG357161 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
 	DB	'e', 00H, '!', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, ' '
 	DB	00H, 'M', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h', 00H, ' ', 00H
 	DB	'F', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H, ')', 00H, 0aH
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG200513 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG357129 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
+$SG356187 DB	'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'i', 00H, 's', 00H
+	DB	'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'M', 00H, 'o', 00H, 'd'
+	DB	00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, 00H, 00H
+$SG356191 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG357169 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
 	DB	't', 00H, 'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, '1', 00H, '_'
 	DB	00H, 'O', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H
 	DB	'd', 00H, 'e', 00H, ':', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'o'
@@ -2068,21 +2153,22 @@ $SG357129 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
 	DB	00H, 'U', 00H, ' ', 00H, 'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H
 	DB	'%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' '
 	DB	00H, 00H, 00H
-$SG357132 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG357172 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG357133 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
+$SG357173 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
 	DB	'e', 00H, '!', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, ' '
 	DB	00H, 'M', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h', 00H, ' ', 00H
 	DB	'F', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H, ')', 00H, 0aH
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG353092 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
-	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG355115 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356192 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
+	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG355155 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'I', 00H, 'D', 00H
 	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
@@ -2094,7 +2180,7 @@ $SG355115 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'n', 00H, '-', 00H, 'S', 00H, '_', 00H, 'O', 00H, 'K', 00H, ' '
 	DB	00H, '(', 00H, '%', 00H, 's', 00H, ' ', 00H, ':', 00H, ':', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG355118 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG355158 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '(', 00H, '*', 00H, ')', 00H, ' ', 00H, '>', 00H, '>', 00H
 	DB	' ', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'o', 00H, 'n'
@@ -2102,26 +2188,26 @@ $SG355118 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'a', 00H, 'l', 00H, ':'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG353070 DB	'{', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+$SG353110 DB	'{', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H
 	DB	'i', 00H, 'd', 00H, '-', 00H, 'F', 00H, 'a', 00H, 'c', 00H, 't'
 	DB	00H, 'o', 00H, 'r', 00H, 'y', 00H, '-', 00H, 'U', 00H, 'U', 00H
 	DB	'I', 00H, 'D', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG356148 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG356188 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O'
 	DB	00H, 'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG356150 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
+$SG356190 DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H
 	DB	'i', 00H, ',', 00H, ' ', 00H, '%', 00H, '0', 00H, '2', 00H, 'x'
 	DB	00H, ',', 00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H, 'M', 00H
 	DB	'o', 00H, 'd', 00H, 'e', 00H, 's', 00H, '=', 00H, '%', 00H, 'l'
 	DB	00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H
 	DB	')', 00H, 00H, 00H
-$SG357190 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
-	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+$SG353132 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
+	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG357181 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
+$SG357221 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
 	DB	't', 00H, 'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, '_', 00H, 'O'
 	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H
 	DB	'e', 00H, ':', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'o', 00H, 'k'
@@ -2133,21 +2219,21 @@ $SG357181 DB	' ', 00H, '<', 00H, '>', 00H, ' ', 00H, 'G', 00H, 'e', 00H
 	DB	's', 00H, '.', 00H, '.', 00H, '.', 00H, ':', 00H, ' ', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG357184 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG357224 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG357185 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
+$SG357225 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'u', 00H, 'r', 00H
 	DB	'e', 00H, '!', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, ' '
 	DB	00H, 'M', 00H, 'a', 00H, 't', 00H, 'c', 00H, 'h', 00H, ' ', 00H
 	DB	'F', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 'd', 00H, ')', 00H, 0aH
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG357191 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
+$SG357230 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
 	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG357187 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357227 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'D', 00H, 'e', 00H, 'd', 00H, 'i', 00H, 'c', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'V', 00H, 'i', 00H, 'd'
@@ -2162,10 +2248,11 @@ $SG357187 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'm', 00H, ':', 00H, ' ', 00H, '%', 00H, 'z', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG353095 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
-	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '1'
-	DB	00H, 00H, 00H
-$SG356166 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG357231 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
+	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG356206 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '>', 00H
 	DB	'>', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'm'
@@ -2173,36 +2260,42 @@ $SG356166 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'%', 00H, 'l', 00H, 'i', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 'm'
 	DB	00H, 'o', 00H, 'v', 00H, 'e', 00H, 'd', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG353098 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
+$SG353135 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
+	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '1'
+	DB	00H, 00H, 00H
+$SG353138 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
 	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '2'
 	DB	00H, 00H, 00H
-$SG353101 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
+$SG353141 DB	'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'A', 00H
 	DB	'd', 00H, 'a', 00H, 'p', 00H, 't', 00H, 'e', 00H, 'r', 00H, '3'
 	DB	00H, 00H, 00H
-$SG356196 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+$SG200585 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG356236 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG356194 DB	'F', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'C', 00H, 'l', 00H
+$SG356234 DB	'F', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'C', 00H, 'l', 00H
 	DB	'o', 00H, 's', 00H, 'e', 00H, 's', 00H, 't', 00H, 'M', 00H, 'a'
 	DB	00H, 't', 00H, 'c', 00H, 'h', 00H, 'i', 00H, 'n', 00H, 'g', 00H
 	DB	'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG356195 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG356235 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O'
 	DB	00H, 'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG356197 DB	'%', 00H, 'l', 00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H
+$SG356237 DB	'%', 00H, 'l', 00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H
 	DB	'l', 00H, 'u', 00H, ',', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u'
 	DB	00H, 00H, 00H
-$SG356198 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356199 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356238 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356239 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG356201 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356241 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'R', 00H, 'e', 00H
 	DB	'f', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'h', 00H, ' ', 00H, 'O'
@@ -2212,10 +2305,9 @@ $SG356201 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	' ', 00H, '%', 00H, 'f', 00H, ',', 00H, ' ', 00H, 'U', 00H, 's'
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'l', 00H, 'i', 00H, ')', 00H, 00H, 00H
-$SG200560 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG356203 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG352159 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
+	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
+$SG356243 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'S', 00H, 'c', 00H
 	DB	'a', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
@@ -2226,77 +2318,76 @@ $SG356203 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG353137 DB	'{', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+$SG353177 DB	'{', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H
 	DB	'i', 00H, 'd', 00H, '-', 00H, 'A', 00H, 'd', 00H, 'a', 00H, 'p'
 	DB	00H, 't', 00H, 'e', 00H, 'r', 00H, '-', 00H, 'U', 00H, 'U', 00H
 	DB	'I', 00H, 'D', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG352119 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
-	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-$SG352120 DB	'logs\CEGUI.log', 00H
+$SG352160 DB	'logs\CEGUI.log', 00H
 	ORG $+1
-$SG356217 DB	'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'F', 00H, 'o', 00H
+$SG356257 DB	'W', 00H, 'a', 00H, 'i', 00H, 't', 00H, 'F', 00H, 'o', 00H
 	DB	'r', 00H, 'V', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'n', 00H, 'k'
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG352121 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 'C', 00H
+$SG352161 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 'C', 00H
 	DB	'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H, 'l', 00H, 'o'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG356218 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+$SG356258 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, 'I', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'O'
 	DB	00H, 'u', 00H, 't', 00H, 'p', 00H, 'u', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG352122 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
+$SG352162 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
 	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-$SG356219 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+$SG356259 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG352123 DB	'[Special K] ---- Log File Moved ----', 00H
+$SG352163 DB	'[Special K] ---- Log File Moved ----', 00H
 	ORG $+3
-$SG356220 DB	'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, 00H, 00H
+$SG356260 DB	'v', 00H, 'o', 00H, 'i', 00H, 'd', 00H, 00H, 00H
 	ORG $+2
-$SG356221 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG352125 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
+$SG356261 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG352165 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '.', 00H
 	DB	'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-$SG356222 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356262 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG356249 DB	'S', 00H, 'e', 00H, 't', 00H, 'F', 00H, 'u', 00H, 'l', 00H
+$SG200632 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
+$SG356289 DB	'S', 00H, 'e', 00H, 't', 00H, 'F', 00H, 'u', 00H, 'l', 00H
 	DB	'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n'
 	DB	00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, 00H, 00H
-$SG356250 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
+$SG356290 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
 	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
 	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG356251 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
+$SG356291 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
 	ORG $+2
-$SG356252 DB	'{', 00H, ' ', 00H, 'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H
+$SG356292 DB	'{', 00H, ' ', 00H, 'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H
 	DB	's', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n', 00H, ' '
 	DB	00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG356253 DB	'{', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG356293 DB	'{', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'o', 00H, 'w', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG356254 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
+$SG356294 DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H
 	DB	'h', 00H, 00H, 00H
-$SG356255 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG200607 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
-	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG356256 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356295 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
+$SG356296 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
 	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
 	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG356258 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+	ORG $+4
+$SG356298 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'W', 00H, 'a', 00H
 	DB	'i', 00H, 't', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H, ' '
@@ -2305,7 +2396,7 @@ $SG356258 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	00H, 'U', 00H, 's', 00H, 'e', 00H, ',', 00H, ' ', 00H, 'S', 00H
 	DB	'k', 00H, 'i', 00H, 'p', 00H, 'p', 00H, 'i', 00H, 'n', 00H, 'g'
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG356260 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
+$SG356300 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '5', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'T', 00H, 'e', 00H
 	DB	'a', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
@@ -2313,7 +2404,7 @@ $SG356260 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
 	DB	'e', 00H, ':', 00H, ' ', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 'a'
 	DB	00H, 'b', 00H, 'l', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG356263 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356303 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
 	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
@@ -2326,7 +2417,7 @@ $SG356263 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e', 00H
 	DB	'e', 00H, 'n', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG356265 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356305 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
 	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
@@ -2339,7 +2430,7 @@ $SG356265 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H
 	DB	'e', 00H, 'd', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG356268 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356308 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
 	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
@@ -2350,7 +2441,7 @@ $SG356268 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'l', 00H, 'l', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'e', 00H
 	DB	'e', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'w', 00H, 'i', 00H, 't'
 	DB	00H, 'c', 00H, 'h', 00H, 00H, 00H
-$SG356270 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+$SG356310 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'D', 00H, 'i', 00H
 	DB	's', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 'O'
@@ -2361,11 +2452,8 @@ $SG356270 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	00H, 'd', 00H, 'o', 00H, 'w', 00H, 'e', 00H, 'd', 00H, ' ', 00H
 	DB	'S', 00H, 'w', 00H, 'i', 00H, 't', 00H, 'c', 00H, 'h', 00H, 00H
 	DB	00H
-	ORG $+2
-$SG356326 DB	'%', 00H, 's', 00H, ':', 00H, ':', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, 00H, 00H
-	ORG $+2
-$SG356271 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
+	ORG $+6
+$SG356311 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -2381,97 +2469,9 @@ $SG356271 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
 	DB	'a', 00H, 'r', 00H, 'g', 00H, 'e', 00H, 't', 00H, ')', 00H, ' '
 	DB	00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG200654 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG200679 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG356324 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'e', 00H
-	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's'
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
-	ORG $+2
-$SG356325 DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'D', 00H
-	DB	'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p'
-	DB	00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG356327 DB	'%', 00H, 'l', 00H, 'u', 00H, ',', 00H, '%', 00H, 'l', 00H
-	DB	'u', 00H, ',', 00H, '%', 00H, 'l', 00H, 'u', 00H, ',', 00H, 'f'
-	DB	00H, 'm', 00H, 't', 00H, '=', 00H, '%', 00H, 'l', 00H, 'u', 00H
-	DB	',', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '8', 00H, 'X'
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG356328 DB	'%', 00H, 's', 00H, '%', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG356329 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, '-', 00H
-	DB	'1', 00H, '0', 00H, '2', 00H, 's', 00H, ' ', 00H, '-', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG352239 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
-	DB	'P', 00H, 'A', 00H, 'R', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_'
-	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, 00H, 00H
-	ORG $+2
-$SG356332 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'B', 00H, 'u', 00H
-	DB	'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'C', 00H, 'o'
-	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'O', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'r', 00H, 'i', 00H, 'd', 00H, 'e', 00H, ':'
-	DB	00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'b', 00H
-	DB	'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's', 00H, 00H
-	DB	00H
-$SG356334 DB	'[', 00H, ' ', 00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H
-	DB	' ', 00H, '1', 00H, '.', 00H, '5', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'T', 00H, 'e', 00H
-	DB	'a', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'O'
-	DB	00H, 'p', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ':', 00H
-	DB	' ', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l'
-	DB	00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG352240 DB	'%ws', 00H
-$SG352241 DB	'CEGUI/datafiles', 00H
-$SG352242 DB	'/schemes/', 00H
-	ORG $+2
-$SG352243 DB	'schemes', 00H
-$SG352244 DB	'/imagesets/', 00H
-$SG352245 DB	'imagesets', 00H
-	ORG $+2
-$SG352246 DB	'/fonts/', 00H
-$SG352248 DB	'/layouts/', 00H
-	ORG $+2
-$SG356343 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, 'X', 00H
-	DB	'G', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
-	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, '-', 00H, ' ', 00H
-	DB	' ', 00H, '<', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'i'
-	DB	00H, 'z', 00H, 'e', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H
-	DB	'e', 00H, 'r', 00H, 's', 00H, '_', 00H, 'O', 00H, 'r', 00H, 'i'
-	DB	00H, 'g', 00H, 'i', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H
-	DB	'(', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'i', 00H, 's', 00H, ','
-	DB	00H, ' ', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H
-	DB	'r', 00H, 'C', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 't', 00H, ','
-	DB	00H, ' ', 00H, 'W', 00H, 'i', 00H, 'd', 00H, 't', 00H, 'h', 00H
-	DB	',', 00H, ' ', 00H, 'H', 00H, 'e', 00H, 'i', 00H, 'g', 00H, 'h'
-	DB	00H, 't', 00H, ',', 00H, ' ', 00H, 'N', 00H, 'e', 00H, 'w', 00H
-	DB	'F', 00H, 'o', 00H, 'r', 00H, 'm', 00H, 'a', 00H, 't', 00H, ','
-	DB	00H, ' ', 00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'C', 00H
-	DB	'h', 00H, 'a', 00H, 'i', 00H, 'n', 00H, 'F', 00H, 'l', 00H, 'a'
-	DB	00H, 'g', 00H, 's', 00H, ' ', 00H, ')', 00H, ' ', 00H, '>', 00H
-	DB	00H, 00H
-$SG352247 DB	'fonts', 00H
-	ORG $+2
-$SG352249 DB	'layouts', 00H
-$SG352250 DB	'/looknfeel/', 00H
-$SG352251 DB	'looknfeels', 00H
-	ORG $+1
-$SG352252 DB	'/lua_scripts/', 00H
-	ORG $+2
-$SG352253 DB	'lua_scripts', 00H
-$SG200701 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG352254 DB	'/xml_schemas/', 00H
-	ORG $+2
-$SG352255 DB	'schemas', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
@@ -3900,27 +3900,27 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?szName@?5??DXGIReportAdapterConfiguration@@YGJK@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGIReportAdapterConfiguration@@YGJK@Z@4PBDB DD FLAT:$SG357742 ; `DXGIReportAdapterConfiguration'::`6'::szName
+?szName@?5??DXGIReportAdapterConfiguration@@YGJK@Z@4PBDB DD FLAT:$SG357782 ; `DXGIReportAdapterConfiguration'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGIDumpJournal@@YGXPBD@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGIDumpJournal@@YGXPBD@Z@4PBDB DD FLAT:$SG357724 ; `DXGIDumpJournal'::`6'::szName
+?szName@?5??DXGIDumpJournal@@YGXPBD@Z@4PBDB DD FLAT:$SG357764 ; `DXGIDumpJournal'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGID3D10RegisterLayers@@YGJPBXI@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGID3D10RegisterLayers@@YGJPBXI@Z@4PBDB DD FLAT:$SG357704 ; `DXGID3D10RegisterLayers'::`6'::szName
+?szName@?5??DXGID3D10RegisterLayers@@YGJPBXI@Z@4PBDB DD FLAT:$SG357744 ; `DXGID3D10RegisterLayers'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGID3D10GetLayeredDeviceSize@@YGKPBXI@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGID3D10GetLayeredDeviceSize@@YGKPBXI@Z@4PBDB DD FLAT:$SG357682 ; `DXGID3D10GetLayeredDeviceSize'::`6'::szName
+?szName@?5??DXGID3D10GetLayeredDeviceSize@@YGKPBXI@Z@4PBDB DD FLAT:$SG357722 ; `DXGID3D10GetLayeredDeviceSize'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGID3D10CreateLayeredDevice@@YGJUUNKNOWN5@@@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGID3D10CreateLayeredDevice@@YGJUUNKNOWN5@@@Z@4PBDB DD FLAT:$SG357660 ; `DXGID3D10CreateLayeredDevice'::`6'::szName
+?szName@?5??DXGID3D10CreateLayeredDevice@@YGJUUNKNOWN5@@@Z@4PBDB DD FLAT:$SG357700 ; `DXGID3D10CreateLayeredDevice'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?5??DXGID3D10CreateDevice@@YGJPAUHINSTANCE__@@PAUIDXGIFactory@@PAUIDXGIAdapter@@IPAX3@Z@4PBDB
 _DATA	SEGMENT
-?szName@?5??DXGID3D10CreateDevice@@YGJPAUHINSTANCE__@@PAUIDXGIFactory@@PAUIDXGIAdapter@@IPAX3@Z@4PBDB DD FLAT:$SG357628 ; `DXGID3D10CreateDevice'::`6'::szName
+?szName@?5??DXGID3D10CreateDevice@@YGJPAUHINSTANCE__@@PAUIDXGIFactory@@PAUIDXGIAdapter@@IPAX3@Z@4PBDB DD FLAT:$SG357668 ; `DXGID3D10CreateDevice'::`6'::szName
 _DATA	ENDS
 ;	COMDAT ??_C@_1BCK@OGPEHLJN@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?$FL?$AA?$EA?$AA?$FN?$AA?5?$AA?5?$AAR?$AAe?$AAt?$AAu?$AAr?$AAn?$AA?3?$AA?5?$AA?$CF?$AAs?$AA?5?$AA?5?$AA?9?$AA?5@
 CONST	SEGMENT
@@ -5530,7 +5530,7 @@ __ehfuncinfo$?SK_DXGI_HookPresent@@YAXPAUIDXGISwapChain@@_N@Z DD 019930522H
 	DD	00H
 	DD	01H
 __ehfuncinfo$?HookDXGI@@YGIPAX@Z DD 019930522H
-	DD	0aH
+	DD	09H
 	DD	FLAT:__unwindtable$?HookDXGI@@YGIPAX@Z
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
@@ -5684,10 +5684,8 @@ __unwindtable$?HookDXGI@@YGIPAX@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?HookDXGI@@YGIPAX@Z$6
 	DD	06H
 	DD	FLAT:__unwindfunclet$?HookDXGI@@YGIPAX@Z$7
-	DD	07H
+	DD	06H
 	DD	FLAT:__unwindfunclet$?HookDXGI@@YGIPAX@Z$8
-	DD	08H
-	DD	FLAT:__unwindfunclet$?HookDXGI@@YGIPAX@Z$9
 __unwindtable$?SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z$0
 	DD	00H
@@ -12107,7 +12105,7 @@ _pFactory$ = 8						; size = 4
 	push	OFFSET ?DXGIFactory_CreateSwapChain_Override@@YGJPAUIDXGIFactory@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC@@PAPAUIDXGISwapChain@@@Z ; DXGIFactory_CreateSwapChain_Override
 	push	10					; 0000000aH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366710
+	push	OFFSET $SG366750
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
@@ -12154,7 +12152,7 @@ _pFactory$ = 8						; size = 4
 	push	OFFSET ?EnumAdapters1_Override@@YGJPAUIDXGIFactory1@@IPAPAUIDXGIAdapter1@@@Z ; EnumAdapters1_Override
 	push	12					; 0000000cH
 	push	DWORD PTR [ecx]
-	push	OFFSET $SG366713
+	push	OFFSET $SG366753
 
 ; 5020 :                         "IDXGIFactory1::EnumAdapters1",
 ; 5021 :                          EnumAdapters1_Override,
@@ -12181,7 +12179,7 @@ $LN3@SK_DXGI_Ho:
 	push	OFFSET ?EnumAdapters_Override@@YGJPAUIDXGIFactory@@IPAPAUIDXGIAdapter@@@Z ; EnumAdapters_Override
 	push	7
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366714
+	push	OFFSET $SG366754
 $LN109@SK_DXGI_Ho:
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -12246,7 +12244,7 @@ $LN8@SK_DXGI_Ho:
 	push	OFFSET ?DXGIFactory2_CreateSwapChainForHwnd_Override@@YGJPAUIDXGIFactory2@@PAUIUnknown@@PAUHWND__@@PBUDXGI_SWAP_CHAIN_DESC1@@PAUDXGI_SWAP_CHAIN_FULLSCREEN_DESC@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@Z ; DXGIFactory2_CreateSwapChainForHwnd_Override
 	push	15					; 0000000fH
 	push	DWORD PTR [ecx]
-	push	OFFSET $SG366719
+	push	OFFSET $SG366759
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 5065 :                           "IDXGIFactory2::CreateSwapChainForHwnd",
@@ -12261,7 +12259,7 @@ $LN8@SK_DXGI_Ho:
 	push	OFFSET ?DXGIFactory2_CreateSwapChainForCoreWindow_Override@@YGJPAUIDXGIFactory2@@PAUIUnknown@@1PBUDXGI_SWAP_CHAIN_DESC1@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@Z ; DXGIFactory2_CreateSwapChainForCoreWindow_Override
 	push	16					; 00000010H
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366720
+	push	OFFSET $SG366760
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 5071 :                           "IDXGIFactory2::CreateSwapChainForCoreWindow",
@@ -12276,7 +12274,7 @@ $LN8@SK_DXGI_Ho:
 	push	OFFSET ?DXGIFactory2_CreateSwapChainForComposition_Override@@YGJPAUIDXGIFactory2@@PAUIUnknown@@PBUDXGI_SWAP_CHAIN_DESC1@@PAUIDXGIOutput@@PAPAUIDXGISwapChain1@@@Z ; DXGIFactory2_CreateSwapChainForComposition_Override
 	push	24					; 00000018H
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366721
+	push	OFFSET $SG366761
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 	mov	ecx, DWORD PTR _pFactory2$[ebp]
 $LN7@SK_DXGI_Ho:
@@ -12597,7 +12595,7 @@ _fmt$ = 12						; size = 4
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	17					; 00000011H
-	push	OFFSET $SG366130
+	push	OFFSET $SG366170
 	mov	ecx, esi
 	mov	DWORD PTR $T1[ebp], 0
 
@@ -12691,7 +12689,7 @@ $LN4@SK_DXGI_Ho:
 ; 4885 :       {
 ; 4886 :         dll_log.Log ( L"[   DXGI   ] Altered vftable detected, rehooking "
 
-	push	OFFSET $SG366114
+	push	OFFSET $SG366154
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -12724,7 +12722,7 @@ $LN9@SK_DXGI_Ho:
 	push	OFFSET ?Present1Callback@@YGJPAUIDXGISwapChain1@@IIPBUDXGI_PRESENT_PARAMETERS@@@Z ; Present1Callback
 	push	22					; 00000016H
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366117
+	push	OFFSET $SG366157
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 4897 :                         "IDXGISwapChain1::Present1",
@@ -12792,7 +12790,7 @@ _rehook$ = 12						; size = 1
 	push	OFFSET ?PresentCallback_Pre@@YGJPAUIDXGISwapChain@@II@Z ; PresentCallback_Pre
 	push	8
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366090
+	push	OFFSET $SG366130
 	call	?SK_CreateVFTableHookEx@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1I@Z ; SK_CreateVFTableHookEx
 $LN4@SK_DXGI_Ho:
 
@@ -12859,7 +12857,7 @@ $LN2@SK_DXGI_Ho:
 	push	8
 	mov	DWORD PTR ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA, eax ; Present_Target
 	push	DWORD PTR [ecx]
-	push	OFFSET $SG366098
+	push	OFFSET $SG366138
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 4856 :                         "IDXGISwapChain::Present",
@@ -12950,7 +12948,7 @@ _TEXT	SEGMENT
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	cmp	eax, 1
 	je	SHORT $LN3@SK_DXGI_Pr
-	push	OFFSET $SG366050
+	push	OFFSET $SG366090
 	call	DWORD PTR __imp__LoadLibraryW@4
 	test	eax, eax
 	je	$LN8@SK_DXGI_Pr
@@ -12960,7 +12958,7 @@ $LN3@SK_DXGI_Pr:
 ; 4735 : 
 ; 4736 :   if (! config.injection.global.use_static_addresses)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
 	je	$LN8@SK_DXGI_Pr
 
 ; 4737 :     return;
@@ -12972,7 +12970,7 @@ $LN3@SK_DXGI_Pr:
 ; 4743 : 
 ; 4744 :   if (LoadLibraryW (L"dxgi.dll") && Present_Target == nullptr)
 
-	push	OFFSET $SG366053
+	push	OFFSET $SG366093
 	call	DWORD PTR __imp__LoadLibraryW@4
 	test	eax, eax
 	je	$LN8@SK_DXGI_Pr
@@ -12982,9 +12980,9 @@ $LN3@SK_DXGI_Pr:
 ; 4745 :   {
 ; 4746 :     SK_LOG0 ((L" Enabling Static Injection Addresses for DXGI"), L"DXGI Hooks");
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	SHORT $LN6@SK_DXGI_Pr
-	push	OFFSET $SG366055
+	push	OFFSET $SG366095
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -12995,8 +12993,8 @@ $LN6@SK_DXGI_Pr:
 
 	mov	ecx, DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
 	push	1
-	push	OFFSET $SG366056
-	push	OFFSET $SG366057
+	push	OFFSET $SG366096
+	push	OFFSET $SG366097
 	call	?getNamedAddress@SK_Inject_AddressCacheRegistry@@QAEIPB_WPBDW4SK_SYS_CPUArch@@@Z ; SK_Inject_AddressCacheRegistry::getNamedAddress
 
 ; 4749 :        ( SK_Inject_AddressManager->getNamedAddress (L"dxgi", "IDXGISwapChain::Present") );
@@ -14652,7 +14650,7 @@ __$EHRec$ = -12						; size = 12
 ; 4614 : 
 ; 4615 :   if (! config.apis.dxgi.d3d11.hook)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+793, al
 	je	$LN3@SK_HookDXG
 
 ; 4616 :     return;
@@ -14669,7 +14667,7 @@ __$EHRec$ = -12						; size = 12
 	mov	edi, DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A ; backend_dll
 	jmp	SHORT $LN14@SK_HookDXG
 $LN13@SK_HookDXG:
-	push	OFFSET $SG357884
+	push	OFFSET $SG357924
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	edi, eax
 $LN14@SK_HookDXG:
@@ -14679,13 +14677,13 @@ $LN14@SK_HookDXG:
 ; 4622 : 
 ; 4623 :   dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
 
-	push	OFFSET $SG357885
+	push	OFFSET $SG357925
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
 ; 4624 :   dll_log.Log (L"[   DXGI   ] ================================");
 
-	push	OFFSET $SG357886
+	push	OFFSET $SG357926
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -14717,7 +14715,7 @@ $LN43@SK_HookDXG:
 
 ; 4627 :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
 
-	push	OFFSET $SG357890
+	push	OFFSET $SG357930
 	push	eax
 	call	DWORD PTR __imp___wcsicmp
 	add	esp, 8
@@ -14792,11 +14790,11 @@ $LN53@SK_HookDXG:
 
 ; 4629 :     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph",
 
-	push	OFFSET $SG357891
+	push	OFFSET $SG357931
 	push	edi
 	call	esi
 	push	eax
-	push	OFFSET $SG357892
+	push	OFFSET $SG357932
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA, eax ; CreateDXGIFactory_Import
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -14806,11 +14804,11 @@ $LN53@SK_HookDXG:
 ; 4631 :         (CreateDXGIFactory_pfn)GetProcAddress (hBackend, "CreateDXGIFactory")));
 ; 4632 :     dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %ph",
 
-	push	OFFSET $SG357893
+	push	OFFSET $SG357933
 	push	edi
 	call	esi
 	push	eax
-	push	OFFSET $SG357894
+	push	OFFSET $SG357934
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA, eax ; CreateDXGIFactory1_Import
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -14820,11 +14818,11 @@ $LN53@SK_HookDXG:
 ; 4634 :         (CreateDXGIFactory1_pfn)GetProcAddress (hBackend, "CreateDXGIFactory1")));
 ; 4635 :     dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph",
 
-	push	OFFSET $SG357895
+	push	OFFSET $SG357935
 	push	edi
 	call	esi
 	push	eax
-	push	OFFSET $SG357896
+	push	OFFSET $SG357936
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA, eax ; CreateDXGIFactory2_Import
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -14842,7 +14840,7 @@ $LN6@SK_HookDXG:
 ; 4641 :   {
 ; 4642 :     if (GetProcAddress (hBackend, "CreateDXGIFactory"))
 
-	push	OFFSET $SG357898
+	push	OFFSET $SG357938
 	push	edi
 	call	esi
 	test	eax, eax
@@ -14854,8 +14852,8 @@ $LN6@SK_HookDXG:
 	push	0
 	push	OFFSET ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory_Import
 	push	OFFSET ?CreateDXGIFactory@@YGJABU_GUID@@PAPAX@Z ; CreateDXGIFactory
-	push	OFFSET $SG357899
-	push	OFFSET $SG357900
+	push	OFFSET $SG357939
+	push	OFFSET $SG357940
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN8@SK_HookDXG:
 
@@ -14866,7 +14864,7 @@ $LN8@SK_HookDXG:
 ; 4649 : 
 ; 4650 :     if (GetProcAddress (hBackend, "CreateDXGIFactory1"))
 
-	push	OFFSET $SG357902
+	push	OFFSET $SG357942
 	push	edi
 	call	esi
 	test	eax, eax
@@ -14878,8 +14876,8 @@ $LN8@SK_HookDXG:
 	push	0
 	push	OFFSET ?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory1_Import
 	push	OFFSET ?CreateDXGIFactory1@@YGJABU_GUID@@PAPAX@Z ; CreateDXGIFactory1
-	push	OFFSET $SG357903
-	push	OFFSET $SG357904
+	push	OFFSET $SG357943
+	push	OFFSET $SG357944
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN9@SK_HookDXG:
 
@@ -14890,7 +14888,7 @@ $LN9@SK_HookDXG:
 ; 4657 : 
 ; 4658 :     if (GetProcAddress (hBackend, "CreateDXGIFactory2"))
 
-	push	OFFSET $SG357906
+	push	OFFSET $SG357946
 	push	edi
 	call	esi
 	test	eax, eax
@@ -14902,8 +14900,8 @@ $LN9@SK_HookDXG:
 	push	0
 	push	OFFSET ?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA ; CreateDXGIFactory2_Import
 	push	OFFSET ?CreateDXGIFactory2@@YGJIABU_GUID@@PAPAX@Z ; CreateDXGIFactory2
-	push	OFFSET $SG357907
-	push	OFFSET $SG357908
+	push	OFFSET $SG357947
+	push	OFFSET $SG357948
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN10@SK_HookDXG:
 
@@ -14915,13 +14913,13 @@ $LN10@SK_HookDXG:
 ; 4666 :     dll_log.Log (L"[ DXGI 1.0 ]   CreateDXGIFactory:  %ph  %s",
 
 	mov	eax, DWORD PTR ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory_Import
-	mov	edx, OFFSET $SG357910
+	mov	edx, OFFSET $SG357950
 	test	eax, eax
-	mov	ecx, OFFSET $SG357909
+	mov	ecx, OFFSET $SG357949
 	cmove	ecx, edx
 	push	ecx
 	push	eax
-	push	OFFSET $SG357911
+	push	OFFSET $SG357951
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -14930,13 +14928,13 @@ $LN10@SK_HookDXG:
 ; 4669 :     dll_log.Log (L"[ DXGI 1.1 ]   CreateDXGIFactory1: %ph  %s",
 
 	mov	eax, DWORD PTR ?CreateDXGIFactory1_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory1_Import
-	mov	edx, OFFSET $SG357913
+	mov	edx, OFFSET $SG357953
 	test	eax, eax
-	mov	ecx, OFFSET $SG357912
+	mov	ecx, OFFSET $SG357952
 	cmove	ecx, edx
 	push	ecx
 	push	eax
-	push	OFFSET $SG357914
+	push	OFFSET $SG357954
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -14945,13 +14943,13 @@ $LN10@SK_HookDXG:
 ; 4672 :     dll_log.Log (L"[ DXGI 1.3 ]   CreateDXGIFactory2: %ph  %s",
 
 	mov	eax, DWORD PTR ?CreateDXGIFactory2_Import@@3P6GJIABU_GUID@@PAPAX@ZA ; CreateDXGIFactory2_Import
-	mov	edx, OFFSET $SG357916
+	mov	edx, OFFSET $SG357956
 	test	eax, eax
-	mov	ecx, OFFSET $SG357915
+	mov	ecx, OFFSET $SG357955
 	cmove	ecx, edx
 	push	ecx
 	push	eax
-	push	OFFSET $SG357917
+	push	OFFSET $SG357957
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 48					; 00000030H
@@ -15008,7 +15006,7 @@ $LN11@SK_HookDXG:
 	test	eax, eax
 	je	SHORT $LN15@SK_HookDXG
 	push	0
-	push	OFFSET ?config@@3Usk_config_t@@A+404
+	push	OFFSET ?config@@3Usk_config_t@@A+408
 	mov	ecx, eax
 	call	??0?$SK_IVarStub@H@@QAE@PAHPAUSK_IVariableListener@@@Z ; SK_IVarStub<int>::SK_IVarStub<int>
 	mov	ecx, eax
@@ -15018,7 +15016,7 @@ $LN15@SK_HookDXG:
 $LN16@SK_HookDXG:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG357920
+	push	OFFSET $SG357960
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -15034,7 +15032,7 @@ $LN16@SK_HookDXG:
 	test	eax, eax
 	je	SHORT $LN17@SK_HookDXG
 	push	0
-	push	OFFSET ?config@@3Usk_config_t@@A+400
+	push	OFFSET ?config@@3Usk_config_t@@A+404
 	mov	ecx, eax
 	call	??0?$SK_IVarStub@H@@QAE@PAHPAUSK_IVariableListener@@@Z ; SK_IVarStub<int>::SK_IVarStub<int>
 	mov	ecx, eax
@@ -15044,7 +15042,7 @@ $LN17@SK_HookDXG:
 $LN18@SK_HookDXG:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG357922
+	push	OFFSET $SG357962
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -15060,7 +15058,7 @@ $LN18@SK_HookDXG:
 	test	eax, eax
 	je	SHORT $LN19@SK_HookDXG
 	push	0
-	push	OFFSET ?config@@3Usk_config_t@@A+408
+	push	OFFSET ?config@@3Usk_config_t@@A+412
 	mov	ecx, eax
 	call	??0?$SK_IVarStub@H@@QAE@PAHPAUSK_IVariableListener@@@Z ; SK_IVarStub<int>::SK_IVarStub<int>
 	mov	ecx, eax
@@ -15070,7 +15068,7 @@ $LN19@SK_HookDXG:
 $LN20@SK_HookDXG:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG357924
+	push	OFFSET $SG357964
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -15086,7 +15084,7 @@ $LN20@SK_HookDXG:
 	test	eax, eax
 	je	SHORT $LN21@SK_HookDXG
 	push	0
-	push	OFFSET ?config@@3Usk_config_t@@A+416
+	push	OFFSET ?config@@3Usk_config_t@@A+420
 	mov	ecx, eax
 	call	??0?$SK_IVarStub@_N@@QAE@PA_NPAUSK_IVariableListener@@@Z ; SK_IVarStub<bool>::SK_IVarStub<bool>
 	mov	ecx, eax
@@ -15096,7 +15094,7 @@ $LN21@SK_HookDXG:
 $LN22@SK_HookDXG:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG357926
+	push	OFFSET $SG357966
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -15298,8 +15296,8 @@ _dwUnknown$ = 8						; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGIReportAdapterConfiguration@@YGJK@Z@4P6GJK@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGIReport
-	push	OFFSET $SG357748
-	push	OFFSET $SG357749
+	push	OFFSET $SG357788
+	push	OFFSET $SG357789
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15309,9 +15307,9 @@ _dwUnknown$ = 8						; size = 4
 $LN3@DXGIReport:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG357750
-	push	OFFSET $SG357751
-	push	OFFSET $SG357752
+	push	OFFSET $SG357790
+	push	OFFSET $SG357791
+	push	OFFSET $SG357792
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15343,8 +15341,8 @@ _szPassThrough$ = 8					; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGIDumpJournal@@YGXPBD@Z@4P6GX0@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGIDumpJo
-	push	OFFSET $SG357728
-	push	OFFSET $SG357729
+	push	OFFSET $SG357768
+	push	OFFSET $SG357769
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15353,9 +15351,9 @@ _szPassThrough$ = 8					; size = 4
 $LN3@DXGIDumpJo:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG357730
-	push	OFFSET $SG357731
-	push	OFFSET $SG357732
+	push	OFFSET $SG357770
+	push	OFFSET $SG357771
+	push	OFFSET $SG357772
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15388,8 +15386,8 @@ _NumLayers$ = 12					; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGID3D10RegisterLayers@@YGJPBXI@Z@4P6GJ0I@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGID3D10R
-	push	OFFSET $SG357710
-	push	OFFSET $SG357711
+	push	OFFSET $SG357750
+	push	OFFSET $SG357751
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15399,9 +15397,9 @@ _NumLayers$ = 12					; size = 4
 $LN3@DXGID3D10R:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG357712
-	push	OFFSET $SG357713
-	push	OFFSET $SG357714
+	push	OFFSET $SG357752
+	push	OFFSET $SG357753
+	push	OFFSET $SG357754
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15434,8 +15432,8 @@ _NumLayers$ = 12					; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGID3D10GetLayeredDeviceSize@@YGKPBXI@Z@4P6GK0I@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGID3D10G
-	push	OFFSET $SG357688
-	push	OFFSET $SG357689
+	push	OFFSET $SG357728
+	push	OFFSET $SG357729
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15445,9 +15443,9 @@ _NumLayers$ = 12					; size = 4
 $LN3@DXGID3D10G:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG357690
-	push	OFFSET $SG357691
-	push	OFFSET $SG357692
+	push	OFFSET $SG357730
+	push	OFFSET $SG357731
+	push	OFFSET $SG357732
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15479,8 +15477,8 @@ _Unknown$ = 8						; size = 20
 	mov	DWORD PTR ?_default_impl@?1??DXGID3D10CreateLayeredDevice@@YGJUUNKNOWN5@@@Z@4P6GJ0@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGID3D10C
-	push	OFFSET $SG357666
-	push	OFFSET $SG357667
+	push	OFFSET $SG357706
+	push	OFFSET $SG357707
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15490,9 +15488,9 @@ _Unknown$ = 8						; size = 20
 $LN3@DXGID3D10C:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG357668
-	push	OFFSET $SG357669
-	push	OFFSET $SG357670
+	push	OFFSET $SG357708
+	push	OFFSET $SG357709
+	push	OFFSET $SG357710
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	movups	xmm0, XMMWORD PTR _Unknown$[ebp]
@@ -15534,8 +15532,8 @@ _ppDevice$ = 28						; size = 4
 	mov	DWORD PTR ?_default_impl@?1??DXGID3D10CreateDevice@@YGJPAUHINSTANCE__@@PAUIDXGIFactory@@PAUIDXGIAdapter@@IPAX3@Z@4P6GJ012I33@ZA, eax
 	test	eax, eax
 	jne	SHORT $LN3@DXGID3D10C
-	push	OFFSET $SG357634
-	push	OFFSET $SG357635
+	push	OFFSET $SG357674
+	push	OFFSET $SG357675
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15545,9 +15543,9 @@ _ppDevice$ = 28						; size = 4
 $LN3@DXGID3D10C:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG357636
-	push	OFFSET $SG357637
-	push	OFFSET $SG357638
+	push	OFFSET $SG357676
+	push	OFFSET $SG357677
+	push	OFFSET $SG357678
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -15637,8 +15635,8 @@ $LN7@CreateDXGI:
 	lea	ebx, DWORD PTR [esi+2048]
 	test	esi, esi
 	je	$LN2@CreateDXGI
-	push	OFFSET $SG357598
-	push	OFFSET $SG357599
+	push	OFFSET $SG357638
+	push	OFFSET $SG357639
 	push	esi
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -15666,13 +15664,13 @@ $LN7@CreateDXGI:
 
 	push	eax
 	push	DWORD PTR _Flags$[ebp]
-	push	OFFSET $SG357600
+	push	OFFSET $SG357640
 	push	ebx
 	call	__swprintf
 	push	ebx
 	push	esi
 	lea	eax, DWORD PTR [ebx+2048]
-	push	OFFSET $SG357601
+	push	OFFSET $SG357641
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -15703,7 +15701,7 @@ $LN43@CreateDXGI:
 	push	eax
 	lea	eax, DWORD PTR [ebx+2048]
 	push	eax
-	push	OFFSET $SG357602
+	push	OFFSET $SG357642
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -15799,7 +15797,7 @@ $LN3@CreateDXGI:
 ; 4524 :   {
 ; 4525 :     dll_log.Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory1 on Vista/7...");
 
-	push	OFFSET $SG357605
+	push	OFFSET $SG357645
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -15828,7 +15826,7 @@ $LN4@CreateDXGI:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357607
+	push	OFFSET $SG357647
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15973,7 +15971,7 @@ $LN6@EnumAdapte:
 
 ; 4398 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
 
-	push	OFFSET $SG357507
+	push	OFFSET $SG357547
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -15984,7 +15982,7 @@ $LN6@EnumAdapte:
 ; 4398 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
 
 	push	eax
-	push	OFFSET $SG357508
+	push	OFFSET $SG357548
 	push	esi
 	call	__swprintf
 	mov	eax, DWORD PTR _Adapter$[ebp]
@@ -15992,14 +15990,14 @@ $LN6@EnumAdapte:
 	push	eax
 	push	ebx
 	lea	eax, DWORD PTR [esi+2048]
-	push	OFFSET $SG357509
+	push	OFFSET $SG357549
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [esi+2048]
 	push	eax
 	push	esi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG357510
+	push	OFFSET $SG357550
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -16030,7 +16028,7 @@ $LN42@EnumAdapte:
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG357511
+	push	OFFSET $SG357551
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -16094,7 +16092,7 @@ $LN2@EnumAdapte:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357512
+	push	OFFSET $SG357552
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16284,7 +16282,7 @@ $LN6@EnumAdapte:
 
 ; 4354 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
 
-	push	OFFSET $SG357478
+	push	OFFSET $SG357518
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -16295,7 +16293,7 @@ $LN6@EnumAdapte:
 ; 4354 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
 
 	push	eax
-	push	OFFSET $SG357479
+	push	OFFSET $SG357519
 	push	esi
 	call	__swprintf
 	mov	eax, DWORD PTR _Adapter$[ebp]
@@ -16303,14 +16301,14 @@ $LN6@EnumAdapte:
 	push	eax
 	push	ebx
 	lea	eax, DWORD PTR [esi+2048]
-	push	OFFSET $SG357480
+	push	OFFSET $SG357520
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [esi+2048]
 	push	eax
 	push	esi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG357481
+	push	OFFSET $SG357521
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -16341,7 +16339,7 @@ $LN42@EnumAdapte:
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG357482
+	push	OFFSET $SG357522
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -16405,7 +16403,7 @@ $LN2@EnumAdapte:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357483
+	push	OFFSET $SG357523
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -17186,7 +17184,7 @@ $LN26@EnumAdapte:
 	push	OFFSET ?GetDesc2_Override@@YGJPAUIDXGIAdapter2@@PAUDXGI_ADAPTER_DESC2@@@Z ; GetDesc2_Override
 	push	11					; 0000000bH
 	push	DWORD PTR [eax]
-	push	OFFSET $SG357425
+	push	OFFSET $SG357465
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 	mov	ecx, DWORD PTR _pAdapter2$4[ebp]
 $LN6@EnumAdapte:
@@ -17269,7 +17267,7 @@ $LN47@EnumAdapte:
 	push	OFFSET ?GetDesc1_Override@@YGJPAUIDXGIAdapter1@@PAUDXGI_ADAPTER_DESC1@@@Z ; GetDesc1_Override
 	push	10					; 0000000aH
 	push	DWORD PTR [ecx]
-	push	OFFSET $SG357429
+	push	OFFSET $SG357469
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 	mov	ecx, DWORD PTR _pAdapter1$3[ebp]
 $LN9@EnumAdapte:
@@ -17308,7 +17306,7 @@ $LN66@EnumAdapte:
 	push	OFFSET ?GetDesc_Override@@YGJPAUIDXGIAdapter@@PAUDXGI_ADAPTER_DESC@@@Z ; GetDesc_Override
 	push	8
 	push	DWORD PTR [eax]
-	push	OFFSET $SG357432
+	push	OFFSET $SG357472
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 4284 :           GetDesc_Override, GetDesc_Original, GetDesc_pfn);
@@ -17343,7 +17341,7 @@ $LN12@EnumAdapte:
 
 ; 4294 :     dll_log.LogEx (false, L" >> Assertion filed: Zero-length adapter name!\n");
 
-	push	OFFSET $SG357435
+	push	OFFSET $SG357475
 	push	eax
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17375,7 +17373,7 @@ $LN13@EnumAdapte:
 	push	DWORD PTR _desc$[ebp+288]
 	push	eax
 	push	DWORD PTR _Adapter$[ebp]
-	push	OFFSET $SG357438
+	push	OFFSET $SG357478
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17461,7 +17459,7 @@ $LN70@EnumAdapte:
 
 ; 4334 :         dll_log.LogEx (false, L" <Software>");
 
-	push	OFFSET $SG357443
+	push	OFFSET $SG357483
 
 ; 4335 :       else
 
@@ -17470,7 +17468,7 @@ $LN17@EnumAdapte:
 
 ; 4336 :         dll_log.LogEx (false, L" <Hardware>");
 
-	push	OFFSET $SG357444
+	push	OFFSET $SG357484
 $LN94@EnumAdapte:
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
@@ -17484,7 +17482,7 @@ $LN94@EnumAdapte:
 
 ; 4338 :         dll_log.LogEx (false, L" [Remote]");
 
-	push	OFFSET $SG357446
+	push	OFFSET $SG357486
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17493,7 +17491,7 @@ $LN19@EnumAdapte:
 
 ; 4342 :   dll_log.LogEx (false, L"\n");
 
-	push	OFFSET $SG357447
+	push	OFFSET $SG357487
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17639,7 +17637,7 @@ _pDesc$ = 12						; size = 4
 ; 4201 :     dll_log.LogEx ( true,
 
 	push	esi
-	push	OFFSET $SG357181
+	push	OFFSET $SG357221
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17665,7 +17663,7 @@ _pDesc$ = 12						; size = 4
 ; 4210 :       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
 
 	push	edi
-	push	OFFSET $SG357184
+	push	OFFSET $SG357224
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17686,7 +17684,7 @@ $LN3@GetDesc_Ov:
 ; 4215 :     {
 ; 4216 :       dll_log.LogEx (false, L"Failure! (No Match Found)\n");
 
-	push	OFFSET $SG357185
+	push	OFFSET $SG357225
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17700,7 +17698,7 @@ $LN4@GetDesc_Ov:
 ; 4219 : 
 ; 4220 :   if (config.system.log_level >= 1)
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 1
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 1
 	jl	SHORT $LN5@GetDesc_Ov
 
 ; 4221 :   {
@@ -17715,7 +17713,7 @@ $LN4@GetDesc_Ov:
 	mov	eax, DWORD PTR [esi+272]
 	shr	eax, 20					; 00000014H
 	push	eax
-	push	OFFSET $SG357187
+	push	OFFSET $SG357227
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
@@ -17724,7 +17722,7 @@ $LN5@GetDesc_Ov:
 ; 4229 :   if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
 
 	push	ebx
-	push	OFFSET $SG357190
+	push	OFFSET $SG357230
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	DWORD PTR __imp__lstrcmpW@8
@@ -17742,7 +17740,7 @@ $LN5@GetDesc_Ov:
 ; 3844 : 	return (_Left._Equal(_Right));
 
 	mov	ecx, eax
-	push	OFFSET $SG357191
+	push	OFFSET $SG357231
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
@@ -17864,7 +17862,7 @@ _pDesc$ = 12						; size = 4
 
 	push	ebx
 	push	edi
-	push	OFFSET $SG357129
+	push	OFFSET $SG357169
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17890,7 +17888,7 @@ _pDesc$ = 12						; size = 4
 ; 4172 :       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
 
 	push	ebx
-	push	OFFSET $SG357132
+	push	OFFSET $SG357172
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17921,7 +17919,7 @@ $LN3@GetDesc1_O:
 ; 4176 :     else
 ; 4177 :       dll_log.LogEx (false, L"Failure! (No Match Found)\n");
 
-	push	OFFSET $SG357133
+	push	OFFSET $SG357173
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17991,7 +17989,7 @@ _pDesc$ = 12						; size = 4
 
 	push	ebx
 	push	edi
-	push	OFFSET $SG357117
+	push	OFFSET $SG357157
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -18017,7 +18015,7 @@ _pDesc$ = 12						; size = 4
 ; 4135 :       dll_log.LogEx (false, L"Success! (%s)\n", match->Description);
 
 	push	ebx
-	push	OFFSET $SG357120
+	push	OFFSET $SG357160
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -18047,7 +18045,7 @@ $LN3@GetDesc2_O:
 ; 4138 :     else
 ; 4139 :       dll_log.LogEx (false, L"Failure! (No Match Found)\n");
 
-	push	OFFSET $SG357121
+	push	OFFSET $SG357161
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -18200,8 +18198,8 @@ $LN8@CreateDXGI:
 	lea	ebx, DWORD PTR [esi+2048]
 	test	esi, esi
 	je	$LN3@CreateDXGI
-	push	OFFSET $SG357566
-	push	OFFSET $SG357567
+	push	OFFSET $SG357606
+	push	OFFSET $SG357607
 	push	esi
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18228,13 +18226,13 @@ $LN8@CreateDXGI:
 ; 4480 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
 
 	push	eax
-	push	OFFSET $SG357568
+	push	OFFSET $SG357608
 	push	ebx
 	call	__swprintf
 	push	ebx
 	push	esi
 	lea	eax, DWORD PTR [ebx+2048]
-	push	OFFSET $SG357569
+	push	OFFSET $SG357609
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -18265,7 +18263,7 @@ $LN44@CreateDXGI:
 	push	eax
 	lea	eax, DWORD PTR [ebx+2048]
 	push	eax
-	push	OFFSET $SG357570
+	push	OFFSET $SG357610
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18361,7 +18359,7 @@ $LN4@CreateDXGI:
 ; 4491 :   {
 ; 4492 :     dll_log.Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory on Vista...");
 
-	push	OFFSET $SG357573
+	push	OFFSET $SG357613
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -18389,7 +18387,7 @@ $LN5@CreateDXGI:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357575
+	push	OFFSET $SG357615
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18545,8 +18543,8 @@ $LN7@CreateDXGI:
 	lea	edi, DWORD PTR [esi+2048]
 	test	esi, esi
 	je	$LN3@CreateDXGI
-	push	OFFSET $SG357537
-	push	OFFSET $SG357538
+	push	OFFSET $SG357577
+	push	OFFSET $SG357578
 	push	esi
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18573,13 +18571,13 @@ $LN7@CreateDXGI:
 ; 4450 :   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
 
 	push	eax
-	push	OFFSET $SG357539
+	push	OFFSET $SG357579
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG357540
+	push	OFFSET $SG357580
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -18610,7 +18608,7 @@ $LN42@CreateDXGI:
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG357541
+	push	OFFSET $SG357581
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18701,7 +18699,7 @@ $LN4@CreateDXGI:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357543
+	push	OFFSET $SG357583
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18916,7 +18914,7 @@ $LN6@DXGIFactor:
 
 ; 3957 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
 
-	push	OFFSET $SG357050
+	push	OFFSET $SG357090
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -18927,19 +18925,19 @@ $LN6@DXGIFactor:
 ; 3957 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
 
 	push	eax
-	push	OFFSET $SG357051
+	push	OFFSET $SG357091
 	push	esi
 	call	__swprintf
 	push	DWORD PTR _ppSwapChain$[ebp]
 	push	DWORD PTR _pDesc$[ebp]
 	push	DWORD PTR _pDevice$[ebp]
-	push	OFFSET $SG357052
+	push	OFFSET $SG357092
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG357053
+	push	OFFSET $SG357093
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -18970,7 +18968,7 @@ $LN41@DXGIFactor:
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG357054
+	push	OFFSET $SG357094
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19255,15 +19253,15 @@ $LN85@DXGIFactor:
 ; 3382 : 
 ; 3383 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, 0
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+764
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+760
 	je	SHORT $LN87@DXGIFactor
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+758, 0
 	jne	SHORT $LN87@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN148@DXGIFactor
@@ -19283,7 +19281,7 @@ $LN148@DXGIFactor:
 $LN87@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN152@DXGIFactor
@@ -19307,7 +19305,7 @@ $LN89@DXGIFactor:
 ; 3407 : 
 ; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+492, 0
 	je	SHORT $LN90@DXGIFactor
 
 ; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -19345,7 +19343,7 @@ $LN91@DXGIFactor:
 ; 3417 : 
 ; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+504, 0
 	je	SHORT $LN92@DXGIFactor
 	test	eax, eax
 	je	SHORT $LN92@DXGIFactor
@@ -19372,7 +19370,7 @@ $LN92@DXGIFactor:
 ; 3425 : 
 ; 3426 :     else if (config.display.force_windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+505, 0
 	je	SHORT $LN94@DXGIFactor
 
 ; 3427 :     {
@@ -19407,7 +19405,7 @@ $LN94@DXGIFactor:
 ; 3449 :       // If forcing flip-model, then force multisampling off
 ; 3450 :       if (config.render.framerate.flip_discard)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN318@DXGIFactor
 
 ; 3451 :       {
@@ -19484,7 +19482,7 @@ $LN318@DXGIFactor:
 ; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
 ; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	cmp	ecx, -1
 	je	SHORT $LN99@DXGIFactor
 	mov	eax, DWORD PTR _stub_desc$2$[ebp]
@@ -19506,7 +19504,7 @@ $LN318@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR _stub_desc$2$[ebp], eax
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 12					; 0000000cH
 $LN99@DXGIFactor:
 
@@ -19514,7 +19512,7 @@ $LN99@DXGIFactor:
 ; 3482 : 
 ; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN100@DXGIFactor
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN100@DXGIFactor
@@ -19527,7 +19525,7 @@ $LN99@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	or	esi, 2048				; 00000800H
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 8
 $LN100@DXGIFactor:
 
@@ -19536,7 +19534,7 @@ $LN100@DXGIFactor:
 ; 3489 : 
 ; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
 	je	SHORT $LN101@DXGIFactor
 	cmp	DWORD PTR _stub_desc$3[ebp+24], eax
@@ -19558,7 +19556,7 @@ $LN100@DXGIFactor:
 	push	OFFSET ??_C@_1HK@PGANLAKP@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAS?$AAc?$AAa?$AAl?$AAi?$AAn?$AAg?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 16					; 00000010H
 $LN101@DXGIFactor:
 
@@ -19577,7 +19575,7 @@ $LN101@DXGIFactor:
 ; 3507 : 
 ; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	cmp	eax, -1
 	je	SHORT $LN102@DXGIFactor
 	cmp	DWORD PTR _stub_desc$3[ebp+20], eax
@@ -19599,7 +19597,7 @@ $LN101@DXGIFactor:
 	push	OFFSET ??_C@_1HM@EKHBGJHP@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAS?$AAc?$AAa?$AAn?$AAl?$AAi?$AAn?$AAe?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 16					; 00000010H
 $LN102@DXGIFactor:
 
@@ -19618,7 +19616,7 @@ $LN102@DXGIFactor:
 ; 3525 : 
 ; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	cmp	eax, -1
 	je	SHORT $LN103@DXGIFactor
 	mov	edx, DWORD PTR _stub_desc$13$[ebp]
@@ -19654,7 +19652,7 @@ $LN155@DXGIFactor:
 	push	OFFSET ??_C@_1HM@GOOAFJFG@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAR?$AAe?$AAf?$AAr?$AAe?$AAs?$AAh?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 20					; 00000014H
 $LN103@DXGIFactor:
 
@@ -19681,7 +19679,7 @@ $LN103@DXGIFactor:
 ; 3544 :     // We cannot change the swapchain parameters if this is used...
 ; 3545 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+424, 0
 	jle	SHORT $LN141@DXGIFactor
 	mov	dl, 1
 	jmp	SHORT $LN327@DXGIFactor
@@ -19729,15 +19727,15 @@ $LN106@DXGIFactor:
 ; 3743 : 	return (_DEBUG_LT(_Left, _Right) ? _Right : _Left);
 
 	lea	ecx, DWORD PTR $T9[ebp]
-	mov	eax, OFFSET ?config@@3Usk_config_t@@A+408
+	mov	eax, OFFSET ?config@@3Usk_config_t@@A+412
 	cmovle	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 3564 :       if (config.render.framerate.flip_discard &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	mov	ecx, DWORD PTR [eax]
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, ecx
 	je	SHORT $LN107@DXGIFactor
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN107@DXGIFactor
@@ -19783,7 +19781,7 @@ $LN104@DXGIFactor:
 	mov	DWORD PTR _stub_desc$5$[ebp], 0
 	cmp	ecx, eax
 	cmovg	ecx, eax
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, ecx
 $LN109@DXGIFactor:
 
 ; 3579 :     }
@@ -19818,7 +19816,7 @@ $LN112@DXGIFactor:
 	xor	eax, eax
 	mov	ecx, OFFSET ??_C@_15BICKNCBF@?$AAN?$AAo?$AA?$AA@
 	test	dl, dl
-	cmovne	eax, DWORD PTR ?config@@3Usk_config_t@@A+420
+	cmovne	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	push	eax
 	mov	eax, OFFSET ??_C@_17PBAHFJOA@?$AAY?$AAe?$AAs?$AA?$AA@
 	cmove	eax, ecx
@@ -19833,9 +19831,9 @@ $LN112@DXGIFactor:
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+460
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+464
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
@@ -19843,9 +19841,9 @@ $LN112@DXGIFactor:
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+464
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+468
 	test	edx, edx
 	jne	SHORT $LN162@DXGIFactor
 	test	ecx, ecx
@@ -19860,7 +19858,7 @@ $LN162@DXGIFactor:
 	cmova	eax, edx
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN166@DXGIFactor
@@ -19879,10 +19877,10 @@ $LN321@DXGIFactor:
 $LN114@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+452
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+460
 	test	edx, edx
 	jne	SHORT $LN170@DXGIFactor
 	test	ecx, ecx
@@ -19897,7 +19895,7 @@ $LN170@DXGIFactor:
 	cmovb	eax, edx
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN174@DXGIFactor
@@ -20019,7 +20017,7 @@ $LN313@DXGIFactor:
 	mov	DWORD PTR _ret$1$[ebp], esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG357055
+	push	OFFSET $SG357095
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20135,7 +20133,7 @@ $LN193@DXGIFactor:
 ; 3669 : 
 ; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A+400
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A+404
 	mov	DWORD PTR _max_latency$1$[ebp], edi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
@@ -20849,7 +20847,7 @@ $LN21@operator:
 ; 3669 : 
 ; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
-	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
+	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+404
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 162  :         p = lp;
@@ -21298,7 +21296,7 @@ $LN6@DXGIFactor:
 
 ; 3892 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
 
-	push	OFFSET $SG357017
+	push	OFFSET $SG357057
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -21309,19 +21307,19 @@ $LN6@DXGIFactor:
 ; 3892 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
 
 	push	eax
-	push	OFFSET $SG357018
+	push	OFFSET $SG357058
 	push	esi
 	call	__swprintf
 	push	DWORD PTR _ppSwapChain$[ebp]
 	push	DWORD PTR _pDesc$[ebp]
 	push	DWORD PTR _pDevice$[ebp]
-	push	OFFSET $SG357019
+	push	OFFSET $SG357059
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG357020
+	push	OFFSET $SG357060
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -21352,7 +21350,7 @@ $LN43@DXGIFactor:
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG357021
+	push	OFFSET $SG357061
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21684,10 +21682,10 @@ $LN146@DXGIFactor:
 ; 3374 :     // Set things up to make the swap chain Alt+Enter friendly
 ; 3375 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+764
 	add	esp, 52					; 00000034H
 	cmp	BYTE PTR ?bAlwaysAllowFullscreen@@3_NA, 0 ; bAlwaysAllowFullscreen
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+760
 	je	SHORT $LN87@DXGIFactor
 	cmp	DWORD PTR _stub_desc$12$[ebp], 0
 	je	SHORT $LN89@DXGIFactor
@@ -21718,13 +21716,13 @@ $LN87@DXGIFactor:
 	cmp	DWORD PTR _stub_desc$12$[ebp], 0
 	je	SHORT $LN89@DXGIFactor
 $LN226@DXGIFactor:
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, 0
 	je	SHORT $LN89@DXGIFactor
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+758, 0
 	jne	SHORT $LN89@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN150@DXGIFactor
@@ -21744,7 +21742,7 @@ $LN150@DXGIFactor:
 $LN89@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN154@DXGIFactor
@@ -21768,7 +21766,7 @@ $LN91@DXGIFactor:
 ; 3407 : 
 ; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+492, 0
 	je	SHORT $LN92@DXGIFactor
 
 ; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -21807,7 +21805,7 @@ $LN93@DXGIFactor:
 ; 3417 : 
 ; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+504, 0
 	je	SHORT $LN94@DXGIFactor
 	test	eax, eax
 	je	SHORT $LN94@DXGIFactor
@@ -21833,7 +21831,7 @@ $LN94@DXGIFactor:
 ; 3425 : 
 ; 3426 :     else if (config.display.force_windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+505, 0
 	je	SHORT $LN96@DXGIFactor
 
 ; 3427 :     {
@@ -21871,7 +21869,7 @@ $LN96@DXGIFactor:
 ; 3449 :       // If forcing flip-model, then force multisampling off
 ; 3450 :       if (config.render.framerate.flip_discard)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN230@DXGIFactor
 
 ; 3451 :       {
@@ -21948,7 +21946,7 @@ $LN230@DXGIFactor:
 ; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
 ; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	cmp	ecx, -1
 	je	SHORT $LN101@DXGIFactor
 	mov	eax, DWORD PTR _stub_desc$2$[ebp]
@@ -21970,7 +21968,7 @@ $LN230@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR _stub_desc$2$[ebp], eax
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 12					; 0000000cH
 $LN101@DXGIFactor:
 
@@ -21978,7 +21976,7 @@ $LN101@DXGIFactor:
 ; 3482 : 
 ; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN102@DXGIFactor
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN102@DXGIFactor
@@ -21994,7 +21992,7 @@ $LN101@DXGIFactor:
 
 ; 3487 :       pDesc->Windowed = TRUE;
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 8
 	mov	DWORD PTR _stub_desc$12$[ebp], 1
 $LN102@DXGIFactor:
@@ -22003,7 +22001,7 @@ $LN102@DXGIFactor:
 ; 3489 : 
 ; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
 	je	SHORT $LN103@DXGIFactor
 	cmp	DWORD PTR _stub_desc$15$[ebp], eax
@@ -22037,9 +22035,9 @@ $LN102@DXGIFactor:
 ; 3503 : 
 ; 3504 :       pDesc->BufferDesc.Scaling =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	add	esp, 16					; 00000010H
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	mov	DWORD PTR _stub_desc$15$[ebp], eax
 $LN103@DXGIFactor:
 
@@ -22048,7 +22046,7 @@ $LN103@DXGIFactor:
 ; 3507 : 
 ; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	cmp	eax, -1
 	je	SHORT $LN104@DXGIFactor
 	cmp	DWORD PTR _stub_desc$16$[ebp], eax
@@ -22082,9 +22080,9 @@ $LN103@DXGIFactor:
 ; 3521 : 
 ; 3522 :       pDesc->BufferDesc.ScanlineOrdering =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	add	esp, 16					; 00000010H
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	mov	DWORD PTR _stub_desc$16$[ebp], eax
 $LN104@DXGIFactor:
 
@@ -22093,7 +22091,7 @@ $LN104@DXGIFactor:
 ; 3525 : 
 ; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	cmp	eax, -1
 	je	SHORT $LN105@DXGIFactor
 	mov	edx, DWORD PTR _stub_desc$14$[ebp]
@@ -22140,12 +22138,12 @@ $LN157@DXGIFactor:
 ; 3537 : 
 ; 3538 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	add	esp, 20					; 00000014H
 
 ; 3539 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	mov	DWORD PTR _stub_desc$14$[ebp], eax
 	mov	DWORD PTR _stub_desc$13$[ebp], 1
 $LN105@DXGIFactor:
@@ -22163,7 +22161,7 @@ $LN105@DXGIFactor:
 ; 3544 :     // We cannot change the swapchain parameters if this is used...
 ; 3545 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+424, 0
 	jle	SHORT $LN143@DXGIFactor
 	mov	dl, 1
 	jmp	SHORT $LN236@DXGIFactor
@@ -22207,9 +22205,9 @@ $LN108@DXGIFactor:
 
 ; 3564 :       if (config.render.framerate.flip_discard &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	mov	ecx, eax
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, ecx
 	je	SHORT $LN109@DXGIFactor
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN109@DXGIFactor
@@ -22255,7 +22253,7 @@ $LN106@DXGIFactor:
 	mov	DWORD PTR _stub_desc$5$[ebp], 0
 	cmp	ecx, eax
 	cmovg	ecx, eax
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, ecx
 $LN111@DXGIFactor:
 
 ; 3579 :     }
@@ -22290,7 +22288,7 @@ $LN114@DXGIFactor:
 	xor	eax, eax
 	mov	ecx, OFFSET ??_C@_15BICKNCBF@?$AAN?$AAo?$AA?$AA@
 	test	dl, dl
-	cmovne	eax, DWORD PTR ?config@@3Usk_config_t@@A+420
+	cmovne	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	push	eax
 	mov	eax, OFFSET ??_C@_17PBAHFJOA@?$AAY?$AAe?$AAs?$AA?$AA@
 	cmove	eax, ecx
@@ -22305,9 +22303,9 @@ $LN114@DXGIFactor:
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+460
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+464
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
@@ -22315,9 +22313,9 @@ $LN114@DXGIFactor:
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+468
 	test	ecx, ecx
 	jne	SHORT $LN164@DXGIFactor
 	test	eax, eax
@@ -22332,7 +22330,7 @@ $LN164@DXGIFactor:
 	cmova	edx, ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	ecx, ecx
 	jne	SHORT $LN168@DXGIFactor
@@ -22351,10 +22349,10 @@ $LN231@DXGIFactor:
 $LN116@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+452
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
 	test	ecx, ecx
 	jne	SHORT $LN172@DXGIFactor
 	test	eax, eax
@@ -22369,7 +22367,7 @@ $LN172@DXGIFactor:
 	cmovb	edx, ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	ecx, ecx
 	jne	SHORT $LN176@DXGIFactor
@@ -22925,7 +22923,7 @@ $LN21@operator:
 ; 3669 : 
 ; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
-	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
+	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+404
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 162  :         p = lp;
@@ -23370,7 +23368,7 @@ $LN7@DXGIFactor:
 
 ; 3824 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
 
-	push	OFFSET $SG356935
+	push	OFFSET $SG356975
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -23381,19 +23379,19 @@ $LN7@DXGIFactor:
 ; 3824 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
 
 	push	eax
-	push	OFFSET $SG356936
+	push	OFFSET $SG356976
 	push	esi
 	call	__swprintf
 	push	DWORD PTR _ppSwapChain$[ebp]
 	push	DWORD PTR _pDesc$[ebp]
 	push	DWORD PTR _pDevice$[ebp]
-	push	OFFSET $SG356937
+	push	OFFSET $SG356977
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG356938
+	push	OFFSET $SG356978
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -23424,7 +23422,7 @@ $LN44@DXGIFactor:
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG356939
+	push	OFFSET $SG356979
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -23738,15 +23736,15 @@ $LN88@DXGIFactor:
 ; 3382 : 
 ; 3383 :     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, 0
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+764
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+760
 	je	SHORT $LN90@DXGIFactor
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+758, 0
 	jne	SHORT $LN90@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN151@DXGIFactor
@@ -23766,7 +23764,7 @@ $LN151@DXGIFactor:
 $LN90@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN155@DXGIFactor
@@ -23790,7 +23788,7 @@ $LN92@DXGIFactor:
 ; 3407 : 
 ; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+492, 0
 	je	SHORT $LN93@DXGIFactor
 
 ; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -23828,7 +23826,7 @@ $LN94@DXGIFactor:
 ; 3417 : 
 ; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+504, 0
 	je	SHORT $LN95@DXGIFactor
 	test	eax, eax
 	je	SHORT $LN95@DXGIFactor
@@ -23855,7 +23853,7 @@ $LN95@DXGIFactor:
 ; 3425 : 
 ; 3426 :     else if (config.display.force_windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+505, 0
 	je	SHORT $LN97@DXGIFactor
 
 ; 3427 :     {
@@ -23890,7 +23888,7 @@ $LN97@DXGIFactor:
 ; 3449 :       // If forcing flip-model, then force multisampling off
 ; 3450 :       if (config.render.framerate.flip_discard)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN230@DXGIFactor
 
 ; 3451 :       {
@@ -23967,7 +23965,7 @@ $LN230@DXGIFactor:
 ; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
 ; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	cmp	ecx, -1
 	je	SHORT $LN102@DXGIFactor
 	mov	eax, DWORD PTR _stub_desc$2$[ebp]
@@ -23989,7 +23987,7 @@ $LN230@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR _stub_desc$2$[ebp], eax
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 12					; 0000000cH
 $LN102@DXGIFactor:
 
@@ -23997,7 +23995,7 @@ $LN102@DXGIFactor:
 ; 3482 : 
 ; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN103@DXGIFactor
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN103@DXGIFactor
@@ -24010,7 +24008,7 @@ $LN102@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	or	esi, 2048				; 00000800H
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 8
 $LN103@DXGIFactor:
 
@@ -24019,7 +24017,7 @@ $LN103@DXGIFactor:
 ; 3489 : 
 ; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
 	je	SHORT $LN104@DXGIFactor
 	cmp	DWORD PTR _stub_desc$6[ebp+24], eax
@@ -24041,7 +24039,7 @@ $LN103@DXGIFactor:
 	push	OFFSET ??_C@_1HK@PGANLAKP@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAS?$AAc?$AAa?$AAl?$AAi?$AAn?$AAg?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 16					; 00000010H
 $LN104@DXGIFactor:
 
@@ -24060,7 +24058,7 @@ $LN104@DXGIFactor:
 ; 3507 : 
 ; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	cmp	eax, -1
 	je	SHORT $LN105@DXGIFactor
 	cmp	DWORD PTR _stub_desc$6[ebp+20], eax
@@ -24082,7 +24080,7 @@ $LN104@DXGIFactor:
 	push	OFFSET ??_C@_1HM@EKHBGJHP@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAS?$AAc?$AAa?$AAn?$AAl?$AAi?$AAn?$AAe?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 16					; 00000010H
 $LN105@DXGIFactor:
 
@@ -24101,7 +24099,7 @@ $LN105@DXGIFactor:
 ; 3525 : 
 ; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	cmp	eax, -1
 	je	SHORT $LN106@DXGIFactor
 	mov	edx, DWORD PTR _stub_desc$13$[ebp]
@@ -24137,7 +24135,7 @@ $LN158@DXGIFactor:
 	push	OFFSET ??_C@_1HM@GOOAFJFG@?$AA?$FL?$AA?5?$AA?5?$AA?5?$AAD?$AAX?$AAG?$AAI?$AA?5?$AA?5?$AA?5?$AA?$FN?$AA?5?$AA?5?$AA?$DO?$AA?$DO?$AA?5?$AAR?$AAe?$AAf?$AAr?$AAe?$AAs?$AAh?$AA?5?$AAO?$AAv?$AAe?$AAr?$AAr?$AAi?$AAd@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 20					; 00000014H
 $LN106@DXGIFactor:
 
@@ -24164,7 +24162,7 @@ $LN106@DXGIFactor:
 ; 3544 :     // We cannot change the swapchain parameters if this is used...
 ; 3545 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+424, 0
 	jle	SHORT $LN144@DXGIFactor
 	mov	dl, 1
 	jmp	SHORT $LN236@DXGIFactor
@@ -24208,9 +24206,9 @@ $LN109@DXGIFactor:
 
 ; 3564 :       if (config.render.framerate.flip_discard &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	mov	ecx, eax
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, ecx
 	je	SHORT $LN110@DXGIFactor
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN110@DXGIFactor
@@ -24256,7 +24254,7 @@ $LN107@DXGIFactor:
 	mov	DWORD PTR _stub_desc$5$[ebp], 0
 	cmp	ecx, eax
 	cmovg	ecx, eax
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, ecx
 $LN112@DXGIFactor:
 
 ; 3579 :     }
@@ -24291,7 +24289,7 @@ $LN115@DXGIFactor:
 	xor	eax, eax
 	mov	ecx, OFFSET ??_C@_15BICKNCBF@?$AAN?$AAo?$AA?$AA@
 	test	dl, dl
-	cmovne	eax, DWORD PTR ?config@@3Usk_config_t@@A+420
+	cmovne	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	push	eax
 	mov	eax, OFFSET ??_C@_17PBAHFJOA@?$AAY?$AAe?$AAs?$AA?$AA@
 	cmove	eax, ecx
@@ -24306,9 +24304,9 @@ $LN115@DXGIFactor:
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+460
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+464
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
@@ -24316,9 +24314,9 @@ $LN115@DXGIFactor:
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+464
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+468
 	test	edx, edx
 	jne	SHORT $LN165@DXGIFactor
 	test	ecx, ecx
@@ -24333,7 +24331,7 @@ $LN165@DXGIFactor:
 	cmova	eax, edx
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN169@DXGIFactor
@@ -24352,10 +24350,10 @@ $LN231@DXGIFactor:
 $LN117@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+452
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+460
 	test	edx, edx
 	jne	SHORT $LN173@DXGIFactor
 	test	ecx, ecx
@@ -24370,7 +24368,7 @@ $LN173@DXGIFactor:
 	cmovb	eax, edx
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN177@DXGIFactor
@@ -24865,7 +24863,7 @@ $LN8@operator:
 ; 3669 : 
 ; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
-	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
+	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+404
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 162  :         p = lp;
@@ -25276,7 +25274,7 @@ $LN7@DXGIFactor:
 
 ; 3762 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
 
-	push	OFFSET $SG356859
+	push	OFFSET $SG356899
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -25287,19 +25285,19 @@ $LN7@DXGIFactor:
 ; 3762 :   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
 
 	push	eax
-	push	OFFSET $SG356860
+	push	OFFSET $SG356900
 	push	esi
 	call	__swprintf
 	push	DWORD PTR _ppSwapChain$[ebp]
 	push	DWORD PTR _pDesc$[ebp]
 	push	DWORD PTR _pDevice$[ebp]
-	push	OFFSET $SG356861
+	push	OFFSET $SG356901
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG356862
+	push	OFFSET $SG356902
 	push	eax
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -25330,7 +25328,7 @@ $LN44@DXGIFactor:
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
-	push	OFFSET $SG356863
+	push	OFFSET $SG356903
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -25587,10 +25585,10 @@ $LN147@DXGIFactor:
 ; 3374 :     // Set things up to make the swap chain Alt+Enter friendly
 ; 3375 :     if (bAlwaysAllowFullscreen && pDesc->Windowed)
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+760
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+764
 	add	esp, 52					; 00000034H
 	cmp	BYTE PTR ?bAlwaysAllowFullscreen@@3_NA, 0 ; bAlwaysAllowFullscreen
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+760
 	mov	eax, DWORD PTR _new_desc$[ebp+48]
 	je	SHORT $LN88@DXGIFactor
 	test	eax, eax
@@ -25623,13 +25621,13 @@ $LN88@DXGIFactor:
 	test	eax, eax
 	je	SHORT $LN228@DXGIFactor
 $LN224@DXGIFactor:
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, 0
 	je	SHORT $LN228@DXGIFactor
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+758, 0
 	jne	SHORT $LN228@DXGIFactor
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN151@DXGIFactor
@@ -25648,7 +25646,7 @@ $LN151@DXGIFactor:
 $LN228@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN155@DXGIFactor
@@ -25671,7 +25669,7 @@ $LN92@DXGIFactor:
 ; 3407 : 
 ; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+492, 0
 	je	SHORT $LN93@DXGIFactor
 
 ; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -25707,7 +25705,7 @@ $LN94@DXGIFactor:
 ; 3417 : 
 ; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+504, 0
 	je	SHORT $LN95@DXGIFactor
 	test	eax, eax
 	je	SHORT $LN95@DXGIFactor
@@ -25733,7 +25731,7 @@ $LN95@DXGIFactor:
 ; 3425 : 
 ; 3426 :     else if (config.display.force_windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+505, 0
 	je	SHORT $LN97@DXGIFactor
 
 ; 3427 :     {
@@ -25771,7 +25769,7 @@ $LN97@DXGIFactor:
 ; 3449 :       // If forcing flip-model, then force multisampling off
 ; 3450 :       if (config.render.framerate.flip_discard)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN229@DXGIFactor
 
 ; 3451 :       {
@@ -25848,7 +25846,7 @@ $LN229@DXGIFactor:
 ; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
 ; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	cmp	ecx, -1
 	je	SHORT $LN230@DXGIFactor
 	mov	eax, DWORD PTR _new_desc$[ebp+40]
@@ -25867,7 +25865,7 @@ $LN229@DXGIFactor:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR _new_desc$[ebp+40], ecx
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 12					; 0000000cH
 $LN230@DXGIFactor:
 
@@ -25875,7 +25873,7 @@ $LN230@DXGIFactor:
 ; 3482 : 
 ; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN103@DXGIFactor
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN103@DXGIFactor
@@ -25893,7 +25891,7 @@ $LN230@DXGIFactor:
 
 ; 3487 :       pDesc->Windowed = TRUE;
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	add	esp, 8
 	mov	DWORD PTR _new_desc$[ebp+48], 1
 $LN103@DXGIFactor:
@@ -25902,7 +25900,7 @@ $LN103@DXGIFactor:
 ; 3489 : 
 ; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
 	je	SHORT $LN104@DXGIFactor
 	mov	edi, DWORD PTR _new_desc$[ebp+24]
@@ -25937,9 +25935,9 @@ $LN103@DXGIFactor:
 ; 3503 : 
 ; 3504 :       pDesc->BufferDesc.Scaling =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	add	esp, 16					; 00000010H
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	mov	DWORD PTR _new_desc$[ebp+24], eax
 $LN104@DXGIFactor:
 
@@ -25948,7 +25946,7 @@ $LN104@DXGIFactor:
 ; 3507 : 
 ; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	cmp	eax, -1
 	je	SHORT $LN105@DXGIFactor
 	mov	edi, DWORD PTR _new_desc$[ebp+20]
@@ -25983,9 +25981,9 @@ $LN104@DXGIFactor:
 ; 3521 : 
 ; 3522 :       pDesc->BufferDesc.ScanlineOrdering =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	add	esp, 16					; 00000010H
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	mov	DWORD PTR _new_desc$[ebp+20], eax
 $LN105@DXGIFactor:
 
@@ -25994,7 +25992,7 @@ $LN105@DXGIFactor:
 ; 3525 : 
 ; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	cmp	eax, -1
 	je	SHORT $LN106@DXGIFactor
 	mov	edx, DWORD PTR _new_desc$[ebp+8]
@@ -26041,12 +26039,12 @@ $LN158@DXGIFactor:
 ; 3537 : 
 ; 3538 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	add	esp, 20					; 00000014H
 
 ; 3539 :       pDesc->BufferDesc.RefreshRate.Denominator = 1;
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	mov	DWORD PTR _new_desc$[ebp+8], eax
 	mov	DWORD PTR _new_desc$[ebp+12], 1
 $LN106@DXGIFactor:
@@ -26056,7 +26054,7 @@ $LN106@DXGIFactor:
 ; 3542 :     bWait = bFlipMode && dxgi_caps.present.waitable;
 
 	cmp	BYTE PTR ?bFlipMode@@3_NA, 0		; bFlipMode
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A+420
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A+424
 	je	SHORT $LN144@DXGIFactor
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN144@DXGIFactor
@@ -26109,9 +26107,9 @@ $LN109@DXGIFactor:
 
 ; 3564 :       if (config.render.framerate.flip_discard &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	mov	ecx, eax
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, ecx
 	je	SHORT $LN110@DXGIFactor
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN110@DXGIFactor
@@ -26156,7 +26154,7 @@ $LN107@DXGIFactor:
 	mov	DWORD PTR _new_desc$[ebp+52], 0
 	cmp	ecx, eax
 	cmovg	ecx, eax
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, ecx
 $LN112@DXGIFactor:
 
 ; 3579 :     }
@@ -26208,9 +26206,9 @@ $LN115@DXGIFactor:
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
@@ -26218,9 +26216,9 @@ $LN115@DXGIFactor:
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+464
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+468
 	test	eax, eax
 	jne	SHORT $LN165@DXGIFactor
 	test	edx, edx
@@ -26247,7 +26245,7 @@ $LN165@DXGIFactor:
 	mov	DWORD PTR _new_desc$[ebp], ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	eax, eax
 	jne	SHORT $LN169@DXGIFactor
@@ -26267,10 +26265,10 @@ $LN169@DXGIFactor:
 $LN117@DXGIFactor:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A+452
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+460
 	test	edi, edi
 	jne	SHORT $LN173@DXGIFactor
 	test	edx, edx
@@ -26286,7 +26284,7 @@ $LN173@DXGIFactor:
 	mov	DWORD PTR _new_desc$[ebp], ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edi, edi
 	jne	SHORT $LN177@DXGIFactor
@@ -26971,7 +26969,7 @@ $LN18@SK_DXGI_Cr:
 ; 3669 : 
 ; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
-	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
+	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+404
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 162  :         p = lp;
@@ -27743,7 +27741,7 @@ $LN5@SK_DXGI_Cr:
 ; 3669 : 
 ; 3670 :   const uint32_t max_latency = config.render.framerate.pre_render_limit;
 
-	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+400
+	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+404
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 162  :         p = lp;
@@ -28081,7 +28079,7 @@ _pSwapChain$ = 8					; size = 4
 	push	OFFSET ?DXGISwap_SetFullscreenState_Override@@YGJPAUIDXGISwapChain@@HPAUIDXGIOutput@@@Z ; DXGISwap_SetFullscreenState_Override
 	push	10					; 0000000aH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366236
+	push	OFFSET $SG366276
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 4938 :                             DXGISwap_SetFullscreenState_Override,
@@ -28094,7 +28092,7 @@ _pSwapChain$ = 8					; size = 4
 	push	OFFSET ?DXGISwap_GetFullscreenState_Override@@YGJPAUIDXGISwapChain@@PAHPAPAUIDXGIOutput@@@Z ; DXGISwap_GetFullscreenState_Override
 	push	11					; 0000000bH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366237
+	push	OFFSET $SG366277
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 4943 :                             DXGISwap_GetFullscreenState_Override,
@@ -28107,7 +28105,7 @@ _pSwapChain$ = 8					; size = 4
 	push	OFFSET ?DXGISwap_ResizeBuffers_Override@@YGJPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@Z ; DXGISwap_ResizeBuffers_Override
 	push	13					; 0000000dH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366238
+	push	OFFSET $SG366278
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 4948 :                            DXGISwap_ResizeBuffers_Override,
@@ -28120,7 +28118,7 @@ _pSwapChain$ = 8					; size = 4
 	push	OFFSET ?DXGISwap_ResizeTarget_Override@@YGJPAUIDXGISwapChain@@PBUDXGI_MODE_DESC@@@Z ; DXGISwap_ResizeTarget_Override
 	push	14					; 0000000eH
 	push	DWORD PTR [esi]
-	push	OFFSET $SG366239
+	push	OFFSET $SG366279
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
@@ -28167,7 +28165,7 @@ _pSwapChain$ = 8					; size = 4
 	push	OFFSET ?DXGIOutput_GetDisplayModeList_Override@@YGJPAUIDXGIOutput@@W4DXGI_FORMAT@@IPAIPAUDXGI_MODE_DESC@@@Z ; DXGIOutput_GetDisplayModeList_Override
 	push	8
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366242
+	push	OFFSET $SG366282
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 4964 :                                 DXGIOutput_GetDisplayModeList_Override,
@@ -28181,7 +28179,7 @@ _pSwapChain$ = 8					; size = 4
 	push	OFFSET ?DXGIOutput_FindClosestMatchingMode_Override@@YGJPAUIDXGIOutput@@PBUDXGI_MODE_DESC@@PAU2@PAUIUnknown@@@Z ; DXGIOutput_FindClosestMatchingMode_Override
 	push	9
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366243
+	push	OFFSET $SG366283
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 
 ; 4969 :                                 DXGIOutput_FindClosestMatchingMode_Override,
@@ -28195,7 +28193,7 @@ _pSwapChain$ = 8					; size = 4
 	push	OFFSET ?DXGIOutput_WaitForVBlank_Override@@YGJPAUIDXGIOutput@@@Z ; DXGIOutput_WaitForVBlank_Override
 	push	10					; 0000000aH
 	push	DWORD PTR [eax]
-	push	OFFSET $SG366244
+	push	OFFSET $SG366284
 	call	?SK_CreateVFTableHook2@@YG?AW4MH_STATUS@@PB_WPAPAXKPAX1@Z ; SK_CreateVFTableHook2
 	mov	eax, DWORD PTR _pOutput$[ebp]
 $LN4@SK_DXGI_Ho:
@@ -28636,18 +28634,18 @@ $LN9@SK_DXGI_Cr:
 
 	cmp	DWORD PTR [esi+48], 0
 	je	SHORT $LN11@SK_DXGI_Cr
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, 0
 	je	SHORT $LN11@SK_DXGI_Cr
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+758, 0
 	jne	SHORT $LN11@SK_DXGI_Cr
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
 	test	eax, eax
 	jne	SHORT $LN72@SK_DXGI_Cr
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+760, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+764, eax
 	je	SHORT $LN13@SK_DXGI_Cr
 $LN72@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -28658,17 +28656,17 @@ $LN72@SK_DXGI_Cr:
 
 ; 3388 :         pDesc->BufferDesc.Height = config.window.res.override.y;
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+764
 	mov	DWORD PTR [esi+4], eax
 $LN11@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+756
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
 	test	eax, eax
 	jne	SHORT $LN76@SK_DXGI_Cr
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+760, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+764, eax
 	je	SHORT $LN13@SK_DXGI_Cr
 $LN76@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -28679,7 +28677,7 @@ $LN76@SK_DXGI_Cr:
 
 ; 3404 :       pDesc->BufferDesc.Height = config.window.res.override.y;
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+764
 	mov	DWORD PTR [esi+4], eax
 $LN13@SK_DXGI_Cr:
 
@@ -28688,7 +28686,7 @@ $LN13@SK_DXGI_Cr:
 ; 3407 : 
 ; 3408 :     if (config.render.dxgi.safe_fullscreen)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+492, 0
 	je	SHORT $LN14@SK_DXGI_Cr
 
 ; 3409 :       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -28723,7 +28721,7 @@ $LN15@SK_DXGI_Cr:
 ; 3417 : 
 ; 3418 :     if (config.display.force_fullscreen && pDesc->Windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+504, 0
 	je	SHORT $LN16@SK_DXGI_Cr
 	cmp	DWORD PTR [esi+48], 0
 	je	SHORT $LN16@SK_DXGI_Cr
@@ -28749,7 +28747,7 @@ $LN16@SK_DXGI_Cr:
 ; 3425 : 
 ; 3426 :     else if (config.display.force_windowed)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+505, 0
 	je	SHORT $LN18@SK_DXGI_Cr
 
 ; 3427 :     {
@@ -28787,7 +28785,7 @@ $LN18@SK_DXGI_Cr:
 ; 3449 :       // If forcing flip-model, then force multisampling off
 ; 3450 :       if (config.render.framerate.flip_discard)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN116@SK_DXGI_Cr
 
 ; 3451 :       {
@@ -28864,7 +28862,7 @@ $LN116@SK_DXGI_Cr:
 ; 3475 :     if (       config.render.framerate.buffer_count != -1                  &&
 ; 3476 :          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	cmp	ecx, -1
 	je	SHORT $LN23@SK_DXGI_Cr
 	mov	eax, DWORD PTR [esi+40]
@@ -28890,7 +28888,7 @@ $LN23@SK_DXGI_Cr:
 ; 3482 : 
 ; 3483 :     if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN24@SK_DXGI_Cr
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN24@SK_DXGI_Cr
@@ -28916,7 +28914,7 @@ $LN24@SK_DXGI_Cr:
 ; 3489 : 
 ; 3490 :     if ( config.render.dxgi.scaling_mode != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
 	je	SHORT $LN25@SK_DXGI_Cr
 	cmp	DWORD PTR [esi+24], eax
@@ -28950,7 +28948,7 @@ $LN24@SK_DXGI_Cr:
 ; 3503 : 
 ; 3504 :       pDesc->BufferDesc.Scaling =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR [esi+24], eax
 $LN25@SK_DXGI_Cr:
@@ -28960,7 +28958,7 @@ $LN25@SK_DXGI_Cr:
 ; 3507 : 
 ; 3508 :     if ( config.render.dxgi.scanline_order != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	cmp	eax, -1
 	je	SHORT $LN26@SK_DXGI_Cr
 	cmp	DWORD PTR [esi+20], eax
@@ -28994,7 +28992,7 @@ $LN25@SK_DXGI_Cr:
 ; 3521 : 
 ; 3522 :       pDesc->BufferDesc.ScanlineOrdering =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR [esi+20], eax
 $LN26@SK_DXGI_Cr:
@@ -29004,7 +29002,7 @@ $LN26@SK_DXGI_Cr:
 ; 3525 : 
 ; 3526 :     if ( config.render.framerate.refresh_rate != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	cmp	eax, -1
 	je	SHORT $LN27@SK_DXGI_Cr
 	mov	ecx, DWORD PTR [esi+8]
@@ -29051,7 +29049,7 @@ $LN79@SK_DXGI_Cr:
 ; 3537 : 
 ; 3538 :       pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	add	esp, 20					; 00000014H
 	mov	DWORD PTR [esi+8], eax
 
@@ -29073,7 +29071,7 @@ $LN27@SK_DXGI_Cr:
 ; 3544 :     // We cannot change the swapchain parameters if this is used...
 ; 3545 :     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+424, 0
 	mov	BYTE PTR ?bWait@@3_NA, 1		; bWait
 	jg	SHORT $LN66@SK_DXGI_Cr
 $LN65@SK_DXGI_Cr:
@@ -29109,14 +29107,14 @@ $LN30@SK_DXGI_Cr:
 ; 3743 : 	return (_DEBUG_LT(_Left, _Right) ? _Right : _Left);
 
 	mov	eax, 3
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+408, eax
-	cmovg	eax, DWORD PTR ?config@@3Usk_config_t@@A+408
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+412, eax
+	cmovg	eax, DWORD PTR ?config@@3Usk_config_t@@A+412
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 3564 :       if (config.render.framerate.flip_discard &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, eax
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, eax
 	je	SHORT $LN31@SK_DXGI_Cr
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+3, 0
 	je	SHORT $LN31@SK_DXGI_Cr
@@ -29152,11 +29150,11 @@ $LN28@SK_DXGI_Cr:
 ; 3574 :       // Resort to triple-buffering if flip mode is not available
 ; 3575 :       if (config.render.framerate.buffer_count > 3)
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	mov	eax, 3
 	cmp	ecx, eax
 	cmovg	ecx, eax
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+408, ecx
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+412, ecx
 
 ; 3576 :         config.render.framerate.buffer_count = 3;
 ; 3577 : 
@@ -29169,7 +29167,7 @@ $LN33@SK_DXGI_Cr:
 ; 3580 : 
 ; 3581 :     if (config.render.framerate.buffer_count > 0)
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+412
 	test	ecx, ecx
 	jle	SHORT $LN35@SK_DXGI_Cr
 
@@ -29204,7 +29202,7 @@ $LN117@SK_DXGI_Cr:
 	test	cl, cl
 	mov	edx, OFFSET ??_C@_15BICKNCBF@?$AAN?$AAo?$AA?$AA@
 	mov	ecx, OFFSET ??_C@_1BI@PKCOFIGO@?$AAT?$AAr?$AAa?$AAd?$AAi?$AAt?$AAi?$AAo?$AAn?$AAa?$AAl?$AA?$AA@
-	cmovne	eax, DWORD PTR ?config@@3Usk_config_t@@A+420
+	cmovne	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
 	push	eax
 	mov	eax, OFFSET ??_C@_17PBAHFJOA@?$AAY?$AAe?$AAs?$AA?$AA@
 	cmove	eax, edx
@@ -29218,9 +29216,9 @@ $LN117@SK_DXGI_Cr:
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+460
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+464
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 3592 :   dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
@@ -29228,9 +29226,9 @@ $LN117@SK_DXGI_Cr:
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+468
 	test	ecx, ecx
 	jne	SHORT $LN86@SK_DXGI_Cr
 	test	eax, eax
@@ -29246,12 +29244,12 @@ $LN86@SK_DXGI_Cr:
 ; 3599 :     pDesc->BufferDesc.Width = config.render.dxgi.res.max.x;
 
 	mov	DWORD PTR [esi], ecx
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+460
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+468
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+464
 $LN37@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	ecx, ecx
 	jne	SHORT $LN90@SK_DXGI_Cr
@@ -29271,12 +29269,12 @@ $LN90@SK_DXGI_Cr:
 $LN38@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+452
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+456
 	test	eax, eax
 	jne	SHORT $LN94@SK_DXGI_Cr
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
 	test	eax, eax
 	jne	SHORT $LN98@SK_DXGI_Cr
 	jmp	SHORT $LN40@SK_DXGI_Cr
@@ -29291,14 +29289,14 @@ $LN94@SK_DXGI_Cr:
 ; 3604 :     pDesc->BufferDesc.Width = config.render.dxgi.res.min.x;
 
 	mov	DWORD PTR [esi], eax
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+452
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+456
 $LN39@SK_DXGI_Cr:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	test	eax, eax
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
 	jne	SHORT $LN98@SK_DXGI_Cr
 	test	eax, eax
 	je	SHORT $LN40@SK_DXGI_Cr
@@ -29556,7 +29554,7 @@ _pNewTargetParameters$ = 12				; size = 4
 
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN2@DXGISwap_R
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+424, 0
 	jle	SHORT $LN2@DXGISwap_R
 
 ; 3114 :     return S_OK;
@@ -29638,7 +29636,7 @@ $LN2@DXGISwap_R:
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356393
+	push	OFFSET $SG356433
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29681,9 +29679,9 @@ $LN27@DXGISwap_R:
 	movss	xmm1, DWORD PTR __real@7fc00000
 	test	edi, edi
 	je	$LN4@DXGISwap_R
-	push	OFFSET $SG356395
-	push	OFFSET $SG356396
-	push	OFFSET $SG356397
+	push	OFFSET $SG356435
+	push	OFFSET $SG356436
+	push	OFFSET $SG356437
 	push	edi
 	call	__swprintf
 	mov	ecx, DWORD PTR [esi+12]
@@ -29723,14 +29721,14 @@ $LN44@DXGISwap_R:
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR [esi+4]
 	push	DWORD PTR [esi]
-	push	OFFSET $SG356398
+	push	OFFSET $SG356438
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
 	push	edi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG356399
+	push	OFFSET $SG356439
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -29761,7 +29759,7 @@ $LN59@DXGISwap_R:
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG356400
+	push	OFFSET $SG356440
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -29831,9 +29829,9 @@ $LN4@DXGISwap_R:
 ; 3148 :             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
 ; 3149 :                                 ||
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+472
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+424
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, 0
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+428
 	jne	$LN7@DXGISwap_R
 	cmp	ecx, -1
 	je	SHORT $LN8@DXGISwap_R
@@ -29861,7 +29859,7 @@ $LN5@DXGISwap_R:
 	push	edi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356419
+	push	OFFSET $SG356459
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29974,7 +29972,7 @@ $LN30@DXGISwap_R:
 	cvtps2pd xmm0, xmm1
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG356406
+	push	OFFSET $SG356446
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -29988,12 +29986,12 @@ $LN30@DXGISwap_R:
 ; 3169 : 
 ; 3170 :       new_new_params.RefreshRate.Numerator   = config.render.framerate.refresh_rate;
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	add	esp, 20					; 00000014H
 
 ; 3171 :       new_new_params.RefreshRate.Denominator = 1;
 
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+476
 	mov	DWORD PTR _new_new_params$2[ebp+8], eax
 	mov	DWORD PTR _new_new_params$2[ebp+12], 1
 $LN9@DXGISwap_R:
@@ -30002,7 +30000,7 @@ $LN9@DXGISwap_R:
 ; 3173 : 
 ; 3174 :     if ( config.render.dxgi.scanline_order != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	cmp	eax, -1
 	je	SHORT $LN10@DXGISwap_R
 	mov	edi, DWORD PTR [esi+20]
@@ -30022,7 +30020,7 @@ $LN9@DXGISwap_R:
 	call	?SK_DXGI_DescribeScanlineOrder@@YAPB_WW4DXGI_MODE_SCANLINE_ORDER@@@Z ; SK_DXGI_DescribeScanlineOrder
 	add	esp, 4
 	push	eax
-	push	OFFSET $SG356408
+	push	OFFSET $SG356448
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -30037,9 +30035,9 @@ $LN9@DXGISwap_R:
 ; 3187 : 
 ; 3188 :       new_new_params.ScanlineOrdering =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+480
 	add	esp, 16					; 00000010H
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+476
 	mov	DWORD PTR _new_new_params$2[ebp+20], eax
 $LN10@DXGISwap_R:
 
@@ -30067,7 +30065,7 @@ $LN10@DXGISwap_R:
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
 	add	esp, 4
 	push	eax
-	push	OFFSET $SG356410
+	push	OFFSET $SG356450
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -30082,7 +30080,7 @@ $LN10@DXGISwap_R:
 ; 3205 : 
 ; 3206 :       new_new_params.Scaling =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR _new_new_params$2[ebp+24], eax
 $LN11@DXGISwap_R:
@@ -30092,15 +30090,15 @@ $LN11@DXGISwap_R:
 ; 3209 : 
 ; 3210 :     if ( (! config.window.fullscreen) &&
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+756
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+758, 0
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+764
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+760
 	jne	SHORT $LN13@DXGISwap_R
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, 0
 	je	SHORT $LN13@DXGISwap_R
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	ecx, ecx
 	jne	SHORT $LN100@DXGISwap_R
@@ -30119,7 +30117,7 @@ $LN100@DXGISwap_R:
 $LN13@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	ecx, ecx
 	jne	SHORT $LN104@DXGISwap_R
@@ -30152,7 +30150,7 @@ $LN15@DXGISwap_R:
 	push	edi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356415
+	push	OFFSET $SG356455
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30407,9 +30405,9 @@ $LN21@DXGISwap_R:
 	mov	ebx, DWORD PTR _BufferCount$[ebp]
 	test	esi, esi
 	je	$LN118@DXGISwap_R
-	push	OFFSET $SG356324
-	push	OFFSET $SG356325
-	push	OFFSET $SG356326
+	push	OFFSET $SG356364
+	push	OFFSET $SG356365
+	push	OFFSET $SG356366
 	push	esi
 	call	__swprintf
 	mov	edi, DWORD PTR _SwapChainFlags$[ebp]
@@ -30419,14 +30417,14 @@ $LN21@DXGISwap_R:
 	push	DWORD PTR _Height$[ebp]
 	push	DWORD PTR _Width$[ebp]
 	push	ebx
-	push	OFFSET $SG356327
+	push	OFFSET $SG356367
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [esi+2048]
 	push	eax
 	push	esi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG356328
+	push	OFFSET $SG356368
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -30457,7 +30455,7 @@ $LN37@DXGISwap_R:
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG356329
+	push	OFFSET $SG356369
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -30518,7 +30516,7 @@ $LN2@DXGISwap_R:
 
 	cmp	BYTE PTR ?dxgi_caps@@3Udxgi_caps_t@@A+4, 0
 	je	SHORT $LN3@DXGISwap_R
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+424, 0
 	jle	SHORT $LN3@DXGISwap_R
 
 ; 3014 :     return S_OK;
@@ -30587,7 +30585,7 @@ $LN3@DXGISwap_R:
 
 ; 3026 :        (UINT)config.render.framerate.buffer_count !=  BufferCount &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+408
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+412
 	cmp	eax, -1
 	je	SHORT $LN4@DXGISwap_R
 	cmp	eax, ebx
@@ -30604,7 +30602,7 @@ $LN3@DXGISwap_R:
 ; 3030 :     dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", BufferCount);
 
 	push	ebx
-	push	OFFSET $SG356332
+	push	OFFSET $SG356372
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30614,7 +30612,7 @@ $LN4@DXGISwap_R:
 ; 3032 : 
 ; 3033 :   if (config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN5@DXGISwap_R
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN5@DXGISwap_R
@@ -30623,7 +30621,7 @@ $LN4@DXGISwap_R:
 ; 3035 :     SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 ; 3036 :     dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
 
-	push	OFFSET $SG356334
+	push	OFFSET $SG356374
 	or	edi, 2048				; 00000800H
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR _SwapChainFlags$[ebp], edi
@@ -30636,15 +30634,15 @@ $LN5@DXGISwap_R:
 ; 3039 :   // TODO: Something if Fullscreen
 ; 3040 :   if (config.window.borderless && (! config.window.fullscreen))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+760
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+756
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, 0
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+764
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+760
 	je	SHORT $LN117@DXGISwap_R
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+754, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+758, 0
 	jne	SHORT $LN117@DXGISwap_R
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN84@DXGISwap_R
@@ -30667,10 +30665,10 @@ $LN117@DXGISwap_R:
 $LN7@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+460, 0
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+464, 0
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+468
 	jne	SHORT $LN88@DXGISwap_R
 	test	eax, eax
 	je	SHORT $LN10@DXGISwap_R
@@ -30679,13 +30677,13 @@ $LN88@DXGISwap_R:
 
 ; 3057 :   if ((! config.render.dxgi.res.max.isZero ()) && Width > config.render.dxgi.res.max.x)
 
-	cmp	edi, DWORD PTR ?config@@3Usk_config_t@@A+460
-	cmova	edi, DWORD PTR ?config@@3Usk_config_t@@A+460
+	cmp	edi, DWORD PTR ?config@@3Usk_config_t@@A+464
+	cmova	edi, DWORD PTR ?config@@3Usk_config_t@@A+464
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+460, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+464, 0
 	jne	SHORT $LN92@DXGISwap_R
 	test	eax, eax
 	je	SHORT $LN10@DXGISwap_R
@@ -30699,10 +30697,10 @@ $LN92@DXGISwap_R:
 $LN10@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+452, 0
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+456
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+456, 0
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
 	jne	SHORT $LN96@DXGISwap_R
 	test	eax, eax
 	jne	SHORT $LN100@DXGISwap_R
@@ -30712,13 +30710,13 @@ $LN96@DXGISwap_R:
 
 ; 3062 :   if ((! config.render.dxgi.res.min.isZero ()) && Width < config.render.dxgi.res.min.x)
 
-	cmp	edi, DWORD PTR ?config@@3Usk_config_t@@A+452
-	cmovb	edi, DWORD PTR ?config@@3Usk_config_t@@A+452
+	cmp	edi, DWORD PTR ?config@@3Usk_config_t@@A+456
+	cmovb	edi, DWORD PTR ?config@@3Usk_config_t@@A+456
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+452, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+456, 0
 	jne	SHORT $LN100@DXGISwap_R
 	test	eax, eax
 	je	SHORT $LN12@DXGISwap_R
@@ -30732,7 +30730,7 @@ $LN100@DXGISwap_R:
 $LN12@DXGISwap_R:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	edx, edx
 	jne	SHORT $LN104@DXGISwap_R
@@ -30769,7 +30767,7 @@ $LN13@DXGISwap_R:
 	push	ebx
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356343
+	push	OFFSET $SG356383
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30934,26 +30932,26 @@ $LN18@DXGISwap_S:
 	mov	esi, DWORD PTR _Fullscreen$[ebp]
 	test	edi, edi
 	je	$LN2@DXGISwap_S
-	push	OFFSET $SG356249
-	push	OFFSET $SG356250
-	push	OFFSET $SG356251
+	push	OFFSET $SG356289
+	push	OFFSET $SG356290
+	push	OFFSET $SG356291
 	push	edi
 	call	__swprintf
-	mov	ecx, OFFSET $SG356253
+	mov	ecx, OFFSET $SG356293
 	test	esi, esi
 	push	ebx
-	mov	eax, OFFSET $SG356252
+	mov	eax, OFFSET $SG356292
 	cmove	eax, ecx
 	push	eax
 	lea	eax, DWORD PTR [edi+2048]
-	push	OFFSET $SG356254
+	push	OFFSET $SG356294
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [edi+2048]
 	push	eax
 	push	edi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG356255
+	push	OFFSET $SG356295
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -30984,7 +30982,7 @@ $LN33@DXGISwap_S:
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG356256
+	push	OFFSET $SG356296
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31044,13 +31042,13 @@ $LN2@DXGISwap_S:
 
 ; 2914 :   if (config.render.framerate.swapchain_wait != 0)
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+420, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+424, 0
 	je	SHORT $LN3@DXGISwap_S
 
 ; 2915 :   {
 ; 2916 :     dll_log.Log ( L"[ DXGI 1.2 ]  >> Waitable SwapChain In Use, Skipping..." );
 
-	push	OFFSET $SG356258
+	push	OFFSET $SG356298
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -31073,7 +31071,7 @@ $LN3@DXGISwap_S:
 ; 2919 : 
 ; 2920 :   if ( config.render.framerate.flip_discard && dxgi_caps.swapchain.allow_tearing )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
 	je	SHORT $LN4@DXGISwap_S
 	cmp	DWORD PTR ?dxgi_caps@@3Udxgi_caps_t@@A+8, 0
 	je	SHORT $LN4@DXGISwap_S
@@ -31082,7 +31080,7 @@ $LN3@DXGISwap_S:
 ; 2922 :     Fullscreen = FALSE;
 ; 2923 :     dll_log.Log ( L"[ DXGI 1.5 ]  >> Tearing Override:  Enable" );
 
-	push	OFFSET $SG356260
+	push	OFFSET $SG356300
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	xor	esi, esi
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -31097,7 +31095,7 @@ $LN4@DXGISwap_S:
 ; 2926 : 
 ; 2927 :   if (config.display.force_fullscreen && Fullscreen == FALSE)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+500, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+504, 0
 	je	SHORT $LN5@DXGISwap_S
 	test	esi, esi
 	jne	SHORT $LN5@DXGISwap_S
@@ -31109,7 +31107,7 @@ $LN4@DXGISwap_S:
 
 ; 2930 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
-	push	OFFSET $SG356263
+	push	OFFSET $SG356303
 	jmp	SHORT $LN71@DXGISwap_S
 $LN5@DXGISwap_S:
 
@@ -31117,7 +31115,7 @@ $LN5@DXGISwap_S:
 ; 2932 :   }
 ; 2933 :   else if (config.display.force_windowed && Fullscreen == TRUE)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+501, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+505, 0
 	je	SHORT $LN7@DXGISwap_S
 	cmp	esi, 1
 	jne	SHORT $LN7@DXGISwap_S
@@ -31129,7 +31127,7 @@ $LN5@DXGISwap_S:
 
 ; 2936 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
-	push	OFFSET $SG356265
+	push	OFFSET $SG356305
 $LN71@DXGISwap_S:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -31150,7 +31148,7 @@ $LN7@DXGISwap_S:
 ; 2941 :   {
 ; 2942 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
-	push	OFFSET $SG356268
+	push	OFFSET $SG356308
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -31173,7 +31171,7 @@ $LN8@DXGISwap_S:
 ; 2947 :   {
 ; 2948 :     dll_log.Log ( L"[   DXGI   ]  >> Display Override "
 
-	push	OFFSET $SG356270
+	push	OFFSET $SG356310
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -31199,7 +31197,7 @@ $LN10@DXGISwap_S:
 	mov	DWORD PTR _ret$1$[ebp], ebx
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG356271
+	push	OFFSET $SG356311
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31408,18 +31406,18 @@ $LN5@DXGIOutput:
 	test	esi, esi
 	je	$LN2@DXGIOutput
 	push	ebx
-	push	OFFSET $SG356217
-	push	OFFSET $SG356218
-	push	OFFSET $SG356219
+	push	OFFSET $SG356257
+	push	OFFSET $SG356258
+	push	OFFSET $SG356259
 	push	esi
 	call	__swprintf
-	push	OFFSET $SG356220
+	push	OFFSET $SG356260
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	ebx, DWORD PTR [edi+2048]
-	push	OFFSET $SG356221
+	push	OFFSET $SG356261
 	push	ebx
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -31449,7 +31447,7 @@ $LN20@DXGIOutput:
 
 	push	eax
 	push	ebx
-	push	OFFSET $SG356222
+	push	OFFSET $SG356262
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31569,21 +31567,21 @@ $LN7@DXGIOutput:
 	test	esi, esi
 	je	$LN2@DXGIOutput
 	push	ebx
-	push	OFFSET $SG356194
-	push	OFFSET $SG356195
-	push	OFFSET $SG356196
+	push	OFFSET $SG356234
+	push	OFFSET $SG356235
+	push	OFFSET $SG356236
 	push	esi
 	call	__swprintf
 	push	0
 	push	0
 	push	0
-	push	OFFSET $SG356197
+	push	OFFSET $SG356237
 	push	edi
 	call	__swprintf
 	push	edi
 	push	esi
 	lea	ebx, DWORD PTR [edi+2048]
-	push	OFFSET $SG356198
+	push	OFFSET $SG356238
 	push	ebx
 	call	__swprintf
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
@@ -31613,7 +31611,7 @@ $LN24@DXGIOutput:
 
 	push	eax
 	push	ebx
-	push	OFFSET $SG356199
+	push	OFFSET $SG356239
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31680,7 +31678,7 @@ $LN2@DXGIOutput:
 ; 2840 : 
 ; 2841 :   if ( config.render.framerate.refresh_rate != -1 &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	movq	QWORD PTR _mode_to_match$[ebp+16], xmm0
 	cmp	eax, -1
 	je	SHORT $LN3@DXGIOutput
@@ -31720,7 +31718,7 @@ $LN61@DXGIOutput:
 	cvtps2pd xmm0, xmm1
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG356201
+	push	OFFSET $SG356241
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -31734,7 +31732,7 @@ $LN61@DXGIOutput:
 ; 2852 : 
 ; 2853 :     mode_to_match.RefreshRate.Numerator   = (UINT)config.render.framerate.refresh_rate;
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+424
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+428
 	add	esp, 20					; 00000014H
 
 ; 2854 :     mode_to_match.RefreshRate.Denominator =       1;
@@ -31749,7 +31747,7 @@ $LN3@DXGIOutput:
 ; 2857 :   if ( config.render.dxgi.scaling_mode != -1 &&
 ; 2858 :        mode_to_match.Scaling           != config.render.dxgi.scaling_mode &&
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	eax, -1
 	je	SHORT $LN4@DXGIOutput
 	cmp	esi, eax
@@ -31769,7 +31767,7 @@ $LN3@DXGIOutput:
 	call	?SK_DXGI_DescribeScalingMode@@YAPB_WW4DXGI_MODE_SCALING@@@Z ; SK_DXGI_DescribeScalingMode
 	add	esp, 4
 	push	eax
-	push	OFFSET $SG356203
+	push	OFFSET $SG356243
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -31784,7 +31782,7 @@ $LN3@DXGIOutput:
 ; 2870 : 
 ; 2871 :     mode_to_match.Scaling =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+476
 	add	esp, 16					; 00000010H
 	mov	DWORD PTR _mode_to_match$[ebp+24], eax
 $LN4@DXGIOutput:
@@ -31905,7 +31903,7 @@ $LN11@operator:
 
 ; 715  :    auto  max = dim == WIDTH ? config.render.dxgi.res.max.x :
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+468
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
 
 ; 1603 : 		return (_Eqrange(_Keyval));
@@ -31922,7 +31920,7 @@ $LN11@operator:
 ; 718  :    bool covered_already = covered.count (idx) > 0;
 
 	mov	DWORD PTR $T9[ebp], edi
-	cmove	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
+	cmove	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
 	mov	DWORD PTR _max$1$[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
 
@@ -31972,7 +31970,7 @@ $LN6@operator:
 	test	edi, edi
 	jle	SHORT $LN213@operator
 	mov	ecx, DWORD PTR _pDesc$[ebp]
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+460
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+464
 	npad	9
 $LL4@operator:
 
@@ -31982,7 +31980,7 @@ $LL4@operator:
 	sub	eax, esi
 	cmp	edx, DWORD PTR [ecx+eax*4]
 	jb	SHORT $LN2@operator
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+464
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+468
 	cmp	edx, DWORD PTR [ecx+eax*4+4]
 	jb	SHORT $LN214@operator
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -32012,7 +32010,7 @@ $LL4@operator:
 	test	eax, eax
 	je	SHORT $LN209@operator
 $LN214@operator:
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+460
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+464
 $LN2@operator:
 
 ; 722  :    {
@@ -32049,7 +32047,7 @@ $LN213@operator:
 ; 738  :      pDesc [idx].Width  = config.render.dxgi.res.max.x;
 
 	mov	edx, DWORD PTR tv550[ebp]
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
 
 ; 739  :      pDesc [idx].Height = config.render.dxgi.res.max.y;
 ; 740  : 
@@ -32057,7 +32055,7 @@ $LN213@operator:
 
 	mov	BYTE PTR $T18[ebp], 1
 	mov	DWORD PTR [edx], eax
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+464
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+468
 	mov	DWORD PTR [edx+4], eax
 	jmp	SHORT $LN14@operator
 $LN209@operator:
@@ -32272,7 +32270,7 @@ $LN11@operator:
 
 ; 761  :    auto  min = dim == WIDTH ? config.render.dxgi.res.min.x :
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
 
 ; 1603 : 		return (_Eqrange(_Keyval));
@@ -32283,7 +32281,7 @@ $LN11@operator:
 ; 761  :    auto  min = dim == WIDTH ? config.render.dxgi.res.min.x :
 
 	test	edx, edx
-	cmove	eax, DWORD PTR ?config@@3Usk_config_t@@A+452
+	cmove	eax, DWORD PTR ?config@@3Usk_config_t@@A+456
 	mov	DWORD PTR _min$1$[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
 
@@ -32333,7 +32331,7 @@ $LN6@operator:
 	test	edi, edi
 	jle	SHORT $LN213@operator
 	mov	ecx, DWORD PTR _pDesc$[ebp]
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+452
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+456
 $LL4@operator:
 
 ; 772  :             config.render.dxgi.res.min.y <= pDesc [i].Height &&
@@ -32342,7 +32340,7 @@ $LL4@operator:
 	sub	eax, esi
 	cmp	edx, DWORD PTR [ecx+eax*4]
 	ja	SHORT $LN2@operator
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+460
 	cmp	edx, DWORD PTR [ecx+eax*4+4]
 	ja	SHORT $LN214@operator
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -32372,7 +32370,7 @@ $LL4@operator:
 	test	eax, eax
 	je	SHORT $LN209@operator
 $LN214@operator:
-	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+452
+	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+456
 $LN2@operator:
 
 ; 768  :    {
@@ -32409,9 +32407,9 @@ $LN213@operator:
 	mov	BYTE PTR $T13[ebp], 1
 	lea	ecx, DWORD PTR [eax*8]
 	sub	ecx, eax
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+452
-	mov	DWORD PTR [edx+ecx*4], eax
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+456
+	mov	DWORD PTR [edx+ecx*4], eax
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+460
 	mov	DWORD PTR [edx+ecx*4+4], eax
 	jmp	SHORT $LN14@operator
 $LN209@operator:
@@ -36064,9 +36062,9 @@ $LN28@DXGIOutput:
 $LN29@DXGIOutput:
 	test	esi, esi
 	je	$LN611@DXGIOutput
-	push	OFFSET $SG356147
-	push	OFFSET $SG356148
-	push	OFFSET $SG356149
+	push	OFFSET $SG356187
+	push	OFFSET $SG356188
+	push	OFFSET $SG356189
 	push	esi
 	call	__swprintf
 	mov	edi, DWORD PTR _pNumModes$[ebp]
@@ -36079,14 +36077,14 @@ $LN29@DXGIOutput:
 	mov	eax, DWORD PTR _This$[ebp]
 	push	eax
 	lea	eax, DWORD PTR [esi+2048]
-	push	OFFSET $SG356150
+	push	OFFSET $SG356190
 	push	eax
 	call	__swprintf
 	lea	eax, DWORD PTR [esi+2048]
 	push	eax
 	push	esi
 	lea	ecx, DWORD PTR [eax+2048]
-	push	OFFSET $SG356151
+	push	OFFSET $SG356191
 	push	ecx
 	mov	DWORD PTR _wszFullyFormatted$1$[ebp], ecx
 	call	__swprintf
@@ -36117,7 +36115,7 @@ $LN53@DXGIOutput:
 
 	push	eax
 	push	DWORD PTR _wszFullyFormatted$1$[ebp]
-	push	OFFSET $SG356152
+	push	OFFSET $SG356192
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36182,7 +36180,7 @@ $LN12@DXGIOutput:
 ; 2719 : 
 ; 2720 :   if (config.render.dxgi.scaling_mode != -1)
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+472, -1
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+476, -1
 
 ; 2721 :     Flags |= DXGI_ENUM_MODES_SCALING;
 
@@ -36288,18 +36286,18 @@ $LN14@DXGIOutput:
 	xor	edi, edi
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+452, edi
-	jne	SHORT $LN94@DXGIOutput
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+456, edi
 	jne	SHORT $LN94@DXGIOutput
-
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
-
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+460, edi
 	jne	SHORT $LN94@DXGIOutput
+
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
+
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+464, edi
+	jne	SHORT $LN94@DXGIOutput
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+468, edi
 	je	$LN612@DXGIOutput
 $LN94@DXGIOutput:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -36350,9 +36348,9 @@ $LN94@DXGIOutput:
 	mov	DWORD PTR _coverage_max$4[ebp], edx
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+452, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+456, 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 2762 :       std::set <int> coverage_max;
@@ -36360,10 +36358,10 @@ $LN94@DXGIOutput:
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	jne	SHORT $LN166@DXGIOutput
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+456, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+460, 0
 	je	SHORT $LN613@DXGIOutput
 $LN166@DXGIOutput:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -36460,11 +36458,11 @@ $LN613@DXGIOutput:
 $LN3@DXGIOutput:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+460, 0
-	jne	SHORT $LN208@DXGIOutput
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+464, 0
+	jne	SHORT $LN208@DXGIOutput
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+468, 0
 	je	$LN6@DXGIOutput
 $LN208@DXGIOutput:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -36609,7 +36607,7 @@ $LN586@DXGIOutput:
 
 ; 2787 :     if (config.render.dxgi.scaling_mode != -1)
 
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A+476
 	cmp	esi, -1
 	je	SHORT $LN9@DXGIOutput
 
@@ -36661,7 +36659,7 @@ $LL10@DXGIOutput:
 	movq	xmm0, QWORD PTR [ecx+20]
 	movq	QWORD PTR [ecx-8], xmm0
 	mov	DWORD PTR [ecx], eax
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A+472
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A+476
 $LN8@DXGIOutput:
 
 ; 2790 :            config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_CENTERED )
@@ -36692,7 +36690,7 @@ $LN9@DXGIOutput:
 	mov	eax, DWORD PTR _pNumModes$[ebp]
 	push	edi
 	push	DWORD PTR [eax]
-	push	OFFSET $SG356166
+	push	OFFSET $SG356206
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -37737,7 +37735,7 @@ $LN2@PresentCal:
 ; 2532 : 
 ; 2533 :         if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( nullptr, 0 );
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+492, 0
 	je	SHORT $LN11@PresentCal
 	mov	eax, DWORD PTR _pFactory$6[ebp]
 	push	0
@@ -37858,12 +37856,12 @@ $LN106@PresentCal:
 
 ; 2553 :   if ( config.render.framerate.flip_discard && config.render.dxgi.allow_tearing )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+416, 0
-	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+404
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+420, 0
+	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+408
 	mov	BYTE PTR ?first_frame@?1??PresentCallback@@YGJPAUIDXGISwapChain@@II@Z@4_NA, 0
 	mov	DWORD PTR _interval$2$[ebp], ecx
 	je	SHORT $LN181@PresentCal
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+487, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+491, 0
 	je	SHORT $LN181@PresentCal
 
 ; 2554 :   {
@@ -37957,7 +37955,7 @@ $LN18@PresentCal:
 ; 2583 :   // Test first, then do (if test_present is true)
 ; 2584 :   hr = config.render.dxgi.test_present ? 
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+484, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
 	je	SHORT $LN33@PresentCal
 	or	eax, 1
 	push	eax
@@ -38033,15 +38031,15 @@ $LN21@PresentCal:
 ; 2600 :     {
 ; 2601 :       dll_log.Log ( L"[   DXGI   ] *** IDXGISwapChain::Present (...) "
 
-	mov	ecx, OFFSET $SG355114
+	mov	ecx, OFFSET $SG355154
 	test	esi, esi
-	mov	eax, OFFSET $SG355113
+	mov	eax, OFFSET $SG355153
 	cmovs	eax, ecx
 	push	eax
 	push	esi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG355115
+	push	OFFSET $SG355155
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -38083,7 +38081,7 @@ $LN21@PresentCal:
 	push	eax
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG355118
+	push	OFFSET $SG355158
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -38277,7 +38275,7 @@ $LN183@PresentCal:
 ; 2675 :         WaitForSingleObjectEx ( hWait,
 
 	push	1
-	push	DWORD PTR ?config@@3Usk_config_t@@A+420
+	push	DWORD PTR ?config@@3Usk_config_t@@A+424
 	push	eax
 	call	DWORD PTR __imp__WaitForSingleObjectEx@12
 	mov	ecx, DWORD PTR _pSwapChain2$8[ebp]
@@ -38597,7 +38595,7 @@ $LN2@SK_DXGI_Pr:
 ; 2377 : 
 ; 2378 :   if (config.render.dxgi.rehook_present)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+491, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+495, 0
 	je	SHORT $LN6@SK_DXGI_Pr
 
 ; 2379 :   {
@@ -38657,7 +38655,7 @@ $LN20@SK_DXGI_Pr:
 ; 2381 :     {
 ; 2382 :       SK_LOG0 ( ( L"IDXGISwapChain::Present (...) function prolog altered (expected: "
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+808, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+812, 0
 	jl	$LN5@SK_DXGI_Pr
 	movzx	eax, BYTE PTR [edi+11]
 	push	eax
@@ -38707,7 +38705,7 @@ $LN20@SK_DXGI_Pr:
 	push	eax
 	movzx	eax, bl
 	push	eax
-	push	OFFSET $SG354828
+	push	OFFSET $SG354868
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 104				; 00000068H
@@ -39558,7 +39556,7 @@ _pPresentParameters$ = 20				; size = 4
 
 	cmp	BYTE PTR ?logged@?2??Present1Callback@@YGJPAUIDXGISwapChain1@@IIPBUDXGI_PRESENT_PARAMETERS@@@Z@4_NA, 0
 	jne	SHORT $LN4@Present1Ca
-	push	OFFSET $SG354696
+	push	OFFSET $SG354736
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -39690,7 +39688,7 @@ $LN2@Present1Ca:
 ; 2279 : 
 ; 2280 :   int interval = config.render.framerate.present_interval;
 
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A+404
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A+408
 
 ; 2281 :   int flags    = PresentFlags;
 ; 2282 : 
@@ -39811,7 +39809,7 @@ $LN11@Present1Ca:
 ; 2320 : 
 ; 2321 :         if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( nullptr, 0 );
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+488, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+492, 0
 	je	SHORT $LN16@Present1Ca
 	mov	eax, DWORD PTR _pFactory$5[ebp]
 	push	0
@@ -41783,7 +41781,7 @@ $LN12@SK_CEGUI_D:
 
 	cmp	BYTE PTR ?logged@?BL@??SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z@4_NA, 0
 	jne	$LN170@SK_CEGUI_D
-	push	OFFSET $SG354359
+	push	OFFSET $SG354399
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -41824,7 +41822,7 @@ $LN14@SK_CEGUI_D:
 
 ; 2034 :     if (config.render.dxgi.full_state_cache)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+485, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+489, 0
 	je	$LN19@SK_CEGUI_D
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
 
@@ -41865,7 +41863,7 @@ $LN14@SK_CEGUI_D:
 
 	cmp	BYTE PTR ?logged@?CF@??SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z@4_NA, 0
 	jne	SHORT $LN18@SK_CEGUI_D
-	push	OFFSET $SG354363
+	push	OFFSET $SG354403
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -42085,7 +42083,7 @@ $LN17@SK_CEGUI_D:
 
 	cmp	BYTE PTR ?logged@?CM@??SK_CEGUI_DrawD3D11@@YAXPAUIDXGISwapChain@@@Z@4_NA, 0
 	jne	SHORT $LN20@SK_CEGUI_D
-	push	OFFSET $SG354366
+	push	OFFSET $SG354406
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -42094,7 +42092,7 @@ $LN20@SK_CEGUI_D:
 
 ; 2067 :         config.render.dxgi.full_state_cache = false;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+485, 0
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+489, 0
 $LN19@SK_CEGUI_D:
 
 ; 2068 :       }
@@ -42460,7 +42458,7 @@ $LN25@SK_CEGUI_D:
 
 	cmp	BYTE PTR ?nv_hardware@NVAPI@sk@@3_NA, 0	; sk::NVAPI::nv_hardware
 	je	SHORT $LN299@SK_CEGUI_D
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+792, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+796, 0
 	je	SHORT $LN299@SK_CEGUI_D
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
@@ -42697,7 +42695,7 @@ $LN350@SK_CEGUI_D:
 ; 2181 :   config.render.dxgi.full_state_cache = SK_DXGI_FullStateCache;
 
 	mov	al, BYTE PTR ?SK_DXGI_FullStateCache@@3_NA ; SK_DXGI_FullStateCache
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+485, al
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+489, al
 $LN44@SK_CEGUI_D:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
@@ -47133,7 +47131,7 @@ $LN4@SK_Describ:
 ; 853  :   case 0x10:
 ; 854  :     return L"Execute";
 
-	mov	eax, OFFSET $SG352938
+	mov	eax, OFFSET $SG352978
 
 ; 871  :   }
 ; 872  : }
@@ -47145,7 +47143,7 @@ $LN5@SK_Describ:
 ; 855  :   case 0x20:
 ; 856  :     return L"Execute + Read-Only";
 
-	mov	eax, OFFSET $SG352940
+	mov	eax, OFFSET $SG352980
 
 ; 871  :   }
 ; 872  : }
@@ -47157,7 +47155,7 @@ $LN6@SK_Describ:
 ; 857  :   case 0x40:
 ; 858  :     return L"Execute + Read/Write";
 
-	mov	eax, OFFSET $SG352942
+	mov	eax, OFFSET $SG352982
 
 ; 871  :   }
 ; 872  : }
@@ -47169,7 +47167,7 @@ $LN7@SK_Describ:
 ; 859  :   case 0x80:
 ; 860  :     return L"Execute + Read-Only or Copy-on-Write)";
 
-	mov	eax, OFFSET $SG352944
+	mov	eax, OFFSET $SG352984
 
 ; 871  :   }
 ; 872  : }
@@ -47181,7 +47179,7 @@ $LN8@SK_Describ:
 ; 861  :   case 0x01:
 ; 862  :     return L"No Access";
 
-	mov	eax, OFFSET $SG352946
+	mov	eax, OFFSET $SG352986
 
 ; 871  :   }
 ; 872  : }
@@ -47193,7 +47191,7 @@ $LN9@SK_Describ:
 ; 863  :   case 0x02:
 ; 864  :     return L"Read-Only";
 
-	mov	eax, OFFSET $SG352948
+	mov	eax, OFFSET $SG352988
 
 ; 871  :   }
 ; 872  : }
@@ -47205,7 +47203,7 @@ $LN10@SK_Describ:
 ; 865  :   case 0x04:
 ; 866  :     return L"Read/Write";
 
-	mov	eax, OFFSET $SG352950
+	mov	eax, OFFSET $SG352990
 
 ; 871  :   }
 ; 872  : }
@@ -47217,7 +47215,7 @@ $LN11@SK_Describ:
 ; 867  :   case 0x08:
 ; 868  :     return L" Read-Only or Copy-on-Write";
 
-	mov	eax, OFFSET $SG352952
+	mov	eax, OFFSET $SG352992
 
 ; 871  :   }
 ; 872  : }
@@ -47229,7 +47227,7 @@ $LN12@SK_Describ:
 ; 869  :   default:
 ; 870  :     return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG352954
+	mov	eax, OFFSET $SG352994
 
 ; 871  :   }
 ; 872  : }
@@ -47441,18 +47439,18 @@ _TEXT	SEGMENT
 _override_id$ = 8					; size = 4
 ?SK_DXGI_SetPreferredAdapter@@YGXH@Z PROC		; SK_DXGI_SetPreferredAdapter
 
-; 5302 : {
+; 5298 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 5303 :   SK_DXGI_preferred_adapter = override_id;
+; 5299 :   SK_DXGI_preferred_adapter = override_id;
 
 	mov	eax, DWORD PTR _override_id$[ebp]
 	mov	DWORD PTR ?SK_DXGI_preferred_adapter@@3HA, eax ; SK_DXGI_preferred_adapter
 
-; 5304 : }
+; 5300 : }
 
 	pop	ebp
 	ret	4
@@ -47559,7 +47557,7 @@ $LN2@SK_DXGI_Ho:
 ; 4917 : 
 ; 4918 :   if (config.system.handle_crashes)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+812, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+816, 0
 	je	SHORT $LN3@SK_DXGI_Ho
 
 ; 4919 :     SK::Diagnostics::CrashHandler::Reinstall ();
@@ -47736,10 +47734,6 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -47761,17 +47755,16 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 _TEXT	SEGMENT
-_desc$ = -132						; size = 60
-_err$2 = -72						; size = 16
-_featureLevel$ = -56					; size = 4
-_pSwapChain1$3 = -52					; size = 4
-_pFactory$4 = -48					; size = 4
+_desc$ = -128						; size = 60
+_err$2 = -68						; size = 16
+_featureLevel$ = -52					; size = 4
+_pSwapChain1$3 = -48					; size = 4
 _pDevDXGI$ = -44					; size = 4
 _pAdapter$ = -40					; size = 4
 _pFactory$ = -36					; size = 4
-_pDevCtx$5 = -32					; size = 4
-_hr$1$ = -28						; size = 4
-_pDev$6 = -28						; size = 4
+_hr$1$ = -32						; size = 4
+_pDevCtx$4 = -32					; size = 4
+_pDev$5 = -28						; size = 4
 _pDevice$ = -24						; size = 4
 _pImmediateContext$ = -20				; size = 4
 _pSwapChain$ = -16					; size = 4
@@ -47789,14 +47782,14 @@ _user$ = 8						; size = 4
 	push	__ehhandler$?HookDXGI@@YGIPAX@Z
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 120				; 00000078H
+	sub	esp, 116				; 00000074H
 
 ; 5110 :   UNREFERENCED_PARAMETER (user);
 ; 5111 : 
 ; 5112 :   if (! config.apis.dxgi.d3d11.hook)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
-	je	$LN208@HookDXGI
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+793, 0
+	je	$LN195@HookDXGI
 
 ; 5113 :   {
 ; 5114 :     return 0;
@@ -47823,12 +47816,12 @@ _user$ = 8						; size = 4
 ; 5124 :     if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE))
 
 	test	eax, eax
-	jne	SHORT $LN200@HookDXGI
+	jne	SHORT $LN187@HookDXGI
 
 ; 5125 :     {
 ; 5126 :       dll_log.Log (L"[  D3D 11  ]  >> Implicit Initialization Triggered <<");
 
-	push	OFFSET $SG370018
+	push	OFFSET $SG370056
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -47836,7 +47829,7 @@ _user$ = 8						; size = 4
 ; 5127 :       SK_BootDXGI ();
 
 	call	?SK_BootDXGI@@YAXXZ			; SK_BootDXGI
-$LN200@HookDXGI:
+$LN187@HookDXGI:
 
 ; 5128 :     }
 ; 5129 : 
@@ -47868,7 +47861,7 @@ $LN3@HookDXGI:
 ; 5136 :   if (ReadAcquire (&__dxgi_ready))
 
 	test	eax, eax
-	jne	$LN198@HookDXGI
+	jne	$LN185@HookDXGI
 
 ; 5137 :   {
 ; 5138 :     //WaitForInit ();
@@ -47886,7 +47879,7 @@ $LN3@HookDXGI:
 ; 5145 : 
 ; 5146 :   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
-	push	OFFSET $SG370020
+	push	OFFSET $SG370058
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -48062,36 +48055,97 @@ $LN3@HookDXGI:
 	call	DWORD PTR [edi+24]
 	pop	edi
 	test	eax, eax
-	js	$LN204@HookDXGI
+	js	$LN191@HookDXGI
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
-; 5212 :        SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
-; 5213 :   {
-; 5214 :     HookD3D11             (&d3d11_hook_ctx);
+; 162  :         p = lp;
+
+	mov	DWORD PTR _pDevCtx$4[ebp], 0
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5216 :     if (config.render.dxgi.deferred_isolation)
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+494, 0
+	mov	BYTE PTR __$EHRec$[ebp+8], 6
+	je	SHORT $LN107@HookDXGI
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 162  :         p = lp;
+
+	mov	DWORD PTR _pDev$5[ebp], 0
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5219 :       pImmediateContext->GetDevice (&pDev);
+
+	mov	eax, DWORD PTR _pImmediateContext$[ebp]
+	lea	edx, DWORD PTR _pDev$5[ebp]
+	push	edx
+	push	eax
+	mov	BYTE PTR __$EHRec$[ebp+8], 7
+	mov	ecx, DWORD PTR [eax]
+	call	DWORD PTR [ecx+12]
+
+; 5220 : 
+; 5221 :       pDev->CreateDeferredContext (0x00,  &pDevCtx);
+
+	mov	eax, DWORD PTR _pDev$5[ebp]
+	lea	edx, DWORD PTR _pDevCtx$4[ebp]
+	push	edx
+	push	0
+	push	eax
+	mov	ecx, DWORD PTR [eax]
+	call	DWORD PTR [ecx+108]
+
+; 5222 :       d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+
+	lea	eax, DWORD PTR _pDevCtx$4[ebp]
+
+; 5223 :     }
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 6
+	mov	DWORD PTR ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A+4, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+
+; 176  :         if (p)
+
+	mov	eax, DWORD PTR _pDev$5[ebp]
+	test	eax, eax
+	je	SHORT $LN107@HookDXGI
+
+; 177  :             p->Release();
+
+	mov	ecx, DWORD PTR [eax]
+	push	eax
+	call	DWORD PTR [ecx+8]
+$LN107@HookDXGI:
+; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
+
+; 5225 :     HookD3D11             (&d3d11_hook_ctx);
 
 	push	OFFSET ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A ; d3d11_hook_ctx
 	call	?HookD3D11@@YGIPAX@Z			; HookD3D11
 
-; 5215 :     SK_DXGI_HookFactory   (pFactory);
+; 5226 :     SK_DXGI_HookFactory   (pFactory);
 
 	push	DWORD PTR _pFactory$[ebp]
 	call	?SK_DXGI_HookFactory@@YAXPAUIDXGIFactory@@@Z ; SK_DXGI_HookFactory
 
-; 5216 :     SK_DXGI_HookSwapChain (pSwapChain);
+; 5227 :     SK_DXGI_HookSwapChain (pSwapChain);
 
 	push	DWORD PTR _pSwapChain$[ebp]
 	call	?SK_DXGI_HookSwapChain@@YAXPAUIDXGISwapChain@@@Z ; SK_DXGI_HookSwapChain
 
-; 5217 : 
-; 5218 :     // This won't catch Present1 (...), but no games use that
-; 5219 :     //   and we can deal with it later if it happens.
-; 5220 :     SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
+; 5228 : 
+; 5229 :     // This won't catch Present1 (...), but no games use that
+; 5230 :     //   and we can deal with it later if it happens.
+; 5231 :     SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
 
 	push	0
 	push	DWORD PTR _pSwapChain$[ebp]
 	call	?SK_DXGI_HookPresentBase@@YAXPAUIDXGISwapChain@@_N@Z ; SK_DXGI_HookPresentBase
 	add	esp, 16					; 00000010H
 
-; 5222 :     CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+; 5233 :     CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
 
 	lea	ecx, DWORD PTR _pSwapChain1$3[ebp]
 	push	DWORD PTR _pSwapChain$[ebp]
@@ -48103,9 +48157,9 @@ $LN3@HookDXGI:
 	mov	eax, DWORD PTR _pSwapChain1$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5222 :     CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+; 5233 :     CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
 
-	mov	BYTE PTR __$EHRec$[ebp+8], 6
+	mov	BYTE PTR __$EHRec$[ebp+8], 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 214  :         return p == pT;
@@ -48113,130 +48167,55 @@ $LN3@HookDXGI:
 	test	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5224 :     if (pSwapChain1 != nullptr)
+; 5235 :     if (pSwapChain1 != nullptr)
 
-	je	SHORT $LN10@HookDXGI
+	je	SHORT $LN11@HookDXGI
 
-; 5225 :       SK_DXGI_HookPresent1 (pSwapChain1, false);
+; 5236 :       SK_DXGI_HookPresent1 (pSwapChain1, false);
 
 	push	0
 	push	eax
 	call	?SK_DXGI_HookPresent1@@YAXPAUIDXGISwapChain1@@_N@Z ; SK_DXGI_HookPresent1
 	add	esp, 8
-$LN10@HookDXGI:
+$LN11@HookDXGI:
 
-; 5226 : 
-; 5227 :     MH_ApplyQueued  ();
+; 5237 : 
+; 5238 :     MH_ApplyQueued  ();
 
 	call	_MH_ApplyQueued@0
 
-; 5228 : 
-; 5229 :     if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+; 5239 : 
+; 5240 :     if (SK_GetDLLRole () == DLL_ROLE::DXGI)
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	cmp	eax, 1
-	jne	SHORT $LN11@HookDXGI
+	jne	SHORT $LN12@HookDXGI
 
-; 5230 :     {
-; 5231 :       // Load user-defined DLLs (Plug-In)
-; 5232 : #ifdef _WIN64
-; 5233 :       SK_LoadPlugIns64 ();
-; 5234 : #else
-; 5235 :       SK_LoadPlugIns32 ();
+; 5241 :     {
+; 5242 :       // Load user-defined DLLs (Plug-In)
+; 5243 : #ifdef _WIN64
+; 5244 :       SK_LoadPlugIns64 ();
+; 5245 : #else
+; 5246 :       SK_LoadPlugIns32 ();
 
 	call	?SK_LoadPlugIns32@@YAXXZ		; SK_LoadPlugIns32
-$LN11@HookDXGI:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
+$LN12@HookDXGI:
 
-; 158  :         p = NULL;
+; 5247 : #endif
+; 5248 :     }
+; 5249 :     if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
-	mov	DWORD PTR _pFactory$4[ebp], 0
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5240 :     CreateDXGIFactory_Import (__uuidof (IDXGIFactory1), (void **)&pFactory);
-
-	lea	eax, DWORD PTR _pFactory$4[ebp]
-	mov	BYTE PTR __$EHRec$[ebp+8], 7
-	push	eax
-	push	OFFSET __GUID_770aae78_f26f_4dba_a829_253c83d1b387
-	call	DWORD PTR ?CreateDXGIFactory_Import@@3P6GJABU_GUID@@PAPAX@ZA ; CreateDXGIFactory_Import
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 162  :         p = lp;
-
-	mov	DWORD PTR _pDevCtx$5[ebp], 0
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5244 :     if (config.render.dxgi.deferred_isolation)
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+490, 0
-	mov	BYTE PTR __$EHRec$[ebp+8], 8
-	je	SHORT $LN128@HookDXGI
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 162  :         p = lp;
-
-	mov	DWORD PTR _pDev$6[ebp], 0
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5247 :       pImmediateContext->GetDevice (&pDev);
-
-	mov	eax, DWORD PTR _pImmediateContext$[ebp]
-	lea	edx, DWORD PTR _pDev$6[ebp]
-	push	edx
-	push	eax
-	mov	BYTE PTR __$EHRec$[ebp+8], 9
-	mov	ecx, DWORD PTR [eax]
-	call	DWORD PTR [ecx+12]
-
-; 5248 : 
-; 5249 :       pDev->CreateDeferredContext (0x00,  &pDevCtx);
-
-	mov	eax, DWORD PTR _pDev$6[ebp]
-	lea	edx, DWORD PTR _pDevCtx$5[ebp]
-	push	edx
-	push	0
-	push	eax
-	mov	ecx, DWORD PTR [eax]
-	call	DWORD PTR [ecx+108]
-
-; 5250 :       d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
-
-	lea	eax, DWORD PTR _pDevCtx$5[ebp]
-
-; 5251 :     }
-
-	mov	BYTE PTR __$EHRec$[ebp+8], 8
-	mov	DWORD PTR ?d3d11_hook_ctx@@3Usk_hook_d3d11_t@@A+4, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 176  :         if (p)
-
-	mov	eax, DWORD PTR _pDev$6[ebp]
-	test	eax, eax
-	je	SHORT $LN128@HookDXGI
-
-; 177  :             p->Release();
-
-	mov	ecx, DWORD PTR [eax]
-	push	eax
-	call	DWORD PTR [ecx+8]
-$LN128@HookDXGI:
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5253 :     if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+793, 0
 	je	SHORT $LN13@HookDXGI
 	call	?SK_D3D11_EnableHooks@@YAXXZ		; SK_D3D11_EnableHooks
 $LN13@HookDXGI:
 
-; 5254 :       
-; 5255 : #ifdef _WIN64
-; 5256 :     if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
-; 5257 : #endif
-; 5258 : 
-; 5259 :     InterlockedExchange (&__dxgi_ready, TRUE);
+; 5250 :       
+; 5251 : #ifdef _WIN64
+; 5252 :     if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+; 5253 : #endif
+; 5254 : 
+; 5255 :     InterlockedExchange (&__dxgi_ready, TRUE);
 
 	mov	eax, OFFSET ?__dxgi_ready@@3JC		; __dxgi_ready
 	xchg	DWORD PTR [eax], ebx
@@ -48244,32 +48223,10 @@ $LN13@HookDXGI:
 
 ; 176  :         if (p)
 
-	mov	eax, DWORD PTR _pDevCtx$5[ebp]
+	mov	eax, DWORD PTR _pSwapChain1$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5260 :   }
-
-	mov	BYTE PTR __$EHRec$[ebp+8], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
-
-; 176  :         if (p)
-
-	test	eax, eax
-	je	SHORT $LN134@HookDXGI
-
-; 177  :             p->Release();
-
-	mov	ecx, DWORD PTR [eax]
-	push	eax
-	call	DWORD PTR [ecx+8]
-$LN134@HookDXGI:
-
-; 176  :         if (p)
-
-	mov	eax, DWORD PTR _pFactory$4[ebp]
-; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
-
-; 5260 :   }
+; 5256 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48277,21 +48234,21 @@ $LN134@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN140@HookDXGI
+	je	SHORT $LN130@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN140@HookDXGI:
+$LN130@HookDXGI:
 
 ; 176  :         if (p)
 
-	mov	eax, DWORD PTR _pSwapChain1$3[ebp]
+	mov	eax, DWORD PTR _pDevCtx$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5260 :   }
+; 5256 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48299,7 +48256,7 @@ $LN140@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	$LN162@HookDXGI
+	je	$LN149@HookDXGI
 
 ; 177  :             p->Release();
 
@@ -48308,10 +48265,10 @@ $LN140@HookDXGI:
 	call	DWORD PTR [ecx+8]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5262 :   else
+; 5258 :   else
 
-	jmp	SHORT $LN162@HookDXGI
-$LN204@HookDXGI:
+	jmp	SHORT $LN149@HookDXGI
+$LN191@HookDXGI:
 	mov	esi, DWORD PTR _hr$1$[ebp]
 $LN8@HookDXGI:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -48333,23 +48290,23 @@ $LN8@HookDXGI:
 ; 455  :     return (hr >= WCODE_HRESULT_FIRST && hr <= WCODE_HRESULT_LAST)
 
 	cmp	eax, 65023				; 0000fdffH
-	ja	SHORT $LN158@HookDXGI
+	ja	SHORT $LN145@HookDXGI
 	lea	eax, DWORD PTR [esi-512]
 	movzx	esi, ax
-	jmp	SHORT $LN159@HookDXGI
-$LN158@HookDXGI:
+	jmp	SHORT $LN146@HookDXGI
+$LN145@HookDXGI:
 	xor	esi, esi
-$LN159@HookDXGI:
+$LN146@HookDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5266 :     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
+; 5262 :     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
 
 	lea	ecx, DWORD PTR _err$2[ebp]
 	call	?ErrorMessage@_com_error@@QBEPB_WXZ	; _com_error::ErrorMessage
 	push	eax
 	movzx	eax, si
 	push	eax
-	push	OFFSET $SG370027
+	push	OFFSET $SG370065
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -48359,7 +48316,7 @@ $LN159@HookDXGI:
 	mov	ecx, DWORD PTR _err$2[ebp+8]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5266 :     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
+; 5262 :     dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\comdef.h
@@ -48371,30 +48328,30 @@ $LN159@HookDXGI:
 ; 317  :     if (m_perrinfo != NULL) {
 
 	test	ecx, ecx
-	je	SHORT $LN161@HookDXGI
+	je	SHORT $LN148@HookDXGI
 
 ; 318  :         m_perrinfo->Release();
 
 	mov	eax, DWORD PTR [ecx]
 	push	ecx
 	call	DWORD PTR [eax+8]
-$LN161@HookDXGI:
+$LN148@HookDXGI:
 
 ; 319  :     }
 ; 320  :     if (m_pszMsg != NULL) {
 
 	mov	eax, DWORD PTR _err$2[ebp+12]
 	test	eax, eax
-	je	SHORT $LN162@HookDXGI
+	je	SHORT $LN149@HookDXGI
 
 ; 321  :         LocalFree((HLOCAL)m_pszMsg);
 
 	push	eax
 	call	DWORD PTR __imp__LocalFree@4
-$LN162@HookDXGI:
+$LN149@HookDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5270 :   SK_Win32_CleanupDummyWindow ();
+; 5266 :   SK_Win32_CleanupDummyWindow ();
 
 	call	?SK_Win32_CleanupDummyWindow@@YAXXZ	; SK_Win32_CleanupDummyWindow
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48404,7 +48361,7 @@ $LN162@HookDXGI:
 	mov	eax, DWORD PTR _pFactory$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5274 :   return 0;
+; 5270 :   return 0;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48412,21 +48369,21 @@ $LN162@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN168@HookDXGI
+	je	SHORT $LN155@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN168@HookDXGI:
+$LN155@HookDXGI:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pAdapter$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5274 :   return 0;
+; 5270 :   return 0;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48434,21 +48391,21 @@ $LN168@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN174@HookDXGI
+	je	SHORT $LN161@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN174@HookDXGI:
+$LN161@HookDXGI:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pDevDXGI$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5274 :   return 0;
+; 5270 :   return 0;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48456,21 +48413,21 @@ $LN174@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN180@HookDXGI
+	je	SHORT $LN167@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN180@HookDXGI:
+$LN167@HookDXGI:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pSwapChain$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5274 :   return 0;
+; 5270 :   return 0;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48478,21 +48435,21 @@ $LN180@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN186@HookDXGI
+	je	SHORT $LN173@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN186@HookDXGI:
+$LN173@HookDXGI:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pImmediateContext$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5274 :   return 0;
+; 5270 :   return 0;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48500,21 +48457,21 @@ $LN186@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN192@HookDXGI
+	je	SHORT $LN179@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN192@HookDXGI:
+$LN179@HookDXGI:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pDevice$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5274 :   return 0;
+; 5270 :   return 0;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -48522,20 +48479,20 @@ $LN192@HookDXGI:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN198@HookDXGI
+	je	SHORT $LN185@HookDXGI
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN198@HookDXGI:
+$LN185@HookDXGI:
 	pop	esi
 	pop	ebx
-$LN208@HookDXGI:
+$LN195@HookDXGI:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5275 : }
+; 5271 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	xor	eax, eax
@@ -48564,17 +48521,14 @@ __unwindfunclet$?HookDXGI@@YGIPAX@Z$5:
 	lea	ecx, DWORD PTR _pFactory$[ebp]
 	jmp	??1?$CComPtr@UIDXGIFactory@@@ATL@@QAE@XZ
 __unwindfunclet$?HookDXGI@@YGIPAX@Z$6:
+	lea	ecx, DWORD PTR _pDevCtx$4[ebp]
+	jmp	??1?$CComPtr@UID3D11DeviceContext@@@ATL@@QAE@XZ
+__unwindfunclet$?HookDXGI@@YGIPAX@Z$7:
+	lea	ecx, DWORD PTR _pDev$5[ebp]
+	jmp	??1?$CComPtr@UID3D11Device@@@ATL@@QAE@XZ
+__unwindfunclet$?HookDXGI@@YGIPAX@Z$8:
 	lea	ecx, DWORD PTR _pSwapChain1$3[ebp]
 	jmp	??1?$CComQIPtr@UIDXGISwapChain1@@$1?_GUID_790a45f7_0d42_4876_983a_0a55cfe6f4aa@@3U__s_GUID@@B@ATL@@QAE@XZ
-__unwindfunclet$?HookDXGI@@YGIPAX@Z$7:
-	lea	ecx, DWORD PTR _pFactory$4[ebp]
-	jmp	??1?$CComPtr@UIDXGIFactory1@@@ATL@@QAE@XZ
-__unwindfunclet$?HookDXGI@@YGIPAX@Z$8:
-	lea	ecx, DWORD PTR _pDevCtx$5[ebp]
-	jmp	??1?$CComPtr@UID3D11DeviceContext@@@ATL@@QAE@XZ
-__unwindfunclet$?HookDXGI@@YGIPAX@Z$9:
-	lea	ecx, DWORD PTR _pDev$6[ebp]
-	jmp	??1?$CComPtr@UID3D11Device@@@ATL@@QAE@XZ
 __ehhandler$?HookDXGI@@YGIPAX@Z:
 	mov	eax, OFFSET __ehfuncinfo$?HookDXGI@@YGIPAX@Z
 	jmp	___CxxFrameHandler3
@@ -49339,7 +49293,7 @@ $LN7@ResetCEGUI:
 ; 445  :     {
 ; 446  :       dll_log.Log ( L"[   DXGI   ]  ** Failed to acquire SwapChain's Backbuffer;"
 
-	push	OFFSET $SG352458
+	push	OFFSET $SG352498
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -49759,10 +49713,10 @@ __$EHRec$ = -16						; size = 16
 
 ; 218  :     snprintf (szRootPath, MAX_PATH, "%ws", _wgetenv (L"CEGUI_PARENT_DIR"));
 
-	push	OFFSET $SG352239
+	push	OFFSET $SG352279
 	call	DWORD PTR __imp___wgetenv
 	push	eax
-	push	OFFSET $SG352240
+	push	OFFSET $SG352280
 	lea	eax, DWORD PTR _szRootPath$2[ebp]
 	push	260					; 00000104H
 	push	eax
@@ -49795,7 +49749,7 @@ __$EHRec$ = -16						; size = 16
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	15					; 0000000fH
-	push	OFFSET $SG352241
+	push	OFFSET $SG352281
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -50052,7 +50006,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352243
+	push	OFFSET $SG352283
 	lea	ecx, DWORD PTR $T50[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50061,7 +50015,7 @@ $LN203@SK_CEGUI_I:
 
 	mov	ebx, DWORD PTR __imp_??HCEGUI@@YA?AVString@0@ABV10@PBE@Z
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
-	push	OFFSET $SG352242
+	push	OFFSET $SG352282
 	push	eax
 	lea	eax, DWORD PTR $T23[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 8
@@ -50091,14 +50045,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	9
-	push	OFFSET $SG352245
+	push	OFFSET $SG352285
 	lea	ecx, DWORD PTR $T49[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 230  :     rp->setResourceGroupDirectory("imagesets",
 
-	push	OFFSET $SG352244
+	push	OFFSET $SG352284
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 10		; 0000000aH
 	push	eax
@@ -50127,14 +50081,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	5
-	push	OFFSET $SG352247
+	push	OFFSET $SG352287
 	lea	ecx, DWORD PTR $T48[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 232  :     rp->setResourceGroupDirectory("fonts",
 
-	push	OFFSET $SG352246
+	push	OFFSET $SG352286
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 12		; 0000000cH
 	push	eax
@@ -50163,14 +50117,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352249
+	push	OFFSET $SG352289
 	lea	ecx, DWORD PTR $T47[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 234  :     rp->setResourceGroupDirectory("layouts",
 
-	push	OFFSET $SG352248
+	push	OFFSET $SG352288
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 14		; 0000000eH
 	push	eax
@@ -50199,14 +50153,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	10					; 0000000aH
-	push	OFFSET $SG352251
+	push	OFFSET $SG352291
 	lea	ecx, DWORD PTR $T46[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 236  :     rp->setResourceGroupDirectory("looknfeels",
 
-	push	OFFSET $SG352250
+	push	OFFSET $SG352290
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 16		; 00000010H
 	push	eax
@@ -50235,14 +50189,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	11					; 0000000bH
-	push	OFFSET $SG352253
+	push	OFFSET $SG352293
 	lea	ecx, DWORD PTR $T45[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 238  :     rp->setResourceGroupDirectory("lua_scripts",
 
-	push	OFFSET $SG352252
+	push	OFFSET $SG352292
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 18		; 00000012H
 	push	eax
@@ -50271,14 +50225,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352255
+	push	OFFSET $SG352295
 	lea	ecx, DWORD PTR $T44[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 240  :     rp->setResourceGroupDirectory("schemas",
 
-	push	OFFSET $SG352254
+	push	OFFSET $SG352294
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 20		; 00000014H
 	push	eax
@@ -50307,14 +50261,14 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	10					; 0000000aH
-	push	OFFSET $SG352257
+	push	OFFSET $SG352297
 	lea	ecx, DWORD PTR $T43[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 242  :     rp->setResourceGroupDirectory("animations",
 
-	push	OFFSET $SG352256
+	push	OFFSET $SG352296
 	lea	eax, DWORD PTR _dataPathPrefix$3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+12], 22		; 00000016H
 	push	eax
@@ -50343,7 +50297,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	9
-	push	OFFSET $SG352258
+	push	OFFSET $SG352298
 	lea	ecx, DWORD PTR $T42[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50368,7 +50322,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	5
-	push	OFFSET $SG352259
+	push	OFFSET $SG352299
 	lea	ecx, DWORD PTR $T41[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50393,7 +50347,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352260
+	push	OFFSET $SG352300
 	lea	ecx, DWORD PTR $T40[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50418,7 +50372,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	10					; 0000000aH
-	push	OFFSET $SG352261
+	push	OFFSET $SG352301
 	lea	ecx, DWORD PTR $T39[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50443,7 +50397,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352262
+	push	OFFSET $SG352302
 	lea	ecx, DWORD PTR $T38[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50468,7 +50422,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	11					; 0000000bH
-	push	OFFSET $SG352263
+	push	OFFSET $SG352303
 	lea	ecx, DWORD PTR $T37[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50493,7 +50447,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	10					; 0000000aH
-	push	OFFSET $SG352264
+	push	OFFSET $SG352304
 	lea	ecx, DWORD PTR $T36[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50531,7 +50485,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352265
+	push	OFFSET $SG352305
 	lea	ecx, DWORD PTR $T15[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50552,7 +50506,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	18					; 00000012H
-	push	OFFSET $SG352266
+	push	OFFSET $SG352306
 	lea	ecx, DWORD PTR $T35[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50583,7 +50537,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352267
+	push	OFFSET $SG352307
 	lea	ecx, DWORD PTR $T34[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50604,7 +50558,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	18					; 00000012H
-	push	OFFSET $SG352268
+	push	OFFSET $SG352308
 	lea	ecx, DWORD PTR $T14[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50647,7 +50601,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352269
+	push	OFFSET $SG352309
 	lea	ecx, DWORD PTR $T33[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50668,7 +50622,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG352270
+	push	OFFSET $SG352310
 	lea	ecx, DWORD PTR $T13[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50699,7 +50653,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352271
+	push	OFFSET $SG352311
 	lea	ecx, DWORD PTR $T32[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50720,7 +50674,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG352272
+	push	OFFSET $SG352312
 	lea	ecx, DWORD PTR $T12[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50750,7 +50704,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352273
+	push	OFFSET $SG352313
 	lea	ecx, DWORD PTR $T31[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50771,7 +50725,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	20					; 00000014H
-	push	OFFSET $SG352274
+	push	OFFSET $SG352314
 	lea	ecx, DWORD PTR $T11[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50801,7 +50755,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352275
+	push	OFFSET $SG352315
 	lea	ecx, DWORD PTR $T30[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50822,7 +50776,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	20					; 00000014H
-	push	OFFSET $SG352276
+	push	OFFSET $SG352316
 	lea	ecx, DWORD PTR $T10[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50852,7 +50806,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352277
+	push	OFFSET $SG352317
 	lea	ecx, DWORD PTR $T29[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50873,7 +50827,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	20					; 00000014H
-	push	OFFSET $SG352278
+	push	OFFSET $SG352318
 	lea	ecx, DWORD PTR $T9[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50918,7 +50872,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG352281
+	push	OFFSET $SG352321
 	lea	ecx, DWORD PTR $T8[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -50946,7 +50900,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	7
-	push	OFFSET $SG352282
+	push	OFFSET $SG352322
 	lea	ecx, DWORD PTR $T28[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -50967,7 +50921,7 @@ $LN203@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG352283
+	push	OFFSET $SG352323
 	lea	ecx, DWORD PTR $T7[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51078,7 +51032,7 @@ $LN4@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	4
-	push	OFFSET $SG352285
+	push	OFFSET $SG352325
 	lea	ecx, DWORD PTR $T27[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -51099,7 +51053,7 @@ $LN4@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	13					; 0000000dH
-	push	OFFSET $SG352286
+	push	OFFSET $SG352326
 	lea	ecx, DWORD PTR $T6[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51139,7 +51093,7 @@ $LN4@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352287
+	push	OFFSET $SG352327
 	lea	ecx, DWORD PTR $T26[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -51160,7 +51114,7 @@ $LN4@SK_CEGUI_I:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	19					; 00000013H
-	push	OFFSET $SG352288
+	push	OFFSET $SG352328
 	lea	ecx, DWORD PTR $T5[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51407,7 +51361,7 @@ __$EHRec$ = -12						; size = 12
 ; 174  :   // Move the log file that this darn thing just created...
 ; 175  :   if (GetFileAttributesW (L"CEGUI.log") != INVALID_FILE_ATTRIBUTES)
 
-	push	OFFSET $SG352119
+	push	OFFSET $SG352159
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
 	je	$LN2@SK_CEGUI_R
@@ -51458,13 +51412,13 @@ $LL4@SK_CEGUI_R:
 ; 183  :     lstrcatA ( szNewLogPath, R"(logs\CEGUI.log)");
 
 	lea	eax, DWORD PTR _szNewLogPath$2[ebp]
-	push	OFFSET $SG352120
+	push	OFFSET $SG352160
 	push	eax
 	call	DWORD PTR __imp__lstrcatA@8
 
 ; 184  :     lstrcatW (wszNewLogPath, L"logs\\CEGUI.log" );
 
-	push	OFFSET $SG352121
+	push	OFFSET $SG352161
 	lea	eax, DWORD PTR _wszNewLogPath$3[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrcatW@8
@@ -51478,7 +51432,7 @@ $LL4@SK_CEGUI_R:
 	push	0
 	lea	eax, DWORD PTR _wszNewLogPath$3[ebp]
 	push	eax
-	push	OFFSET $SG352122
+	push	OFFSET $SG352162
 	call	DWORD PTR __imp__CopyFileExW@24
 ; File c:\users\andon\source\repos\specialk\depends\include\cegui\string.h
 
@@ -51532,7 +51486,7 @@ $LL98@SK_CEGUI_R:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	36					; 00000024H
-	push	OFFSET $SG352123
+	push	OFFSET $SG352163
 	lea	ecx, DWORD PTR $T5[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51560,7 +51514,7 @@ $LL98@SK_CEGUI_R:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG352124
+	push	OFFSET $SG352164
 	lea	ecx, DWORD PTR $T4[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
@@ -51581,7 +51535,7 @@ $LL98@SK_CEGUI_R:
 ; 194  : 
 ; 195  :     DeleteFileW (L"CEGUI.log");
 
-	push	OFFSET $SG352125
+	push	OFFSET $SG352165
 	call	DWORD PTR __imp__DeleteFileW@4
 	pop	edi
 	pop	esi
@@ -52812,7 +52766,7 @@ _TEXT	SEGMENT
 ?isZero@<unnamed-type-override>@<unnamed-type-res>@<unnamed-type-window>@sk_config_t@@QAE_NXZ PROC ; sk_config_t::<unnamed-type-window>::<unnamed-type-res>::<unnamed-type-override>::isZero, COMDAT
 ; _this$ = ecx
 
-; 425  :         bool isZero (void) { return x == 0 && y == 0; };
+; 433  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	cmp	DWORD PTR [ecx], 0
 	jne	SHORT $LN3@isZero
@@ -52832,7 +52786,7 @@ _TEXT	SEGMENT
 ?isZero@<unnamed-type-max>@<unnamed-type-res>@<unnamed-type-dxgi>@<unnamed-type-render>@sk_config_t@@QAE_NXZ PROC ; sk_config_t::<unnamed-type-render>::<unnamed-type-dxgi>::<unnamed-type-res>::<unnamed-type-max>::isZero, COMDAT
 ; _this$ = ecx
 
-; 251  :           bool isZero (void) { return x == 0 && y == 0; };
+; 259  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	cmp	DWORD PTR [ecx], 0
 	jne	SHORT $LN3@isZero
@@ -52852,7 +52806,7 @@ _TEXT	SEGMENT
 ?isZero@<unnamed-type-min>@<unnamed-type-res>@<unnamed-type-dxgi>@<unnamed-type-render>@sk_config_t@@QAE_NXZ PROC ; sk_config_t::<unnamed-type-render>::<unnamed-type-dxgi>::<unnamed-type-res>::<unnamed-type-min>::isZero, COMDAT
 ; _this$ = ecx
 
-; 246  :           bool isZero (void) { return x == 0 && y == 0; };
+; 254  :           bool isZero (void) { return x == 0 && y == 0; };
 
 	cmp	DWORD PTR [ecx], 0
 	jne	SHORT $LN3@isZero
@@ -55238,7 +55192,7 @@ $LL2@WaitForIni:
 
 	push	2
 	push	1279					; 000004ffH
-	push	DWORD PTR ?config@@3Usk_config_t@@A+800
+	push	DWORD PTR ?config@@3Usk_config_t@@A+804
 	push	0
 	push	0
 	call	esi
@@ -55429,7 +55383,7 @@ $LN5@SK_GetDXGI:
 ; 1201 :   return L"{Invalid-Adapter-UUID}";
 
 	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
-	push	OFFSET $SG353137
+	push	OFFSET $SG353177
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	esi
@@ -55697,7 +55651,7 @@ $LL79@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	12					; 0000000cH
-	push	OFFSET $SG353092
+	push	OFFSET $SG353132
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -55737,7 +55691,7 @@ $LL81@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	13					; 0000000dH
-	push	OFFSET $SG353095
+	push	OFFSET $SG353135
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -55777,7 +55731,7 @@ $LL83@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	13					; 0000000dH
-	push	OFFSET $SG353098
+	push	OFFSET $SG353138
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -55818,7 +55772,7 @@ $LL85@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	13					; 0000000dH
-	push	OFFSET $SG353101
+	push	OFFSET $SG353141
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56218,7 +56172,7 @@ $LN7@SK_GetDXGI:
 ; 1104 :   return L"{Invalid-Factory-UUID}";
 
 	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
-	push	OFFSET $SG353070
+	push	OFFSET $SG353110
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	esi
@@ -56635,7 +56589,7 @@ $LL91@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG352986
+	push	OFFSET $SG353026
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56675,7 +56629,7 @@ $LL93@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG352989
+	push	OFFSET $SG353029
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56715,7 +56669,7 @@ $LL95@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG352992
+	push	OFFSET $SG353032
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56756,7 +56710,7 @@ $LL97@SK_GetDXGI:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG352995
+	push	OFFSET $SG353035
 	mov	ecx, esi
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	pop	edi
@@ -56796,7 +56750,7 @@ $LL99@SK_GetDXGI:
 
 ; 989  :     interface_name = L"     IDXGIFactory4";
 
-	push	OFFSET $SG352998
+	push	OFFSET $SG353038
 	mov	ecx, esi
 	call	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
 	pop	edi
@@ -56835,7 +56789,7 @@ $LL101@SK_GetDXGI:
 
 ; 991  :     interface_name = L"     IDXGIFactory5";
 
-	push	OFFSET $SG353001
+	push	OFFSET $SG353041
 	mov	ecx, esi
 	call	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
 	pop	edi
@@ -57346,7 +57300,7 @@ $LN13@SK_DXGI_Ad:
 	push	eax
 	lea	eax, DWORD PTR _override_desc$1[ebp]
 	push	eax
-	push	OFFSET $SG357107
+	push	OFFSET $SG357147
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -57397,7 +57351,7 @@ $LN16@SK_DXGI_Ad:
 	push	eax
 	lea	eax, DWORD PTR _override_desc$1[ebp]
 	push	eax
-	push	OFFSET $SG357108
+	push	OFFSET $SG357148
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -57442,7 +57396,7 @@ $LN14@SK_DXGI_Ad:
 
 	lea	eax, DWORD PTR _game_desc$2[ebp]
 	push	eax
-	push	OFFSET $SG357109
+	push	OFFSET $SG357149
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -57547,7 +57501,7 @@ _pFeatureLevels$ = 16					; size = 4
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG352568
+	push	OFFSET $SG352608
 	lea	ecx, DWORD PTR _out$[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -57593,7 +57547,7 @@ $LL4@SK_DXGI_Fe:
 ; 605  :     case D3D_FEATURE_LEVEL_9_2:
 ; 606  :       out += L" 9_2";
 
-	push	OFFSET $SG352572
+	push	OFFSET $SG352612
 	lea	ecx, DWORD PTR _out$[ebp]
 	call	??Y?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator+=
 
@@ -57606,7 +57560,7 @@ $LN9@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	4
-	push	OFFSET $SG352570
+	push	OFFSET $SG352610
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 604  :       break;
@@ -57618,7 +57572,7 @@ $LN11@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	4
-	push	OFFSET $SG352574
+	push	OFFSET $SG352614
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 610  :       break;
@@ -57636,7 +57590,7 @@ $LN20@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352576
+	push	OFFSET $SG352616
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 613  :       break;
@@ -57648,7 +57602,7 @@ $LN13@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352578
+	push	OFFSET $SG352618
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 616  :       break;
@@ -57671,7 +57625,7 @@ $LN19@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352582
+	push	OFFSET $SG352622
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 622  :       break;
@@ -57683,7 +57637,7 @@ $LN14@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352580
+	push	OFFSET $SG352620
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 619  :       break;
@@ -57695,7 +57649,7 @@ $LN16@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352584
+	push	OFFSET $SG352624
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 625  :       break;
@@ -57713,7 +57667,7 @@ $LN21@SK_DXGI_Fe:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG352586
+	push	OFFSET $SG352626
 $LN222@SK_DXGI_Fe:
 	lea	ecx, DWORD PTR _out$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
@@ -57776,7 +57730,7 @@ $LN8@SK_DXGI_Fe:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	3
-	push	OFFSET $SG352567
+	push	OFFSET $SG352607
 	mov	ecx, esi
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -57883,7 +57837,7 @@ _swap_flags$ = 12					; size = 4
 
 	mov	ecx, esi
 	push	eax
-	push	OFFSET $SG352532
+	push	OFFSET $SG352572
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
 ; 550  : {
@@ -57922,7 +57876,7 @@ _swap_flags$ = 12					; size = 4
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	16					; 00000010H
-	push	OFFSET $SG352534
+	push	OFFSET $SG352574
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN2@SK_DXGI_De:
@@ -57937,7 +57891,7 @@ $LN2@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	29					; 0000001dH
-	push	OFFSET $SG352536
+	push	OFFSET $SG352576
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN3@SK_DXGI_De:
@@ -57952,7 +57906,7 @@ $LN3@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	15					; 0000000fH
-	push	OFFSET $SG352538
+	push	OFFSET $SG352578
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN4@SK_DXGI_De:
@@ -57967,7 +57921,7 @@ $LN4@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	40					; 00000028H
-	push	OFFSET $SG352540
+	push	OFFSET $SG352580
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN5@SK_DXGI_De:
@@ -57982,7 +57936,7 @@ $LN5@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	53					; 00000035H
-	push	OFFSET $SG352542
+	push	OFFSET $SG352582
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN6@SK_DXGI_De:
@@ -57997,7 +57951,7 @@ $LN6@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	17					; 00000011H
-	push	OFFSET $SG352544
+	push	OFFSET $SG352584
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN7@SK_DXGI_De:
@@ -58012,7 +57966,7 @@ $LN7@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	38					; 00000026H
-	push	OFFSET $SG352546
+	push	OFFSET $SG352586
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN8@SK_DXGI_De:
@@ -58027,7 +57981,7 @@ $LN8@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	31					; 0000001fH
-	push	OFFSET $SG352548
+	push	OFFSET $SG352588
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN9@SK_DXGI_De:
@@ -58042,7 +57996,7 @@ $LN9@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	34					; 00000022H
-	push	OFFSET $SG352550
+	push	OFFSET $SG352590
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN10@SK_DXGI_De:
@@ -58057,7 +58011,7 @@ $LN10@SK_DXGI_De:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	34					; 00000022H
-	push	OFFSET $SG352552
+	push	OFFSET $SG352592
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN109@SK_DXGI_De:
@@ -58113,7 +58067,7 @@ $LN4@SK_DXGI_De:
 ; 535  :     case DXGI_SWAP_EFFECT_DISCARD:
 ; 536  :       return    L"Discard  (BitBlt)";
 
-	mov	eax, OFFSET $SG352518
+	mov	eax, OFFSET $SG352558
 
 ; 545  :   }
 ; 546  : }
@@ -58125,7 +58079,7 @@ $LN5@SK_DXGI_De:
 ; 537  :     case DXGI_SWAP_EFFECT_SEQUENTIAL:
 ; 538  :       return L"Sequential  (BitBlt)";
 
-	mov	eax, OFFSET $SG352520
+	mov	eax, OFFSET $SG352560
 
 ; 545  :   }
 ; 546  : }
@@ -58137,7 +58091,7 @@ $LN6@SK_DXGI_De:
 ; 539  :     case DXGI_SWAP_EFFECT_FLIP_DISCARD:
 ; 540  :       return    L"Discard  (Flip)";
 
-	mov	eax, OFFSET $SG352522
+	mov	eax, OFFSET $SG352562
 
 ; 545  :   }
 ; 546  : }
@@ -58149,7 +58103,7 @@ $LN7@SK_DXGI_De:
 ; 541  :     case DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL:
 ; 542  :       return L"Sequential  (Flip)";
 
-	mov	eax, OFFSET $SG352524
+	mov	eax, OFFSET $SG352564
 
 ; 545  :   }
 ; 546  : }
@@ -58161,7 +58115,7 @@ $LN8@SK_DXGI_De:
 ; 543  :     default:
 ; 544  :       return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG352526
+	mov	eax, OFFSET $SG352566
 
 ; 545  :   }
 ; 546  : }
@@ -58201,7 +58155,7 @@ $LN4@SK_DXGI_De:
 ; 517  :   case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED:
 ; 518  :     return L"DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED";
 
-	mov	eax, OFFSET $SG352503
+	mov	eax, OFFSET $SG352543
 
 ; 527  :   }
 ; 528  : }
@@ -58213,7 +58167,7 @@ $LN5@SK_DXGI_De:
 ; 519  :   case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE:
 ; 520  :     return L"DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE";
 
-	mov	eax, OFFSET $SG352505
+	mov	eax, OFFSET $SG352545
 
 ; 527  :   }
 ; 528  : }
@@ -58225,7 +58179,7 @@ $LN6@SK_DXGI_De:
 ; 521  :   case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
 ; 522  :     return L"DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST";
 
-	mov	eax, OFFSET $SG352507
+	mov	eax, OFFSET $SG352547
 
 ; 527  :   }
 ; 528  : }
@@ -58237,7 +58191,7 @@ $LN7@SK_DXGI_De:
 ; 523  :   case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
 ; 524  :     return L"DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST";
 
-	mov	eax, OFFSET $SG352509
+	mov	eax, OFFSET $SG352549
 
 ; 527  :   }
 ; 528  : }
@@ -58249,7 +58203,7 @@ $LN8@SK_DXGI_De:
 ; 525  :   default:
 ; 526  :     return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG352511
+	mov	eax, OFFSET $SG352551
 
 ; 527  :   }
 ; 528  : }
@@ -58289,7 +58243,7 @@ _mode$ = 8						; size = 4
 ; 507  :     default:
 ; 508  :       return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG352496
+	mov	eax, OFFSET $SG352536
 
 ; 509  :   }
 ; 510  : }
@@ -58301,7 +58255,7 @@ $LN6@SK_DXGI_De:
 ; 505  :     case DXGI_MODE_SCALING_STRETCHED:
 ; 506  :       return L"DXGI_MODE_SCALING_STRETCHED";
 
-	mov	eax, OFFSET $SG352494
+	mov	eax, OFFSET $SG352534
 
 ; 509  :   }
 ; 510  : }
@@ -58314,7 +58268,7 @@ $LN4@SK_DXGI_De:
 ; 501  :     case DXGI_MODE_SCALING_CENTERED:
 ; 502  :       return L"DXGI_MODE_SCALING_CENTERED";
 
-	mov	eax, OFFSET $SG352490
+	mov	eax, OFFSET $SG352530
 
 ; 509  :   }
 ; 510  : }
@@ -58326,7 +58280,7 @@ $LN5@SK_DXGI_De:
 ; 503  :     case DXGI_MODE_SCALING_UNSPECIFIED:
 ; 504  :       return L"DXGI_MODE_SCALING_UNSPECIFIED";
 
-	mov	eax, OFFSET $SG352492
+	mov	eax, OFFSET $SG352532
 
 ; 509  :   }
 ; 510  : }
@@ -58369,7 +58323,7 @@ _success$1$ = -1					; size = 1
 _user_data$ = 8						; size = 4
 ?BudgetThread@DXGI@SK@@YGKPAX@Z PROC			; SK::DXGI::BudgetThread
 
-; 5564 : {
+; 5560 : {
 
 	npad	2
 	push	ebp
@@ -58378,36 +58332,36 @@ _user_data$ = 8						; size = 4
 	push	ebx
 	push	esi
 
-; 5565 :   auto* params =
-; 5566 :     static_cast <budget_thread_params_t *> (user_data);
-; 5567 : 
-; 5568 :   budget_log.silent = true;
+; 5561 :   auto* params =
+; 5562 :     static_cast <budget_thread_params_t *> (user_data);
+; 5563 : 
+; 5564 :   budget_log.silent = true;
 
 	mov	BYTE PTR ?budget_log@@3UiSK_Logger@@A+32, 1
 
-; 5569 :   params->tid       = GetCurrentThreadId ();
+; 5565 :   params->tid       = GetCurrentThreadId ();
 
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	mov	ebx, DWORD PTR _user_data$[ebp]
 
-; 5570 :   params->event     =
+; 5566 :   params->event     =
 
 	mov	esi, DWORD PTR __imp__CreateEventW@16
-	push	OFFSET $SG370201
+	push	OFFSET $SG370239
 	push	0
 	push	0
 	push	0
 	mov	DWORD PTR [ebx+4], eax
 	call	esi
 
-; 5571 :     CreateEvent ( nullptr,
-; 5572 :                     FALSE,
-; 5573 :                       FALSE,
-; 5574 :                         L"DXGIMemoryBudget"
-; 5575 :                 );
-; 5576 :   params->shutdown  = 
+; 5567 :     CreateEvent ( nullptr,
+; 5568 :                     FALSE,
+; 5569 :                       FALSE,
+; 5570 :                         L"DXGIMemoryBudget"
+; 5571 :                 );
+; 5572 :   params->shutdown  = 
 
-	push	OFFSET $SG370202
+	push	OFFSET $SG370240
 	push	0
 	push	0
 	push	0
@@ -58415,18 +58369,18 @@ _user_data$ = 8						; size = 4
 	call	esi
 	mov	DWORD PTR [ebx+20], eax
 
-; 5577 :     CreateEvent ( nullptr,
-; 5578 :                     FALSE,
-; 5579 :                       FALSE,
-; 5580 :                         L"DXGIMemoryBudget_Shutdown" );
-; 5581 : 
-; 5582 :   InterlockedExchange ( &params->ready, TRUE );
+; 5573 :     CreateEvent ( nullptr,
+; 5574 :                     FALSE,
+; 5575 :                       FALSE,
+; 5576 :                         L"DXGIMemoryBudget_Shutdown" );
+; 5577 : 
+; 5578 :   InterlockedExchange ( &params->ready, TRUE );
 
 	lea	esi, DWORD PTR [ebx+24]
 	mov	eax, 1
 	xchg	DWORD PTR [esi], eax
 
-; 5586 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
+; 5582 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
 
 	push	0
 	push	0
@@ -58439,33 +58393,33 @@ _user_data$ = 8						; size = 4
 	mov	eax, DWORD PTR [esi]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5586 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
+; 5582 :     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
 
 	setns	BYTE PTR _success$1$[ebp]
 
-; 5589 :   while ( ReadAcquire ( &params->ready ) )
+; 5585 :   while ( ReadAcquire ( &params->ready ) )
 
 	test	eax, eax
 	je	$LN3@BudgetThre
 
-; 5666 :              params->pAdapter->QueryVideoMemoryInfo (
-; 5667 :                node,
-; 5668 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5669 :                    &mem_info [buffer].nonlocal [node++]
-; 5670 :              )
-; 5671 :            )
-; 5672 :          )
-; 5673 :       {
-; 5674 :         break;
-; 5675 :       }
-; 5676 :     }
+; 5662 :              params->pAdapter->QueryVideoMemoryInfo (
+; 5663 :                node,
+; 5664 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5665 :                    &mem_info [buffer].nonlocal [node++]
+; 5666 :              )
+; 5667 :            )
+; 5668 :          )
+; 5669 :       {
+; 5670 :         break;
+; 5671 :       }
+; 5672 :     }
+; 5673 : 
+; 5674 : 
+; 5675 :     // Set the number of SLI/CFX Nodes
+; 5676 :     mem_info [buffer].nodes = nodes;
 ; 5677 : 
-; 5678 : 
-; 5679 :     // Set the number of SLI/CFX Nodes
-; 5680 :     mem_info [buffer].nodes = nodes;
-; 5681 : 
-; 5682 :     static uint64_t
-; 5683 :       last_budget = mem_info [buffer].local [0].Budget;
+; 5678 :     static uint64_t
+; 5679 :       last_budget = mem_info [buffer].local [0].Budget;
 
 	mov	ecx, DWORD PTR __tls_index
 	mov	eax, DWORD PTR fs:__tls_array
@@ -58475,28 +58429,28 @@ _user_data$ = 8						; size = 4
 	mov	DWORD PTR tv1565[ebp], eax
 $LL2@BudgetThre:
 
-; 5590 :   {
-; 5591 :     if (__SK_DLL_Ending)
+; 5586 :   {
+; 5587 :     if (__SK_DLL_Ending)
 
 	cmp	DWORD PTR ?__SK_DLL_Ending@@3JC, 0	; __SK_DLL_Ending
 	jne	$LN111@BudgetThre
 
-; 5592 :       break;
-; 5593 : 
-; 5594 :     if ( params->event == nullptr )
+; 5588 :       break;
+; 5589 : 
+; 5590 :     if ( params->event == nullptr )
 
 	mov	eax, DWORD PTR [ebx+16]
 	test	eax, eax
 	je	$LN111@BudgetThre
 
-; 5595 :       break;
-; 5596 : 
-; 5597 :     HANDLE phEvents [] = { params->event, params->shutdown };
+; 5591 :       break;
+; 5592 : 
+; 5593 :     HANDLE phEvents [] = { params->event, params->shutdown };
 
 	mov	DWORD PTR _phEvents$1[ebp], eax
 	mov	eax, DWORD PTR [ebx+20]
 
-; 5600 :       WaitForMultipleObjects ( 2,
+; 5596 :       WaitForMultipleObjects ( 2,
 
 	push	399					; 0000018fH
 	mov	DWORD PTR _phEvents$1[ebp+4], eax
@@ -58512,40 +58466,40 @@ $LL2@BudgetThre:
 	mov	ecx, DWORD PTR [esi]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5600 :       WaitForMultipleObjects ( 2,
+; 5596 :       WaitForMultipleObjects ( 2,
 
 	mov	DWORD PTR _dwWaitStatus$1$[ebp], eax
 
-; 5601 :                                  phEvents,
-; 5602 :                                    FALSE,
-; 5603 :                                      BUDGET_POLL_INTERVAL * 3 );
-; 5604 : 
-; 5605 :     if (! ReadAcquire ( &params->ready ) )
+; 5597 :                                  phEvents,
+; 5598 :                                    FALSE,
+; 5599 :                                      BUDGET_POLL_INTERVAL * 3 );
+; 5600 : 
+; 5601 :     if (! ReadAcquire ( &params->ready ) )
 
 	test	ecx, ecx
 	je	$LN82@BudgetThre
 
-; 5608 :       break;
-; 5609 :     }
-; 5610 : 
-; 5611 :     if (dwWaitStatus == WAIT_OBJECT_0 + 1)
+; 5604 :       break;
+; 5605 :     }
+; 5606 : 
+; 5607 :     if (dwWaitStatus == WAIT_OBJECT_0 + 1)
 
 	cmp	eax, 1
 	je	$LN83@BudgetThre
 
-; 5615 :       break;
-; 5616 :     }
-; 5617 : 
-; 5618 :     int         node = 0;
-; 5619 : 
-; 5620 :     buffer_t buffer  =
-; 5621 :       mem_info [node].buffer;
+; 5611 :       break;
+; 5612 :     }
+; 5613 : 
+; 5614 :     int         node = 0;
+; 5615 : 
+; 5616 :     buffer_t buffer  =
+; 5617 :       mem_info [node].buffer;
 
 	mov	esi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A+272
 
-; 5622 : 
-; 5623 : 
-; 5624 :     SK_D3D11_Textures.Budget = mem_info [buffer].local [0].Budget -
+; 5618 : 
+; 5619 : 
+; 5620 :     SK_D3D11_Textures.Budget = mem_info [buffer].local [0].Budget -
 
 	imul	eax, esi, 280
 	mov	edx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax]
@@ -58566,7 +58520,7 @@ $LL2@BudgetThre:
 	sete	al
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5635 :     GetLocalTime ( &mem_info [buffer].time );
+; 5631 :     GetLocalTime ( &mem_info [buffer].time );
 
 	imul	ebx, eax, 280
 	mov	DWORD PTR tv1557[ebp], eax
@@ -58576,11 +58530,11 @@ $LL2@BudgetThre:
 	call	DWORD PTR __imp__GetLocalTime@4
 	lea	ebx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[ebx]
 
-; 5636 : 
-; 5637 :     //
-; 5638 :     // Sample Fast nUMA (On-GPU / Dedicated) Memory
-; 5639 :     //
-; 5640 :     for ( node = 0; node < MAX_GPU_NODES; )
+; 5632 : 
+; 5633 :     //
+; 5634 :     // Sample Fast nUMA (On-GPU / Dedicated) Memory
+; 5635 :     //
+; 5636 :     for ( node = 0; node < MAX_GPU_NODES; )
 
 	xor	esi, esi
 	mov	DWORD PTR tv1552[ebp], ebx
@@ -58588,8 +58542,8 @@ $LL2@BudgetThre:
 	npad	6
 $LL4@BudgetThre:
 
-; 5641 :     {
-; 5642 :       if ( FAILED (
+; 5637 :     {
+; 5638 :       if ( FAILED (
 
 	mov	eax, DWORD PTR _user_data$[ebp]
 	push	edi
@@ -58604,18 +58558,18 @@ $LL4@BudgetThre:
 	test	eax, eax
 	js	SHORT $LN78@BudgetThre
 
-; 5636 : 
-; 5637 :     //
-; 5638 :     // Sample Fast nUMA (On-GPU / Dedicated) Memory
-; 5639 :     //
-; 5640 :     for ( node = 0; node < MAX_GPU_NODES; )
+; 5632 : 
+; 5633 :     //
+; 5634 :     // Sample Fast nUMA (On-GPU / Dedicated) Memory
+; 5635 :     //
+; 5636 :     for ( node = 0; node < MAX_GPU_NODES; )
 
 	cmp	esi, 4
 	jl	SHORT $LL4@BudgetThre
 $LN78@BudgetThre:
 	mov	ebx, DWORD PTR _user_data$[ebp]
 
-; 5658 :       std::max (0, node - 1);
+; 5654 :       std::max (0, node - 1);
 
 	lea	eax, DWORD PTR [esi-1]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -58625,7 +58579,7 @@ $LN78@BudgetThre:
 	test	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5658 :       std::max (0, node - 1);
+; 5654 :       std::max (0, node - 1);
 
 	mov	DWORD PTR $T2[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -58635,7 +58589,7 @@ $LN78@BudgetThre:
 	lea	ecx, DWORD PTR $T2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5658 :       std::max (0, node - 1);
+; 5654 :       std::max (0, node - 1);
 
 	mov	DWORD PTR $T3[ebp], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -58646,7 +58600,7 @@ $LN78@BudgetThre:
 	cmovle	ecx, edx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5663 :     for ( node = 0; node < MAX_GPU_NODES; )
+; 5659 :     for ( node = 0; node < MAX_GPU_NODES; )
 
 	xor	esi, esi
 	mov	eax, DWORD PTR [ecx]
@@ -58655,8 +58609,8 @@ $LN78@BudgetThre:
 	lea	edi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax+128]
 $LL7@BudgetThre:
 
-; 5664 :     {
-; 5665 :       if ( FAILED (
+; 5660 :     {
+; 5661 :       if ( FAILED (
 
 	mov	eax, DWORD PTR [ebx]
 	push	edi
@@ -58670,30 +58624,30 @@ $LL7@BudgetThre:
 	test	eax, eax
 	js	SHORT $LN79@BudgetThre
 
-; 5663 :     for ( node = 0; node < MAX_GPU_NODES; )
+; 5659 :     for ( node = 0; node < MAX_GPU_NODES; )
 
 	cmp	esi, 4
 	jl	SHORT $LL7@BudgetThre
 $LN79@BudgetThre:
 
-; 5666 :              params->pAdapter->QueryVideoMemoryInfo (
-; 5667 :                node,
-; 5668 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5669 :                    &mem_info [buffer].nonlocal [node++]
-; 5670 :              )
-; 5671 :            )
-; 5672 :          )
-; 5673 :       {
-; 5674 :         break;
-; 5675 :       }
-; 5676 :     }
+; 5662 :              params->pAdapter->QueryVideoMemoryInfo (
+; 5663 :                node,
+; 5664 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5665 :                    &mem_info [buffer].nonlocal [node++]
+; 5666 :              )
+; 5667 :            )
+; 5668 :          )
+; 5669 :       {
+; 5670 :         break;
+; 5671 :       }
+; 5672 :     }
+; 5673 : 
+; 5674 : 
+; 5675 :     // Set the number of SLI/CFX Nodes
+; 5676 :     mem_info [buffer].nodes = nodes;
 ; 5677 : 
-; 5678 : 
-; 5679 :     // Set the number of SLI/CFX Nodes
-; 5680 :     mem_info [buffer].nodes = nodes;
-; 5681 : 
-; 5682 :     static uint64_t
-; 5683 :       last_budget = mem_info [buffer].local [0].Budget;
+; 5678 :     static uint64_t
+; 5679 :       last_budget = mem_info [buffer].local [0].Budget;
 
 	mov	eax, DWORD PTR tv1565[ebp]
 	mov	edi, DWORD PTR tv1556[ebp]
@@ -58706,26 +58660,26 @@ $LN79@BudgetThre:
 	jg	$LN113@BudgetThre
 $LN10@BudgetThre:
 
-; 5684 : 
-; 5685 : 
-; 5686 :     if ( nodes > 0 )
+; 5680 : 
+; 5681 : 
+; 5682 :     if ( nodes > 0 )
 
 	test	esi, esi
 	jle	$LN25@BudgetThre
 
-; 5687 :     {
-; 5688 :       int i;
-; 5689 : 
-; 5690 :       budget_log.LogEx ( true,
+; 5683 :     {
+; 5684 :       int i;
+; 5685 : 
+; 5686 :       budget_log.LogEx ( true,
 
-	push	OFFSET $SG370212
+	push	OFFSET $SG370250
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5691 :                            L"[ DXGI 1.4 ] Local Memory.....:" );
-; 5692 : 
-; 5693 :       for ( i = 0; i < nodes; i++ )
+; 5687 :                            L"[ DXGI 1.4 ] Local Memory.....:" );
+; 5688 : 
+; 5689 :       for ( i = 0; i < nodes; i++ )
 
 	xor	ebx, ebx
 	add	esp, 12					; 0000000cH
@@ -58733,33 +58687,33 @@ $LN10@BudgetThre:
 	test	esi, esi
 	jle	$LN12@BudgetThre
 
-; 5687 :     {
-; 5688 :       int i;
-; 5689 : 
-; 5690 :       budget_log.LogEx ( true,
+; 5683 :     {
+; 5684 :       int i;
+; 5685 : 
+; 5686 :       budget_log.LogEx ( true,
 
 	mov	esi, OFFSET ?mem_stats@@3PAUmemory_stats_t@@A+24
 	lea	edi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edi+24]
 	npad	7
 $LL13@BudgetThre:
 
-; 5694 :       {
-; 5695 :         if ( dwWaitStatus == WAIT_OBJECT_0 )
+; 5690 :       {
+; 5691 :         if ( dwWaitStatus == WAIT_OBJECT_0 )
 
 	cmp	DWORD PTR _dwWaitStatus$1$[ebp], 0
 	jne	SHORT $LN26@BudgetThre
 
-; 5696 :         {
-; 5697 :           static UINT64
-; 5698 :             LastBudget = 0ULL;
-; 5699 : 
-; 5700 :           mem_stats [i].budget_changes++;
+; 5692 :         {
+; 5693 :           static UINT64
+; 5694 :             LastBudget = 0ULL;
+; 5695 : 
+; 5696 :           mem_stats [i].budget_changes++;
 
 	add	DWORD PTR [esi+56], 1
 
-; 5701 : 
-; 5702 :           const int64_t over_budget =
-; 5703 :             ( mem_info [buffer].local [i].CurrentUsage -
+; 5697 : 
+; 5698 :           const int64_t over_budget =
+; 5699 :             ( mem_info [buffer].local [i].CurrentUsage -
 
 	mov	ecx, DWORD PTR [edi-16]
 	adc	DWORD PTR [esi+60], 0
@@ -58769,12 +58723,12 @@ $LL13@BudgetThre:
 	mov	ebx, DWORD PTR [edi-20]
 	sbb	eax, ebx
 
-; 5704 :               mem_info [buffer].local [i].Budget );
-; 5705 : 
-; 5706 :             //LastBudget -
-; 5707 :             //mem_info [buffer].local [i].Budget;
-; 5708 : 
-; 5709 :           SK_D3D11_need_tex_reset = ( over_budget > 0 );
+; 5700 :               mem_info [buffer].local [i].Budget );
+; 5701 : 
+; 5702 :             //LastBudget -
+; 5703 :             //mem_info [buffer].local [i].Budget;
+; 5704 : 
+; 5705 :           SK_D3D11_need_tex_reset = ( over_budget > 0 );
 
 	mov	DWORD PTR tv1758[ebp+4], eax
 	js	SHORT $LN42@BudgetThre
@@ -58788,42 +58742,42 @@ $LN42@BudgetThre:
 	mov	BYTE PTR ?SK_D3D11_need_tex_reset@@3_NA, 0 ; SK_D3D11_need_tex_reset
 $LN43@BudgetThre:
 
-; 5710 : 
-; 5711 :           LastBudget =
+; 5706 : 
+; 5707 :           LastBudget =
 
 	mov	DWORD PTR ?LastBudget@?CD@??BudgetThread@DXGI@SK@@YGKPAX@Z@4_KA+4, ebx
 	mov	ebx, DWORD PTR _i$1$[ebp]
 	mov	DWORD PTR ?LastBudget@?CD@??BudgetThread@DXGI@SK@@YGKPAX@Z@4_KA, edx
 $LN26@BudgetThre:
 
-; 5712 :             mem_info [buffer].local [i].Budget;
-; 5713 :         }
-; 5714 : 
-; 5715 :         if ( i > 0 )
+; 5708 :             mem_info [buffer].local [i].Budget;
+; 5709 :         }
+; 5710 : 
+; 5711 :         if ( i > 0 )
 
 	test	ebx, ebx
 	jle	SHORT $LN27@BudgetThre
 
-; 5716 :         {
-; 5717 :           budget_log.LogEx ( false, L"\n"                                );
+; 5712 :         {
+; 5713 :           budget_log.LogEx ( false, L"\n"                                );
 
-	push	OFFSET $SG370215
+	push	OFFSET $SG370253
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5718 :           budget_log.LogEx ( true,  L"                                 " );
+; 5714 :           budget_log.LogEx ( true,  L"                                 " );
 
-	push	OFFSET $SG370216
+	push	OFFSET $SG370254
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN27@BudgetThre:
 
-; 5719 :         }
-; 5720 : 
-; 5721 :         budget_log.LogEx (
+; 5715 :         }
+; 5716 : 
+; 5717 :         budget_log.LogEx (
 
 	mov	ecx, DWORD PTR [edi-24]
 	mov	eax, DWORD PTR [edi-20]
@@ -58850,22 +58804,22 @@ $LN27@BudgetThre:
 	push	eax
 	push	ecx
 	push	ebx
-	push	OFFSET $SG370217
+	push	OFFSET $SG370255
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5722 :           false,
-; 5723 :             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-; 5724 :                       L"Budget: %#5llu / %#5llu MiB)",
-; 5725 :           i,
-; 5726 :             mem_info       [buffer].local [i].CurrentReservation      >> 20ULL,
-; 5727 :               mem_info     [buffer].local [i].AvailableForReservation >> 20ULL,
-; 5728 :                 mem_info   [buffer].local [i].CurrentUsage            >> 20ULL,
-; 5729 :                   mem_info [buffer].local [i].Budget                  >> 20ULL
-; 5730 :         );
-; 5731 : 
-; 5732 :         min_max ( mem_info [buffer].local [i].AvailableForReservation,
+; 5718 :           false,
+; 5719 :             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+; 5720 :                       L"Budget: %#5llu / %#5llu MiB)",
+; 5721 :           i,
+; 5722 :             mem_info       [buffer].local [i].CurrentReservation      >> 20ULL,
+; 5723 :               mem_info     [buffer].local [i].AvailableForReservation >> 20ULL,
+; 5724 :                 mem_info   [buffer].local [i].CurrentUsage            >> 20ULL,
+; 5725 :                   mem_info [buffer].local [i].Budget                  >> 20ULL
+; 5726 :         );
+; 5727 : 
+; 5728 :         min_max ( mem_info [buffer].local [i].AvailableForReservation,
 
 	mov	ecx, DWORD PTR [edi-4]
 	add	esp, 48					; 00000030H
@@ -58889,10 +58843,10 @@ $LN99@BudgetThre:
 	mov	DWORD PTR [esi-4], ecx
 $LN29@BudgetThre:
 
-; 5733 :                                 mem_stats [i].min_avail_reserve,
-; 5734 :                                 mem_stats [i].max_avail_reserve );
-; 5735 : 
-; 5736 :         min_max ( mem_info [buffer].local [i].CurrentReservation,
+; 5729 :                                 mem_stats [i].min_avail_reserve,
+; 5730 :                                 mem_stats [i].max_avail_reserve );
+; 5731 : 
+; 5732 :         min_max ( mem_info [buffer].local [i].CurrentReservation,
 
 	mov	ecx, DWORD PTR [edi+4]
 	mov	eax, DWORD PTR [edi]
@@ -58915,10 +58869,10 @@ $LN101@BudgetThre:
 	mov	DWORD PTR [esi-20], ecx
 $LN31@BudgetThre:
 
-; 5737 :                                 mem_stats [i].min_reserve,
-; 5738 :                                 mem_stats [i].max_reserve );
-; 5739 : 
-; 5740 :         min_max ( mem_info [buffer].local [i].CurrentUsage,
+; 5733 :                                 mem_stats [i].min_reserve,
+; 5734 :                                 mem_stats [i].max_reserve );
+; 5735 : 
+; 5736 :         min_max ( mem_info [buffer].local [i].CurrentUsage,
 
 	mov	ecx, DWORD PTR [edi-12]
 	mov	eax, DWORD PTR [edi-16]
@@ -58941,10 +58895,10 @@ $LN103@BudgetThre:
 	mov	DWORD PTR [esi+28], ecx
 $LN33@BudgetThre:
 
-; 5741 :                                 mem_stats [i].min_usage,
-; 5742 :                                 mem_stats [i].max_usage );
-; 5743 : 
-; 5744 :         min_max ( mem_info [buffer].local [i].Budget,
+; 5737 :                                 mem_stats [i].min_usage,
+; 5738 :                                 mem_stats [i].max_usage );
+; 5739 : 
+; 5740 :         min_max ( mem_info [buffer].local [i].Budget,
 
 	mov	ebx, DWORD PTR [edi-20]
 	mov	edx, DWORD PTR [edi-24]
@@ -58967,10 +58921,10 @@ $LN105@BudgetThre:
 	mov	DWORD PTR [esi+12], ebx
 $LN35@BudgetThre:
 
-; 5745 :                                 mem_stats [i].min_budget,
-; 5746 :                                 mem_stats [i].max_budget );
-; 5747 : 
-; 5748 :         if ( mem_info [buffer].local [i].CurrentUsage >
+; 5741 :                                 mem_stats [i].min_budget,
+; 5742 :                                 mem_stats [i].max_budget );
+; 5743 : 
+; 5744 :         if ( mem_info [buffer].local [i].CurrentUsage >
 
 	cmp	ecx, ebx
 	jb	SHORT $LN11@BudgetThre
@@ -58979,17 +58933,17 @@ $LN35@BudgetThre:
 	jbe	SHORT $LN11@BudgetThre
 $LN106@BudgetThre:
 
-; 5749 :              mem_info [buffer].local [i].Budget)
-; 5750 :         {
-; 5751 :           uint64_t over_budget =
-; 5752 :              ( mem_info [buffer].local [i].CurrentUsage -
+; 5745 :              mem_info [buffer].local [i].Budget)
+; 5746 :         {
+; 5747 :           uint64_t over_budget =
+; 5748 :              ( mem_info [buffer].local [i].CurrentUsage -
 
 	sub	eax, edx
 	sbb	ecx, ebx
 
-; 5753 :                mem_info [buffer].local [i].Budget );
-; 5754 : 
-; 5755 :           min_max ( over_budget,
+; 5749 :                mem_info [buffer].local [i].Budget );
+; 5750 : 
+; 5751 :           min_max ( over_budget,
 
 	cmp	ecx, DWORD PTR [esi+52]
 	jb	SHORT $LN37@BudgetThre
@@ -59010,9 +58964,9 @@ $LN108@BudgetThre:
 	mov	DWORD PTR [esi+44], ecx
 $LN11@BudgetThre:
 
-; 5691 :                            L"[ DXGI 1.4 ] Local Memory.....:" );
-; 5692 : 
-; 5693 :       for ( i = 0; i < nodes; i++ )
+; 5687 :                            L"[ DXGI 1.4 ] Local Memory.....:" );
+; 5688 : 
+; 5689 :       for ( i = 0; i < nodes; i++ )
 
 	mov	ebx, DWORD PTR _i$1$[ebp]
 	add	edi, 32					; 00000020H
@@ -59023,27 +58977,27 @@ $LN11@BudgetThre:
 	jl	$LL13@BudgetThre
 $LN12@BudgetThre:
 
-; 5756 :                            mem_stats [i].min_over_budget,
-; 5757 :                            mem_stats [i].max_over_budget );
-; 5758 :         }
-; 5759 :       }
-; 5760 : 
-; 5761 :       budget_log.LogEx ( false, L"\n"                              );
+; 5752 :                            mem_stats [i].min_over_budget,
+; 5753 :                            mem_stats [i].max_over_budget );
+; 5754 :         }
+; 5755 :       }
+; 5756 : 
+; 5757 :       budget_log.LogEx ( false, L"\n"                              );
 
-	push	OFFSET $SG370229
+	push	OFFSET $SG370267
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5762 :       budget_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
+; 5758 :       budget_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
 
-	push	OFFSET $SG370230
+	push	OFFSET $SG370268
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5763 : 
-; 5764 :       for ( i = 0; i < nodes; i++ )
+; 5759 : 
+; 5760 :       for ( i = 0; i < nodes; i++ )
 
 	mov	ebx, DWORD PTR _nodes$1$[ebp]
 	add	esp, 24					; 00000018H
@@ -59051,44 +59005,44 @@ $LN12@BudgetThre:
 	test	ebx, ebx
 	jle	$LN15@BudgetThre
 
-; 5756 :                            mem_stats [i].min_over_budget,
-; 5757 :                            mem_stats [i].max_over_budget );
-; 5758 :         }
-; 5759 :       }
-; 5760 : 
-; 5761 :       budget_log.LogEx ( false, L"\n"                              );
+; 5752 :                            mem_stats [i].min_over_budget,
+; 5753 :                            mem_stats [i].max_over_budget );
+; 5754 :         }
+; 5755 :       }
+; 5756 : 
+; 5757 :       budget_log.LogEx ( false, L"\n"                              );
 
 	mov	eax, DWORD PTR tv1556[ebp]
 	lea	esi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax+136]
 	npad	7
 $LL16@BudgetThre:
 
-; 5765 :       {
-; 5766 :         if ( i > 0 )
+; 5761 :       {
+; 5762 :         if ( i > 0 )
 
 	test	edi, edi
 	jle	SHORT $LN39@BudgetThre
 
-; 5767 :         {
-; 5768 :           budget_log.LogEx ( false, L"\n"                                );
+; 5763 :         {
+; 5764 :           budget_log.LogEx ( false, L"\n"                                );
 
-	push	OFFSET $SG370232
+	push	OFFSET $SG370270
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5769 :           budget_log.LogEx ( true,  L"                                 " );
+; 5765 :           budget_log.LogEx ( true,  L"                                 " );
 
-	push	OFFSET $SG370233
+	push	OFFSET $SG370271
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN39@BudgetThre:
 
-; 5770 :         }
-; 5771 : 
-; 5772 :         budget_log.LogEx (
+; 5766 :         }
+; 5767 : 
+; 5768 :         budget_log.LogEx (
 
 	mov	ecx, DWORD PTR [esi-8]
 	mov	eax, DWORD PTR [esi-4]
@@ -59115,7 +59069,7 @@ $LN39@BudgetThre:
 	push	eax
 	push	ecx
 	push	edi
-	push	OFFSET $SG370234
+	push	OFFSET $SG370272
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -59126,27 +59080,27 @@ $LN39@BudgetThre:
 	jl	$LL16@BudgetThre
 $LN15@BudgetThre:
 
-; 5773 :           false,
-; 5774 :             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
-; 5775 :                       L"Budget: %#5llu / %#5llu MiB)",    i,
-; 5776 :          mem_info    [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
-; 5777 :           mem_info   [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
-; 5778 :            mem_info  [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
-; 5779 :             mem_info [buffer].nonlocal [i].Budget                  >> 20ULL );
-; 5780 :       }
-; 5781 : 
-; 5782 :       budget_log.LogEx ( false, L"\n" );
+; 5769 :           false,
+; 5770 :             L" Node%i (Reserve: %#5llu / %#5llu MiB - "
+; 5771 :                       L"Budget: %#5llu / %#5llu MiB)",    i,
+; 5772 :          mem_info    [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
+; 5773 :           mem_info   [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
+; 5774 :            mem_info  [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
+; 5775 :             mem_info [buffer].nonlocal [i].Budget                  >> 20ULL );
+; 5776 :       }
+; 5777 : 
+; 5778 :       budget_log.LogEx ( false, L"\n" );
 
-	push	OFFSET $SG370235
+	push	OFFSET $SG370273
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 $LN25@BudgetThre:
 
-; 5783 :     }
-; 5784 : 
-; 5785 :                ( params->event != 0 ) ?
+; 5779 :     }
+; 5780 : 
+; 5781 :                ( params->event != 0 ) ?
 
 	mov	ebx, DWORD PTR _user_data$[ebp]
 	mov	edi, DWORD PTR __imp__ResetEvent@4
@@ -59157,7 +59111,7 @@ $LN25@BudgetThre:
 	call	edi
 $LN44@BudgetThre:
 
-; 5789 :     mem_info [0].buffer =
+; 5785 :     mem_info [0].buffer =
 
 	mov	eax, DWORD PTR tv1557[ebp]
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -59167,7 +59121,7 @@ $LN44@BudgetThre:
 	lea	esi, DWORD PTR [ebx+24]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5789 :     mem_info [0].buffer =
+; 5785 :     mem_info [0].buffer =
 
 	mov	DWORD PTR ?mem_info@@3PAUmem_info_t@@A+272, eax
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -59177,33 +59131,33 @@ $LN44@BudgetThre:
 	mov	eax, DWORD PTR [esi]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5589 :   while ( ReadAcquire ( &params->ready ) )
+; 5585 :   while ( ReadAcquire ( &params->ready ) )
 
 	test	eax, eax
 	jne	$LL2@BudgetThre
 
-; 5608 :       break;
-; 5609 :     }
-; 5610 : 
-; 5611 :     if (dwWaitStatus == WAIT_OBJECT_0 + 1)
+; 5604 :       break;
+; 5605 :     }
+; 5606 : 
+; 5607 :     if (dwWaitStatus == WAIT_OBJECT_0 + 1)
 
 	jmp	SHORT $LN111@BudgetThre
 $LN83@BudgetThre:
 
-; 5612 :     {
-; 5613 :       InterlockedExchange ( &params->ready, FALSE );
+; 5608 :     {
+; 5609 :       InterlockedExchange ( &params->ready, FALSE );
 
 	xor	eax, eax
 	xchg	DWORD PTR [esi], eax
 
-; 5614 :       ResetEvent          (  params->shutdown     );
+; 5610 :       ResetEvent          (  params->shutdown     );
 
 	push	DWORD PTR [ebx+20]
 	jmp	SHORT $LN112@BudgetThre
 $LN82@BudgetThre:
 
-; 5606 :     {
-; 5607 :       ResetEvent ( params->event );
+; 5602 :     {
+; 5603 :       ResetEvent ( params->event );
 
 	push	DWORD PTR [ebx+16]
 $LN112@BudgetThre:
@@ -59212,17 +59166,17 @@ $LN111@BudgetThre:
 	pop	edi
 $LN3@BudgetThre:
 
-; 5790 :                  buffer;
-; 5791 :   }
-; 5792 : 
-; 5793 :   CloseHandle (params->shutdown);
+; 5786 :                  buffer;
+; 5787 :   }
+; 5788 : 
+; 5789 :   CloseHandle (params->shutdown);
 
 	push	DWORD PTR [ebx+20]
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 5794 :                params->shutdown = INVALID_HANDLE_VALUE;
-; 5795 : 
-; 5796 :   if (success)
+; 5790 :                params->shutdown = INVALID_HANDLE_VALUE;
+; 5791 : 
+; 5792 :   if (success)
 
 	cmp	BYTE PTR _success$1$[ebp], 0
 	pop	esi
@@ -59230,41 +59184,41 @@ $LN3@BudgetThre:
 	pop	ebx
 	je	SHORT $LN109@BudgetThre
 
-; 5797 :     CoUninitialize ();
+; 5793 :     CoUninitialize ();
 
 	call	DWORD PTR __imp__CoUninitialize@0
 $LN109@BudgetThre:
 
-; 5798 : 
-; 5799 :   return 0;
+; 5794 : 
+; 5795 :   return 0;
 
 	xor	eax, eax
 
-; 5800 : }
+; 5796 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN113@BudgetThre:
 
-; 5666 :              params->pAdapter->QueryVideoMemoryInfo (
-; 5667 :                node,
-; 5668 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5669 :                    &mem_info [buffer].nonlocal [node++]
-; 5670 :              )
-; 5671 :            )
-; 5672 :          )
-; 5673 :       {
-; 5674 :         break;
-; 5675 :       }
-; 5676 :     }
+; 5662 :              params->pAdapter->QueryVideoMemoryInfo (
+; 5663 :                node,
+; 5664 :                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5665 :                    &mem_info [buffer].nonlocal [node++]
+; 5666 :              )
+; 5667 :            )
+; 5668 :          )
+; 5669 :       {
+; 5670 :         break;
+; 5671 :       }
+; 5672 :     }
+; 5673 : 
+; 5674 : 
+; 5675 :     // Set the number of SLI/CFX Nodes
+; 5676 :     mem_info [buffer].nodes = nodes;
 ; 5677 : 
-; 5678 : 
-; 5679 :     // Set the number of SLI/CFX Nodes
-; 5680 :     mem_info [buffer].nodes = nodes;
-; 5681 : 
-; 5682 :     static uint64_t
-; 5683 :       last_budget = mem_info [buffer].local [0].Budget;
+; 5678 :     static uint64_t
+; 5679 :       last_budget = mem_info [buffer].local [0].Budget;
 
 	push	OFFSET ?$TSS0@?3??BudgetThread@DXGI@SK@@YGKPAX@Z@4HA
 	call	__Init_thread_header
@@ -59290,7 +59244,7 @@ _closeme_budget_log$ = -16				; size = 4
 __$EHRec$ = -12						; size = 12
 ?ShutdownBudgetThread@DXGI@SK@@YAXXZ PROC		; SK::DXGI::ShutdownBudgetThread
 
-; 5847 : {
+; 5843 : {
 
 	npad	2
 	push	ebp
@@ -59302,43 +59256,43 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR fs:0, esp
 	push	ecx
 
-; 5848 :   SK_AutoClose_Log (
+; 5844 :   SK_AutoClose_Log (
 
 	lea	eax, DWORD PTR _closeme_budget_log$[ebp]
 	mov	ecx, OFFSET ?budget_log@@3UiSK_Logger@@A ; budget_log
 	push	eax
 	call	?auto_close@iSK_Logger@@QAE?AVAutoClose@1@XZ ; iSK_Logger::auto_close
 
-; 5849 :     budget_log
-; 5850 :   );
-; 5851 : 
-; 5852 : 
-; 5853 :   if ( budget_thread.handle != INVALID_HANDLE_VALUE )
+; 5845 :     budget_log
+; 5846 :   );
+; 5847 : 
+; 5848 : 
+; 5849 :   if ( budget_thread.handle != INVALID_HANDLE_VALUE )
 
 	cmp	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8, -1
 	je	$LN3@ShutdownBu
 
-; 5854 :   {
-; 5855 :     dll_log.LogEx (
+; 5850 :   {
+; 5851 :     dll_log.LogEx (
 
-	push	OFFSET $SG370281
+	push	OFFSET $SG370319
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5856 :       true,
-; 5857 :         L"[ DXGI 1.4 ] Shutting down Memory Budget Change Thread... "
-; 5858 :     );
-; 5859 : 
-; 5860 :     SetEvent (budget_thread.shutdown );
+; 5852 :       true,
+; 5853 :         L"[ DXGI 1.4 ] Shutting down Memory Budget Change Thread... "
+; 5854 :     );
+; 5855 : 
+; 5856 :     SetEvent (budget_thread.shutdown );
 
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+20
 	call	DWORD PTR __imp__SetEvent@4
 
-; 5861 : 
-; 5862 :     DWORD dwWaitState =
-; 5863 :       SignalObjectAndWait ( budget_thread.event,
+; 5857 : 
+; 5858 :     DWORD dwWaitState =
+; 5859 :       SignalObjectAndWait ( budget_thread.event,
 
 	push	1
 	push	1000					; 000003e8H
@@ -59346,103 +59300,103 @@ __$EHRec$ = -12						; size = 12
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+16
 	call	DWORD PTR __imp__SignalObjectAndWait@16
 
-; 5864 :                               budget_thread.handle, // Give 1 second, and
-; 5865 :                                 1000UL,             // then we're killing
-; 5866 :                                   TRUE );           // the thing!
-; 5867 : 
-; 5868 :     if ( dwWaitState == WAIT_OBJECT_0 )
+; 5860 :                               budget_thread.handle, // Give 1 second, and
+; 5861 :                                 1000UL,             // then we're killing
+; 5862 :                                   TRUE );           // the thing!
+; 5863 : 
+; 5864 :     if ( dwWaitState == WAIT_OBJECT_0 )
 
 	test	eax, eax
 	jne	SHORT $LN6@ShutdownBu
 
-; 5869 :     {
-; 5870 :       dll_log.LogEx   ( false, L"done!\n"                         );
+; 5865 :     {
+; 5866 :       dll_log.LogEx   ( false, L"done!\n"                         );
 
-	push	OFFSET $SG370284
+	push	OFFSET $SG370322
 	push	eax
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5871 :     }
-; 5872 : 
-; 5873 :     else
+; 5867 :     }
+; 5868 : 
+; 5869 :     else
 
 	jmp	SHORT $LN7@ShutdownBu
 $LN6@ShutdownBu:
 
-; 5874 :     {
-; 5875 :       dll_log.LogEx   ( false, L"timed out (killing manually)!\n" );
+; 5870 :     {
+; 5871 :       dll_log.LogEx   ( false, L"timed out (killing manually)!\n" );
 
-	push	OFFSET $SG370285
+	push	OFFSET $SG370323
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5876 :       TerminateThread ( budget_thread.handle,                   0 );
+; 5872 :       TerminateThread ( budget_thread.handle,                   0 );
 
 	push	0
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8
 	call	DWORD PTR __imp__TerminateThread@8
 $LN7@ShutdownBu:
 
-; 5877 :     }
-; 5878 : 
-; 5879 :     CloseHandle ( budget_thread.handle );
+; 5873 :     }
+; 5874 : 
+; 5875 :     CloseHandle ( budget_thread.handle );
 
 	push	esi
 	push	edi
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 5880 :                   budget_thread.handle = INVALID_HANDLE_VALUE;
-; 5881 : 
-; 5882 :     // Record the final statistics always
-; 5883 :     budget_log.silent    = false;
-; 5884 : 
-; 5885 :     budget_log.Log   ( L"--------------------"   );
+; 5876 :                   budget_thread.handle = INVALID_HANDLE_VALUE;
+; 5877 : 
+; 5878 :     // Record the final statistics always
+; 5879 :     budget_log.silent    = false;
+; 5880 : 
+; 5881 :     budget_log.Log   ( L"--------------------"   );
 
-	push	OFFSET $SG370286
+	push	OFFSET $SG370324
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	mov	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8, -1
 	mov	BYTE PTR ?budget_log@@3UiSK_Logger@@A+32, 0
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 5886 :     budget_log.Log   ( L"Shutdown Statistics:"   );
+; 5882 :     budget_log.Log   ( L"Shutdown Statistics:"   );
 
-	push	OFFSET $SG370287
+	push	OFFSET $SG370325
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 5887 :     budget_log.Log   ( L"--------------------\n" );
+; 5883 :     budget_log.Log   ( L"--------------------\n" );
 
-	push	OFFSET $SG370288
+	push	OFFSET $SG370326
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 5888 : 
-; 5889 :     // in %10u seconds\n",
-; 5890 :     budget_log.Log ( L" Memory Budget Changed %llu times\n",
+; 5884 : 
+; 5885 :     // in %10u seconds\n",
+; 5886 :     budget_log.Log ( L" Memory Budget Changed %llu times\n",
 
 	push	DWORD PTR ?mem_stats@@3PAUmemory_stats_t@@A+84
 	push	DWORD PTR ?mem_stats@@3PAUmemory_stats_t@@A+80
-	push	OFFSET $SG370289
+	push	OFFSET $SG370327
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 40					; 00000028H
 	mov	esi, OFFSET ?mem_stats@@3PAUmemory_stats_t@@A ; mem_stats
 
-; 5891 :                        mem_stats [0].budget_changes );
-; 5892 : 
-; 5893 :     for ( int i = 0; i < 4; i++ )
+; 5887 :                        mem_stats [0].budget_changes );
+; 5888 : 
+; 5889 :     for ( int i = 0; i < 4; i++ )
 
 	xor	edi, edi
 	npad	5
 $LL4@ShutdownBu:
 
-; 5894 :     {
-; 5895 :       if ( mem_stats [i].max_usage > 0 )
+; 5890 :     {
+; 5891 :       if ( mem_stats [i].max_usage > 0 )
 
 	cmp	DWORD PTR [esi+60], 0
 	ja	SHORT $LN21@ShutdownBu
@@ -59450,36 +59404,36 @@ $LL4@ShutdownBu:
 	jbe	$LN2@ShutdownBu
 $LN21@ShutdownBu:
 
-; 5896 :       {
-; 5897 :         if ( mem_stats [i].min_reserve     == UINT64_MAX )
+; 5892 :       {
+; 5893 :         if ( mem_stats [i].min_reserve     == UINT64_MAX )
 
 	mov	eax, DWORD PTR [esi]
 	and	eax, DWORD PTR [esi+4]
 	cmp	eax, -1
 	jne	SHORT $LN9@ShutdownBu
 
-; 5898 :              mem_stats [i].min_reserve     =  0ULL;
+; 5894 :              mem_stats [i].min_reserve     =  0ULL;
 
 	mov	DWORD PTR [esi], 0
 	mov	DWORD PTR [esi+4], 0
 $LN9@ShutdownBu:
 
-; 5899 : 
-; 5900 :         if ( mem_stats [i].min_over_budget == UINT64_MAX )
+; 5895 : 
+; 5896 :         if ( mem_stats [i].min_over_budget == UINT64_MAX )
 
 	mov	eax, DWORD PTR [esi+64]
 	and	eax, DWORD PTR [esi+68]
 	cmp	eax, -1
 	jne	SHORT $LN10@ShutdownBu
 
-; 5901 :              mem_stats [i].min_over_budget =  0ULL;
+; 5897 :              mem_stats [i].min_over_budget =  0ULL;
 
 	mov	DWORD PTR [esi+64], 0
 	mov	DWORD PTR [esi+68], 0
 $LN10@ShutdownBu:
 
-; 5902 : 
-; 5903 :         budget_log.LogEx ( true,
+; 5898 : 
+; 5899 :         budget_log.LogEx ( true,
 
 	mov	ecx, DWORD PTR [esi+32]
 	mov	eax, DWORD PTR [esi+36]
@@ -59488,15 +59442,15 @@ $LN10@ShutdownBu:
 	push	eax
 	push	ecx
 	push	edi
-	push	OFFSET $SG370293
+	push	OFFSET $SG370331
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5904 :                              L" GPU%i: Min Budget:        %05llu MiB\n",
-; 5905 :                                           i,
-; 5906 :                                mem_stats [i].min_budget >> 20ULL );
-; 5907 :         budget_log.LogEx ( true,
+; 5900 :                              L" GPU%i: Min Budget:        %05llu MiB\n",
+; 5901 :                                           i,
+; 5902 :                                mem_stats [i].min_budget >> 20ULL );
+; 5903 :         budget_log.LogEx ( true,
 
 	mov	ecx, DWORD PTR [esi+40]
 	mov	eax, DWORD PTR [esi+44]
@@ -59504,15 +59458,15 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370294
+	push	OFFSET $SG370332
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5908 :                              L"       Max Budget:        %05llu MiB\n",
-; 5909 :                                mem_stats [i].max_budget >> 20ULL );
-; 5910 : 
-; 5911 :         budget_log.LogEx ( true,
+; 5904 :                              L"       Max Budget:        %05llu MiB\n",
+; 5905 :                                mem_stats [i].max_budget >> 20ULL );
+; 5906 : 
+; 5907 :         budget_log.LogEx ( true,
 
 	mov	ecx, DWORD PTR [esi+48]
 	mov	eax, DWORD PTR [esi+52]
@@ -59520,14 +59474,14 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370295
+	push	OFFSET $SG370333
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5912 :                              L"       Min Usage:         %05llu MiB\n",
-; 5913 :                                mem_stats [i].min_usage  >> 20ULL );
-; 5914 :         budget_log.LogEx ( true,
+; 5908 :                              L"       Min Usage:         %05llu MiB\n",
+; 5909 :                                mem_stats [i].min_usage  >> 20ULL );
+; 5910 :         budget_log.LogEx ( true,
 
 	mov	ecx, DWORD PTR [esi+56]
 	add	esp, 64					; 00000040H
@@ -59536,33 +59490,33 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370296
+	push	OFFSET $SG370334
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5915 :                              L"       Max Usage:         %05llu MiB\n",
-; 5916 :                                mem_stats [i].max_usage  >> 20ULL );
-; 5917 : 
-; 5918 :         /*
-; 5919 :         SK_BLogEx (params, true, L"       Min Reserve:       %05u MiB\n",
-; 5920 :         mem_stats [i].min_reserve >> 20ULL);
-; 5921 :         SK_BLogEx (params, true, L"       Max Reserve:       %05u MiB\n",
-; 5922 :         mem_stats [i].max_reserve >> 20ULL);
-; 5923 :         SK_BLogEx (params, true, L"       Min Avail Reserve: %05u MiB\n",
-; 5924 :         mem_stats [i].min_avail_reserve >> 20ULL);
-; 5925 :         SK_BLogEx (params, true, L"       Max Avail Reserve: %05u MiB\n",
-; 5926 :         mem_stats [i].max_avail_reserve >> 20ULL);
-; 5927 :         */
-; 5928 : 
-; 5929 :         budget_log.LogEx ( true,  L"------------------------------------\n" );
+; 5911 :                              L"       Max Usage:         %05llu MiB\n",
+; 5912 :                                mem_stats [i].max_usage  >> 20ULL );
+; 5913 : 
+; 5914 :         /*
+; 5915 :         SK_BLogEx (params, true, L"       Min Reserve:       %05u MiB\n",
+; 5916 :         mem_stats [i].min_reserve >> 20ULL);
+; 5917 :         SK_BLogEx (params, true, L"       Max Reserve:       %05u MiB\n",
+; 5918 :         mem_stats [i].max_reserve >> 20ULL);
+; 5919 :         SK_BLogEx (params, true, L"       Min Avail Reserve: %05u MiB\n",
+; 5920 :         mem_stats [i].min_avail_reserve >> 20ULL);
+; 5921 :         SK_BLogEx (params, true, L"       Max Avail Reserve: %05u MiB\n",
+; 5922 :         mem_stats [i].max_avail_reserve >> 20ULL);
+; 5923 :         */
+; 5924 : 
+; 5925 :         budget_log.LogEx ( true,  L"------------------------------------\n" );
 
-	push	OFFSET $SG370297
+	push	OFFSET $SG370335
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5930 :         budget_log.LogEx ( true,  L" Minimum Over Budget:     %05llu MiB\n",
+; 5926 :         budget_log.LogEx ( true,  L" Minimum Over Budget:     %05llu MiB\n",
 
 	mov	ecx, DWORD PTR [esi+64]
 	mov	eax, DWORD PTR [esi+68]
@@ -59570,13 +59524,13 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370298
+	push	OFFSET $SG370336
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5931 :                                     mem_stats [i].min_over_budget >> 20ULL  );
-; 5932 :         budget_log.LogEx ( true,  L" Maximum Over Budget:     %05llu MiB\n",
+; 5927 :                                     mem_stats [i].min_over_budget >> 20ULL  );
+; 5928 :         budget_log.LogEx ( true,  L" Maximum Over Budget:     %05llu MiB\n",
 
 	mov	ecx, DWORD PTR [esi+72]
 	mov	eax, DWORD PTR [esi+76]
@@ -59584,32 +59538,32 @@ $LN10@ShutdownBu:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG370299
+	push	OFFSET $SG370337
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 72					; 00000048H
 
-; 5933 :                                     mem_stats [i].max_over_budget >> 20ULL  );
-; 5934 :         budget_log.LogEx ( true,  L"------------------------------------\n" );
+; 5929 :                                     mem_stats [i].max_over_budget >> 20ULL  );
+; 5930 :         budget_log.LogEx ( true,  L"------------------------------------\n" );
 
-	push	OFFSET $SG370300
+	push	OFFSET $SG370338
 	push	1
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5935 :         budget_log.LogEx ( false, L"\n"                                     );
+; 5931 :         budget_log.LogEx ( false, L"\n"                                     );
 
-	push	OFFSET $SG370301
+	push	OFFSET $SG370339
 	push	0
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN2@ShutdownBu:
 
-; 5891 :                        mem_stats [0].budget_changes );
-; 5892 : 
-; 5893 :     for ( int i = 0; i < 4; i++ )
+; 5887 :                        mem_stats [0].budget_changes );
+; 5888 : 
+; 5889 :     for ( int i = 0; i < 4; i++ )
 
 	add	esi, 88					; 00000058H
 	inc	edi
@@ -59635,7 +59589,7 @@ $LN3@ShutdownBu:
 $LN14@ShutdownBu:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5939 : }
+; 5935 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -59667,7 +59621,7 @@ _adapter$3 = -16					; size = 4
 __$EHRec$ = -12						; size = 12
 ?StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ PROC	; SK::DXGI::StartBudgetThread_NoAdapter
 
-; 5804 : {
+; 5800 : {
 
 	npad	2
 	push	ebp
@@ -59682,19 +59636,19 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	push	edi
 
-; 5805 :   HRESULT hr = E_NOTIMPL;
-; 5806 : 
-; 5807 :   bool success =
-; 5808 :     SUCCEEDED ( CoInitializeEx ( nullptr, COINIT_MULTITHREADED ) );
+; 5801 :   HRESULT hr = E_NOTIMPL;
+; 5802 : 
+; 5803 :   bool success =
+; 5804 :     SUCCEEDED ( CoInitializeEx ( nullptr, COINIT_MULTITHREADED ) );
 
 	push	0
 	push	0
 	mov	esi, -2147467263			; 80004001H
 	call	DWORD PTR __imp__CoInitializeEx@8
 
-; 5809 : 
-; 5810 :   static HMODULE
-; 5811 :     hDXGI = LoadLibraryW_Original ( L"dxgi.dll" );
+; 5805 : 
+; 5806 :   static HMODULE
+; 5807 :     hDXGI = LoadLibraryW_Original ( L"dxgi.dll" );
 
 	mov	ecx, DWORD PTR __tls_index
 	test	eax, eax
@@ -59709,7 +59663,7 @@ __$EHRec$ = -12						; size = 12
 	add	esp, 4
 	cmp	DWORD PTR ?$TSS0@?1??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA, -1
 	jne	SHORT $LN2@StartBudge
-	push	OFFSET $SG370259
+	push	OFFSET $SG370297
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	push	OFFSET ?$TSS0@?1??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA
@@ -59719,15 +59673,15 @@ __$EHRec$ = -12						; size = 12
 	add	esp, 4
 $LN2@StartBudge:
 
-; 5812 : 
-; 5813 :   if (hDXGI)
+; 5808 : 
+; 5809 :   if (hDXGI)
 
 	cmp	DWORD PTR ?hDXGI@?1??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4PAUHINSTANCE__@@A, 0
 	je	$LN40@StartBudge
 
-; 5814 :   {
-; 5815 :     static auto
-; 5816 :       CreateDXGIFactory =
+; 5810 :   {
+; 5811 :     static auto
+; 5812 :       CreateDXGIFactory =
 
 	mov	eax, DWORD PTR ?$TSS1@?4??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA
 	cmp	eax, DWORD PTR __Init_thread_epoch[edi]
@@ -59738,9 +59692,9 @@ $LN2@StartBudge:
 	cmp	DWORD PTR ?$TSS1@?4??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA, -1
 	jne	SHORT $LN3@StartBudge
 
-; 5817 :         (CreateDXGIFactory_pfn) GetProcAddress ( hDXGI,
+; 5813 :         (CreateDXGIFactory_pfn) GetProcAddress ( hDXGI,
 
-	push	OFFSET $SG370261
+	push	OFFSET $SG370299
 	push	DWORD PTR ?hDXGI@?1??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4PAUHINSTANCE__@@A
 	call	DWORD PTR __imp__GetProcAddress@8
 	push	OFFSET ?$TSS1@?4??StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ@4HA
@@ -59755,7 +59709,7 @@ $LN3@StartBudge:
 	mov	DWORD PTR _factory$2[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5819 :     CComPtr <IDXGIFactory> factory = nullptr;
+; 5815 :     CComPtr <IDXGIFactory> factory = nullptr;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -59765,7 +59719,7 @@ $LN3@StartBudge:
 	mov	DWORD PTR _adapter$3[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5823 :     if ( SUCCEEDED (
+; 5819 :     if ( SUCCEEDED (
 
 	lea	eax, DWORD PTR _factory$2[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
@@ -59778,11 +59732,11 @@ $LN3@StartBudge:
 	test	eax, eax
 	js	SHORT $LN6@StartBudge
 
-; 5824 :            CreateDXGIFactory ( IID_PPV_ARGS (&factory) )
-; 5825 :          )
-; 5826 :        )
-; 5827 :     {
-; 5828 :       if ( SUCCEEDED (
+; 5820 :            CreateDXGIFactory ( IID_PPV_ARGS (&factory) )
+; 5821 :          )
+; 5822 :        )
+; 5823 :     {
+; 5824 :       if ( SUCCEEDED (
 
 	mov	eax, DWORD PTR _factory$2[ebp]
 	lea	edx, DWORD PTR _adapter$3[ebp]
@@ -59794,12 +59748,12 @@ $LN3@StartBudge:
 	test	eax, eax
 	js	SHORT $LN6@StartBudge
 
-; 5829 :              factory->EnumAdapters ( 0,
-; 5830 :                                        &adapter )
-; 5831 :            )
-; 5832 :          )
-; 5833 :       {
-; 5834 :         hr = StartBudgetThread ( &adapter );
+; 5825 :              factory->EnumAdapters ( 0,
+; 5826 :                                        &adapter )
+; 5827 :            )
+; 5828 :          )
+; 5829 :       {
+; 5830 :         hr = StartBudgetThread ( &adapter );
 
 	lea	eax, DWORD PTR _adapter$3[ebp]
 	push	eax
@@ -59814,7 +59768,7 @@ $LN6@StartBudge:
 	mov	ecx, DWORD PTR _adapter$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5837 :   }
+; 5833 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -59836,7 +59790,7 @@ $LN34@StartBudge:
 	mov	eax, DWORD PTR _factory$2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5837 :   }
+; 5833 :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -59854,19 +59808,19 @@ $LN34@StartBudge:
 $LN40@StartBudge:
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5839 :   if (success)
+; 5835 :   if (success)
 
 	test	bl, bl
 	je	SHORT $LN42@StartBudge
 
-; 5840 :     CoUninitialize ();
+; 5836 :     CoUninitialize ();
 
 	call	DWORD PTR __imp__CoUninitialize@0
 $LN42@StartBudge:
 
-; 5841 : 
-; 5842 :   return hr;
-; 5843 : }
+; 5837 : 
+; 5838 :   return hr;
+; 5839 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -59925,7 +59879,7 @@ _ppAdapter$ = 8						; size = 4
 _silent$1$ = 11						; size = 1
 ?StartBudgetThread@DXGI@SK@@YAJPAPAUIDXGIAdapter@@@Z PROC ; SK::DXGI::StartBudgetThread
 
-; 5325 : {
+; 5321 : {
 
 	npad	2
 	push	ebp
@@ -59937,7 +59891,7 @@ _silent$1$ = 11						; size = 1
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 356				; 00000164H
 
-; 5333 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
+; 5329 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
 
 	mov	eax, DWORD PTR _ppAdapter$[ebp]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -59949,15 +59903,15 @@ _silent$1$ = 11						; size = 1
 	push	edx
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5330 :   IDXGIAdapter3* pAdapter3 = nullptr;
+; 5326 :   IDXGIAdapter3* pAdapter3 = nullptr;
 
 	mov	DWORD PTR _pAdapter3$[ebp], 0
 
-; 5331 :   HRESULT        hr        = E_NOTIMPL;
+; 5327 :   HRESULT        hr        = E_NOTIMPL;
 
 	mov	esi, -2147467263			; 80004001H
 
-; 5333 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
+; 5329 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
 
 	mov	eax, DWORD PTR [eax]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -59968,7 +59922,7 @@ _silent$1$ = 11						; size = 1
 	push	eax
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5331 :   HRESULT        hr        = E_NOTIMPL;
+; 5327 :   HRESULT        hr        = E_NOTIMPL;
 
 	mov	DWORD PTR _hr$1$[ebp], esi
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -59979,7 +59933,7 @@ _silent$1$ = 11						; size = 1
 	call	DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5333 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
+; 5329 :   if (SUCCEEDED ((*ppAdapter)->QueryInterface <IDXGIAdapter3> (&pAdapter3)))
 
 	test	eax, eax
 	js	$LN55@StartBudge
@@ -59997,29 +59951,29 @@ _silent$1$ = 11						; size = 1
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5339 :     if ( budget_thread.handle == INVALID_HANDLE_VALUE )
+; 5335 :     if ( budget_thread.handle == INVALID_HANDLE_VALUE )
 
 	cmp	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+8, -1
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	jne	$LN11@StartBudge
 
-; 5340 :     {
-; 5341 :       // We're going to Release this interface after thread spawnning, but
-; 5342 :       //   the running thread still needs a reference counted.
-; 5343 :       pAdapter3->AddRef ();
+; 5336 :     {
+; 5337 :       // We're going to Release this interface after thread spawnning, but
+; 5338 :       //   the running thread still needs a reference counted.
+; 5339 :       pAdapter3->AddRef ();
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+4]
 
-; 5344 : 
-; 5345 :       ZeroMemory ( &budget_thread,
-; 5346 :                      sizeof budget_thread_params_t );
-; 5347 : 
-; 5348 :       dll_log.LogEx ( true,
+; 5340 : 
+; 5341 :       ZeroMemory ( &budget_thread,
+; 5342 :                      sizeof budget_thread_params_t );
+; 5343 : 
+; 5344 :       dll_log.LogEx ( true,
 
-	push	OFFSET $SG370120
+	push	OFFSET $SG370158
 	xorps	xmm0, xmm0
 	mov	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+24, 0
 	push	1
@@ -60029,27 +59983,27 @@ _silent$1$ = 11						; size = 1
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5349 :                         L"[ DXGI 1.4 ]   "
-; 5350 :                         L"$ Spawning Memory Budget Change Thread..: " );
-; 5351 : 
-; 5352 :       InterlockedExchange ( &budget_thread.ready,
+; 5345 :                         L"[ DXGI 1.4 ]   "
+; 5346 :                         L"$ Spawning Memory Budget Change Thread..: " );
+; 5347 : 
+; 5348 :       InterlockedExchange ( &budget_thread.ready,
 
 	xor	eax, eax
 	mov	ecx, OFFSET ?budget_thread@@3Ubudget_thread_params_t@@A+24
 	xchg	DWORD PTR [ecx], eax
 
-; 5353 :                               FALSE );
-; 5354 : 
-; 5355 :       budget_thread.pAdapter = pAdapter3;
+; 5349 :                               FALSE );
+; 5350 : 
+; 5351 :       budget_thread.pAdapter = pAdapter3;
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 
-; 5356 :       budget_thread.tid      = 0;
-; 5357 :       budget_thread.event    = nullptr;
-; 5358 :       budget_log.silent      = true;
-; 5359 : 
-; 5360 : 
-; 5361 :       budget_thread.handle =
+; 5352 :       budget_thread.tid      = 0;
+; 5353 :       budget_thread.event    = nullptr;
+; 5354 :       budget_log.silent      = true;
+; 5355 : 
+; 5356 : 
+; 5357 :       budget_thread.handle =
 
 	push	0
 	push	0
@@ -60070,14 +60024,14 @@ _silent$1$ = 11						; size = 1
 	mov	eax, DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+24
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5370 :       while ( ! ReadAcquire ( &budget_thread.ready )
+; 5366 :       while ( ! ReadAcquire ( &budget_thread.ready )
 
 	test	eax, eax
 	jne	SHORT $LN3@StartBudge
 	mov	esi, DWORD PTR __imp__SleepEx@8
 $LL2@StartBudge:
 
-; 5371 :             ) SleepEx (100, TRUE);
+; 5367 :             ) SleepEx (100, TRUE);
 
 	push	1
 	push	100					; 00000064H
@@ -60089,45 +60043,45 @@ $LL2@StartBudge:
 	mov	eax, DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+24
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5370 :       while ( ! ReadAcquire ( &budget_thread.ready )
+; 5366 :       while ( ! ReadAcquire ( &budget_thread.ready )
 
 	test	eax, eax
 	je	SHORT $LL2@StartBudge
 $LN3@StartBudge:
 
-; 5372 : 
-; 5373 : 
-; 5374 :       if ( budget_thread.tid != 0 )
+; 5368 : 
+; 5369 : 
+; 5370 :       if ( budget_thread.tid != 0 )
 
 	mov	eax, DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+4
 	push	edi
 	test	eax, eax
 	je	$LN12@StartBudge
 
-; 5375 :       {
-; 5376 :         dll_log.LogEx ( false,
+; 5371 :       {
+; 5372 :         dll_log.LogEx ( false,
 
 	push	eax
-	push	OFFSET $SG370123
+	push	OFFSET $SG370161
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5377 :                           L"tid=0x%04x\n",
-; 5378 :                             budget_thread.tid );
-; 5379 : 
-; 5380 :         dll_log.LogEx ( true,
+; 5373 :                           L"tid=0x%04x\n",
+; 5374 :                             budget_thread.tid );
+; 5375 : 
+; 5376 :         dll_log.LogEx ( true,
 
-	push	OFFSET $SG370124
+	push	OFFSET $SG370162
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5381 :                           L"[ DXGI 1.4 ]   "
-; 5382 :                             L"%% Setting up Budget Change Notification.: " );
-; 5383 : 
-; 5384 :         HRESULT result =
-; 5385 :           pAdapter3->RegisterVideoMemoryBudgetChangeNotificationEvent (
+; 5377 :                           L"[ DXGI 1.4 ]   "
+; 5378 :                             L"%% Setting up Budget Change Notification.: " );
+; 5379 : 
+; 5380 :         HRESULT result =
+; 5381 :           pAdapter3->RegisterVideoMemoryBudgetChangeNotificationEvent (
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 	add	esp, 28					; 0000001cH
@@ -60139,96 +60093,96 @@ $LN3@StartBudge:
 	mov	edi, eax
 	mov	DWORD PTR _hr$1$[ebp], edi
 
-; 5386 :                             budget_thread.event,
-; 5387 :                            &budget_thread.cookie
-; 5388 :           );
-; 5389 : 
-; 5390 :         if ( SUCCEEDED ( result ) )
+; 5382 :                             budget_thread.event,
+; 5383 :                            &budget_thread.cookie
+; 5384 :           );
+; 5385 : 
+; 5386 :         if ( SUCCEEDED ( result ) )
 
 	test	edi, edi
 	js	SHORT $LN14@StartBudge
 
-; 5391 :         {
-; 5392 :           dll_log.LogEx ( false,
+; 5387 :         {
+; 5388 :           dll_log.LogEx ( false,
 
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+12
 	push	DWORD PTR ?budget_thread@@3Ubudget_thread_params_t@@A+16
-	push	OFFSET $SG370127
+	push	OFFSET $SG370165
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 20					; 00000014H
 
-; 5393 :                             L"eid=0x%p, cookie=%u\n",
-; 5394 :                               budget_thread.event,
-; 5395 :                                         budget_thread.cookie );
-; 5396 : 
-; 5397 :           hr = S_OK;
+; 5389 :                             L"eid=0x%p, cookie=%u\n",
+; 5390 :                               budget_thread.event,
+; 5391 :                                         budget_thread.cookie );
+; 5392 : 
+; 5393 :           hr = S_OK;
 
 	mov	DWORD PTR _hr$1$[ebp], 0
 
-; 5398 :         }
-; 5399 : 
-; 5400 :         else
+; 5394 :         }
+; 5395 : 
+; 5396 :         else
 
 	jmp	SHORT $LN13@StartBudge
 $LN14@StartBudge:
 
-; 5401 :         {
-; 5402 :           dll_log.LogEx ( false,
+; 5397 :         {
+; 5398 :           dll_log.LogEx ( false,
 
 	push	edi
 	call	?SK_DescribeHRESULT@@YGPB_WJ@Z		; SK_DescribeHRESULT
 	push	eax
-	push	OFFSET $SG370128
+	push	OFFSET $SG370166
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 5403 :                             L"Failed! (%s)\n",
-; 5404 :                               SK_DescribeHRESULT ( result ) );
+; 5399 :                             L"Failed! (%s)\n",
+; 5400 :                               SK_DescribeHRESULT ( result ) );
+; 5401 : 
+; 5402 :           hr = result;
+; 5403 :         }
+; 5404 :       }
 ; 5405 : 
-; 5406 :           hr = result;
-; 5407 :         }
-; 5408 :       }
-; 5409 : 
-; 5410 :       else
+; 5406 :       else
 
 	jmp	SHORT $LN13@StartBudge
 $LN12@StartBudge:
 
-; 5411 :       {
-; 5412 :         dll_log.LogEx (false, L"failed!\n");
+; 5407 :       {
+; 5408 :         dll_log.LogEx (false, L"failed!\n");
 
-	push	OFFSET $SG370129
+	push	OFFSET $SG370167
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5413 : 
-; 5414 :         hr = E_FAIL;
+; 5409 : 
+; 5410 :         hr = E_FAIL;
 
 	mov	DWORD PTR _hr$1$[ebp], -2147467259	; 80004005H
 $LN13@StartBudge:
 
-; 5415 :       }
-; 5416 : 
-; 5417 :       dll_log.LogEx ( true,
+; 5411 :       }
+; 5412 : 
+; 5413 :       dll_log.LogEx ( true,
 
-	push	OFFSET $SG370130
+	push	OFFSET $SG370168
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5418 :                         L"[ DXGI 1.2 ] GPU Scheduling...:"
-; 5419 :                                      L" Pre-Emptive" );
-; 5420 : 
-; 5421 :       DXGI_QUERY_VIDEO_MEMORY_INFO
-; 5422 :               _mem_info = { };
-; 5423 :       DXGI_ADAPTER_DESC2
-; 5424 :                   desc2 = { };
+; 5414 :                         L"[ DXGI 1.2 ] GPU Scheduling...:"
+; 5415 :                                      L" Pre-Emptive" );
+; 5416 : 
+; 5417 :       DXGI_QUERY_VIDEO_MEMORY_INFO
+; 5418 :               _mem_info = { };
+; 5419 :       DXGI_ADAPTER_DESC2
+; 5420 :                   desc2 = { };
 
 	push	304					; 00000130H
 	xorps	xmm0, xmm0
@@ -60239,16 +60193,16 @@ $LN13@StartBudge:
 	movups	XMMWORD PTR __mem_info$4[ebp+16], xmm0
 	call	_memset
 
-; 5425 : 
-; 5426 :       int     i      = 0;
-; 5427 :       bool    silent = dll_log.silent;
+; 5421 : 
+; 5422 :       int     i      = 0;
+; 5423 :       bool    silent = dll_log.silent;
 
 	mov	al, BYTE PTR ?dll_log@@3UiSK_Logger@@A+32
 
-; 5428 :       dll_log.silent = true;
-; 5429 :       {
-; 5430 :         // Don't log this call, because that would be silly...
-; 5431 :         pAdapter3->GetDesc2 ( &desc2 );
+; 5424 :       dll_log.silent = true;
+; 5425 :       {
+; 5426 :         // Don't log this call, because that would be silly...
+; 5427 :         pAdapter3->GetDesc2 ( &desc2 );
 
 	lea	edx, DWORD PTR _desc2$2[ebp]
 	mov	BYTE PTR _silent$1$[ebp], al
@@ -60261,15 +60215,15 @@ $LN13@StartBudge:
 	push	eax
 	call	DWORD PTR [ecx+44]
 
-; 5432 :       }
-; 5433 :       dll_log.silent = silent;
+; 5428 :       }
+; 5429 :       dll_log.silent = silent;
 
 	mov	al, BYTE PTR _silent$1$[ebp]
 	mov	BYTE PTR ?dll_log@@3UiSK_Logger@@A+32, al
 
-; 5434 : 
-; 5435 : 
-; 5436 :       switch ( desc2.GraphicsPreemptionGranularity )
+; 5430 : 
+; 5431 : 
+; 5432 :       switch ( desc2.GraphicsPreemptionGranularity )
 
 	mov	eax, DWORD PTR _desc2$2[ebp+296]
 	cmp	eax, 4
@@ -60277,85 +60231,85 @@ $LN13@StartBudge:
 	jmp	DWORD PTR $LN58@StartBudge[eax*4]
 $LN16@StartBudge:
 
-; 5437 :       {
-; 5438 :         case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
-; 5439 :           dll_log.LogEx ( false, L" (DMA Buffer)\n"         );
+; 5433 :       {
+; 5434 :         case DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY:
+; 5435 :           dll_log.LogEx ( false, L" (DMA Buffer)\n"         );
 
-	push	OFFSET $SG370132
+	push	OFFSET $SG370170
 
-; 5440 :           break;
+; 5436 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN17@StartBudge:
 
-; 5441 : 
-; 5442 :         case DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY:
-; 5443 :           dll_log.LogEx ( false, L" (Graphics Primitive)\n" );
+; 5437 : 
+; 5438 :         case DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY:
+; 5439 :           dll_log.LogEx ( false, L" (Graphics Primitive)\n" );
 
-	push	OFFSET $SG370134
+	push	OFFSET $SG370172
 
-; 5444 :           break;
+; 5440 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN18@StartBudge:
 
-; 5445 : 
-; 5446 :         case DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY:
-; 5447 :           dll_log.LogEx ( false, L" (Triangle)\n"           );
+; 5441 : 
+; 5442 :         case DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY:
+; 5443 :           dll_log.LogEx ( false, L" (Triangle)\n"           );
 
-	push	OFFSET $SG370136
+	push	OFFSET $SG370174
 
-; 5448 :           break;
+; 5444 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN19@StartBudge:
 
-; 5449 : 
-; 5450 :         case DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY:
-; 5451 :           dll_log.LogEx ( false, L" (Fragment)\n"           );
+; 5445 : 
+; 5446 :         case DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY:
+; 5447 :           dll_log.LogEx ( false, L" (Fragment)\n"           );
 
-	push	OFFSET $SG370138
+	push	OFFSET $SG370176
 
-; 5452 :           break;
+; 5448 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN20@StartBudge:
 
-; 5453 : 
-; 5454 :         case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
-; 5455 :           dll_log.LogEx ( false, L" (Instruction)\n"        );
+; 5449 : 
+; 5450 :         case DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY:
+; 5451 :           dll_log.LogEx ( false, L" (Instruction)\n"        );
 
-	push	OFFSET $SG370140
+	push	OFFSET $SG370178
 
-; 5456 :           break;
+; 5452 :           break;
 
 	jmp	SHORT $LN57@StartBudge
 $LN21@StartBudge:
 
-; 5457 : 
-; 5458 :         default:
-; 5459 :           dll_log.LogEx (false, L"UNDEFINED\n");
+; 5453 : 
+; 5454 :         default:
+; 5455 :           dll_log.LogEx (false, L"UNDEFINED\n");
 
-	push	OFFSET $SG370142
+	push	OFFSET $SG370180
 $LN57@StartBudge:
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 5460 :           break;
-; 5461 :       }
-; 5462 : 
-; 5463 :       dll_log.LogEx ( true,
+; 5456 :           break;
+; 5457 :       }
+; 5458 : 
+; 5459 :       dll_log.LogEx ( true,
 
-	push	OFFSET $SG370143
+	push	OFFSET $SG370181
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5464 :                         L"[ DXGI 1.4 ] Local Memory.....:" );
-; 5465 : 
-; 5466 :       while ( SUCCEEDED (
+; 5460 :                         L"[ DXGI 1.4 ] Local Memory.....:" );
+; 5461 : 
+; 5462 :       while ( SUCCEEDED (
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 	lea	edx, DWORD PTR __mem_info$4[ebp]
@@ -60370,39 +60324,39 @@ $LN57@StartBudge:
 	js	$LN7@StartBudge
 $LL6@StartBudge:
 
-; 5467 :                 pAdapter3->QueryVideoMemoryInfo (
-; 5468 :                   i,
-; 5469 :                     DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-; 5470 :                       &_mem_info
-; 5471 :                 )
-; 5472 :               )
-; 5473 :             )
-; 5474 :       {
-; 5475 :         if ( i > 0 )
+; 5463 :                 pAdapter3->QueryVideoMemoryInfo (
+; 5464 :                   i,
+; 5465 :                     DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+; 5466 :                       &_mem_info
+; 5467 :                 )
+; 5468 :               )
+; 5469 :             )
+; 5470 :       {
+; 5471 :         if ( i > 0 )
 
 	test	esi, esi
 	jle	SHORT $LN22@StartBudge
 
-; 5476 :         {
-; 5477 :           dll_log.LogEx ( false, L"\n"                              );
+; 5472 :         {
+; 5473 :           dll_log.LogEx ( false, L"\n"                              );
 
-	push	OFFSET $SG370145
+	push	OFFSET $SG370183
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5478 :           dll_log.LogEx ( true,  L"                               " );
+; 5474 :           dll_log.LogEx ( true,  L"                               " );
 
-	push	OFFSET $SG370146
+	push	OFFSET $SG370184
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN22@StartBudge:
 
-; 5479 :         }
-; 5480 : 
-; 5481 :         dll_log.LogEx ( false,
+; 5475 :         }
+; 5476 : 
+; 5477 :         dll_log.LogEx ( false,
 
 	mov	ecx, DWORD PTR __mem_info$4[ebp]
 	mov	eax, DWORD PTR __mem_info$4[ebp+4]
@@ -60429,23 +60383,23 @@ $LN22@StartBudge:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG370147
+	push	OFFSET $SG370185
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	inc	esi
 	add	esp, 48					; 00000030H
 
-; 5482 :                           L" Node%i       (Reserve: %#5llu / %#5llu MiB - "
-; 5483 :                                          L"Budget: %#5llu / %#5llu MiB)",
-; 5484 :                             i++,
-; 5485 :                               _mem_info.CurrentReservation      >> 20ULL,
-; 5486 :                               _mem_info.AvailableForReservation >> 20ULL,
-; 5487 :                               _mem_info.CurrentUsage            >> 20ULL,
-; 5488 :                               _mem_info.Budget                  >> 20ULL
-; 5489 :                       );
-; 5490 : 
-; 5491 :         pAdapter3->SetVideoMemoryReservation (
+; 5478 :                           L" Node%i       (Reserve: %#5llu / %#5llu MiB - "
+; 5479 :                                          L"Budget: %#5llu / %#5llu MiB)",
+; 5480 :                             i++,
+; 5481 :                               _mem_info.CurrentReservation      >> 20ULL,
+; 5482 :                               _mem_info.AvailableForReservation >> 20ULL,
+; 5483 :                               _mem_info.CurrentUsage            >> 20ULL,
+; 5484 :                               _mem_info.Budget                  >> 20ULL
+; 5485 :                       );
+; 5486 : 
+; 5487 :         pAdapter3->SetVideoMemoryReservation (
 
 	cmp	esi, 1
 	jne	SHORT $LN25@StartBudge
@@ -60486,35 +60440,35 @@ $LN26@StartBudge:
 	jns	$LL6@StartBudge
 $LN7@StartBudge:
 
-; 5492 :               ( i - 1 ),
-; 5493 :                 DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-; 5494 :                   ( i == 1 ) ?
-; 5495 :                     uint64_t ( _mem_info.AvailableForReservation *
-; 5496 :                                  config.mem.reserve * 0.01f ) 
-; 5497 :                            :
-; 5498 :                            0
-; 5499 :         );
-; 5500 :       }
-; 5501 : 
-; 5502 :       i = 0;
-; 5503 : 
-; 5504 :       dll_log.LogEx ( false, L"\n"                              );
+; 5488 :               ( i - 1 ),
+; 5489 :                 DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+; 5490 :                   ( i == 1 ) ?
+; 5491 :                     uint64_t ( _mem_info.AvailableForReservation *
+; 5492 :                                  config.mem.reserve * 0.01f ) 
+; 5493 :                            :
+; 5494 :                            0
+; 5495 :         );
+; 5496 :       }
+; 5497 : 
+; 5498 :       i = 0;
+; 5499 : 
+; 5500 :       dll_log.LogEx ( false, L"\n"                              );
 
-	push	OFFSET $SG370148
+	push	OFFSET $SG370186
 	xor	esi, esi
 	push	esi
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5505 :       dll_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
+; 5501 :       dll_log.LogEx ( true,  L"[ DXGI 1.4 ] Non-Local Memory.:" );
 
-	push	OFFSET $SG370149
+	push	OFFSET $SG370187
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5506 : 
-; 5507 :       while ( SUCCEEDED (
+; 5502 : 
+; 5503 :       while ( SUCCEEDED (
 
 	mov	eax, DWORD PTR _pAdapter3$[ebp]
 	lea	edx, DWORD PTR __mem_info$4[ebp]
@@ -60530,39 +60484,39 @@ $LN7@StartBudge:
 	npad	1
 $LL8@StartBudge:
 
-; 5508 :                 pAdapter3->QueryVideoMemoryInfo (
-; 5509 :                   i,
-; 5510 :                     DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5511 :                       &_mem_info
-; 5512 :                 )
-; 5513 :               )
-; 5514 :             )
-; 5515 :       {
-; 5516 :         if ( i > 0 )
+; 5504 :                 pAdapter3->QueryVideoMemoryInfo (
+; 5505 :                   i,
+; 5506 :                     DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5507 :                       &_mem_info
+; 5508 :                 )
+; 5509 :               )
+; 5510 :             )
+; 5511 :       {
+; 5512 :         if ( i > 0 )
 
 	test	esi, esi
 	jle	SHORT $LN23@StartBudge
 
-; 5517 :         {
-; 5518 :           dll_log.LogEx ( false, L"\n"                              );
+; 5513 :         {
+; 5514 :           dll_log.LogEx ( false, L"\n"                              );
 
-	push	OFFSET $SG370151
+	push	OFFSET $SG370189
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 5519 :           dll_log.LogEx ( true,  L"                               " );
+; 5515 :           dll_log.LogEx ( true,  L"                               " );
 
-	push	OFFSET $SG370152
+	push	OFFSET $SG370190
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 $LN23@StartBudge:
 
-; 5520 :         }
-; 5521 : 
-; 5522 :         dll_log.LogEx ( false,
+; 5516 :         }
+; 5517 : 
+; 5518 :         dll_log.LogEx ( false,
 
 	mov	ecx, DWORD PTR __mem_info$4[ebp]
 	mov	eax, DWORD PTR __mem_info$4[ebp+4]
@@ -60589,23 +60543,23 @@ $LN23@StartBudge:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG370153
+	push	OFFSET $SG370191
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	inc	esi
 	add	esp, 48					; 00000030H
 
-; 5523 :                           L" Node%i       (Reserve: %#5llu / %#5llu MiB - "
-; 5524 :                                          L"Budget: %#5llu / %#5llu MiB)",
-; 5525 :                             i++,
-; 5526 :                               _mem_info.CurrentReservation      >> 20ULL,
-; 5527 :                               _mem_info.AvailableForReservation >> 20ULL,
-; 5528 :                               _mem_info.CurrentUsage            >> 20ULL,
-; 5529 :                               _mem_info.Budget                  >> 20ULL
-; 5530 :                       );
-; 5531 : 
-; 5532 :         pAdapter3->SetVideoMemoryReservation (
+; 5519 :                           L" Node%i       (Reserve: %#5llu / %#5llu MiB - "
+; 5520 :                                          L"Budget: %#5llu / %#5llu MiB)",
+; 5521 :                             i++,
+; 5522 :                               _mem_info.CurrentReservation      >> 20ULL,
+; 5523 :                               _mem_info.AvailableForReservation >> 20ULL,
+; 5524 :                               _mem_info.CurrentUsage            >> 20ULL,
+; 5525 :                               _mem_info.Budget                  >> 20ULL
+; 5526 :                       );
+; 5527 : 
+; 5528 :         pAdapter3->SetVideoMemoryReservation (
 
 	cmp	esi, 1
 	jne	SHORT $LN27@StartBudge
@@ -60645,22 +60599,22 @@ $LN28@StartBudge:
 	jns	$LL8@StartBudge
 $LN9@StartBudge:
 
-; 5533 :               ( i - 1 ),
-; 5534 :                 DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-; 5535 :                   ( i == 1 ) ?
-; 5536 :                     uint64_t ( _mem_info.AvailableForReservation *
-; 5537 :                                  config.mem.reserve * 0.01f )
-; 5538 :                            :
-; 5539 :                            0
-; 5540 :         );
-; 5541 :       }
-; 5542 : 
-; 5543 :       ::mem_info [0].nodes = ( i - 1 );
-; 5544 :       ::mem_info [1].nodes = ( i - 1 );
-; 5545 : 
-; 5546 :       dll_log.LogEx ( false, L"\n" );
+; 5529 :               ( i - 1 ),
+; 5530 :                 DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+; 5531 :                   ( i == 1 ) ?
+; 5532 :                     uint64_t ( _mem_info.AvailableForReservation *
+; 5533 :                                  config.mem.reserve * 0.01f )
+; 5534 :                            :
+; 5535 :                            0
+; 5536 :         );
+; 5537 :       }
+; 5538 : 
+; 5539 :       ::mem_info [0].nodes = ( i - 1 );
+; 5540 :       ::mem_info [1].nodes = ( i - 1 );
+; 5541 : 
+; 5542 :       dll_log.LogEx ( false, L"\n" );
 
-	push	OFFSET $SG370154
+	push	OFFSET $SG370192
 	lea	eax, DWORD PTR [esi-1]
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
@@ -60679,12 +60633,12 @@ $LN11@StartBudge:
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\dxgi.cpp
 
-; 5550 :   return hr;
+; 5546 :   return hr;
 
 	mov	eax, DWORD PTR _hr$1$[ebp]
 	pop	esi
 
-; 5551 : }
+; 5547 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -60721,31 +60675,31 @@ text$x	ENDS
 _TEXT	SEGMENT
 ?Shutdown@DXGI@SK@@YA_NXZ PROC				; SK::DXGI::Shutdown
 
-; 5281 : #ifdef _WIN64
-; 5282 :   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-; 5283 :   {
-; 5284 :     SK_DS3_ShutdownPlugin (L"dxgi");
-; 5285 :   }
-; 5286 : #endif
-; 5287 : 
-; 5288 :   if (config.apis.dxgi.d3d11.hook) SK_D3D11_Shutdown ();
+; 5277 : #ifdef _WIN64
+; 5278 :   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+; 5279 :   {
+; 5280 :     SK_DS3_ShutdownPlugin (L"dxgi");
+; 5281 :   }
+; 5282 : #endif
+; 5283 : 
+; 5284 :   if (config.apis.dxgi.d3d11.hook) SK_D3D11_Shutdown ();
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+789, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+793, 0
 	je	SHORT $LN2@Shutdown
 	call	?SK_D3D11_Shutdown@@YAXXZ		; SK_D3D11_Shutdown
 $LN2@Shutdown:
 
+; 5285 : 
+; 5286 : #ifdef _WIN64
+; 5287 :   if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
+; 5288 : #endif
 ; 5289 : 
-; 5290 : #ifdef _WIN64
-; 5291 :   if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
-; 5292 : #endif
-; 5293 : 
-; 5294 :   return SK_ShutdownCore (L"dxgi");
+; 5290 :   return SK_ShutdownCore (L"dxgi");
 
-	push	OFFSET $SG370033
+	push	OFFSET $SG370071
 	call	?SK_ShutdownCore@@YG_NPB_W@Z		; SK_ShutdownCore
 
-; 5295 : }
+; 5291 : }
 
 	ret	0
 ?Shutdown@DXGI@SK@@YA_NXZ ENDP				; SK::DXGI::Shutdown
@@ -60758,7 +60712,7 @@ _TEXT	SEGMENT
 ; 4768 :   return SK_StartupCore (L"dxgi", dxgi_init_callback);
 
 	push	OFFSET ?dxgi_init_callback@@YGXP6GXXZ@Z	; dxgi_init_callback
-	push	OFFSET $SG366063
+	push	OFFSET $SG366103
 	call	?SK_StartupCore@@YG_NPB_WPAX@Z		; SK_StartupCore
 
 ; 4769 : }
@@ -70182,8 +70136,6 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 5940 : }
-
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
 _TEXT	ENDS
@@ -70194,7 +70146,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 5940 : }
+; 5936 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

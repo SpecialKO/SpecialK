@@ -10,26 +10,26 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG133205 DB	'1', 00H, 00H, 00H
-$SG133206 DB	'0', 00H, 00H, 00H
-$SG133208 DB	'y', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG133209 DB	'n', 00H, 'o', 00H, 00H, 00H
+$SG133399 DB	'1', 00H, 00H, 00H
+$SG133400 DB	'0', 00H, 00H, 00H
+$SG133402 DB	'y', 00H, 'e', 00H, 's', 00H, 00H, 00H
+$SG133403 DB	'n', 00H, 'o', 00H, 00H, 00H
 	ORG $+2
-$SG133211 DB	'o', 00H, 'n', 00H, 00H, 00H
+$SG133405 DB	'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG133212 DB	'o', 00H, 'f', 00H, 'f', 00H, 00H, 00H
-$SG133214 DB	't', 00H, 'r', 00H, 'u', 00H, 'e', 00H, 00H, 00H
+$SG133406 DB	'o', 00H, 'f', 00H, 'f', 00H, 00H, 00H
+$SG133408 DB	't', 00H, 'r', 00H, 'u', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG133215 DB	'f', 00H, 'a', 00H, 'l', 00H, 's', 00H, 'e', 00H, 00H, 00H
-$SG133251 DB	'%', 00H, 'f', 00H, 00H, 00H
+$SG133409 DB	'f', 00H, 'a', 00H, 'l', 00H, 's', 00H, 'e', 00H, 00H, 00H
+$SG133460 DB	'%', 00H, 'f', 00H, 00H, 00H
 	ORG $+2
-$SG133291 DB	'%', 00H, 'f', 00H, 00H, 00H
+$SG133532 DB	'%', 00H, 'f', 00H, 00H, 00H
 	ORG $+2
-$SG133292 DB	'%', 00H, 'f', 00H, 00H, 00H
+$SG133533 DB	'%', 00H, 'f', 00H, 00H, 00H
 	ORG $+2
-$SG133293 DB	'(', 00H, '%', 00H, 's', 00H, ',', 00H, '%', 00H, 's', 00H
+$SG133534 DB	'(', 00H, '%', 00H, 's', 00H, ',', 00H, '%', 00H, 's', 00H
 	DB	')', 00H, 00H, 00H
-$SG133307 DB	'(', 00H, '%', 00H, 'f', 00H, ',', 00H, '%', 00H, 'f', 00H
+$SG133548 DB	'(', 00H, '%', 00H, 'f', 00H, ',', 00H, '%', 00H, 'f', 00H
 	DB	')', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	?swprintf@@YAHQA_WQB_WZZ			; swprintf
@@ -44,6 +44,7 @@ PUBLIC	?assign@?$char_traits@_W@std@@SAXAA_WAB_W@Z	; std::char_traits<wchar_t>::
 PUBLIC	?_Orphan_all@_Container_base0@std@@QAEXXZ	; std::_Container_base0::_Orphan_all
 PUBLIC	?_Allocate@std@@YAPAXII_N@Z			; std::_Allocate
 PUBLIC	?_Deallocate@std@@YAXPAXII@Z			; std::_Deallocate
+PUBLIC	??0type_index@std@@QAE@ABVtype_info@@@Z		; std::type_index::type_index
 PUBLIC	??0ImVec2@@QAE@XZ				; ImVec2::ImVec2
 PUBLIC	??0iParameter@sk@@QAE@XZ			; sk::iParameter::iParameter
 PUBLIC	?load@iParameter@sk@@QAE_NXZ			; sk::iParameter::load
@@ -119,17 +120,23 @@ PUBLIC	?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SA
 PUBLIC	??1iParameter@sk@@QAE@XZ			; sk::iParameter::~iParameter
 PUBLIC	??0?$Parameter@H@sk@@QAE@XZ			; sk::Parameter<int>::Parameter<int>
 PUBLIC	??1?$Parameter@H@sk@@QAE@XZ			; sk::Parameter<int>::~Parameter<int>
+PUBLIC	??0ParameterInt@sk@@QAE@XZ			; sk::ParameterInt::ParameterInt
 PUBLIC	?get_value_str@ParameterInt@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; sk::ParameterInt::get_value_str
 PUBLIC	?get_value@ParameterInt@sk@@UAEHXZ		; sk::ParameterInt::get_value
 PUBLIC	?set_value@ParameterInt@sk@@UAEXH@Z		; sk::ParameterInt::set_value
 PUBLIC	?set_value_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterInt::set_value_str
-PUBLIC	??0ParameterInt@sk@@QAE@XZ			; sk::ParameterInt::ParameterInt
+PUBLIC	?store@ParameterInt@sk@@UAEXH@Z			; sk::ParameterInt::store
+PUBLIC	?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterInt::store_str
+PUBLIC	?load@ParameterInt@sk@@UAE_NAAH@Z		; sk::ParameterInt::load
 PUBLIC	??0?$Parameter@_J@sk@@QAE@XZ			; sk::Parameter<__int64>::Parameter<__int64>
 PUBLIC	??1?$Parameter@_J@sk@@QAE@XZ			; sk::Parameter<__int64>::~Parameter<__int64>
 PUBLIC	?get_value_str@ParameterInt64@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; sk::ParameterInt64::get_value_str
 PUBLIC	?get_value@ParameterInt64@sk@@UAE_JXZ		; sk::ParameterInt64::get_value
 PUBLIC	?set_value@ParameterInt64@sk@@UAEX_J@Z		; sk::ParameterInt64::set_value
 PUBLIC	?set_value_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterInt64::set_value_str
+PUBLIC	?store@ParameterInt64@sk@@UAEX_J@Z		; sk::ParameterInt64::store
+PUBLIC	?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterInt64::store_str
+PUBLIC	?load@ParameterInt64@sk@@UAE_NAA_J@Z		; sk::ParameterInt64::load
 PUBLIC	??0ParameterInt64@sk@@QAE@XZ			; sk::ParameterInt64::ParameterInt64
 PUBLIC	??0?$Parameter@_N@sk@@QAE@XZ			; sk::Parameter<bool>::Parameter<bool>
 PUBLIC	??1?$Parameter@_N@sk@@QAE@XZ			; sk::Parameter<bool>::~Parameter<bool>
@@ -137,6 +144,9 @@ PUBLIC	?get_value_str@ParameterBool@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W
 PUBLIC	?get_value@ParameterBool@sk@@UAE_NXZ		; sk::ParameterBool::get_value
 PUBLIC	?set_value@ParameterBool@sk@@UAEX_N@Z		; sk::ParameterBool::set_value
 PUBLIC	?set_value_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterBool::set_value_str
+PUBLIC	?store@ParameterBool@sk@@UAEX_N@Z		; sk::ParameterBool::store
+PUBLIC	?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterBool::store_str
+PUBLIC	?load@ParameterBool@sk@@UAE_NAA_N@Z		; sk::ParameterBool::load
 PUBLIC	??0ParameterBool@sk@@QAE@XZ			; sk::ParameterBool::ParameterBool
 PUBLIC	??0?$Parameter@M@sk@@QAE@XZ			; sk::Parameter<float>::Parameter<float>
 PUBLIC	??1?$Parameter@M@sk@@QAE@XZ			; sk::Parameter<float>::~Parameter<float>
@@ -144,6 +154,9 @@ PUBLIC	?get_value_str@ParameterFloat@sk@@UAE?AV?$basic_string@_WU?$char_traits@_
 PUBLIC	?get_value@ParameterFloat@sk@@UAEMXZ		; sk::ParameterFloat::get_value
 PUBLIC	?set_value@ParameterFloat@sk@@UAEXM@Z		; sk::ParameterFloat::set_value
 PUBLIC	?set_value_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterFloat::set_value_str
+PUBLIC	?store@ParameterFloat@sk@@UAEXM@Z		; sk::ParameterFloat::store
+PUBLIC	?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterFloat::store_str
+PUBLIC	?load@ParameterFloat@sk@@UAE_NAAM@Z		; sk::ParameterFloat::load
 PUBLIC	??0ParameterFloat@sk@@QAE@XZ			; sk::ParameterFloat::ParameterFloat
 PUBLIC	??0?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@sk@@QAE@XZ ; sk::Parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >::Parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 PUBLIC	??1?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@sk@@QAE@XZ ; sk::Parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >::~Parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
@@ -151,6 +164,9 @@ PUBLIC	?get_value_str@ParameterStringW@sk@@UAE?AV?$basic_string@_WU?$char_traits
 PUBLIC	?get_value@ParameterStringW@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; sk::ParameterStringW::get_value
 PUBLIC	?set_value@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterStringW::set_value
 PUBLIC	?set_value_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterStringW::set_value_str
+PUBLIC	?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterStringW::store
+PUBLIC	?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterStringW::store_str
+PUBLIC	?load@ParameterStringW@sk@@UAE_NAAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterStringW::load
 PUBLIC	??0ParameterStringW@sk@@QAE@XZ			; sk::ParameterStringW::ParameterStringW
 PUBLIC	??0?$Parameter@UImVec2@@@sk@@QAE@XZ		; sk::Parameter<ImVec2>::Parameter<ImVec2>
 PUBLIC	??1?$Parameter@UImVec2@@@sk@@QAE@XZ		; sk::Parameter<ImVec2>::~Parameter<ImVec2>
@@ -158,6 +174,9 @@ PUBLIC	?get_value_str@ParameterVec2f@sk@@UAE?AV?$basic_string@_WU?$char_traits@_
 PUBLIC	?get_value@ParameterVec2f@sk@@UAE?AUImVec2@@XZ	; sk::ParameterVec2f::get_value
 PUBLIC	?set_value@ParameterVec2f@sk@@UAEXUImVec2@@@Z	; sk::ParameterVec2f::set_value
 PUBLIC	?set_value_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterVec2f::set_value_str
+PUBLIC	?store@ParameterVec2f@sk@@UAEXUImVec2@@@Z	; sk::ParameterVec2f::store
+PUBLIC	?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; sk::ParameterVec2f::store_str
+PUBLIC	?load@ParameterVec2f@sk@@UAE_NAAUImVec2@@@Z	; sk::ParameterVec2f::load
 PUBLIC	??0ParameterVec2f@sk@@QAE@XZ			; sk::ParameterVec2f::ParameterVec2f
 PUBLIC	?deallocate@?$allocator@PAViParameter@sk@@@std@@QAEXPAPAViParameter@sk@@I@Z ; std::allocator<sk::iParameter *>::deallocate
 PUBLIC	?allocate@?$allocator@PAViParameter@sk@@@std@@QAEPAPAViParameter@sk@@I@Z ; std::allocator<sk::iParameter *>::allocate
@@ -243,8 +262,10 @@ PUBLIC	??$construct@PAViParameter@sk@@ABQAV12@@?$allocator@PAViParameter@sk@@@st
 PUBLIC	??$destroy@PAViParameter@sk@@@?$allocator@PAViParameter@sk@@@std@@QAEXPAPAViParameter@sk@@@Z ; std::allocator<sk::iParameter *>::destroy<sk::iParameter *>
 PUBLIC	??$_Copy_memmove@PAPAViParameter@sk@@PAPAV12@@std@@YAPAPAViParameter@sk@@PAPAV12@00@Z ; std::_Copy_memmove<sk::iParameter * *,sk::iParameter * *>
 PUBLIC	??_7iParameter@sk@@6B@				; sk::iParameter::`vftable'
+PUBLIC	??_R0?AViParameter@sk@@@8			; sk::iParameter `RTTI Type Descriptor'
 PUBLIC	??_7?$Parameter@H@sk@@6B@			; sk::Parameter<int>::`vftable'
 PUBLIC	??_7ParameterInt@sk@@6B@			; sk::ParameterInt::`vftable'
+PUBLIC	??_R0H@8					; int `RTTI Type Descriptor'
 PUBLIC	??_7?$Parameter@_J@sk@@6B@			; sk::Parameter<__int64>::`vftable'
 PUBLIC	??_7ParameterInt64@sk@@6B@			; sk::ParameterInt64::`vftable'
 PUBLIC	??_7?$Parameter@_N@sk@@6B@			; sk::Parameter<bool>::`vftable'
@@ -255,11 +276,15 @@ PUBLIC	??_7?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@
 PUBLIC	??_7ParameterStringW@sk@@6B@			; sk::ParameterStringW::`vftable'
 PUBLIC	??_7?$Parameter@UImVec2@@@sk@@6B@		; sk::Parameter<ImVec2>::`vftable'
 PUBLIC	??_7ParameterVec2f@sk@@6B@			; sk::ParameterVec2f::`vftable'
+PUBLIC	??_R0_J@8					; __int64 `RTTI Type Descriptor'
+PUBLIC	??_R0_N@8					; bool `RTTI Type Descriptor'
+PUBLIC	??_R0M@8					; float `RTTI Type Descriptor'
+PUBLIC	??_R0?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@8 ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > `RTTI Type Descriptor'
+PUBLIC	??_R0?AUImVec2@@@8				; ImVec2 `RTTI Type Descriptor'
 PUBLIC	??_C@_0BA@JFNIOLAK@string?5too?5long?$AA@	; `string'
 PUBLIC	??_C@_0BI@CFPLBAOH@invalid?5string?5position?$AA@ ; `string'
 PUBLIC	??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ ; `string'
 PUBLIC	??_R4iParameter@sk@@6B@				; sk::iParameter::`RTTI Complete Object Locator'
-PUBLIC	??_R0?AViParameter@sk@@@8			; sk::iParameter `RTTI Type Descriptor'
 PUBLIC	??_R3iParameter@sk@@8				; sk::iParameter::`RTTI Class Hierarchy Descriptor'
 PUBLIC	??_R2iParameter@sk@@8				; sk::iParameter::`RTTI Base Class Array'
 PUBLIC	??_R1A@?0A@EA@iParameter@sk@@8			; sk::iParameter::`RTTI Base Class Descriptor at (0,-1,0,64)'
@@ -807,12 +832,6 @@ rdata$r	SEGMENT
 	DD	01H
 	DD	FLAT:??_R2iParameter@sk@@8
 rdata$r	ENDS
-;	COMDAT ??_R0?AViParameter@sk@@@8
-data$r	SEGMENT
-??_R0?AViParameter@sk@@@8 DD FLAT:??_7type_info@@6B@	; sk::iParameter `RTTI Type Descriptor'
-	DD	00H
-	DB	'.?AViParameter@sk@@', 00H
-data$r	ENDS
 ;	COMDAT ??_R4iParameter@sk@@6B@
 rdata$r	SEGMENT
 ??_R4iParameter@sk@@6B@ DD 00H				; sk::iParameter::`RTTI Complete Object Locator'
@@ -835,6 +854,37 @@ CONST	ENDS
 CONST	SEGMENT
 ??_C@_0BA@JFNIOLAK@string?5too?5long?$AA@ DB 'string too long', 00H ; `string'
 CONST	ENDS
+;	COMDAT ??_R0?AUImVec2@@@8
+data$r	SEGMENT
+??_R0?AUImVec2@@@8 DD FLAT:??_7type_info@@6B@		; ImVec2 `RTTI Type Descriptor'
+	DD	00H
+	DB	'.?AUImVec2@@', 00H
+data$r	ENDS
+;	COMDAT ??_R0?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@8
+data$r	SEGMENT
+??_R0?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@8 DD FLAT:??_7type_info@@6B@ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > `RTTI Type Descriptor'
+	DD	00H
+	DB	'.?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator'
+	DB	'@_W@2@@std@@', 00H
+data$r	ENDS
+;	COMDAT ??_R0M@8
+data$r	SEGMENT
+??_R0M@8 DD	FLAT:??_7type_info@@6B@			; float `RTTI Type Descriptor'
+	DD	00H
+	DB	'.M', 00H
+data$r	ENDS
+;	COMDAT ??_R0_N@8
+data$r	SEGMENT
+??_R0_N@8 DD	FLAT:??_7type_info@@6B@			; bool `RTTI Type Descriptor'
+	DD	00H
+	DB	'._N', 00H
+data$r	ENDS
+;	COMDAT ??_R0_J@8
+data$r	SEGMENT
+??_R0_J@8 DD	FLAT:??_7type_info@@6B@			; __int64 `RTTI Type Descriptor'
+	DD	00H
+	DB	'._J', 00H
+data$r	ENDS
 ;	COMDAT ??_7ParameterVec2f@sk@@6B@
 CONST	SEGMENT
 ??_7ParameterVec2f@sk@@6B@ DD FLAT:??_R4ParameterVec2f@sk@@6B@ ; sk::ParameterVec2f::`vftable'
@@ -842,10 +892,16 @@ CONST	SEGMENT
 	DD	FLAT:?set_value_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
 	DD	FLAT:?get_value@ParameterVec2f@sk@@UAE?AUImVec2@@XZ
 	DD	FLAT:?set_value@ParameterVec2f@sk@@UAEXUImVec2@@@Z
+	DD	FLAT:?store@ParameterVec2f@sk@@UAEXUImVec2@@@Z
+	DD	FLAT:?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	FLAT:?load@ParameterVec2f@sk@@UAE_NAAUImVec2@@@Z
 CONST	ENDS
 ;	COMDAT ??_7?$Parameter@UImVec2@@@sk@@6B@
 CONST	SEGMENT
 ??_7?$Parameter@UImVec2@@@sk@@6B@ DD FLAT:??_R4?$Parameter@UImVec2@@@sk@@6B@ ; sk::Parameter<ImVec2>::`vftable'
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
@@ -858,10 +914,16 @@ CONST	SEGMENT
 	DD	FLAT:?set_value_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
 	DD	FLAT:?get_value@ParameterStringW@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ
 	DD	FLAT:?set_value@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	FLAT:?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	FLAT:?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	FLAT:?load@ParameterStringW@sk@@UAE_NAAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
 CONST	ENDS
 ;	COMDAT ??_7?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@sk@@6B@
 CONST	SEGMENT
 ??_7?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@sk@@6B@ DD FLAT:??_R4?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@sk@@6B@ ; sk::Parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >::`vftable'
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
@@ -874,10 +936,16 @@ CONST	SEGMENT
 	DD	FLAT:?set_value_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
 	DD	FLAT:?get_value@ParameterFloat@sk@@UAEMXZ
 	DD	FLAT:?set_value@ParameterFloat@sk@@UAEXM@Z
+	DD	FLAT:?store@ParameterFloat@sk@@UAEXM@Z
+	DD	FLAT:?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	FLAT:?load@ParameterFloat@sk@@UAE_NAAM@Z
 CONST	ENDS
 ;	COMDAT ??_7?$Parameter@M@sk@@6B@
 CONST	SEGMENT
 ??_7?$Parameter@M@sk@@6B@ DD FLAT:??_R4?$Parameter@M@sk@@6B@ ; sk::Parameter<float>::`vftable'
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
@@ -890,10 +958,16 @@ CONST	SEGMENT
 	DD	FLAT:?set_value_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
 	DD	FLAT:?get_value@ParameterBool@sk@@UAE_NXZ
 	DD	FLAT:?set_value@ParameterBool@sk@@UAEX_N@Z
+	DD	FLAT:?store@ParameterBool@sk@@UAEX_N@Z
+	DD	FLAT:?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	FLAT:?load@ParameterBool@sk@@UAE_NAA_N@Z
 CONST	ENDS
 ;	COMDAT ??_7?$Parameter@_N@sk@@6B@
 CONST	SEGMENT
 ??_7?$Parameter@_N@sk@@6B@ DD FLAT:??_R4?$Parameter@_N@sk@@6B@ ; sk::Parameter<bool>::`vftable'
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
@@ -906,6 +980,9 @@ CONST	SEGMENT
 	DD	FLAT:?set_value_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
 	DD	FLAT:?get_value@ParameterInt64@sk@@UAE_JXZ
 	DD	FLAT:?set_value@ParameterInt64@sk@@UAEX_J@Z
+	DD	FLAT:?store@ParameterInt64@sk@@UAEX_J@Z
+	DD	FLAT:?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	FLAT:?load@ParameterInt64@sk@@UAE_NAA_J@Z
 CONST	ENDS
 ;	COMDAT ??_7?$Parameter@_J@sk@@6B@
 CONST	SEGMENT
@@ -914,7 +991,16 @@ CONST	SEGMENT
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
 CONST	ENDS
+;	COMDAT ??_R0H@8
+data$r	SEGMENT
+??_R0H@8 DD	FLAT:??_7type_info@@6B@			; int `RTTI Type Descriptor'
+	DD	00H
+	DB	'.H', 00H
+data$r	ENDS
 ;	COMDAT ??_7ParameterInt@sk@@6B@
 CONST	SEGMENT
 ??_7ParameterInt@sk@@6B@ DD FLAT:??_R4ParameterInt@sk@@6B@ ; sk::ParameterInt::`vftable'
@@ -922,6 +1008,9 @@ CONST	SEGMENT
 	DD	FLAT:?set_value_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
 	DD	FLAT:?get_value@ParameterInt@sk@@UAEHXZ
 	DD	FLAT:?set_value@ParameterInt@sk@@UAEXH@Z
+	DD	FLAT:?store@ParameterInt@sk@@UAEXH@Z
+	DD	FLAT:?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	FLAT:?load@ParameterInt@sk@@UAE_NAAH@Z
 CONST	ENDS
 ;	COMDAT ??_7?$Parameter@H@sk@@6B@
 CONST	SEGMENT
@@ -930,7 +1019,16 @@ CONST	SEGMENT
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
 	DD	FLAT:__purecall
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
+	DD	FLAT:__purecall
 CONST	ENDS
+;	COMDAT ??_R0?AViParameter@sk@@@8
+data$r	SEGMENT
+??_R0?AViParameter@sk@@@8 DD FLAT:??_7type_info@@6B@	; sk::iParameter `RTTI Type Descriptor'
+	DD	00H
+	DB	'.?AViParameter@sk@@', 00H
+data$r	ENDS
 ;	COMDAT ??_7iParameter@sk@@6B@
 CONST	SEGMENT
 ??_7iParameter@sk@@6B@ DD FLAT:??_R4iParameter@sk@@6B@	; sk::iParameter::`vftable'
@@ -962,14 +1060,49 @@ __ehfuncinfo$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@s
 	DD	01H
 xdata$x	ENDS
 xdata$x	SEGMENT
+__unwindtable$?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0
+__unwindtable$?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0
+__unwindtable$?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0
 __unwindtable$?set_value_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?set_value_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0
 __unwindtable$?set_value@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?set_value@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0
+__unwindtable$?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0
+__unwindtable$?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0
+__unwindtable$?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0
+__unwindtable$?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0
 __unwindtable$?store@iParameter@sk@@QAE_NXZ DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?store@iParameter@sk@@QAE_NXZ$0
 	DD	0ffffffffH
 	DD	FLAT:__unwindfunclet$?store@iParameter@sk@@QAE_NXZ$1
+__ehfuncinfo$?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+__ehfuncinfo$?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+__ehfuncinfo$?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
 __ehfuncinfo$?set_value_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 019930522H
 	DD	01H
 	DD	FLAT:__unwindtable$?set_value_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
@@ -980,6 +1113,34 @@ __ehfuncinfo$?set_value_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_t
 __ehfuncinfo$?set_value@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 019930522H
 	DD	01H
 	DD	FLAT:__unwindtable$?set_value@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+__ehfuncinfo$?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+__ehfuncinfo$?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+__ehfuncinfo$?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+__ehfuncinfo$?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
 	DD	00H
@@ -2325,13 +2486,16 @@ $LN364@emplace_ba:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -2344,7 +2508,7 @@ _name$ = 8						; size = 4
 ??$create_parameter@UImVec2@@@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z PROC ; sk::ParameterFactory::create_parameter<ImVec2>
 ; _this$ = ecx
 
-; 404  : {
+; 564  : {
 
 	npad	2
 	push	ebp
@@ -2353,7 +2517,7 @@ _name$ = 8						; size = 4
 	push	esi
 	push	edi
 
-; 407  :   iParameter* param = new ParameterVec2f ();
+; 567  :   iParameter* param = new ParameterVec2f ();
 
 	push	72					; 00000048H
 	mov	edi, ecx
@@ -2367,57 +2531,69 @@ _name$ = 8						; size = 4
 	push	0
 	push	esi
 	call	_memset
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [esi+24], 0
+	mov	DWORD PTR [esi+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 407  :   iParameter* param = new ParameterVec2f ();
+; 567  :   iParameter* param = new ParameterVec2f ();
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+28], 7
+	mov	DWORD PTR [esi+28], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
-	mov	WORD PTR [esi+8], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [esi+48], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+52], 7
+	mov	DWORD PTR [esi+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+32], ax
+	mov	WORD PTR [esi+12], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+52], eax
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+56], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [esi+4], eax
+	mov	DWORD PTR [esi+8], eax
 
-; 35   :     ImVec2 (void)               { x = y = 0.0f;   }
+; 36   :     ImVec2 (void)               { x = y = 0.0f;   }
 
-	mov	DWORD PTR [esi+60], eax
-	mov	DWORD PTR [esi+56], eax
-	mov	DWORD PTR [esi], OFFSET ??_7ParameterVec2f@sk@@6B@
-	mov	DWORD PTR [esi+68], eax
 	mov	DWORD PTR [esi+64], eax
+	mov	DWORD PTR [esi+60], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [esi+68], OFFSET ??_R0?AUImVec2@@@8
+	mov	DWORD PTR [esi], OFFSET ??_7ParameterVec2f@sk@@6B@
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 407  :   iParameter* param = new ParameterVec2f ();
+; 567  :   iParameter* param = new ParameterVec2f ();
 
 	jmp	SHORT $LN4@create_par
 $LN3@create_par:
@@ -2430,7 +2606,7 @@ $LN4@create_par:
 	lea	eax, DWORD PTR _param$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 407  :   iParameter* param = new ParameterVec2f ();
+; 567  :   iParameter* param = new ParameterVec2f ();
 
 	mov	DWORD PTR _param$[ebp], esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -2442,13 +2618,13 @@ $LN4@create_par:
 	call	??$emplace_back@ABQAViParameter@sk@@@?$vector@PAViParameter@sk@@V?$allocator@PAViParameter@sk@@@std@@@std@@QAEXABQAViParameter@sk@@@Z ; std::vector<sk::iParameter *,std::allocator<sk::iParameter *> >::emplace_back<sk::iParameter * const &>
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 410  :   return param;
+; 570  :   return param;
 
 	mov	eax, DWORD PTR _param$[ebp]
 	pop	edi
 	pop	esi
 
-; 411  : }
+; 571  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -2457,8 +2633,10 @@ $LN4@create_par:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2466,8 +2644,7 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -2480,7 +2657,7 @@ _name$ = 8						; size = 4
 ??$create_parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z PROC ; sk::ParameterFactory::create_parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 ; _this$ = ecx
 
-; 392  : {
+; 552  : {
 
 	npad	2
 	push	ebp
@@ -2489,9 +2666,9 @@ _name$ = 8						; size = 4
 	push	esi
 	push	edi
 
-; 395  :   iParameter* param = new ParameterStringW ();
+; 555  :   iParameter* param = new ParameterStringW ();
 
-	push	104					; 00000068H
+	push	88					; 00000058H
 	mov	edi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
@@ -2499,82 +2676,82 @@ _name$ = 8						; size = 4
 	mov	DWORD PTR $T1[ebp], esi
 	test	esi, esi
 	je	SHORT $LN3@create_par
-	push	104					; 00000068H
+	push	88					; 00000058H
 	push	0
 	push	esi
 	call	_memset
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [esi+24], 0
+	mov	DWORD PTR [esi+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 395  :   iParameter* param = new ParameterStringW ();
+; 555  :   iParameter* param = new ParameterStringW ();
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+28], 7
+	mov	DWORD PTR [esi+28], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
-	mov	WORD PTR [esi+8], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [esi+48], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+52], 7
+	mov	DWORD PTR [esi+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+32], ax
+	mov	WORD PTR [esi+12], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+52], eax
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+56], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [esi+4], eax
+	mov	DWORD PTR [esi+8], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+72], eax
+	mov	DWORD PTR [esi+76], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+76], 7
+	mov	DWORD PTR [esi+80], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+56], ax
+	mov	WORD PTR [esi+60], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [esi+84], OFFSET ??_R0?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@8
 	mov	DWORD PTR [esi], OFFSET ??_7ParameterStringW@sk@@6B@
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [esi+96], eax
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [esi+100], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR [esi+80], ax
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 395  :   iParameter* param = new ParameterStringW ();
+; 555  :   iParameter* param = new ParameterStringW ();
 
 	jmp	SHORT $LN4@create_par
 $LN3@create_par:
@@ -2587,7 +2764,7 @@ $LN4@create_par:
 	lea	eax, DWORD PTR _param$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 395  :   iParameter* param = new ParameterStringW ();
+; 555  :   iParameter* param = new ParameterStringW ();
 
 	mov	DWORD PTR _param$[ebp], esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -2599,13 +2776,13 @@ $LN4@create_par:
 	call	??$emplace_back@ABQAViParameter@sk@@@?$vector@PAViParameter@sk@@V?$allocator@PAViParameter@sk@@@std@@@std@@QAEXABQAViParameter@sk@@@Z ; std::vector<sk::iParameter *,std::allocator<sk::iParameter *> >::emplace_back<sk::iParameter * const &>
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 398  :   return param;
+; 558  :   return param;
 
 	mov	eax, DWORD PTR _param$[ebp]
 	pop	edi
 	pop	esi
 
-; 399  : }
+; 559  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -2614,13 +2791,16 @@ $LN4@create_par:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -2633,7 +2813,7 @@ _name$ = 8						; size = 4
 ??$create_parameter@M@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z PROC ; sk::ParameterFactory::create_parameter<float>
 ; _this$ = ecx
 
-; 380  : {
+; 540  : {
 
 	npad	2
 	push	ebp
@@ -2642,9 +2822,9 @@ _name$ = 8						; size = 4
 	push	esi
 	push	edi
 
-; 383  :   iParameter* param = new ParameterFloat ();
+; 543  :   iParameter* param = new ParameterFloat ();
 
-	push	64					; 00000040H
+	push	68					; 00000044H
 	mov	edi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
@@ -2652,54 +2832,68 @@ _name$ = 8						; size = 4
 	mov	DWORD PTR $T1[ebp], esi
 	test	esi, esi
 	je	SHORT $LN3@create_par
-	push	64					; 00000040H
+	push	68					; 00000044H
 	push	0
 	push	esi
 	call	_memset
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [esi+24], 0
+	mov	DWORD PTR [esi+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 383  :   iParameter* param = new ParameterFloat ();
+; 543  :   iParameter* param = new ParameterFloat ();
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+28], 7
+	mov	DWORD PTR [esi+28], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
-	mov	WORD PTR [esi+8], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [esi+48], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+52], 7
+	mov	DWORD PTR [esi+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+32], ax
+	mov	WORD PTR [esi+12], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+52], eax
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+56], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [esi+4], eax
+	mov	DWORD PTR [esi+8], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [esi+64], OFFSET ??_R0M@8
 	mov	DWORD PTR [esi], OFFSET ??_7ParameterFloat@sk@@6B@
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 383  :   iParameter* param = new ParameterFloat ();
+; 543  :   iParameter* param = new ParameterFloat ();
 
 	jmp	SHORT $LN4@create_par
 $LN3@create_par:
@@ -2712,7 +2906,7 @@ $LN4@create_par:
 	lea	eax, DWORD PTR _param$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 383  :   iParameter* param = new ParameterFloat ();
+; 543  :   iParameter* param = new ParameterFloat ();
 
 	mov	DWORD PTR _param$[ebp], esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -2724,13 +2918,13 @@ $LN4@create_par:
 	call	??$emplace_back@ABQAViParameter@sk@@@?$vector@PAViParameter@sk@@V?$allocator@PAViParameter@sk@@@std@@@std@@QAEXABQAViParameter@sk@@@Z ; std::vector<sk::iParameter *,std::allocator<sk::iParameter *> >::emplace_back<sk::iParameter * const &>
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 386  :   return param;
+; 546  :   return param;
 
 	mov	eax, DWORD PTR _param$[ebp]
 	pop	edi
 	pop	esi
 
-; 387  : }
+; 547  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -2739,13 +2933,16 @@ $LN4@create_par:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -2758,7 +2955,7 @@ _name$ = 8						; size = 4
 ??$create_parameter@_N@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z PROC ; sk::ParameterFactory::create_parameter<bool>
 ; _this$ = ecx
 
-; 368  : {
+; 528  : {
 
 	npad	2
 	push	ebp
@@ -2767,9 +2964,9 @@ _name$ = 8						; size = 4
 	push	esi
 	push	edi
 
-; 371  :   iParameter* param = new ParameterBool ();
+; 531  :   iParameter* param = new ParameterBool ();
 
-	push	68					; 00000044H
+	push	72					; 00000048H
 	mov	edi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
@@ -2777,55 +2974,69 @@ _name$ = 8						; size = 4
 	mov	DWORD PTR $T1[ebp], esi
 	test	esi, esi
 	je	SHORT $LN3@create_par
-	push	68					; 00000044H
+	push	72					; 00000048H
 	push	0
 	push	esi
 	call	_memset
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [esi+24], 0
+	mov	DWORD PTR [esi+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 371  :   iParameter* param = new ParameterBool ();
+; 531  :   iParameter* param = new ParameterBool ();
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+28], 7
+	mov	DWORD PTR [esi+28], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
-	mov	WORD PTR [esi+8], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [esi+48], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+52], 7
+	mov	DWORD PTR [esi+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+32], ax
+	mov	WORD PTR [esi+12], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+52], eax
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+56], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [esi+4], eax
+	mov	DWORD PTR [esi+8], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [esi+64], OFFSET ??_R0_N@8
 	mov	DWORD PTR [esi], OFFSET ??_7ParameterBool@sk@@6B@
-	mov	DWORD PTR [esi+64], eax
+	mov	DWORD PTR [esi+68], eax
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 371  :   iParameter* param = new ParameterBool ();
+; 531  :   iParameter* param = new ParameterBool ();
 
 	jmp	SHORT $LN4@create_par
 $LN3@create_par:
@@ -2838,7 +3049,7 @@ $LN4@create_par:
 	lea	eax, DWORD PTR _param$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 371  :   iParameter* param = new ParameterBool ();
+; 531  :   iParameter* param = new ParameterBool ();
 
 	mov	DWORD PTR _param$[ebp], esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -2850,13 +3061,13 @@ $LN4@create_par:
 	call	??$emplace_back@ABQAViParameter@sk@@@?$vector@PAViParameter@sk@@V?$allocator@PAViParameter@sk@@@std@@@std@@QAEXABQAViParameter@sk@@@Z ; std::vector<sk::iParameter *,std::allocator<sk::iParameter *> >::emplace_back<sk::iParameter * const &>
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 374  :   return param;
+; 534  :   return param;
 
 	mov	eax, DWORD PTR _param$[ebp]
 	pop	edi
 	pop	esi
 
-; 375  : }
+; 535  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -2865,13 +3076,16 @@ $LN4@create_par:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -2884,7 +3098,7 @@ _name$ = 8						; size = 4
 ??$create_parameter@_J@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z PROC ; sk::ParameterFactory::create_parameter<__int64>
 ; _this$ = ecx
 
-; 356  : {
+; 516  : {
 
 	npad	2
 	push	ebp
@@ -2893,9 +3107,9 @@ _name$ = 8						; size = 4
 	push	esi
 	push	edi
 
-; 359  :   iParameter* param = new ParameterInt64 ();
+; 519  :   iParameter* param = new ParameterInt64 ();
 
-	push	72					; 00000048H
+	push	80					; 00000050H
 	mov	edi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
@@ -2903,54 +3117,68 @@ _name$ = 8						; size = 4
 	mov	DWORD PTR $T1[ebp], esi
 	test	esi, esi
 	je	SHORT $LN3@create_par
-	push	72					; 00000048H
+	push	80					; 00000050H
 	push	0
 	push	esi
 	call	_memset
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [esi+24], 0
+	mov	DWORD PTR [esi+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 359  :   iParameter* param = new ParameterInt64 ();
+; 519  :   iParameter* param = new ParameterInt64 ();
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+28], 7
+	mov	DWORD PTR [esi+28], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
-	mov	WORD PTR [esi+8], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [esi+48], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+52], 7
+	mov	DWORD PTR [esi+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+32], ax
+	mov	WORD PTR [esi+12], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+52], eax
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+56], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [esi+4], eax
+	mov	DWORD PTR [esi+8], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [esi+72], OFFSET ??_R0_J@8
 	mov	DWORD PTR [esi], OFFSET ??_7ParameterInt64@sk@@6B@
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 359  :   iParameter* param = new ParameterInt64 ();
+; 519  :   iParameter* param = new ParameterInt64 ();
 
 	jmp	SHORT $LN4@create_par
 $LN3@create_par:
@@ -2963,7 +3191,7 @@ $LN4@create_par:
 	lea	eax, DWORD PTR _param$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 359  :   iParameter* param = new ParameterInt64 ();
+; 519  :   iParameter* param = new ParameterInt64 ();
 
 	mov	DWORD PTR _param$[ebp], esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -2975,13 +3203,13 @@ $LN4@create_par:
 	call	??$emplace_back@ABQAViParameter@sk@@@?$vector@PAViParameter@sk@@V?$allocator@PAViParameter@sk@@@std@@@std@@QAEXABQAViParameter@sk@@@Z ; std::vector<sk::iParameter *,std::allocator<sk::iParameter *> >::emplace_back<sk::iParameter * const &>
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 362  :   return param;
+; 522  :   return param;
 
 	mov	eax, DWORD PTR _param$[ebp]
 	pop	edi
 	pop	esi
 
-; 363  : }
+; 523  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -2990,15 +3218,15 @@ $LN4@create_par:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
-; File c:\users\andon\source\repos\specialk\src\parameter.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -3009,104 +3237,105 @@ _name$ = 8						; size = 4
 ??$create_parameter@H@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z PROC ; sk::ParameterFactory::create_parameter<int>
 ; _this$ = ecx
 
-; 333  : {
+; 493  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ecx
 	push	esi
-	push	edi
 
-; 336  :   iParameter* param = new ParameterInt ();
+; 496  :   iParameter* param = new ParameterInt ();
 
-	push	64					; 00000040H
-	mov	edi, ecx
+	push	68					; 00000044H
+	mov	esi, ecx
 	call	??2@YAPAXI@Z				; operator new
-	mov	esi, eax
 	add	esp, 4
-	mov	DWORD PTR $T1[ebp], esi
-	test	esi, esi
+	mov	DWORD PTR $T1[ebp], eax
+	test	eax, eax
 	je	SHORT $LN3@create_par
-	push	64					; 00000040H
-	push	0
-	push	esi
-	call	_memset
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [esi+24], 0
-; File c:\users\andon\source\repos\specialk\src\parameter.cpp
-
-; 336  :   iParameter* param = new ParameterInt ();
-
-	add	esp, 12					; 0000000cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [esi+28], 7
+	mov	DWORD PTR [eax+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	xor	eax, eax
-	mov	WORD PTR [esi+8], ax
+	xor	ecx, ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+48], eax
+	mov	DWORD PTR [eax+28], 0
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+52], 7
+	mov	DWORD PTR [eax+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+32], ax
+	mov	WORD PTR [eax+12], cx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [eax+52], ecx
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [eax+56], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [eax+36], cx
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [esi+4], eax
-	mov	DWORD PTR [esi], OFFSET ??_7ParameterInt@sk@@6B@
+	mov	DWORD PTR [eax+8], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [eax+64], OFFSET ??_R0H@8
+; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+
+; 106  :   ParameterInt (void) {
+
+	mov	DWORD PTR [eax], OFFSET ??_7ParameterInt@sk@@6B@
+
+; 107  :     type_ = std::type_index (typeid (int));
+
+	mov	DWORD PTR [eax+64], OFFSET ??_R0H@8
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 336  :   iParameter* param = new ParameterInt ();
+; 496  :   iParameter* param = new ParameterInt ();
 
 	jmp	SHORT $LN4@create_par
 $LN3@create_par:
-	xor	esi, esi
+	xor	eax, eax
 $LN4@create_par:
+	mov	DWORD PTR _param$[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 
 ; 947  : 		emplace_back(_Val);
 
+	mov	ecx, esi
 	lea	eax, DWORD PTR _param$[ebp]
-; File c:\users\andon\source\repos\specialk\src\parameter.cpp
-
-; 336  :   iParameter* param = new ParameterInt ();
-
-	mov	DWORD PTR _param$[ebp], esi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-
-; 947  : 		emplace_back(_Val);
-
 	push	eax
-	mov	ecx, edi
 	call	??$emplace_back@ABQAViParameter@sk@@@?$vector@PAViParameter@sk@@V?$allocator@PAViParameter@sk@@@std@@@std@@QAEXABQAViParameter@sk@@@Z ; std::vector<sk::iParameter *,std::allocator<sk::iParameter *> >::emplace_back<sk::iParameter * const &>
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 339  :   return param;
+; 499  :   return param;
 
 	mov	eax, DWORD PTR _param$[ebp]
-	pop	edi
 	pop	esi
 
-; 340  : }
+; 500  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -3976,13 +4205,14 @@ __Count$ = 12						; size = 4
 ?deallocate@?$allocator@PAViParameter@sk@@@std@@QAEXPAPAViParameter@sk@@I@Z ENDP ; std::allocator<sk::iParameter *>::deallocate
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0ParameterVec2f@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -3992,11 +4222,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -4004,50 +4233,278 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 35   :     ImVec2 (void)               { x = y = 0.0f;   }
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+60], eax
-	mov	DWORD PTR [ecx+56], eax
+	mov	DWORD PTR [ecx+8], eax
 
-; 52   :     ini        = nullptr;
+; 36   :     ImVec2 (void)               { x = y = 0.0f;   }
 
-	mov	DWORD PTR [ecx+4], eax
-
-; 35   :     ImVec2 (void)               { x = y = 0.0f;   }
-
-	mov	DWORD PTR [ecx+68], eax
 	mov	DWORD PTR [ecx+64], eax
+	mov	DWORD PTR [ecx+60], eax
 	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+68], OFFSET ??_R0?AUImVec2@@@8
 	mov	DWORD PTR _this$[ebp], ecx
 	mov	DWORD PTR [ecx], OFFSET ??_7ParameterVec2f@sk@@6B@
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ??0ParameterVec2f@sk@@QAE@XZ ENDP			; sk::ParameterVec2f::ParameterVec2f
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+$T1 = -8						; size = 8
+_ref$ = 8						; size = 4
+?load@ParameterVec2f@sk@@UAE_NAAUImVec2@@@Z PROC	; sk::ParameterVec2f::load
+; _this$ = ecx
+
+; 479  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	sub	esp, 8
+	push	ebx
+	push	esi
+	mov	esi, ecx
+
+; 480  :   bool bRet = 
+; 481  :     iParameter::load ();
+
+	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
+	mov	bl, al
+
+; 482  : 
+; 483  :   if (bRet)
+
+	test	bl, bl
+	je	SHORT $LN4@load
+
+; 484  :     ref = get_value ();
+
+	mov	edx, DWORD PTR [esi]
+	lea	eax, DWORD PTR $T1[ebp]
+	push	eax
+	mov	ecx, esi
+	call	DWORD PTR [edx+8]
+	mov	edx, DWORD PTR _ref$[ebp]
+	mov	ecx, DWORD PTR [eax]
+	mov	DWORD PTR [edx], ecx
+	mov	eax, DWORD PTR [eax+4]
+	mov	DWORD PTR [edx+4], eax
+$LN4@load:
+
+; 485  : 
+; 486  :   return bRet;
+
+	pop	esi
+	mov	al, bl
+	pop	ebx
+
+; 487  : }
+
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+?load@ParameterVec2f@sk@@UAE_NAAUImVec2@@@Z ENDP	; sk::ParameterVec2f::load
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+_str$ = 8						; size = 24
+?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterVec2f::store_str
+; _this$ = ecx
+
+; 472  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+
+; 473  :   set_value_str  (str);
+
+	sub	esp, 24					; 00000018H
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	mov	ecx, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+20], 7
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	lea	eax, DWORD PTR _str$[ebp]
+	push	eax
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 473  :   set_value_str  (str);
+
+	mov	eax, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [eax+4]
+
+; 474  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _str$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN49@store_str
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR _str$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN49@store_str:
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 475  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	24					; 00000018H
+_TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0:
+	lea	ecx, DWORD PTR _str$[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__ehhandler$?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?store_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ENDP ; sk::ParameterVec2f::store_str
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+_val$ = 8						; size = 8
+?store@ParameterVec2f@sk@@UAEXUImVec2@@@Z PROC		; sk::ParameterVec2f::store
+; _this$ = ecx
+
+; 465  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+
+; 466  :   set_value      (val);
+
+	push	DWORD PTR _val$[ebp+4]
+	mov	esi, ecx
+	push	DWORD PTR _val$[ebp]
+	mov	eax, DWORD PTR [esi]
+	call	DWORD PTR [eax+12]
+
+; 467  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	pop	esi
+
+; 468  : }
+
+	pop	ebp
+	ret	8
+?store@ParameterVec2f@sk@@UAEXUImVec2@@@Z ENDP		; sk::ParameterVec2f::store
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -4067,7 +4524,7 @@ _str$ = 8						; size = 24
 ?set_value_str@ParameterVec2f@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterVec2f::set_value_str
 ; _this$ = ecx
 
-; 325  : {
+; 459  : {
 
 	npad	2
 	push	ebp
@@ -4079,11 +4536,11 @@ _str$ = 8						; size = 24
 	cmp	DWORD PTR _str$[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 326  :   swscanf (str.c_str (), L"(%f,%f)", &value.x, &value.y);
+; 460  :   swscanf (str.c_str (), L"(%f,%f)", &value.x, &value.y);
 
-	lea	eax, DWORD PTR [ecx+68]
-	push	eax
 	lea	eax, DWORD PTR [ecx+64]
+	push	eax
+	lea	eax, DWORD PTR [ecx+60]
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -4093,9 +4550,9 @@ _str$ = 8						; size = 24
 	cmovae	edx, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 326  :   swscanf (str.c_str (), L"(%f,%f)", &value.x, &value.y);
+; 460  :   swscanf (str.c_str (), L"(%f,%f)", &value.x, &value.y);
 
-	push	OFFSET $SG133307
+	push	OFFSET $SG133548
 	push	edx
 	call	_swscanf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -4105,7 +4562,7 @@ _str$ = 8						; size = 24
 	mov	eax, DWORD PTR _str$[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 326  :   swscanf (str.c_str (), L"(%f,%f)", &value.x, &value.y);
+; 460  :   swscanf (str.c_str (), L"(%f,%f)", &value.x, &value.y);
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -4138,7 +4595,7 @@ _str$ = 8						; size = 24
 $LN27@set_value_:
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 327  : }
+; 461  : }
 
 	pop	ebp
 	ret	24					; 00000018H
@@ -4151,20 +4608,20 @@ _val$ = 8						; size = 8
 ?set_value@ParameterVec2f@sk@@UAEXUImVec2@@@Z PROC	; sk::ParameterVec2f::set_value
 ; _this$ = ecx
 
-; 319  : {
+; 453  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 320  :   value = val;
+; 454  :   value = val;
 
 	mov	eax, DWORD PTR _val$[ebp]
-	mov	DWORD PTR [ecx+64], eax
+	mov	DWORD PTR [ecx+60], eax
 	mov	eax, DWORD PTR _val$[ebp+4]
-	mov	DWORD PTR [ecx+68], eax
+	mov	DWORD PTR [ecx+64], eax
 
-; 321  : }
+; 455  : }
 
 	pop	ebp
 	ret	8
@@ -4177,21 +4634,21 @@ ___$ReturnUdt$ = 8					; size = 4
 ?get_value@ParameterVec2f@sk@@UAE?AUImVec2@@XZ PROC	; sk::ParameterVec2f::get_value
 ; _this$ = ecx
 
-; 313  : {
+; 447  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 314  :   return value;
+; 448  :   return value;
 
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-	mov	edx, DWORD PTR [ecx+64]
-	mov	ecx, DWORD PTR [ecx+68]
+	mov	edx, DWORD PTR [ecx+60]
+	mov	ecx, DWORD PTR [ecx+64]
 	mov	DWORD PTR [eax], edx
 	mov	DWORD PTR [eax+4], ecx
 
-; 315  : }
+; 449  : }
 
 	pop	ebp
 	ret	4
@@ -4207,7 +4664,7 @@ ___$ReturnUdt$ = 8					; size = 4
 ?get_value_str@ParameterVec2f@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; sk::ParameterVec2f::get_value_str
 ; _this$ = ecx
 
-; 298  : {
+; 432  : {
 
 	npad	2
 	push	ebp
@@ -4218,10 +4675,10 @@ ___$ReturnUdt$ = 8					; size = 4
 	mov	DWORD PTR $T1[ebp], 0
 	mov	esi, ecx
 
-; 299  :   wchar_t x_str [16] = { };
-; 300  :   wchar_t y_str [16] = { };
-; 301  : 
-; 302  :   swprintf (x_str, L"%f", value.x);
+; 433  :   wchar_t x_str [16] = { };
+; 434  :   wchar_t y_str [16] = { };
+; 435  : 
+; 436  :   swprintf (x_str, L"%f", value.x);
 
 	lea	eax, DWORD PTR _x_str$[ebp]
 	movups	XMMWORD PTR _x_str$[ebp], xmm0
@@ -4229,55 +4686,55 @@ ___$ReturnUdt$ = 8					; size = 4
 	movups	XMMWORD PTR _x_str$[ebp+16], xmm0
 	movups	XMMWORD PTR _y_str$[ebp], xmm0
 	movups	XMMWORD PTR _y_str$[ebp+16], xmm0
-	movss	xmm0, DWORD PTR [esi+64]
+	movss	xmm0, DWORD PTR [esi+60]
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG133291
+	push	OFFSET $SG133532
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
-	movss	xmm0, DWORD PTR [esi+68]
+	movss	xmm0, DWORD PTR [esi+64]
 
-; 303  :   swprintf (y_str, L"%f", value.y);
+; 437  :   swprintf (y_str, L"%f", value.y);
 
 	lea	eax, DWORD PTR _y_str$[ebp]
 	cvtps2pd xmm0, xmm0
 	add	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG133292
+	push	OFFSET $SG133533
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 
-; 304  : 
-; 305  :   SK_RemoveTrailingDecimalZeros (x_str);
+; 438  : 
+; 439  :   SK_RemoveTrailingDecimalZeros (x_str);
 
 	lea	eax, DWORD PTR _x_str$[ebp]
 	push	0
 	push	eax
 	call	?SK_RemoveTrailingDecimalZeros@@YAIPA_WI@Z ; SK_RemoveTrailingDecimalZeros
 
-; 306  :   SK_RemoveTrailingDecimalZeros (y_str);
+; 440  :   SK_RemoveTrailingDecimalZeros (y_str);
 
 	lea	eax, DWORD PTR _y_str$[ebp]
 	push	0
 	push	eax
 	call	?SK_RemoveTrailingDecimalZeros@@YAIPA_WI@Z ; SK_RemoveTrailingDecimalZeros
 
-; 307  : 
-; 308  :   return SK_FormatStringW (L"(%s,%s)", x_str, y_str);
+; 441  : 
+; 442  :   return SK_FormatStringW (L"(%s,%s)", x_str, y_str);
 
 	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
 	lea	eax, DWORD PTR _y_str$[ebp]
 	push	eax
 	lea	eax, DWORD PTR _x_str$[ebp]
 	push	eax
-	push	OFFSET $SG133293
+	push	OFFSET $SG133534
 	push	esi
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 48					; 00000030H
 	mov	eax, esi
 	pop	esi
 
-; 309  : }
+; 443  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -4293,13 +4750,14 @@ _TEXT	SEGMENT
 ??1?$Parameter@UImVec2@@@sk@@QAE@XZ ENDP		; sk::Parameter<ImVec2>::~Parameter<ImVec2>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0?$Parameter@UImVec2@@@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -4309,11 +4767,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -4321,48 +4778,57 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
+	mov	DWORD PTR [ecx], OFFSET ??_7?$Parameter@UImVec2@@@sk@@6B@
 
-; 35   :     ImVec2 (void)               { x = y = 0.0f;   }
+; 36   :     ImVec2 (void)               { x = y = 0.0f;   }
 
+	mov	DWORD PTR [ecx+64], eax
 	mov	DWORD PTR [ecx+60], eax
-	mov	DWORD PTR [ecx+56], eax
 	mov	eax, ecx
 	mov	DWORD PTR _this$[ebp], ecx
-	mov	DWORD PTR [ecx], OFFSET ??_7?$Parameter@UImVec2@@@sk@@6B@
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+68], OFFSET ??_R0?AUImVec2@@@8
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ??0?$Parameter@UImVec2@@@sk@@QAE@XZ ENDP		; sk::Parameter<ImVec2>::Parameter<ImVec2>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -4371,8 +4837,7 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0ParameterStringW@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -4382,11 +4847,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -4394,64 +4858,59 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+72], eax
+	mov	DWORD PTR [ecx+76], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+76], 7
+	mov	DWORD PTR [ecx+80], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+56], ax
-	mov	DWORD PTR [ecx], OFFSET ??_7ParameterStringW@sk@@6B@
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [ecx+96], eax
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [ecx+100], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR [ecx+80], ax
+	mov	WORD PTR [ecx+60], ax
 	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+84], OFFSET ??_R0?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@8
 	mov	DWORD PTR _this$[ebp], ecx
+	mov	DWORD PTR [ecx], OFFSET ??_7ParameterStringW@sk@@6B@
 	mov	esp, ebp
 	pop	ebp
 	ret	0
@@ -4465,12 +4924,365 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 _TEXT	SEGMENT
+$T1 = -24						; size = 24
+_ref$ = 8						; size = 4
+?load@ParameterStringW@sk@@UAE_NAAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterStringW::load
+; _this$ = ecx
+
+; 418  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	sub	esp, 24					; 00000018H
+	push	ebx
+	push	esi
+	mov	esi, ecx
+
+; 419  :   bool bRet = 
+; 420  :     iParameter::load ();
+
+	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
+	mov	bl, al
+
+; 421  : 
+; 422  :   if (bRet)
+
+	test	bl, bl
+	je	SHORT $LN36@load
+
+; 423  :     ref = get_value ();
+
+	mov	edx, DWORD PTR [esi]
+	lea	eax, DWORD PTR $T1[ebp]
+	push	eax
+	mov	ecx, esi
+	call	DWORD PTR [edx+8]
+	mov	ecx, DWORD PTR _ref$[ebp]
+	push	eax
+	call	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@$$QAV01@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T1[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN36@load
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR $T1[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN36@load:
+	pop	esi
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 425  :   return bRet;
+
+	mov	al, bl
+	pop	ebx
+
+; 426  : }
+
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+?load@ParameterStringW@sk@@UAE_NAAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ENDP ; sk::ParameterStringW::load
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+_str$ = 8						; size = 24
+?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterStringW::store_str
+; _this$ = ecx
+
+; 411  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+
+; 412  :   set_value_str  (str);
+
+	sub	esp, 24					; 00000018H
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	mov	ecx, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+20], 7
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	lea	eax, DWORD PTR _str$[ebp]
+	push	eax
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 412  :   set_value_str  (str);
+
+	mov	eax, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [eax+4]
+
+; 413  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _str$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN49@store_str
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR _str$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN49@store_str:
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 414  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	24					; 00000018H
+_TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0:
+	lea	ecx, DWORD PTR _str$[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__ehhandler$?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?store_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ENDP ; sk::ParameterStringW::store_str
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+_val$ = 8						; size = 24
+?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterStringW::store
+; _this$ = ecx
+
+; 404  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+
+; 405  :   set_value      (val);
+
+	sub	esp, 24					; 00000018H
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	mov	ecx, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+20], 7
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	lea	eax, DWORD PTR _val$[ebp]
+	push	eax
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 405  :   set_value      (val);
+
+	mov	eax, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [eax+12]
+
+; 406  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _val$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN49@store
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR _val$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN49@store:
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 407  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	24					; 00000018H
+_TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0:
+	lea	ecx, DWORD PTR _val$[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__ehhandler$?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?store@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ENDP ; sk::ParameterStringW::store
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
 __$EHRec$ = -12						; size = 12
 _str$ = 8						; size = 24
 ?set_value_str@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterStringW::set_value_str
 ; _this$ = ecx
 
-; 290  : {
+; 398  : {
 
 	npad	2
 	push	ebp
@@ -4481,9 +5293,9 @@ _str$ = 8						; size = 24
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 291  :   value = str;
+; 399  :   value = str;
 
-	add	ecx, 80					; 00000050H
+	add	ecx, 60					; 0000003cH
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -4530,7 +5342,7 @@ $LN5@set_value_:
 $LN50@set_value_:
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 292  : }
+; 400  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -4560,7 +5372,7 @@ _val$ = 8						; size = 24
 ?set_value@ParameterStringW@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterStringW::set_value
 ; _this$ = ecx
 
-; 283  : {
+; 391  : {
 
 	npad	2
 	push	ebp
@@ -4571,9 +5383,9 @@ _val$ = 8						; size = 24
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 284  :   value = val;
+; 392  :   value = val;
 
-	add	ecx, 80					; 00000050H
+	add	ecx, 60					; 0000003cH
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -4620,7 +5432,7 @@ $LN5@set_value:
 $LN50@set_value:
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 285  : }
+; 393  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -4653,7 +5465,7 @@ ___$ReturnUdt$ = 8					; size = 4
 ?get_value@ParameterStringW@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; sk::ParameterStringW::get_value
 ; _this$ = ecx
 
-; 277  : {
+; 385  : {
 
 	npad	2
 	push	ebp
@@ -4677,9 +5489,9 @@ ___$ReturnUdt$ = 8					; size = 4
 	push	-1
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 278  :   return value;
+; 386  :   return value;
 
-	add	ecx, 80					; 00000050H
+	add	ecx, 60					; 0000003cH
 	mov	DWORD PTR $T1[ebp], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -4711,12 +5523,12 @@ ___$ReturnUdt$ = 8					; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 278  :   return value;
+; 386  :   return value;
 
 	mov	eax, esi
 	pop	esi
 
-; 279  : }
+; 387  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -4739,7 +5551,7 @@ ___$ReturnUdt$ = 8					; size = 4
 ?get_value_str@ParameterStringW@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; sk::ParameterStringW::get_value_str
 ; _this$ = ecx
 
-; 271  : {
+; 379  : {
 
 	npad	2
 	push	ebp
@@ -4763,9 +5575,9 @@ ___$ReturnUdt$ = 8					; size = 4
 	push	-1
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 272  :   return value;
+; 380  :   return value;
 
-	add	ecx, 80					; 00000050H
+	add	ecx, 60					; 0000003cH
 	mov	DWORD PTR $T1[ebp], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -4797,12 +5609,12 @@ ___$ReturnUdt$ = 8					; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 272  :   return value;
+; 380  :   return value;
 
 	mov	eax, esi
 	pop	esi
 
-; 273  : }
+; 381  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -4829,7 +5641,7 @@ _TEXT	SEGMENT
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR [esi+76]
+	mov	eax, DWORD PTR [esi+80]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
@@ -4850,7 +5662,7 @@ _TEXT	SEGMENT
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR [esi+56]
+	push	DWORD PTR [esi+60]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 $LN7@Parameter:
@@ -4858,7 +5670,7 @@ $LN7@Parameter:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+72], 0
+	mov	DWORD PTR [esi+76], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -4868,19 +5680,19 @@ $LN7@Parameter:
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+76], 7
+	mov	DWORD PTR [esi+80], 7
 	mov	ecx, esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+56], ax
+	mov	WORD PTR [esi+60], ax
 	pop	esi
 	jmp	??1iParameter@sk@@QAE@XZ
 ??1?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@sk@@QAE@XZ ENDP ; sk::Parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >::~Parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -4889,6 +5701,7 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -4898,11 +5711,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -4910,63 +5722,73 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
 	mov	DWORD PTR [ecx], OFFSET ??_7?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@sk@@6B@
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+72], eax
+	mov	DWORD PTR [ecx+76], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+76], 7
+	mov	DWORD PTR [ecx+80], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+56], ax
+	mov	WORD PTR [ecx+60], ax
 	mov	eax, ecx
 	mov	DWORD PTR _this$[ebp], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+84], OFFSET ??_R0?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@8
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ??0?$Parameter@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@sk@@QAE@XZ ENDP ; sk::Parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >::Parameter<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0ParameterFloat@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -4976,11 +5798,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -4988,40 +5809,267 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
 	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+64], OFFSET ??_R0M@8
 	mov	DWORD PTR _this$[ebp], ecx
 	mov	DWORD PTR [ecx], OFFSET ??_7ParameterFloat@sk@@6B@
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ??0ParameterFloat@sk@@QAE@XZ ENDP			; sk::ParameterFloat::ParameterFloat
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+_ref$ = 8						; size = 4
+?load@ParameterFloat@sk@@UAE_NAAM@Z PROC		; sk::ParameterFloat::load
+; _this$ = ecx
+
+; 366  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ebx
+	push	esi
+	mov	esi, ecx
+
+; 367  :   bool bRet = 
+; 368  :     iParameter::load ();
+
+	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
+	mov	bl, al
+
+; 369  : 
+; 370  :   if (bRet)
+
+	test	bl, bl
+	je	SHORT $LN4@load
+
+; 371  :     ref = get_value ();
+
+	mov	edx, DWORD PTR [esi]
+	mov	ecx, esi
+	mov	edx, DWORD PTR [edx+8]
+	call	edx
+	mov	eax, DWORD PTR _ref$[ebp]
+	fstp	DWORD PTR [eax]
+$LN4@load:
+
+; 372  : 
+; 373  :   return bRet;
+
+	pop	esi
+	mov	al, bl
+	pop	ebx
+
+; 374  : }
+
+	pop	ebp
+	ret	4
+?load@ParameterFloat@sk@@UAE_NAAM@Z ENDP		; sk::ParameterFloat::load
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+_str$ = 8						; size = 24
+?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterFloat::store_str
+; _this$ = ecx
+
+; 359  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+
+; 360  :   set_value_str  (str);
+
+	sub	esp, 24					; 00000018H
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	mov	ecx, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+20], 7
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	lea	eax, DWORD PTR _str$[ebp]
+	push	eax
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 360  :   set_value_str  (str);
+
+	mov	eax, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [eax+4]
+
+; 361  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _str$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN49@store_str
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR _str$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN49@store_str:
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 362  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	24					; 00000018H
+_TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0:
+	lea	ecx, DWORD PTR _str$[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__ehhandler$?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?store_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ENDP ; sk::ParameterFloat::store_str
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+_val$ = 8						; size = 4
+?store@ParameterFloat@sk@@UAEXM@Z PROC			; sk::ParameterFloat::store
+; _this$ = ecx
+
+; 352  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 353  :   set_value      (val);
+
+	movss	xmm0, DWORD PTR _val$[ebp]
+	push	esi
+	mov	esi, ecx
+	push	ecx
+	movss	DWORD PTR [esp], xmm0
+	mov	eax, DWORD PTR [esi]
+	call	DWORD PTR [eax+12]
+
+; 354  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	pop	esi
+
+; 355  : }
+
+	pop	ebp
+	ret	4
+?store@ParameterFloat@sk@@UAEXM@Z ENDP			; sk::ParameterFloat::store
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -5039,7 +6087,7 @@ _str$ = 8						; size = 24
 ?set_value_str@ParameterFloat@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterFloat::set_value_str
 ; _this$ = ecx
 
-; 264  : {
+; 345  : {
 
 	npad	2
 	push	ebp
@@ -5057,11 +6105,11 @@ _str$ = 8						; size = 24
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 264  : {
+; 345  : {
 
 	mov	esi, ecx
 
-; 265  :   value = (float)wcstod (str.c_str (), nullptr);
+; 346  :   value = (float)wcstod (str.c_str (), nullptr);
 
 	push	0
 	push	eax
@@ -5073,7 +6121,7 @@ _str$ = 8						; size = 24
 	mov	eax, DWORD PTR _str$[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 265  :   value = (float)wcstod (str.c_str (), nullptr);
+; 346  :   value = (float)wcstod (str.c_str (), nullptr);
 
 	add	esp, 8
 	fstp	DWORD PTR [esi+60]
@@ -5108,7 +6156,7 @@ _str$ = 8						; size = 24
 $LN27@set_value_:
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 266  : }
+; 347  : }
 
 	pop	ebp
 	ret	24					; 00000018H
@@ -5121,18 +6169,18 @@ _val$ = 8						; size = 4
 ?set_value@ParameterFloat@sk@@UAEXM@Z PROC		; sk::ParameterFloat::set_value
 ; _this$ = ecx
 
-; 257  : {
+; 338  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 258  :   value = val;
+; 339  :   value = val;
 
 	movss	xmm0, DWORD PTR _val$[ebp]
 	movss	DWORD PTR [ecx+60], xmm0
 
-; 259  : }
+; 340  : }
 
 	pop	ebp
 	ret	4
@@ -5144,11 +6192,11 @@ _TEXT	SEGMENT
 ?get_value@ParameterFloat@sk@@UAEMXZ PROC		; sk::ParameterFloat::get_value
 ; _this$ = ecx
 
-; 252  :   return value;
+; 333  :   return value;
 
 	fld	DWORD PTR [ecx+60]
 
-; 253  : }
+; 334  : }
 
 	ret	0
 ?get_value@ParameterFloat@sk@@UAEMXZ ENDP		; sk::ParameterFloat::get_value
@@ -5172,7 +6220,7 @@ ___$ReturnUdt$ = 8					; size = 4
 ?get_value_str@ParameterFloat@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; sk::ParameterFloat::get_value_str
 ; _this$ = ecx
 
-; 240  : {
+; 321  : {
 
 	npad	2
 	push	ebp
@@ -5180,8 +6228,8 @@ ___$ReturnUdt$ = 8					; size = 4
 	sub	esp, 36					; 00000024H
 	movss	xmm0, DWORD PTR [ecx+60]
 
-; 241  :   wchar_t val_str [16];
-; 242  :   swprintf (val_str, L"%f", value);
+; 322  :   wchar_t val_str [16];
+; 323  :   swprintf (val_str, L"%f", value);
 
 	lea	eax, DWORD PTR _val_str$[ebp]
 	push	esi
@@ -5189,11 +6237,11 @@ ___$ReturnUdt$ = 8					; size = 4
 	sub	esp, 8
 	mov	DWORD PTR $T1[ebp], 0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG133251
+	push	OFFSET $SG133460
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 
-; 244  :   SK_RemoveTrailingDecimalZeros (val_str);
+; 325  :   SK_RemoveTrailingDecimalZeros (val_str);
 
 	lea	eax, DWORD PTR _val_str$[ebp]
 	push	0
@@ -5211,7 +6259,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	lea	ecx, DWORD PTR _val_str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 244  :   SK_RemoveTrailingDecimalZeros (val_str);
+; 325  :   SK_RemoveTrailingDecimalZeros (val_str);
 
 	add	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -5267,12 +6315,12 @@ $LL29@get_value_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 246  :   return std::wstring (val_str);
+; 327  :   return std::wstring (val_str);
 
 	mov	eax, esi
 	pop	esi
 
-; 247  : }
+; 328  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -5288,13 +6336,14 @@ _TEXT	SEGMENT
 ??1?$Parameter@M@sk@@QAE@XZ ENDP			; sk::Parameter<float>::~Parameter<float>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0?$Parameter@M@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -5304,11 +6353,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -5316,49 +6364,59 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
 	mov	eax, ecx
-	mov	DWORD PTR _this$[ebp], ecx
 	mov	DWORD PTR [ecx], OFFSET ??_7?$Parameter@M@sk@@6B@
+	mov	DWORD PTR _this$[ebp], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+64], OFFSET ??_R0M@8
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ??0?$Parameter@M@sk@@QAE@XZ ENDP			; sk::Parameter<float>::Parameter<float>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0ParameterBool@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -5368,11 +6426,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -5380,34 +6437,43 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
-	mov	DWORD PTR [ecx+64], eax
+	mov	DWORD PTR [ecx+8], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+64], OFFSET ??_R0_N@8
+	mov	DWORD PTR [ecx+68], eax
 	mov	eax, ecx
 	mov	DWORD PTR _this$[ebp], ecx
 	mov	DWORD PTR [ecx], OFFSET ??_7ParameterBool@sk@@6B@
@@ -5415,6 +6481,222 @@ _this$ = -4						; size = 4
 	pop	ebp
 	ret	0
 ??0ParameterBool@sk@@QAE@XZ ENDP			; sk::ParameterBool::ParameterBool
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+_ref$ = 8						; size = 4
+?load@ParameterBool@sk@@UAE_NAA_N@Z PROC		; sk::ParameterBool::load
+; _this$ = ecx
+
+; 307  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ebx
+	push	esi
+	mov	esi, ecx
+
+; 308  :   bool bRet = 
+; 309  :     iParameter::load ();
+
+	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
+	mov	bl, al
+
+; 310  : 
+; 311  :   if (bRet)
+
+	test	bl, bl
+	je	SHORT $LN4@load
+
+; 312  :     ref = get_value ();
+
+	mov	edx, DWORD PTR [esi]
+	mov	ecx, esi
+	mov	edx, DWORD PTR [edx+8]
+	call	edx
+	mov	ecx, DWORD PTR _ref$[ebp]
+	mov	BYTE PTR [ecx], al
+$LN4@load:
+
+; 313  : 
+; 314  :   return bRet;
+
+	pop	esi
+	mov	al, bl
+	pop	ebx
+
+; 315  : }
+
+	pop	ebp
+	ret	4
+?load@ParameterBool@sk@@UAE_NAA_N@Z ENDP		; sk::ParameterBool::load
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+_str$ = 8						; size = 24
+?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterBool::store_str
+; _this$ = ecx
+
+; 300  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+
+; 301  :   set_value_str  (str);
+
+	sub	esp, 24					; 00000018H
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	mov	ecx, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+20], 7
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	lea	eax, DWORD PTR _str$[ebp]
+	push	eax
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 301  :   set_value_str  (str);
+
+	mov	eax, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [eax+4]
+
+; 302  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _str$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN49@store_str
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR _str$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN49@store_str:
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 303  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	24					; 00000018H
+_TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0:
+	lea	ecx, DWORD PTR _str$[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__ehhandler$?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?store_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ENDP ; sk::ParameterBool::store_str
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+_val$ = 8						; size = 1
+?store@ParameterBool@sk@@UAEX_N@Z PROC			; sk::ParameterBool::store
+; _this$ = ecx
+
+; 293  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+
+; 294  :   set_value      (val);
+
+	push	DWORD PTR _val$[ebp]
+	mov	esi, ecx
+	mov	eax, DWORD PTR [esi]
+	call	DWORD PTR [eax+12]
+
+; 295  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	pop	esi
+
+; 296  : }
+
+	pop	ebp
+	ret	4
+?store@ParameterBool@sk@@UAEX_N@Z ENDP			; sk::ParameterBool::store
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -5466,24 +6748,24 @@ _str$ = 8						; size = 24
 ?set_value_str@ParameterBool@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterBool::set_value_str
 ; _this$ = ecx
 
-; 183  : {
+; 237  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 184  :   size_t len = str.length ();
-; 185  : 
-; 186  :   type = TrueFalse;
-; 187  : 
-; 188  :   switch (len)
+; 238  :   size_t len = str.length ();
+; 239  : 
+; 240  :   type = TrueFalse;
+; 241  : 
+; 242  :   switch (len)
 
 	mov	eax, DWORD PTR _str$[ebp+16]
 	push	esi
 	mov	esi, ecx
 	dec	eax
 	push	edi
-	mov	DWORD PTR [esi+64], 0
+	mov	DWORD PTR [esi+68], 0
 	cmp	eax, 3
 	ja	$LN16@set_value_
 	jmp	DWORD PTR $LN333@set_value_[eax*4]
@@ -5499,9 +6781,9 @@ $LN4@set_value_:
 	lea	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 191  :       type = ZeroNonZero;
+; 245  :       type = ZeroNonZero;
 
-	mov	DWORD PTR [esi+64], 3
+	mov	DWORD PTR [esi+68], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1614 : 		return (_Large_string_engaged()
@@ -5509,16 +6791,16 @@ $LN4@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 193  :       if (str [0] == L'1')
+; 247  :       if (str [0] == L'1')
 
 	cmp	WORD PTR [eax], 49			; 00000031H
 	jne	$LN2@set_value_
 
-; 194  :         value = true;
+; 248  :         value = true;
 
 	mov	BYTE PTR [esi+60], 1
 
-; 195  :       break;
+; 249  :       break;
 
 	jmp	$LN2@set_value_
 $LN6@set_value_:
@@ -5533,7 +6815,7 @@ $LN6@set_value_:
 	lea	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 198  :       if ( towlower (str [0]) == L'o' &&
+; 252  :       if ( towlower (str [0]) == L'o' &&
 
 	mov	edi, DWORD PTR __imp__towlower
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5543,7 +6825,7 @@ $LN6@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 198  :       if ( towlower (str [0]) == L'o' &&
+; 252  :       if ( towlower (str [0]) == L'o' &&
 
 	movzx	eax, WORD PTR [eax]
 	push	eax
@@ -5563,7 +6845,7 @@ $LN6@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 198  :       if ( towlower (str [0]) == L'o' &&
+; 252  :       if ( towlower (str [0]) == L'o' &&
 
 	movzx	eax, WORD PTR [eax+2]
 	push	eax
@@ -5572,16 +6854,16 @@ $LN6@set_value_:
 	cmp	ax, 110					; 0000006eH
 	jne	SHORT $LN7@set_value_
 
-; 199  :            towlower (str [1]) == L'n' ) {
-; 200  :         type  = OnOff;
+; 253  :            towlower (str [1]) == L'n' ) {
+; 254  :         type  = OnOff;
 
-	mov	DWORD PTR [esi+64], 1
+	mov	DWORD PTR [esi+68], 1
 
-; 201  :         value = true;
+; 255  :         value = true;
 
 	mov	BYTE PTR [esi+60], 1
 
-; 202  :       } else if ( towlower (str [0]) == L'n' &&
+; 256  :       } else if ( towlower (str [0]) == L'n' &&
 
 	jmp	SHORT $LN2@set_value_
 $LN7@set_value_:
@@ -5597,7 +6879,7 @@ $LN7@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 202  :       } else if ( towlower (str [0]) == L'n' &&
+; 256  :       } else if ( towlower (str [0]) == L'n' &&
 
 	movzx	eax, WORD PTR [eax]
 	push	eax
@@ -5617,7 +6899,7 @@ $LN7@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 202  :       } else if ( towlower (str [0]) == L'n' &&
+; 256  :       } else if ( towlower (str [0]) == L'n' &&
 
 	movzx	eax, WORD PTR [eax+2]
 	push	eax
@@ -5626,15 +6908,15 @@ $LN7@set_value_:
 	cmp	ax, 111					; 0000006fH
 	jne	SHORT $LN2@set_value_
 
-; 203  :                   towlower (str [1]) == L'o' ) {
-; 204  :         type  = YesNo;
+; 257  :                   towlower (str [1]) == L'o' ) {
+; 258  :         type  = YesNo;
 
-	mov	DWORD PTR [esi+64], 2
+	mov	DWORD PTR [esi+68], 2
 $LN16@set_value_:
 
-; 230  : 
-; 231  :     default:
-; 232  :       value = false;
+; 284  : 
+; 285  :     default:
+; 286  :       value = false;
 
 	mov	BYTE PTR [esi+60], 0
 $LN2@set_value_:
@@ -5671,7 +6953,7 @@ $LN2@set_value_:
 $LN305@set_value_:
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 235  : }
+; 289  : }
 
 	pop	ebp
 	ret	24					; 00000018H
@@ -5687,7 +6969,7 @@ $LN10@set_value_:
 	lea	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 211  :            towlower (str [1]) == L'e' &&
+; 265  :            towlower (str [1]) == L'e' &&
 
 	mov	edi, DWORD PTR __imp__towlower
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5697,7 +6979,7 @@ $LN10@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 211  :            towlower (str [1]) == L'e' &&
+; 265  :            towlower (str [1]) == L'e' &&
 
 	movzx	eax, WORD PTR [eax]
 	push	eax
@@ -5717,7 +6999,7 @@ $LN10@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 211  :            towlower (str [1]) == L'e' &&
+; 265  :            towlower (str [1]) == L'e' &&
 
 	movzx	eax, WORD PTR [eax+2]
 	push	eax
@@ -5737,7 +7019,7 @@ $LN10@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 211  :            towlower (str [1]) == L'e' &&
+; 265  :            towlower (str [1]) == L'e' &&
 
 	movzx	eax, WORD PTR [eax+4]
 	push	eax
@@ -5746,16 +7028,16 @@ $LN10@set_value_:
 	cmp	ax, 115					; 00000073H
 	jne	SHORT $LN11@set_value_
 
-; 212  :            towlower (str [2]) == L's' ) {
-; 213  :         type  = YesNo;
+; 266  :            towlower (str [2]) == L's' ) {
+; 267  :         type  = YesNo;
 
-	mov	DWORD PTR [esi+64], 2
+	mov	DWORD PTR [esi+68], 2
 
-; 214  :         value = true;
+; 268  :         value = true;
 
 	mov	BYTE PTR [esi+60], 1
 
-; 215  :       } else if ( towlower (str [0]) == L'o' &&
+; 269  :       } else if ( towlower (str [0]) == L'o' &&
 
 	jmp	SHORT $LN2@set_value_
 $LN11@set_value_:
@@ -5771,7 +7053,7 @@ $LN11@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 216  :                   towlower (str [1]) == L'f' &&
+; 270  :                   towlower (str [1]) == L'f' &&
 
 	movzx	eax, WORD PTR [eax]
 	push	eax
@@ -5791,7 +7073,7 @@ $LN11@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 216  :                   towlower (str [1]) == L'f' &&
+; 270  :                   towlower (str [1]) == L'f' &&
 
 	movzx	eax, WORD PTR [eax+2]
 	push	eax
@@ -5811,7 +7093,7 @@ $LN11@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 216  :                   towlower (str [1]) == L'f' &&
+; 270  :                   towlower (str [1]) == L'f' &&
 
 	movzx	eax, WORD PTR [eax+4]
 	push	eax
@@ -5820,14 +7102,14 @@ $LN11@set_value_:
 	cmp	ax, 102					; 00000066H
 	jne	$LN2@set_value_
 
-; 217  :                   towlower (str [2]) == L'f' ) {
-; 218  :         type  = OnOff;
+; 271  :                   towlower (str [2]) == L'f' ) {
+; 272  :         type  = OnOff;
 
-	mov	DWORD PTR [esi+64], 1
+	mov	DWORD PTR [esi+68], 1
 
-; 219  :         value = false;
-; 220  :       }
-; 221  :       break;
+; 273  :         value = false;
+; 274  :       }
+; 275  :       break;
 
 	jmp	$LN16@set_value_
 $LN14@set_value_:
@@ -5842,7 +7124,7 @@ $LN14@set_value_:
 	lea	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 226  :            towlower (str [2]) == L'u' &&
+; 280  :            towlower (str [2]) == L'u' &&
 
 	mov	edi, DWORD PTR __imp__towlower
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5852,7 +7134,7 @@ $LN14@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 226  :            towlower (str [2]) == L'u' &&
+; 280  :            towlower (str [2]) == L'u' &&
 
 	movzx	eax, WORD PTR [eax]
 	push	eax
@@ -5872,7 +7154,7 @@ $LN14@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 226  :            towlower (str [2]) == L'u' &&
+; 280  :            towlower (str [2]) == L'u' &&
 
 	movzx	eax, WORD PTR [eax+2]
 	push	eax
@@ -5892,7 +7174,7 @@ $LN14@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 226  :            towlower (str [2]) == L'u' &&
+; 280  :            towlower (str [2]) == L'u' &&
 
 	movzx	eax, WORD PTR [eax+4]
 	push	eax
@@ -5912,7 +7194,7 @@ $LN14@set_value_:
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 226  :            towlower (str [2]) == L'u' &&
+; 280  :            towlower (str [2]) == L'u' &&
 
 	movzx	eax, WORD PTR [eax+6]
 	push	eax
@@ -5921,18 +7203,18 @@ $LN14@set_value_:
 	cmp	ax, 101					; 00000065H
 	jne	$LN2@set_value_
 
-; 227  :            towlower (str [3]) == L'e' )
-; 228  :         value = true;
+; 281  :            towlower (str [3]) == L'e' )
+; 282  :         value = true;
 
 	mov	BYTE PTR [esi+60], 1
 
-; 229  :       break;
+; 283  :       break;
 
 	jmp	$LN2@set_value_
 	npad	1
 $LN333@set_value_:
 
-; 235  : }
+; 289  : }
 
 	DD	$LN4@set_value_
 	DD	$LN6@set_value_
@@ -5947,18 +7229,18 @@ _val$ = 8						; size = 1
 ?set_value@ParameterBool@sk@@UAEX_N@Z PROC		; sk::ParameterBool::set_value
 ; _this$ = ecx
 
-; 176  : {
+; 230  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 177  :   value = val;
+; 231  :   value = val;
 
 	mov	al, BYTE PTR _val$[ebp]
 	mov	BYTE PTR [ecx+60], al
 
-; 178  : }
+; 232  : }
 
 	pop	ebp
 	ret	4
@@ -5970,11 +7252,11 @@ _TEXT	SEGMENT
 ?get_value@ParameterBool@sk@@UAE_NXZ PROC		; sk::ParameterBool::get_value
 ; _this$ = ecx
 
-; 171  :   return value;
+; 225  :   return value;
 
 	mov	al, BYTE PTR [ecx+60]
 
-; 172  : }
+; 226  : }
 
 	ret	0
 ?get_value@ParameterBool@sk@@UAE_NXZ ENDP		; sk::ParameterBool::get_value
@@ -6010,16 +7292,16 @@ ___$ReturnUdt$ = 8					; size = 4
 ?get_value_str@ParameterBool@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; sk::ParameterBool::get_value_str
 ; _this$ = ecx
 
-; 139  : {
+; 193  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ecx
 
-; 154  :   switch (type) {
+; 208  :   switch (type) {
 
-	mov	eax, DWORD PTR [ecx+64]
+	mov	eax, DWORD PTR [ecx+68]
 	mov	DWORD PTR $T1[ebp], 0
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6030,7 +7312,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	push	edi
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 154  :   switch (type) {
+; 208  :   switch (type) {
 
 	sub	eax, 1
 	je	$LN6@get_value_
@@ -6039,11 +7321,11 @@ ___$ReturnUdt$ = 8					; size = 4
 	sub	eax, 1
 	je	SHORT $LN4@get_value_
 
-; 163  :       return value  ?  L"true" : L"false";
+; 217  :       return value  ?  L"true" : L"false";
 
 	cmp	BYTE PTR [ecx+60], 0
-	mov	eax, OFFSET $SG133215
-	mov	edx, OFFSET $SG133214
+	mov	eax, OFFSET $SG133409
+	mov	edx, OFFSET $SG133408
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -6051,7 +7333,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	mov	DWORD PTR [esi+16], 0
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 163  :       return value  ?  L"true" : L"false";
+; 217  :       return value  ?  L"true" : L"false";
 
 	cmove	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6080,16 +7362,16 @@ $LL107@get_value_:
 	jne	SHORT $LL107@get_value_
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 163  :       return value  ?  L"true" : L"false";
+; 217  :       return value  ?  L"true" : L"false";
 
 	jmp	$LN111@get_value_
 $LN4@get_value_:
 
-; 156  :       return value  ?  L"1"    : L"0";
+; 210  :       return value  ?  L"1"    : L"0";
 
 	cmp	BYTE PTR [ecx+60], 0
-	mov	eax, OFFSET $SG133206
-	mov	edx, OFFSET $SG133205
+	mov	eax, OFFSET $SG133400
+	mov	edx, OFFSET $SG133399
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -6097,7 +7379,7 @@ $LN4@get_value_:
 	mov	DWORD PTR [esi+16], 0
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 156  :       return value  ?  L"1"    : L"0";
+; 210  :       return value  ?  L"1"    : L"0";
 
 	cmove	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6127,16 +7409,16 @@ $LL108@get_value_:
 	jne	SHORT $LL108@get_value_
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 156  :       return value  ?  L"1"    : L"0";
+; 210  :       return value  ?  L"1"    : L"0";
 
 	jmp	SHORT $LN111@get_value_
 $LN5@get_value_:
 
-; 158  :       return value  ?  L"yes"  : L"no";
+; 212  :       return value  ?  L"yes"  : L"no";
 
 	cmp	BYTE PTR [ecx+60], 0
-	mov	eax, OFFSET $SG133209
-	mov	edx, OFFSET $SG133208
+	mov	eax, OFFSET $SG133403
+	mov	edx, OFFSET $SG133402
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -6144,7 +7426,7 @@ $LN5@get_value_:
 	mov	DWORD PTR [esi+16], 0
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 158  :       return value  ?  L"yes"  : L"no";
+; 212  :       return value  ?  L"yes"  : L"no";
 
 	cmove	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6173,16 +7455,16 @@ $LL109@get_value_:
 	jne	SHORT $LL109@get_value_
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 158  :       return value  ?  L"yes"  : L"no";
+; 212  :       return value  ?  L"yes"  : L"no";
 
 	jmp	SHORT $LN111@get_value_
 $LN6@get_value_:
 
-; 160  :       return value  ?  L"on"   : L"off";
+; 214  :       return value  ?  L"on"   : L"off";
 
 	cmp	BYTE PTR [ecx+60], 0
-	mov	eax, OFFSET $SG133212
-	mov	edx, OFFSET $SG133211
+	mov	eax, OFFSET $SG133406
+	mov	edx, OFFSET $SG133405
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -6190,7 +7472,7 @@ $LN6@get_value_:
 	mov	DWORD PTR [esi+16], 0
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 160  :       return value  ?  L"on"   : L"off";
+; 214  :       return value  ?  L"on"   : L"off";
 
 	cmove	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6232,14 +7514,14 @@ $LN111@get_value_:
 	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 160  :       return value  ?  L"on"   : L"off";
+; 214  :       return value  ?  L"on"   : L"off";
 
 	mov	eax, esi
 	pop	esi
 
-; 164  :   }
-; 165  : #endif
-; 166  : }
+; 218  :   }
+; 219  : #endif
+; 220  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6255,13 +7537,14 @@ _TEXT	SEGMENT
 ??1?$Parameter@_N@sk@@QAE@XZ ENDP			; sk::Parameter<bool>::~Parameter<bool>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0?$Parameter@_N@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -6271,11 +7554,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -6283,49 +7565,59 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
 	mov	eax, ecx
-	mov	DWORD PTR _this$[ebp], ecx
 	mov	DWORD PTR [ecx], OFFSET ??_7?$Parameter@_N@sk@@6B@
+	mov	DWORD PTR _this$[ebp], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+64], OFFSET ??_R0_N@8
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ??0?$Parameter@_N@sk@@QAE@XZ ENDP			; sk::Parameter<bool>::Parameter<bool>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0ParameterInt64@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -6335,11 +7627,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -6347,40 +7638,267 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
 	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+72], OFFSET ??_R0_J@8
 	mov	DWORD PTR _this$[ebp], ecx
 	mov	DWORD PTR [ecx], OFFSET ??_7ParameterInt64@sk@@6B@
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ??0ParameterInt64@sk@@QAE@XZ ENDP			; sk::ParameterInt64::ParameterInt64
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+_ref$ = 8						; size = 4
+?load@ParameterInt64@sk@@UAE_NAA_J@Z PROC		; sk::ParameterInt64::load
+; _this$ = ecx
+
+; 180  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ebx
+	push	esi
+	mov	esi, ecx
+
+; 181  :   bool bRet = 
+; 182  :     iParameter::load ();
+
+	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
+	mov	bl, al
+
+; 183  : 
+; 184  :   if (bRet)
+
+	test	bl, bl
+	je	SHORT $LN4@load
+
+; 185  :     ref = get_value ();
+
+	mov	edx, DWORD PTR [esi]
+	mov	ecx, esi
+	mov	edx, DWORD PTR [edx+8]
+	call	edx
+	mov	ecx, DWORD PTR _ref$[ebp]
+	mov	DWORD PTR [ecx], eax
+	mov	DWORD PTR [ecx+4], edx
+$LN4@load:
+
+; 186  : 
+; 187  :   return bRet;
+
+	pop	esi
+	mov	al, bl
+	pop	ebx
+
+; 188  : }
+
+	pop	ebp
+	ret	4
+?load@ParameterInt64@sk@@UAE_NAA_J@Z ENDP		; sk::ParameterInt64::load
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+_str$ = 8						; size = 24
+?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterInt64::store_str
+; _this$ = ecx
+
+; 173  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+
+; 174  :   set_value_str  (str);
+
+	sub	esp, 24					; 00000018H
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	mov	ecx, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+20], 7
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	lea	eax, DWORD PTR _str$[ebp]
+	push	eax
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 174  :   set_value_str  (str);
+
+	mov	eax, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [eax+4]
+
+; 175  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _str$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN49@store_str
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR _str$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN49@store_str:
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 176  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	24					; 00000018H
+_TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0:
+	lea	ecx, DWORD PTR _str$[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__ehhandler$?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?store_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ENDP ; sk::ParameterInt64::store_str
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+_val$ = 8						; size = 8
+?store@ParameterInt64@sk@@UAEX_J@Z PROC			; sk::ParameterInt64::store
+; _this$ = ecx
+
+; 166  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+
+; 167  :   set_value      (val);
+
+	push	DWORD PTR _val$[ebp+4]
+	mov	esi, ecx
+	push	DWORD PTR _val$[ebp]
+	mov	eax, DWORD PTR [esi]
+	call	DWORD PTR [eax+12]
+
+; 168  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	pop	esi
+
+; 169  : }
+
+	pop	ebp
+	ret	8
+?store@ParameterInt64@sk@@UAEX_J@Z ENDP			; sk::ParameterInt64::store
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -6398,7 +7916,7 @@ _str$ = 8						; size = 24
 ?set_value_str@ParameterInt64@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterInt64::set_value_str
 ; _this$ = ecx
 
-; 132  : {
+; 159  : {
 
 	npad	2
 	push	ebp
@@ -6416,11 +7934,11 @@ _str$ = 8						; size = 24
 	cmovae	eax, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 132  : {
+; 159  : {
 
 	mov	esi, ecx
 
-; 133  :   value = _wtoll (str.c_str ());
+; 160  :   value = _wtoll (str.c_str ());
 
 	push	eax
 	call	DWORD PTR __imp___wtoll
@@ -6433,7 +7951,7 @@ _str$ = 8						; size = 24
 	mov	eax, DWORD PTR _str$[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 133  :   value = _wtoll (str.c_str ());
+; 160  :   value = _wtoll (str.c_str ());
 
 	mov	DWORD PTR [esi+68], edx
 	pop	esi
@@ -6467,7 +7985,7 @@ _str$ = 8						; size = 24
 $LN27@set_value_:
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 134  : }
+; 161  : }
 
 	pop	ebp
 	ret	24					; 00000018H
@@ -6480,20 +7998,20 @@ _val$ = 8						; size = 8
 ?set_value@ParameterInt64@sk@@UAEX_J@Z PROC		; sk::ParameterInt64::set_value
 ; _this$ = ecx
 
-; 125  : {
+; 152  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 126  :   value = val;
+; 153  :   value = val;
 
 	mov	eax, DWORD PTR _val$[ebp]
 	mov	DWORD PTR [ecx+64], eax
 	mov	eax, DWORD PTR _val$[ebp+4]
 	mov	DWORD PTR [ecx+68], eax
 
-; 127  : }
+; 154  : }
 
 	pop	ebp
 	ret	8
@@ -6505,12 +8023,12 @@ _TEXT	SEGMENT
 ?get_value@ParameterInt64@sk@@UAE_JXZ PROC		; sk::ParameterInt64::get_value
 ; _this$ = ecx
 
-; 120  :   return value;
+; 147  :   return value;
 
 	mov	eax, DWORD PTR [ecx+64]
 	mov	edx, DWORD PTR [ecx+68]
 
-; 121  : }
+; 148  : }
 
 	ret	0
 ?get_value@ParameterInt64@sk@@UAE_JXZ ENDP		; sk::ParameterInt64::get_value
@@ -6534,7 +8052,7 @@ ___$ReturnUdt$ = 8					; size = 4
 ?get_value_str@ParameterInt64@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; sk::ParameterInt64::get_value_str
 ; _this$ = ecx
 
-; 110  : {
+; 137  : {
 
 	npad	2
 	push	ebp
@@ -6542,7 +8060,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	sub	esp, 68					; 00000044H
 	push	esi
 
-; 112  :   _i64tow (value, str, 10);
+; 139  :   _i64tow (value, str, 10);
 
 	push	10					; 0000000aH
 	lea	eax, DWORD PTR _str$[ebp]
@@ -6563,7 +8081,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	lea	ecx, DWORD PTR _str$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 112  :   _i64tow (value, str, 10);
+; 139  :   _i64tow (value, str, 10);
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -6618,12 +8136,12 @@ $LL29@get_value_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
-; 114  :   return std::wstring (str);
+; 141  :   return std::wstring (str);
 
 	mov	eax, esi
 	pop	esi
 
-; 115  : }
+; 142  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6639,13 +8157,14 @@ _TEXT	SEGMENT
 ??1?$Parameter@_J@sk@@QAE@XZ ENDP			; sk::Parameter<__int64>::~Parameter<__int64>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0?$Parameter@_J@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -6655,11 +8174,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -6667,63 +8185,137 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
 	mov	eax, ecx
-	mov	DWORD PTR _this$[ebp], ecx
 	mov	DWORD PTR [ecx], OFFSET ??_7?$Parameter@_J@sk@@6B@
+	mov	DWORD PTR _this$[ebp], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+72], OFFSET ??_R0_J@8
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ??0?$Parameter@_J@sk@@QAE@XZ ENDP			; sk::Parameter<__int64>::Parameter<__int64>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
-;	COMDAT ??0ParameterInt@sk@@QAE@XZ
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 _TEXT	SEGMENT
-_this$ = -4						; size = 4
-??0ParameterInt@sk@@QAE@XZ PROC				; sk::ParameterInt::ParameterInt, COMDAT
+_ref$ = 8						; size = 4
+?load@ParameterInt@sk@@UAE_NAAH@Z PROC			; sk::ParameterInt::load
 ; _this$ = ecx
+
+; 124  : {
+
 	npad	2
 	push	ebp
 	mov	ebp, esp
-	push	ecx
+	push	ebx
+	push	esi
+	mov	esi, ecx
+
+; 125  :   bool bRet = 
+; 126  :     iParameter::load ();
+
+	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
+	mov	bl, al
+
+; 127  : 
+; 128  :   if (bRet)
+
+	test	bl, bl
+	je	SHORT $LN4@load
+
+; 129  :     ref = get_value ();
+
+	mov	edx, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [edx+8]
+	mov	ecx, DWORD PTR _ref$[ebp]
+	mov	DWORD PTR [ecx], eax
+$LN4@load:
+
+; 130  : 
+; 131  :   return bRet;
+
+	pop	esi
+	mov	al, bl
+	pop	ebx
+
+; 132  : }
+
+	pop	ebp
+	ret	4
+?load@ParameterInt@sk@@UAE_NAAH@Z ENDP			; sk::ParameterInt::load
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+_str$ = 8						; size = 24
+?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z PROC ; sk::ParameterInt::store_str
+; _this$ = ecx
 
-; 3597 : 		_My_data._Mysize = 0;
+; 117  : {
 
-	mov	DWORD PTR [ecx+24], 0
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+
+; 118  :   set_value_str  (str);
+
+	sub	esp, 24					; 00000018H
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	mov	ecx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -6731,40 +8323,126 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+; 2174 : 		assign(_Right, 0, npos);
 
-	mov	DWORD PTR [ecx+28], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR [ecx+8], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+	push	-1
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+16], 0
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+20], 7
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
-; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 52   :     ini        = nullptr;
+; 2174 : 		assign(_Right, 0, npos);
 
-	mov	DWORD PTR [ecx+4], eax
-	mov	eax, ecx
-	mov	DWORD PTR _this$[ebp], ecx
-	mov	DWORD PTR [ecx], OFFSET ??_7ParameterInt@sk@@6B@
+	lea	eax, DWORD PTR _str$[ebp]
+	push	eax
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 118  :   set_value_str  (str);
+
+	mov	eax, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [eax+4]
+
+; 119  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _str$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN49@store_str
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR _str$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN49@store_str:
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+
+; 120  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
 	mov	esp, ebp
 	pop	ebp
-	ret	0
-??0ParameterInt@sk@@QAE@XZ ENDP				; sk::ParameterInt::ParameterInt
+	ret	24					; 00000018H
+_TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z$0:
+	lea	ecx, DWORD PTR _str$[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__ehhandler$?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?store_str@ParameterInt@sk@@UAEXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ENDP ; sk::ParameterInt::store_str
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\parameter.cpp
+_TEXT	SEGMENT
+_val$ = 8						; size = 4
+?store@ParameterInt@sk@@UAEXH@Z PROC			; sk::ParameterInt::store
+; _this$ = ecx
+
+; 110  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+
+; 111  :   set_value      (val);
+
+	push	DWORD PTR _val$[ebp]
+	mov	esi, ecx
+	mov	eax, DWORD PTR [esi]
+	call	DWORD PTR [eax+12]
+
+; 112  :   iParameter::store ();
+
+	mov	ecx, esi
+	call	?store@iParameter@sk@@QAE_NXZ		; sk::iParameter::store
+	pop	esi
+
+; 113  : }
+
+	pop	ebp
+	ret	4
+?store@ParameterInt@sk@@UAEXH@Z ENDP			; sk::ParameterInt::store
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
@@ -7001,6 +8679,99 @@ $LL29@get_value_:
 ?get_value_str@ParameterInt@sk@@UAE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ENDP ; sk::ParameterInt::get_value_str
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+;	COMDAT ??0ParameterInt@sk@@QAE@XZ
+_TEXT	SEGMENT
+_this$ = -4						; size = 4
+??0ParameterInt@sk@@QAE@XZ PROC				; sk::ParameterInt::ParameterInt, COMDAT
+; _this$ = ecx
+
+; 106  :   ParameterInt (void) {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+32], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx+12], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+52], eax
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+56], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx+36], ax
+; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+
+; 53   :     ini        = nullptr;
+
+	mov	DWORD PTR [ecx+8], eax
+
+; 108  :   }
+
+	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+64], OFFSET ??_R0H@8
+; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+
+; 106  :   ParameterInt (void) {
+
+	mov	DWORD PTR _this$[ebp], ecx
+	mov	DWORD PTR [ecx], OFFSET ??_7ParameterInt@sk@@6B@
+
+; 107  :     type_ = std::type_index (typeid (int));
+
+	mov	DWORD PTR [ecx+64], OFFSET ??_R0H@8
+
+; 108  :   }
+
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+??0ParameterInt@sk@@QAE@XZ ENDP				; sk::ParameterInt::ParameterInt
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ;	COMDAT ??1?$Parameter@H@sk@@QAE@XZ
 _TEXT	SEGMENT
 ??1?$Parameter@H@sk@@QAE@XZ PROC			; sk::Parameter<int>::~Parameter<int>, COMDAT
@@ -7009,13 +8780,14 @@ _TEXT	SEGMENT
 ??1?$Parameter@H@sk@@QAE@XZ ENDP			; sk::Parameter<int>::~Parameter<int>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ;	COMDAT ??0?$Parameter@H@sk@@QAE@XZ
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -7025,11 +8797,10 @@ _this$ = -4						; size = 4
 	push	ebp
 	mov	ebp, esp
 	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 3597 : 		_My_data._Mysize = 0;
+; 19   : 		: _Tptr(&_Tinfo)
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -7037,36 +8808,45 @@ _this$ = -4						; size = 4
 	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+28], 0
+
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
 	mov	eax, ecx
-	mov	DWORD PTR _this$[ebp], ecx
 	mov	DWORD PTR [ecx], OFFSET ??_7?$Parameter@H@sk@@6B@
+	mov	DWORD PTR _this$[ebp], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+64], OFFSET ??_R0H@8
 	mov	esp, ebp
 	pop	ebp
 	ret	0
@@ -7099,7 +8879,7 @@ _TEXT	SEGMENT
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR [esi+52]
+	mov	eax, DWORD PTR [esi+56]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
@@ -7120,7 +8900,7 @@ _TEXT	SEGMENT
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR [esi+32]
+	push	DWORD PTR [esi+36]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 $LN7@iParameter:
@@ -7133,21 +8913,21 @@ $LN7@iParameter:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+48], 0
+	mov	DWORD PTR [esi+52], 0
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+52], 7
+	mov	DWORD PTR [esi+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+32], ax
+	mov	WORD PTR [esi+36], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR [esi+28]
+	mov	eax, DWORD PTR [esi+32]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
@@ -7168,7 +8948,7 @@ $LN7@iParameter:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR [esi+8]
+	push	DWORD PTR [esi+12]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 $LN37@iParameter:
@@ -7176,7 +8956,7 @@ $LN37@iParameter:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [esi+24], 0
+	mov	DWORD PTR [esi+28], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -7186,12 +8966,12 @@ $LN37@iParameter:
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [esi+28], 7
+	mov	DWORD PTR [esi+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [esi+8], ax
+	mov	WORD PTR [esi+12], ax
 	pop	esi
 	ret	0
 ??1iParameter@sk@@QAE@XZ ENDP				; sk::iParameter::~iParameter
@@ -10543,20 +12323,20 @@ __$EHRec$ = -12						; size = 12
 ; 52   : 
 ; 53   :   if (ini != nullptr)
 
-	mov	ecx, DWORD PTR [edi+4]
+	mov	ecx, DWORD PTR [edi+8]
 	test	ecx, ecx
 	je	$LN4@store
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR [edi+28], 8
+	cmp	DWORD PTR [edi+32], 8
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 
 ; 343  : 		return (_Myval2);
 
-	lea	esi, DWORD PTR [edi+8]
+	lea	esi, DWORD PTR [edi+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -10610,12 +12390,12 @@ $LN28@store:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR [edi+52], 8
+	cmp	DWORD PTR [edi+56], 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 
 ; 343  : 		return (_Myval2);
 
-	lea	esi, DWORD PTR [edi+32]
+	lea	esi, DWORD PTR [edi+36]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -10873,19 +12653,19 @@ _TEXT	SEGMENT
 
 ; 32   :   if (ini != nullptr)
 
-	mov	ecx, DWORD PTR [edi+4]
+	mov	ecx, DWORD PTR [edi+8]
 	test	ecx, ecx
 	je	SHORT $LN3@load
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR [edi+28], 8
+	cmp	DWORD PTR [edi+32], 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 
 ; 343  : 		return (_Myval2);
 
-	lea	edx, DWORD PTR [edi+8]
+	lea	edx, DWORD PTR [edi+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -10909,12 +12689,12 @@ $LN20@load:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR [edi+52], 8
+	cmp	DWORD PTR [edi+56], 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 
 ; 343  : 		return (_Myval2);
 
-	lea	esi, DWORD PTR [edi+32]
+	lea	esi, DWORD PTR [edi+36]
 ; File c:\users\andon\source\repos\specialk\src\parameter.cpp
 
 ; 34   :     iSK_INISection& section =
@@ -11048,6 +12828,7 @@ _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -11059,7 +12840,7 @@ _this$ = -4						; size = 4
 ??0iParameter@sk@@QAE@XZ PROC				; sk::iParameter::iParameter, COMDAT
 ; _this$ = ecx
 
-; 51   :   iParameter (void) {
+; 52   :   iParameter (void) : type_ (std::type_index (typeid (iParameter))) {
 
 	npad	2
 	push	ebp
@@ -11071,41 +12852,47 @@ _this$ = -4						; size = 4
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	DWORD PTR [ecx+4], OFFSET ??_R0?AViParameter@sk@@@8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+24], 0
+	mov	DWORD PTR [ecx+28], 0
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+28], 7
+	mov	DWORD PTR [ecx+32], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+8], ax
+	mov	WORD PTR [ecx+12], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR [ecx+48], eax
+	mov	DWORD PTR [ecx+52], eax
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR [ecx+52], 7
+	mov	DWORD PTR [ecx+56], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR [ecx+32], ax
+	mov	WORD PTR [ecx+36], ax
 ; File c:\users\andon\source\repos\specialk\include\specialk\parameter.h
 
-; 52   :     ini        = nullptr;
+; 53   :     ini        = nullptr;
 
-	mov	DWORD PTR [ecx+4], eax
+	mov	DWORD PTR [ecx+8], eax
 
-; 53   :   }
+; 54   :     //type_      = std::type_index (typeid (iParameter));
+; 55   :   }
 
 	mov	eax, ecx
 	mov	DWORD PTR _this$[ebp], ecx
@@ -11121,13 +12908,39 @@ _TEXT	SEGMENT
 ??0ImVec2@@QAE@XZ PROC					; ImVec2::ImVec2, COMDAT
 ; _this$ = ecx
 
-; 35   :     ImVec2 (void)               { x = y = 0.0f;   }
+; 36   :     ImVec2 (void)               { x = y = 0.0f;   }
 
 	mov	DWORD PTR [ecx+4], 0
 	mov	eax, ecx
 	mov	DWORD PTR [ecx], 0
 	ret	0
 ??0ImVec2@@QAE@XZ ENDP					; ImVec2::ImVec2
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\typeindex
+;	COMDAT ??0type_index@std@@QAE@ABVtype_info@@@Z
+_TEXT	SEGMENT
+__Tinfo$ = 8						; size = 4
+??0type_index@std@@QAE@ABVtype_info@@@Z PROC		; std::type_index::type_index, COMDAT
+; _this$ = ecx
+
+; 20   : 		{	// construct from type_info
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 19   : 		: _Tptr(&_Tinfo)
+
+	mov	eax, DWORD PTR __Tinfo$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 21   : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	4
+??0type_index@std@@QAE@ABVtype_info@@@Z ENDP		; std::type_index::type_index
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0

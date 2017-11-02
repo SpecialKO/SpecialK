@@ -9,6 +9,9 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
+PUBLIC	_IID_IDocHostUIHandlerDispatch
+PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
+PUBLIC	_IID_IAxWinHostWindow
 PUBLIC	_IID_IAxWinHostWindowLic
 PUBLIC	_IID_IAxWinAmbientDispatch
 PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
@@ -36,9 +39,10 @@ PUBLIC	?szValToken@ATL@@3QB_WB				; ATL::szValToken
 PUBLIC	?szForceRemove@ATL@@3QB_WB			; ATL::szForceRemove
 PUBLIC	?szNoRemove@ATL@@3QB_WB				; ATL::szNoRemove
 PUBLIC	?szDelete@ATL@@3QB_WB				; ATL::szDelete
-PUBLIC	_IID_IDocHostUIHandlerDispatch
-PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
-PUBLIC	_IID_IAxWinHostWindow
+;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
+_BSS	SEGMENT
+?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A DD 01H DUP (?) ; ATL::_pAtlAutoThreadModule
+_BSS	ENDS
 ;	COMDAT ?_pAtlModule@ATL@@3PAVCAtlModule@1@A
 _BSS	SEGMENT
 ?_pAtlModule@ATL@@3PAVCAtlModule@1@A DD 01H DUP (?)	; ATL::_pAtlModule
@@ -79,69 +83,37 @@ _BSS	ENDS
 _BSS	SEGMENT
 ?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
 _BSS	ENDS
-;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
-_BSS	SEGMENT
-?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A DD 01H DUP (?) ; ATL::_pAtlAutoThreadModule
-_BSS	ENDS
-;	COMDAT _IID_IAxWinHostWindow
-CONST	SEGMENT
-_IID_IAxWinHostWindow DD 0b6ea2050H
-	DW	048aH
-	DW	011d1H
-	DB	082H
-	DB	0b9H
-	DB	00H
-	DB	0c0H
-	DB	04fH
-	DB	0b9H
-	DB	094H
-	DB	02eH
-CONST	ENDS
-;	COMDAT _IID_IDocHostUIHandlerDispatch
-CONST	SEGMENT
-_IID_IDocHostUIHandlerDispatch DD 0425b5af0H
-	DW	065f1H
-	DW	011d1H
-	DB	096H
-	DB	011H
-	DB	00H
-	DB	00H
-	DB	0f8H
-	DB	01eH
-	DB	0dH
-	DB	0dH
-CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG235257			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG236526			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG235255		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG236524		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG235253		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG236522		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG235251		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG236520		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG235249		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG236518		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG235247		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG236516		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG235245		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG236514		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG235243		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG236512		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -273,31 +245,47 @@ _IID_IAxWinHostWindowLic DD 03935bda8H
 	DB	08aH
 	DB	04bH
 CONST	ENDS
+;	COMDAT _IID_IAxWinHostWindow
 CONST	SEGMENT
-$SG224282 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
-	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
+_IID_IAxWinHostWindow DD 0b6ea2050H
+	DW	048aH
+	DW	011d1H
+	DB	082H
+	DB	0b9H
+	DB	00H
+	DB	0c0H
+	DB	04fH
+	DB	0b9H
+	DB	094H
+	DB	02eH
+CONST	ENDS
+CONST	SEGMENT
+$SG225311 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
+	DB	00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 	ORG $+1
-$SG224329 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
+$SG225358 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG225405 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
+$SG225452 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG225499 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG225504 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG224376 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG223360 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG223431 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG223478 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+$SG225551 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG223525 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG243992 DB	'cbuffer vertexBuffer : register(b0)       {      float4x'
+$SG244026 DB	'cbuffer vertexBuffer : register(b0)       {      float4x'
 	DB	'4 ProjectionMatrix;       };      struct VS_INPUT      {     '
 	DB	' float2 pos : POSITION;      float4 col : COLOR0;      float2'
 	DB	' uv  : TEXCOORD0;      };            struct PS_INPUT      {  '
@@ -307,123 +295,136 @@ $SG243992 DB	'cbuffer vertexBuffer : register(b0)       {      float4x'
 	DB	'l( ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));      ou'
 	DB	'tput.col = input.col;      output.uv  = input.uv;      return'
 	DB	' output;      }', 00H
-$SG244007 DB	'struct PS_INPUT      {      float4 pos : SV_POSITION;   '
+$SG225598 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG244054 DB	'vs_4_0', 00H
+	ORG $+1
+$SG244060 DB	'POSITION', 00H
+	ORG $+3
+$SG244041 DB	'struct PS_INPUT      {      float4 pos : SV_POSITION;   '
 	DB	'   float4 col : COLOR0;      float2 uv  : TEXCOORD0;      }; '
 	DB	'     sampler sampler0;      Texture2D texture0;            fl'
 	DB	'oat4 main(PS_INPUT input) : SV_Target      {      float4 out_'
 	DB	'col = input.col * texture0.Sample(sampler0, input.uv);       '
 	DB	'return out_col;       }', 00H
-$SG244020 DB	'vs_4_0', 00H
-	ORG $+1
-$SG244021 DB	'main', 00H
+$SG244055 DB	'main', 00H
 	ORG $+3
-$SG244026 DB	'POSITION', 00H
+$SG244061 DB	'TEXCOORD', 00H
 	ORG $+3
-$SG244027 DB	'TEXCOORD', 00H
-	ORG $+3
-$SG244028 DB	'COLOR', 00H
+$SG244062 DB	'COLOR', 00H
 	ORG $+2
-$SG244031 DB	'ps_4_0', 00H
+$SG244065 DB	'ps_4_0', 00H
 	ORG $+1
-$SG244032 DB	'main', 00H
+$SG244066 DB	'main', 00H
 	ORG $+3
-$SG223572 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG225645 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG224629 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG224700 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG224747 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+	ORG $+2
+$SG224794 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG224841 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG223619 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG224888 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG235933 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG235934 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG235935 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+$SG237202 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG237203 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG237204 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
 	DB	's', 00H, 00H, 00H
 	ORG $+2
-$SG235936 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+$SG237205 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
 	DB	'p', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG235937 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+$SG237206 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
 	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG235938 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+$SG237207 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG235939 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+$SG237208 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG235940 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG235941 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+$SG237209 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG237210 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
 	DB	'T', 00H, 'Y', 00H, 00H, 00H
 	ORG $+2
-$SG235942 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+$SG237211 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG235943 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG237212 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG235944 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG237213 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG223666 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG224935 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG223713 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG224982 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG223760 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG225029 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG223807 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG225076 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG223854 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG225123 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG223901 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG225170 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG223948 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG225217 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG235243 DB	'S', 00H, 00H, 00H
-$SG235245 DB	'M', 00H, 00H, 00H
-$SG235247 DB	'D', 00H, 00H, 00H
-$SG235249 DB	'B', 00H, 00H, 00H
-$SG235251 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG235253 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG236512 DB	'S', 00H, 00H, 00H
+$SG236514 DB	'M', 00H, 00H, 00H
+$SG236516 DB	'D', 00H, 00H, 00H
+$SG236518 DB	'B', 00H, 00H, 00H
+$SG236520 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG236522 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG235255 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG236524 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG235257 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG236526 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG223995 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG225264 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG224042 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
+CONST	ENDS
+;	COMDAT _IID_IDocHostUIHandlerDispatch
+CONST	SEGMENT
+_IID_IDocHostUIHandlerDispatch DD 0425b5af0H
+	DW	065f1H
+	DW	011d1H
+	DB	096H
+	DB	011H
 	DB	00H
-	ORG $+2
-$SG224089 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG224136 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
-	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG224183 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
-	DB	00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG224230 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG224235 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
+	DB	0f8H
+	DB	01eH
+	DB	0dH
+	DB	0dH
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
@@ -762,6 +763,7 @@ PUBLIC	__GUID_310d36a0_d2e7_4c0a_aa04_6a9d23b8886a
 PUBLIC	__GUID_db6f6ddb_ac77_4e88_8253_819df9bbf140
 PUBLIC	__GUID_c0bfa96c_e089_44fb_8eaf_26f8796190da
 PUBLIC	??_C@_0BE@JONHPENG@map?1set?$DMT?$DO?5too?5long?$AA@ ; `string'
+PUBLIC	__real@3b808081
 PUBLIC	__real@3f800000
 PUBLIC	__real@bf800000
 PUBLIC	__xmm@00000000000000080000000100000000
@@ -796,10 +798,12 @@ EXTRN	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ:PROC		; SK_TLS_Bottom
 EXTRN	?SK_ImGui_PollGamepad@@YAXXZ:PROC		; SK_ImGui_PollGamepad
 EXTRN	__CxxThrowException@8:PROC
 EXTRN	___CxxFrameHandler3:PROC
+EXTRN	__ftoui3:PROC
 EXTRN	__ltod3:PROC
 EXTRN	_memcpy:PROC
 EXTRN	_memset:PROC
 EXTRN	?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA:DWORD ; QueryPerformanceCounter_Original
+EXTRN	?config@@3Usk_config_t@@A:BYTE			; config
 EXTRN	?_AtlBaseModule@ATL@@3VCAtlBaseModule@1@A:BYTE	; ATL::_AtlBaseModule
 EXTRN	___ImageBase:BYTE
 EXTRN	__fltused:DWORD
@@ -957,6 +961,10 @@ CONST	ENDS
 CONST	SEGMENT
 __real@3f800000 DD 03f800000r			; 1
 CONST	ENDS
+;	COMDAT __real@3b808081
+CONST	SEGMENT
+__real@3b808081 DD 03b808081r			; 0.00392157
+CONST	ENDS
 ;	COMDAT ??_C@_0BE@JONHPENG@map?1set?$DMT?$DO?5too?5long?$AA@
 CONST	SEGMENT
 ??_C@_0BE@JONHPENG@map?1set?$DMT?$DO?5too?5long?$AA@ DB 'map/set<T> too l'
@@ -1015,11 +1023,11 @@ _DATA	SEGMENT
 _DATA	ENDS
 ;	COMDAT ?pixelShader@?BE@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB
 _DATA	SEGMENT
-?pixelShader@?BE@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB DD FLAT:$SG244007 ; `ImGui_ImplDX11_CreateDeviceObjects'::`20'::pixelShader
+?pixelShader@?BE@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB DD FLAT:$SG244041 ; `ImGui_ImplDX11_CreateDeviceObjects'::`20'::pixelShader
 _DATA	ENDS
 ;	COMDAT ?vertexShader@?L@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB
 _DATA	SEGMENT
-?vertexShader@?L@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB DD FLAT:$SG243992 ; `ImGui_ImplDX11_CreateDeviceObjects'::`11'::vertexShader
+?vertexShader@?L@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB DD FLAT:$SG244026 ; `ImGui_ImplDX11_CreateDeviceObjects'::`11'::vertexShader
 _DATA	ENDS
 ;	COMDAT __GUID_6f15aaf2_d208_4e89_9ab4_489535d34f9c
 CONST	SEGMENT
@@ -4143,7 +4151,7 @@ _NewFormat$ = 24					; size = 4
 _SwapChainFlags$ = 28					; size = 4
 ?ImGui_ImplDX11_Resize@@YAXPAUIDXGISwapChain@@IIIW4DXGI_FORMAT@@I@Z PROC ; ImGui_ImplDX11_Resize
 
-; 842  : {
+; 868  : {
 
 	npad	2
 	push	ebp
@@ -4156,27 +4164,27 @@ _SwapChainFlags$ = 28					; size = 4
 	sub	esp, 20					; 00000014H
 	push	ebx
 
-; 843  :   UNREFERENCED_PARAMETER (BufferCount);
-; 844  :   UNREFERENCED_PARAMETER (NewFormat);
-; 845  :   UNREFERENCED_PARAMETER (SwapChainFlags);
-; 846  :   UNREFERENCED_PARAMETER (Width);
-; 847  :   UNREFERENCED_PARAMETER (Height);
-; 848  :   UNREFERENCED_PARAMETER (This);
-; 849  : 
-; 850  : 
-; 851  :   SK_RenderBackend& rb =
+; 869  :   UNREFERENCED_PARAMETER (BufferCount);
+; 870  :   UNREFERENCED_PARAMETER (NewFormat);
+; 871  :   UNREFERENCED_PARAMETER (SwapChainFlags);
+; 872  :   UNREFERENCED_PARAMETER (Width);
+; 873  :   UNREFERENCED_PARAMETER (Height);
+; 874  :   UNREFERENCED_PARAMETER (This);
+; 875  : 
+; 876  : 
+; 877  :   SK_RenderBackend& rb =
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	ebx, eax
 
-; 852  :     SK_GetCurrentRenderBackend ();
-; 853  : 
-; 854  :   if (! rb.device)
+; 878  :     SK_GetCurrentRenderBackend ();
+; 879  : 
+; 880  :   if (! rb.device)
 
 	cmp	DWORD PTR [ebx+36], 0
 	je	$LN42@ImGui_Impl
 
-; 857  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 883  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	push	esi
 	push	edi
@@ -4190,7 +4198,7 @@ _SwapChainFlags$ = 28					; size = 4
 	mov	DWORD PTR _auto_bool$[ebp+4], esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 857  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 883  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	lea	edi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -4200,13 +4208,13 @@ _SwapChainFlags$ = 28					; size = 4
 	mov	DWORD PTR _auto_bool$[ebp], edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 857  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 883  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 858  : 
-; 859  :   // Do not dump ImGui font textures
-; 860  :   SK_TLS_Bottom ()->imgui.drawing = true;
+; 884  : 
+; 885  :   // Do not dump ImGui font textures
+; 886  :   SK_TLS_Bottom ()->imgui.drawing = true;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax+48], 1
@@ -4220,18 +4228,18 @@ _SwapChainFlags$ = 28					; size = 4
 	mov	DWORD PTR _pDevCtx$[ebp], ecx
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 866  :   CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+; 892  :   CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 
-; 867  : 
-; 868  :   if (rb.d3d11.immediate_ctx != nullptr)
+; 893  : 
+; 894  :   if (rb.d3d11.immediate_ctx != nullptr)
 
 	cmp	DWORD PTR [ebx+68], ecx
 	je	SHORT $LN4@ImGui_Impl
 
-; 869  :   {
-; 870  :     HRESULT hr0 = rb.device->QueryInterface              <ID3D11Device>        (&pDev);
+; 895  :   {
+; 896  :     HRESULT hr0 = rb.device->QueryInterface              <ID3D11Device>        (&pDev);
 
 	mov	eax, DWORD PTR [ebx+36]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -4246,7 +4254,7 @@ _SwapChainFlags$ = 28					; size = 4
 	call	DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 871  :     HRESULT hr1 = rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
+; 897  :     HRESULT hr1 = rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
 
 	mov	ecx, DWORD PTR [ebx+68]
 	mov	esi, eax
@@ -4262,15 +4270,15 @@ _SwapChainFlags$ = 28					; size = 4
 	call	DWORD PTR [edx]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 873  :     if (SUCCEEDED (hr0) && SUCCEEDED (hr1))
+; 899  :     if (SUCCEEDED (hr0) && SUCCEEDED (hr1))
 
 	test	esi, esi
 	js	SHORT $LN44@ImGui_Impl
 	test	eax, eax
 	js	SHORT $LN44@ImGui_Impl
 
-; 874  :     {
-; 875  :       ImGui_ImplDX11_InvalidateDeviceObjects ();
+; 900  :     {
+; 901  :       ImGui_ImplDX11_InvalidateDeviceObjects ();
 
 	call	?ImGui_ImplDX11_InvalidateDeviceObjects@@YAXXZ ; ImGui_ImplDX11_InvalidateDeviceObjects
 $LN44@ImGui_Impl:
@@ -4279,7 +4287,7 @@ $LN44@ImGui_Impl:
 	mov	eax, DWORD PTR _pDev$[ebp]
 $LN4@ImGui_Impl:
 
-; 878  : }
+; 904  : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -4298,7 +4306,7 @@ $LN4@ImGui_Impl:
 $LN33@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 878  : }
+; 904  : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -4324,7 +4332,7 @@ $LN39@ImGui_Impl:
 $LN42@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 878  : }
+; 904  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	ebx
@@ -4590,7 +4598,7 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_ImGui_ResetExternal@@YAXXZ PROC			; SK_ImGui_ResetExternal
 
-; 664  : {
+; 690  : {
 
 	npad	2
 	push	ebx
@@ -4611,7 +4619,7 @@ _TEXT	SEGMENT
 	cmova	ebx, ecx
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 665  :   for ( auto it : external_resources )
+; 691  :   for ( auto it : external_resources )
 
 	test	ebx, ebx
 	je	SHORT $LN3@SK_ImGui_R
@@ -4619,8 +4627,8 @@ _TEXT	SEGMENT
 $LL4@SK_ImGui_R:
 	mov	eax, DWORD PTR [esi]
 
-; 666  :   {
-; 667  :     it->Release ();
+; 692  :   {
+; 693  :     it->Release ();
 
 	push	eax
 	mov	ecx, DWORD PTR [eax]
@@ -4633,7 +4641,7 @@ $LL4@SK_ImGui_R:
 	lea	esi, DWORD PTR [esi+4]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 665  :   for ( auto it : external_resources )
+; 691  :   for ( auto it : external_resources )
 
 	cmp	edi, ebx
 	jne	SHORT $LL4@SK_ImGui_R
@@ -4660,13 +4668,13 @@ $LN3@SK_ImGui_R:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 672  :   for ( auto reset_fn : reset_callbacks )
+; 698  :   for ( auto reset_fn : reset_callbacks )
 
 	je	SHORT $LN6@SK_ImGui_R
 $LL196@SK_ImGui_R:
 
-; 673  :   {
-; 674  :     reset_fn ();
+; 699  :   {
+; 700  :     reset_fn ();
 
 	mov	eax, DWORD PTR [esi+16]
 	call	eax
@@ -4749,7 +4757,7 @@ $LN237@SK_ImGui_R:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 672  :   for ( auto reset_fn : reset_callbacks )
+; 698  :   for ( auto reset_fn : reset_callbacks )
 
 	jne	SHORT $LL196@SK_ImGui_R
 $LN6@SK_ImGui_R:
@@ -4757,8 +4765,8 @@ $LN6@SK_ImGui_R:
 	pop	esi
 	pop	ebx
 
-; 675  :   }
-; 676  : }
+; 701  :   }
+; 702  : }
 
 	ret	0
 ?SK_ImGui_ResetExternal@@YAXXZ ENDP			; SK_ImGui_ResetExternal
@@ -4778,7 +4786,7 @@ $T4 = 8							; size = 1
 _pCallback$ = 8						; size = 4
 ?SKX_ImGui_UnregisterResetCallback@@YGXP6GXXZ@Z PROC	; SKX_ImGui_UnregisterResetCallback
 
-; 657  : {
+; 683  : {
 
 	npad	2
 	push	ebp
@@ -4805,7 +4813,7 @@ _pCallback$ = 8						; size = 4
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 658  :   if (reset_callbacks.count (pCallback))
+; 684  :   if (reset_callbacks.count (pCallback))
 
 	test	eax, eax
 	je	SHORT $LN2@SKX_ImGui_
@@ -4831,7 +4839,7 @@ _pCallback$ = 8						; size = 4
 $LN2@SKX_ImGui_:
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 660  : }
+; 686  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -5427,7 +5435,7 @@ $T1 = -8						; size = 8
 _pCallback$ = 8						; size = 4
 ?SKX_ImGui_RegisterResetCallback@@YGXP6GXXZ@Z PROC	; SKX_ImGui_RegisterResetCallback
 
-; 649  : {
+; 675  : {
 
 	npad	2
 	push	ebp
@@ -5460,7 +5468,7 @@ _pCallback$ = 8						; size = 4
 	call	??$_Insert_nohint@AAP6GXXZPAU?$_Tree_node@P6GXXZPAX@std@@@?$_Tree@V?$_Tset_traits@P6GXXZU?$less@P6GXXZ@std@@V?$allocator@P6GXXZ@2@$0A@@std@@@std@@IAE?AU?$pair@V?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@P6GXXZ@std@@@std@@@std@@_N@1@_NAAP6GXXZPAU?$_Tree_node@P6GXXZPAX@1@@Z ; std::_Tree<std::_Tset_traits<void (__stdcall*)(void),std::less<void (__stdcall*)(void)>,std::allocator<void (__stdcall*)(void)>,0> >::_Insert_nohint<void (__stdcall*&)(void),std::_Tree_node<void (__stdcall*)(void),void *> *>
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 651  : }
+; 677  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -5475,7 +5483,7 @@ _TEXT	SEGMENT
 _pRes$ = 8						; size = 4
 ?SKX_ImGui_RegisterResource@@YGXPAUIUnknown@@@Z PROC	; SKX_ImGui_RegisterResource
 
-; 640  : {
+; 666  : {
 
 	npad	2
 	push	ebp
@@ -5490,7 +5498,7 @@ _pRes$ = 8						; size = 4
 	call	??$emplace_back@ABQAUIUnknown@@@?$vector@PAUIUnknown@@V?$allocator@PAUIUnknown@@@std@@@std@@QAEXABQAUIUnknown@@@Z ; std::vector<IUnknown *,std::allocator<IUnknown *> >::emplace_back<IUnknown * const &>
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 642  : }
+; 668  : }
 
 	pop	ebp
 	ret	4
@@ -5602,7 +5610,7 @@ text$di	SEGMENT
 	call	?_Buyheadnode@?$_Tree_comp_alloc@V?$_Tset_traits@P6GXXZU?$less@P6GXXZ@std@@V?$allocator@P6GXXZ@2@$0A@@std@@@std@@QAEPAU?$_Tree_node@P6GXXZPAX@2@XZ ; std::_Tree_comp_alloc<std::_Tset_traits<void (__stdcall*)(void),std::less<void (__stdcall*)(void)>,std::allocator<void (__stdcall*)(void)>,0> >::_Buyheadnode
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 634  : std::set    <SK_ImGui_ResetCallback_pfn> reset_callbacks;
+; 660  : std::set    <SK_ImGui_ResetCallback_pfn> reset_callbacks;
 
 	push	OFFSET ??__Freset_callbacks@@YAXXZ	; `dynamic atexit destructor for 'reset_callbacks''
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -5612,7 +5620,7 @@ text$di	SEGMENT
 	mov	DWORD PTR ?reset_callbacks@@3V?$set@P6GXXZU?$less@P6GXXZ@std@@V?$allocator@P6GXXZ@2@@std@@A, eax
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 634  : std::set    <SK_ImGui_ResetCallback_pfn> reset_callbacks;
+; 660  : std::set    <SK_ImGui_ResetCallback_pfn> reset_callbacks;
 
 	call	_atexit
 	pop	ecx
@@ -9110,7 +9118,7 @@ text$di	SEGMENT
 	call	??0?$_Wrap_alloc@V?$allocator@PAUIUnknown@@@std@@@std@@QAE@XZ ; std::_Wrap_alloc<std::allocator<IUnknown *> >::_Wrap_alloc<std::allocator<IUnknown *> >
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 633  : std::vector <IUnknown *>                 external_resources;
+; 659  : std::vector <IUnknown *>                 external_resources;
 
 	push	OFFSET ??__Fexternal_resources@@YAXXZ	; `dynamic atexit destructor for 'external_resources''
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -9128,7 +9136,7 @@ text$di	SEGMENT
 	mov	DWORD PTR ?external_resources@@3V?$vector@PAUIUnknown@@V?$allocator@PAUIUnknown@@@std@@@std@@A+8, 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 633  : std::vector <IUnknown *>                 external_resources;
+; 659  : std::vector <IUnknown *>                 external_resources;
 
 	call	_atexit
 	pop	ecx
@@ -10354,7 +10362,7 @@ _pDev$ = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ?ImGui_ImplDX11_CreateFontsTexture@@YAXXZ PROC		; ImGui_ImplDX11_CreateFontsTexture
 
-; 343  : {
+; 369  : {
 
 	npad	2
 	push	ebp
@@ -10368,7 +10376,7 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	push	edi
 
-; 344  :   SK_ScopedBool auto_bool0 (&SK_TLS_Bottom ()->texture_management.injection_thread);
+; 370  :   SK_ScopedBool auto_bool0 (&SK_TLS_Bottom ()->texture_management.injection_thread);
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	lea	esi, DWORD PTR [eax+16]
@@ -10382,11 +10390,11 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_bool0$[ebp+4], eax
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 344  :   SK_ScopedBool auto_bool0 (&SK_TLS_Bottom ()->texture_management.injection_thread);
+; 370  :   SK_ScopedBool auto_bool0 (&SK_TLS_Bottom ()->texture_management.injection_thread);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 345  :   SK_ScopedBool auto_bool1 (&SK_TLS_Bottom ()->imgui.drawing                      );
+; 371  :   SK_ScopedBool auto_bool1 (&SK_TLS_Bottom ()->imgui.drawing                      );
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	lea	edi, DWORD PTR [eax+48]
@@ -10400,48 +10408,48 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_bool1$[ebp+4], eax
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 345  :   SK_ScopedBool auto_bool1 (&SK_TLS_Bottom ()->imgui.drawing                      );
+; 371  :   SK_ScopedBool auto_bool1 (&SK_TLS_Bottom ()->imgui.drawing                      );
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 
-; 346  : 
-; 347  :   // Do not dump ImGui font textures
-; 348  :   SK_TLS_Bottom ()->texture_management.injection_thread = true;
+; 372  : 
+; 373  :   // Do not dump ImGui font textures
+; 374  :   SK_TLS_Bottom ()->texture_management.injection_thread = true;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax+16], 1
 
-; 349  :   SK_TLS_Bottom ()->imgui.drawing                       = true;
+; 375  :   SK_TLS_Bottom ()->imgui.drawing                       = true;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax+48], 1
 
-; 350  : 
-; 351  :   // Build texture atlas
-; 352  :   ImGuiIO& io (ImGui::GetIO ());
+; 376  : 
+; 377  :   // Build texture atlas
+; 378  :   ImGuiIO& io (ImGui::GetIO ());
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 
-; 353  : 
-; 354  :   static bool           init   = false;
-; 355  :   static unsigned char* pixels = nullptr;
-; 356  :   static int            width  = 0,
-; 357  :                         height = 0;
-; 358  : 
-; 359  :   // Only needs to be done once, the raw pixels are API agnostic
-; 360  :   if (! init)
+; 379  : 
+; 380  :   static bool           init   = false;
+; 381  :   static unsigned char* pixels = nullptr;
+; 382  :   static int            width  = 0,
+; 383  :                         height = 0;
+; 384  : 
+; 385  :   // Only needs to be done once, the raw pixels are API agnostic
+; 386  :   if (! init)
 
 	cmp	BYTE PTR ?init@?1??ImGui_ImplDX11_CreateFontsTexture@@YAXXZ@4_NA, 0
 	mov	DWORD PTR _io$1$[ebp], eax
 	jne	SHORT $LN2@ImGui_Impl
 
-; 361  :   {
-; 362  :     SK_ImGui_LoadFonts ();
+; 387  :   {
+; 388  :     SK_ImGui_LoadFonts ();
 
 	call	?SK_ImGui_LoadFonts@@YAXXZ		; SK_ImGui_LoadFonts
 
-; 363  : 
-; 364  :     io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
+; 389  : 
+; 390  :     io.Fonts->GetTexDataAsRGBA32 (&pixels, &width, &height);
 
 	mov	ecx, DWORD PTR _io$1$[ebp]
 	push	0
@@ -10451,15 +10459,15 @@ __$EHRec$ = -12						; size = 12
 	push	OFFSET ?pixels@?1??ImGui_ImplDX11_CreateFontsTexture@@YAXXZ@4PAEA
 	call	?GetTexDataAsRGBA32@ImFontAtlas@@QAEXPAPAEPAH11@Z ; ImFontAtlas::GetTexDataAsRGBA32
 
-; 365  : 
-; 366  :     init = true;
+; 391  : 
+; 392  :     init = true;
 
 	mov	BYTE PTR ?init@?1??ImGui_ImplDX11_CreateFontsTexture@@YAXXZ@4_NA, 1
 $LN2@ImGui_Impl:
 
-; 367  :   }
-; 368  : 
-; 369  :   SK_RenderBackend& rb =
+; 393  :   }
+; 394  : 
+; 395  :   SK_RenderBackend& rb =
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -10469,7 +10477,7 @@ $LN2@ImGui_Impl:
 	mov	DWORD PTR _pDev$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 373  :   rb.device->QueryInterface <ID3D11Device> (&pDev);
+; 399  :   rb.device->QueryInterface <ID3D11Device> (&pDev);
 
 	mov	eax, DWORD PTR [eax+36]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -10483,7 +10491,7 @@ $LN2@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 372  :   CComPtr                   <ID3D11Device>   pDev = nullptr;
+; 398  :   CComPtr                   <ID3D11Device>   pDev = nullptr;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -10493,7 +10501,7 @@ $LN2@ImGui_Impl:
 	call	DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 377  :     D3D11_TEXTURE2D_DESC desc
+; 403  :     D3D11_TEXTURE2D_DESC desc
 
 	push	44					; 0000002cH
 	lea	eax, DWORD PTR _desc$3[ebp]
@@ -10501,29 +10509,29 @@ $LN2@ImGui_Impl:
 	push	eax
 	call	_memset
 
-; 378  :                           = { };
-; 379  : 
-; 380  :     desc.Width            = width;
+; 404  :                           = { };
+; 405  : 
+; 406  :     desc.Width            = width;
 
 	mov	ecx, DWORD PTR ?width@?1??ImGui_ImplDX11_CreateFontsTexture@@YAXXZ@4HA
 
-; 381  :     desc.Height           = height;
-; 382  :     desc.MipLevels        = 1;
-; 383  :     desc.ArraySize        = 1;
-; 384  :     desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
-; 385  :     desc.SampleDesc.Count = 1;
-; 386  :     desc.Usage            = D3D11_USAGE_DEFAULT;
-; 387  :     desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
-; 388  :     desc.CPUAccessFlags   = 0;
-; 389  : 
-; 390  :     ID3D11Texture2D        *pTexture    = nullptr;
-; 391  :     D3D11_SUBRESOURCE_DATA  subResource = { };
-; 392  : 
-; 393  :     subResource.pSysMem          = pixels;
-; 394  :     subResource.SysMemPitch      = desc.Width * 4;
-; 395  :     subResource.SysMemSlicePitch = 0;
-; 396  : 
-; 397  :     pDev->CreateTexture2D (&desc, &subResource, &pTexture);
+; 407  :     desc.Height           = height;
+; 408  :     desc.MipLevels        = 1;
+; 409  :     desc.ArraySize        = 1;
+; 410  :     desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+; 411  :     desc.SampleDesc.Count = 1;
+; 412  :     desc.Usage            = D3D11_USAGE_DEFAULT;
+; 413  :     desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
+; 414  :     desc.CPUAccessFlags   = 0;
+; 415  : 
+; 416  :     ID3D11Texture2D        *pTexture    = nullptr;
+; 417  :     D3D11_SUBRESOURCE_DATA  subResource = { };
+; 418  : 
+; 419  :     subResource.pSysMem          = pixels;
+; 420  :     subResource.SysMemPitch      = desc.Width * 4;
+; 421  :     subResource.SysMemSlicePitch = 0;
+; 422  : 
+; 423  :     pDev->CreateTexture2D (&desc, &subResource, &pTexture);
 
 	lea	edx, DWORD PTR _pTexture$6[ebp]
 	mov	eax, DWORD PTR ?height@?1??ImGui_ImplDX11_CreateFontsTexture@@YAXXZ@4HA
@@ -10556,19 +10564,19 @@ $LN2@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+20]
 
-; 398  : 
-; 399  :     // Create texture view
-; 400  :     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = { };
-; 401  : 
-; 402  :     srvDesc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
-; 403  :     srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-; 404  :     srvDesc.Texture2D.MipLevels       = desc.MipLevels;
+; 424  : 
+; 425  :     // Create texture view
+; 426  :     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = { };
+; 427  : 
+; 428  :     srvDesc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
+; 429  :     srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+; 430  :     srvDesc.Texture2D.MipLevels       = desc.MipLevels;
 
 	mov	eax, DWORD PTR _desc$3[ebp+8]
 
-; 405  :     srvDesc.Texture2D.MostDetailedMip = 0;
-; 406  : 
-; 407  :     pDev->CreateShaderResourceView (pTexture, &srvDesc, &g_pFontTextureView);
+; 431  :     srvDesc.Texture2D.MostDetailedMip = 0;
+; 432  : 
+; 433  :     pDev->CreateShaderResourceView (pTexture, &srvDesc, &g_pFontTextureView);
 
 	lea	edx, DWORD PTR _srvDesc$4[ebp]
 	xorps	xmm0, xmm0
@@ -10586,26 +10594,26 @@ $LN2@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+28]
 
-; 408  : 
-; 409  :     pTexture->Release ();
+; 434  : 
+; 435  :     pTexture->Release ();
 
 	mov	eax, DWORD PTR _pTexture$6[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+8]
 
-; 410  :   }
-; 411  : 
-; 412  :   // Store our identifier
-; 413  :   io.Fonts->TexID =
+; 436  :   }
+; 437  : 
+; 438  :   // Store our identifier
+; 439  :   io.Fonts->TexID =
 
 	mov	eax, DWORD PTR _io$1$[ebp]
 
-; 414  :     static_cast <void *> (g_pFontTextureView);
-; 415  : 
-; 416  :   // Create texture sampler
-; 417  :   {
-; 418  :     D3D11_SAMPLER_DESC desc = { };
+; 440  :     static_cast <void *> (g_pFontTextureView);
+; 441  : 
+; 442  :   // Create texture sampler
+; 443  :   {
+; 444  :     D3D11_SAMPLER_DESC desc = { };
 
 	push	52					; 00000034H
 	push	0
@@ -10619,23 +10627,23 @@ $LN2@ImGui_Impl:
 	add	esp, 12					; 0000000cH
 	movups	XMMWORD PTR _desc$2[ebp], xmm0
 
-; 419  : 
-; 420  :     desc.Filter         = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-; 421  :     desc.AddressU       = D3D11_TEXTURE_ADDRESS_CLAMP;    //WRAP
-; 422  :     desc.AddressV       = D3D11_TEXTURE_ADDRESS_CLAMP;    //WRAP
-; 423  :     desc.AddressW       = D3D11_TEXTURE_ADDRESS_CLAMP;    //WRAP
-; 424  :     desc.MipLODBias     = 0.f;
+; 445  : 
+; 446  :     desc.Filter         = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+; 447  :     desc.AddressU       = D3D11_TEXTURE_ADDRESS_CLAMP;    //WRAP
+; 448  :     desc.AddressV       = D3D11_TEXTURE_ADDRESS_CLAMP;    //WRAP
+; 449  :     desc.AddressW       = D3D11_TEXTURE_ADDRESS_CLAMP;    //WRAP
+; 450  :     desc.MipLODBias     = 0.f;
 
 	mov	DWORD PTR _desc$2[ebp+16], 0
 
-; 425  :     desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+; 451  :     desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 
 	mov	DWORD PTR _desc$2[ebp+24], 8
 
-; 426  :     desc.MinLOD         = 0.f;
-; 427  :     desc.MaxLOD         = 0.f;
-; 428  : 
-; 429  :     pDev->CreateSamplerState (&desc, &g_pFontSampler);
+; 452  :     desc.MinLOD         = 0.f;
+; 453  :     desc.MaxLOD         = 0.f;
+; 454  : 
+; 455  :     pDev->CreateSamplerState (&desc, &g_pFontSampler);
 
 	mov	eax, DWORD PTR _pDev$[ebp]
 	lea	edx, DWORD PTR _desc$2[ebp]
@@ -10647,13 +10655,13 @@ $LN2@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+92]
 
-; 430  :   }
-; 431  : 
-; 432  :   SK_TLS_Bottom ()->texture_management.injection_thread = false;
+; 456  :   }
+; 457  : 
+; 458  :   SK_TLS_Bottom ()->texture_management.injection_thread = false;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 
-; 433  : }
+; 459  : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	mov	DWORD PTR [eax+16], 0
@@ -10678,7 +10686,7 @@ $LN38@ImGui_Impl:
 	mov	eax, DWORD PTR _auto_bool1$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 433  : }
+; 459  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -10692,7 +10700,7 @@ $LN38@ImGui_Impl:
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 433  : }
+; 459  : }
 
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
@@ -11809,35 +11817,41 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 _TEXT	SEGMENT
-_tex2d_desc$ = -312					; size = 44
-_blend_factor$ = -268					; size = 16
-_backbuffer_desc$ = -252				; size = 44
-_mvp$2 = -208						; size = 64
-_idx_resource$ = -144					; size = 12
-_vtx_resource$ = -132					; size = 12
-_vp$ = -120						; size = 24
-_auto_bool$ = -96					; size = 8
-_stride$ = -88						; size = 4
-_offset$ = -84						; size = 4
-tv2331 = -80						; size = 4
-_cmd_i$1$ = -76						; size = 4
-_pSwapChain$ = -72					; size = 4
-_desc$3 = -68						; size = 24
-_desc$4 = -68						; size = 24
-_rtdesc$5 = -64						; size = 20
-_rtdesc$6 = -64						; size = 20
-_rtdesc$7 = -64						; size = 20
-_r$8 = -60						; size = 16
-_mapped_resource$9 = -56				; size = 12
-_n$1$ = -44						; size = 4
-_io$1$ = -44						; size = 4
-tv2336 = -44						; size = 4
-_vtx_offset$1$ = -40					; size = 4
-_vtx_dst$1$ = -40					; size = 4
-_auto_bool$1$ = -36					; size = 4
-_pRenderTargetView$ = -32				; size = 4
-_idx_offset$1$ = -28					; size = 4
-_idx_dst$1$ = -28					; size = 4
+_tex2d_desc$ = -324					; size = 44
+_blend_factor$ = -280					; size = 16
+_backbuffer_desc$ = -264				; size = 44
+_mvp$2 = -220						; size = 64
+_idx_resource$ = -156					; size = 12
+_vtx_resource$ = -144					; size = 12
+_vp$ = -132						; size = 24
+_auto_bool$ = -108					; size = 8
+_stride$ = -100						; size = 4
+_offset$ = -96						; size = 4
+_cmd_list$1$ = -92					; size = 4
+tv2475 = -92						; size = 4
+_pSwapChain$ = -88					; size = 4
+tv2318 = -84						; size = 4
+_desc$3 = -80						; size = 24
+_desc$4 = -80						; size = 24
+_rtdesc$5 = -76						; size = 20
+_rtdesc$6 = -76						; size = 20
+_rtdesc$7 = -76						; size = 20
+_r$8 = -72						; size = 16
+_mapped_resource$9 = -68				; size = 12
+_i$1$ = -56						; size = 4
+tv2469 = -56						; size = 4
+_a$1$ = -52						; size = 4
+_n$1$ = -52						; size = 4
+_auto_bool$1$ = -48					; size = 4
+_pRenderTargetView$ = -44				; size = 4
+_cmd_i$1$ = -40						; size = 4
+_n$1$ = -40						; size = 4
+_io$1$ = -40						; size = 4
+_idx_offset$1$ = -36					; size = 4
+_idx_dst$1$ = -36					; size = 4
+_vtx_offset$1$ = -32					; size = 4
+_vtx_dst$1$ = -32					; size = 4
+_alpha$1$ = -25						; size = 1
 _pDevice$ = -24						; size = 4
 _pBackBuffer$ = -20					; size = 4
 _pDevCtx$ = -16						; size = 4
@@ -11845,7 +11859,7 @@ __$EHRec$ = -12						; size = 12
 _draw_data$ = 8						; size = 4
 ?ImGui_ImplDX11_RenderDrawLists@@YAXPAUImDrawData@@@Z PROC ; ImGui_ImplDX11_RenderDrawLists
 
-; 66   : {
+; 67   : {
 
 	npad	2
 	push	ebp
@@ -11855,74 +11869,74 @@ _draw_data$ = 8						; size = 4
 	mov	eax, DWORD PTR fs:0
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 300				; 0000012cH
+	sub	esp, 312				; 00000138H
 	push	esi
 	push	edi
 
-; 67   :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 68   :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
-	lea	esi, DWORD PTR [eax+48]
+	lea	edi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
 ; 138  :     bOrig_ = *pBool;
 
-	mov	eax, DWORD PTR [esi]
-	mov	DWORD PTR _auto_bool$[ebp], esi
+	mov	eax, DWORD PTR [edi]
+	mov	DWORD PTR _auto_bool$[ebp], edi
 	mov	DWORD PTR _auto_bool$1$[ebp], eax
 	mov	DWORD PTR _auto_bool$[ebp+4], eax
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 67   :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 68   :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 68   : 
-; 69   :   SK_TLS_Bottom ()->imgui.drawing = true;
+; 69   : 
+; 70   :   SK_TLS_Bottom ()->imgui.drawing = true;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax+48], 1
 
-; 70   : 
-; 71   :   ImGuiIO& io =
+; 71   : 
+; 72   :   ImGuiIO& io =
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	DWORD PTR _io$1$[ebp], eax
 
-; 72   :     ImGui::GetIO ();
-; 73   : 
-; 74   :   SK_RenderBackend& rb =
+; 73   :     ImGui::GetIO ();
+; 74   : 
+; 75   :   SK_RenderBackend& rb =
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
-	mov	edi, eax
+	mov	esi, eax
 
-; 75   :     SK_GetCurrentRenderBackend ();
-; 76   : 
-; 77   :   if (! rb.swapchain)
+; 76   :     SK_GetCurrentRenderBackend ();
+; 77   : 
+; 78   :   if (! rb.swapchain)
 
-	cmp	DWORD PTR [edi+40], 0
-	je	$LN386@ImGui_Impl
+	cmp	DWORD PTR [esi+40], 0
+	je	$LN396@ImGui_Impl
 
-; 78   :     return;
-; 79   : 
-; 80   :   if (! rb.device)
+; 79   :     return;
+; 80   : 
+; 81   :   if (! rb.device)
 
-	cmp	DWORD PTR [edi+36], 0
-	je	$LN386@ImGui_Impl
+	cmp	DWORD PTR [esi+36], 0
+	je	$LN396@ImGui_Impl
 
-; 81   :     return;
-; 82   : 
-; 83   :   if (! rb.d3d11.immediate_ctx)
+; 82   :     return;
+; 83   : 
+; 84   :   if (! rb.d3d11.immediate_ctx)
 
-	cmp	DWORD PTR [edi+68], 0
-	je	$LN386@ImGui_Impl
+	cmp	DWORD PTR [esi+68], 0
+	je	$LN396@ImGui_Impl
 
-; 84   :     return;
-; 85   : 
-; 86   :   if (! g_pVertexConstantBuffer)
+; 85   :     return;
+; 86   : 
+; 87   :   if (! g_pVertexConstantBuffer)
 
 	cmp	DWORD PTR ?g_pVertexConstantBuffer@@3PAUID3D11Buffer@@A, 0
-	je	$LN386@ImGui_Impl
+	je	$LN396@ImGui_Impl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 162  :         p = lp;
@@ -11930,9 +11944,9 @@ _draw_data$ = 8						; size = 4
 	mov	DWORD PTR _pSwapChain$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 91   :   rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+; 92   :   rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
 
-	mov	eax, DWORD PTR [edi+40]
+	mov	eax, DWORD PTR [esi+40]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
 
 ; 131  :                 return QueryInterface(__uuidof(Q), (void **)pp);
@@ -11944,7 +11958,7 @@ _draw_data$ = 8						; size = 4
 	mov	ecx, DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 90   :   CComPtr                      <IDXGISwapChain>   pSwapChain = nullptr;
+; 91   :   CComPtr                      <IDXGISwapChain>   pSwapChain = nullptr;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -11959,9 +11973,9 @@ _draw_data$ = 8						; size = 4
 	mov	DWORD PTR _pDevice$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 94   :   rb.device->QueryInterface <ID3D11Device> (&pDevice);
+; 95   :   rb.device->QueryInterface <ID3D11Device> (&pDevice);
 
-	mov	eax, DWORD PTR [edi+36]
+	mov	eax, DWORD PTR [esi+36]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
 
 ; 131  :                 return QueryInterface(__uuidof(Q), (void **)pp);
@@ -11973,7 +11987,7 @@ _draw_data$ = 8						; size = 4
 	mov	ecx, DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 93   :   CComPtr                   <ID3D11Device>   pDevice = nullptr;
+; 94   :   CComPtr                   <ID3D11Device>   pDevice = nullptr;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -11988,9 +12002,9 @@ _draw_data$ = 8						; size = 4
 	mov	DWORD PTR _pDevCtx$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 97   :   rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
+; 98   :   rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
 
-	mov	eax, DWORD PTR [edi+68]
+	mov	eax, DWORD PTR [esi+68]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
 
 ; 131  :                 return QueryInterface(__uuidof(Q), (void **)pp);
@@ -12002,7 +12016,7 @@ _draw_data$ = 8						; size = 4
 	mov	ecx, DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 96   :   CComPtr                                <ID3D11DeviceContext>   pDevCtx = nullptr;
+; 97   :   CComPtr                                <ID3D11DeviceContext>   pDevCtx = nullptr;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -12017,7 +12031,7 @@ _draw_data$ = 8						; size = 4
 	mov	DWORD PTR _pBackBuffer$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 101  :   pSwapChain->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
+; 102  :   pSwapChain->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
 
 	mov	esi, DWORD PTR _pSwapChain$[ebp]
 	lea	eax, DWORD PTR _pBackBuffer$[ebp]
@@ -12032,8 +12046,8 @@ _draw_data$ = 8						; size = 4
 	push	esi
 	call	DWORD PTR [edi+36]
 
-; 102  : 
-; 103  :   D3D11_TEXTURE2D_DESC   backbuffer_desc = { };
+; 103  : 
+; 104  :   D3D11_TEXTURE2D_DESC   backbuffer_desc = { };
 
 	push	44					; 0000002cH
 	lea	eax, DWORD PTR _backbuffer_desc$[ebp]
@@ -12041,7 +12055,7 @@ _draw_data$ = 8						; size = 4
 	push	eax
 	call	_memset
 
-; 104  :   pBackBuffer->GetDesc (&backbuffer_desc);
+; 105  :   pBackBuffer->GetDesc (&backbuffer_desc);
 
 	mov	eax, DWORD PTR _pBackBuffer$[ebp]
 	lea	edx, DWORD PTR _backbuffer_desc$[ebp]
@@ -12051,8 +12065,8 @@ _draw_data$ = 8						; size = 4
 	push	eax
 	call	DWORD PTR [ecx+40]
 
-; 105  : 
-; 106  :   io.DisplaySize.x             = static_cast <float> (backbuffer_desc.Width);
+; 106  : 
+; 107  :   io.DisplaySize.x             = static_cast <float> (backbuffer_desc.Width);
 
 	mov	eax, DWORD PTR _backbuffer_desc$[ebp]
 	mov	ecx, DWORD PTR _io$1$[ebp]
@@ -12063,7 +12077,7 @@ _draw_data$ = 8						; size = 4
 	cvtpd2ps xmm0, xmm0
 	movss	DWORD PTR [ecx], xmm0
 
-; 107  :   io.DisplaySize.y             = static_cast <float> (backbuffer_desc.Height);
+; 108  :   io.DisplaySize.y             = static_cast <float> (backbuffer_desc.Height);
 
 	mov	eax, DWORD PTR _backbuffer_desc$[ebp+4]
 	movd	xmm0, eax
@@ -12073,8 +12087,8 @@ _draw_data$ = 8						; size = 4
 	cvtpd2ps xmm0, xmm0
 	movss	DWORD PTR [ecx+4], xmm0
 
-; 108  : 
-; 109  :   io.DisplayFramebufferScale.x = static_cast <float> (backbuffer_desc.Width);
+; 109  : 
+; 110  :   io.DisplayFramebufferScale.x = static_cast <float> (backbuffer_desc.Width);
 
 	mov	eax, DWORD PTR _backbuffer_desc$[ebp]
 	movd	xmm0, eax
@@ -12084,52 +12098,52 @@ _draw_data$ = 8						; size = 4
 	cvtpd2ps xmm0, xmm0
 	movss	DWORD PTR [ecx+144], xmm0
 
-; 110  :   io.DisplayFramebufferScale.y = static_cast <float> (backbuffer_desc.Height);
+; 111  :   io.DisplayFramebufferScale.y = static_cast <float> (backbuffer_desc.Height);
 
 	mov	eax, DWORD PTR _backbuffer_desc$[ebp+4]
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
 
-; 111  : 
 ; 112  : 
-; 113  :   // Create and grow vertex/index buffers if needed
-; 114  :   if ((! g_pVB) || g_VertexBufferSize < draw_data->TotalVtxCount)
+; 113  : 
+; 114  :   // Create and grow vertex/index buffers if needed
+; 115  :   if ((! g_pVB) || g_VertexBufferSize < draw_data->TotalVtxCount)
 
-	mov	esi, DWORD PTR _draw_data$[ebp]
+	mov	edi, DWORD PTR _draw_data$[ebp]
 	shr	eax, 31					; 0000001fH
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm0, xmm0
 	movss	DWORD PTR [ecx+148], xmm0
 	cmp	DWORD PTR ?g_pVB@@3PAUID3D11Buffer@@A, 0
-	je	SHORT $LN18@ImGui_Impl
+	je	SHORT $LN21@ImGui_Impl
 	mov	eax, DWORD PTR ?g_VertexBufferSize@@3HA
-	cmp	eax, DWORD PTR [esi+12]
-	jge	SHORT $LN19@ImGui_Impl
-$LN18@ImGui_Impl:
+	cmp	eax, DWORD PTR [edi+12]
+	jge	SHORT $LN22@ImGui_Impl
+$LN21@ImGui_Impl:
 
-; 115  :   {
-; 116  :     SK_COM_ValidateRelease ((IUnknown **)&g_pVB);
+; 116  :   {
+; 117  :     SK_COM_ValidateRelease ((IUnknown **)&g_pVB);
 
 	push	OFFSET ?g_pVB@@3PAUID3D11Buffer@@A
 	call	?SK_COM_ValidateRelease@@YAPAUIUnknown@@PAPAU1@@Z ; SK_COM_ValidateRelease
 
-; 117  : 
-; 118  :     g_VertexBufferSize  =
+; 118  : 
+; 119  :     g_VertexBufferSize  =
 
-	mov	eax, DWORD PTR [esi+12]
+	mov	eax, DWORD PTR [edi+12]
 
-; 119  :       draw_data->TotalVtxCount + 5000;
-; 120  : 
-; 121  :     D3D11_BUFFER_DESC desc
-; 122  :                         = { };
-; 123  : 
-; 124  :     desc.Usage          = D3D11_USAGE_DYNAMIC;
-; 125  :     desc.ByteWidth      = g_VertexBufferSize * sizeof (ImDrawVert);
-; 126  :     desc.BindFlags      = D3D11_BIND_VERTEX_BUFFER;
-; 127  :     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-; 128  :     desc.MiscFlags      = 0;
-; 129  : 
-; 130  :     if (pDevice->CreateBuffer (&desc, nullptr, &g_pVB) < 0)
+; 120  :       draw_data->TotalVtxCount + 5000;
+; 121  : 
+; 122  :     D3D11_BUFFER_DESC desc
+; 123  :                         = { };
+; 124  : 
+; 125  :     desc.Usage          = D3D11_USAGE_DYNAMIC;
+; 126  :     desc.ByteWidth      = g_VertexBufferSize * sizeof (ImDrawVert);
+; 127  :     desc.BindFlags      = D3D11_BIND_VERTEX_BUFFER;
+; 128  :     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+; 129  :     desc.MiscFlags      = 0;
+; 130  : 
+; 131  :     if (pDevice->CreateBuffer (&desc, nullptr, &g_pVB) < 0)
 
 	lea	edx, DWORD PTR _desc$4[ebp]
 	add	eax, 5000				; 00001388H
@@ -12153,43 +12167,43 @@ $LN18@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+12]
 	test	eax, eax
-	js	$LN324@ImGui_Impl
-$LN19@ImGui_Impl:
+	js	$LN329@ImGui_Impl
+$LN22@ImGui_Impl:
 
-; 131  :       return;
-; 132  :   }
-; 133  : 
-; 134  :   if ((! g_pIB) || g_IndexBufferSize < draw_data->TotalIdxCount)
+; 132  :       return;
+; 133  :   }
+; 134  : 
+; 135  :   if ((! g_pIB) || g_IndexBufferSize < draw_data->TotalIdxCount)
 
 	cmp	DWORD PTR ?g_pIB@@3PAUID3D11Buffer@@A, 0
-	je	SHORT $LN21@ImGui_Impl
+	je	SHORT $LN24@ImGui_Impl
 	mov	eax, DWORD PTR ?g_IndexBufferSize@@3HA
-	cmp	eax, DWORD PTR [esi+16]
-	jge	SHORT $LN22@ImGui_Impl
-$LN21@ImGui_Impl:
+	cmp	eax, DWORD PTR [edi+16]
+	jge	SHORT $LN25@ImGui_Impl
+$LN24@ImGui_Impl:
 
-; 135  :   {
-; 136  :     SK_COM_ValidateRelease ((IUnknown **)&g_pIB);
+; 136  :   {
+; 137  :     SK_COM_ValidateRelease ((IUnknown **)&g_pIB);
 
 	push	OFFSET ?g_pIB@@3PAUID3D11Buffer@@A
 	call	?SK_COM_ValidateRelease@@YAPAUIUnknown@@PAPAU1@@Z ; SK_COM_ValidateRelease
 
-; 137  : 
-; 138  :     g_IndexBufferSize   =
+; 138  : 
+; 139  :     g_IndexBufferSize   =
 
-	mov	eax, DWORD PTR [esi+16]
+	mov	eax, DWORD PTR [edi+16]
 
-; 139  :       draw_data->TotalIdxCount + 10000;
-; 140  : 
-; 141  :     D3D11_BUFFER_DESC desc
-; 142  :                         = { };
-; 143  : 
-; 144  :     desc.Usage          = D3D11_USAGE_DYNAMIC;
-; 145  :     desc.ByteWidth      = g_IndexBufferSize * sizeof (ImDrawIdx);
-; 146  :     desc.BindFlags      = D3D11_BIND_INDEX_BUFFER;
-; 147  :     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-; 148  : 
-; 149  :     if (pDevice->CreateBuffer (&desc, nullptr, &g_pIB) < 0)
+; 140  :       draw_data->TotalIdxCount + 10000;
+; 141  : 
+; 142  :     D3D11_BUFFER_DESC desc
+; 143  :                         = { };
+; 144  : 
+; 145  :     desc.Usage          = D3D11_USAGE_DYNAMIC;
+; 146  :     desc.ByteWidth      = g_IndexBufferSize * sizeof (ImDrawIdx);
+; 147  :     desc.BindFlags      = D3D11_BIND_INDEX_BUFFER;
+; 148  :     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+; 149  : 
+; 150  :     if (pDevice->CreateBuffer (&desc, nullptr, &g_pIB) < 0)
 
 	lea	edx, DWORD PTR _desc$3[ebp]
 	add	eax, 10000				; 00002710H
@@ -12211,17 +12225,17 @@ $LN21@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+12]
 	test	eax, eax
-	js	$LN324@ImGui_Impl
-$LN22@ImGui_Impl:
+	js	$LN329@ImGui_Impl
+$LN25@ImGui_Impl:
 
-; 150  :       return;
-; 151  :   }
-; 152  : 
-; 153  :   // Copy and convert all vertices into a single contiguous buffer
-; 154  :   D3D11_MAPPED_SUBRESOURCE vtx_resource = { },
-; 155  :                            idx_resource = { };
-; 156  : 
-; 157  :   if (pDevCtx->Map (g_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vtx_resource) != S_OK)
+; 151  :       return;
+; 152  :   }
+; 153  : 
+; 154  :   // Copy and convert all vertices into a single contiguous buffer
+; 155  :   D3D11_MAPPED_SUBRESOURCE vtx_resource = { },
+; 156  :                            idx_resource = { };
+; 157  : 
+; 158  :   if (pDevCtx->Map (g_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vtx_resource) != S_OK)
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	lea	edx, DWORD PTR _vtx_resource$[ebp]
@@ -12239,11 +12253,11 @@ $LN22@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+56]
 	test	eax, eax
-	jne	$LN324@ImGui_Impl
+	jne	$LN329@ImGui_Impl
 
-; 158  :     return;
-; 159  : 
-; 160  :   if (pDevCtx->Map (g_pIB, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
+; 159  :     return;
+; 160  : 
+; 161  :   if (pDevCtx->Map (g_pIB, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	lea	edx, DWORD PTR _idx_resource$[ebp]
@@ -12256,12 +12270,12 @@ $LN22@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+56]
 	test	eax, eax
-	je	SHORT $LN24@ImGui_Impl
+	je	SHORT $LN27@ImGui_Impl
 
-; 161  :   {
-; 162  :     // If for some reason the first one succceeded, but this one failed.... unmap the first one
-; 163  :     //   then abandon all hope.
-; 164  :     pDevCtx->Unmap (g_pVB, 0);
+; 162  :   {
+; 163  :     // If for some reason the first one succeeded, but this one failed.... unmap the first one
+; 164  :     //   then abandon all hope.
+; 165  :     pDevCtx->Unmap (g_pVB, 0);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	0
@@ -12269,48 +12283,156 @@ $LN22@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+60]
-	jmp	$LN324@ImGui_Impl
-$LN24@ImGui_Impl:
+	jmp	$LN329@ImGui_Impl
+$LN27@ImGui_Impl:
 
-; 165  :     return;
-; 166  :   }
-; 167  : 
-; 168  :   auto* vtx_dst = static_cast <ImDrawVert *> (vtx_resource.pData);
+; 166  :     return;
+; 167  :   }
+; 168  : 
+; 169  :   auto* vtx_dst = static_cast <ImDrawVert *> (vtx_resource.pData);
 
-	mov	ecx, DWORD PTR _vtx_resource$[ebp]
+	mov	edx, DWORD PTR _vtx_resource$[ebp]
 
-; 169  :   auto* idx_dst = static_cast <ImDrawIdx  *> (idx_resource.pData);
-; 170  : 
-; 171  :   for (int n = 0; n < draw_data->CmdListsCount; n++)
+; 170  :   auto* idx_dst = static_cast <ImDrawIdx  *> (idx_resource.pData);
+; 171  : 
+; 172  :   for (int n = 0; n < draw_data->CmdListsCount; n++)
 
-	xor	edi, edi
+	xor	ecx, ecx
 	mov	eax, DWORD PTR _idx_resource$[ebp]
-	mov	DWORD PTR _vtx_dst$1$[ebp], ecx
+	mov	DWORD PTR _vtx_dst$1$[ebp], edx
 	mov	DWORD PTR _idx_dst$1$[ebp], eax
-	cmp	DWORD PTR [esi+8], edi
-	jle	SHORT $LN3@ImGui_Impl
-	npad	8
+	mov	DWORD PTR _n$1$[ebp], ecx
+	cmp	DWORD PTR [edi+8], ecx
+	jle	$LN3@ImGui_Impl
 $LL4@ImGui_Impl:
 
-; 172  :   {
-; 173  :     const ImDrawList* cmd_list =
-; 174  :       draw_data->CmdLists [n];
+; 173  :   {
+; 174  :     const ImDrawList* cmd_list =
+; 175  :       draw_data->CmdLists [n];
+; 176  : 
+; 177  :     if (config.imgui.render.disable_alpha)
 
-	mov	eax, DWORD PTR [esi+4]
-	mov	esi, DWORD PTR [eax+edi*4]
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+312, 0
+	mov	eax, DWORD PTR [edi+4]
+	mov	esi, DWORD PTR [eax+ecx*4]
+	mov	DWORD PTR _cmd_list$1$[ebp], esi
+	je	$LN6@ImGui_Impl
 
-; 175  : 
-; 176  :     memcpy (vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
+; 178  :     {
+; 179  :       for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
+
+	cmp	DWORD PTR [esi+24], 0
+	mov	DWORD PTR _i$1$[ebp], 0
+	jle	$LN6@ImGui_Impl
+	xor	edi, edi
+	npad	5
+$LL7@ImGui_Impl:
+
+; 180  :       {
+; 181  :         ImU32& color =
+
+	mov	esi, DWORD PTR [esi+32]
+	mov	DWORD PTR tv2318[ebp], esi
+
+; 182  :           cmd_list->VtxBuffer.Data [i].col;
+; 183  : 
+; 184  :         uint8_t alpha = (((color & 0xFF000000U) >> 24U) & 0xFFU);
+
+	mov	cl, BYTE PTR [edi+esi+19]
+	mov	BYTE PTR _alpha$1$[ebp], cl
+
+; 185  : 
+; 186  :         // Boost alpha for visibility
+; 187  :         if (alpha < 93 && alpha != 0)
+
+	cmp	cl, 93					; 0000005dH
+	jae	SHORT $LN29@ImGui_Impl
+	test	cl, cl
+	je	SHORT $LN29@ImGui_Impl
+
+; 188  :           alpha += (93  - alpha) / 2;
+
+	movzx	ecx, cl
+	mov	eax, 93					; 0000005dH
+	sub	eax, ecx
+	mov	cl, BYTE PTR _alpha$1$[ebp]
+	cdq
+	sub	eax, edx
+	sar	eax, 1
+	add	cl, al
+$LN29@ImGui_Impl:
+
+; 189  : 
+; 190  :         float a = ((float)                       alpha / 255.0f);
+
+	movzx	eax, cl
+	movd	xmm1, eax
+
+; 191  :         float r = ((float)((color & 0xFF0000U) >> 16U) / 255.0f);
+; 192  :         float g = ((float)((color & 0x00FF00U) >>  8U) / 255.0f);
+; 193  :         float b = ((float)((color & 0x0000FFU)       ) / 255.0f);
+; 194  : 
+; 195  :         color =                    0xFF000000U  |
+
+	movzx	eax, BYTE PTR [edi+esi+18]
+	cvtdq2ps xmm1, xmm1
+	movd	xmm0, eax
+	mulss	xmm1, DWORD PTR __real@3b808081
+	cvtdq2ps xmm0, xmm0
+	movss	DWORD PTR _a$1$[ebp], xmm1
+	mulss	xmm0, xmm1
+	call	__ftoui3
+	mov	esi, eax
+	mov	eax, DWORD PTR tv2318[ebp]
+	or	esi, -256				; ffffff00H
+	shl	esi, 8
+	movzx	ecx, BYTE PTR [edi+eax+17]
+	movd	xmm0, ecx
+	cvtdq2ps xmm0, xmm0
+	mulss	xmm0, DWORD PTR _a$1$[ebp]
+	call	__ftoui3
+	or	esi, eax
+	mov	eax, DWORD PTR tv2318[ebp]
+	shl	esi, 8
+	movzx	eax, BYTE PTR [edi+eax+16]
+	movd	xmm0, eax
+	cvtdq2pd xmm0, xmm0
+	shr	eax, 31					; 0000001fH
+	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
+	cvtpd2ps xmm0, xmm0
+	mulss	xmm0, DWORD PTR _a$1$[ebp]
+	call	__ftoui3
+	or	esi, eax
+	mov	eax, DWORD PTR tv2318[ebp]
+	mov	DWORD PTR [edi+eax+16], esi
+	add	edi, 20					; 00000014H
+	mov	eax, DWORD PTR _i$1$[ebp]
+	mov	esi, DWORD PTR _cmd_list$1$[ebp]
+	inc	eax
+	mov	DWORD PTR _i$1$[ebp], eax
+	cmp	eax, DWORD PTR [esi+24]
+	jl	$LL7@ImGui_Impl
+	mov	edi, DWORD PTR _draw_data$[ebp]
+	mov	edx, DWORD PTR _vtx_dst$1$[ebp]
+$LN6@ImGui_Impl:
+
+; 196  :                 ((UINT)((r * a) * 255U) << 16U) |
+; 197  :                 ((UINT)((g * a) * 255U) <<  8U) |
+; 198  :                 ((UINT)((b * a) * 255U)       );
+; 199  :       }
+; 200  :     }
+; 201  : 
+; 202  :     memcpy (vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
 
 	mov	eax, DWORD PTR [esi+24]
 	lea	eax, DWORD PTR [eax+eax*4]
 	shl	eax, 2
 	push	eax
 	push	DWORD PTR [esi+32]
-	push	ecx
+	push	edx
 	call	_memcpy
 
-; 177  :     memcpy (idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
+; 203  :     memcpy (idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
 
 	mov	eax, DWORD PTR [esi+12]
 	add	eax, eax
@@ -12319,31 +12441,32 @@ $LL4@ImGui_Impl:
 	push	DWORD PTR _idx_dst$1$[ebp]
 	call	_memcpy
 
-; 178  : 
-; 179  :     vtx_dst += cmd_list->VtxBuffer.Size;
+; 204  : 
+; 205  :     vtx_dst += cmd_list->VtxBuffer.Size;
 
 	mov	eax, DWORD PTR [esi+24]
-	inc	edi
-	mov	ecx, DWORD PTR _vtx_dst$1$[ebp]
 	add	esp, 24					; 00000018H
+	mov	edx, DWORD PTR _vtx_dst$1$[ebp]
 
-; 180  :     idx_dst += cmd_list->IdxBuffer.Size;
+; 206  :     idx_dst += cmd_list->IdxBuffer.Size;
 
-	mov	edx, DWORD PTR _idx_dst$1$[ebp]
+	mov	ecx, DWORD PTR _idx_dst$1$[ebp]
 	lea	eax, DWORD PTR [eax+eax*4]
-	lea	ecx, DWORD PTR [ecx+eax*4]
+	lea	edx, DWORD PTR [edx+eax*4]
 	mov	eax, DWORD PTR [esi+12]
-	mov	esi, DWORD PTR _draw_data$[ebp]
-	mov	DWORD PTR _vtx_dst$1$[ebp], ecx
-	lea	edx, DWORD PTR [edx+eax*2]
-	mov	DWORD PTR _idx_dst$1$[ebp], edx
-	cmp	edi, DWORD PTR [esi+8]
-	jl	SHORT $LL4@ImGui_Impl
+	mov	DWORD PTR _vtx_dst$1$[ebp], edx
+	lea	ecx, DWORD PTR [ecx+eax*2]
+	mov	DWORD PTR _idx_dst$1$[ebp], ecx
+	mov	ecx, DWORD PTR _n$1$[ebp]
+	inc	ecx
+	mov	DWORD PTR _n$1$[ebp], ecx
+	cmp	ecx, DWORD PTR [edi+8]
+	jl	$LL4@ImGui_Impl
 $LN3@ImGui_Impl:
 
-; 181  :   }
-; 182  : 
-; 183  :   pDevCtx->Unmap (g_pVB, 0);
+; 207  :   }
+; 208  : 
+; 209  :   pDevCtx->Unmap (g_pVB, 0);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	0
@@ -12352,7 +12475,7 @@ $LN3@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+60]
 
-; 184  :   pDevCtx->Unmap (g_pIB, 0);
+; 210  :   pDevCtx->Unmap (g_pIB, 0);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	0
@@ -12361,12 +12484,12 @@ $LN3@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+60]
 
-; 185  : 
-; 186  :   // Setup orthographic projection matrix into our constant buffer
-; 187  :   {
-; 188  :     D3D11_MAPPED_SUBRESOURCE mapped_resource;
-; 189  : 
-; 190  :     if (pDevCtx->Map (g_pVertexConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
+; 211  : 
+; 212  :   // Setup orthographic projection matrix into our constant buffer
+; 213  :   {
+; 214  :     D3D11_MAPPED_SUBRESOURCE mapped_resource;
+; 215  : 
+; 216  :     if (pDevCtx->Map (g_pVertexConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	lea	edx, DWORD PTR _mapped_resource$9[ebp]
@@ -12379,52 +12502,52 @@ $LN3@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+56]
 	test	eax, eax
-	jne	$LN324@ImGui_Impl
+	jne	$LN329@ImGui_Impl
 
-; 191  :       return;
-; 192  : 
-; 193  :     auto* constant_buffer =
-; 194  :       static_cast <VERTEX_CONSTANT_BUFFER *> (mapped_resource.pData);
+; 217  :       return;
+; 218  : 
+; 219  :     auto* constant_buffer =
+; 220  :       static_cast <VERTEX_CONSTANT_BUFFER *> (mapped_resource.pData);
 
 	mov	esi, DWORD PTR _mapped_resource$9[ebp]
 
-; 195  : 
-; 196  :     float L = 0.0f;
-; 197  :     float R = ImGui::GetIO ().DisplaySize.x;
+; 221  : 
+; 222  :     float L = 0.0f;
+; 223  :     float R = ImGui::GetIO ().DisplaySize.x;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	movss	xmm0, DWORD PTR [eax]
-	movss	DWORD PTR tv2336[ebp], xmm0
+	movss	DWORD PTR tv2475[ebp], xmm0
 
-; 198  :     float B = ImGui::GetIO ().DisplaySize.y;
+; 224  :     float B = ImGui::GetIO ().DisplaySize.y;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 
-; 199  :     float T = 0.0f;
-; 200  : 
-; 201  :     float mvp [4][4] =
-; 202  :     {
-; 203  :       { 2.0f/(R-L),   0.0f,           0.0f,       0.0f },
+; 225  :     float T = 0.0f;
+; 226  : 
+; 227  :     float mvp [4][4] =
+; 228  :     {
+; 229  :       { 2.0f/(R-L),   0.0f,           0.0f,       0.0f },
 
-	movss	xmm3, DWORD PTR tv2336[ebp]
+	movss	xmm3, DWORD PTR tv2475[ebp]
 	movss	xmm0, DWORD PTR __real@3f800000
 	divss	xmm0, xmm3
 
-; 204  :       { 0.0f,         2.0f/(T-B),     0.0f,       0.0f },
-; 205  :       { 0.0f,         0.0f,           0.5f,       0.0f },
+; 230  :       { 0.0f,         2.0f/(T-B),     0.0f,       0.0f },
+; 231  :       { 0.0f,         0.0f,           0.5f,       0.0f },
 
 	mov	DWORD PTR _mvp$2[ebp+40], 1056964608	; 3f000000H
 	mov	DWORD PTR _mvp$2[ebp+44], 0
 
-; 206  :       { (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f },
+; 232  :       { (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f },
 
 	mov	DWORD PTR _mvp$2[ebp+56], 1056964608	; 3f000000H
 	mov	DWORD PTR _mvp$2[ebp+60], 1065353216	; 3f800000H
 
-; 207  :     };
-; 208  : 
-; 209  :     memcpy         (&constant_buffer->mvp, mvp, sizeof (mvp));
-; 210  :     pDevCtx->Unmap (g_pVertexConstantBuffer, 0);
+; 233  :     };
+; 234  : 
+; 235  :     memcpy         (&constant_buffer->mvp, mvp, sizeof (mvp));
+; 236  :     pDevCtx->Unmap (g_pVertexConstantBuffer, 0);
 
 	push	0
 	movss	xmm2, DWORD PTR [eax+4]
@@ -12464,7 +12587,7 @@ $LN3@ImGui_Impl:
 	mov	DWORD PTR _pRenderTargetView$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 215  :   D3D11_TEXTURE2D_DESC   tex2d_desc = { };
+; 241  :   D3D11_TEXTURE2D_DESC   tex2d_desc = { };
 
 	push	44					; 0000002cH
 	lea	eax, DWORD PTR _tex2d_desc$[ebp]
@@ -12473,7 +12596,7 @@ $LN3@ImGui_Impl:
 	push	eax
 	call	_memset
 
-; 216  :   pBackBuffer->GetDesc (&tex2d_desc);
+; 242  :   pBackBuffer->GetDesc (&tex2d_desc);
 
 	mov	eax, DWORD PTR _pBackBuffer$[ebp]
 	lea	edx, DWORD PTR _tex2d_desc$[ebp]
@@ -12483,29 +12606,29 @@ $LN3@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+40]
 
-; 217  : 
-; 218  :   // SRGB Correction for UIs
-; 219  :   switch (tex2d_desc.Format)
+; 243  : 
+; 244  :   // SRGB Correction for UIs
+; 245  :   switch (tex2d_desc.Format)
 
 	mov	eax, DWORD PTR _tex2d_desc$[ebp+16]
 	add	eax, -10				; fffffff6H
 	cmp	eax, 81					; 00000051H
-	ja	$LN29@ImGui_Impl
-	movzx	eax, BYTE PTR $LN384@ImGui_Impl[eax]
-	jmp	DWORD PTR $LN394@ImGui_Impl[eax*4]
-$LN26@ImGui_Impl:
+	ja	$LN34@ImGui_Impl
+	movzx	eax, BYTE PTR $LN394@ImGui_Impl[eax]
+	jmp	DWORD PTR $LN404@ImGui_Impl[eax*4]
+$LN31@ImGui_Impl:
 
-; 220  :   {
-; 221  :     case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-; 222  :     case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-; 223  :     {
-; 224  :       D3D11_RENDER_TARGET_VIEW_DESC rtdesc
-; 225  :                            = { };
-; 226  : 
-; 227  :       rtdesc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
-; 228  :       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-; 229  : 
-; 230  :       pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+; 246  :   {
+; 247  :     case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+; 248  :     case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+; 249  :     {
+; 250  :       D3D11_RENDER_TARGET_VIEW_DESC rtdesc
+; 251  :                            = { };
+; 252  : 
+; 253  :       rtdesc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
+; 254  :       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+; 255  : 
+; 256  :       pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
 
 	lea	edx, DWORD PTR _pRenderTargetView$[ebp]
 	mov	DWORD PTR _rtdesc$7[ebp+16], 0
@@ -12517,22 +12640,22 @@ $LN26@ImGui_Impl:
 	mov	DWORD PTR _rtdesc$7[ebp+4], 4
 	push	edx
 
-; 231  :     } break;
+; 257  :     } break;
 
-	jmp	SHORT $LN392@ImGui_Impl
-$LN27@ImGui_Impl:
+	jmp	SHORT $LN402@ImGui_Impl
+$LN32@ImGui_Impl:
 
-; 232  : 
-; 233  :     case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-; 234  :     case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-; 235  :     {
-; 236  :       D3D11_RENDER_TARGET_VIEW_DESC rtdesc
-; 237  :                            = { };
-; 238  : 
-; 239  :       rtdesc.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;
-; 240  :       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-; 241  : 
-; 242  :       pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+; 258  : 
+; 259  :     case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+; 260  :     case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+; 261  :     {
+; 262  :       D3D11_RENDER_TARGET_VIEW_DESC rtdesc
+; 263  :                            = { };
+; 264  : 
+; 265  :       rtdesc.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;
+; 266  :       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+; 267  : 
+; 268  :       pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
 
 	lea	edx, DWORD PTR _pRenderTargetView$[ebp]
 	mov	DWORD PTR _rtdesc$6[ebp+16], 0
@@ -12544,21 +12667,21 @@ $LN27@ImGui_Impl:
 	mov	DWORD PTR _rtdesc$6[ebp+4], 4
 	push	edx
 
-; 243  :     } break;
+; 269  :     } break;
 
-	jmp	SHORT $LN392@ImGui_Impl
-$LN28@ImGui_Impl:
+	jmp	SHORT $LN402@ImGui_Impl
+$LN33@ImGui_Impl:
 
-; 244  : 
-; 245  :     case DXGI_FORMAT_R16G16B16A16_FLOAT:
-; 246  :     {
-; 247  :       D3D11_RENDER_TARGET_VIEW_DESC rtdesc
-; 248  :                            = { };
-; 249  : 
-; 250  :       rtdesc.Format        = DXGI_FORMAT_R16G16B16A16_FLOAT;
-; 251  :       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-; 252  : 
-; 253  :       pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+; 270  : 
+; 271  :     case DXGI_FORMAT_R16G16B16A16_FLOAT:
+; 272  :     {
+; 273  :       D3D11_RENDER_TARGET_VIEW_DESC rtdesc
+; 274  :                            = { };
+; 275  : 
+; 276  :       rtdesc.Format        = DXGI_FORMAT_R16G16B16A16_FLOAT;
+; 277  :       rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+; 278  : 
+; 279  :       pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
 
 	lea	edx, DWORD PTR _pRenderTargetView$[ebp]
 	mov	DWORD PTR _rtdesc$5[ebp+16], 0
@@ -12570,28 +12693,28 @@ $LN28@ImGui_Impl:
 	mov	DWORD PTR _rtdesc$5[ebp+4], 4
 	push	edx
 
-; 254  :     } break;
+; 280  :     } break;
 
-	jmp	SHORT $LN392@ImGui_Impl
-$LN29@ImGui_Impl:
+	jmp	SHORT $LN402@ImGui_Impl
+$LN34@ImGui_Impl:
 
-; 255  : 
-; 256  :     default:
-; 257  :      pDevice->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+; 281  : 
+; 282  :     default:
+; 283  :      pDevice->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
 
 	lea	edx, DWORD PTR _pRenderTargetView$[ebp]
 	push	edx
 	push	0
-$LN392@ImGui_Impl:
+$LN402@ImGui_Impl:
 	mov	eax, DWORD PTR _pDevice$[ebp]
 	push	DWORD PTR _pBackBuffer$[ebp]
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+36]
 
-; 258  :   }
-; 259  : 
-; 260  :   pDevCtx->OMSetRenderTargets ( 1,
+; 284  :   }
+; 285  : 
+; 286  :   pDevCtx->OMSetRenderTargets ( 1,
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	lea	edx, DWORD PTR _pRenderTargetView$[ebp]
@@ -12603,31 +12726,31 @@ $LN392@ImGui_Impl:
 	call	DWORD PTR [ecx+132]
 	xorps	xmm0, xmm0
 
-; 261  :                                   &pRenderTargetView,
-; 262  :                                     nullptr );
-; 263  : 
-; 264  :   // Setup viewport
-; 265  :   D3D11_VIEWPORT vp = { };
+; 287  :                                   &pRenderTargetView,
+; 288  :                                     nullptr );
+; 289  : 
+; 290  :   // Setup viewport
+; 291  :   D3D11_VIEWPORT vp = { };
 
 	movups	XMMWORD PTR _vp$[ebp], xmm0
 	movq	QWORD PTR _vp$[ebp+16], xmm0
 
-; 266  : 
-; 267  :   vp.Height   = ImGui::GetIO ().DisplaySize.y;
+; 292  : 
+; 293  :   vp.Height   = ImGui::GetIO ().DisplaySize.y;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	movss	xmm0, DWORD PTR [eax+4]
 	movss	DWORD PTR _vp$[ebp+12], xmm0
 
-; 268  :   vp.Width    = ImGui::GetIO ().DisplaySize.x;
+; 294  :   vp.Width    = ImGui::GetIO ().DisplaySize.x;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 
-; 269  :   vp.MinDepth = 0.0f;
-; 270  :   vp.MaxDepth = 1.0f;
-; 271  :   vp.TopLeftX = vp.TopLeftY = 0.0f;
-; 272  : 
-; 273  :   pDevCtx->RSSetViewports (1, &vp);
+; 295  :   vp.MinDepth = 0.0f;
+; 296  :   vp.MaxDepth = 1.0f;
+; 297  :   vp.TopLeftX = vp.TopLeftY = 0.0f;
+; 298  : 
+; 299  :   pDevCtx->RSSetViewports (1, &vp);
 
 	lea	edx, DWORD PTR _vp$[ebp]
 	push	edx
@@ -12643,12 +12766,12 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+176]
 
-; 274  : 
-; 275  :   // Bind shader and vertex buffers
-; 276  :   unsigned int stride = sizeof (ImDrawVert);
-; 277  :   unsigned int offset = 0;
-; 278  : 
-; 279  :   pDevCtx->IASetInputLayout       (g_pInputLayout);
+; 300  : 
+; 301  :   // Bind shader and vertex buffers
+; 302  :   unsigned int stride = sizeof (ImDrawVert);
+; 303  :   unsigned int offset = 0;
+; 304  : 
+; 305  :   pDevCtx->IASetInputLayout       (g_pInputLayout);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	DWORD PTR ?g_pInputLayout@@3PAUID3D11InputLayout@@A
@@ -12658,7 +12781,7 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+68]
 
-; 280  :   pDevCtx->IASetVertexBuffers     (0, 1, &g_pVB, &stride, &offset);
+; 306  :   pDevCtx->IASetVertexBuffers     (0, 1, &g_pVB, &stride, &offset);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	lea	edx, DWORD PTR _offset$[ebp]
@@ -12672,7 +12795,7 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+72]
 
-; 281  :   pDevCtx->IASetIndexBuffer       ( g_pIB, sizeof (ImDrawIdx) == 2 ?
+; 307  :   pDevCtx->IASetIndexBuffer       ( g_pIB, sizeof (ImDrawIdx) == 2 ?
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	0
@@ -12682,10 +12805,10 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+76]
 
-; 282  :                                              DXGI_FORMAT_R16_UINT  :
-; 283  :                                              DXGI_FORMAT_R32_UINT,
-; 284  :                                                0 );
-; 285  :   pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+; 308  :                                              DXGI_FORMAT_R16_UINT  :
+; 309  :                                              DXGI_FORMAT_R32_UINT,
+; 310  :                                                0 );
+; 311  :   pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	4
@@ -12693,8 +12816,8 @@ $LN392@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+96]
 
-; 286  : 
-; 287  :   pDevCtx->VSSetShader            (g_pVertexShader, nullptr, 0);
+; 312  : 
+; 313  :   pDevCtx->VSSetShader            (g_pVertexShader, nullptr, 0);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	0
@@ -12704,7 +12827,7 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+44]
 
-; 288  :   pDevCtx->VSSetConstantBuffers   (0, 1, &g_pVertexConstantBuffer);
+; 314  :   pDevCtx->VSSetConstantBuffers   (0, 1, &g_pVertexConstantBuffer);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	OFFSET ?g_pVertexConstantBuffer@@3PAUID3D11Buffer@@A
@@ -12714,9 +12837,9 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+28]
 
-; 289  : 
-; 290  : 
-; 291  :   pDevCtx->PSSetShader            (g_pPixelShader, nullptr, 0);
+; 315  : 
+; 316  : 
+; 317  :   pDevCtx->PSSetShader            (g_pPixelShader, nullptr, 0);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	0
@@ -12726,7 +12849,7 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+36]
 
-; 292  :   pDevCtx->PSSetSamplers          (0, 1, &g_pFontSampler);
+; 318  :   pDevCtx->PSSetSamplers          (0, 1, &g_pFontSampler);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	OFFSET ?g_pFontSampler@@3PAUID3D11SamplerState@@A
@@ -12736,12 +12859,12 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+40]
 
-; 293  : 
-; 294  :   // Setup render state
-; 295  :   const float blend_factor [4] = { 0.f, 0.f,
-; 296  :                                    0.f, 0.f };
-; 297  : 
-; 298  :   pDevCtx->OMSetBlendState        (g_pBlendState, blend_factor, 0xffffffff);
+; 319  : 
+; 320  :   // Setup render state
+; 321  :   const float blend_factor [4] = { 0.f, 0.f,
+; 322  :                                    0.f, 0.f };
+; 323  : 
+; 324  :   pDevCtx->OMSetBlendState        (g_pBlendState, blend_factor, 0xffffffff);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	lea	edx, DWORD PTR _blend_factor$[ebp]
@@ -12754,7 +12877,7 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+140]
 
-; 299  :   pDevCtx->OMSetDepthStencilState (g_pDepthStencilState,        0);
+; 325  :   pDevCtx->OMSetDepthStencilState (g_pDepthStencilState,        0);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	0
@@ -12763,7 +12886,7 @@ $LN392@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+144]
 
-; 300  :   pDevCtx->RSSetState             (g_pRasterizerState);
+; 326  :   pDevCtx->RSSetState             (g_pRasterizerState);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	push	DWORD PTR ?g_pRasterizerState@@3PAUID3D11RasterizerState@@A
@@ -12771,95 +12894,95 @@ $LN392@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+172]
 
-; 301  : 
-; 302  :   // Render command lists
-; 303  :   int vtx_offset = 0;
-; 304  :   int idx_offset = 0;
-; 305  : 
-; 306  :   for (int n = 0; n < draw_data->CmdListsCount; n++)
+; 327  : 
+; 328  :   // Render command lists
+; 329  :   int vtx_offset = 0;
 
-	mov	eax, DWORD PTR _draw_data$[ebp]
 	xor	ecx, ecx
+
+; 330  :   int idx_offset = 0;
+; 331  : 
+; 332  :   for (int n = 0; n < draw_data->CmdListsCount; n++)
+
 	xor	edx, edx
 	mov	DWORD PTR _vtx_offset$1$[ebp], ecx
 	mov	DWORD PTR _idx_offset$1$[ebp], ecx
 	mov	DWORD PTR _n$1$[ebp], edx
-	cmp	DWORD PTR [eax+8], ecx
-	jle	$LN8@ImGui_Impl
-	npad	5
-$LL9@ImGui_Impl:
+	cmp	DWORD PTR [edi+8], ecx
+	jle	$LN11@ImGui_Impl
+$LL12@ImGui_Impl:
 
-; 307  :   {
-; 308  :     const ImDrawList* cmd_list =
-; 309  :       draw_data->CmdLists [n];
+; 333  :   {
+; 334  :     const ImDrawList* cmd_list =
+; 335  :       draw_data->CmdLists [n];
 
-	mov	eax, DWORD PTR [eax+4]
+	mov	eax, DWORD PTR [edi+4]
 
-; 310  : 
-; 311  :     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+; 336  : 
+; 337  :     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 
 	mov	DWORD PTR _cmd_i$1$[ebp], 0
 	mov	edi, DWORD PTR [eax+edx*4]
 	cmp	DWORD PTR [edi], 0
-	jle	$LN11@ImGui_Impl
+	jle	$LN14@ImGui_Impl
 
-; 307  :   {
-; 308  :     const ImDrawList* cmd_list =
-; 309  :       draw_data->CmdLists [n];
+; 333  :   {
+; 334  :     const ImDrawList* cmd_list =
+; 335  :       draw_data->CmdLists [n];
 
 	xor	ecx, ecx
-	mov	DWORD PTR tv2331[ebp], ecx
+	mov	DWORD PTR tv2469[ebp], ecx
 	npad	5
-$LL12@ImGui_Impl:
+$LL15@ImGui_Impl:
 
-; 310  : 
-; 311  :     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+; 336  : 
+; 337  :     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 
 	mov	esi, DWORD PTR [edi+8]
 	add	esi, ecx
 
-; 312  :     {
-; 313  :       const ImDrawCmd* pcmd =
-; 314  :         &cmd_list->CmdBuffer [cmd_i];
-; 315  : 
-; 316  :       if (pcmd->UserCallback)
+; 338  :     {
+; 339  :       const ImDrawCmd* pcmd =
+; 340  :         &cmd_list->CmdBuffer [cmd_i];
+; 341  : 
+; 342  :       if (pcmd->UserCallback)
 
 	mov	eax, DWORD PTR [esi+24]
 	test	eax, eax
-	je	SHORT $LN30@ImGui_Impl
+	je	SHORT $LN35@ImGui_Impl
 
-; 317  :         pcmd->UserCallback (cmd_list, pcmd);
+; 343  :         pcmd->UserCallback (cmd_list, pcmd);
 
 	push	esi
 	push	edi
 	call	eax
 	add	esp, 8
 
-; 318  : 
-; 319  :       else
+; 344  : 
+; 345  :       else
 
-	jmp	SHORT $LN31@ImGui_Impl
-$LN30@ImGui_Impl:
+	jmp	SHORT $LN36@ImGui_Impl
+$LN35@ImGui_Impl:
 
-; 320  :       {
-; 321  :         const D3D11_RECT r = {
-; 322  :           static_cast <LONG> (pcmd->ClipRect.x), static_cast <LONG> (pcmd->ClipRect.y),
+; 346  :       {
+; 347  :         const D3D11_RECT r = {
+; 348  :           static_cast <LONG> (pcmd->ClipRect.x), static_cast <LONG> (pcmd->ClipRect.y),
 
 	xor	ecx, ecx
 	lea	edx, DWORD PTR [esi+4]
 	npad	6
-$LL361@ImGui_Impl:
+$LL368@ImGui_Impl:
 	cvttss2si eax, DWORD PTR [edx]
 	lea	edx, DWORD PTR [edx+4]
 	mov	DWORD PTR _r$8[ebp+ecx*4], eax
 	inc	ecx
 	cmp	ecx, 4
-	jl	SHORT $LL361@ImGui_Impl
+	jl	SHORT $LL368@ImGui_Impl
 
-; 323  :           static_cast <LONG> (pcmd->ClipRect.z), static_cast <LONG> (pcmd->ClipRect.w)
-; 324  :         };
-; 325  : 
-; 326  :         pDevCtx->PSSetShaderResources (0, 1, (ID3D11ShaderResourceView **)&pcmd->TextureId);
+; 349  :           static_cast <LONG> (pcmd->ClipRect.z), static_cast <LONG> (pcmd->ClipRect.w)
+; 350  :         };
+; 351  : 
+; 352  :         pDevCtx->PSSetShaderResources (0, 1, (ID3D11ShaderResourceView **)&pcmd->TextureId);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	lea	ecx, DWORD PTR [esi+20]
@@ -12870,7 +12993,7 @@ $LL361@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [edx+32]
 
-; 327  :         pDevCtx->RSSetScissorRects    (1, &r);
+; 353  :         pDevCtx->RSSetScissorRects    (1, &r);
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 	lea	edx, DWORD PTR _r$8[ebp]
@@ -12880,8 +13003,8 @@ $LL361@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+180]
 
-; 328  : 
-; 329  :         pDevCtx->DrawIndexed (pcmd->ElemCount, idx_offset, vtx_offset);
+; 354  : 
+; 355  :         pDevCtx->DrawIndexed (pcmd->ElemCount, idx_offset, vtx_offset);
 
 	push	DWORD PTR _vtx_offset$1$[ebp]
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
@@ -12890,47 +13013,39 @@ $LL361@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+48]
-$LN31@ImGui_Impl:
+$LN36@ImGui_Impl:
 
-; 330  :       }
-; 331  : 
-; 332  :       idx_offset += pcmd->ElemCount;
+; 356  :       }
+; 357  : 
+; 358  :       idx_offset += pcmd->ElemCount;
 
 	mov	eax, DWORD PTR _cmd_i$1$[ebp]
 	mov	edx, DWORD PTR _idx_offset$1$[ebp]
 	inc	eax
-	mov	ecx, DWORD PTR tv2331[ebp]
+	mov	ecx, DWORD PTR tv2469[ebp]
 	add	edx, DWORD PTR [esi]
 	add	ecx, 32					; 00000020H
 	mov	DWORD PTR _idx_offset$1$[ebp], edx
 	mov	DWORD PTR _cmd_i$1$[ebp], eax
-	mov	DWORD PTR tv2331[ebp], ecx
+	mov	DWORD PTR tv2469[ebp], ecx
 	cmp	eax, DWORD PTR [edi]
-	jl	$LL12@ImGui_Impl
+	jl	$LL15@ImGui_Impl
 	mov	ecx, DWORD PTR _vtx_offset$1$[ebp]
 	mov	edx, DWORD PTR _n$1$[ebp]
-$LN11@ImGui_Impl:
+$LN14@ImGui_Impl:
 
-; 301  : 
-; 302  :   // Render command lists
-; 303  :   int vtx_offset = 0;
-; 304  :   int idx_offset = 0;
-; 305  : 
-; 306  :   for (int n = 0; n < draw_data->CmdListsCount; n++)
-
-	mov	eax, DWORD PTR _draw_data$[ebp]
-	inc	edx
-
-; 333  :     }
-; 334  : 
-; 335  :     vtx_offset += cmd_list->VtxBuffer.Size;
+; 359  :     }
+; 360  : 
+; 361  :     vtx_offset += cmd_list->VtxBuffer.Size;
 
 	add	ecx, DWORD PTR [edi+24]
+	inc	edx
+	mov	edi, DWORD PTR _draw_data$[ebp]
 	mov	DWORD PTR _vtx_offset$1$[ebp], ecx
 	mov	DWORD PTR _n$1$[ebp], edx
-	cmp	edx, DWORD PTR [eax+8]
-	jl	$LL9@ImGui_Impl
-$LN8@ImGui_Impl:
+	cmp	edx, DWORD PTR [edi+8]
+	jl	$LL12@ImGui_Impl
+$LN11@ImGui_Impl:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 
 ; 176  :         if (p)
@@ -12938,7 +13053,7 @@ $LN8@ImGui_Impl:
 	mov	eax, DWORD PTR _pRenderTargetView$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 337  : }
+; 363  : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -12946,21 +13061,21 @@ $LN8@ImGui_Impl:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN324@ImGui_Impl
+	je	SHORT $LN329@ImGui_Impl
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN324@ImGui_Impl:
+$LN329@ImGui_Impl:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pBackBuffer$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 337  : }
+; 363  : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -12968,21 +13083,21 @@ $LN324@ImGui_Impl:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN330@ImGui_Impl
+	je	SHORT $LN335@ImGui_Impl
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN330@ImGui_Impl:
+$LN335@ImGui_Impl:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pDevCtx$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 337  : }
+; 363  : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -12990,21 +13105,21 @@ $LN330@ImGui_Impl:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN336@ImGui_Impl
+	je	SHORT $LN341@ImGui_Impl
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN336@ImGui_Impl:
+$LN341@ImGui_Impl:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pDevice$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 337  : }
+; 363  : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -13012,21 +13127,21 @@ $LN336@ImGui_Impl:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN342@ImGui_Impl
+	je	SHORT $LN347@ImGui_Impl
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN342@ImGui_Impl:
+$LN347@ImGui_Impl:
 
 ; 176  :         if (p)
 
 	mov	eax, DWORD PTR _pSwapChain$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 337  : }
+; 363  : }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -13034,14 +13149,14 @@ $LN342@ImGui_Impl:
 ; 176  :         if (p)
 
 	test	eax, eax
-	je	SHORT $LN385@ImGui_Impl
+	je	SHORT $LN395@ImGui_Impl
 
 ; 177  :             p->Release();
 
 	mov	ecx, DWORD PTR [eax]
 	push	eax
 	call	DWORD PTR [ecx+8]
-$LN385@ImGui_Impl:
+$LN395@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
 ; 143  :     *pBool_ = bOrig_;
@@ -13053,23 +13168,23 @@ $LN385@ImGui_Impl:
 	mov	DWORD PTR [eax], ecx
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 337  : }
+; 363  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN386@ImGui_Impl:
+$LN396@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
 ; 143  :     *pBool_ = bOrig_;
 
 	mov	ecx, DWORD PTR _auto_bool$1$[ebp]
-	mov	DWORD PTR [esi], ecx
+	mov	DWORD PTR [edi], ecx
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 337  : }
+; 363  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -13079,12 +13194,12 @@ $LN386@ImGui_Impl:
 	pop	ebp
 	ret	0
 	npad	1
+$LN404@ImGui_Impl:
+	DD	$LN33@ImGui_Impl
+	DD	$LN31@ImGui_Impl
+	DD	$LN32@ImGui_Impl
+	DD	$LN34@ImGui_Impl
 $LN394@ImGui_Impl:
-	DD	$LN28@ImGui_Impl
-	DD	$LN26@ImGui_Impl
-	DD	$LN27@ImGui_Impl
-	DD	$LN29@ImGui_Impl
-$LN384@ImGui_Impl:
 	DB	0
 	DB	3
 	DB	3
@@ -15344,7 +15459,7 @@ $T7 = -13						; size = 1
 __$EHRec$ = -12						; size = 12
 ?ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ PROC	; ImGui_ImplDX11_CreateDeviceObjects
 
-; 437  : {
+; 463  : {
 
 	npad	2
 	push	ebp
@@ -15358,7 +15473,7 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	push	edi
 
-; 438  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 464  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -15370,7 +15485,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_bool$[ebp+4], edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 438  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 464  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	lea	esi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -15380,50 +15495,50 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_bool$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 438  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 464  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 439  : 
-; 440  :   // Do not dump ImGui font textures
-; 441  :   SK_TLS_Bottom ()->imgui.drawing = true;
+; 465  : 
+; 466  :   // Do not dump ImGui font textures
+; 467  :   SK_TLS_Bottom ()->imgui.drawing = true;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax+48], 1
 
-; 442  : 
-; 443  :   if (g_pFontSampler)
+; 468  : 
+; 469  :   if (g_pFontSampler)
 
 	cmp	DWORD PTR ?g_pFontSampler@@3PAUID3D11SamplerState@@A, 0
 	je	SHORT $LN2@ImGui_Impl
 
-; 444  :     ImGui_ImplDX11_InvalidateDeviceObjects ();
+; 470  :     ImGui_ImplDX11_InvalidateDeviceObjects ();
 
 	call	?ImGui_ImplDX11_InvalidateDeviceObjects@@YAXXZ ; ImGui_ImplDX11_InvalidateDeviceObjects
 $LN2@ImGui_Impl:
 
-; 445  : 
-; 446  :   SK_RenderBackend& rb =
+; 471  : 
+; 472  :   SK_RenderBackend& rb =
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 
-; 447  :     SK_GetCurrentRenderBackend ();
-; 448  : 
-; 449  :   if (! rb.device)
+; 473  :     SK_GetCurrentRenderBackend ();
+; 474  : 
+; 475  :   if (! rb.device)
 
 	cmp	DWORD PTR [eax+36], 0
 	je	$LN15@ImGui_Impl
 
-; 450  :     return false;
-; 451  : 
-; 452  :   if (! rb.d3d11.immediate_ctx)
+; 476  :     return false;
+; 477  : 
+; 478  :   if (! rb.d3d11.immediate_ctx)
 
 	cmp	DWORD PTR [eax+68], 0
 	je	$LN15@ImGui_Impl
 
-; 453  :     return false;
-; 454  : 
-; 455  :   if (! rb.swapchain)
+; 479  :     return false;
+; 480  : 
+; 481  :   if (! rb.swapchain)
 
 	cmp	DWORD PTR [eax+40], 0
 	je	$LN15@ImGui_Impl
@@ -15434,7 +15549,7 @@ $LN2@ImGui_Impl:
 	mov	DWORD PTR _pDev$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 459  :   rb.device->QueryInterface <ID3D11Device> (&pDev);
+; 485  :   rb.device->QueryInterface <ID3D11Device> (&pDev);
 
 	mov	eax, DWORD PTR [eax+36]
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -15448,7 +15563,7 @@ $LN2@ImGui_Impl:
 	mov	ecx, DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 458  :   CComPtr                   <ID3D11Device>   pDev = nullptr;
+; 484  :   CComPtr                   <ID3D11Device>   pDev = nullptr;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -15458,7 +15573,7 @@ $LN2@ImGui_Impl:
 	call	DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 491  :     D3DCompile ( vertexShader,
+; 517  :     D3DCompile ( vertexShader,
 
 	mov	edx, DWORD PTR ?vertexShader@?L@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB
 	mov	ecx, edx
@@ -15472,8 +15587,8 @@ $LL110@ImGui_Impl:
 	push	OFFSET ?g_pVertexShaderBlob@@3PAUID3D10Blob@@A
 	push	0
 	push	0
-	push	OFFSET $SG244020
-	push	OFFSET $SG244021
+	push	OFFSET $SG244054
+	push	OFFSET $SG244055
 	push	0
 	push	0
 	push	0
@@ -15482,16 +15597,16 @@ $LL110@ImGui_Impl:
 	push	edx
 	call	_D3DCompile@44
 
-; 492  :                    strlen (vertexShader),
-; 493  :                      nullptr, nullptr, nullptr,
-; 494  :                        "main", "vs_4_0",
-; 495  :                          0, 0,
-; 496  :                            &g_pVertexShaderBlob,
-; 497  :                              nullptr );
-; 498  : 
-; 499  :     // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in
-; 500  :     //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-; 501  :     if (g_pVertexShaderBlob == nullptr)
+; 518  :                    strlen (vertexShader),
+; 519  :                      nullptr, nullptr, nullptr,
+; 520  :                        "main", "vs_4_0",
+; 521  :                          0, 0,
+; 522  :                            &g_pVertexShaderBlob,
+; 523  :                              nullptr );
+; 524  : 
+; 525  :     // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in
+; 526  :     //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+; 527  :     if (g_pVertexShaderBlob == nullptr)
 
 	mov	ecx, DWORD PTR ?g_pVertexShaderBlob@@3PAUID3D10Blob@@A
 	test	ecx, ecx
@@ -15503,7 +15618,7 @@ $LL110@ImGui_Impl:
 	mov	esi, DWORD PTR _pDev$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 507  :                                           &g_pVertexShader ) != S_OK )
+; 533  :                                           &g_pVertexShader ) != S_OK )
 
 	mov	eax, DWORD PTR [ecx]
 	push	OFFSET ?g_pVertexShader@@3PAUID3D11VertexShader@@A
@@ -15528,7 +15643,7 @@ $LL110@ImGui_Impl:
 	mov	esi, DWORD PTR _pDev$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 512  :       { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert *)nullptr)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+; 538  :       { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert *)nullptr)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
 	mov	DWORD PTR _local_layout$3[ebp+4], eax
 	mov	DWORD PTR _local_layout$3[ebp+12], eax
@@ -15536,34 +15651,34 @@ $LL110@ImGui_Impl:
 	mov	DWORD PTR _local_layout$3[ebp+20], eax
 	mov	DWORD PTR _local_layout$3[ebp+24], eax
 
-; 513  :       { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert *)nullptr)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+; 539  :       { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert *)nullptr)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
 	mov	DWORD PTR _local_layout$3[ebp+32], eax
 	mov	DWORD PTR _local_layout$3[ebp+40], eax
 	mov	DWORD PTR _local_layout$3[ebp+48], eax
 	mov	DWORD PTR _local_layout$3[ebp+52], eax
 
-; 514  :       { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+; 540  :       { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
 	mov	DWORD PTR _local_layout$3[ebp+60], eax
 	mov	DWORD PTR _local_layout$3[ebp+68], eax
 	mov	DWORD PTR _local_layout$3[ebp+76], eax
 	mov	DWORD PTR _local_layout$3[ebp+80], eax
 
-; 515  :     };
-; 516  : 
-; 517  :     if ( pDev->CreateInputLayout ( local_layout, 3,
-; 518  :                                      g_pVertexShaderBlob->GetBufferPointer (),
-; 519  :                                        g_pVertexShaderBlob->GetBufferSize  (),
-; 520  :                                          &g_pInputLayout ) != S_OK )
+; 541  :     };
+; 542  : 
+; 543  :     if ( pDev->CreateInputLayout ( local_layout, 3,
+; 544  :                                      g_pVertexShaderBlob->GetBufferPointer (),
+; 545  :                                        g_pVertexShaderBlob->GetBufferSize  (),
+; 546  :                                          &g_pInputLayout ) != S_OK )
 
 	mov	eax, DWORD PTR ?g_pVertexShaderBlob@@3PAUID3D10Blob@@A
-	mov	DWORD PTR _local_layout$3[ebp], OFFSET $SG244026
+	mov	DWORD PTR _local_layout$3[ebp], OFFSET $SG244060
 	mov	DWORD PTR _local_layout$3[ebp+8], 16	; 00000010H
-	mov	DWORD PTR _local_layout$3[ebp+28], OFFSET $SG244027
+	mov	DWORD PTR _local_layout$3[ebp+28], OFFSET $SG244061
 	mov	DWORD PTR _local_layout$3[ebp+36], 16	; 00000010H
 	mov	DWORD PTR _local_layout$3[ebp+44], 8
-	mov	DWORD PTR _local_layout$3[ebp+56], OFFSET $SG244028
+	mov	DWORD PTR _local_layout$3[ebp+56], OFFSET $SG244062
 	mov	DWORD PTR _local_layout$3[ebp+64], 28	; 0000001cH
 	mov	DWORD PTR _local_layout$3[ebp+72], 16	; 00000010H
 	mov	ecx, DWORD PTR [eax]
@@ -15585,21 +15700,21 @@ $LL110@ImGui_Impl:
 	test	eax, eax
 	jne	$LN20@ImGui_Impl
 
-; 521  :     {
-; 522  :       return false;
-; 523  :     }
-; 524  : 
-; 525  :     // Create the constant buffer
-; 526  :     {
-; 527  :       D3D11_BUFFER_DESC desc = { };
-; 528  : 
-; 529  :       desc.ByteWidth         = sizeof (VERTEX_CONSTANT_BUFFER);
-; 530  :       desc.Usage             = D3D11_USAGE_DYNAMIC;
-; 531  :       desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
-; 532  :       desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
-; 533  :       desc.MiscFlags         = 0;
-; 534  : 
-; 535  :       pDev->CreateBuffer (&desc, nullptr, &g_pVertexConstantBuffer);
+; 547  :     {
+; 548  :       return false;
+; 549  :     }
+; 550  : 
+; 551  :     // Create the constant buffer
+; 552  :     {
+; 553  :       D3D11_BUFFER_DESC desc = { };
+; 554  : 
+; 555  :       desc.ByteWidth         = sizeof (VERTEX_CONSTANT_BUFFER);
+; 556  :       desc.Usage             = D3D11_USAGE_DYNAMIC;
+; 557  :       desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
+; 558  :       desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
+; 559  :       desc.MiscFlags         = 0;
+; 560  : 
+; 561  :       pDev->CreateBuffer (&desc, nullptr, &g_pVertexConstantBuffer);
 
 	xorps	xmm0, xmm0
 	lea	edx, DWORD PTR _desc$6[ebp]
@@ -15618,28 +15733,28 @@ $LL110@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+12]
 
-; 536  :     }
-; 537  :   }
-; 538  : 
-; 539  :   // Create the pixel shader
-; 540  :   {
-; 541  :     static const char* pixelShader =
-; 542  :       "struct PS_INPUT\
-; 543  :       {\
-; 544  :       float4 pos : SV_POSITION;\
-; 545  :       float4 col : COLOR0;\
-; 546  :       float2 uv  : TEXCOORD0;\
-; 547  :       };\
-; 548  :       sampler sampler0;\
-; 549  :       Texture2D texture0;\
-; 550  :       \
-; 551  :       float4 main(PS_INPUT input) : SV_Target\
-; 552  :       {\
-; 553  :       float4 out_col = input.col * texture0.Sample(sampler0, input.uv); \
-; 554  :       return out_col; \
-; 555  :       }";
-; 556  : 
-; 557  :     D3DCompile ( pixelShader,
+; 562  :     }
+; 563  :   }
+; 564  : 
+; 565  :   // Create the pixel shader
+; 566  :   {
+; 567  :     static const char* pixelShader =
+; 568  :       "struct PS_INPUT\
+; 569  :       {\
+; 570  :       float4 pos : SV_POSITION;\
+; 571  :       float4 col : COLOR0;\
+; 572  :       float2 uv  : TEXCOORD0;\
+; 573  :       };\
+; 574  :       sampler sampler0;\
+; 575  :       Texture2D texture0;\
+; 576  :       \
+; 577  :       float4 main(PS_INPUT input) : SV_Target\
+; 578  :       {\
+; 579  :       float4 out_col = input.col * texture0.Sample(sampler0, input.uv); \
+; 580  :       return out_col; \
+; 581  :       }";
+; 582  : 
+; 583  :     D3DCompile ( pixelShader,
 
 	mov	edx, DWORD PTR ?pixelShader@?BE@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB
 	mov	ecx, edx
@@ -15653,8 +15768,8 @@ $LL111@ImGui_Impl:
 	push	OFFSET ?g_pPixelShaderBlob@@3PAUID3D10Blob@@A
 	push	0
 	push	0
-	push	OFFSET $SG244031
-	push	OFFSET $SG244032
+	push	OFFSET $SG244065
+	push	OFFSET $SG244066
 	push	0
 	push	0
 	push	0
@@ -15663,16 +15778,16 @@ $LL111@ImGui_Impl:
 	push	edx
 	call	_D3DCompile@44
 
-; 558  :                    strlen (pixelShader),
-; 559  :                      nullptr, nullptr, nullptr,
-; 560  :                        "main", "ps_4_0",
-; 561  :                          0, 0,
-; 562  :                            &g_pPixelShaderBlob,
-; 563  :                              nullptr );
-; 564  : 
-; 565  :     // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in 
-; 566  :     //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
-; 567  :     if (g_pPixelShaderBlob == nullptr)
+; 584  :                    strlen (pixelShader),
+; 585  :                      nullptr, nullptr, nullptr,
+; 586  :                        "main", "ps_4_0",
+; 587  :                          0, 0,
+; 588  :                            &g_pPixelShaderBlob,
+; 589  :                              nullptr );
+; 590  : 
+; 591  :     // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in 
+; 592  :     //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+; 593  :     if (g_pPixelShaderBlob == nullptr)
 
 	mov	ecx, DWORD PTR ?g_pPixelShaderBlob@@3PAUID3D10Blob@@A
 	test	ecx, ecx
@@ -15684,7 +15799,7 @@ $LL111@ImGui_Impl:
 	mov	esi, DWORD PTR _pDev$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 573  :                                          &g_pPixelShader ) != S_OK )
+; 599  :                                          &g_pPixelShader ) != S_OK )
 
 	mov	eax, DWORD PTR [ecx]
 	push	OFFSET ?g_pPixelShader@@3PAUID3D11PixelShader@@A
@@ -15703,14 +15818,14 @@ $LL111@ImGui_Impl:
 	test	eax, eax
 	jne	$LN20@ImGui_Impl
 
-; 574  :     {
-; 575  :       return false;
-; 576  :     }
-; 577  :   }
-; 578  : 
-; 579  :   // Create the blending setup
-; 580  :   {
-; 581  :     D3D11_BLEND_DESC desc                       = {   };
+; 600  :     {
+; 601  :       return false;
+; 602  :     }
+; 603  :   }
+; 604  : 
+; 605  :   // Create the blending setup
+; 606  :   {
+; 607  :     D3D11_BLEND_DESC desc                       = {   };
 
 	push	264					; 00000108H
 	push	eax
@@ -15718,18 +15833,18 @@ $LL111@ImGui_Impl:
 	push	eax
 	call	_memset
 
-; 582  : 
-; 583  :     desc.AlphaToCoverageEnable                  = false;
-; 584  :     desc.RenderTarget [0].BlendEnable           =  true;
-; 585  :     desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_SRC_ALPHA;
-; 586  :     desc.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
-; 587  :     desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
-; 588  :     desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-; 589  :     desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
-; 590  :     desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-; 591  :     desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-; 592  : 
-; 593  :     pDev->CreateBlendState (&desc, &g_pBlendState);
+; 608  : 
+; 609  :     desc.AlphaToCoverageEnable                  = false;
+; 610  :     desc.RenderTarget [0].BlendEnable           =  true;
+; 611  :     desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_SRC_ALPHA;
+; 612  :     desc.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+; 613  :     desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+; 614  :     desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+; 615  :     desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
+; 616  :     desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+; 617  :     desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+; 618  : 
+; 619  :     pDev->CreateBlendState (&desc, &g_pBlendState);
 
 	mov	eax, DWORD PTR _pDev$[ebp]
 	lea	edx, DWORD PTR _desc$2[ebp]
@@ -15747,18 +15862,18 @@ $LL111@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+80]
 
-; 594  :   }
-; 595  : 
-; 596  :   // Create the rasterizer state
-; 597  :   {
-; 598  :     D3D11_RASTERIZER_DESC desc = { };
-; 599  : 
-; 600  :     desc.FillMode        = D3D11_FILL_SOLID;
-; 601  :     desc.CullMode        = D3D11_CULL_NONE;
-; 602  :     desc.ScissorEnable   = true;
-; 603  :     desc.DepthClipEnable = true;
-; 604  : 
-; 605  :     pDev->CreateRasterizerState (&desc, &g_pRasterizerState);
+; 620  :   }
+; 621  : 
+; 622  :   // Create the rasterizer state
+; 623  :   {
+; 624  :     D3D11_RASTERIZER_DESC desc = { };
+; 625  : 
+; 626  :     desc.FillMode        = D3D11_FILL_SOLID;
+; 627  :     desc.CullMode        = D3D11_CULL_NONE;
+; 628  :     desc.ScissorEnable   = true;
+; 629  :     desc.DepthClipEnable = true;
+; 630  : 
+; 631  :     pDev->CreateRasterizerState (&desc, &g_pRasterizerState);
 
 	mov	eax, DWORD PTR _pDev$[ebp]
 	lea	edx, DWORD PTR _desc$5[ebp]
@@ -15776,11 +15891,11 @@ $LL111@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+88]
 
-; 606  :   }
-; 607  : 
-; 608  :   // Create depth-stencil State
-; 609  :   {
-; 610  :     D3D11_DEPTH_STENCIL_DESC desc = { };
+; 632  :   }
+; 633  : 
+; 634  :   // Create depth-stencil State
+; 635  :   {
+; 636  :     D3D11_DEPTH_STENCIL_DESC desc = { };
 
 	push	52					; 00000034H
 	lea	eax, DWORD PTR _desc$4[ebp]
@@ -15789,18 +15904,18 @@ $LL111@ImGui_Impl:
 	call	_memset
 	movaps	xmm0, XMMWORD PTR __xmm@00000000000000080000000100000000
 
-; 611  : 
-; 612  :     desc.DepthEnable              = false;
-; 613  :     desc.DepthWriteMask           = D3D11_DEPTH_WRITE_MASK_ALL;
-; 614  :     desc.DepthFunc                = D3D11_COMPARISON_ALWAYS;
-; 615  :     desc.StencilEnable            = false;
-; 616  :     desc.FrontFace.StencilFailOp  = desc.FrontFace.StencilDepthFailOp =
-; 617  :                                     desc.FrontFace.StencilPassOp      =
-; 618  :                                     D3D11_STENCIL_OP_KEEP;
-; 619  :     desc.FrontFace.StencilFunc    = D3D11_COMPARISON_ALWAYS;
-; 620  :     desc.BackFace                 = desc.FrontFace;
-; 621  : 
-; 622  :     pDev->CreateDepthStencilState (&desc, &g_pDepthStencilState);
+; 637  : 
+; 638  :     desc.DepthEnable              = false;
+; 639  :     desc.DepthWriteMask           = D3D11_DEPTH_WRITE_MASK_ALL;
+; 640  :     desc.DepthFunc                = D3D11_COMPARISON_ALWAYS;
+; 641  :     desc.StencilEnable            = false;
+; 642  :     desc.FrontFace.StencilFailOp  = desc.FrontFace.StencilDepthFailOp =
+; 643  :                                     desc.FrontFace.StencilPassOp      =
+; 644  :                                     D3D11_STENCIL_OP_KEEP;
+; 645  :     desc.FrontFace.StencilFunc    = D3D11_COMPARISON_ALWAYS;
+; 646  :     desc.BackFace                 = desc.FrontFace;
+; 647  : 
+; 648  :     pDev->CreateDepthStencilState (&desc, &g_pDepthStencilState);
 
 	lea	edx, DWORD PTR _desc$4[ebp]
 	mov	eax, DWORD PTR _pDev$[ebp]
@@ -15818,13 +15933,13 @@ $LL111@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+84]
 
-; 623  :   }
-; 624  : 
-; 625  :   ImGui_ImplDX11_CreateFontsTexture ();
+; 649  :   }
+; 650  : 
+; 651  :   ImGui_ImplDX11_CreateFontsTexture ();
 
 	call	?ImGui_ImplDX11_CreateFontsTexture@@YAXXZ ; ImGui_ImplDX11_CreateFontsTexture
 
-; 627  :   return true;
+; 653  :   return true;
 
 	mov	dl, 1
 	jmp	SHORT $LN114@ImGui_Impl
@@ -15839,7 +15954,7 @@ $LN114@ImGui_Impl:
 	mov	BYTE PTR $T7[ebp], dl
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 627  :   return true;
+; 653  :   return true;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -15865,11 +15980,11 @@ $LN114@ImGui_Impl:
 	mov	DWORD PTR [eax], ecx
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 627  :   return true;
+; 653  :   return true;
 
 	mov	al, BYTE PTR $T7[ebp]
 
-; 628  : }
+; 654  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -15888,11 +16003,11 @@ $LN112@ImGui_Impl:
 	mov	DWORD PTR [eax], ecx
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 627  :   return true;
+; 653  :   return true;
 
 	mov	al, dl
 
-; 628  : }
+; 654  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -15911,7 +16026,7 @@ $LN15@ImGui_Impl:
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 628  : }
+; 654  : }
 
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
@@ -15943,7 +16058,7 @@ _auto_bool$ = -20					; size = 8
 __$EHRec$ = -12						; size = 12
 ?ImGui_ImplDX11_InvalidateDeviceObjects@@YAXXZ PROC	; ImGui_ImplDX11_InvalidateDeviceObjects
 
-; 681  : {
+; 707  : {
 
 	npad	2
 	push	ebp
@@ -15957,7 +16072,7 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	push	edi
 
-; 685  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 711  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -15968,7 +16083,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_bool$[ebp+4], edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 685  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 711  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	lea	esi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -15978,24 +16093,24 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_bool$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 685  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 711  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 686  : 
-; 687  :   // Do not dump ImGui font textures
-; 688  :   SK_TLS_Bottom ()->imgui.drawing = true;
+; 712  : 
+; 713  :   // Do not dump ImGui font textures
+; 714  :   SK_TLS_Bottom ()->imgui.drawing = true;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax+48], 1
 
-; 689  : 
-; 690  :   SK_ImGui_ResetExternal ();
+; 715  : 
+; 716  :   SK_ImGui_ResetExternal ();
 
 	call	?SK_ImGui_ResetExternal@@YAXXZ		; SK_ImGui_ResetExternal
 
-; 691  : 
-; 692  :   if (g_pFontSampler)          { g_pFontSampler->Release     ();     g_pFontSampler = nullptr; }
+; 717  : 
+; 718  :   if (g_pFontSampler)          { g_pFontSampler->Release     ();     g_pFontSampler = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pFontSampler@@3PAUID3D11SamplerState@@A
 	test	ecx, ecx
@@ -16006,7 +16121,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR ?g_pFontSampler@@3PAUID3D11SamplerState@@A, 0
 $LN2@ImGui_Impl:
 
-; 693  :   if (g_pFontTextureView)      { g_pFontTextureView->Release (); g_pFontTextureView = nullptr; ImGui::GetIO ().Fonts->TexID = nullptr; }
+; 719  :   if (g_pFontTextureView)      { g_pFontTextureView->Release (); g_pFontTextureView = nullptr; ImGui::GetIO ().Fonts->TexID = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pFontTextureView@@3PAUID3D11ShaderResourceView@@A
 	test	ecx, ecx
@@ -16020,7 +16135,7 @@ $LN2@ImGui_Impl:
 	mov	DWORD PTR [eax], 0
 $LN3@ImGui_Impl:
 
-; 694  :   if (g_pIB)                   { g_pIB->Release              ();              g_pIB = nullptr; }
+; 720  :   if (g_pIB)                   { g_pIB->Release              ();              g_pIB = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pIB@@3PAUID3D11Buffer@@A
 	test	ecx, ecx
@@ -16031,7 +16146,7 @@ $LN3@ImGui_Impl:
 	mov	DWORD PTR ?g_pIB@@3PAUID3D11Buffer@@A, 0
 $LN4@ImGui_Impl:
 
-; 695  :   if (g_pVB)                   { g_pVB->Release              ();              g_pVB = nullptr; }
+; 721  :   if (g_pVB)                   { g_pVB->Release              ();              g_pVB = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pVB@@3PAUID3D11Buffer@@A
 	test	ecx, ecx
@@ -16042,8 +16157,8 @@ $LN4@ImGui_Impl:
 	mov	DWORD PTR ?g_pVB@@3PAUID3D11Buffer@@A, 0
 $LN5@ImGui_Impl:
 
-; 696  : 
-; 697  :   if (g_pBlendState)           { g_pBlendState->Release           ();           g_pBlendState = nullptr; }
+; 722  : 
+; 723  :   if (g_pBlendState)           { g_pBlendState->Release           ();           g_pBlendState = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pBlendState@@3PAUID3D11BlendState@@A
 	test	ecx, ecx
@@ -16054,7 +16169,7 @@ $LN5@ImGui_Impl:
 	mov	DWORD PTR ?g_pBlendState@@3PAUID3D11BlendState@@A, 0
 $LN6@ImGui_Impl:
 
-; 698  :   if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = nullptr; }
+; 724  :   if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pDepthStencilState@@3PAUID3D11DepthStencilState@@A
 	test	ecx, ecx
@@ -16065,7 +16180,7 @@ $LN6@ImGui_Impl:
 	mov	DWORD PTR ?g_pDepthStencilState@@3PAUID3D11DepthStencilState@@A, 0
 $LN7@ImGui_Impl:
 
-; 699  :   if (g_pRasterizerState)      { g_pRasterizerState->Release      ();      g_pRasterizerState = nullptr; }
+; 725  :   if (g_pRasterizerState)      { g_pRasterizerState->Release      ();      g_pRasterizerState = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pRasterizerState@@3PAUID3D11RasterizerState@@A
 	test	ecx, ecx
@@ -16076,7 +16191,7 @@ $LN7@ImGui_Impl:
 	mov	DWORD PTR ?g_pRasterizerState@@3PAUID3D11RasterizerState@@A, 0
 $LN8@ImGui_Impl:
 
-; 700  :   if (g_pPixelShader)          { g_pPixelShader->Release          ();          g_pPixelShader = nullptr; }
+; 726  :   if (g_pPixelShader)          { g_pPixelShader->Release          ();          g_pPixelShader = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pPixelShader@@3PAUID3D11PixelShader@@A
 	test	ecx, ecx
@@ -16087,7 +16202,7 @@ $LN8@ImGui_Impl:
 	mov	DWORD PTR ?g_pPixelShader@@3PAUID3D11PixelShader@@A, 0
 $LN9@ImGui_Impl:
 
-; 701  :   if (g_pPixelShaderBlob)      { g_pPixelShaderBlob->Release      ();      g_pPixelShaderBlob = nullptr; }
+; 727  :   if (g_pPixelShaderBlob)      { g_pPixelShaderBlob->Release      ();      g_pPixelShaderBlob = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pPixelShaderBlob@@3PAUID3D10Blob@@A
 	test	ecx, ecx
@@ -16098,7 +16213,7 @@ $LN9@ImGui_Impl:
 	mov	DWORD PTR ?g_pPixelShaderBlob@@3PAUID3D10Blob@@A, 0
 $LN10@ImGui_Impl:
 
-; 702  :   if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release (); g_pVertexConstantBuffer = nullptr; }
+; 728  :   if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release (); g_pVertexConstantBuffer = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pVertexConstantBuffer@@3PAUID3D11Buffer@@A
 	test	ecx, ecx
@@ -16109,7 +16224,7 @@ $LN10@ImGui_Impl:
 	mov	DWORD PTR ?g_pVertexConstantBuffer@@3PAUID3D11Buffer@@A, 0
 $LN11@ImGui_Impl:
 
-; 703  :   if (g_pInputLayout)          { g_pInputLayout->Release          ();          g_pInputLayout = nullptr; }
+; 729  :   if (g_pInputLayout)          { g_pInputLayout->Release          ();          g_pInputLayout = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pInputLayout@@3PAUID3D11InputLayout@@A
 	test	ecx, ecx
@@ -16120,7 +16235,7 @@ $LN11@ImGui_Impl:
 	mov	DWORD PTR ?g_pInputLayout@@3PAUID3D11InputLayout@@A, 0
 $LN12@ImGui_Impl:
 
-; 704  :   if (g_pVertexShader)         { g_pVertexShader->Release         ();         g_pVertexShader = nullptr; }
+; 730  :   if (g_pVertexShader)         { g_pVertexShader->Release         ();         g_pVertexShader = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pVertexShader@@3PAUID3D11VertexShader@@A
 	test	ecx, ecx
@@ -16131,7 +16246,7 @@ $LN12@ImGui_Impl:
 	mov	DWORD PTR ?g_pVertexShader@@3PAUID3D11VertexShader@@A, 0
 $LN13@ImGui_Impl:
 
-; 705  :   if (g_pVertexShaderBlob)     { g_pVertexShaderBlob->Release     ();     g_pVertexShaderBlob = nullptr; }
+; 731  :   if (g_pVertexShaderBlob)     { g_pVertexShaderBlob->Release     ();     g_pVertexShaderBlob = nullptr; }
 
 	mov	ecx, DWORD PTR ?g_pVertexShaderBlob@@3PAUID3D10Blob@@A
 	test	ecx, ecx
@@ -16142,7 +16257,7 @@ $LN13@ImGui_Impl:
 	mov	DWORD PTR ?g_pVertexShaderBlob@@3PAUID3D10Blob@@A, 0
 $LN22@ImGui_Impl:
 
-; 706  : }
+; 732  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -16154,7 +16269,7 @@ $LN22@ImGui_Impl:
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 706  : }
+; 732  : }
 
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
@@ -16177,57 +16292,57 @@ _current_time$ = -12					; size = 8
 tv179 = -4						; size = 4
 ?ImGui_ImplDX11_NewFrame@@YAXXZ PROC			; ImGui_ImplDX11_NewFrame
 
-; 786  : {
+; 812  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 12					; 0000000cH
 
-; 787  :   if (! SK_GetCurrentRenderBackend ().device)
+; 813  :   if (! SK_GetCurrentRenderBackend ().device)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax+36], 0
 	je	$LN1@ImGui_Impl
 
-; 788  :     return;
-; 789  : 
-; 790  :   if (! g_pFontSampler)
+; 814  :     return;
+; 815  : 
+; 816  :   if (! g_pFontSampler)
 
 	cmp	DWORD PTR ?g_pFontSampler@@3PAUID3D11SamplerState@@A, 0
 	jne	SHORT $LN3@ImGui_Impl
 
-; 791  :     ImGui_ImplDX11_CreateDeviceObjects ();
+; 817  :     ImGui_ImplDX11_CreateDeviceObjects ();
 
 	call	?ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ ; ImGui_ImplDX11_CreateDeviceObjects
 $LN3@ImGui_Impl:
 	push	esi
 
-; 792  :   
-; 793  :   ImGuiIO& io (ImGui::GetIO ());
+; 818  :   
+; 819  :   ImGuiIO& io (ImGui::GetIO ());
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	esi, eax
 
-; 794  : 
-; 795  :   // Setup display size (every frame to accommodate for window resizing)
-; 796  :   //io.DisplaySize =
-; 797  :     //ImVec2 ( g_frameBufferWidth,
-; 798  :                //g_frameBufferHeight );
-; 799  : 
-; 800  :   // Setup time step
-; 801  :   INT64 current_time;
-; 802  : 
-; 803  :   QueryPerformanceCounter_Original (
+; 820  : 
+; 821  :   // Setup display size (every frame to accommodate for window resizing)
+; 822  :   //io.DisplaySize =
+; 823  :     //ImVec2 ( g_frameBufferWidth,
+; 824  :                //g_frameBufferHeight );
+; 825  : 
+; 826  :   // Setup time step
+; 827  :   INT64 current_time;
+; 828  : 
+; 829  :   QueryPerformanceCounter_Original (
 
 	lea	eax, DWORD PTR _current_time$[ebp]
 	push	eax
 	call	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA ; QueryPerformanceCounter_Original
 
-; 804  :     reinterpret_cast <LARGE_INTEGER *> (&current_time)
-; 805  :   );
-; 806  : 
-; 807  :   io.DeltaTime = static_cast <float> (current_time - g_Time) /
+; 830  :     reinterpret_cast <LARGE_INTEGER *> (&current_time)
+; 831  :   );
+; 832  : 
+; 833  :   io.DeltaTime = static_cast <float> (current_time - g_Time) /
 
 	mov	ecx, DWORD PTR _current_time$[ebp]
 	sub	ecx, DWORD PTR ?g_Time@@3_JA
@@ -16244,64 +16359,64 @@ $LN3@ImGui_Impl:
 	divss	xmm1, xmm0
 	movss	DWORD PTR [esi+8], xmm1
 
-; 808  :                  static_cast <float> (g_TicksPerSecond);
-; 809  :   g_Time       =                      current_time;
+; 834  :                  static_cast <float> (g_TicksPerSecond);
+; 835  :   g_Time       =                      current_time;
 
 	mov	eax, DWORD PTR _current_time$[ebp]
 	mov	DWORD PTR ?g_Time@@3_JA, eax
 	mov	eax, DWORD PTR _current_time$[ebp+4]
 	mov	DWORD PTR ?g_Time@@3_JA+4, eax
 
-; 810  : 
-; 811  :   // Read keyboard modifiers inputs
-; 812  :   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
+; 836  : 
+; 837  :   // Read keyboard modifiers inputs
+; 838  :   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
 
 	cmp	BYTE PTR [esi+246], 0
 	setne	al
 	mov	BYTE PTR [esi+225], al
 
-; 813  :   io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
+; 839  :   io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
 
 	cmp	BYTE PTR [esi+245], 0
 	setne	al
 	mov	BYTE PTR [esi+226], al
 
-; 814  :   io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
+; 840  :   io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
 
 	cmp	BYTE PTR [esi+247], 0
 
-; 815  : 
-; 816  :   io.KeySuper  = false;
+; 841  : 
+; 842  :   io.KeySuper  = false;
 
 	mov	BYTE PTR [esi+228], 0
 	setne	al
 	mov	BYTE PTR [esi+227], al
 
-; 817  : 
-; 818  :   // For games that hijack the mouse cursor using Direct Input 8.
-; 819  :   //
-; 820  :   //  -- Acquire actually means release their exclusive ownership : )
-; 821  :   //
-; 822  :   //if (SK_ImGui_WantMouseCapture ())
-; 823  :   //  SK_Input_DI8Mouse_Acquire ();
-; 824  :   //else
-; 825  :   //  SK_Input_DI8Mouse_Release ();
-; 826  : 
-; 827  : 
-; 828  :   SK_ImGui_PollGamepad ();
+; 843  : 
+; 844  :   // For games that hijack the mouse cursor using Direct Input 8.
+; 845  :   //
+; 846  :   //  -- Acquire actually means release their exclusive ownership : )
+; 847  :   //
+; 848  :   //if (SK_ImGui_WantMouseCapture ())
+; 849  :   //  SK_Input_DI8Mouse_Acquire ();
+; 850  :   //else
+; 851  :   //  SK_Input_DI8Mouse_Release ();
+; 852  : 
+; 853  : 
+; 854  :   SK_ImGui_PollGamepad ();
 
 	call	?SK_ImGui_PollGamepad@@YAXXZ		; SK_ImGui_PollGamepad
 
-; 829  : 
-; 830  : 
-; 831  :   // Start the frame
-; 832  :   ImGui::NewFrame ();
+; 855  : 
+; 856  : 
+; 857  :   // Start the frame
+; 858  :   ImGui::NewFrame ();
 
 	call	?NewFrame@ImGui@@YAXXZ			; ImGui::NewFrame
 	pop	esi
 $LN1@ImGui_Impl:
 
-; 833  : }
+; 859  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -16321,7 +16436,7 @@ _auto_bool$ = -20					; size = 8
 __$EHRec$ = -12						; size = 12
 ?ImGui_ImplDX11_Shutdown@@YAXXZ PROC			; ImGui_ImplDX11_Shutdown
 
-; 767  : {
+; 793  : {
 
 	npad	2
 	push	ebp
@@ -16335,7 +16450,7 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	push	edi
 
-; 768  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 794  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -16346,7 +16461,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_bool$[ebp+4], esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 768  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 794  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	lea	edi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -16356,27 +16471,27 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_bool$[ebp], edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 768  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+; 794  :   SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 769  : 
-; 770  :   // Do not dump ImGui font textures
-; 771  :   SK_TLS_Bottom ()->imgui.drawing = true;
+; 795  : 
+; 796  :   // Do not dump ImGui font textures
+; 797  :   SK_TLS_Bottom ()->imgui.drawing = true;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax+48], 1
 
-; 772  : 
-; 773  :   ImGui_ImplDX11_InvalidateDeviceObjects ();
+; 798  : 
+; 799  :   ImGui_ImplDX11_InvalidateDeviceObjects ();
 
 	call	?ImGui_ImplDX11_InvalidateDeviceObjects@@YAXXZ ; ImGui_ImplDX11_InvalidateDeviceObjects
 
-; 774  :   ImGui::Shutdown                        ();
+; 800  :   ImGui::Shutdown                        ();
 
 	call	?Shutdown@ImGui@@YAXXZ			; ImGui::Shutdown
 
-; 777  : }
+; 803  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
@@ -16387,12 +16502,12 @@ __$EHRec$ = -12						; size = 12
 	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
 
-; 776  :   g_hWnd              = HWND_DESKTOP;
+; 802  :   g_hWnd              = HWND_DESKTOP;
 
 	mov	DWORD PTR ?g_hWnd@@3PAUHWND__@@A, 0
 	pop	esi
 
-; 777  : }
+; 803  : }
 
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
@@ -16417,22 +16532,22 @@ ___formal$ = 12						; size = 4
 ___formal$ = 16						; size = 4
 ?ImGui_ImplDX11_Init@@YA_NPAUIDXGISwapChain@@PAUID3D11Device@@PAUID3D11DeviceContext@@@Z PROC ; ImGui_ImplDX11_Init
 
-; 712  : {
+; 738  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 60					; 0000003cH
 
-; 713  :   static bool first = true;
-; 714  : 
-; 715  :   if (first)
+; 739  :   static bool first = true;
+; 740  : 
+; 741  :   if (first)
 
 	cmp	BYTE PTR ?first@?1??ImGui_ImplDX11_Init@@YA_NPAUIDXGISwapChain@@PAUID3D11Device@@PAUID3D11DeviceContext@@@Z@4_NA, 0
 	je	SHORT $LN2@ImGui_Impl
 
-; 716  :   {
-; 717  :     if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
+; 742  :   {
+; 743  :     if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
 
 	push	OFFSET ?g_TicksPerSecond@@3_JA
 	call	DWORD PTR __imp__QueryPerformanceFrequency@4
@@ -16440,35 +16555,35 @@ ___formal$ = 16						; size = 4
 	jne	SHORT $LN3@ImGui_Impl
 $LN6@ImGui_Impl:
 
-; 718  :       return false;
+; 744  :       return false;
 
 	xor	al, al
 
-; 763  : }
+; 789  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN3@ImGui_Impl:
 
-; 719  : 
-; 720  :     if (! QueryPerformanceCounter_Original (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
+; 745  : 
+; 746  :     if (! QueryPerformanceCounter_Original (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
 
 	push	OFFSET ?g_Time@@3_JA
 	call	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA ; QueryPerformanceCounter_Original
 	test	eax, eax
 	je	SHORT $LN6@ImGui_Impl
 
-; 721  :       return false;
-; 722  : 
-; 723  :     first = false;
+; 747  :       return false;
+; 748  : 
+; 749  :     first = false;
 
 	mov	BYTE PTR ?first@?1??ImGui_ImplDX11_Init@@YA_NPAUIDXGISwapChain@@PAUID3D11Device@@PAUID3D11DeviceContext@@@Z@4_NA, 0
 $LN2@ImGui_Impl:
 
-; 724  :   }
-; 725  : 
-; 726  :   DXGI_SWAP_CHAIN_DESC  swap_desc  = { };
+; 750  :   }
+; 751  : 
+; 752  :   DXGI_SWAP_CHAIN_DESC  swap_desc  = { };
 
 	push	60					; 0000003cH
 	lea	eax, DWORD PTR _swap_desc$[ebp]
@@ -16476,7 +16591,7 @@ $LN2@ImGui_Impl:
 	push	eax
 	call	_memset
 
-; 727  :   pSwapChain->GetDesc (&swap_desc);
+; 753  :   pSwapChain->GetDesc (&swap_desc);
 
 	mov	eax, DWORD PTR _pSwapChain$[ebp]
 	lea	edx, DWORD PTR _swap_desc$[ebp]
@@ -16486,55 +16601,55 @@ $LN2@ImGui_Impl:
 	push	eax
 	call	DWORD PTR [ecx+48]
 
-; 728  : 
-; 729  :   g_hWnd              = swap_desc.OutputWindow;
+; 754  : 
+; 755  :   g_hWnd              = swap_desc.OutputWindow;
 
 	mov	eax, DWORD PTR _swap_desc$[ebp+44]
 	mov	DWORD PTR ?g_hWnd@@3PAUHWND__@@A, eax
 
-; 730  : 
-; 731  :   g_frameBufferWidth  = swap_desc.BufferDesc.Width;
+; 756  : 
+; 757  :   g_frameBufferWidth  = swap_desc.BufferDesc.Width;
 
 	mov	eax, DWORD PTR _swap_desc$[ebp]
 	mov	DWORD PTR ?g_frameBufferWidth@@3IA, eax
 
-; 732  :   g_frameBufferHeight = swap_desc.BufferDesc.Height;
+; 758  :   g_frameBufferHeight = swap_desc.BufferDesc.Height;
 
 	mov	eax, DWORD PTR _swap_desc$[ebp+4]
 	mov	DWORD PTR ?g_frameBufferHeight@@3IA, eax
 
-; 733  : 
-; 734  :   ImGuiIO& io =
+; 759  : 
+; 760  :   ImGuiIO& io =
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	ecx, eax
 
-; 735  :     ImGui::GetIO ();
-; 736  : 
-; 737  :   // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
-; 738  :   io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
-; 739  :   io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
-; 740  :   io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
-; 741  :   io.KeyMap [ImGuiKey_UpArrow]    = VK_UP;
-; 742  :   io.KeyMap [ImGuiKey_DownArrow]  = VK_DOWN;
-; 743  :   io.KeyMap [ImGuiKey_PageUp]     = VK_PRIOR;
-; 744  :   io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
-; 745  :   io.KeyMap [ImGuiKey_Home]       = VK_HOME;
-; 746  :   io.KeyMap [ImGuiKey_End]        = VK_END;
-; 747  :   io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
-; 748  :   io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
-; 749  :   io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
-; 750  :   io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
-; 751  :   io.KeyMap [ImGuiKey_A]          = 'A';
-; 752  :   io.KeyMap [ImGuiKey_C]          = 'C';
-; 753  :   io.KeyMap [ImGuiKey_V]          = 'V';
-; 754  :   io.KeyMap [ImGuiKey_X]          = 'X';
-; 755  :   io.KeyMap [ImGuiKey_Y]          = 'Y';
-; 756  :   io.KeyMap [ImGuiKey_Z]          = 'Z';
-; 757  : 
-; 758  :   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
-; 759  :   io.RenderDrawListsFn = ImGui_ImplDX11_RenderDrawLists;
-; 760  :   io.ImeWindowHandle   = g_hWnd;
+; 761  :     ImGui::GetIO ();
+; 762  : 
+; 763  :   // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
+; 764  :   io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
+; 765  :   io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
+; 766  :   io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
+; 767  :   io.KeyMap [ImGuiKey_UpArrow]    = VK_UP;
+; 768  :   io.KeyMap [ImGuiKey_DownArrow]  = VK_DOWN;
+; 769  :   io.KeyMap [ImGuiKey_PageUp]     = VK_PRIOR;
+; 770  :   io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
+; 771  :   io.KeyMap [ImGuiKey_Home]       = VK_HOME;
+; 772  :   io.KeyMap [ImGuiKey_End]        = VK_END;
+; 773  :   io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
+; 774  :   io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
+; 775  :   io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
+; 776  :   io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
+; 777  :   io.KeyMap [ImGuiKey_A]          = 'A';
+; 778  :   io.KeyMap [ImGuiKey_C]          = 'C';
+; 779  :   io.KeyMap [ImGuiKey_V]          = 'V';
+; 780  :   io.KeyMap [ImGuiKey_X]          = 'X';
+; 781  :   io.KeyMap [ImGuiKey_Y]          = 'Y';
+; 782  :   io.KeyMap [ImGuiKey_Z]          = 'Z';
+; 783  : 
+; 784  :   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
+; 785  :   io.RenderDrawListsFn = ImGui_ImplDX11_RenderDrawLists;
+; 786  :   io.ImeWindowHandle   = g_hWnd;
 
 	mov	eax, DWORD PTR ?g_hWnd@@3PAUHWND__@@A
 	mov	DWORD PTR [ecx+36], 9
@@ -16559,14 +16674,14 @@ $LN2@ImGui_Impl:
 	mov	DWORD PTR [ecx+172], OFFSET ?ImGui_ImplDX11_RenderDrawLists@@YAXPAUImDrawData@@@Z ; ImGui_ImplDX11_RenderDrawLists
 	mov	DWORD PTR [ecx+200], eax
 
-; 761  : 
-; 762  :   return SK_GetCurrentRenderBackend ().device != nullptr;
+; 787  : 
+; 788  :   return SK_GetCurrentRenderBackend ().device != nullptr;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax+36], 0
 	setne	al
 
-; 763  : }
+; 789  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -16601,7 +16716,7 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 879  : }
+; 905  : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
@@ -16613,7 +16728,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 879  : }
+; 905  : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete
