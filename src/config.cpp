@@ -238,6 +238,15 @@ struct {
     sk::ParameterBool*    allow_dwm_tearing;
     sk::ParameterBool*    sleepless_window;
     sk::ParameterBool*    sleepless_render;
+
+    struct
+    {
+      sk::ParameterBool*  busy_wait;
+      sk::ParameterBool*  yield_once;
+      sk::ParameterBool*  minimize_latency;
+      sk::ParameterFloat* sleep_scale;
+      sk::ParameterFloat* deadline_transition;
+    } control;
   } framerate;
   struct {
     sk::ParameterInt*     adapter_override;
@@ -455,14 +464,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (create)
     SK_CreateDirectories (full_name.c_str ());
 
-  static bool         init     = false;
+  static ULONG        init     = FALSE;
   static bool         empty    = true;
   static std::wstring last_try = name;
 
   // Allow a second load attempt using a different name
   if (last_try != name)
   {
-    init     = false;
+    init     = FALSE;
     last_try = name;
   }
 
@@ -472,1156 +481,314 @@ SK_LoadConfigEx (std::wstring name, bool create)
   achievement_config =
     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini";
 
+  while (init < 0)
+    SleepEx (15, FALSE);
 
-  if (! init)
+  if (init == FALSE)
   {
-   dll_ini =
-    SK_CreateINI (full_name.c_str ());
+    init = -1;
 
-  empty    = dll_ini->get_sections ().empty ();
+    dll_ini =
+      SK_CreateINI (full_name.c_str ());
 
-  SK_CreateDirectories (osd_config.c_str ());
+    empty    = dll_ini->get_sections ().empty ();
 
-  osd_ini =
-    SK_CreateINI (osd_config.c_str ());
+    SK_CreateDirectories (osd_config.c_str ());
 
-  achievement_ini =
-    SK_CreateINI (achievement_config.c_str ());
+    osd_ini =
+      SK_CreateINI (osd_config.c_str ());
 
-
-  osd.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"OSD Visibility")
-      );
-  osd.show->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"Show" );
-
-  osd.update_method.pump =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Refresh the OSD irrespective of frame completion")
-      );
-  osd.update_method.pump->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"AutoPump" );
-
-  osd.update_method.pump_interval =
-    dynamic_cast <sk::ParameterFloat *>
-    (g_ParameterFactory.create_parameter <float> (
-      L"Time in seconds between OSD updates")
-    );
-  osd.update_method.pump_interval->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"PumpInterval" );
-
-  osd.text.red =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Color (Red)")
-      );
-  osd.text.red->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"TextColorRed" );
-
-  osd.text.green =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Color (Green)")
-      );
-  osd.text.green->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"TextColorGreen" );
-
-  osd.text.blue =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Color (Blue)")
-      );
-  osd.text.blue->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"TextColorBlue" );
-
-  osd.viewport.pos_x =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Position (X)")
-      );
-  osd.viewport.pos_x->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"PositionX" );
-
-  osd.viewport.pos_y =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"OSD Position (Y)")
-      );
-  osd.viewport.pos_y->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"PositionY" );
-
-  osd.viewport.scale =
-    dynamic_cast <sk::ParameterFloat *>
-      (g_ParameterFactory.create_parameter <float> (
-        L"OSD Scale")
-      );
-  osd.viewport.scale->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"Scale" );
-
-  osd.state.remember =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Remember status monitoring state")
-      );
-  osd.state.remember->register_to_ini (
-    osd_ini,
-      L"SpecialK.OSD",
-        L"RememberMonitoringState" );
-
-
-  monitoring.SLI.show =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Show SLI Monitoring")
-      );
-  monitoring.SLI.show->register_to_ini (
-    osd_ini,
-      L"Monitor.SLI",
-        L"Show" );
-
-
-
-  struct param_decl_s
-  {
-    sk::iParameter** parameter_;
-    std::type_index  type_;
-    const wchar_t*   description_;
-    iSK_INI*         ini_;
-    const wchar_t*   section_;
-    const wchar_t*   key_;
-  };
+    achievement_ini =
+      SK_CreateINI (achievement_config.c_str ());
 
   #define ConfigEntry(param,descrip,ini,sec,key) { (sk::iParameter **)&(param), std::type_index (typeid ((param))), (descrip), (ini), (sec), (key) }
 
-  param_decl_s params_to_build [] =
+  //
+  // Create Parameters
+  //
+struct param_decl_s {
+  sk::iParameter** parameter_;
+  std::type_index  type_;
+  const wchar_t*   description_;
+  iSK_INI*         ini_;
+  const wchar_t*   section_;
+  const wchar_t*   key_;
+} params_to_build [] =
   {
+    ConfigEntry (osd.show,                               L"OSD Visibility",                                            osd_ini,         L"SpecialK.OSD",          L"Show"),
+
+    ConfigEntry (osd.update_method.pump,                 L"Refresh the OSD irrespective of frame completion",          osd_ini,         L"SpecialK.OSD",          L"AutoPump"),
+    ConfigEntry (osd.update_method.pump_interval,        L"Time in seconds between OSD updates",                       osd_ini,         L"SpecialK.OSD",          L"PumpInterval"),
+    ConfigEntry (osd.text.red,                           L"OSD Color (Red)",                                           osd_ini,         L"SpecialK.OSD",          L"TextColorRed"),
+    ConfigEntry (osd.text.green,                         L"OSD Color (Green)",                                         osd_ini,         L"SpecialK.OSD",          L"TextColorGreen"),
+    ConfigEntry (osd.text.blue,                          L"OSD Color (Blue)",                                          osd_ini,         L"SpecialK.OSD",          L"TextColorBlue"),
+
+    ConfigEntry (osd.viewport.pos_x,                     L"OSD Position (X)",                                          osd_ini,         L"SpecialK.OSD",          L"PositionX"),
+    ConfigEntry (osd.viewport.pos_y,                     L"OSD Position (Y)",                                          osd_ini,         L"SpecialK.OSD",          L"PositionY"),
+
+    ConfigEntry (osd.viewport.scale,                     L"OSD Scale",                                                 osd_ini,         L"SpecialK.OSD",          L"Scale"),
+
+    ConfigEntry (osd.state.remember,                     L"Remember status monitoring state",                          osd_ini,         L"SpecialK.OSD",          L"RememberMonitoringState"),
+
+    ConfigEntry (monitoring.SLI.show,                    L"Show SLI Monitoring",                                       osd_ini,         L"Monitor.SLI",           L"Show"),
+
     // Performance Monitoring
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (monitoring.io.show,            L"Show IO Monitoring",                               osd_ini, L"Monitor.IO",       L"Show"),
-    ConfigEntry (monitoring.io.interval,        L"IO Monitoring Interval",                           osd_ini, L"Monitor.IO",       L"Interval"),
+    ConfigEntry (monitoring.io.show,                     L"Show IO Monitoring",                                        osd_ini,         L"Monitor.IO",            L"Show"),
+    ConfigEntry (monitoring.io.interval,                 L"IO Monitoring Interval",                                    osd_ini,         L"Monitor.IO",            L"Interval"),
 
-    ConfigEntry (monitoring.disk.show,          L"Show Disk Monitoring",                             osd_ini, L"Monitor.Disk",     L"Show"),
-    ConfigEntry (monitoring.disk.interval,      L"Disk Monitoring Interval",                         osd_ini, L"Monitor.Disk",     L"Interval"),
-    ConfigEntry (monitoring.disk.type,          L"Disk Monitoring Type (0 = Physical, 1 = Logical)", osd_ini, L"Monitor.Disk",     L"Type"),
+    ConfigEntry (monitoring.disk.show,                   L"Show Disk Monitoring",                                      osd_ini,         L"Monitor.Disk",          L"Show"),
+    ConfigEntry (monitoring.disk.interval,               L"Disk Monitoring Interval",                                  osd_ini,         L"Monitor.Disk",          L"Interval"),
+    ConfigEntry (monitoring.disk.type,                   L"Disk Monitoring Type (0 = Physical, 1 = Logical)",          osd_ini,         L"Monitor.Disk",          L"Type"),
 
-    ConfigEntry (monitoring.cpu.show,           L"Show CPU Monitoring",                              osd_ini, L"Monitor.CPU",      L"Show"),
-    ConfigEntry (monitoring.cpu.interval,       L"CPU Monitoring Interval (seconds)",                osd_ini, L"Monitor.CPU",      L"Interval"),
-    ConfigEntry (monitoring.cpu.simple,         L"Minimal CPU Info",                                 osd_ini, L"Monitor.CPU",      L"Simple"),
+    ConfigEntry (monitoring.cpu.show,                    L"Show CPU Monitoring",                                       osd_ini,         L"Monitor.CPU",           L"Show"),
+    ConfigEntry (monitoring.cpu.interval,                L"CPU Monitoring Interval (seconds)",                         osd_ini,         L"Monitor.CPU",           L"Interval"),
+    ConfigEntry (monitoring.cpu.simple,                  L"Minimal CPU Info",                                          osd_ini,         L"Monitor.CPU",           L"Simple"),
 
-    ConfigEntry (monitoring.gpu.show,           L"Show GPU Monitoring",                              osd_ini, L"Monitor.GPU",      L"Show"),
-    ConfigEntry (monitoring.gpu.interval,       L"GPU Monitoring Interval (msecs)",                  osd_ini, L"Monitor.GPU",      L"Interval"),
-    ConfigEntry (monitoring.gpu.print_slowdown, L"Print GPU Slowdown Reason (NVIDIA GPUs)",          osd_ini, L"Monitor.GPU",      L"PrintSlowdown"),
+    ConfigEntry (monitoring.gpu.show,                    L"Show GPU Monitoring",                                       osd_ini,         L"Monitor.GPU",           L"Show"),
+    ConfigEntry (monitoring.gpu.interval,                L"GPU Monitoring Interval (msecs)",                           osd_ini,         L"Monitor.GPU",           L"Interval"),
+    ConfigEntry (monitoring.gpu.print_slowdown,          L"Print GPU Slowdown Reason (NVIDIA GPUs)",                   osd_ini,         L"Monitor.GPU",           L"PrintSlowdown"),
 
-    ConfigEntry (monitoring.pagefile.show,      L"Show Pagefile Monitoring",                         osd_ini, L"Monitor.Pagefile", L"Show"),
-    ConfigEntry (monitoring.pagefile.interval,  L"Pagefile Monitoring INterval (seconds)",           osd_ini, L"Monitor.Pagefile", L"Interval"),
+    ConfigEntry (monitoring.pagefile.show,               L"Show Pagefile Monitoring",                                  osd_ini,         L"Monitor.Pagefile",      L"Show"),
+    ConfigEntry (monitoring.pagefile.interval,           L"Pagefile Monitoring INterval (seconds)",                    osd_ini,         L"Monitor.Pagefile",      L"Interval"),
 
-    ConfigEntry (monitoring.memory.show,        L"Show Memory Monitoring",                           osd_ini, L"Monitor.Memory",   L"Show"),
-    ConfigEntry (monitoring.fps.show,           L"Show Framerate Monitoring",                        osd_ini, L"Monitor.FPS",      L"Show"),
-    ConfigEntry (monitoring.time.show,          L"Show System Clock",                                osd_ini, L"Monitor.Time",     L"Show"),
+    ConfigEntry (monitoring.memory.show,                 L"Show Memory Monitoring",                                    osd_ini,         L"Monitor.Memory",        L"Show"),
+    ConfigEntry (monitoring.fps.show,                    L"Show Framerate Monitoring",                                 osd_ini,         L"Monitor.FPS",           L"Show"),
+    ConfigEntry (monitoring.time.show,                   L"Show System Clock",                                         osd_ini,         L"Monitor.Time",          L"Show"),
 
-    ConfigEntry (prefer_fahrenheit,             L"Prefer Fahrenheit Units",                          osd_ini, L"SpecialK.OSD",     L"PreferFahrenheit"),
+    ConfigEntry (prefer_fahrenheit,                      L"Prefer Fahrenheit Units",                                   osd_ini,         L"SpecialK.OSD",          L"PreferFahrenheit"),
+
+    ConfigEntry (imgui.scale,                            L"ImGui Scale",                                               osd_ini,         L"ImGui.Global",          L"FontScale"),
+    ConfigEntry (imgui.show_playtime,                    L"Display Playing Time in Config UI",                         osd_ini,         L"ImGui.Global",          L"ShowPlaytime"),
+    ConfigEntry (imgui.show_gsync_status,                L"Show G-Sync Status on Control Panel",                       osd_ini,         L"ImGui.Global",          L"ShowGSyncStatus"),
+    ConfigEntry (imgui.mac_style_menu,                   L"Use Mac-style Menu Bar",                                    osd_ini,         L"ImGui.Global",          L"UseMacStyleMenu"),
+    ConfigEntry (imgui.show_input_apis,                  L"Show Input APIs currently in-use",                          osd_ini,         L"ImGui.Global",          L"ShowActiveInputAPIs"),
 
 
     // Input
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (input.keyboard.catch_alt_f4,         L"If the game does not handle Alt+F4, offer a replacement",   dll_ini, L"Input.Keyboard", L"CatchAltF4"),
-    ConfigEntry (input.keyboard.disabled_to_game,     L"Completely stop all keyboard input from reaching the Game", dll_ini, L"Input.Keyboard", L"DisabledToGame"),
+    ConfigEntry (input.keyboard.catch_alt_f4,            L"If the game does not handle Alt+F4, offer a replacement",   dll_ini,         L"Input.Keyboard",        L"CatchAltF4"),
+    ConfigEntry (input.keyboard.disabled_to_game,        L"Completely stop all keyboard input from reaching the Game", dll_ini,         L"Input.Keyboard",        L"DisabledToGame"),
 
-    ConfigEntry (input.mouse.disabled_to_game,        L"Completely stop all mouse input from reaching the Game",    dll_ini, L"Input.Mouse",    L"DisabledToGame"),
+    ConfigEntry (input.mouse.disabled_to_game,           L"Completely stop all mouse input from reaching the Game",    dll_ini,         L"Input.Mouse",           L"DisabledToGame"),
 
-    ConfigEntry (input.cursor.manage,                 L"Manage Cursor Visibility (due to inactivity)",              dll_ini, L"Input.Cursor",   L"Manage"),
-    ConfigEntry (input.cursor.keys_activate,          L"Keyboard Input Activates Cursor",                           dll_ini, L"Input.Cursor",   L"KeyboardActivates"),
-    ConfigEntry (input.cursor.timeout,                L"Inactivity Timeout (in milliseconds)",                      dll_ini, L"Input.Cursor",   L"Timeout"),
-    ConfigEntry (input.cursor.ui_capture,             L"Forcefully Capture Mouse Cursor in UI Mode",                dll_ini, L"Input.Cursor",   L"ForceCaptureInUI"),
-    ConfigEntry (input.cursor.hw_cursor,              L"Use a Hardware Cursor for Special K's UI Features",         dll_ini, L"Input.Cursor",   L"UseHardwareCursor"),
-    ConfigEntry (input.cursor.block_invisible,        L"Block Mouse Input if Hardware Cursor is Invisible",         dll_ini, L"Input.Cursor",   L"BlockInvisibleCursorInput"),
-    ConfigEntry (input.cursor.fix_synaptics,          L"Fix Synaptic Touchpad Scroll",                              dll_ini, L"Input.Cursor",   L"FixSynapticsTouchpadScroll"),
-    ConfigEntry (input.cursor.use_relative_input,     L"Use Raw Input Relative Motion if Needed",                   dll_ini, L"Input.Cursor",   L"UseRelativeInput"),
-    ConfigEntry (input.cursor.antiwarp_deadzone,      L"Percentage of Screen that the game may try to move the "
-                                                      L"cursor to for mouselook.",                                  dll_ini, L"Input.Cursor",   L"AntiwarpDeadzonePercent"),
-    ConfigEntry (input.cursor.no_warp_ui,             L"Prevent Games from Warping Cursor while Config UI is Open", dll_ini, L"Input.Cursor",   L"NoWarpUI"),
-    ConfigEntry (input.cursor.no_warp_visible,        L"Prevent Games from Warping Cursor while Cursor is Visible", dll_ini, L"Input.Cursor",   L"NoWarpVisibleGameCursor"),
+    ConfigEntry (input.cursor.manage,                    L"Manage Cursor Visibility (due to inactivity)",              dll_ini,         L"Input.Cursor",          L"Manage"),
+    ConfigEntry (input.cursor.keys_activate,             L"Keyboard Input Activates Cursor",                           dll_ini,         L"Input.Cursor",          L"KeyboardActivates"),
+    ConfigEntry (input.cursor.timeout,                   L"Inactivity Timeout (in milliseconds)",                      dll_ini,         L"Input.Cursor",          L"Timeout"),
+    ConfigEntry (input.cursor.ui_capture,                L"Forcefully Capture Mouse Cursor in UI Mode",                dll_ini,         L"Input.Cursor",          L"ForceCaptureInUI"),
+    ConfigEntry (input.cursor.hw_cursor,                 L"Use a Hardware Cursor for Special K's UI Features",         dll_ini,         L"Input.Cursor",          L"UseHardwareCursor"),
+    ConfigEntry (input.cursor.block_invisible,           L"Block Mouse Input if Hardware Cursor is Invisible",         dll_ini,         L"Input.Cursor",          L"BlockInvisibleCursorInput"),
+    ConfigEntry (input.cursor.fix_synaptics,             L"Fix Synaptic Touchpad Scroll",                              dll_ini,         L"Input.Cursor",          L"FixSynapticsTouchpadScroll"),
+    ConfigEntry (input.cursor.use_relative_input,        L"Use Raw Input Relative Motion if Needed",                   dll_ini,         L"Input.Cursor",          L"UseRelativeInput"),
+    ConfigEntry (input.cursor.antiwarp_deadzone,         L"Percentage of Screen that the game may try to move the "
+                                                         L"cursor to for mouselook.",                                  dll_ini,         L"Input.Cursor",          L"AntiwarpDeadzonePercent"),
+    ConfigEntry (input.cursor.no_warp_ui,                L"Prevent Games from Warping Cursor while Config UI is Open", dll_ini,         L"Input.Cursor",          L"NoWarpUI"),
+    ConfigEntry (input.cursor.no_warp_visible,           L"Prevent Games from Warping Cursor while Cursor is Visible", dll_ini,         L"Input.Cursor",          L"NoWarpVisibleGameCursor"),
 
-    ConfigEntry (input.gamepad.disable_ps4_hid,       L"Disable PS4 HID Interface (prevent double-input)",          dll_ini, L"Input.Gamepad",  L"DisablePS4HID"),
-    ConfigEntry (input.gamepad.haptic_ui,             L"Give tactile feedback on gamepads when navigating the UI",  dll_ini, L"Input.Gamepad",  L"AllowHapticUI"),
-    ConfigEntry (input.gamepad.hook_dinput8,          L"Install hooks for DirectInput 8",                           dll_ini, L"Input.Gamepad",  L"EnableDirectInput8"),
-    ConfigEntry (input.gamepad.hook_hid,              L"Install hooks for HID",                                     dll_ini, L"Input.Gamepad",  L"EnableHID"),
-    ConfigEntry (input.gamepad.native_ps4,            L"Native PS4 Mode (temporary)",                               dll_ini, L"Input.Gamepad",  L"EnableNativePS4"),
+    ConfigEntry (input.gamepad.disable_ps4_hid,          L"Disable PS4 HID Interface (prevent double-input)",          dll_ini,         L"Input.Gamepad",         L"DisablePS4HID"),
+    ConfigEntry (input.gamepad.haptic_ui,                L"Give tactile feedback on gamepads when navigating the UI",  dll_ini,         L"Input.Gamepad",         L"AllowHapticUI"),
+    ConfigEntry (input.gamepad.hook_dinput8,             L"Install hooks for DirectInput 8",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput8"),
+    ConfigEntry (input.gamepad.hook_hid,                 L"Install hooks for HID",                                     dll_ini,         L"Input.Gamepad",         L"EnableHID"),
+    ConfigEntry (input.gamepad.native_ps4,               L"Native PS4 Mode (temporary)",                               dll_ini,         L"Input.Gamepad",         L"EnableNativePS4"),
 
-    ConfigEntry (input.gamepad.hook_xinput,           L"Install hooks for XInput",                                  dll_ini, L"Input.XInput",  L"Enable"),
-    ConfigEntry (input.gamepad.rehook_xinput,         L"Re-install XInput hooks if hookchain is modified",          dll_ini, L"Input.XInput",  L"Rehook"),
-    ConfigEntry (input.gamepad.xinput.ui_slot,        L"XInput Controller that owns the config UI",                 dll_ini, L"Input.XInput",  L"UISlot"),
-    ConfigEntry (input.gamepad.xinput.placeholders,   L"XInput Controller Slots to Fake Connectivity On",           dll_ini, L"Input.XInput",  L"PlaceholderMask"),
-    ConfigEntry (input.gamepad.xinput.disable_rumble, L"Disable Rumble from ALL SOURCES",                           dll_ini, L"Input.XInput",  L"DisableRumble"),
-    ConfigEntry (input.gamepad.xinput.assignment,     L"Re-Assign XInput Slots",                                    dll_ini, L"Input.XInput",  L"SlotReassignment"),
+    ConfigEntry (input.gamepad.hook_xinput,              L"Install hooks for XInput",                                  dll_ini,         L"Input.XInput",          L"Enable"),
+    ConfigEntry (input.gamepad.rehook_xinput,            L"Re-install XInput hooks if hookchain is modified",          dll_ini,         L"Input.XInput",          L"Rehook"),
+    ConfigEntry (input.gamepad.xinput.ui_slot,           L"XInput Controller that owns the config UI",                 dll_ini,         L"Input.XInput",          L"UISlot"),
+    ConfigEntry (input.gamepad.xinput.placeholders,      L"XInput Controller Slots to Fake Connectivity On",           dll_ini,         L"Input.XInput",          L"PlaceholderMask"),
+    ConfigEntry (input.gamepad.xinput.disable_rumble,    L"Disable Rumble from ALL SOURCES",                           dll_ini,         L"Input.XInput",          L"DisableRumble"),
+    ConfigEntry (input.gamepad.xinput.assignment,        L"Re-Assign XInput Slots",                                    dll_ini,         L"Input.XInput",          L"SlotReassignment"),
 
 
     // Window Management
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (window.borderless,                   L"Borderless Window Mode",                                    dll_ini, L"Window.System", L"Borderless"),
-    ConfigEntry (window.center,                       L"Center the Window",                                         dll_ini, L"Window.System", L"Center"),
-    ConfigEntry (window.background_render,            L"Render While Window is in Background",                      dll_ini, L"Window.System", L"RenderInBackground"),
-    ConfigEntry (window.background_mute,              L"Mute While Window is in Background",                        dll_ini, L"Window.System", L"MuteInBackground"),
-    ConfigEntry (window.offset.x,                     L"X Offset (Percent or Absolute)",                            dll_ini, L"Window.System", L"XOffset"),
-    ConfigEntry (window.offset.y,                     L"Y Offset (Percent or Absolute)",                            dll_ini, L"Window.System", L"YOffset"),
-    ConfigEntry (window.confine_cursor,               L"Confine the Mouse Cursor to the Game Window",               dll_ini, L"Window.System", L"ConfineCursor"),
-    ConfigEntry (window.unconfine_cursor,             L"Unconfine the Mouse Cursor from the Game Window",           dll_ini, L"Window.System", L"UnconfineCursor"),
-    ConfigEntry (window.persistent_drag,              L"Remember where the window is dragged to",                   dll_ini, L"Window.System", L"PersistentDragPos"),
-    ConfigEntry (window.fullscreen,                   L"Make the Game Window Fill the Screen (scale to fit)",       dll_ini, L"Window.System", L"Fullscreen"),
-    ConfigEntry (window.override,                     L"Force the Client Region to this Size in Windowed Mode",     dll_ini, L"Window.System", L"OverrideRes"),
-    ConfigEntry (window.fix_mouse_coords,             L"Re-Compute Mouse Coordinates for Resized Windows",          dll_ini, L"Window.System", L"FixMouseCoords"),
+    ConfigEntry (window.borderless,                      L"Borderless Window Mode",                                    dll_ini,         L"Window.System",         L"Borderless"),
+    ConfigEntry (window.center,                          L"Center the Window",                                         dll_ini,         L"Window.System",         L"Center"),
+    ConfigEntry (window.background_render,               L"Render While Window is in Background",                      dll_ini,         L"Window.System",         L"RenderInBackground"),
+    ConfigEntry (window.background_mute,                 L"Mute While Window is in Background",                        dll_ini,         L"Window.System",         L"MuteInBackground"),
+    ConfigEntry (window.offset.x,                        L"X Offset (Percent or Absolute)",                            dll_ini,         L"Window.System",         L"XOffset"),
+    ConfigEntry (window.offset.y,                        L"Y Offset (Percent or Absolute)",                            dll_ini,         L"Window.System",         L"YOffset"),
+    ConfigEntry (window.confine_cursor,                  L"Confine the Mouse Cursor to the Game Window",               dll_ini,         L"Window.System",         L"ConfineCursor"),
+    ConfigEntry (window.unconfine_cursor,                L"Unconfine the Mouse Cursor from the Game Window",           dll_ini,         L"Window.System",         L"UnconfineCursor"),
+    ConfigEntry (window.persistent_drag,                 L"Remember where the window is dragged to",                   dll_ini,         L"Window.System",         L"PersistentDragPos"),
+    ConfigEntry (window.fullscreen,                      L"Make the Game Window Fill the Screen (scale to fit)",       dll_ini,         L"Window.System",         L"Fullscreen"),
+    ConfigEntry (window.override,                        L"Force the Client Region to this Size in Windowed Mode",     dll_ini,         L"Window.System",         L"OverrideRes"),
+    ConfigEntry (window.fix_mouse_coords,                L"Re-Compute Mouse Coordinates for Resized Windows",          dll_ini,         L"Window.System",         L"FixMouseCoords"),
 
     // Compatibility
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (compatibility.ignore_raptr,          L"Ignore Raptr Warning",                                      dll_ini, L"Compatibility.General", L"IgnoreRaptr"),
-    ConfigEntry (compatibility.disable_raptr,         L"Forcefully Disable Raptr",                                  dll_ini, L"Compatibility.General", L"DisableRaptr"),
-    ConfigEntry (compatibility.disable_nv_bloat,      L"Disable All NVIDIA BloatWare (GeForce Experience)",         dll_ini, L"Compatibility.General", L"DisableBloatWare_NVIDIA"),
-    ConfigEntry (compatibility.rehook_loadlibrary,    L"Rehook LoadLibrary When RTSS/Steam/ReShade hook it",        dll_ini, L"Compatibility.General", L"RehookLoadLibrary"),
+    ConfigEntry (compatibility.ignore_raptr,             L"Ignore Raptr Warning",                                      dll_ini,         L"Compatibility.General", L"IgnoreRaptr"),
+    ConfigEntry (compatibility.disable_raptr,            L"Forcefully Disable Raptr",                                  dll_ini,         L"Compatibility.General", L"DisableRaptr"),
+    ConfigEntry (compatibility.disable_nv_bloat,         L"Disable All NVIDIA BloatWare (GeForce Experience)",         dll_ini,         L"Compatibility.General", L"DisableBloatWare_NVIDIA"),
+    ConfigEntry (compatibility.rehook_loadlibrary,       L"Rehook LoadLibrary When RTSS/Steam/ReShade hook it",        dll_ini,         L"Compatibility.General", L"RehookLoadLibrary"),
 
-    ConfigEntry (apis.last_known,                     L"Last Known Render API",                                     dll_ini, L"API.Hook",              L"LastKnown"),
+    ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
 #ifndef _WIN64
-    ConfigEntry (apis.ddraw.hook,                     L"Enable DirectDraw Hooking",                                 dll_ini, L"API.Hook",              L"ddraw"),
-    ConfigEntry (apis.d3d8.hook,                      L"Enable Direct3D 8 Hooking",                                 dll_ini, L"API.Hook",              L"d3d8"),
+    ConfigEntry (apis.ddraw.hook,                        L"Enable DirectDraw Hooking",                                 dll_ini,         L"API.Hook",              L"ddraw"),
+    ConfigEntry (apis.d3d8.hook,                         L"Enable Direct3D 8 Hooking",                                 dll_ini,         L"API.Hook",              L"d3d8"),
 #endif
 
-    ConfigEntry (apis.d3d9.hook,                      L"Enable Direct3D 9 Hooking",                                 dll_ini, L"API.Hook",              L"d3d9"),
-    ConfigEntry (apis.d3d9ex.hook,                    L"Enable Direct3D 9Ex Hooking",                               dll_ini, L"API.Hook",              L"d3d9ex"),
-    ConfigEntry (apis.d3d11.hook,                     L"Enable Direct3D 11 Hooking",                                dll_ini, L"API.Hook",              L"d3d11"),
+    ConfigEntry (apis.d3d9.hook,                         L"Enable Direct3D 9 Hooking",                                 dll_ini,         L"API.Hook",              L"d3d9"),
+    ConfigEntry (apis.d3d9ex.hook,                       L"Enable Direct3D 9Ex Hooking",                               dll_ini,         L"API.Hook",              L"d3d9ex"),
+    ConfigEntry (apis.d3d11.hook,                        L"Enable Direct3D 11 Hooking",                                dll_ini,         L"API.Hook",              L"d3d11"),
 
 #ifdef _WIN64
-    ConfigEntry (apis.d3d12.hook,                     L"Enable Direct3D 12 Hooking",                                dll_ini, L"API.Hook",              L"d3d12"),
-    ConfigEntry (apis.Vulkan.hook,                    L"Enable Vulkan Hooking",                                     dll_ini, L"API.Hook",              L"Vulkan"),
+    ConfigEntry (apis.d3d12.hook,                        L"Enable Direct3D 12 Hooking",                                dll_ini,         L"API.Hook",              L"d3d12"),
+    ConfigEntry (apis.Vulkan.hook,                       L"Enable Vulkan Hooking",                                     dll_ini,         L"API.Hook",              L"Vulkan"),
 #endif
 
-    ConfigEntry (apis.OpenGL.hook,                    L"Enable OpenGL Hooking",                                     dll_ini, L"API.Hook",              L"OpenGL"),
+    ConfigEntry (apis.OpenGL.hook,                       L"Enable OpenGL Hooking",                                     dll_ini,         L"API.Hook",              L"OpenGL"),
 
 
     // Misc.
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (mem_reserve,                         L"Memory Reserve Percentage",                                 dll_ini, L"Manage.Memory",         L"ReservePercent"),
+    ConfigEntry (mem_reserve,                            L"Memory Reserve Percentage",                                 dll_ini,         L"Manage.Memory",         L"ReservePercent"),
 
 
     // General Mod System Settings
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (init_delay,                          L"Initialization Delay (msecs)",                              dll_ini, L"SpecialK.System",       L"InitDelay"),
-    ConfigEntry (silent,                              L"Log Silence",                                               dll_ini, L"SpecialK.System",       L"Silent"),
-    ConfigEntry (strict_compliance,                   L"Strict DLL Loader Compliance",                              dll_ini, L"SpecialK.System",       L"StrictCompliant"),
-    ConfigEntry (trace_libraries,                     L"Trace DLL Loading (needed for dynamic API detection)",      dll_ini, L"SpecialK.System",       L"TraceLoadLibrary"),
-    ConfigEntry (log_level,                           L"Log Verbosity (0=General, 5=Insane Debug)",                 dll_ini, L"SpecialK.System",       L"LogLevel"),
-    ConfigEntry (handle_crashes,                      L"Use Custom Crash Handler",                                  dll_ini, L"SpecialK.System",       L"UseCrashHandler"),
-    ConfigEntry (debug_output,                        L"Print Application's Debug Output in real-time",             dll_ini, L"SpecialK.System",       L"DebugOutput"),
-    ConfigEntry (game_output,                         L"Log Application's Debug Output",                            dll_ini, L"SpecialK.System",       L"GameOutput"),
-    ConfigEntry (ignore_rtss_delay,                   L"Ignore RTSS Delay Incompatibilities",                       dll_ini, L"SpecialK.System",       L"IgnoreRTSSHookDelay"),
-    ConfigEntry (enable_cegui,                        L"Enable CEGUI (lazy loading)",                               dll_ini, L"SpecialK.System",       L"EnableCEGUI"),
-    ConfigEntry (safe_cegui,                          L"Safely Initialize CEGUI",                                   dll_ini, L"SpecialK.System",       L"SafeInitCEGUI"),
-    ConfigEntry (version,                             L"The last version that wrote the config file",               dll_ini, L"SpecialK.System",       L"Version"),
+    ConfigEntry (init_delay,                             L"Initialization Delay (msecs)",                              dll_ini,         L"SpecialK.System",       L"InitDelay"),
+    ConfigEntry (silent,                                 L"Log Silence",                                               dll_ini,         L"SpecialK.System",       L"Silent"),
+    ConfigEntry (strict_compliance,                      L"Strict DLL Loader Compliance",                              dll_ini,         L"SpecialK.System",       L"StrictCompliant"),
+    ConfigEntry (trace_libraries,                        L"Trace DLL Loading (needed for dynamic API detection)",      dll_ini,         L"SpecialK.System",       L"TraceLoadLibrary"),
+    ConfigEntry (log_level,                              L"Log Verbosity (0=General, 5=Insane Debug)",                 dll_ini,         L"SpecialK.System",       L"LogLevel"),
+    ConfigEntry (handle_crashes,                         L"Use Custom Crash Handler",                                  dll_ini,         L"SpecialK.System",       L"UseCrashHandler"),
+    ConfigEntry (debug_output,                           L"Print Application's Debug Output in real-time",             dll_ini,         L"SpecialK.System",       L"DebugOutput"),
+    ConfigEntry (game_output,                            L"Log Application's Debug Output",                            dll_ini,         L"SpecialK.System",       L"GameOutput"),
+    ConfigEntry (ignore_rtss_delay,                      L"Ignore RTSS Delay Incompatibilities",                       dll_ini,         L"SpecialK.System",       L"IgnoreRTSSHookDelay"),
+    ConfigEntry (enable_cegui,                           L"Enable CEGUI (lazy loading)",                               dll_ini,         L"SpecialK.System",       L"EnableCEGUI"),
+    ConfigEntry (safe_cegui,                             L"Safely Initialize CEGUI",                                   dll_ini,         L"SpecialK.System",       L"SafeInitCEGUI"),
+    ConfigEntry (version,                                L"The last version that wrote the config file",               dll_ini,         L"SpecialK.System",       L"Version"),
+
+
+    
+    ConfigEntry (display.force_fullscreen,               L"Force Fullscreen Mode",                                     dll_ini,         L"Display.Output",        L"ForceFullscreen"),
+    ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
+
+
+
+    ConfigEntry (render.framerate.target_fps,            L"Framerate Target (negative signed values are non-limiting)",dll_ini,         L"Render.FrameRate",      L"TargetFPS"),
+    ConfigEntry (render.framerate.limiter_tolerance,     L"Limiter Tolerance",                                         dll_ini,         L"Render.FrameRate",      L"LimiterTolerance"),
+    ConfigEntry (render.framerate.wait_for_vblank,       L"Limiter Will Wait for VBLANK",                              dll_ini,         L"Render.FrameRate",      L"WaitForVBLANK"),
+    ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
+    ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
+    ConfigEntry (render.framerate.prerender_limit,       L"Maximum Frames to Render-Ahead",                            dll_ini,         L"Render.FrameRate",      L"PreRenderLimit"),
+    ConfigEntry (render.framerate.sleepless_render,      L"Sleep Free Render Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessRenderThread"),
+    ConfigEntry (render.framerate.sleepless_window,      L"Sleep Free Window Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessWindowThread"),
+
+    ConfigEntry (render.framerate.control.busy_wait,     L"Burn through the render thread's CPU time so that a game's"
+                                                         L" own framerate limiter will never engage.",                 dll_ini,         L"FrameRate.Control",     L"AlwaysBusyWait"),
+    ConfigEntry (render.framerate.control.yield_once,    L"Offer a portion of the render thread's CPU time and then "
+                                                         L"switch to busy-wait heuristics.",                           dll_ini,         L"FrameRate.Control",     L"YieldThenSpin"),
+    ConfigEntry (render.framerate.control.
+                   minimize_latency,                     L"Maintain a healthy window message loop while waiting.",     dll_ini,         L"FrameRate.Control",     L"ReduceLatency"),
+    ConfigEntry (render.framerate.control.sleep_scale,   L"Ratio of full-frame deadline to longest possible sleep.",   dll_ini,         L"FrameRate.Control",     L"SleepScale"),
+    ConfigEntry (render.framerate.control.
+                   deadline_transition,                  L"Switch to more accurate timing when deadline approaches.",  dll_ini,         L"FrameRate.Control",     L"DeadlineTransition"),
+
+    ConfigEntry (render.framerate.refresh_rate,          L"Fullscreen Refresh Rate",                                   dll_ini,         L"Render.FrameRate",      L"RefreshRate"),
+    ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
+
+
+    // D3D9
+    //////////////////////////////////////////////////////////////////////////
+
+    ConfigEntry (compatibility.d3d9.rehook_present,      L"Rehook D3D9 Present On Device Reset",                       dll_ini,         L"Compatibility.D3D9",    L"RehookPresent"),
+    ConfigEntry (compatibility.d3d9.rehook_reset,        L"Rehook D3D9 Reset On Device Reset",                         dll_ini,         L"Compatibility.D3D9",    L"RehookReset"),
+    ConfigEntry (compatibility.d3d9.hook_present_vtable, L"Use VFtable Override for Present",                          dll_ini,         L"Compatibility.D3D9",    L"UseVFTableForPresent"),
+    ConfigEntry (compatibility.d3d9.hook_reset_vtable,   L"Use VFtable Override for Reset",                            dll_ini,         L"Compatibility.D3D9",    L"UseVFTableForReset"),
+
+    ConfigEntry (render.d3d9.force_d3d9ex,               L"Force D3D9Ex Context",                                      dll_ini,         L"Render.D3D9",           L"ForceD3D9Ex"),
+    ConfigEntry (render.d3d9.impure,                     L"Force PURE device off",                                     dll_ini,         L"Render.D3D9",           L"ForceImpure"),
+    ConfigEntry (render.d3d9.enable_texture_mods,        L"Enable Texture Modding Support",                            dll_ini,         L"Render.D3D9",           L"EnableTextureMods"),
+    ConfigEntry (render.d3d9.hook_type,                  L"Hook Technique",                                            dll_ini,         L"Render.D3D9",           L"HookType"),
+
+    ConfigEntry (render.framerate.max_delta_time,        L"Maximum Frame Delta Time",                                  dll_ini,         L"Render.DXGI",           L"MaxDeltaTime"),
+    ConfigEntry (render.framerate.flip_discard,          L"Use Flip Discard - Windows 10+",                            dll_ini,         L"Render.DXGI",           L"UseFlipDiscard"),
+
+    ConfigEntry (render.dxgi.adapter_override,           L"Override DXGI Adapter",                                     dll_ini,         L"Render.DXGI",           L"AdapterOverride"),
+    ConfigEntry (render.dxgi.max_res,                    L"Maximum Resolution To Report",                              dll_ini,         L"Render.DXGI",           L"MaxRes"),
+    ConfigEntry (render.dxgi.min_res,                    L"Minimum Resolution To Report",                              dll_ini,         L"Render.DXGI",           L"MinRes"),
+
+    ConfigEntry (render.dxgi.swapchain_wait,             L"Time to wait in msec. for SwapChain",                       dll_ini,         L"Render.DXGI",           L"SwapChainWait"),
+    ConfigEntry (render.dxgi.scaling_mode,               L"Scaling Preference (DontCare | Centered | Stretched"
+                                                         L" | Unspecified)",                                           dll_ini,         L"Render.DXGI",           L"Scaling"),
+    ConfigEntry (render.dxgi.exception_mode,             L"D3D11 Exception Handling (DontCare | Raise | Ignore)",      dll_ini,         L"Render.DXGI",           L"ExceptionMode"),
+
+    ConfigEntry (render.dxgi.debug_layer,                L"DXGI Debug Layer Support",                                  dll_ini,         L"Render.DXGI",           L"EnableDebugLayer"),
+    ConfigEntry (render.dxgi.scanline_order,             L"Scanline Order (DontCare | Progressive | LowerFieldFirst |"
+                                                         L" UpperFieldFirst )",                                        dll_ini,         L"Render.DXGI",           L"ScanlineOrder"),
+    ConfigEntry (render.dxgi.rotation,                   L"Screen Rotation (DontCare | Identity | 90 | 180 | 270 )",   dll_ini,         L"Render.DXGI",           L"Rotation"),
+    ConfigEntry (render.dxgi.test_present,               L"Test SwapChain Presentation Before Actually Presenting",    dll_ini,         L"Render.DXGI",           L"TestSwapChainPresent"),
+    ConfigEntry (render.dxgi.safe_fullscreen,            L"Prevent DXGI Deadlocks in Improperly Written Games",        dll_ini,         L"Render.DXGI",           L"SafeFullscreenMode"),
+    ConfigEntry (render.dxgi.enhanced_depth,             L"Use 32-bit Depth + 8-bit Stencil + 24-bit Padding",         dll_ini,         L"Render.DXGI",           L"Use64BitDepthStencil"),
+    ConfigEntry (render.dxgi.deferred_isolation,         L"Isolate D3D11 Deferred Context Queues instead of Tracking"
+                                                         L" in Immediate Mode.",                                       dll_ini,         L"Render.DXGI",           L"IsolateD3D11DeferredContexts"),
+    ConfigEntry (render.dxgi.rehook_present,             L"Attempt to Fix Altered SwapChain Presentation Hooks",       dll_ini,         L"Render.DXGI",           L"RehookPresent"),
+
+
+    ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
+    ConfigEntry (texture.d3d11.precise_hash,             L"Precise Hash Generation",                                   dll_ini,         L"Textures.D3D11",        L"PreciseHash"),
+
+    ConfigEntry (texture.d3d11.dump,                     L"Dump Textures",                                             dll_ini,         L"Textures.D3D11",        L"Dump"),
+
+    ConfigEntry (texture.d3d11.inject,                   L"Inject Textures",                                           dll_ini,         L"Textures.D3D11",        L"Inject"),
+    ConfigEntry (texture.d3d11.res_root,                 L"Resource Root",                                             dll_ini,         L"Textures.D3D11",        L"ResourceRoot"),
+    ConfigEntry (texture.d3d11.injection_keeps_format,   L"Allow image format to change during texture injection",     dll_ini,         L"Textures.D3D11",        L"InjectionKeepsFormat"),
+    ConfigEntry (texture.res_root,                       L"Resource Root",                                             dll_ini,         L"Textures.General",      L"ResourceRoot"),
+    ConfigEntry (texture.dump_on_load,                   L"Dump Textures while Loading",                               dll_ini,         L"Textures.General",      L"DumpOnFirstLoad"),
+    ConfigEntry (texture.cache.min_entries,              L"Minimum Cached Textures",                                   dll_ini,         L"Textures.Cache",        L"MinEntries"),
+    ConfigEntry (texture.cache.max_entries,              L"Maximum Cached Textures",                                   dll_ini,         L"Textures.Cache",        L"MaxEntries"),
+    ConfigEntry (texture.cache.min_evict,                L"Minimum Textures to Evict",                                 dll_ini,         L"Textures.Cache",        L"MinEvict"),
+    ConfigEntry (texture.cache.max_evict,                L"Maximum Textures to Evict",                                 dll_ini,         L"Textures.Cache",        L"MaxEvict"),
+    ConfigEntry (texture.cache.min_size,                 L"Minimum Textures to Evict",                                 dll_ini,         L"Textures.Cache",        L"MinSizeInMiB"),
+    ConfigEntry (texture.cache.max_size,                 L"Maximum Textures to Evict",                                 dll_ini,         L"Textures.Cache",        L"MaxSizeInMiB"),
+
+    ConfigEntry (texture.cache.ignore_non_mipped,        L"Ignore textures without mipmaps?",                          dll_ini,         L"Textures.Cache",        L"IgnoreNonMipmapped"),
+    ConfigEntry (texture.cache.allow_staging,            L"Enable texture caching/dumping/injecting staged textures",  dll_ini,         L"Textures.Cache",        L"AllowStaging"),
+    ConfigEntry (injection.global.use_static_addresses,  L"Use Cached Memory Addresses in Global\\injection.ini",      dll_ini,         L"Injection.Global",      L"UseStaticAddresses"),
+
+
+    ConfigEntry (nvidia.api.disable,                     L"Disable NvAPI",                                             dll_ini,         L"NVIDIA.API",            L"Disable"),
+    ConfigEntry (nvidia.sli.compatibility,               L"SLI Compatibility Bits",                                    dll_ini,         L"NVIDIA.SLI",            L"CompatibilityBits"),
+    ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
+    ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
+    ConfigEntry (nvidia.sli.override,                    L"Override Driver Defaults",                                  dll_ini,         L"NVIDIA.SLI",            L"Override"),
+
+    ConfigEntry (imgui.show_eula,                        L"Show Software EULA",                                        dll_ini,         L"SpecialK.System",       L"ShowEULA"),
+    ConfigEntry (imgui.disable_alpha,                    L"Disable Alpha Transparency (reduce flicker)",               dll_ini,         L"ImGui.Render",          L"DisableAlpha"),
+    ConfigEntry (imgui.antialias_lines,                  L"Reduce Aliasing on (but dim) Line Edges",                   dll_ini,         L"ImGui.Render",          L"AntialiasLines"),
+    ConfigEntry (imgui.antialias_contours,               L"Reduce Aliasing on (but widen) Window Borders",             dll_ini,         L"ImGui.Render",          L"AntialiasContours"),
+
+    ConfigEntry (steam.achievements.sound_file,          L"Achievement Sound File",                                    dll_ini,         L"Steam.Achievements",    L"SoundFile"),
+
+    ConfigEntry (steam.achievements.play_sound,          L"Silence is Bliss?",                                         achievement_ini, L"Steam.Achievements",    L"PlaySound"),
+    ConfigEntry (steam.achievements.take_screenshot,     L"Precious Memories",                                         achievement_ini, L"Steam.Achievements",    L"TakeScreenshot"),
+    ConfigEntry (steam.achievements.fetch_friend_stats,  L"Friendly Competition",                                      achievement_ini, L"Steam.Achievements",    L"FetchFriendStats"),
+    ConfigEntry (steam.achievements.popup.origin,        L"Achievement Popup Position",                                achievement_ini, L"Steam.Achievements",    L"PopupOrigin"),
+    ConfigEntry (steam.achievements.popup.animate,       L"Achievement Notification Animation",                        achievement_ini, L"Steam.Achievements",    L"AnimatePopup"),
+    ConfigEntry (steam.achievements.popup.show_title,    L"Achievement Popup Includes Game Title?",                    achievement_ini, L"Steam.Achievements",    L"ShowPopupTitle"),
+    ConfigEntry (steam.achievements.popup.inset,         L"Achievement Notification Inset X",                          achievement_ini, L"Steam.Achievements",    L"PopupInset"),
+    ConfigEntry (steam.achievements.popup.duration,      L"Achievement Popup Duration (in ms)",                        achievement_ini, L"Steam.Achievements",    L"PopupDuration"),
+
+    ConfigEntry (steam.system.notify_corner,             L"Overlay Notification Position",                             dll_ini,         L"Steam.System",          L"NotifyCorner"),
+    ConfigEntry (steam.system.appid,                     L"Steam AppID",                                               dll_ini,         L"Steam.System",          L"AppID"),
+    ConfigEntry (steam.system.init_delay,                L"Delay SteamAPI initialization if the game doesn't do it",   dll_ini,         L"Steam.System",          L"AutoInitDelay"),
+    ConfigEntry (steam.system.auto_pump,                 L"Should we force the game to run Steam callbacks?",          dll_ini,         L"Steam.System",          L"AutoPumpCallbacks"),
+    ConfigEntry (steam.system.block_stat_callback,       L"Block the User Stats Receipt Callback?",                    dll_ini,         L"Steam.System",          L"BlockUserStatsCallback"),
+    ConfigEntry (steam.system.filter_stat_callbacks,     L"Filter Unrelated Data from the User Stats Receipt Callback",dll_ini,         L"Steam.System",          L"FilterExternalDataFromCallbacks"),
+    ConfigEntry (steam.system.load_early,                L"Load the Steam Client DLL Early?",                          dll_ini,         L"Steam.System",          L"PreLoadSteamClient"),
+    ConfigEntry (steam.system.early_overlay,             L"Load the Steam Overlay Early",                              dll_ini,         L"Steam.System",          L"PreLoadSteamOverlay"),
+    ConfigEntry (steam.system.force_load,                L"Forcefully load steam_api{64}.dll",                         dll_ini,         L"Steam.System",          L"ForceLoadSteamAPI"),
+    ConfigEntry (steam.log.silent,                       L"Makes steam_api.log go away",                               dll_ini,         L"Steam.Log",             L"Silent"),
+    ConfigEntry (steam.drm.spoof_BLoggedOn,              L"Fix For Stupid Games That Don't Know How DRM Works",        dll_ini,         L"Steam.DRMWorks",        L"SpoofBLoggedOn"),
   };
-
-
-  display.force_fullscreen =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Force Fullscreen Mode")
-      );
-  display.force_fullscreen->register_to_ini (
-    dll_ini,
-      L"Display.Output",
-        L"ForceFullscreen" );
-
-  display.force_windowed =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Force Windowed Mode")
-      );
-  display.force_windowed->register_to_ini (
-    dll_ini,
-      L"Display.Output",
-        L"ForceWindowed" );
-
-
-  render.framerate.target_fps =
-    dynamic_cast <sk::ParameterFloat *>
-      (g_ParameterFactory.create_parameter <float> (
-        L"Framerate Target")
-      );
-  render.framerate.target_fps->register_to_ini (
-    dll_ini,
-      L"Render.FrameRate",
-        L"TargetFPS" );
-
-  render.framerate.limiter_tolerance =
-    dynamic_cast <sk::ParameterFloat *>
-      (g_ParameterFactory.create_parameter <float> (
-        L"Limiter Tolerance")
-      );
-  render.framerate.limiter_tolerance->register_to_ini (
-    dll_ini,
-      L"Render.FrameRate",
-        L"LimiterTolerance" );
-
-  render.framerate.wait_for_vblank =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Limiter Waits for VBLANK?")
-      );
-  render.framerate.wait_for_vblank->register_to_ini (
-    dll_ini,
-      L"Render.FrameRate",
-        L"WaitForVBLANK" );
-
-  render.framerate.buffer_count =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"Number of BackBuffers in the SwapChain")
-      );
-  render.framerate.buffer_count->register_to_ini (
-    dll_ini,
-      L"Render.FrameRate",
-        L"BackBufferCount" );
-
-  render.framerate.present_interval =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"Presentation Interval")
-      );
-  render.framerate.present_interval->register_to_ini (
-    dll_ini,
-      L"Render.FrameRate",
-        L"PresentationInterval" );
-
-  render.framerate.prerender_limit =
-    dynamic_cast <sk::ParameterInt *>
-      (g_ParameterFactory.create_parameter <int> (
-        L"Maximum Frames to Render-Ahead")
-      );
-  render.framerate.prerender_limit->register_to_ini (
-    dll_ini,
-      L"Render.FrameRate",
-        L"PreRenderLimit" );
-
-
-  // D3D9 / DXGI
-    render.framerate.refresh_rate =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Fullscreen Refresh Rate")
-        );
-    render.framerate.refresh_rate->register_to_ini (
-      dll_ini,
-        L"Render.FrameRate",
-          L"RefreshRate" );
-
-
-  render.framerate.allow_dwm_tearing =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Enable DWM Tearing (Windows 10+)")
-      );
-  render.framerate.allow_dwm_tearing->register_to_ini (
-    dll_ini,
-      L"Render.DXGI",
-        L"AllowTearingInDWM" );
-
-  render.framerate.sleepless_render =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Sleep Free Render Thread")
-      );
-  render.framerate.sleepless_render->register_to_ini (
-    dll_ini,
-      L"Render.FrameRate",
-        L"SleeplessRenderThread" );
-
-  render.framerate.sleepless_window =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Sleep Free Window Thread")
-      );
-  render.framerate.sleepless_window->register_to_ini (
-    dll_ini,
-      L"Render.FrameRate",
-        L"SleeplessWindowThread" );
-
-
-  // D3D9
-    compatibility.d3d9.rehook_present =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Rehook D3D9 Present On Device Reset")
-        );
-    compatibility.d3d9.rehook_present->register_to_ini (
-      dll_ini,
-        L"Compatibility.D3D9",
-          L"RehookPresent" );
-    compatibility.d3d9.rehook_reset =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Rehook D3D9 Reset On Device Reset")
-        );
-    compatibility.d3d9.rehook_reset->register_to_ini (
-      dll_ini,
-        L"Compatibility.D3D9",
-          L"RehookReset" );
-
-    compatibility.d3d9.hook_present_vtable =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Use VFtable Override for Present")
-        );
-    compatibility.d3d9.hook_present_vtable->register_to_ini (
-      dll_ini,
-        L"Compatibility.D3D9",
-          L"UseVFTableForPresent" );
-    compatibility.d3d9.hook_reset_vtable =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Use VFtable Override for Reset")
-        );
-    compatibility.d3d9.hook_reset_vtable->register_to_ini (
-      dll_ini,
-        L"Compatibility.D3D9",
-          L"UseVFTableForReset" );
-
-    render.d3d9.force_d3d9ex =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Force D3D9Ex Context")
-        );
-    render.d3d9.force_d3d9ex->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"ForceD3D9Ex" );
-    render.d3d9.impure =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Force PURE device off")
-        );
-    render.d3d9.impure->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"ForceImpure" );
-    render.d3d9.enable_texture_mods =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Enable Texture Modding Support")
-        );
-    render.d3d9.enable_texture_mods->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"EnableTextureMods" );
-    render.d3d9.hook_type =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Hook Technique")
-        );
-    render.d3d9.hook_type->register_to_ini (
-      dll_ini,
-        L"Render.D3D9",
-          L"HookType" );
-
-
-    render.framerate.max_delta_time =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Maximum Frame Delta Time")
-        );
-    render.framerate.max_delta_time->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"MaxDeltaTime" );
-
-    render.framerate.flip_discard =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Use Flip Discard - Windows 10+")
-        );
-    render.framerate.flip_discard->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"UseFlipDiscard" );
-
-    render.dxgi.adapter_override =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Override DXGI Adapter")
-        );
-    render.dxgi.adapter_override->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"AdapterOverride" );
-
-    render.dxgi.max_res =
-      dynamic_cast <sk::ParameterStringW *>
-        (g_ParameterFactory.create_parameter <std::wstring> (
-          L"Maximum Resolution To Report")
-        );
-    render.dxgi.max_res->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"MaxRes" );
-
-    render.dxgi.min_res =
-      dynamic_cast <sk::ParameterStringW *>
-        (g_ParameterFactory.create_parameter <std::wstring> (
-          L"Minimum Resolution To Report")
-        );
-    render.dxgi.min_res->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"MinRes" );
-
-    render.dxgi.swapchain_wait =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Time to wait in msec. for SwapChain")
-        );
-    render.dxgi.swapchain_wait->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"SwapChainWait" );
-
-    render.dxgi.scaling_mode =
-      dynamic_cast <sk::ParameterStringW *>
-        (g_ParameterFactory.create_parameter <std::wstring> (
-          L"Scaling Preference (DontCare | Centered | Stretched | Unspecified)")
-        );
-    render.dxgi.scaling_mode->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"Scaling" );
-
-    render.dxgi.exception_mode =
-      dynamic_cast <sk::ParameterStringW *>
-        (g_ParameterFactory.create_parameter <std::wstring> (
-          L"D3D11 Exception Handling (DontCare | Raise | Ignore)")
-        );
-    render.dxgi.exception_mode->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"ExceptionMode" );
-
-    render.dxgi.debug_layer =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"DXGI Debug Layer Support")
-        );
-    render.dxgi.debug_layer->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"EnableDebugLayer" );
-
-    render.dxgi.scanline_order =
-      dynamic_cast <sk::ParameterStringW *>
-        (g_ParameterFactory.create_parameter <std::wstring> (
-          L"Scanline Order (DontCare | Progressive | LowerFieldFirst | UpperFieldFirst )")
-        );
-    render.dxgi.scanline_order->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"ScanlineOrder" );
-
-    render.dxgi.rotation =
-      dynamic_cast <sk::ParameterStringW *>
-        (g_ParameterFactory.create_parameter <std::wstring> (
-          L"Screen Rotation (DontCare | Identity | 90 | 180 | 270 )")
-        );
-    render.dxgi.rotation->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"Rotation" );
-
-    render.dxgi.test_present =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Test SwapChain Presentation Before Actually Presenting")
-        );
-    render.dxgi.test_present->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"TestSwapChainPresent" );
-
-    render.dxgi.safe_fullscreen =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Prevent DXGI Deadlocks in Improperly Written Games")
-        );
-    render.dxgi.safe_fullscreen->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"SafeFullscreenMode" );
-
-    render.dxgi.enhanced_depth =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Use 32-bit Depth + 8-bit Stencil + 24-bit Padding")
-        );
-    render.dxgi.enhanced_depth->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"Use64BitDepthStencil" );
-
-    render.dxgi.deferred_isolation =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Isolate D3D11 Deferred Context Queues instead of Tracking Immediate State")
-        );
-    render.dxgi.deferred_isolation->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"IsolateD3D11DeferredContexts" );
-
-    render.dxgi.rehook_present =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Attempt to Fix Altered SwapChain Presentation Hooks")
-        );
-    render.dxgi.rehook_present->register_to_ini (
-      dll_ini,
-        L"Render.DXGI",
-          L"RehookPresent" );
-
-
-    texture.d3d11.cache =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Cache Textures")
-        );
-    texture.d3d11.cache->register_to_ini (
-      dll_ini,
-        L"Textures.D3D11",
-          L"Cache" );
-
-    texture.d3d11.precise_hash =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Precise Hash Generation")
-        );
-    texture.d3d11.precise_hash->register_to_ini (
-      dll_ini,
-        L"Textures.D3D11",
-          L"PreciseHash" );
-
-    texture.d3d11.dump =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Dump Textures")
-        );
-    texture.d3d11.dump->register_to_ini (
-      dll_ini,
-        L"Textures.D3D11",
-          L"Dump" );
-
-    texture.d3d11.inject =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Inject Textures")
-        );
-    texture.d3d11.inject->register_to_ini (
-      dll_ini,
-        L"Textures.D3D11",
-          L"Inject" );
-
-    texture.d3d11.res_root =
-      dynamic_cast <sk::ParameterStringW *>
-        (g_ParameterFactory.create_parameter <std::wstring> (
-          L"Resource Root")
-        );
-    texture.d3d11.res_root->register_to_ini (
-      dll_ini,
-        L"Textures.D3D11",
-          L"ResourceRoot" );
-
-    texture.d3d11.injection_keeps_format =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Allow image format to change during texture injection")
-        );
-    texture.d3d11.injection_keeps_format->register_to_ini (
-      dll_ini,
-        L"Textures.D3D11",
-          L"InjectionKeepsFormat" );
-
-    texture.res_root =
-      dynamic_cast <sk::ParameterStringW *>
-        (g_ParameterFactory.create_parameter <std::wstring> (
-          L"Resource Root")
-        );
-    texture.res_root->register_to_ini (
-      dll_ini,
-        L"Textures.General",
-          L"ResourceRoot" );
-
-    texture.dump_on_load =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Dump Textures while Loading")
-        );
-    texture.dump_on_load->register_to_ini (
-      dll_ini,
-        L"Textures.General",
-          L"DumpOnFirstLoad" );
-
-    texture.cache.min_entries =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Minimum Cached Textures")
-        );
-    texture.cache.min_entries->register_to_ini (
-      dll_ini,
-        L"Textures.Cache",
-          L"MinEntries" );
-
-    texture.cache.max_entries =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Maximum Cached Textures")
-        );
-    texture.cache.max_entries->register_to_ini (
-      dll_ini,
-        L"Textures.Cache",
-          L"MaxEntries" );
-
-    texture.cache.min_evict =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Minimum Textures to Evict")
-        );
-    texture.cache.min_evict->register_to_ini (
-      dll_ini,
-        L"Textures.Cache",
-          L"MinEvict" );
-
-    texture.cache.max_evict =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Maximum Textures to Evict")
-        );
-    texture.cache.max_evict->register_to_ini (
-      dll_ini,
-        L"Textures.Cache",
-          L"MaxEvict" );
-
-    texture.cache.min_size =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Minimum Textures to Evict")
-        );
-    texture.cache.min_size->register_to_ini (
-      dll_ini,
-        L"Textures.Cache",
-          L"MinSizeInMiB" );
-
-    texture.cache.max_size =
-      dynamic_cast <sk::ParameterInt *>
-        (g_ParameterFactory.create_parameter <int> (
-          L"Maximum Textures to Evict")
-        );
-    texture.cache.max_size->register_to_ini (
-      dll_ini,
-        L"Textures.Cache",
-          L"MaxSizeInMiB" );
-
-    texture.cache.ignore_non_mipped =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Ignore textures without mipmaps?")
-        );
-    texture.cache.ignore_non_mipped->register_to_ini (
-      dll_ini,
-        L"Textures.Cache",
-          L"IgnoreNonMipmapped" );
-
-    texture.cache.allow_staging =
-      dynamic_cast <sk::ParameterBool *>
-        (g_ParameterFactory.create_parameter <bool> (
-          L"Enable texture caching/dumping/injection on staged textures")
-        );
-    texture.cache.allow_staging->register_to_ini (
-      dll_ini,
-        L"Textures.Cache",
-          L"AllowStaging" );
-
-
-  injection.global.use_static_addresses =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Use Cached Memory Addresses in Global\\injection.ini")
-      );
-  injection.global.use_static_addresses->register_to_ini (
-    dll_ini,
-      L"Injection.Global",
-        L"UseStaticAddresses" );
-
-
-  nvidia.api.disable =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Disable NvAPI")
-      );
-  nvidia.api.disable->register_to_ini (
-    dll_ini,
-      L"NVIDIA.API",
-        L"Disable" );
-
-
-  nvidia.sli.compatibility =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"SLI Compatibility Bits")
-      );
-  nvidia.sli.compatibility->register_to_ini (
-    dll_ini,
-      L"NVIDIA.SLI",
-        L"CompatibilityBits" );
-
-  nvidia.sli.num_gpus =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"SLI GPU Count")
-      );
-  nvidia.sli.num_gpus->register_to_ini (
-    dll_ini,
-      L"NVIDIA.SLI",
-        L"NumberOfGPUs" );
-
-  nvidia.sli.mode =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"SLI Mode")
-      );
-  nvidia.sli.mode->register_to_ini (
-    dll_ini,
-      L"NVIDIA.SLI",
-        L"Mode" );
-
-  nvidia.sli.override =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Override Driver Defaults")
-      );
-  nvidia.sli.override->register_to_ini (
-    dll_ini,
-      L"NVIDIA.SLI",
-        L"Override" );
-
-
-  imgui.scale =
-    dynamic_cast <sk::ParameterFloat *>
-      (g_ParameterFactory.create_parameter <float> (
-        L"ImGui Scale")
-      );
-  imgui.scale->register_to_ini (
-    osd_ini,
-      L"ImGui.Global",
-        L"FontScale" );
-
-  imgui.show_playtime =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Display Playing Time in Config UI")
-      );
-  imgui.show_playtime->register_to_ini (
-    osd_ini,
-      L"ImGui.Global",
-        L"ShowPlaytime" );
-
-  imgui.show_eula =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Show Software EULA")
-      );
-  imgui.show_eula->register_to_ini (
-    dll_ini,
-      L"SpecialK.System",
-        L"ShowEULA" );
-
-  imgui.show_gsync_status =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Show G-Sync Status on Control Panel")
-      );
-  imgui.show_gsync_status->register_to_ini (
-    osd_ini,
-      L"ImGui.Global",
-        L"ShowGSyncStatus" );
-
-  imgui.mac_style_menu =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Use Mac-style Menu Bar")
-      );
-  imgui.mac_style_menu->register_to_ini (
-    osd_ini,
-      L"ImGui.Global",
-        L"UseMacStyleMenu" );
-
-  imgui.show_input_apis =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Show Input APIs currently in-use")
-      );
-  imgui.show_input_apis->register_to_ini (
-    osd_ini,
-      L"ImGui.Global",
-        L"ShowActiveInputAPIs" );
-
-  imgui.disable_alpha =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Disable Alpha Transparency (reduce flicker)")
-      );
-  imgui.disable_alpha->register_to_ini (
-    dll_ini,
-      L"ImGui.Render",
-        L"DisableAlpha" );
-
-  imgui.antialias_lines =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Reduce Aliasing on (but dim) Line Edges")
-      );
-  imgui.antialias_lines->register_to_ini (
-    dll_ini,
-      L"ImGui.Render",
-        L"AntialiasLines" );
-
-  imgui.antialias_contours =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Reduce Aliasing on (but widen) Window Borders")
-      );
-  imgui.antialias_contours->register_to_ini (
-    dll_ini,
-      L"ImGui.Render",
-        L"AntialiasContours" );
-
-  steam.achievements.sound_file =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"Achievement Sound File")
-      );
-  steam.achievements.sound_file->register_to_ini (
-    dll_ini,
-      L"Steam.Achievements",
-        L"SoundFile" );
-
-  steam.achievements.play_sound =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Silence is Bliss?")
-      );
-  steam.achievements.play_sound->register_to_ini(
-    achievement_ini,
-      L"Steam.Achievements",
-        L"PlaySound" );
-
-  steam.achievements.take_screenshot =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Precious Memories")
-      );
-  steam.achievements.take_screenshot->register_to_ini(
-    achievement_ini,
-      L"Steam.Achievements",
-        L"TakeScreenshot" );
-
-  steam.achievements.fetch_friend_stats =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Friendly Competition")
-      );
-  steam.achievements.fetch_friend_stats->register_to_ini (
-    achievement_ini,
-      L"Steam.Achievements",
-        L"FetchFriendStats" );
-
-  steam.system.notify_corner =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"Overlay Notification Position")
-      );
-  steam.system.notify_corner->register_to_ini (
-    achievement_ini,
-      L"Steam.System",
-        L"NotifyCorner" );
-
-  steam.achievements.popup.origin =
-    dynamic_cast <sk::ParameterStringW *>
-      (g_ParameterFactory.create_parameter <std::wstring> (
-        L"Achievement Popup Position")
-      );
-  steam.achievements.popup.origin->register_to_ini (
-    achievement_ini,
-      L"Steam.Achievements",
-        L"PopupOrigin" );
-
-  steam.achievements.popup.animate =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Achievement Notification Animation")
-      );
-  steam.achievements.popup.animate->register_to_ini (
-    achievement_ini,
-      L"Steam.Achievements",
-        L"AnimatePopup" );
-
-  steam.achievements.popup.show_title =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Achievement Popup Includes Game Title?")
-      );
-  steam.achievements.popup.show_title->register_to_ini (
-    achievement_ini,
-      L"Steam.Achievements",
-        L"ShowPopupTitle" );
-
-  steam.achievements.popup.inset =
-    dynamic_cast <sk::ParameterFloat *>
-    (g_ParameterFactory.create_parameter <float> (
-      L"Achievement Notification Inset X")
-    );
-  steam.achievements.popup.inset->register_to_ini (
-    achievement_ini,
-      L"Steam.Achievements",
-        L"PopupInset" );
-
-  steam.achievements.popup.duration =
-    dynamic_cast <sk::ParameterInt *>
-    (g_ParameterFactory.create_parameter <int> (
-      L"Achievement Popup Duration (in ms)")
-    );
-  steam.achievements.popup.duration->register_to_ini (
-    achievement_ini,
-      L"Steam.Achievements",
-        L"PopupDuration" );
-
-  steam.system.appid =
-    dynamic_cast <sk::ParameterInt *>
-    (g_ParameterFactory.create_parameter <int> (
-      L"Steam AppID")
-    );
-  steam.system.appid->register_to_ini (
-    dll_ini,
-      L"Steam.System",
-        L"AppID" );
-
-  steam.system.init_delay =
-    dynamic_cast <sk::ParameterInt *>
-    (g_ParameterFactory.create_parameter <int> (
-      L"How long to delay SteamAPI initialization if the game doesn't do it")
-    );
-  steam.system.init_delay->register_to_ini (
-    dll_ini,
-      L"Steam.System",
-        L"AutoInitDelay" );
-
-  steam.system.auto_pump =
-    dynamic_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool> (
-      L"Should we force the game to run Steam callbacks?")
-    );
-  steam.system.auto_pump->register_to_ini (
-    dll_ini,
-      L"Steam.System",
-        L"AutoPumpCallbacks" );
-
-  steam.system.block_stat_callback =
-    dynamic_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool> (
-      L"Block the User Stats Receipt Callback?")
-    );
-  steam.system.block_stat_callback->register_to_ini (
-    dll_ini,
-      L"Steam.System",
-        L"BlockUserStatsCallback" );
-
-  steam.system.filter_stat_callbacks =
-    dynamic_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool> (
-      L"Filter Unrelated Data from the User Stats Receipt Callback?")
-    );
-  steam.system.filter_stat_callbacks->register_to_ini (
-    dll_ini,
-      L"Steam.System",
-        L"FilterExternalDataFromCallbacks" );
-
-  steam.system.load_early =
-    dynamic_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool> (
-      L"Load the Steam Client DLL Early?")
-    );
-  steam.system.load_early->register_to_ini (
-    dll_ini,
-      L"Steam.System",
-        L"PreLoadSteamClient" );
-
-  steam.system.early_overlay =
-    dynamic_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool> (
-      L"Load the Steam Overlay Early")
-    );
-  steam.system.early_overlay->register_to_ini (
-    dll_ini,
-      L"Steam.System",
-        L"PreLoadSteamOverlay" );
-
-  steam.system.force_load =
-    dynamic_cast <sk::ParameterBool *>
-    (g_ParameterFactory.create_parameter <bool> (
-      L"Forcefully load steam_api{64}.dll")
-    );
-  steam.system.force_load->register_to_ini (
-    dll_ini,
-      L"Steam.System",
-        L"ForceLoadSteamAPI" );
-
-  steam.log.silent =
-    dynamic_cast <sk::ParameterBool *>
-      (g_ParameterFactory.create_parameter <bool> (
-        L"Makes steam_api.log go away")
-      );
-  steam.log.silent->register_to_ini(
-    dll_ini,
-      L"Steam.Log",
-        L"Silent" );
-
-  steam.drm.spoof_BLoggedOn =
-    dynamic_cast <sk::ParameterBool *>
-    ( g_ParameterFactory.create_parameter <bool> (
-        L"Fix For Stupid Games That Don't Know How DRM Works.")
-      );
-  steam.drm.spoof_BLoggedOn->register_to_ini (
-    dll_ini,
-      L"Steam.DRMWorks",
-        L"SpoofBLoggedOn" );
 
 
   for ( auto decl : params_to_build )
@@ -1674,10 +841,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       continue;
     }
   }
-
-  //
-  // Create Parameters
-  //
 
   iSK_INI::_TSectionMap& sections =
     dll_ini->get_sections ();
@@ -1740,7 +903,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
       imports [import].blacklist =
          dynamic_cast <sk::ParameterStringW *>
              (g_ParameterFactory.create_parameter <std::wstring> (
-                L"Blakclisted Executables")
+                L"Blacklisted Executables")
              );
       imports [import].blacklist->register_to_ini (
         dll_ini,
@@ -2104,18 +1267,18 @@ SK_LoadConfigEx (std::wstring name, bool create)
   compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
 
-  osd.state.remember->load (config.osd.remember_state);
+  osd.state.remember->load               (config.osd.remember_state);
 
-  imgui.scale->load              (config.imgui.scale);
-  imgui.show_eula->load          (config.imgui.show_eula);
-  imgui.show_playtime->load      (config.steam.show_playtime);
-  imgui.show_gsync_status->load  (config.apis.NvAPI.gsync_status);
-  imgui.mac_style_menu->load     (config.imgui.use_mac_style_menu);
-  imgui.show_input_apis->load    (config.imgui.show_input_apis);
+  imgui.scale->load                      (config.imgui.scale);
+  imgui.show_eula->load                  (config.imgui.show_eula);
+  imgui.show_playtime->load              (config.steam.show_playtime);
+  imgui.show_gsync_status->load          (config.apis.NvAPI.gsync_status);
+  imgui.mac_style_menu->load             (config.imgui.use_mac_style_menu);
+  imgui.show_input_apis->load            (config.imgui.show_input_apis);
 
-  imgui.disable_alpha->load      (config.imgui.render.disable_alpha);
-  imgui.antialias_lines->load    (config.imgui.render.antialias_lines);
-  imgui.antialias_contours->load (config.imgui.render.antialias_contours);
+  imgui.disable_alpha->load              (config.imgui.render.disable_alpha);
+  imgui.antialias_lines->load            (config.imgui.render.antialias_lines);
+  imgui.antialias_contours->load         (config.imgui.render.antialias_contours);
 
 
   if (((sk::iParameter *)monitoring.io.show)->load     () && config.osd.remember_state)
@@ -2222,36 +1385,45 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
 
-  display.force_fullscreen->load (config.display.force_fullscreen);
-  display.force_windowed->load   (config.display.force_windowed);
+  display.force_fullscreen->load            (config.display.force_fullscreen);
+  display.force_windowed->load              (config.display.force_windowed);
 
-  render.framerate.target_fps->load        (config.render.framerate.target_fps);
-  render.framerate.limiter_tolerance->load (config.render.framerate.limiter_tolerance);
-  render.framerate.sleepless_render->load  (config.render.framerate.sleepless_render);
-  render.framerate.sleepless_window->load  (config.render.framerate.sleepless_window);
+  render.framerate.target_fps->load         (config.render.framerate.target_fps);
+  render.framerate.limiter_tolerance->load  (config.render.framerate.limiter_tolerance);
+  render.framerate.sleepless_render->load   (config.render.framerate.sleepless_render);
+  render.framerate.sleepless_window->load   (config.render.framerate.sleepless_window);
+
+  render.framerate.control.busy_wait->load  (config.render.framerate.busy_wait_limiter);
+  render.framerate.control.yield_once->load (config.render.framerate.yield_once);
+  render.framerate.control.
+                     minimize_latency->load (config.render.framerate.min_input_latency);
+  render.framerate.control.
+                          sleep_scale->load (config.render.framerate.max_sleep_percent);
+  render.framerate.control.
+                  deadline_transition->load (config.render.framerate.sleep_deadline);
 
   // D3D9/11
   //
 
-  nvidia.sli.compatibility->load (config.nvidia.sli.compatibility);
-  nvidia.sli.mode->load          (config.nvidia.sli.mode);
-  nvidia.sli.num_gpus->load      (config.nvidia.sli.num_gpus);
-  nvidia.sli.override->load      (config.nvidia.sli.override);
+  nvidia.sli.compatibility->load            (config.nvidia.sli.compatibility);
+  nvidia.sli.mode->load                     (config.nvidia.sli.mode);
+  nvidia.sli.num_gpus->load                 (config.nvidia.sli.num_gpus);
+  nvidia.sli.override->load                 (config.nvidia.sli.override);
 
-  render.framerate.wait_for_vblank->load  (config.render.framerate.wait_for_vblank);
-  render.framerate.buffer_count->load     (config.render.framerate.buffer_count);
-  render.framerate.prerender_limit->load  (config.render.framerate.pre_render_limit);
-  render.framerate.present_interval->load (config.render.framerate.present_interval);
+  render.framerate.wait_for_vblank->load    (config.render.framerate.wait_for_vblank);
+  render.framerate.buffer_count->load       (config.render.framerate.buffer_count);
+  render.framerate.prerender_limit->load    (config.render.framerate.pre_render_limit);
+  render.framerate.present_interval->load   (config.render.framerate.present_interval);
 
   if (render.framerate.refresh_rate)
   {
-    render.framerate.refresh_rate->load (config.render.framerate.refresh_rate);
+    render.framerate.refresh_rate->load     (config.render.framerate.refresh_rate);
   }
 
   // D3D9
   //
-  compatibility.d3d9.rehook_present->load (config.compatibility.d3d9.rehook_present);
-  compatibility.d3d9.rehook_reset->load   (config.compatibility.d3d9.rehook_reset);
+  compatibility.d3d9.rehook_present->load   (config.compatibility.d3d9.rehook_present);
+  compatibility.d3d9.rehook_reset->load     (config.compatibility.d3d9.rehook_reset);
 
   compatibility.d3d9.hook_present_vtable->load (config.compatibility.d3d9.hook_present_vftbl);
   compatibility.d3d9.hook_reset_vtable->load   (config.compatibility.d3d9.hook_reset_vftbl);
@@ -3089,6 +2261,15 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.limiter_tolerance->store   (config.render.framerate.limiter_tolerance);
   render.framerate.sleepless_render->store    (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->store    (config.render.framerate.sleepless_window);
+
+  render.framerate.control.busy_wait->store   (config.render.framerate.busy_wait_limiter);
+  render.framerate.control.yield_once->store  (config.render.framerate.yield_once);
+  render.framerate.control.
+                      minimize_latency->store (config.render.framerate.min_input_latency);
+  render.framerate.control.
+                           sleep_scale->store (config.render.framerate.max_sleep_percent);
+  render.framerate.control.
+                   deadline_transition->store (config.render.framerate.sleep_deadline);
 
   if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::DInput8) ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )

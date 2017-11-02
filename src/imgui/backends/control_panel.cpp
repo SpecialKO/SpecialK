@@ -1090,7 +1090,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   float target_frametime = ( target_fps == 0.0f ) ?
                               ( 1000.0f / (ffx ? 30.0f : 60.0f) ) :
-                                ( 1000.0f / target_fps );
+                                ( 1000.0f / fabs (target_fps) );
 
   float frames = std::min ( (float)SK_ImGui_Frames.getUpdates  (),
                             (float)SK_ImGui_Frames.getCapacity () );
@@ -2492,43 +2492,72 @@ SK_ImGui_ControlPanel (void)
         // Don't apply this number if it's < 10; that does very undesirable things
         float target_orig = target_fps;
 
-        if (ImGui::InputFloat ("Framerate Limit", &target_fps))
+        bool limit = (target_fps > 0.0f);
+
+        if (ImGui::Checkbox ("Framerate Limit", &limit))
         {
-          if (target_fps > 9 || target_fps == 0)
+          if (target_fps != 0.0f) // Negative zero... it exists and we don't want it.
+            target_fps = -target_fps;
+        }
+
+        if (limit && ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Graph color represents frame time variance, not proximity to your target FPS");
+
+        ImGui::SameLine ();
+
+        float target_mag = fabs (target_fps);
+
+        if (ImGui::DragFloat ( "###FPS_TargetOrLimit", &target_mag,
+                                 1.0f, 24.0f, 166.0f, target_fps > 0 ? "%6.3f fps  (Limit Engaged)" :
+                                                      target_fps < 0 ? "%6.3f fps  (Graphing Only)" :
+                                                                       "60.000 fps (No Preference)" ) )
+        {
+          target_fps = target_fps < 0.0f ? (-1.0f * target_mag) :
+                                                    target_mag;
+
+          if (target_fps > 10.0f || target_fps == 0.0f)
             SK_GetCommandProcessor ()->ProcessCommandFormatted ("TargetFPS %f", target_fps);
+          else if (target_fps < 0.0f)
+          {
+            float graph_target = target_fps;
+            SK_GetCommandProcessor ()->ProcessCommandLine      ("TargetFPS 0.0");
+                  target_fps   = graph_target;
+          }
           else
             target_fps = target_orig;
         }
 
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("0.0 will disable Special K's framerate limiter");
+        if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("CTRL + Click to Enter an Exact Framerate");
 
         ImGui::SameLine ();
 
-        advanced = ImGui::TreeNode ("Advanced###Advanced_FPS");
+        advanced = ImGui::TreeNode ("Advanced ###Advanced_FPS");
 
         if (advanced)
         {
           ImGui::TreePop    ();
           ImGui::BeginGroup ();
 
-          ImGui::SliderFloat ( "Special K Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.005f, 0.75);
-         
-          if (ImGui::IsItemHovered ())
+          if (target_fps > 0.0f)
           {
-            ImGui::BeginTooltip   ();
-            ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
-            ImGui::Text           ("Controls Framerate Smoothness\n\n");
-            ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
-            ImGui::Text           ("  Lower = Smoother, but setting ");
-            ImGui::SameLine       ();
-            ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 1.0f, 0.65f, 1.0f));
-            ImGui::Text           ("too low");
-            ImGui::SameLine       ();
-            ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
-            ImGui::Text           (" will cause framerate instability...");
-            ImGui::PopStyleColor  (4);
-            ImGui::EndTooltip     ( );
+            ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.005f, 0.75);
+         
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip   ();
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
+              ImGui::Text           ("Controls Framerate Smoothness\n\n");
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
+              ImGui::Text           ("  Lower = Stricter, but setting");
+              ImGui::SameLine       ();
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 1.0f, 0.65f, 1.0f));
+              ImGui::Text           ("too low");
+              ImGui::SameLine       ();
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
+              ImGui::Text           ("will cause framerate instability...");
+              ImGui::PopStyleColor  (4);
+              ImGui::EndTooltip     ( );
+            }
           }
 
           changed |= ImGui::Checkbox ("Sleepless Render Thread",         &config.render.framerate.sleepless_render  );
@@ -2560,29 +2589,63 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::Separator ();
 
-          extern bool  SK_Framerate_Busy;
-          extern float SK_Framerate_SleepToBusy;
-          extern float SK_Framerate_WaitScalar;
-          extern bool  SK_Framerate_YieldOnce;
-
           if (target_fps > 0.0f)
           {
-            ImGui::Checkbox      ("Busy-Wait Limiter",                                &SK_Framerate_Busy);
+            ImGui::Checkbox      ("Busy-Wait Limiter",        &config.render.framerate.busy_wait_limiter);
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.11f, 0.97f, 0.96f));
+              ImGui::TextUnformatted ("Spin the render thread up to 100% load for improved timing consistency");
+              ImGui::Separator       ();
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.26f, 0.86f, 0.84f));
+              ImGui::BulletText      ("Accurate timing is also possible using sleep-wait;");
+              ImGui::SameLine        ();
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.5f, 1.0f, 1.0f));
+              ImGui::TextUnformatted ("busy's ideal use-case is bypassing a game's built-in limiter.");
+              ImGui::PopStyleColor   (3);
+              ImGui::TreePush        ("");
+              ImGui::BulletText      ("This CPU core will spend all of its time waiting for the next frame to start.");
+              ImGui::BulletText      ("Improves smoothness on 4+ core systems, but not advised for low-end systems.");
+              ImGui::BulletText      ("Negatively impacts battery life on mobile devices.");
+              ImGui::TreePop         ();
+              ImGui::EndTooltip      ();
+            }
+
             ImGui::SameLine      ();
 
-            extern bool                                                 SK_Framerate_ReduceInputLatency ;
-            ImGui::Checkbox      ("Reduce Input Latency",              &SK_Framerate_ReduceInputLatency);
+            ImGui::Checkbox      ("Reduce Input Latency",      &config.render.framerate.min_input_latency);
 
-            if (! SK_Framerate_Busy)
+            if (ImGui::IsItemHovered ())
             {
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("Optimization for games that process input, rendering and window events in the same thread");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("Attempts to keep the event loop running while waiting for the next frame.");
+              ImGui::BulletText      ("A small number of games will react negatively to this option and gamepad input may worsen performance.");
+              ImGui::EndTooltip      ();
+            }
+
+            if (! config.render.framerate.busy_wait_limiter)
+            {
+              float sleep_duration = 
+                ( 10.0f / target_fps ) * config.render.framerate.max_sleep_percent;
+
               ImGui::SameLine    (                                                                     );
-              ImGui::Checkbox    ( "Sleep Once, then Busy-Wait",               &SK_Framerate_YieldOnce );
+              ImGui::Checkbox    ( "Sleep Once, then Spin",        &config.render.framerate.yield_once );
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::SetTooltip ( "Sleep (offer CPU resources to other ready-to-run tasks) once "
+                                    "for %4.1f ms, then begin busy-waiting", sleep_duration );
+              }
+
               ImGui::Separator   (                                                                     );
-              ImGui::SliderFloat ( "Sleep->Busy (Next Frame Deadline)"       , &SK_Framerate_SleepToBusy, 0.00f,
-                                   1000.0f / target_fps, "%4.1f ms or Sooner"                          );
-              ImGui::SliderFloat ( "Sleep Duration",                           &SK_Framerate_WaitScalar,  0.01f,
-                                   99.9f, SK_FormatString ( "%4.1f ms", (10.0f / target_fps )          *
-                                                            SK_Framerate_WaitScalar).c_str ()          );
+              ImGui::SliderFloat ( "Burn CPU Cycles for Better Timing",
+                                     &config.render.framerate.sleep_deadline, 0.00f,
+                                       1000.0f / target_fps, "Once within %4.1f ms of the next frame"  );
+              ImGui::SliderFloat ( "Sleep Duration", &config.render.framerate.max_sleep_percent, 0.01f,
+                                   99.9f, SK_FormatString ( "%4.1f ms", sleep_duration ).c_str ()      );
             }
           }
 

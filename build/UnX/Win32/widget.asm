@@ -10,156 +10,156 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG142486 DB	'T', 00H, 'o', 00H, 'g', 00H, 'g', 00H, 'l', 00H, 'e', 00H
+$SG142491 DB	'T', 00H, 'o', 00H, 'g', 00H, 'g', 00H, 'l', 00H, 'e', 00H
 	DB	'K', 00H, 'e', 00H, 'y', 00H, 00H, 00H
-$SG142487 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142492 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
-$SG147983 DB	00H
+$SG147988 DB	00H
 	ORG $+1
-$SG142488 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142493 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'T', 00H, 'o', 00H, 'g', 00H, 'g', 00H, 'l', 00H, 'e'
 	DB	00H, ' ', 00H, 'K', 00H, 'e', 00H, 'y', 00H, 'b', 00H, 'i', 00H
 	DB	'n', 00H, 'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '('
 	DB	00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG142489 DB	'V', 00H, 'i', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l', 00H
+$SG142494 DB	'V', 00H, 'i', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l', 00H
 	DB	'e', 00H, 00H, 00H
-$SG142490 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142495 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142491 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142496 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'V', 00H, 'i', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l'
 	DB	00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H, 's', 00H
 	DB	')', 00H, 00H, 00H
 	ORG $+2
-$SG142492 DB	'M', 00H, 'o', 00H, 'v', 00H, 'a', 00H, 'b', 00H, 'l', 00H
+$SG142497 DB	'M', 00H, 'o', 00H, 'v', 00H, 'a', 00H, 'b', 00H, 'l', 00H
 	DB	'e', 00H, 00H, 00H
-$SG142493 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142498 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142494 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142499 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'o', 00H, 'v', 00H, 'a', 00H, 'b', 00H, 'l'
 	DB	00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H, 's', 00H
 	DB	')', 00H, 00H, 00H
 	ORG $+2
-$SG142495 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'a', 00H
+$SG142500 DB	'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'a', 00H
 	DB	'b', 00H, 'l', 00H, 'e', 00H, 00H, 00H
-$SG142496 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142501 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142497 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142502 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'z', 00H, 'a'
 	DB	00H, 'b', 00H, 'l', 00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H
 	DB	'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG142498 DB	'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'F', 00H, 'i', 00H
+$SG142503 DB	'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'F', 00H, 'i', 00H
 	DB	't', 00H, 00H, 00H
-$SG142499 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142504 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142500 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142505 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'F', 00H, 'i'
 	DB	00H, 't', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '(', 00H
 	DB	'%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG142501 DB	'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H, 'r', 00H
+$SG142506 DB	'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H, 'r', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG142502 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142507 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142503 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142508 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 's', 00H, ' '
 	DB	00H, 'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H, 'r', 00H
 	DB	' ', 00H, '(', 00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H
 	DB	00H
-$SG142504 DB	'C', 00H, 'l', 00H, 'i', 00H, 'c', 00H, 'k', 00H, 'T', 00H
+$SG142509 DB	'C', 00H, 'l', 00H, 'i', 00H, 'c', 00H, 'k', 00H, 'T', 00H
 	DB	'h', 00H, 'r', 00H, 'o', 00H, 'u', 00H, 'g', 00H, 'h', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG142505 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142510 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142506 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142511 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'I', 00H, 'g', 00H, 'n', 00H, 'o', 00H, 'r', 00H, 'e'
 	DB	00H, 's', 00H, ' ', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'k', 00H, 's', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H, 's'
 	DB	00H, ')', 00H, 00H, 00H
-$SG142507 DB	'D', 00H, 'o', 00H, 'c', 00H, 'k', 00H, 'i', 00H, 'n', 00H
+$SG142512 DB	'D', 00H, 'o', 00H, 'c', 00H, 'k', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG142508 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142513 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142509 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142514 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'D', 00H, 'o', 00H, 'c', 00H, 'k', 00H, 's', 00H, ' '
 	DB	00H, 't', 00H, 'o', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H
 	DB	'(', 00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG142510 DB	'M', 00H, 'i', 00H, 'n', 00H, 'S', 00H, 'i', 00H, 'z', 00H
+$SG142515 DB	'M', 00H, 'i', 00H, 'n', 00H, 'S', 00H, 'i', 00H, 'z', 00H
 	DB	'e', 00H, 00H, 00H
-$SG142511 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142516 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142512 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142517 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'i'
 	DB	00H, 'z', 00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
-$SG142513 DB	'M', 00H, 'a', 00H, 'x', 00H, 'S', 00H, 'i', 00H, 'z', 00H
+$SG142518 DB	'M', 00H, 'a', 00H, 'x', 00H, 'S', 00H, 'i', 00H, 'z', 00H
 	DB	'e', 00H, 00H, 00H
-$SG142514 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142519 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142515 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142520 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'a', 00H, 'x', 00H, ' ', 00H, 'S', 00H, 'i'
 	DB	00H, 'z', 00H, 'e', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
-$SG142516 DB	'S', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
+$SG142521 DB	'S', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG142517 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142522 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142518 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142523 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'S', 00H, 'i', 00H, 'z', 00H, 'e', 00H, ' ', 00H, '('
 	DB	00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
-$SG142519 DB	'P', 00H, 'o', 00H, 's', 00H, 'i', 00H, 't', 00H, 'i', 00H
+$SG142524 DB	'P', 00H, 'o', 00H, 's', 00H, 'i', 00H, 't', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG142520 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142525 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	'.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG142521 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
+$SG142526 DB	'W', 00H, 'i', 00H, 'd', 00H, 'g', 00H, 'e', 00H, 't', 00H
 	DB	' ', 00H, 'P', 00H, 'o', 00H, 's', 00H, 'i', 00H, 't', 00H, 'i'
 	DB	00H, 'o', 00H, 'n', 00H, ' ', 00H, '(', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ')', 00H, 00H, 00H
-$SG147751 DB	'###Widget_%s', 00H
+$SG147756 DB	'###Widget_%s', 00H
 	ORG $+3
-$SG147958 DB	'Movable', 00H
-$SG147960 DB	'Resizable', 00H
+$SG147963 DB	'Movable', 00H
+$SG147965 DB	'Resizable', 00H
 	ORG $+2
-$SG147964 DB	'Auto-Fit', 00H
+$SG147969 DB	'Auto-Fit', 00H
 	ORG $+3
-$SG147967 DB	'Click-Through', 00H
+$SG147972 DB	'Click-Through', 00H
 	ORG $+2
-$SG147969 DB	'Draw Border', 00H
-$SG147970 DB	'Undocked', 00H, 'North', 00H, 'South', 00H, 00H, 00H
+$SG147974 DB	'Draw Border', 00H
+$SG147975 DB	'Undocked', 00H, 'North', 00H, 'South', 00H, 00H, 00H
 	ORG $+1
-$SG147975 DB	'Vertical Docking Anchor', 00H
-$SG147976 DB	'Undocked', 00H, 'West', 00H, 'East', 00H, 00H, 00H
+$SG147980 DB	'Vertical Docking Anchor', 00H
+$SG147981 DB	'Undocked', 00H, 'West', 00H, 'East', 00H, 00H, 00H
 	ORG $+3
-$SG147981 DB	'Horizonal Docking Anchor', 00H
+$SG147986 DB	'Horizonal Docking Anchor', 00H
 	ORG $+3
-$SG147982 DB	'Key Bindings', 00H
+$SG147987 DB	'Key Bindings', 00H
 	ORG $+3
-$SG147985 DB	'Widget Toggle', 00H
+$SG147990 DB	'Widget Toggle', 00H
 	ORG $+2
-$SG147987 DB	'Widget Focus', 00H
+$SG147992 DB	'Widget Focus', 00H
 	ORG $+3
-$SG147990 DB	'%.3f', 00H
+$SG147995 DB	'%.3f', 00H
 	ORG $+3
-$SG147991 DB	'Widget Scale', 00H
+$SG147996 DB	'Widget Scale', 00H
 	ORG $+3
-$SG147992 DB	'  Save  ', 00H
+$SG147997 DB	'  Save  ', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	??0ImVec2@@QAE@XZ				; ImVec2::ImVec2
@@ -18868,7 +18868,7 @@ _Keybinding$ = -1					; size = 1
 
 	lea	eax, DWORD PTR [edi+188]
 	push	eax
-	push	OFFSET $SG147958
+	push	OFFSET $SG147963
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	movzx	ecx, BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA
 	test	al, al
@@ -18891,7 +18891,7 @@ _Keybinding$ = -1					; size = 1
 
 	lea	esi, DWORD PTR [edi+189]
 	push	esi
-	push	OFFSET $SG147960
+	push	OFFSET $SG147965
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	movzx	ecx, BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA
 	add	esp, 16					; 00000010H
@@ -18921,7 +18921,7 @@ _Keybinding$ = -1					; size = 1
 
 	lea	eax, DWORD PTR [edi+187]
 	push	eax
-	push	OFFSET $SG147964
+	push	OFFSET $SG147969
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	add	esp, 16					; 00000010H
 	test	al, al
@@ -18963,7 +18963,7 @@ $LN7@config_bas:
 
 	lea	eax, DWORD PTR [edi+191]
 	push	eax
-	push	OFFSET $SG147967
+	push	OFFSET $SG147972
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	movzx	ecx, BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA
 	test	al, al
@@ -18986,7 +18986,7 @@ $LN7@config_bas:
 
 	lea	eax, DWORD PTR [edi+190]
 	push	eax
-	push	OFFSET $SG147969
+	push	OFFSET $SG147974
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	movzx	ecx, BYTE PTR ?changed@?1??config_base@SK_Widget@@QAEXXZ@4_NA
 	add	esp, 16					; 00000010H
@@ -19046,10 +19046,10 @@ $LN12@config_bas:
 ; 541  :   if (ImGui::Combo ("Vertical Docking Anchor", &dock, anchors, 3))
 
 	push	3
-	push	OFFSET $SG147970
+	push	OFFSET $SG147975
 	lea	eax, DWORD PTR _dock$[ebp]
 	push	eax
-	push	OFFSET $SG147975
+	push	OFFSET $SG147980
 	call	?Combo@ImGui@@YA_NPBDPAH0H@Z		; ImGui::Combo
 	add	esp, 16					; 00000010H
 	test	al, al
@@ -19113,10 +19113,10 @@ $LN16@config_bas:
 ; 563  :   if (ImGui::Combo ("Horizonal Docking Anchor", &dock, anchors, 3))
 
 	push	3
-	push	OFFSET $SG147976
+	push	OFFSET $SG147981
 	lea	eax, DWORD PTR _dock$[ebp]
 	push	eax
-	push	OFFSET $SG147981
+	push	OFFSET $SG147986
 	call	?Combo@ImGui@@YA_NPBDPAH0H@Z		; ImGui::Combo
 	add	esp, 16					; 00000010H
 	test	al, al
@@ -19193,12 +19193,12 @@ $LN17@config_bas:
 ; 609  : 
 ; 610  :   ImGui::Text       ("Key Bindings");
 
-	push	OFFSET $SG147982
+	push	OFFSET $SG147987
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 611  :   ImGui::TreePush   ("");
 
-	push	OFFSET $SG147983
+	push	OFFSET $SG147988
 	call	?TreePush@ImGui@@YAXPBD@Z		; ImGui::TreePush
 	add	esp, 8
 
@@ -19214,7 +19214,7 @@ $LN17@config_bas:
 
 ; 615  :     ImGui::Text       ("Widget Toggle");
 
-	push	OFFSET $SG147985
+	push	OFFSET $SG147990
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 4
 $LN18@config_bas:
@@ -19226,7 +19226,7 @@ $LN18@config_bas:
 
 ; 617  :     ImGui::Text       ("Widget Focus");
 
-	push	OFFSET $SG147987
+	push	OFFSET $SG147992
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 4
 $LN19@config_bas:
@@ -19299,12 +19299,12 @@ $LN21@config_bas:
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
 	lea	eax, DWORD PTR [edi+180]
-	push	OFFSET $SG147990
+	push	OFFSET $SG147995
 	sub	esp, 8
 	mov	DWORD PTR [esp+4], 1073741824		; 40000000H
 	mov	DWORD PTR [esp], 1048576000		; 3e800000H
 	push	eax
-	push	OFFSET $SG147991
+	push	OFFSET $SG147996
 	call	?SliderFloat@ImGui@@YA_NPBDPAMMM0M@Z	; ImGui::SliderFloat
 
 ; 634  : 
@@ -19325,7 +19325,7 @@ $LN21@config_bas:
 ; 639  :   done |= ImGui::Button ("  Save  ");
 
 	push	eax
-	push	OFFSET $SG147992
+	push	OFFSET $SG147997
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -20219,7 +20219,7 @@ $LN180@draw_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T2[ebp]
-	push	OFFSET $SG147751
+	push	OFFSET $SG147756
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
 	add	esp, 12					; 0000000cH
@@ -20992,7 +20992,7 @@ $LN42@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T13[ebp]
-	push	OFFSET $SG142487
+	push	OFFSET $SG142492
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21031,7 +21031,7 @@ $LN80@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T25[ebp]
-	push	OFFSET $SG142488
+	push	OFFSET $SG142493
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21075,7 +21075,7 @@ $LN98@run_base:
 
 ; 42   :     toggle_key_val =
 
-	push	OFFSET $SG142486
+	push	OFFSET $SG142491
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -21188,7 +21188,7 @@ $LN178@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T12[ebp]
-	push	OFFSET $SG142490
+	push	OFFSET $SG142495
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21227,7 +21227,7 @@ $LN216@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T24[ebp]
-	push	OFFSET $SG142491
+	push	OFFSET $SG142496
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21271,7 +21271,7 @@ $LN234@run_base:
 
 ; 48   :     param_visible =
 
-	push	OFFSET $SG142489
+	push	OFFSET $SG142494
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -21384,7 +21384,7 @@ $LN314@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T11[ebp]
-	push	OFFSET $SG142493
+	push	OFFSET $SG142498
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21423,7 +21423,7 @@ $LN352@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T23[ebp]
-	push	OFFSET $SG142494
+	push	OFFSET $SG142499
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21467,7 +21467,7 @@ $LN370@run_base:
 
 ; 54   :     param_movable =
 
-	push	OFFSET $SG142492
+	push	OFFSET $SG142497
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -21580,7 +21580,7 @@ $LN450@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T10[ebp]
-	push	OFFSET $SG142496
+	push	OFFSET $SG142501
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21619,7 +21619,7 @@ $LN488@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T22[ebp]
-	push	OFFSET $SG142497
+	push	OFFSET $SG142502
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21663,7 +21663,7 @@ $LN506@run_base:
 
 ; 60   :     param_resizable =
 
-	push	OFFSET $SG142495
+	push	OFFSET $SG142500
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -21776,7 +21776,7 @@ $LN586@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T9[ebp]
-	push	OFFSET $SG142499
+	push	OFFSET $SG142504
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21815,7 +21815,7 @@ $LN624@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T21[ebp]
-	push	OFFSET $SG142500
+	push	OFFSET $SG142505
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -21859,7 +21859,7 @@ $LN642@run_base:
 
 ; 66   :     param_autofit =
 
-	push	OFFSET $SG142498
+	push	OFFSET $SG142503
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -21972,7 +21972,7 @@ $LN722@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T8[ebp]
-	push	OFFSET $SG142502
+	push	OFFSET $SG142507
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22011,7 +22011,7 @@ $LN760@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T20[ebp]
-	push	OFFSET $SG142503
+	push	OFFSET $SG142508
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22055,7 +22055,7 @@ $LN778@run_base:
 
 ; 72   :     param_border =
 
-	push	OFFSET $SG142501
+	push	OFFSET $SG142506
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22168,7 +22168,7 @@ $LN858@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T7[ebp]
-	push	OFFSET $SG142505
+	push	OFFSET $SG142510
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22207,7 +22207,7 @@ $LN896@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T19[ebp]
-	push	OFFSET $SG142506
+	push	OFFSET $SG142511
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22251,7 +22251,7 @@ $LN914@run_base:
 
 ; 78   :     param_clickthrough =
 
-	push	OFFSET $SG142504
+	push	OFFSET $SG142509
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22364,7 +22364,7 @@ $LN994@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T6[ebp]
-	push	OFFSET $SG142508
+	push	OFFSET $SG142513
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22403,7 +22403,7 @@ $LN1032@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T18[ebp]
-	push	OFFSET $SG142509
+	push	OFFSET $SG142514
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22447,7 +22447,7 @@ $LN1050@run_base:
 
 ; 84   :     param_docking =
 
-	push	OFFSET $SG142507
+	push	OFFSET $SG142512
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22560,7 +22560,7 @@ $LN1130@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T5[ebp]
-	push	OFFSET $SG142511
+	push	OFFSET $SG142516
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22599,7 +22599,7 @@ $LN1168@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T17[ebp]
-	push	OFFSET $SG142512
+	push	OFFSET $SG142517
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22643,7 +22643,7 @@ $LN1186@run_base:
 
 ; 90   :     param_minsize =
 
-	push	OFFSET $SG142510
+	push	OFFSET $SG142515
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22756,7 +22756,7 @@ $LN1266@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T4[ebp]
-	push	OFFSET $SG142514
+	push	OFFSET $SG142519
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22795,7 +22795,7 @@ $LN1304@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T16[ebp]
-	push	OFFSET $SG142515
+	push	OFFSET $SG142520
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22839,7 +22839,7 @@ $LN1322@run_base:
 
 ; 96   :     param_maxsize =
 
-	push	OFFSET $SG142513
+	push	OFFSET $SG142518
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -22952,7 +22952,7 @@ $LN1402@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T3[ebp]
-	push	OFFSET $SG142517
+	push	OFFSET $SG142522
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -22991,7 +22991,7 @@ $LN1440@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T15[ebp]
-	push	OFFSET $SG142518
+	push	OFFSET $SG142523
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -23035,7 +23035,7 @@ $LN1458@run_base:
 
 ; 102  :     param_size =
 
-	push	OFFSET $SG142516
+	push	OFFSET $SG142521
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini
@@ -23148,7 +23148,7 @@ $LN1538@run_base:
 
 	push	eax
 	lea	eax, DWORD PTR $T2[ebp]
-	push	OFFSET $SG142520
+	push	OFFSET $SG142525
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -23180,7 +23180,7 @@ $LN1575@run_base:
 
 	push	esi
 	lea	eax, DWORD PTR $T14[ebp]
-	push	OFFSET $SG142521
+	push	OFFSET $SG142526
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -23224,7 +23224,7 @@ $LN1594@run_base:
 
 ; 108  :     param_pos =
 
-	push	OFFSET $SG142519
+	push	OFFSET $SG142524
 	push	ebx
 	push	eax
 	push	DWORD PTR ?osd_ini@@3PAUiSK_INI@@A	; osd_ini

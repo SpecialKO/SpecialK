@@ -238,6 +238,11 @@ struct sk_config_t
       bool    wait_for_vblank   = false;
       bool    sleepless_render  = false;
       bool    sleepless_window  = false;
+      bool    busy_wait_limiter = true;
+      bool    yield_once        = true;
+      bool    min_input_latency = true;
+      float   sleep_deadline    = 3.3f;
+      float   max_sleep_percent = 59.998800f;
     } framerate;
     struct {
       bool    force_d3d9ex      = false;

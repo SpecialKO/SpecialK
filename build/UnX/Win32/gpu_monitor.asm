@@ -21,7 +21,7 @@ _DATA	SEGMENT
 ?gpu_stats@@3AAUgpu_sensors_t@@A DD FLAT:?gpu_stats_buffers@@3PAUgpu_sensors_t@@A ; gpu_stats
 _DATA	ENDS
 CONST	SEGMENT
-$SG126278 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
+$SG126283 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
 	DB	'a', 00H, 'y', 00H, 'L', 00H, 'i', 00H, 'b', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H
 	DB	'D', 00H, ' ', 00H, 'A', 00H, 'D', 00H, 'L', 00H, ' ', 00H, 'A'
@@ -6226,7 +6226,7 @@ $LN181@SK_GPUPoll:
 ; 378  :           dll_log.Log (L"[DisplayLib] INVALID ADL ADAPTER: %i", pAdapter->iAdapterIndex);
 
 	push	ecx
-	push	OFFSET $SG126278
+	push	OFFSET $SG126283
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH

@@ -1,5 +1,7 @@
 0.8.50
 
+ (.1): Enabled persistent storage of sleep-wait framerate limiter preferences
+
  + Added options to control line and contour anti-aliasing in ImGui
  + Added option to disable alpha transparency on Special K's UI
   >> Solves flickering in some DirectDraw, D3D8 and D3D9 games

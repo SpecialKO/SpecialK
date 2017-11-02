@@ -31,11 +31,6 @@ PUBLIC	_IID_IAxWinHostWindow
 PUBLIC	_IID_IAxWinHostWindowLic
 PUBLIC	_IID_IAxWinAmbientDispatch
 PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
-PUBLIC	?SK_Framerate_Busy@@3_NA			; SK_Framerate_Busy
-PUBLIC	?SK_Framerate_YieldOnce@@3_NA			; SK_Framerate_YieldOnce
-PUBLIC	?SK_Framerate_ReduceInputLatency@@3_NA		; SK_Framerate_ReduceInputLatency
-PUBLIC	?SK_Framerate_WaitScalar@@3MA			; SK_Framerate_WaitScalar
-PUBLIC	?SK_Framerate_SleepToBusy@@3MA			; SK_Framerate_SleepToBusy
 PUBLIC	_LIBID_ATLLib
 PUBLIC	?pfnQueryPerformanceCounter@@3PAXA		; pfnQueryPerformanceCounter
 PUBLIC	?pfnSleep@@3PAXA				; pfnSleep
@@ -172,14 +167,6 @@ _LIBID_ATLLib DD 044ec0535H
 	DB	091H
 	DB	0d3H
 CONST	ENDS
-_DATA	SEGMENT
-?SK_Framerate_Busy@@3_NA DB 01H				; SK_Framerate_Busy
-?SK_Framerate_YieldOnce@@3_NA DB 01H			; SK_Framerate_YieldOnce
-?SK_Framerate_ReduceInputLatency@@3_NA DB 01H		; SK_Framerate_ReduceInputLatency
-	ORG $+1
-?SK_Framerate_WaitScalar@@3MA DD 0426ffec5r	; 59.9988 ; SK_Framerate_WaitScalar
-?SK_Framerate_SleepToBusy@@3MA DD 040533333r	; 3.3	; SK_Framerate_SleepToBusy
-_DATA	ENDS
 ;	COMDAT _IID_IAxWinAmbientDispatch
 CONST	SEGMENT
 _IID_IAxWinAmbientDispatch DD 0b6ea2051H
@@ -238,35 +225,35 @@ _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG179263			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG179268			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG179261		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG179266		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG179259		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG179264		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG179257		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG179262		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG179255		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG179260		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG179253		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG179258		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG179251		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG179256		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG179249		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG179254		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -289,79 +276,79 @@ CONST	SEGMENT
 ?chDirSep@ATL@@3_WB DW 05cH				; ATL::chDirSep
 CONST	ENDS
 CONST	SEGMENT
-$SG167954 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167959 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG179249 DB	'S', 00H, 00H, 00H
-$SG179251 DB	'M', 00H, 00H, 00H
-$SG179253 DB	'D', 00H, 00H, 00H
-$SG179255 DB	'B', 00H, 00H, 00H
-$SG179257 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG179259 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG179254 DB	'S', 00H, 00H, 00H
+$SG179256 DB	'M', 00H, 00H, 00H
+$SG179258 DB	'D', 00H, 00H, 00H
+$SG179260 DB	'B', 00H, 00H, 00H
+$SG179262 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG179264 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG179261 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG179266 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG179263 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG179268 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG168001 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168006 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG168048 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168053 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG168095 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168100 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG168142 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168147 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG168189 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168194 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG168236 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
 $SG168241 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG168246 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG168288 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168293 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG168335 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168340 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG168382 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168387 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, 00H, 00H
-$SG167366 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167371 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG167437 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167442 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG167484 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167489 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG167531 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167536 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG167578 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167583 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG198338 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG198343 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'a', 00H, 'p', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG167625 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167630 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG198343 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG198348 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'L', 00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'l', 00H, 'e', 00H, 'e', 00H, 'p', 00H, ' ', 00H
 	DB	'c', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ' '
@@ -370,8 +357,8 @@ $SG198343 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 'd', 00H, ':', 00H
 	DB	' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'm', 00H, 's'
 	DB	00H, '!', 00H, 00H, 00H
-$SG179939 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG198349 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG179944 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG198354 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'L', 00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'l', 00H, 'e', 00H, 'e', 00H, 'p', 00H, ' ', 00H
 	DB	'c', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ' '
@@ -380,32 +367,17 @@ $SG198349 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	00H, 'a', 00H, 'd', 00H, ':', 00H, ' ', 00H, '%', 00H, 'l', 00H
 	DB	'u', 00H, ' ', 00H, 'm', 00H, 's', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG179940 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG179941 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+$SG179945 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG179946 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
 	DB	's', 00H, 00H, 00H
 	ORG $+2
-$SG179942 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+$SG179947 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
 	DB	'p', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG179943 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+$SG179948 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
 	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG179944 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG179945 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG179946 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG179947 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
-	ORG $+2
-$SG179948 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG179949 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
 $SG200429 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'L', 00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'r', 00H
@@ -418,58 +390,73 @@ $SG200429 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'c', 00H, 'l', 00H, 'o', 00H, 'c', 00H, 'k', 00H, ')', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG179950 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG179949 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG179950 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG179951 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG179952 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG179953 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG179954 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG179955 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG167672 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167677 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG167719 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167724 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG167766 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167771 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG198516 DB	'A', 00H, 'g', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'g', 00H
+$SG198521 DB	'A', 00H, 'g', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'g', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG198518 DB	't', 00H, 's', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
+$SG198523 DB	't', 00H, 's', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG198520 DB	'WaitForVBLANK', 00H
+$SG198525 DB	'WaitForVBLANK', 00H
 	ORG $+2
-$SG198522 DB	'MaxDeltaTime', 00H
+$SG198527 DB	'MaxDeltaTime', 00H
 	ORG $+3
-$SG198524 DB	'LimiterTolerance', 00H
+$SG198529 DB	'LimiterTolerance', 00H
 	ORG $+3
-$SG198526 DB	'TargetFPS', 00H
+$SG198531 DB	'TargetFPS', 00H
 	ORG $+2
-$SG198528 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
+$SG198533 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
 	DB	'P', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'n', 00H, 'y', 00H, '.'
 	DB	00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG198529 DB	'Sleep', 00H
+$SG198534 DB	'Sleep', 00H
 	ORG $+2
-$SG198530 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG198535 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG198531 DB	'QueryPerformanceCounter', 00H
-$SG198532 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG198536 DB	'QueryPerformanceCounter', 00H
+$SG198537 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG167813 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167818 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG198534 DB	'n', 00H, 't', 00H, 'd', 00H, 'l', 00H, 'l', 00H, '.', 00H
+$SG198539 DB	'n', 00H, 't', 00H, 'd', 00H, 'l', 00H, 'l', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG198535 DB	'NtQueryTimerResolution', 00H
+$SG198540 DB	'NtQueryTimerResolution', 00H
 	ORG $+1
-$SG198536 DB	'NtSetTimerResolution', 00H
+$SG198541 DB	'NtSetTimerResolution', 00H
 	ORG $+3
-$SG198538 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
+$SG198543 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'K', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	' ', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'o', 00H, 'l', 00H, 'u'
@@ -477,7 +464,7 @@ $SG198538 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
 	DB	' ', 00H, '%', 00H, 'f', 00H, ' ', 00H, 'm', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG198539 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
+$SG198544 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'N', 00H, 'e', 00H, 'w', 00H, ' ', 00H, 'r', 00H, 'e', 00H
 	DB	's', 00H, 'o', 00H, 'l', 00H, 'u', 00H, 't', 00H, 'i', 00H, 'o'
@@ -485,11 +472,11 @@ $SG198539 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
 	DB	' ', 00H, '%', 00H, 'f', 00H, ' ', 00H, 'm', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG167860 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167865 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG167907 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167912 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
 CONST	ENDS
@@ -647,7 +634,6 @@ PUBLIC	?SK_CurrentPerf@@3V<lambda>@@A			; SK_CurrentPerf
 PUBLIC	?SK_DeltaPerf@@3V<lambda>@@A			; SK_DeltaPerf
 PUBLIC	__GUID_b18b10ce_2649_405a_870f_95f777d4313a
 PUBLIC	__GUID_310d36a0_d2e7_4c0a_aa04_6a9d23b8886a
-PUBLIC	__real@00000000
 PUBLIC	__real@358637bd
 PUBLIC	__real@3f50624dd2f1a9fc
 PUBLIC	__real@3ff0000000000000
@@ -886,10 +872,6 @@ CONST	ENDS
 CONST	SEGMENT
 __real@358637bd DD 0358637bdr			; 1e-06
 CONST	ENDS
-;	COMDAT __real@00000000
-CONST	SEGMENT
-__real@00000000 DD 000000000r			; 0
-CONST	ENDS
 ;	COMDAT __GUID_310d36a0_d2e7_4c0a_aa04_6a9d23b8886a
 CONST	SEGMENT
 __GUID_310d36a0_d2e7_4c0a_aa04_6a9d23b8886a DD 0310d36a0H
@@ -1112,14 +1094,14 @@ _freq$ = 20						; size = 8
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
-;	COMDAT ??0<lambda_853c8f7f2639028bcbddc115ece9255c>@@QAE@AAPAUHWND__@@AA_N@Z
+;	COMDAT ??0<lambda_549ebf8c40a3db74644b45817e8307fb>@@QAE@AAPAUHWND__@@AA_N@Z
 _TEXT	SEGMENT
 _<hWndThis>$ = 8					; size = 4
 _<bUnicode>$ = 12					; size = 4
-??0<lambda_853c8f7f2639028bcbddc115ece9255c>@@QAE@AAPAUHWND__@@AA_N@Z PROC ; <lambda_853c8f7f2639028bcbddc115ece9255c>::<lambda_853c8f7f2639028bcbddc115ece9255c>, COMDAT
+??0<lambda_549ebf8c40a3db74644b45817e8307fb>@@QAE@AAPAUHWND__@@AA_N@Z PROC ; <lambda_549ebf8c40a3db74644b45817e8307fb>::<lambda_549ebf8c40a3db74644b45817e8307fb>, COMDAT
 ; _this$ = ecx
 
-; 642  :     };
+; 636  :     };
 
 	npad	2
 	push	ebp
@@ -1131,17 +1113,17 @@ _<bUnicode>$ = 12					; size = 4
 	mov	eax, ecx
 	pop	ebp
 	ret	8
-??0<lambda_853c8f7f2639028bcbddc115ece9255c>@@QAE@AAPAUHWND__@@AA_N@Z ENDP ; <lambda_853c8f7f2639028bcbddc115ece9255c>::<lambda_853c8f7f2639028bcbddc115ece9255c>
+??0<lambda_549ebf8c40a3db74644b45817e8307fb>@@QAE@AAPAUHWND__@@AA_N@Z ENDP ; <lambda_549ebf8c40a3db74644b45817e8307fb>::<lambda_549ebf8c40a3db74644b45817e8307fb>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
-;	COMDAT ??R<lambda_853c8f7f2639028bcbddc115ece9255c>@@QBEXXZ
+;	COMDAT ??R<lambda_549ebf8c40a3db74644b45817e8307fb>@@QBEXXZ
 _TEXT	SEGMENT
 _msg$ = -28						; size = 28
-??R<lambda_853c8f7f2639028bcbddc115ece9255c>@@QBEXXZ PROC ; <lambda_853c8f7f2639028bcbddc115ece9255c>::operator(), COMDAT
+??R<lambda_549ebf8c40a3db74644b45817e8307fb>@@QBEXXZ PROC ; <lambda_549ebf8c40a3db74644b45817e8307fb>::operator(), COMDAT
 ; _this$ = ecx
 
-; 612  :     {
+; 606  :     {
 
 	npad	2
 	push	ebp
@@ -1149,15 +1131,15 @@ _msg$ = -28						; size = 28
 	sub	esp, 28					; 0000001cH
 	mov	edx, ecx
 
-; 613  :       if (! SK_Framerate_ReduceInputLatency)
+; 607  :       if (! config.render.framerate.min_input_latency)
 
-	cmp	BYTE PTR ?SK_Framerate_ReduceInputLatency@@3_NA, 0 ; SK_Framerate_ReduceInputLatency
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+441, 0
 	je	SHORT $LN6@operator
 
-; 614  :         return;
-; 615  : 
-; 616  :       MSG msg     = {      };
-; 617  :       msg.hwnd    = hWndThis;
+; 608  :         return;
+; 609  : 
+; 610  :       MSG msg     = {      };
+; 611  :       msg.hwnd    = hWndThis;
 
 	mov	ecx, DWORD PTR [edx]
 	xorps	xmm0, xmm0
@@ -1167,17 +1149,17 @@ _msg$ = -28						; size = 28
 	mov	eax, DWORD PTR [ecx]
 	mov	DWORD PTR _msg$[ebp], eax
 
-; 618  :       msg.message = WM_NULL ;
-; 619  : 
-; 620  :       // Avoid having Windows marshall Unicode messages like a dumbass
-; 621  :       if (bUnicode)
+; 612  :       msg.message = WM_NULL ;
+; 613  : 
+; 614  :       // Avoid having Windows marshal Unicode messages like a dumb ass
+; 615  :       if (bUnicode)
 
 	mov	eax, DWORD PTR [edx+4]
 
-; 622  :       {
-; 623  :         if ( PeekMessageW ( &msg, hWndThis, 0, 0,
-; 624  :                                               PM_REMOVE | PM_QS_INPUT )
-; 625  :                  &&          msg.message != WM_NULL
+; 616  :       {
+; 617  :         if ( PeekMessageW ( &msg, hWndThis, 0, 0,
+; 618  :                                               PM_REMOVE | PM_QS_INPUT )
+; 619  :                  &&          msg.message != WM_NULL
 
 	push	67567617				; 04070001H
 	push	0
@@ -1194,31 +1176,31 @@ _msg$ = -28						; size = 28
 	cmp	DWORD PTR _msg$[ebp+4], 0
 	je	SHORT $LN6@operator
 
-; 626  :            )
-; 627  :         {
-; 628  :           DispatchMessageW (&msg);
+; 620  :            )
+; 621  :         {
+; 622  :           DispatchMessageW (&msg);
 
 	lea	eax, DWORD PTR _msg$[ebp]
 	push	eax
 	call	DWORD PTR __imp__DispatchMessageW@4
 
-; 640  :         }
-; 641  :       }
-; 642  :     };
+; 634  :         }
+; 635  :       }
+; 636  :     };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN3@operator:
 
-; 629  :         }
-; 630  :       }
-; 631  : 
-; 632  :       else
-; 633  :       {
-; 634  :         if ( PeekMessageA ( &msg, hWndThis, 0, 0,
-; 635  :                                               PM_REMOVE | PM_QS_INPUT )
-; 636  :                  &&          msg.message != WM_NULL
+; 623  :         }
+; 624  :       }
+; 625  : 
+; 626  :       else
+; 627  :       {
+; 628  :         if ( PeekMessageA ( &msg, hWndThis, 0, 0,
+; 629  :                                               PM_REMOVE | PM_QS_INPUT )
+; 630  :                  &&          msg.message != WM_NULL
 
 	call	DWORD PTR __imp__PeekMessageA@20
 	test	eax, eax
@@ -1226,23 +1208,23 @@ $LN3@operator:
 	cmp	DWORD PTR _msg$[ebp+4], 0
 	je	SHORT $LN6@operator
 
-; 637  :            )
-; 638  :         {
-; 639  :           DispatchMessageA (&msg);
+; 631  :            )
+; 632  :         {
+; 633  :           DispatchMessageA (&msg);
 
 	lea	eax, DWORD PTR _msg$[ebp]
 	push	eax
 	call	DWORD PTR __imp__DispatchMessageA@4
 $LN6@operator:
 
-; 640  :         }
-; 641  :       }
-; 642  :     };
+; 634  :         }
+; 635  :       }
+; 636  :     };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-??R<lambda_853c8f7f2639028bcbddc115ece9255c>@@QBEXXZ ENDP ; <lambda_853c8f7f2639028bcbddc115ece9255c>::operator()
+??R<lambda_549ebf8c40a3db74644b45817e8307fb>@@QBEXXZ ENDP ; <lambda_549ebf8c40a3db74644b45817e8307fb>::operator()
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -2388,7 +2370,7 @@ $LN2@SK_D3D9_Ge:
 ; 332  : 
 ; 333  :     HRESULT hr = (config.apis.d3d9ex.hook) ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+792, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+804, al
 	je	SHORT $LN9@SK_D3D9_Ge
 	lea	eax, DWORD PTR _pD3D9Ex$4[ebp]
 	push	eax
@@ -2670,7 +2652,7 @@ $LN2@Sleep_Deto:
 ; 100  :     {
 ; 101  :       hModSteamAPI = 
 
-	push	OFFSET $SG198338
+	push	OFFSET $SG198343
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	DWORD PTR ?hModSteamAPI@@3PAXA, eax	; hModSteamAPI
 $LN4@Sleep_Deto:
@@ -2750,7 +2732,7 @@ $LN5@Sleep_Deto:
 ; 124  :               dll_log.Log (L"[FrameLimit] Sleep called from render thread: %lu ms!", dwMilliseconds);
 
 	push	esi
-	push	OFFSET $SG198343
+	push	OFFSET $SG198348
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2842,7 +2824,7 @@ $LN6@Sleep_Deto:
 ; 149  :               dll_log.Log (L"[FrameLimit] Sleep called from GUI thread: %lu ms!", dwMilliseconds);
 
 	push	esi
-	push	OFFSET $SG198349
+	push	OFFSET $SG198354
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -4778,32 +4760,32 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_GetPerfFreq@@YAAAT_LARGE_INTEGER@@XZ PROC		; SK_GetPerfFreq
 
-; 789  :   static LARGE_INTEGER freq = { 0UL };
-; 790  :   static bool          init = false;
-; 791  :   
-; 792  :   if (!init)
+; 784  :   static LARGE_INTEGER freq = { 0UL };
+; 785  :   static bool          init = false;
+; 786  :   
+; 787  :   if (!init)
 
 	cmp	BYTE PTR ?init@?1??SK_GetPerfFreq@@YAAAT_LARGE_INTEGER@@XZ@4_NA, 0
 	jne	SHORT $LN4@SK_GetPerf
 
-; 793  :   {
-; 794  :     QueryPerformanceFrequency (&freq);
+; 788  :   {
+; 789  :     QueryPerformanceFrequency (&freq);
 
 	push	OFFSET ?freq@?1??SK_GetPerfFreq@@YAAAT_LARGE_INTEGER@@XZ@4T2@A
 	call	DWORD PTR __imp__QueryPerformanceFrequency@4
 
-; 795  :     init = true;
+; 790  :     init = true;
 
 	mov	BYTE PTR ?init@?1??SK_GetPerfFreq@@YAAAT_LARGE_INTEGER@@XZ@4_NA, 1
 $LN4@SK_GetPerf:
 
-; 796  :   }
-; 797  : 
-; 798  :   return freq;
+; 791  :   }
+; 792  : 
+; 793  :   return freq;
 
 	mov	eax, OFFSET ?freq@?1??SK_GetPerfFreq@@YAAAT_LARGE_INTEGER@@XZ@4T2@A
 
-; 799  : }
+; 794  : }
 
 	ret	0
 ?SK_GetPerfFreq@@YAAAT_LARGE_INTEGER@@XZ ENDP		; SK_GetPerfFreq
@@ -4884,7 +4866,7 @@ _seconds$ = 8						; size = 8
 ?calcNumSamples@Stats@Framerate@SK@@QAEHN@Z PROC	; SK::Framerate::Stats::calcNumSamples
 ; _this$ = ecx
 
-; 781  : {
+; 776  : {
 
 	npad	2
 	push	ebp
@@ -4893,7 +4875,7 @@ _seconds$ = 8						; size = 8
 	push	ebx
 	push	esi
 
-; 782  :   return calcNumSamples (SK_DeltaPerf (seconds, freq.QuadPart));
+; 777  :   return calcNumSamples (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	esi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A+4
 
@@ -4902,7 +4884,7 @@ _seconds$ = 8						; size = 8
 	lea	eax, DWORD PTR $T1[ebp]
 	push	edi
 
-; 782  :   return calcNumSamples (SK_DeltaPerf (seconds, freq.QuadPart));
+; 777  :   return calcNumSamples (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	edi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A
 	mov	ebx, ecx
@@ -4961,7 +4943,7 @@ $LN9@calcNumSam:
 	pop	ebx
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 783  : }
+; 778  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -5122,7 +5104,7 @@ _seconds$ = 24						; size = 8
 ?calcHitches@Stats@Framerate@SK@@QAEHNNN@Z PROC		; SK::Framerate::Stats::calcHitches
 ; _this$ = ecx
 
-; 775  : {
+; 770  : {
 
 	npad	2
 	push	ebp
@@ -5131,7 +5113,7 @@ _seconds$ = 24						; size = 8
 	push	ebx
 	push	esi
 
-; 776  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
+; 771  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	esi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A+4
 
@@ -5140,7 +5122,7 @@ _seconds$ = 24						; size = 8
 	lea	eax, DWORD PTR $T1[ebp]
 	push	edi
 
-; 776  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
+; 771  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	edi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A
 	mov	ebx, ecx
@@ -5159,7 +5141,7 @@ _seconds$ = 24						; size = 8
 	call	__dtol3
 	mov	ecx, DWORD PTR $T1[ebp]
 
-; 776  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
+; 771  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
 
 	movsd	xmm0, QWORD PTR _mean$[ebp]
 
@@ -5170,7 +5152,7 @@ _seconds$ = 24						; size = 8
 	sbb	eax, edx
 	mov	DWORD PTR $T1[ebp], ecx
 
-; 776  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
+; 771  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
 
 	push	eax
 	push	ecx
@@ -5180,7 +5162,7 @@ _seconds$ = 24						; size = 8
 
 	mov	DWORD PTR $T1[ebp+4], eax
 
-; 776  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
+; 771  :   return calcHitches (tolerance, mean, SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	ecx, ebx
 	movsd	QWORD PTR [esp+8], xmm0
@@ -5191,7 +5173,7 @@ _seconds$ = 24						; size = 8
 	pop	esi
 	pop	ebx
 
-; 777  : }
+; 772  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -5291,7 +5273,7 @@ _seconds$ = 8						; size = 8
 ?calcMax@Stats@Framerate@SK@@QAENN@Z PROC		; SK::Framerate::Stats::calcMax
 ; _this$ = ecx
 
-; 769  : {
+; 764  : {
 
 	npad	2
 	push	ebp
@@ -5300,7 +5282,7 @@ _seconds$ = 8						; size = 8
 	push	ebx
 	push	esi
 
-; 770  :   return calcMax (SK_DeltaPerf (seconds, freq.QuadPart));
+; 765  :   return calcMax (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	esi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A+4
 
@@ -5309,7 +5291,7 @@ _seconds$ = 8						; size = 8
 	lea	eax, DWORD PTR $T1[ebp]
 	push	edi
 
-; 770  :   return calcMax (SK_DeltaPerf (seconds, freq.QuadPart));
+; 765  :   return calcMax (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	edi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A
 	mov	ebx, ecx
@@ -5387,14 +5369,14 @@ $LN8@calcMax:
 $LN19@calcMax:
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 770  :   return calcMax (SK_DeltaPerf (seconds, freq.QuadPart));
+; 765  :   return calcMax (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	fld	QWORD PTR _max$2[ebp]
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 771  : }
+; 766  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -5494,7 +5476,7 @@ _seconds$ = 8						; size = 8
 ?calcMin@Stats@Framerate@SK@@QAENN@Z PROC		; SK::Framerate::Stats::calcMin
 ; _this$ = ecx
 
-; 763  : {
+; 758  : {
 
 	npad	2
 	push	ebp
@@ -5503,7 +5485,7 @@ _seconds$ = 8						; size = 8
 	push	ebx
 	push	esi
 
-; 764  :   return calcMin (SK_DeltaPerf (seconds, freq.QuadPart));
+; 759  :   return calcMin (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	esi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A+4
 
@@ -5512,7 +5494,7 @@ _seconds$ = 8						; size = 8
 	lea	eax, DWORD PTR $T1[ebp]
 	push	edi
 
-; 764  :   return calcMin (SK_DeltaPerf (seconds, freq.QuadPart));
+; 759  :   return calcMin (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	edi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A
 	mov	ebx, ecx
@@ -5590,14 +5572,14 @@ $LN8@calcMin:
 $LN19@calcMin:
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 764  :   return calcMin (SK_DeltaPerf (seconds, freq.QuadPart));
+; 759  :   return calcMin (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	fld	QWORD PTR _min$2[ebp]
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 765  : }
+; 760  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -5704,7 +5686,7 @@ _seconds$ = 16						; size = 8
 ?calcSqStdDev@Stats@Framerate@SK@@QAENNN@Z PROC		; SK::Framerate::Stats::calcSqStdDev
 ; _this$ = ecx
 
-; 757  : {
+; 752  : {
 
 	npad	2
 	push	ebp
@@ -5713,7 +5695,7 @@ _seconds$ = 16						; size = 8
 	push	ebx
 	push	esi
 
-; 758  :   return calcSqStdDev (mean, SK_DeltaPerf (seconds, freq.QuadPart));
+; 753  :   return calcSqStdDev (mean, SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	esi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A+4
 
@@ -5722,7 +5704,7 @@ _seconds$ = 16						; size = 8
 	lea	eax, DWORD PTR $T1[ebp]
 	push	edi
 
-; 758  :   return calcSqStdDev (mean, SK_DeltaPerf (seconds, freq.QuadPart));
+; 753  :   return calcSqStdDev (mean, SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	edi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A
 	mov	ebx, ecx
@@ -5799,12 +5781,12 @@ $LN9@calcSqStdD:
 	divsd	xmm1, xmm0
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 758  :   return calcSqStdDev (mean, SK_DeltaPerf (seconds, freq.QuadPart));
+; 753  :   return calcSqStdDev (mean, SK_DeltaPerf (seconds, freq.QuadPart));
 
 	movsd	QWORD PTR tv200[ebp], xmm1
 	fld	QWORD PTR tv200[ebp]
 
-; 759  : }
+; 754  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -5903,7 +5885,7 @@ _seconds$ = 8						; size = 8
 ?calcMean@Stats@Framerate@SK@@QAENN@Z PROC		; SK::Framerate::Stats::calcMean
 ; _this$ = ecx
 
-; 751  : {
+; 746  : {
 
 	npad	2
 	push	ebp
@@ -5912,7 +5894,7 @@ _seconds$ = 8						; size = 8
 	push	ebx
 	push	esi
 
-; 752  :   return calcMean (SK_DeltaPerf (seconds, freq.QuadPart));
+; 747  :   return calcMean (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	esi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A+4
 
@@ -5921,7 +5903,7 @@ _seconds$ = 8						; size = 8
 	lea	eax, DWORD PTR $T1[ebp]
 	push	edi
 
-; 752  :   return calcMean (SK_DeltaPerf (seconds, freq.QuadPart));
+; 747  :   return calcMean (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	mov	edi, DWORD PTR ?freq@Stats@Framerate@SK@@2T_LARGE_INTEGER@@A
 	mov	ebx, ecx
@@ -5992,12 +5974,12 @@ $LN9@calcMean:
 	divsd	xmm1, xmm0
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 752  :   return calcMean (SK_DeltaPerf (seconds, freq.QuadPart));
+; 747  :   return calcMean (SK_DeltaPerf (seconds, freq.QuadPart));
 
 	movsd	QWORD PTR tv169[ebp], xmm1
 	fld	QWORD PTR tv169[ebp]
 
-; 753  : }
+; 748  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6011,7 +5993,7 @@ $T2 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ?GetLimiter@Framerate@SK@@YAPAVLimiter@12@XZ PROC	; SK::Framerate::GetLimiter
 
-; 723  : {
+; 718  : {
 
 	npad	2
 	push	ebp
@@ -6023,16 +6005,16 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR fs:0, esp
 	push	ecx
 
-; 724  :   static Limiter* limiter = nullptr;
-; 725  : 
-; 726  :   if (limiter == nullptr)
+; 719  :   static Limiter* limiter = nullptr;
+; 720  : 
+; 721  :   if (limiter == nullptr)
 
 	mov	eax, DWORD PTR ?limiter@?1??GetLimiter@Framerate@SK@@YAPAVLimiter@23@XZ@4PAV423@A
 	test	eax, eax
 	jne	SHORT $LN2@GetLimiter
 
-; 727  :   {
-; 728  :     limiter =
+; 722  :   {
+; 723  :     limiter =
 
 	push	72					; 00000048H
 	call	??2@YAPAXI@Z				; operator new
@@ -6049,11 +6031,11 @@ __$EHRec$ = -12						; size = 12
 	call	??0Limiter@Framerate@SK@@QAE@N@Z	; SK::Framerate::Limiter::Limiter
 	mov	DWORD PTR ?limiter@?1??GetLimiter@Framerate@SK@@YAPAVLimiter@23@XZ@4PAV423@A, eax
 
-; 729  :       new Limiter (config.render.framerate.target_fps);
-; 730  :   }
-; 731  : 
-; 732  :   return limiter;
-; 733  : }
+; 724  :       new Limiter (config.render.framerate.target_fps);
+; 725  :   }
+; 726  : 
+; 727  :   return limiter;
+; 728  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -6062,18 +6044,18 @@ __$EHRec$ = -12						; size = 12
 	ret	0
 $LN4@GetLimiter:
 
-; 727  :   {
-; 728  :     limiter =
+; 722  :   {
+; 723  :     limiter =
 
 	xor	eax, eax
 	mov	DWORD PTR ?limiter@?1??GetLimiter@Framerate@SK@@YAPAVLimiter@23@XZ@4PAV423@A, eax
 $LN2@GetLimiter:
 
-; 729  :       new Limiter (config.render.framerate.target_fps);
-; 730  :   }
-; 731  : 
-; 732  :   return limiter;
-; 733  : }
+; 724  :       new Limiter (config.render.framerate.target_fps);
+; 725  :   }
+; 726  : 
+; 727  :   return limiter;
+; 728  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -6334,11 +6316,11 @@ _TEXT	SEGMENT
 ?effective_frametime@Limiter@Framerate@SK@@QAENXZ PROC	; SK::Framerate::Limiter::effective_frametime
 ; _this$ = ecx
 
-; 717  :   return effective_ms;
+; 712  :   return effective_ms;
 
 	fld	QWORD PTR [ecx+16]
 
-; 718  : }
+; 713  : }
 
 	ret	0
 ?effective_frametime@Limiter@Framerate@SK@@QAENXZ ENDP	; SK::Framerate::Limiter::effective_frametime
@@ -6350,20 +6332,20 @@ _target$ = 8						; size = 8
 ?set_limit@Limiter@Framerate@SK@@QAEXN@Z PROC		; SK::Framerate::Limiter::set_limit
 ; _this$ = ecx
 
-; 710  : {
+; 705  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 711  :   init (target);
+; 706  :   init (target);
 
 	movsd	xmm0, QWORD PTR _target$[ebp]
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
 	call	?init@Limiter@Framerate@SK@@QAEXN@Z	; SK::Framerate::Limiter::init
 
-; 712  : }
+; 707  : }
 
 	pop	ebp
 	ret	8
@@ -6372,7 +6354,7 @@ _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 _TEXT	SEGMENT
-tv163 = -8						; size = 8
+tv166 = -8						; size = 8
 ?try_wait@Limiter@Framerate@SK@@QAE_NXZ PROC		; SK::Framerate::Limiter::try_wait
 ; _this$ = ecx
 
@@ -6381,17 +6363,15 @@ tv163 = -8						; size = 8
 	npad	2
 	push	ebp
 	mov	ebp, esp
-
-; 452  :   if (target_fps == 0)
-
-	movss	xmm0, DWORD PTR ?target_fps@@3MA
 	sub	esp, 8
-	ucomiss	xmm0, DWORD PTR __real@00000000
+	xorps	xmm0, xmm0
+
+; 452  :   if (target_fps <= 0.0f)
+
+	comiss	xmm0, DWORD PTR ?target_fps@@3MA
 	push	edi
 	mov	edi, ecx
-	lahf
-	test	ah, 68					; 00000044H
-	jp	SHORT $LN2@try_wait
+	jb	SHORT $LN2@try_wait
 
 ; 453  :     return false;
 
@@ -6422,15 +6402,15 @@ $LN2@try_wait:
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	mulsd	xmm0, QWORD PTR [edi]
 	mulsd	xmm0, QWORD PTR __real@3f50624dd2f1a9fc
-	movsd	QWORD PTR tv163[ebp], xmm0
+	movsd	QWORD PTR tv166[ebp], xmm0
 	call	__ltod3
-	movsd	xmm1, QWORD PTR tv163[ebp]
+	movsd	xmm1, QWORD PTR tv166[ebp]
 	mov	edx, DWORD PTR [edi+28]
 	mov	ecx, DWORD PTR [edi+24]
 	mulsd	xmm1, xmm0
-	movsd	QWORD PTR tv163[ebp], xmm1
+	movsd	QWORD PTR tv166[ebp], xmm1
 	call	__ltod3
-	addsd	xmm0, QWORD PTR tv163[ebp]
+	addsd	xmm0, QWORD PTR tv166[ebp]
 	call	__dtol3
 
 ; 458  :     static_cast <LONGLONG> (
@@ -6510,23 +6490,25 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 _TEXT	SEGMENT
-tv658 = -60						; size = 8
-tv659 = -52						; size = 8
-tv647 = -52						; size = 8
-tv532 = -52						; size = 8
-tv660 = -44						; size = 8
-_PeekAndDispatch$2 = -44				; size = 8
-tv548 = -36						; size = 8
+tv663 = -56						; size = 8
+tv664 = -48						; size = 8
+tv651 = -48						; size = 8
+tv540 = -48						; size = 8
+tv665 = -40						; size = 8
+tv575 = -40						; size = 8
+_PeekAndDispatch$2 = -40				; size = 8
 _hWndThis$3 = -32					; size = 4
 _dxgi_swap$4 = -28					; size = 4
 _dxgi_output$5 = -24					; size = 4
 _d3d9ex$6 = -20						; size = 4
-_bUnicode$7 = -13					; size = 1
+_bUnicode$7 = -15					; size = 1
+_bYielded$1$ = -14					; size = 1
+_bGUI$1$ = -13						; size = 1
 __$EHRec$ = -12						; size = 12
 ?wait@Limiter@Framerate@SK@@QAEXXZ PROC			; SK::Framerate::Limiter::wait
 ; _this$ = ecx
 
-; 481  : {
+; 475  : {
 
 	npad	2
 	push	ebp
@@ -6536,9 +6518,9 @@ __$EHRec$ = -12						; size = 12
 	push	__ehhandler$?wait@Limiter@Framerate@SK@@QAEXXZ
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 48					; 00000030H
+	sub	esp, 44					; 0000002cH
 
-; 482  :   SK_RunOnce ( SetThreadPriority ( GetCurrentThread (),
+; 476  :   SK_RunOnce ( SetThreadPriority ( GetCurrentThread (),
 
 	cmp	BYTE PTR ?first@?2??wait@Limiter@Framerate@SK@@QAEXXZ@4_NA, 0
 	push	esi
@@ -6551,12 +6533,12 @@ __$EHRec$ = -12						; size = 12
 	mov	BYTE PTR ?first@?2??wait@Limiter@Framerate@SK@@QAEXXZ@4_NA, 0
 $LN4@wait:
 
-; 483  :                                      THREAD_PRIORITY_ABOVE_NORMAL ) );
-; 484  : 
-; 485  :   static bool restart      = false;
-; 486  :   static bool full_restart = false;
-; 487  : 
-; 488  :   if (fps != target_fps)
+; 477  :                                      THREAD_PRIORITY_ABOVE_NORMAL ) );
+; 478  : 
+; 479  :   static bool restart      = false;
+; 480  :   static bool full_restart = false;
+; 481  : 
+; 482  :   if (fps != target_fps)
 
 	movss	xmm2, DWORD PTR ?target_fps@@3MA
 	movsd	xmm0, QWORD PTR [esi+8]
@@ -6566,7 +6548,7 @@ $LN4@wait:
 	test	ah, 68					; 00000044H
 	jnp	SHORT $LN5@wait
 
-; 489  :     init (target_fps);
+; 483  :     init (target_fps);
 
 	cvtps2pd xmm0, xmm2
 	sub	esp, 8
@@ -6576,32 +6558,31 @@ $LN4@wait:
 	movss	xmm2, DWORD PTR ?target_fps@@3MA
 $LN5@wait:
 
-; 490  : 
-; 491  :   if (target_fps == 0)
+; 484  : 
+; 485  :   if (target_fps <= 0.0f)
 
-	ucomiss	xmm2, DWORD PTR __real@00000000
-	lahf
-	test	ah, 68					; 00000044H
-	jnp	$LN1@wait
+	xorps	xmm0, xmm0
+	comiss	xmm0, xmm2
+	jae	$LN1@wait
 
-; 492  :     return;
-; 493  : 
-; 494  :   frames++;
+; 486  :     return;
+; 487  : 
+; 488  :   frames++;
 
 	inc	DWORD PTR [esi+64]
 	push	ebx
 	push	edi
 
-; 495  : 
-; 496  :   QueryPerformanceCounter_Original (&time);
+; 489  : 
+; 490  :   QueryPerformanceCounter_Original (&time);
 
 	lea	edi, DWORD PTR [esi+48]
 	push	edi
 	call	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA ; QueryPerformanceCounter_Original
 
-; 497  : 
-; 498  :   // Actual frametime before we forced a delay
-; 499  :   effective_ms =
+; 491  : 
+; 492  :   // Actual frametime before we forced a delay
+; 493  :   effective_ms =
 
 	mov	edx, DWORD PTR [esi+60]
 	mov	ecx, DWORD PTR [esi+56]
@@ -6614,17 +6595,17 @@ $LN5@wait:
 	divsd	xmm0, xmm1
 	sub	ecx, DWORD PTR [esi+32]
 	sbb	edx, DWORD PTR [esi+36]
-	movsd	QWORD PTR tv659[ebp], xmm1
-	movsd	QWORD PTR tv660[ebp], xmm0
+	movsd	QWORD PTR tv664[ebp], xmm1
+	movsd	QWORD PTR tv665[ebp], xmm0
 	call	__ltod3
-	mulsd	xmm0, QWORD PTR tv660[ebp]
+	mulsd	xmm0, QWORD PTR tv665[ebp]
 
-; 500  :     1000.0 * ( static_cast <double> (time.QuadPart - last.QuadPart) /
-; 501  :                static_cast <double> (freq.QuadPart)                 );
-; 502  : 
-; 503  :   if ( static_cast <double> (time.QuadPart - next.QuadPart) /
-; 504  :        static_cast <double> (freq.QuadPart)                 /
-; 505  :                             ( ms / 1000.0 )                 >
+; 494  :     1000.0 * ( static_cast <double> (time.QuadPart - last.QuadPart) /
+; 495  :                static_cast <double> (freq.QuadPart)                 );
+; 496  : 
+; 497  :   if ( static_cast <double> (time.QuadPart - next.QuadPart) /
+; 498  :        static_cast <double> (freq.QuadPart)                 /
+; 499  :                             ( ms / 1000.0 )                 >
 
 	mov	ecx, ebx
 	sub	ecx, DWORD PTR [esi+40]
@@ -6637,7 +6618,7 @@ $LN5@wait:
 	movsd	xmm2, QWORD PTR [esi]
 	divsd	xmm1, xmm2
 	mov	bl, BYTE PTR ?full_restart@?1??wait@Limiter@Framerate@SK@@QAEXXZ@4_NA
-	mulsd	xmm0, QWORD PTR tv660[ebp]
+	mulsd	xmm0, QWORD PTR tv665[ebp]
 	mulsd	xmm0, xmm1
 	movss	xmm1, DWORD PTR ?config@@3Usk_config_t@@A+400
 	cvtps2pd xmm1, xmm1
@@ -6645,28 +6626,28 @@ $LN5@wait:
 	comisd	xmm0, xmm1
 	ja	SHORT $LN9@wait
 
-; 506  :       ( config.render.framerate.limiter_tolerance * fps )
-; 507  :      )
-; 508  :   {
-; 509  :     //dll_log.Log ( L" * Frame ran long (%3.01fx expected) - restarting"
-; 510  :                   //L" limiter...",
-; 511  :             //(double)(time.QuadPart - next.QuadPart) /
-; 512  :             //(double)freq.QuadPart / (ms / 1000.0) / fps );
-; 513  :     restart = true;
-; 514  : 
-; 515  : #if 0
-; 516  :     extern SK::Framerate::Stats frame_history;
-; 517  :     extern SK::Framerate::Stats frame_history2;
-; 518  : 
-; 519  :     double mean    = frame_history.calcMean     ();
-; 520  :     double sd      = frame_history.calcSqStdDev (mean);
-; 521  : 
-; 522  :     if (sd > 5.0f)
-; 523  :       full_restart = true;
-; 524  : #endif
-; 525  :   }
-; 526  : 
-; 527  :   if (restart || full_restart)
+; 500  :       ( config.render.framerate.limiter_tolerance * fps )
+; 501  :      )
+; 502  :   {
+; 503  :     //dll_log.Log ( L" * Frame ran long (%3.01fx expected) - restarting"
+; 504  :                   //L" limiter...",
+; 505  :             //(double)(time.QuadPart - next.QuadPart) /
+; 506  :             //(double)freq.QuadPart / (ms / 1000.0) / fps );
+; 507  :     restart = true;
+; 508  : 
+; 509  : #if 0
+; 510  :     extern SK::Framerate::Stats frame_history;
+; 511  :     extern SK::Framerate::Stats frame_history2;
+; 512  : 
+; 513  :     double mean    = frame_history.calcMean     ();
+; 514  :     double sd      = frame_history.calcSqStdDev (mean);
+; 515  : 
+; 516  :     if (sd > 5.0f)
+; 517  :       full_restart = true;
+; 518  : #endif
+; 519  :   }
+; 520  : 
+; 521  :   if (restart || full_restart)
 
 	cmp	BYTE PTR ?restart@?1??wait@Limiter@Framerate@SK@@QAEXXZ@4_NA, 0
 	jne	SHORT $LN9@wait
@@ -6674,38 +6655,38 @@ $LN5@wait:
 	je	SHORT $LN10@wait
 $LN9@wait:
 
-; 528  :   {
-; 529  :     frames         = 0;
-; 530  :     start.QuadPart = static_cast <LONGLONG> (
+; 522  :   {
+; 523  :     frames         = 0;
+; 524  :     start.QuadPart = static_cast <LONGLONG> (
 
-	mulsd	xmm2, QWORD PTR tv659[ebp]
+	mulsd	xmm2, QWORD PTR tv664[ebp]
 	mov	edx, DWORD PTR [edi+4]
 	mov	ecx, DWORD PTR [edi]
 	mov	DWORD PTR [esi+64], 0
 	mulsd	xmm2, QWORD PTR __real@3f50624dd2f1a9fc
-	movsd	QWORD PTR tv532[ebp], xmm2
+	movsd	QWORD PTR tv540[ebp], xmm2
 	call	__ltod3
-	addsd	xmm0, QWORD PTR tv532[ebp]
+	addsd	xmm0, QWORD PTR tv540[ebp]
 	call	__dtol3
 	mov	DWORD PTR [esi+24], eax
 	mov	DWORD PTR [esi+28], edx
 
-; 531  :                        static_cast <double> (time.QuadPart) +
-; 532  :                                             ( ms / 1000.0 ) *
-; 533  :                        static_cast <double> (freq.QuadPart)
-; 534  :                      );
-; 535  :     restart        = false;
+; 525  :                        static_cast <double> (time.QuadPart) +
+; 526  :                                             ( ms / 1000.0 ) *
+; 527  :                        static_cast <double> (freq.QuadPart)
+; 528  :                      );
+; 529  :     restart        = false;
 
 	mov	BYTE PTR ?restart@?1??wait@Limiter@Framerate@SK@@QAEXXZ@4_NA, 0
 
-; 536  : 
-; 537  :     if (full_restart)
+; 530  : 
+; 531  :     if (full_restart)
 
 	test	bl, bl
 	je	SHORT $LN10@wait
 
-; 538  :     {
-; 539  :       init (target_fps);
+; 532  :     {
+; 533  :       init (target_fps);
 
 	movss	xmm0, DWORD PTR ?target_fps@@3MA
 	sub	esp, 8
@@ -6714,16 +6695,16 @@ $LN9@wait:
 	movsd	QWORD PTR [esp], xmm0
 	call	?init@Limiter@Framerate@SK@@QAEXN@Z	; SK::Framerate::Limiter::init
 
-; 540  :       full_restart = false;
+; 534  :       full_restart = false;
 
 	mov	BYTE PTR ?full_restart@?1??wait@Limiter@Framerate@SK@@QAEXXZ@4_NA, 0
 $LN10@wait:
 
-; 541  :     }
-; 542  :     //return;
-; 543  :   }
-; 544  : 
-; 545  :   next.QuadPart =
+; 535  :     }
+; 536  :     //return;
+; 537  :   }
+; 538  : 
+; 539  :   next.QuadPart =
 
 	mov	eax, DWORD PTR [esi+64]
 	mov	edx, DWORD PTR [esi+60]
@@ -6734,43 +6715,43 @@ $LN10@wait:
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	mulsd	xmm0, QWORD PTR [esi]
 	mulsd	xmm0, QWORD PTR __real@3f50624dd2f1a9fc
-	movsd	QWORD PTR tv548[ebp], xmm0
+	movsd	QWORD PTR tv575[ebp], xmm0
 	call	__ltod3
-	movsd	xmm1, QWORD PTR tv548[ebp]
+	movsd	xmm1, QWORD PTR tv575[ebp]
 	mov	edx, DWORD PTR [esi+28]
 	mov	ecx, DWORD PTR [esi+24]
 	mulsd	xmm1, xmm0
-	movsd	QWORD PTR tv548[ebp], xmm1
+	movsd	QWORD PTR tv575[ebp], xmm1
 	call	__ltod3
-	addsd	xmm0, QWORD PTR tv548[ebp]
+	addsd	xmm0, QWORD PTR tv575[ebp]
 	call	__dtol3
 	mov	DWORD PTR [esi+40], eax
 	mov	DWORD PTR [esi+44], edx
 
-; 546  :     static_cast <LONGLONG> (
-; 547  :       static_cast <long double> (start.QuadPart) +
-; 548  :       static_cast <long double> (    frames    ) *
-; 549  :                                 (  ms / 1000.0 ) *
-; 550  :       static_cast <long double> ( freq.QuadPart)
-; 551  :     );
-; 552  : 
-; 553  :   if (next.QuadPart > 0ULL)
+; 540  :     static_cast <LONGLONG> (
+; 541  :       static_cast <long double> (start.QuadPart) +
+; 542  :       static_cast <long double> (    frames    ) *
+; 543  :                                 (  ms / 1000.0 ) *
+; 544  :       static_cast <long double> ( freq.QuadPart)
+; 545  :     );
+; 546  : 
+; 547  :   if (next.QuadPart > 0ULL)
 
 	test	edx, edx
 	ja	SHORT $LN106@wait
 	test	eax, eax
 	ja	SHORT $LN106@wait
 
-; 698  : 
-; 699  :   else
-; 700  :   {
-; 701  :     dll_log.Log (L"[FrameLimit] Framerate limiter lost time?! (non-monotonic clock)");
+; 693  : 
+; 694  :   else
+; 695  :   {
+; 696  :     dll_log.Log (L"[FrameLimit] Framerate limiter lost time?! (non-monotonic clock)");
 
 	push	OFFSET $SG200429
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 702  :     start.QuadPart += -next.QuadPart;
+; 697  :     start.QuadPart += -next.QuadPart;
 
 	mov	eax, DWORD PTR [esi+40]
 	add	esp, 8
@@ -6786,7 +6767,7 @@ $LN106@wait:
 	mov	DWORD PTR _d3d9ex$6[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 556  :     CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
+; 550  :     CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -6797,48 +6778,48 @@ $LN106@wait:
 	mov	DWORD PTR _dxgi_output$5[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 560  :     CComPtr <IDXGIOutput>    dxgi_output = nullptr;
+; 554  :     CComPtr <IDXGIOutput>    dxgi_output = nullptr;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 
-; 561  : 
-; 562  :     SK_RenderBackend& rb =
+; 555  : 
+; 556  :     SK_RenderBackend& rb =
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 
-; 563  :       SK_GetCurrentRenderBackend ();
-; 564  : 
-; 565  :     if (config.render.framerate.wait_for_vblank)
+; 557  :       SK_GetCurrentRenderBackend ();
+; 558  : 
+; 559  :     if (config.render.framerate.wait_for_vblank)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+436, 0
 	je	SHORT $LN18@wait
 
-; 566  :     {
-; 567  :       SK_RenderAPI api = rb.api;
+; 560  :     {
+; 561  :       SK_RenderAPI api = rb.api;
 
 	mov	ecx, DWORD PTR [eax]
 
-; 568  : 
-; 569  :       if (                    api ==                    SK_RenderAPI::D3D10  ||
-; 570  :            static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11) ||
+; 562  : 
+; 563  :       if (                    api ==                    SK_RenderAPI::D3D10  ||
+; 564  :            static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11) ||
 
 	cmp	ecx, 32					; 00000020H
 	je	SHORT $LN16@wait
 	test	cl, 192					; 000000c0H
 	jne	SHORT $LN16@wait
 
-; 581  :           }
-; 582  :         }
-; 583  :       }
-; 584  : 
-; 585  :       else if ( static_cast <int> (api)       &
+; 575  :           }
+; 576  :         }
+; 577  :       }
+; 578  : 
+; 579  :       else if ( static_cast <int> (api)       &
 
 	test	cl, 8
 	je	SHORT $LN18@wait
 
-; 586  :                 static_cast <int> (SK_RenderAPI::D3D9) )
-; 587  :       {
-; 588  :         if (rb.device != nullptr)
+; 580  :                 static_cast <int> (SK_RenderAPI::D3D9) )
+; 581  :       {
+; 582  :         if (rb.device != nullptr)
 
 	mov	ecx, DWORD PTR [eax+36]
 	test	ecx, ecx
@@ -6855,13 +6836,13 @@ $LN106@wait:
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 590  :           if (FAILED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&d3d9ex)))
+; 584  :           if (FAILED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&d3d9ex)))
 
 	test	eax, eax
 	jns	SHORT $LN18@wait
 
-; 591  :           {
-; 592  :             d3d9ex =
+; 585  :           {
+; 586  :             d3d9ex =
 
 	call	?SK_D3D9_GetTimingDevice@@YAPAUIDirect3DDevice9Ex@@XZ ; SK_D3D9_GetTimingDevice
 	push	eax
@@ -6870,9 +6851,9 @@ $LN106@wait:
 	jmp	SHORT $LN18@wait
 $LN16@wait:
 
-; 571  :            static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D12) )
-; 572  :       {
-; 573  :         if (rb.swapchain != nullptr)
+; 565  :            static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D12) )
+; 566  :       {
+; 567  :         if (rb.swapchain != nullptr)
 
 	mov	ecx, DWORD PTR [eax+40]
 	test	ecx, ecx
@@ -6889,13 +6870,13 @@ $LN16@wait:
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 578  :           if (SUCCEEDED (hr))
+; 572  :           if (SUCCEEDED (hr))
 
 	test	eax, eax
 	js	SHORT $LN18@wait
 
-; 579  :           {
-; 580  :             dxgi_swap->GetContainingOutput (&dxgi_output);
+; 573  :           {
+; 574  :             dxgi_swap->GetContainingOutput (&dxgi_output);
 
 	mov	eax, DWORD PTR _dxgi_swap$4[ebp]
 	lea	edx, DWORD PTR _dxgi_output$5[ebp]
@@ -6905,14 +6886,14 @@ $LN16@wait:
 	call	DWORD PTR [ecx+60]
 $LN18@wait:
 
-; 593  :               SK_D3D9_GetTimingDevice ();
-; 594  :           }
-; 595  :         }
-; 596  :       }
-; 597  :     }
-; 598  : 
-; 599  :     bool bGUI =
-; 600  :       IsGUIThread (FALSE) && GetActiveWindow () == game_window.hWnd;
+; 587  :               SK_D3D9_GetTimingDevice ();
+; 588  :           }
+; 589  :         }
+; 590  :       }
+; 591  :     }
+; 592  : 
+; 593  :     bool bGUI =
+; 594  :       IsGUIThread (FALSE) && GetActiveWindow () == game_window.hWnd;
 
 	push	0
 	call	DWORD PTR __imp__IsGUIThread@4
@@ -6923,26 +6904,27 @@ $LN18@wait:
 	cmp	eax, ecx
 	jne	SHORT $LN35@wait
 	mov	bl, 1
-	jmp	SHORT $LN36@wait
+	jmp	SHORT $LN116@wait
 $LN111@wait:
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 $LN35@wait:
 	xor	bl, bl
-$LN36@wait:
+$LN116@wait:
 
-; 601  : 
-; 602  :     HWND hWndThis =
-; 603  :       bGUI ? game_window.hWnd :
+; 595  : 
+; 596  :     HWND hWndThis =
+; 597  :       bGUI ? game_window.hWnd :
 
 	xor	eax, eax
+	mov	BYTE PTR _bGUI$1$[ebp], bl
 	test	bl, bl
 	cmovne	eax, ecx
 	mov	DWORD PTR _hWndThis$3[ebp], eax
 
-; 604  :              HWND_DESKTOP;
-; 605  : 
-; 606  :     bool bUnicode =
-; 607  :       bGUI ? IsWindowUnicode (hWndThis) :
+; 598  :              HWND_DESKTOP;
+; 599  : 
+; 600  :     bool bUnicode =
+; 601  :       bGUI ? IsWindowUnicode (hWndThis) :
 
 	je	SHORT $LN37@wait
 	push	eax
@@ -6953,45 +6935,46 @@ $LN37@wait:
 $LN38@wait:
 	test	eax, eax
 
-; 642  :     };
+; 636  :     };
 
 	lea	eax, DWORD PTR _hWndThis$3[ebp]
 	mov	DWORD PTR _PeekAndDispatch$2[ebp], eax
 	lea	eax, DWORD PTR _bUnicode$7[ebp]
 
-; 604  :              HWND_DESKTOP;
-; 605  : 
-; 606  :     bool bUnicode =
-; 607  :       bGUI ? IsWindowUnicode (hWndThis) :
+; 598  :              HWND_DESKTOP;
+; 599  : 
+; 600  :     bool bUnicode =
+; 601  :       bGUI ? IsWindowUnicode (hWndThis) :
 
 	setne	BYTE PTR _bUnicode$7[ebp]
 
-; 642  :     };
+; 636  :     };
 
 	mov	DWORD PTR _PeekAndDispatch$2[ebp+4], eax
 
-; 643  : 
-; 644  :     bool bYielded = false;
-; 645  : 
-; 646  :     while (time.QuadPart < next.QuadPart)
+; 637  : 
+; 638  :     bool bYielded = false;
+; 639  : 
+; 640  :     while (time.QuadPart < next.QuadPart)
 
 	mov	eax, DWORD PTR [edi+4]
 	xor	bh, bh
+	mov	BYTE PTR _bYielded$1$[ebp], bh
 	cmp	eax, DWORD PTR [esi+44]
 	jg	$LN112@wait
 	jl	SHORT $LL2@wait
 	mov	eax, DWORD PTR [edi]
 	cmp	eax, DWORD PTR [esi+40]
 	jae	$LN112@wait
-	npad	3
+	npad	2
 $LL2@wait:
 
-; 647  :     {
-; 648  :       // Attempt to use a deeper sleep when possible instead of hammering the
-; 649  :       //   CPU into submission ;)
-; 650  :       if ( ( static_cast <double> (next.QuadPart  - time.QuadPart) >
-; 651  :              static_cast <double> (freq.QuadPart) * 0.001 *
-; 652  :                                    SK_Framerate_SleepToBusy) &&
+; 641  :     {
+; 642  :       // Attempt to use a deeper sleep when possible instead of hammering the
+; 643  :       //   CPU into submission ;)
+; 644  :       if ( ( static_cast <double> (next.QuadPart  - time.QuadPart) >
+; 645  :              static_cast <double> (freq.QuadPart) * 0.001 *
+; 646  :                                    config.render.framerate.busy_wait_limiter) &&
 
 	mov	ecx, DWORD PTR [esi+40]
 	sub	ecx, DWORD PTR [edi]
@@ -7000,27 +6983,29 @@ $LL2@wait:
 	call	__ltod3
 	mov	edx, DWORD PTR [esi+60]
 	mov	ecx, DWORD PTR [esi+56]
-	movsd	QWORD PTR tv647[ebp], xmm0
+	movsd	QWORD PTR tv651[ebp], xmm0
 	call	__ltod3
-	movss	xmm1, DWORD PTR ?SK_Framerate_SleepToBusy@@3MA
+	mov	cl, BYTE PTR ?config@@3Usk_config_t@@A+439
 	movaps	xmm2, xmm0
 	mulsd	xmm2, QWORD PTR __real@3f50624dd2f1a9fc
-	cvtps2pd xmm1, xmm1
-	movsd	QWORD PTR tv658[ebp], xmm0
-	movsd	xmm0, QWORD PTR tv647[ebp]
+	movzx	eax, cl
+	movsd	QWORD PTR tv663[ebp], xmm0
+	movsd	xmm0, QWORD PTR tv651[ebp]
+	movd	xmm1, eax
+	cvtdq2pd xmm1, xmm1
 	mulsd	xmm2, xmm1
 	comisd	xmm0, xmm2
 	jbe	$LN22@wait
-	cmp	BYTE PTR ?SK_Framerate_YieldOnce@@3_NA, 0 ; SK_Framerate_YieldOnce
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+440, 0
 	je	SHORT $LN23@wait
 	test	bh, bh
 	jne	$LN22@wait
 $LN23@wait:
 
-; 653  :                                   (! (SK_Framerate_YieldOnce && bYielded))
-; 654  :          )
-; 655  :       {
-; 656  :         if ( config.render.framerate.wait_for_vblank )
+; 647  :                                   (! (config.render.framerate.yield_once && bYielded))
+; 648  :          )
+; 649  :       {
+; 650  :         if ( config.render.framerate.wait_for_vblank )
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+436, 0
 	je	SHORT $LN24@wait
@@ -7032,18 +7017,18 @@ $LN23@wait:
 	test	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 658  :           if (d3d9ex != nullptr)
+; 652  :           if (d3d9ex != nullptr)
 
 	je	SHORT $LN26@wait
 
-; 659  :             d3d9ex->WaitForVBlank (0);
+; 653  :             d3d9ex->WaitForVBlank (0);
 
 	mov	ecx, DWORD PTR [eax]
 	push	0
 	push	eax
 	call	DWORD PTR [ecx+496]
 
-; 661  :           else if (dxgi_output != nullptr)
+; 655  :           else if (dxgi_output != nullptr)
 
 	jmp	$LN33@wait
 $LN26@wait:
@@ -7055,127 +7040,141 @@ $LN26@wait:
 	test	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 661  :           else if (dxgi_output != nullptr)
+; 655  :           else if (dxgi_output != nullptr)
 
 	je	$LN33@wait
 
-; 662  :             WaitForVBlank_Original (dxgi_output);
+; 656  :             WaitForVBlank_Original (dxgi_output);
 
 	push	eax
 	call	DWORD PTR ?WaitForVBlank_Original@@3P6GJPAUIDXGIOutput@@@ZA ; WaitForVBlank_Original
 
-; 663  :         }
+; 657  :         }
 
 	jmp	$LN33@wait
 $LN24@wait:
 
-; 664  : 
-; 665  :         else if (! SK_Framerate_Busy)
+; 658  : 
+; 659  :         else if (! config.render.framerate.busy_wait_limiter)
 
-	cmp	BYTE PTR ?SK_Framerate_Busy@@3_NA, 0	; SK_Framerate_Busy
+	test	cl, cl
 	jne	$LN33@wait
 
-; 666  :         {                
-; 667  :           auto dwWaitMS =
-; 668  :             static_cast <DWORD>
-; 669  :               ( (SK_Framerate_WaitScalar * 10.0f) / target_fps ); // 10% of full frame
+; 660  :         {                
+; 661  :           auto dwWaitMS =
+; 662  :             static_cast <DWORD>
+; 663  :               ( (config.render.framerate.max_sleep_percent * 10.0f) / target_fps ); // 10% of full frame
 
-	movss	xmm0, DWORD PTR ?SK_Framerate_WaitScalar@@3MA
+	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+448
 	mulss	xmm0, DWORD PTR __real@41200000
 	divss	xmm0, DWORD PTR ?target_fps@@3MA
 	call	__ftoui3
 
-; 670  : 
-; 671  :           if ( ( static_cast <double> (next.QuadPart - time.QuadPart) /
-; 672  :                  static_cast <double> (freq.QuadPart                ) ) * 1000.0 >
+; 664  : 
+; 665  :           if ( ( static_cast <double> (next.QuadPart - time.QuadPart) /
+; 666  :                  static_cast <double> (freq.QuadPart                ) ) * 1000.0 >
 
-	movsd	xmm1, QWORD PTR tv647[ebp]
-	mov	ecx, eax
-	divsd	xmm1, QWORD PTR tv658[ebp]
+	movsd	xmm1, QWORD PTR tv651[ebp]
+	mov	ebx, eax
+	divsd	xmm1, QWORD PTR tv663[ebp]
+	mov	ecx, ebx
 	shr	ecx, 31					; 0000001fH
-	movd	xmm0, eax
+	movd	xmm0, ebx
 	mulsd	xmm1, QWORD PTR __real@408f400000000000
 	cvtdq2pd xmm0, xmm0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[ecx*8]
 	comisd	xmm1, xmm0
-	jbe	SHORT $LN33@wait
+	jbe	SHORT $LN113@wait
 
-; 673  :                    dwWaitMS )
-; 674  :           {
-; 675  :             if (bGUI && SK_Framerate_ReduceInputLatency)
+; 667  :                    dwWaitMS )
+; 668  :           {
+; 669  :             if (bGUI && config.render.framerate.min_input_latency)
 
-	test	bl, bl
+	cmp	BYTE PTR _bGUI$1$[ebp], 0
 	je	SHORT $LN31@wait
-	cmp	BYTE PTR ?SK_Framerate_ReduceInputLatency@@3_NA, 0 ; SK_Framerate_ReduceInputLatency
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+441, 0
 	je	SHORT $LN31@wait
 
-; 676  :             {
-; 677  :               MsgWaitForMultipleObjects (0, nullptr, TRUE, dwWaitMS, QS_INPUT);
+; 670  :             {
+; 671  :               PeekAndDispatch           (                                     );
+
+	lea	ecx, DWORD PTR _PeekAndDispatch$2[ebp]
+	call	??R<lambda_549ebf8c40a3db74644b45817e8307fb>@@QBEXXZ ; <lambda_549ebf8c40a3db74644b45817e8307fb>::operator()
+
+; 672  :               MsgWaitForMultipleObjects (0, nullptr, FALSE, dwWaitMS, QS_INPUT);
 
 	push	1031					; 00000407H
-	push	eax
-	push	1
+	push	ebx
+	push	0
 	push	0
 	push	0
 	call	DWORD PTR __imp__MsgWaitForMultipleObjects@20
 
-; 678  :               PeekAndDispatch           (                                    );
+; 673  :               PeekAndDispatch           (                                     );
 
 	lea	ecx, DWORD PTR _PeekAndDispatch$2[ebp]
-	call	??R<lambda_853c8f7f2639028bcbddc115ece9255c>@@QBEXXZ ; <lambda_853c8f7f2639028bcbddc115ece9255c>::operator()
+	call	??R<lambda_549ebf8c40a3db74644b45817e8307fb>@@QBEXXZ ; <lambda_549ebf8c40a3db74644b45817e8307fb>::operator()
+	mov	bl, BYTE PTR _bGUI$1$[ebp]
 
-; 683  : 
-; 684  :             bYielded = true;
+; 678  : 
+; 679  :             bYielded = true;
 
 	mov	bh, 1
+	mov	BYTE PTR _bYielded$1$[ebp], bh
 
-; 685  :           }
-; 686  :         }
-; 687  : 
-; 688  :         QueryPerformanceCounter_Original (&time);
-; 689  :         continue;
+; 680  :           }
+; 681  :         }
+; 682  : 
+; 683  :         QueryPerformanceCounter_Original (&time);
+; 684  :         continue;
 
 	jmp	SHORT $LN33@wait
 $LN31@wait:
 
-; 679  :             }
-; 680  : 
-; 681  :             else
-; 682  :              SleepEx                   (dwWaitMS,   TRUE);
+; 674  :             }
+; 675  : 
+; 676  :             else
+; 677  :               SleepEx                   (dwWaitMS,   FALSE);
 
-	push	1
-	push	eax
+	push	0
+	push	ebx
 	call	DWORD PTR __imp__SleepEx@8
+	mov	bl, BYTE PTR _bGUI$1$[ebp]
 
-; 683  : 
-; 684  :             bYielded = true;
+; 678  : 
+; 679  :             bYielded = true;
 
 	mov	bh, 1
+	mov	BYTE PTR _bYielded$1$[ebp], bh
 
-; 685  :           }
-; 686  :         }
-; 687  : 
-; 688  :         QueryPerformanceCounter_Original (&time);
-; 689  :         continue;
+; 680  :           }
+; 681  :         }
+; 682  : 
+; 683  :         QueryPerformanceCounter_Original (&time);
+; 684  :         continue;
 
+	jmp	SHORT $LN33@wait
+$LN113@wait:
+	mov	bh, BYTE PTR _bYielded$1$[ebp]
+	mov	bl, BYTE PTR _bGUI$1$[ebp]
 	jmp	SHORT $LN33@wait
 $LN22@wait:
 
-; 690  :       }
-; 691  : 
-; 692  :       if (bGUI)
+; 685  :       }
+; 686  : 
+; 687  :       if (bGUI)
 
 	test	bl, bl
 	je	SHORT $LN33@wait
 
-; 693  :         PeekAndDispatch ();
+; 688  :         PeekAndDispatch ();
 
 	lea	ecx, DWORD PTR _PeekAndDispatch$2[ebp]
-	call	??R<lambda_853c8f7f2639028bcbddc115ece9255c>@@QBEXXZ ; <lambda_853c8f7f2639028bcbddc115ece9255c>::operator()
+	call	??R<lambda_549ebf8c40a3db74644b45817e8307fb>@@QBEXXZ ; <lambda_549ebf8c40a3db74644b45817e8307fb>::operator()
 $LN33@wait:
 
-; 694  : 
-; 695  :       QueryPerformanceCounter_Original (&time);
+; 689  : 
+; 690  :       QueryPerformanceCounter_Original (&time);
 
 	push	edi
 	call	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA ; QueryPerformanceCounter_Original
@@ -7183,10 +7182,10 @@ $LN33@wait:
 	cmp	eax, DWORD PTR [esi+44]
 	jl	$LL2@wait
 
-; 643  : 
-; 644  :     bool bYielded = false;
-; 645  : 
-; 646  :     while (time.QuadPart < next.QuadPart)
+; 637  : 
+; 638  :     bool bYielded = false;
+; 639  : 
+; 640  :     while (time.QuadPart < next.QuadPart)
 
 	jg	SHORT $LN112@wait
 	mov	eax, DWORD PTR [edi]
@@ -7200,7 +7199,7 @@ $LN112@wait:
 	mov	eax, DWORD PTR _dxgi_output$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 697  :   }
+; 692  :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -7222,7 +7221,7 @@ $LN87@wait:
 	mov	eax, DWORD PTR _dxgi_swap$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 697  :   }
+; 692  :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -7244,7 +7243,7 @@ $LN93@wait:
 	mov	eax, DWORD PTR _d3d9ex$6[ebp]
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 697  :   }
+; 692  :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -7262,7 +7261,7 @@ $LN93@wait:
 $LN12@wait:
 ; File c:\users\andon\source\repos\specialk\src\framerate.cpp
 
-; 705  :   last.QuadPart = time.QuadPart;
+; 700  :   last.QuadPart = time.QuadPart;
 
 	mov	eax, DWORD PTR [edi]
 	mov	DWORD PTR [esi+32], eax
@@ -7272,7 +7271,7 @@ $LN12@wait:
 	pop	ebx
 $LN1@wait:
 
-; 706  : }
+; 701  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	esi
@@ -7711,7 +7710,7 @@ _dt$ = 8						; size = 4
 _now$ = 12						; size = 4
 ?Tick@Framerate@SK@@YAXAANAAT_LARGE_INTEGER@@@Z PROC	; SK::Framerate::Tick
 
-; 737  : {
+; 732  : {
 
 	npad	2
 	push	ebp
@@ -7725,17 +7724,17 @@ _now$ = 12						; size = 4
 	push	eax
 	call	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA ; QueryPerformanceCounter_Original
 
-; 738  :   static LARGE_INTEGER last_frame = { };
-; 739  : 
-; 740  :   now = SK_CurrentPerf ();
+; 733  :   static LARGE_INTEGER last_frame = { };
+; 734  : 
+; 735  :   now = SK_CurrentPerf ();
 
 	mov	esi, DWORD PTR _now$[ebp]
 	mov	ecx, DWORD PTR $T1[ebp]
 	mov	edx, DWORD PTR $T1[ebp+4]
 	mov	DWORD PTR [esi], ecx
 
-; 741  : 
-; 742  :   dt = static_cast  <double> (now.QuadPart - last_frame.QuadPart) /
+; 736  : 
+; 737  :   dt = static_cast  <double> (now.QuadPart - last_frame.QuadPart) /
 
 	sub	ecx, DWORD PTR ?last_frame@?1??Tick@Framerate@SK@@YAXAANAAT_LARGE_INTEGER@@@Z@4T4@A
 	mov	DWORD PTR [esi+4], edx
@@ -7750,9 +7749,9 @@ _now$ = 12						; size = 4
 	mov	eax, DWORD PTR _dt$[ebp]
 	movsd	QWORD PTR [eax], xmm1
 
-; 743  :         static_cast <double> (SK::Framerate::Stats::freq.QuadPart);
-; 744  : 
-; 745  :   last_frame = now;
+; 738  :         static_cast <double> (SK::Framerate::Stats::freq.QuadPart);
+; 739  : 
+; 740  :   last_frame = now;
 
 	mov	eax, DWORD PTR [esi]
 	mov	DWORD PTR ?last_frame@?1??Tick@Framerate@SK@@YAXAANAAT_LARGE_INTEGER@@@Z@4T4@A, eax
@@ -7760,7 +7759,7 @@ _now$ = 12						; size = 4
 	mov	DWORD PTR ?last_frame@?1??Tick@Framerate@SK@@YAXAANAAT_LARGE_INTEGER@@@Z@4T4@A+4, eax
 	pop	esi
 
-; 746  : };
+; 741  : };
 
 	mov	esp, ebp
 	pop	ebp
@@ -7821,7 +7820,7 @@ __$EHRec$ = -12						; size = 12
 
 	mov	edi, DWORD PTR __imp__GetModuleHandleW@4
 	mov	esi, eax
-	push	OFFSET $SG198516
+	push	OFFSET $SG198521
 	call	edi
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+416
 	test	eax, eax
@@ -7832,7 +7831,7 @@ __$EHRec$ = -12						; size = 12
 ; 234  : 
 ; 235  :   if (GetModuleHandle (L"tsfix.dll"))
 
-	push	OFFSET $SG198518
+	push	OFFSET $SG198523
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+416, ecx
 	call	edi
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+416
@@ -7863,7 +7862,7 @@ $LN8@Init:
 $LN9@Init:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG198520
+	push	OFFSET $SG198525
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -7889,7 +7888,7 @@ $LN10@Init:
 $LN11@Init:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG198522
+	push	OFFSET $SG198527
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -7916,7 +7915,7 @@ $LN12@Init:
 $LN13@Init:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG198524
+	push	OFFSET $SG198529
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -7942,7 +7941,7 @@ $LN14@Init:
 $LN15@Init:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG198526
+	push	OFFSET $SG198531
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -7960,7 +7959,7 @@ $LN15@Init:
 ; 256  : 
 ; 257  :   if (! GetModuleHandle (L"PrettyPrinny.dll"))
 
-	push	OFFSET $SG198528
+	push	OFFSET $SG198533
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN4@Init
@@ -7971,8 +7970,8 @@ $LN15@Init:
 	push	OFFSET ?pfnSleep@@3PAXA			; pfnSleep
 	push	OFFSET ?Sleep_Original@@3P6GXK@ZA	; Sleep_Original
 	push	OFFSET ?Sleep_Detour@@YGXK@Z		; Sleep_Detour
-	push	OFFSET $SG198529
-	push	OFFSET $SG198530
+	push	OFFSET $SG198534
+	push	OFFSET $SG198535
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN4@Init:
 
@@ -7985,8 +7984,8 @@ $LN4@Init:
 ; 266  : #ifdef NO_HOOK_QPC
 ; 267  :     QueryPerformanceCounter_Original =
 
-	push	OFFSET $SG198531
-	push	OFFSET $SG198532
+	push	OFFSET $SG198536
+	push	OFFSET $SG198537
 	call	edi
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
 	push	eax
@@ -8007,13 +8006,13 @@ $LN4@Init:
 ; 275  :   {
 ; 276  :     NtDll = LoadLibrary (L"ntdll.dll");
 
-	push	OFFSET $SG198534
+	push	OFFSET $SG198539
 	call	DWORD PTR __imp__LoadLibraryW@4
 
 ; 277  : 
 ; 278  :     NtQueryTimerResolution =
 
-	push	OFFSET $SG198535
+	push	OFFSET $SG198540
 	push	eax
 	mov	DWORD PTR ?NtDll@@3PAUHINSTANCE__@@A, eax ; NtDll
 	call	esi
@@ -8024,7 +8023,7 @@ $LN4@Init:
 ; 282  : 
 ; 283  :     NtSetTimerResolution =
 
-	push	OFFSET $SG198536
+	push	OFFSET $SG198541
 	push	DWORD PTR ?NtDll@@3PAUHINSTANCE__@@A	; NtDll
 	mov	DWORD PTR ?NtQueryTimerResolution@@3P6GJPAK00@ZA, eax ; NtQueryTimerResolution
 	call	esi
@@ -8067,7 +8066,7 @@ $LN4@Init:
 	mulss	xmm0, DWORD PTR __real@358637bd
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG198538
+	push	OFFSET $SG198543
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -8093,7 +8092,7 @@ $LN4@Init:
 	mulss	xmm0, DWORD PTR __real@358637bd
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG198539
+	push	OFFSET $SG198544
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H

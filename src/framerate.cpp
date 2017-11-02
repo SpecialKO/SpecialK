@@ -449,7 +449,7 @@ SK::Framerate::Limiter::init (double target)
 bool
 SK::Framerate::Limiter::try_wait (void)
 {
-  if (target_fps == 0)
+  if (target_fps <= 0.0f)
     return false;
 
   LARGE_INTEGER next_;
@@ -470,12 +470,6 @@ SK::Framerate::Limiter::try_wait (void)
   return false;
 }
 
-bool  SK_Framerate_Busy               = true; // Keep original behavior
-bool  SK_Framerate_YieldOnce          = true;
-bool  SK_Framerate_ReduceInputLatency = true;
-float SK_Framerate_WaitScalar         = 59.998800f;
-float SK_Framerate_SleepToBusy        = 3.3f;
-
 void
 SK::Framerate::Limiter::wait (void)
 {
@@ -488,7 +482,7 @@ SK::Framerate::Limiter::wait (void)
   if (fps != target_fps)
     init (target_fps);
 
-  if (target_fps == 0)
+  if (target_fps <= 0.0f)
     return;
 
   frames++;
@@ -610,14 +604,14 @@ SK::Framerate::Limiter::wait (void)
     auto PeekAndDispatch =
     [&]
     {
-      if (! SK_Framerate_ReduceInputLatency)
+      if (! config.render.framerate.min_input_latency)
         return;
 
       MSG msg     = {      };
       msg.hwnd    = hWndThis;
       msg.message = WM_NULL ;
 
-      // Avoid having Windows marshall Unicode messages like a dumbass
+      // Avoid having Windows marshal Unicode messages like a dumb ass
       if (bUnicode)
       {
         if ( PeekMessageW ( &msg, hWndThis, 0, 0,
@@ -649,8 +643,8 @@ SK::Framerate::Limiter::wait (void)
       //   CPU into submission ;)
       if ( ( static_cast <double> (next.QuadPart  - time.QuadPart) >
              static_cast <double> (freq.QuadPart) * 0.001 *
-                                   SK_Framerate_SleepToBusy) &&
-                                  (! (SK_Framerate_YieldOnce && bYielded))
+                                   config.render.framerate.busy_wait_limiter) &&
+                                  (! (config.render.framerate.yield_once && bYielded))
          )
       {
         if ( config.render.framerate.wait_for_vblank )
@@ -662,24 +656,25 @@ SK::Framerate::Limiter::wait (void)
             WaitForVBlank_Original (dxgi_output);
         }
 
-        else if (! SK_Framerate_Busy)
+        else if (! config.render.framerate.busy_wait_limiter)
         {                
           auto dwWaitMS =
             static_cast <DWORD>
-              ( (SK_Framerate_WaitScalar * 10.0f) / target_fps ); // 10% of full frame
+              ( (config.render.framerate.max_sleep_percent * 10.0f) / target_fps ); // 10% of full frame
 
           if ( ( static_cast <double> (next.QuadPart - time.QuadPart) /
                  static_cast <double> (freq.QuadPart                ) ) * 1000.0 >
                    dwWaitMS )
           {
-            if (bGUI && SK_Framerate_ReduceInputLatency)
+            if (bGUI && config.render.framerate.min_input_latency)
             {
-              MsgWaitForMultipleObjects (0, nullptr, TRUE, dwWaitMS, QS_INPUT);
-              PeekAndDispatch           (                                    );
+              PeekAndDispatch           (                                     );
+              MsgWaitForMultipleObjects (0, nullptr, FALSE, dwWaitMS, QS_INPUT);
+              PeekAndDispatch           (                                     );
             }
 
             else
-             SleepEx                   (dwWaitMS,   TRUE);
+              SleepEx                   (dwWaitMS,   FALSE);
 
             bYielded = true;
           }

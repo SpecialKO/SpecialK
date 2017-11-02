@@ -167,35 +167,35 @@ _IID_IAxWinHostWindow DD 0b6ea2050H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG250216			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG250221			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG250214		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG250219		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG250212		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG250217		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG250210		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG250215		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG250208		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG250213		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG250206		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG250211		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG250204		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG250209		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG250202		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG250207		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -268,376 +268,376 @@ ATL$__a	SEGMENT
 ___pobjMapEntryFirst DD 00H
 ATL$__a	ENDS
 CONST	SEGMENT
-$SG250892 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG250893 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG250894 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+$SG250897 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG250898 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG250899 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
 	DB	's', 00H, 00H, 00H
-$SG379604 DB	00H
+$SG379609 DB	00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-$SG250895 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+$SG250900 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
 	DB	'p', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250896 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+$SG250901 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
 	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG250897 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+$SG250902 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250898 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+$SG250903 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250899 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG250900 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+$SG250904 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG250905 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
 	DB	'T', 00H, 'Y', 00H, 00H, 00H
 	ORG $+2
-$SG250901 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+$SG250906 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG250902 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG250907 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250903 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG250908 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG238617 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238622 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG238664 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238669 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG378998 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
+$SG379003 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'G', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG238711 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238716 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG379000 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
+$SG379005 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG379002 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
+$SG379007 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'K', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG379004 DB	'%', 00H, '#', 00H, '3', 00H, 'l', 00H, 'l', 00H, 'u', 00H
+$SG379009 DB	'%', 00H, '#', 00H, '3', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'B', 00H, 'y', 00H, 't', 00H, 'e', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379026 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
+$SG379031 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
 	DB	' ', 00H, 'G', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG379028 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
+$SG379033 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG379030 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
+$SG379035 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
 	DB	' ', 00H, 'K', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG379032 DB	'%', 00H, '#', 00H, '*', 00H, 'l', 00H, 'l', 00H, 'u', 00H
+$SG379037 DB	'%', 00H, '#', 00H, '*', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'B', 00H, 'y', 00H, 't', 00H, 'e', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG238758 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238763 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG379047 DB	'%', 00H, '#', 00H, '3', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
+$SG379052 DB	'%', 00H, '#', 00H, '3', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
 	DB	'F', 00H, 00H, 00H
-$SG379050 DB	'%', 00H, '#', 00H, '2', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
+$SG379055 DB	'%', 00H, '#', 00H, '2', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
 	DB	'C', 00H, 00H, 00H
-$SG379051 DB	'%', 00H, '#', 00H, '2', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
+$SG379056 DB	'%', 00H, '#', 00H, '2', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
 	DB	'C', 00H, 00H, 00H
-$SG379090 DB	'Special K', 00H
+$SG379095 DB	'Special K', 00H
 	ORG $+2
-$SG238805 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238810 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG238852 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238857 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG238899 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238904 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG250202 DB	'S', 00H, 00H, 00H
-$SG250204 DB	'M', 00H, 00H, 00H
-$SG250206 DB	'D', 00H, 00H, 00H
-$SG250208 DB	'B', 00H, 00H, 00H
-$SG250210 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG238946 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG250207 DB	'S', 00H, 00H, 00H
+$SG250209 DB	'M', 00H, 00H, 00H
+$SG250211 DB	'D', 00H, 00H, 00H
+$SG250213 DB	'B', 00H, 00H, 00H
+$SG250215 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG238951 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG250212 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG250217 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG250214 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG250219 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250216 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG250221 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG238993 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238998 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG379284 DB	'B', 00H, 'a', 00H, 't', 00H, 'm', 00H, 'a', 00H, 'n', 00H
+$SG379289 DB	'B', 00H, 'a', 00H, 't', 00H, 'm', 00H, 'a', 00H, 'n', 00H
 	DB	'A', 00H, 'K', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379287 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
+$SG379292 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
 	DB	'o', 00H, 'f', 00H, ' ', 00H, 'Z', 00H, 'e', 00H, 's', 00H, 't'
 	DB	00H, 'i', 00H, 'r', 00H, 'i', 00H, 'a', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
-$SG379290 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
+$SG379295 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
 	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379293 DB	'N', 00H, 'i', 00H, 'e', 00H, 'R', 00H, 'A', 00H, 'u', 00H
+$SG379298 DB	'N', 00H, 'i', 00H, 'e', 00H, 'R', 00H, 'A', 00H, 'u', 00H
 	DB	't', 00H, 'o', 00H, 'm', 00H, 'a', 00H, 't', 00H, 'a', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379295 DB	'D', 00H, 'a', 00H, 'r', 00H, 'k', 00H, 'S', 00H, 'o', 00H
+$SG379300 DB	'D', 00H, 'a', 00H, 'r', 00H, 'k', 00H, 'S', 00H, 'o', 00H
 	DB	'u', 00H, 'l', 00H, 's', 00H, 'I', 00H, 'I', 00H, 'I', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG379299 DB	'Fallout 4 "Works" v 0.3.5   %ws', 0aH, 0aH, 00H
+$SG379304 DB	'Fallout 4 "Works" v 0.3.5   %ws', 0aH, 0aH, 00H
 	ORG $+2
-$SG379303 DB	'%ws   %ws', 0aH, 0aH, 00H
-$SG379307 DB	'Batman "Fix" v 0.20   %ws', 0aH, 0aH, 00H
-$SG379311 DB	'%ws   %ws', 0aH, 0aH, 00H
-$SG379315 DB	'%ws   %ws', 0aH, 0aH, 00H
-$SG379317 DB	'Special K v %ws   %ws', 0aH, 0aH, 00H
-$SG239040 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG379308 DB	'%ws   %ws', 0aH, 0aH, 00H
+$SG379312 DB	'Batman "Fix" v 0.20   %ws', 0aH, 0aH, 00H
+$SG379316 DB	'%ws   %ws', 0aH, 0aH, 00H
+$SG379320 DB	'%ws   %ws', 0aH, 0aH, 00H
+$SG379322 DB	'Special K v %ws   %ws', 0aH, 0aH, 00H
+$SG239045 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG379329 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,ma'
+$SG379334 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,ma'
 	DB	'x=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>', 00H
 	ORG $+2
-$SG379331 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%'
+$SG379336 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%'
 	DB	'3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>', 00H
 	ORG $+3
-$SG379333 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,ma'
+$SG379338 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,ma'
 	DB	'x=%3.2f,hitches=%d)', 00H
-$SG379337 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms', 00H
+$SG379342 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms', 00H
 	ORG $+1
-$SG379335 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%'
+$SG379340 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%'
 	DB	'3.2f,max=%3.2f,hitches=%d)', 00H
 	ORG $+1
-$SG379339 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms', 00H
+$SG379344 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms', 00H
 	ORG $+3
-$SG379342 DB	0aH, 00H
+$SG379347 DB	0aH, 00H
 	ORG $+2
-$SG379345 DB	'  GPU%i   :            %#3lu%%', 00H
+$SG379350 DB	'  GPU%i   :            %#3lu%%', 00H
 	ORG $+1
-$SG379349 DB	',  VID%i %#3lu%%  ,', 00H
-$SG379351 DB	',              ', 00H
-$SG379353 DB	' %#4lu MHz', 00H
+$SG379354 DB	',  VID%i %#3lu%%  ,', 00H
+$SG379356 DB	',              ', 00H
+$SG379358 DB	' %#4lu MHz', 00H
 	ORG $+1
-$SG379359 DB	', %#6.1fmV (%+#6.1fmV)', 00H
+$SG379364 DB	', %#6.1fmV (%+#6.1fmV)', 00H
 	ORG $+1
-$SG379361 DB	', %#6.1fmV', 00H
+$SG379366 DB	', %#6.1fmV', 00H
 	ORG $+1
-$SG379363 DB	',         ', 00H
+$SG379368 DB	',         ', 00H
 	ORG $+1
-$SG379367 DB	', %#4lu RPM', 00H
-$SG379369 DB	',         ', 00H
+$SG379372 DB	', %#4lu RPM', 00H
+$SG379374 DB	',         ', 00H
 	ORG $+1
-$SG379371 DB	', (%ws)', 00H
-$SG379375 DB	'@', 00H
+$SG379376 DB	', (%ws)', 00H
+$SG379380 DB	'@', 00H
 	ORG $+2
-$SG239087 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239092 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379378 DB	'!', 00H
+$SG379383 DB	'!', 00H
 	ORG $+2
-$SG379381 DB	'#', 00H
+$SG379386 DB	'#', 00H
 	ORG $+2
-$SG379384 DB	'   SLOWDOWN:', 00H
+$SG379389 DB	'   SLOWDOWN:', 00H
 	ORG $+3
-$SG379387 DB	' (Battery)', 00H
+$SG379392 DB	' (Battery)', 00H
 	ORG $+1
-$SG379390 DB	' (Driver)', 00H
+$SG379395 DB	' (Driver)', 00H
 	ORG $+2
-$SG379393 DB	' (Power Supply)', 00H
-$SG379396 DB	' (Power Limit)', 00H
+$SG379398 DB	' (Power Supply)', 00H
+$SG379401 DB	' (Power Limit)', 00H
 	ORG $+1
-$SG379399 DB	' (Thermal Limit)', 00H
+$SG379404 DB	' (Thermal Limit)', 00H
 	ORG $+3
-$SG379401 DB	0aH, 00H
+$SG379406 DB	0aH, 00H
 	ORG $+2
-$SG379407 DB	'  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)', 00H
+$SG379412 DB	'  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)', 00H
 	ORG $+3
-$SG379409 DB	'  VRAM%i  : %#5llu MiB', 00H
+$SG379414 DB	'  VRAM%i  : %#5llu MiB', 00H
 	ORG $+1
-$SG379411 DB	', %#4lu MHz', 00H
-$SG379414 DB	', (%ws)', 00H
-$SG379416 DB	0aH, 00H
+$SG379416 DB	', %#4lu MHz', 00H
+$SG379419 DB	', (%ws)', 00H
+$SG379421 DB	0aH, 00H
 	ORG $+2
-$SG379420 DB	'  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %'
+$SG379425 DB	'  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %'
 	DB	'i.0x%lu', 0aH, 00H
 	ORG $+3
-$SG379422 DB	'  SHARE%i : %#5llu MiB, PCIe %i.0x%lu', 0aH, 00H
+$SG379427 DB	'  SHARE%i : %#5llu MiB, PCIe %i.0x%lu', 0aH, 00H
 	ORG $+1
-$SG239134 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239139 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG379426 DB	'  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)', 00H
+$SG379431 DB	'  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)', 00H
 	ORG $+3
-$SG379428 DB	'  VRAM%i  : %#5llu MiB', 00H
+$SG379433 DB	'  VRAM%i  : %#5llu MiB', 00H
 	ORG $+1
-$SG379430 DB	', %#4lu MHz', 00H
-$SG379432 DB	0aH, 00H
+$SG379435 DB	', %#4lu MHz', 00H
+$SG379437 DB	0aH, 00H
 	ORG $+2
-$SG379438 DB	'  SHARE%i : %#5llu MiB, PCIe %i.0x%lu', 0aH, 00H
+$SG379443 DB	'  SHARE%i : %#5llu MiB, PCIe %i.0x%lu', 0aH, 00H
 	ORG $+1
-$SG379441 DB	', (%ws)', 00H
-$SG379458 DB	0aH, '  Starting CPU Monitor...', 0aH, 00H
-$SG379436 DB	'  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %'
+$SG379446 DB	', (%ws)', 00H
+$SG379463 DB	0aH, '  Starting CPU Monitor...', 0aH, 00H
+$SG379441 DB	'  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %'
 	DB	'i.0x%lu', 0aH, 00H
 	ORG $+3
-$SG379447 DB	0aH, '%ws', 00H
+$SG379452 DB	0aH, '%ws', 00H
 	ORG $+3
-$SG379451 DB	0aH, '%ws', 00H
+$SG379456 DB	0aH, '%ws', 00H
 	ORG $+3
-$SG379454 DB	0aH, '%ws', 00H
+$SG379459 DB	0aH, '%ws', 00H
 	ORG $+3
-$SG379466 DB	'  CPU%lu   : %#3llu%%', 0aH, 00H
+$SG379471 DB	'  CPU%lu   : %#3llu%%', 0aH, 00H
 	ORG $+1
-$SG239181 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239186 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG379474 DB	'SLI Node', 00H
+$SG379479 DB	'SLI Node', 00H
 	ORG $+3
-$SG379460 DB	0aH, '  Total  : %#3llu%%  -  (Kernel: %#3llu%%   User: %'
+$SG379465 DB	0aH, '  Total  : %#3llu%%  -  (Kernel: %#3llu%%   User: %'
 	DB	'#3llu%%   Interrupt: %#3llu%%)', 0aH, 00H
-$SG379475 DB	'CFX Node', 00H
+$SG379480 DB	'CFX Node', 00H
 	ORG $+3
-$SG379464 DB	'  CPU%lu   : %#3llu%%  -  (Kernel: %#3llu%%   User: %#3l'
+$SG379469 DB	'  CPU%lu   : %#3llu%%  -  (Kernel: %#3llu%%   User: %#3l'
 	DB	'lu%%   Interrupt: %#3llu%%)', 0aH, 00H
 	ORG $+3
-$SG379469 DB	0aH, '  Read   :%#6.02f MiB/s - (%#6.01f IOP/s)', 0aH, ' '
+$SG379474 DB	0aH, '  Read   :%#6.02f MiB/s - (%#6.01f IOP/s)', 0aH, ' '
 	DB	' Write  :%#6.02f MiB/s - (%#6.01f IOP/s)', 0aH, '  Other  :%#'
 	DB	'6.02f MiB/s - (%#6.01f IOP/s)', 0aH, 00H
-$SG379472 DB	0aH, '----- (DXGI 1.4): Local Memory --------------------'
+$SG379477 DB	0aH, '----- (DXGI 1.4): Local Memory --------------------'
 	DB	'-------------------------', 0aH, 00H
 	ORG $+1
-$SG379476 DB	'GPU', 00H
-$SG379480 DB	'@', 00H
+$SG379481 DB	'GPU', 00H
+$SG379485 DB	'@', 00H
 	ORG $+2
-$SG379477 DB	'  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  Budget:  %#'
+$SG379482 DB	'  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  Budget:  %#'
 	DB	'5llu / %#5llu MiB)', 00H
 	ORG $+1
-$SG379483 DB	'!', 00H
+$SG379488 DB	'!', 00H
 	ORG $+2
-$SG379486 DB	'#', 00H
+$SG379491 DB	'#', 00H
 	ORG $+2
-$SG379488 DB	0aH, 00H
+$SG379493 DB	0aH, 00H
 	ORG $+2
-$SG379490 DB	'----- (DXGI 1.4): Non-Local Memory ---------------------'
+$SG379495 DB	'----- (DXGI 1.4): Non-Local Memory ---------------------'
 	DB	'--------------------', 0aH, 00H
 	ORG $+2
-$SG379493 DB	'SLI Node', 00H
+$SG379498 DB	'SLI Node', 00H
 	ORG $+3
-$SG379494 DB	'GPU', 00H
-$SG379495 DB	'  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  Budget:  %#'
+$SG379499 DB	'GPU', 00H
+$SG379500 DB	'  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  Budget:  %#'
 	DB	'5llu / %#5llu MiB)', 0aH, 00H
-$SG379501 DB	0aH, 00H
+$SG379506 DB	0aH, 00H
 	ORG $+2
-$SG379497 DB	'----- (DXGI 1.4): Miscellaneous ------------------------'
+$SG379502 DB	'----- (DXGI 1.4): Miscellaneous ------------------------'
 	DB	'--------------------', 0aH, 00H
 	ORG $+2
-$SG379499 DB	'  Max. Resident Set:  %#5llu MiB  -  Max. Over Budget:  '
+$SG379504 DB	'  Max. Resident Set:  %#5llu MiB  -  Max. Over Budget:  '
 	DB	'%#5llu MiB', 0aH, '     Budget Changes:  %#5llu      -       '
 	DB	'Budget Left:  %#5lli MiB', 0aH, 00H
 	ORG $+1
-$SG379505 DB	'  Starting Memory Monitor...', 0aH, 00H
+$SG379510 DB	'  Starting Memory Monitor...', 0aH, 00H
 	ORG $+2
-$SG379507 DB	'  Working Set: %ws,  Committed: %ws,  Address Space: %ws'
+$SG379512 DB	'  Working Set: %ws,  Committed: %ws,  Address Space: %ws'
 	DB	0aH, 00H
 	ORG $+2
-$SG379509 DB	'        *Peak: %ws,      *Peak: %ws,          *Peak: %ws'
+$SG379514 DB	'        *Peak: %ws,      *Peak: %ws,          *Peak: %ws'
 	DB	0aH, 00H
 	ORG $+2
-$SG379512 DB	0aH, '%s', 0aH, 00H
+$SG379517 DB	0aH, '%s', 0aH, 00H
 	ORG $+3
-$SG379516 DB	0aH, '  Starting Disk Monitor...', 0aH, 00H
+$SG379521 DB	0aH, '  Starting Disk Monitor...', 0aH, 00H
 	ORG $+3
-$SG239228 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239233 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG379520 DB	0aH, '  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, Wri'
+$SG379525 DB	0aH, '  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, Wri'
 	DB	'te %#3llu%%: %ws/s)', 0aH, 00H
 	ORG $+3
-$SG379526 DB	0aH, '  Starting Pagefile Monitor...', 0aH, 00H
+$SG379531 DB	0aH, '  Starting Pagefile Monitor...', 0aH, 00H
 	ORG $+3
-$SG379522 DB	'  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, Write %'
+$SG379527 DB	'  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, Write %'
 	DB	'#3llu%%: %ws/s)', 0aH, 00H
 	ORG $+3
-$SG379528 DB	0aH, '  Pagefile %20s  %ws / %ws  (Peak: %ws)', 00H
+$SG379533 DB	0aH, '  Pagefile %20s  %ws / %ws  (Peak: %ws)', 00H
 	ORG $+3
-$SG379530 DB	0aH, 00H
+$SG379535 DB	0aH, 00H
 	ORG $+2
-$SG379541 DB	'Special K', 00H
+$SG379546 DB	'Special K', 00H
 	ORG $+2
-$SG379559 DB	'Special K', 00H
+$SG379564 DB	'Special K', 00H
 	ORG $+2
-$SG239275 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
 $SG239280 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG239285 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379577 DB	'Special K', 00H
-	ORG $+2
 $SG379582 DB	'Special K', 00H
 	ORG $+2
-$SG379583 DB	'OSD.Scale %f', 00H
-	ORG $+3
-$SG379591 DB	'Special K', 00H
+$SG379587 DB	'Special K', 00H
 	ORG $+2
-$SG239327 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG379588 DB	'OSD.Scale %f', 00H
+	ORG $+3
+$SG379596 DB	'Special K', 00H
+	ORG $+2
+$SG239332 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG234243 DB	'OSD.Red', 00H
-$SG234244 DB	'OSD.Green', 00H
+$SG234248 DB	'OSD.Red', 00H
+$SG234249 DB	'OSD.Green', 00H
 	ORG $+2
-$SG234245 DB	'OSD.Blue', 00H
+$SG234250 DB	'OSD.Blue', 00H
 	ORG $+3
-$SG234246 DB	'OSD.PosX', 00H
+$SG234251 DB	'OSD.PosX', 00H
 	ORG $+3
-$SG234247 DB	'OSD.PosY', 00H
+$SG234252 DB	'OSD.PosY', 00H
 	ORG $+3
-$SG234248 DB	'OSD.Scale', 00H
+$SG234253 DB	'OSD.Scale', 00H
 	ORG $+2
-$SG239374 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239379 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG239421 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239426 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, 00H, 00H
-$SG238405 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238410 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG379747 DB	0aH, 00H
+$SG379752 DB	0aH, 00H
 	ORG $+2
-$SG379753 DB	0aH, 00H
+$SG379758 DB	0aH, 00H
 	ORG $+2
-$SG379756 DB	0aH, 00H
+$SG379761 DB	0aH, 00H
 	ORG $+2
-$SG379762 DB	0aH, 00H
+$SG379767 DB	0aH, 00H
 	ORG $+2
-$SG238476 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238481 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG379806 DB	'SpecialK Console', 00H
+$SG379811 DB	'SpecialK Console', 00H
 	ORG $+3
-$SG234404 DB	'Consolas-12.font', 00H
+$SG234409 DB	'Consolas-12.font', 00H
 	ORG $+3
-$SG238523 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238528 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG238570 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238575 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
 CONST	ENDS
@@ -3879,8 +3879,6 @@ _<_Args_2>$ = 20					; size = 4
 	test	esi, esi
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
-
-; 1958 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9425,7 +9423,7 @@ _out_unit$ = 20						; size = 4
 ; 400  :     _swprintf (wszOut, L"%#3li°F", converted);
 
 	push	eax
-	push	OFFSET $SG379047
+	push	OFFSET $SG379052
 	jmp	SHORT $LN34@SK_FormatT
 $LN2@SK_FormatT:
 
@@ -9450,7 +9448,7 @@ $LN2@SK_FormatT:
 ; 406  :     _swprintf (wszOut, L"%#2li°C", converted);
 
 	push	eax
-	push	OFFSET $SG379050
+	push	OFFSET $SG379055
 
 ; 407  :   }
 ; 408  : 
@@ -9463,7 +9461,7 @@ $LN4@SK_FormatT:
 ; 411  :     _swprintf (wszOut, L"%#2li°C", in_temp);
 
 	push	DWORD PTR _in_temp$[ebp]
-	push	OFFSET $SG379051
+	push	OFFSET $SG379056
 $LN34@SK_FormatT:
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
@@ -9653,7 +9651,7 @@ $LN10@SK_SizeToS:
 	dec	eax
 	push	eax
 	lea	eax, DWORD PTR _str$[ebp]
-	push	OFFSET $SG379032
+	push	OFFSET $SG379037
 	push	eax
 	call	__swprintf
 	add	esp, 20					; 00000014H
@@ -9672,7 +9670,7 @@ $LN11@SK_SizeToS:
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _precision$[ebp]
 	push	DWORD PTR _width$[ebp]
-	push	OFFSET $SG379026
+	push	OFFSET $SG379031
 
 ; 372  :               (float)size / (1024.0f * 1024.0f * 1024.0f));
 ; 373  :     break;
@@ -9691,7 +9689,7 @@ $LN12@SK_SizeToS:
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _precision$[ebp]
 	push	DWORD PTR _width$[ebp]
-	push	OFFSET $SG379028
+	push	OFFSET $SG379033
 
 ; 376  :               (float)size / (1024.0f * 1024.0f));
 ; 377  :     break;
@@ -9710,7 +9708,7 @@ $LN13@SK_SizeToS:
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _precision$[ebp]
 	push	DWORD PTR _width$[ebp]
-	push	OFFSET $SG379030
+	push	OFFSET $SG379035
 $LN46@SK_SizeToS:
 	lea	eax, DWORD PTR _str$[ebp]
 	push	eax
@@ -9896,7 +9894,7 @@ $LN10@SK_SizeToS:
 
 	push	eax
 	push	ecx
-	push	OFFSET $SG379004
+	push	OFFSET $SG379009
 	jmp	SHORT $LN46@SK_SizeToS
 $LN11@SK_SizeToS:
 
@@ -9908,7 +9906,7 @@ $LN11@SK_SizeToS:
 	shr	eax, 30					; 0000001eH
 	push	eax
 	push	ecx
-	push	OFFSET $SG378998
+	push	OFFSET $SG379003
 
 ; 339  :       break;
 
@@ -9922,7 +9920,7 @@ $LN12@SK_SizeToS:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG379000
+	push	OFFSET $SG379005
 
 ; 342  :       break;
 
@@ -9936,7 +9934,7 @@ $LN13@SK_SizeToS:
 	shr	eax, 10					; 0000000aH
 	push	eax
 	push	ecx
-	push	OFFSET $SG379002
+	push	OFFSET $SG379007
 $LN46@SK_SizeToS:
 	lea	eax, DWORD PTR _str$[ebp]
 	push	eax
@@ -17648,7 +17646,7 @@ __$EHRec$ = -12						; size = 12
 	mov	esi, DWORD PTR [edi]
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG234243
+	push	OFFSET $SG234248
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
@@ -17660,7 +17658,7 @@ __$EHRec$ = -12						; size = 12
 	push	5
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG234244
+	push	OFFSET $SG234249
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
@@ -17672,7 +17670,7 @@ __$EHRec$ = -12						; size = 12
 	push	5
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG234245
+	push	OFFSET $SG234250
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
@@ -17707,7 +17705,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR [ebx+28], eax
 	mov	ecx, edi
 	mov	eax, DWORD PTR [edi]
-	push	OFFSET $SG234246
+	push	OFFSET $SG234251
 	call	DWORD PTR [eax+20]
 
 ; 66   :   cmd->AddVariable ("OSD.PosY",  pos_.y);
@@ -17715,14 +17713,14 @@ __$EHRec$ = -12						; size = 12
 	push	DWORD PTR [ebx+24]
 	mov	eax, DWORD PTR [edi]
 	mov	ecx, edi
-	push	OFFSET $SG234247
+	push	OFFSET $SG234252
 	call	DWORD PTR [eax+20]
 
 ; 67   :   cmd->AddVariable ("OSD.Scale", scale_);
 
 	mov	eax, DWORD PTR [edi]
 	push	DWORD PTR [ebx+28]
-	push	OFFSET $SG234248
+	push	OFFSET $SG234253
 	mov	ecx, edi
 	call	DWORD PTR [eax+20]
 
@@ -19976,7 +19974,7 @@ _szAppName$ = 8						; size = 4
 
 	push	64					; 00000040H
 	lea	eax, DWORD PTR [edi+80]
-	push	OFFSET $SG234404
+	push	OFFSET $SG234409
 	push	eax
 	call	DWORD PTR __imp__strncpy
 
@@ -20081,7 +20079,7 @@ _y$ = 12						; size = 4
 ; 1741 :   // We cannot anchor the command console to the left or bottom...
 ; 1742 :   if (! strcmp (data_.name, "SpecialK Console"))
 
-	mov	edx, OFFSET $SG379806
+	mov	edx, OFFSET $SG379811
 	mov	eax, esi
 	push	ebx
 $LL10@setPos:
@@ -20345,7 +20343,7 @@ _pRenderer$ = 8						; size = 4
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG379604
+	push	OFFSET $SG379609
 	lea	ecx, DWORD PTR $T2[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -20907,7 +20905,7 @@ $LN10@update:
 
 ; 1580 :     char* line         = strtok_ex     (text, "\n");
 
-	push	OFFSET $SG379747
+	push	OFFSET $SG379752
 	push	edi
 	mov	DWORD PTR _num_lines$1$[ebp], eax
 	call	?strtok_ex@@YAPADPAD0@Z			; strtok_ex
@@ -21016,7 +21014,7 @@ $LN14@update:
 
 ; 1604 :           line = strtok_ex (nullptr, "\n");
 
-	push	OFFSET $SG379753
+	push	OFFSET $SG379758
 	push	0
 	call	?strtok_ex@@YAPADPAD0@Z			; strtok_ex
 	mov	ebx, eax
@@ -21069,7 +21067,7 @@ $LN17@update:
 
 ; 1618 :         line = strtok_ex (text, "\n");
 
-	push	OFFSET $SG379756
+	push	OFFSET $SG379761
 	push	edi
 	call	?strtok_ex@@YAPADPAD0@Z			; strtok_ex
 	add	esp, 8
@@ -21316,7 +21314,7 @@ $LN20@update:
 
 ; 1674 :         line = strtok_ex (nullptr, "\n");
 
-	push	OFFSET $SG379762
+	push	OFFSET $SG379767
 	push	0
 	call	?strtok_ex@@YAPADPAD0@Z			; strtok_ex
 	add	esp, 8
@@ -21513,7 +21511,7 @@ _lpAppName$ = 12					; size = 4
 	push	ebp
 	mov	ebp, esp
 	mov	eax, DWORD PTR _lpAppName$[ebp]
-	mov	ecx, OFFSET $SG379591
+	mov	ecx, OFFSET $SG379596
 
 ; 1425 :   if (lpAppName == nullptr)
 ; 1426 :     lpAppName = "Special K";
@@ -21561,7 +21559,7 @@ _lpAppName$ = 16					; size = 4
 
 	call	?getInstance@SK_TextOverlayManager@@SAPAV1@XZ ; SK_TextOverlayManager::getInstance
 	mov	ecx, DWORD PTR _lpAppName$[ebp]
-	mov	edx, OFFSET $SG379577
+	mov	edx, OFFSET $SG379582
 	test	ecx, ecx
 	mov	esi, eax
 	cmovne	edx, ecx
@@ -21613,7 +21611,7 @@ $LN5@SK_SetOSDS:
 ; 1413 :   // If the primary overlay is rescaled, rescale everything else with it...
 ; 1414 :   if (overlay == overlay_mgr->getTextOverlay ("Special K"))
 
-	push	OFFSET $SG379582
+	push	OFFSET $SG379587
 	mov	ecx, esi
 	call	?getTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z ; SK_TextOverlayManager::getTextOverlay
 	cmp	ebx, eax
@@ -21630,7 +21628,7 @@ $LN5@SK_SetOSDS:
 	sub	esp, 8
 	lea	eax, DWORD PTR $T1[ebp]
 	fstp	QWORD PTR [esp]
-	push	OFFSET $SG379583
+	push	OFFSET $SG379588
 	push	eax
 	push	esi
 	call	DWORD PTR [edi+32]
@@ -21689,7 +21687,7 @@ _lpAppName$ = 16					; size = 4
 	push	ebp
 	mov	ebp, esp
 	mov	eax, DWORD PTR _lpAppName$[ebp]
-	mov	ecx, OFFSET $SG379559
+	mov	ecx, OFFSET $SG379564
 	test	eax, eax
 	cmovne	ecx, eax
 
@@ -21811,7 +21809,7 @@ _lpAppName$ = 16					; size = 4
 ; 1309 :   try
 
 	mov	eax, DWORD PTR _lpAppName$[ebp]
-	mov	esi, OFFSET $SG379541
+	mov	esi, OFFSET $SG379546
 	test	eax, eax
 	mov	DWORD PTR __$EHRec$[ebp+12], 0
 	cmovne	esi, eax
@@ -22567,7 +22565,7 @@ $LN3@SK_DrawOSD:
 ; 542  :       if (StrStrIW (wszGameName, L"BatmanAK.exe"))
 
 	mov	esi, DWORD PTR __imp__StrStrIW@8
-	push	OFFSET $SG379284
+	push	OFFSET $SG379289
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	test	eax, eax
@@ -22581,7 +22579,7 @@ $LN38@SK_DrawOSD:
 
 ; 544  :       else if (StrStrIW (wszGameName, L"Tales of Zestiria.exe"))
 
-	push	OFFSET $SG379287
+	push	OFFSET $SG379292
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	test	eax, eax
@@ -22595,7 +22593,7 @@ $LN40@SK_DrawOSD:
 
 ; 546  :       else if (StrStrIW (wszGameName, L"Fallout4.exe"))
 
-	push	OFFSET $SG379290
+	push	OFFSET $SG379295
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	test	eax, eax
@@ -22609,7 +22607,7 @@ $LN42@SK_DrawOSD:
 
 ; 548  :       else if (StrStrIW (wszGameName, L"NieRAutomata"))
 
-	push	OFFSET $SG379293
+	push	OFFSET $SG379298
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	test	eax, eax
@@ -22623,7 +22621,7 @@ $LN44@SK_DrawOSD:
 
 ; 550  :       else if (StrStrIW (wszGameName, L"DarkSoulsIII.exe"))
 
-	push	OFFSET $SG379295
+	push	OFFSET $SG379300
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	movzx	ecx, BYTE PTR ?isDarkSouls3@@3_NA	; isDarkSouls3
@@ -22648,7 +22646,7 @@ $LN1446@SK_DrawOSD:
 	je	$LN1452@SK_DrawOSD
 	lea	eax, DWORD PTR _time$2[ebp]
 	push	eax
-	push	OFFSET $SG379299
+	push	OFFSET $SG379304
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 12					; 0000000cH
@@ -22695,7 +22693,7 @@ $LN245@SK_DrawOSD:
 	lea	ecx, DWORD PTR _time$2[ebp]
 	push	ecx
 	push	eax
-	push	OFFSET $SG379303
+	push	OFFSET $SG379308
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -22724,7 +22722,7 @@ $LN50@SK_DrawOSD:
 	je	$LN1452@SK_DrawOSD
 	lea	eax, DWORD PTR _time$2[ebp]
 	push	eax
-	push	OFFSET $SG379307
+	push	OFFSET $SG379312
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 12					; 0000000cH
@@ -22771,7 +22769,7 @@ $LN264@SK_DrawOSD:
 	lea	ecx, DWORD PTR _time$2[ebp]
 	push	ecx
 	push	eax
-	push	OFFSET $SG379311
+	push	OFFSET $SG379316
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -22823,7 +22821,7 @@ $LN283@SK_DrawOSD:
 	lea	ecx, DWORD PTR _time$2[ebp]
 	push	ecx
 	push	eax
-	push	OFFSET $SG379315
+	push	OFFSET $SG379320
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -22850,7 +22848,7 @@ $LN59@SK_DrawOSD:
 	push	eax
 	call	?SK_GetVersionStr@@YGPB_WXZ		; SK_GetVersionStr
 	push	eax
-	push	OFFSET $SG379317
+	push	OFFSET $SG379322
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -23159,7 +23157,7 @@ $LN66@SK_DrawOSD:
 
 	cmp	BYTE PTR ?nv_hardware@NVAPI@sk@@3_NA, cl ; sk::NVAPI::nv_hardware
 	je	SHORT $LN69@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+796, cl
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+808, cl
 	je	SHORT $LN69@SK_DrawOSD
 
 ; 630  :     {
@@ -23234,8 +23232,8 @@ $LN69@SK_DrawOSD:
 ; 650  :         OSD_PRINTF format,
 
 	cmp	BYTE PTR tv6014[ebp], 0
-	mov	esi, OFFSET $SG379329
-	mov	eax, OFFSET $SG379331
+	mov	esi, OFFSET $SG379334
+	mov	eax, OFFSET $SG379336
 	cmovne	esi, eax
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	$LN80@SK_DrawOSD
@@ -23285,8 +23283,8 @@ $LN69@SK_DrawOSD:
 	jmp	$LN1475@SK_DrawOSD
 $LN72@SK_DrawOSD:
 	cmp	BYTE PTR tv6014[ebp], 0
-	mov	esi, OFFSET $SG379333
-	mov	eax, OFFSET $SG379335
+	mov	esi, OFFSET $SG379338
+	mov	eax, OFFSET $SG379340
 	cmovne	esi, eax
 
 ; 666  :       {
@@ -23338,8 +23336,8 @@ $LN72@SK_DrawOSD:
 	jmp	SHORT $LN1475@SK_DrawOSD
 $LN70@SK_DrawOSD:
 	test	cl, cl
-	mov	esi, OFFSET $SG379337
-	mov	eax, OFFSET $SG379339
+	mov	esi, OFFSET $SG379342
+	mov	eax, OFFSET $SG379344
 	cmovne	esi, eax
 
 ; 687  :     {
@@ -23375,7 +23373,7 @@ $LN1475@SK_DrawOSD:
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	SHORT $LN80@SK_DrawOSD
-	push	OFFSET $SG379342
+	push	OFFSET $SG379347
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23429,7 +23427,7 @@ $LL7@SK_DrawOSD:
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	push	DWORD PTR [esi+eax]
 	push	edi
-	push	OFFSET $SG379345
+	push	OFFSET $SG379350
 	push	ebx
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -23461,7 +23459,7 @@ $LN82@SK_DrawOSD:
 	je	SHORT $LN86@SK_DrawOSD
 	push	eax
 	push	edi
-	push	OFFSET $SG379349
+	push	OFFSET $SG379354
 	push	ebx
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -23483,7 +23481,7 @@ $LN83@SK_DrawOSD:
 	je	SHORT $LN87@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN86@SK_DrawOSD
-	push	OFFSET $SG379351
+	push	OFFSET $SG379356
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23504,7 +23502,7 @@ $LN86@SK_DrawOSD:
 	mul	DWORD PTR [esi+ecx+16]
 	shr	edx, 6
 	push	edx
-	push	OFFSET $SG379353
+	push	OFFSET $SG379358
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
@@ -23541,7 +23539,7 @@ $LN87@SK_DrawOSD:
 	sub	esp, 8
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG379361
+	push	OFFSET $SG379366
 	push	ebx
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -23564,7 +23562,7 @@ $LN88@SK_DrawOSD:
 	je	SHORT $LN94@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN94@SK_DrawOSD
-	push	OFFSET $SG379363
+	push	OFFSET $SG379368
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23592,7 +23590,7 @@ $LN94@SK_DrawOSD:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN98@SK_DrawOSD
 	push	eax
-	push	OFFSET $SG379367
+	push	OFFSET $SG379372
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
@@ -23614,7 +23612,7 @@ $LN95@SK_DrawOSD:
 	je	SHORT $LN98@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN98@SK_DrawOSD
-	push	OFFSET $SG379369
+	push	OFFSET $SG379374
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23629,7 +23627,7 @@ $LN98@SK_DrawOSD:
 ; 778  :       SK_FormatTemperature (
 
 	xor	eax, eax
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+817, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+829, al
 	setne	al
 	push	eax
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
@@ -23661,7 +23659,7 @@ $LN98@SK_DrawOSD:
 ; 783  :     OSD_G_PRINTF ", (%ws)",
 
 	push	eax
-	push	OFFSET $SG379371
+	push	OFFSET $SG379376
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
@@ -23688,7 +23686,7 @@ $LN1453@SK_DrawOSD:
 	je	SHORT $LN102@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN102@SK_DrawOSD
-	push	OFFSET $SG379375
+	push	OFFSET $SG379380
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23707,7 +23705,7 @@ $LN102@SK_DrawOSD:
 	je	SHORT $LN104@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN104@SK_DrawOSD
-	push	OFFSET $SG379378
+	push	OFFSET $SG379383
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23726,7 +23724,7 @@ $LN104@SK_DrawOSD:
 	je	SHORT $LN106@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN106@SK_DrawOSD
-	push	OFFSET $SG379381
+	push	OFFSET $SG379386
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23753,7 +23751,7 @@ $LN106@SK_DrawOSD:
 	je	SHORT $LN108@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN108@SK_DrawOSD
-	push	OFFSET $SG379384
+	push	OFFSET $SG379389
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23773,7 +23771,7 @@ $LN108@SK_DrawOSD:
 	je	SHORT $LN110@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN110@SK_DrawOSD
-	push	OFFSET $SG379387
+	push	OFFSET $SG379392
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23792,7 +23790,7 @@ $LN110@SK_DrawOSD:
 	je	SHORT $LN112@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN112@SK_DrawOSD
-	push	OFFSET $SG379390
+	push	OFFSET $SG379395
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23811,7 +23809,7 @@ $LN112@SK_DrawOSD:
 	je	SHORT $LN114@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN114@SK_DrawOSD
-	push	OFFSET $SG379393
+	push	OFFSET $SG379398
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23830,7 +23828,7 @@ $LN114@SK_DrawOSD:
 	je	SHORT $LN116@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN116@SK_DrawOSD
-	push	OFFSET $SG379396
+	push	OFFSET $SG379401
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23849,7 +23847,7 @@ $LN116@SK_DrawOSD:
 	je	SHORT $LN119@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN1454@SK_DrawOSD
-	push	OFFSET $SG379399
+	push	OFFSET $SG379404
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23864,7 +23862,7 @@ $LN1454@SK_DrawOSD:
 	je	SHORT $LN119@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN119@SK_DrawOSD
-	push	OFFSET $SG379401
+	push	OFFSET $SG379406
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -23978,7 +23976,7 @@ $LL10@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG379407
+	push	OFFSET $SG379412
 	push	ebx
 	call	_sprintf
 	add	esp, 32					; 00000020H
@@ -24012,7 +24010,7 @@ $LN122@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG379409
+	push	OFFSET $SG379414
 	push	ebx
 	call	_sprintf
 	add	esp, 20					; 00000014H
@@ -24035,7 +24033,7 @@ $LN125@SK_DrawOSD:
 	mul	DWORD PTR [edi+ecx+20]
 	shr	edx, 6
 	push	edx
-	push	OFFSET $SG379411
+	push	OFFSET $SG379416
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
@@ -24059,7 +24057,7 @@ $LN126@SK_DrawOSD:
 ; 857  :           SK_FormatTemperature (
 
 	xor	eax, eax
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+817, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+829, al
 	setne	al
 	push	eax
 	push	0
@@ -24090,7 +24088,7 @@ $LN126@SK_DrawOSD:
 ; 862  :         OSD_G_PRINTF ", (%ws)",
 
 	push	eax
-	push	OFFSET $SG379414
+	push	OFFSET $SG379419
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
@@ -24148,7 +24146,7 @@ $LN366@SK_DrawOSD:
 	je	SHORT $LN8@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN8@SK_DrawOSD
-	push	OFFSET $SG379416
+	push	OFFSET $SG379421
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -24231,7 +24229,7 @@ $LL13@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	DWORD PTR _i$1$[ebp]
-	push	OFFSET $SG379420
+	push	OFFSET $SG379425
 	push	ebx
 	call	_sprintf
 	add	esp, 40					; 00000028H
@@ -24268,7 +24266,7 @@ $LN130@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	edx
-	push	OFFSET $SG379422
+	push	OFFSET $SG379427
 	push	ebx
 	call	_sprintf
 	add	esp, 28					; 0000001cH
@@ -24365,7 +24363,7 @@ $LL16@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG379426
+	push	OFFSET $SG379431
 	push	ebx
 	call	_sprintf
 	add	esp, 32					; 00000020H
@@ -24400,7 +24398,7 @@ $LN134@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG379428
+	push	OFFSET $SG379433
 	push	ebx
 	call	_sprintf
 	add	esp, 20					; 00000014H
@@ -24424,7 +24422,7 @@ $LN137@SK_DrawOSD:
 	mul	DWORD PTR [edi+ecx+20]
 	shr	edx, 6
 	push	edx
-	push	OFFSET $SG379430
+	push	OFFSET $SG379435
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
@@ -24440,7 +24438,7 @@ $LN138@SK_DrawOSD:
 	je	SHORT $LN1469@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN1469@SK_DrawOSD
-	push	OFFSET $SG379432
+	push	OFFSET $SG379437
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -24574,7 +24572,7 @@ $LN395@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	edi
-	push	OFFSET $SG379436
+	push	OFFSET $SG379441
 	push	ebx
 	call	_sprintf
 	add	esp, 40					; 00000028H
@@ -24611,7 +24609,7 @@ $LN140@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	edi
-	push	OFFSET $SG379438
+	push	OFFSET $SG379443
 	push	ebx
 	call	_sprintf
 	add	esp, 28					; 0000001cH
@@ -24640,7 +24638,7 @@ $LN143@SK_DrawOSD:
 ; 971  :           SK_FormatTemperature (
 
 	xor	eax, eax
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+817, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+829, al
 	setne	al
 	push	eax
 	push	0
@@ -24671,7 +24669,7 @@ $LN143@SK_DrawOSD:
 ; 976  :         OSD_G_PRINTF ", (%ws)",
 
 	push	eax
-	push	OFFSET $SG379441
+	push	OFFSET $SG379446
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
@@ -24823,7 +24821,7 @@ $LN1458@SK_DrawOSD:
 ; 984  : 
 ; 985  :   if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 () || SK_IsOpenGL ()))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+496, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+508, 0
 	je	$LN1459@SK_DrawOSD
 	call	?SK_IsD3D9@@YG_NXZ			; SK_IsD3D9
 	test	al, al
@@ -24847,7 +24845,7 @@ $LN147@SK_DrawOSD:
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	$LN1459@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+496, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+508, 0
 	je	$LN1459@SK_DrawOSD
 	lea	eax, DWORD PTR $T12[ebp]
 	push	eax
@@ -24873,7 +24871,7 @@ $LN477@SK_DrawOSD:
 ; 989  :       OSD_R_PRINTF "\n%ws",
 
 	push	eax
-	push	OFFSET $SG379447
+	push	OFFSET $SG379452
 	push	ebx
 	call	_sprintf
 	add	ebx, eax
@@ -25036,7 +25034,7 @@ $LN148@SK_DrawOSD:
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	$LN1459@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+496, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+508, 0
 	je	$LN1459@SK_DrawOSD
 	lea	eax, DWORD PTR $T9[ebp]
 	push	eax
@@ -25061,7 +25059,7 @@ $LN538@SK_DrawOSD:
 ; 996  :       OSD_R_PRINTF "\n%ws",
 
 	push	eax
-	push	OFFSET $SG379451
+	push	OFFSET $SG379456
 	push	ebx
 	call	_sprintf
 	add	ebx, eax
@@ -25127,7 +25125,7 @@ $LN151@SK_DrawOSD:
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	SHORT $LN1459@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+496, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+508, 0
 	je	SHORT $LN1459@SK_DrawOSD
 	lea	eax, DWORD PTR $T8[ebp]
 	push	eax
@@ -25153,7 +25151,7 @@ $LN587@SK_DrawOSD:
 ; 1003 :       OSD_R_PRINTF "\n%ws",
 
 	push	eax
-	push	OFFSET $SG379454
+	push	OFFSET $SG379459
 	push	ebx
 	call	_sprintf
 	add	ebx, eax
@@ -25216,7 +25214,7 @@ $LN1459@SK_DrawOSD:
 	je	$LN21@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+96, 0
 	je	$LN21@SK_DrawOSD
-	push	OFFSET $SG379458
+	push	OFFSET $SG379463
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25244,7 +25242,7 @@ $LN156@SK_DrawOSD:
 	push	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+80
 	push	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+68
 	push	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+64
-	push	OFFSET $SG379460
+	push	OFFSET $SG379465
 	push	ebx
 	call	_sprintf
 	add	esp, 40					; 00000028H
@@ -25288,7 +25286,7 @@ $LL22@SK_DrawOSD:
 	push	DWORD PTR [esi-20]
 	push	DWORD PTR [esi-24]
 	push	edi
-	push	OFFSET $SG379464
+	push	OFFSET $SG379469
 	push	ebx
 	call	_sprintf
 	add	esp, 44					; 0000002cH
@@ -25317,7 +25315,7 @@ $LN160@SK_DrawOSD:
 	push	DWORD PTR [esi-20]
 	push	DWORD PTR [esi-24]
 	push	edi
-	push	OFFSET $SG379466
+	push	OFFSET $SG379471
 	push	ebx
 	call	_sprintf
 	add	esp, 20					; 00000014H
@@ -25388,7 +25386,7 @@ $LN164@SK_DrawOSD:
 	movsd	QWORD PTR [esp+8], xmm0
 	movsd	xmm0, QWORD PTR ?io_counter@?1??SK_DrawOSD@@YGHXZ@4Uio_perf_t@@A+120
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG379469
+	push	OFFSET $SG379474
 	push	ebx
 	call	_sprintf
 	add	esp, 56					; 00000038H
@@ -25419,7 +25417,7 @@ $LN165@SK_DrawOSD:
 	je	SHORT $LN1463@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
 	je	SHORT $LN1463@SK_DrawOSD
-	push	OFFSET $SG379472
+	push	OFFSET $SG379477
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25437,7 +25435,7 @@ $LN1463@SK_DrawOSD:
 	jle	$LN24@SK_DrawOSD
 	mov	ecx, DWORD PTR tv6487[ebp]
 	lea	esi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[ecx+8]
-	mov	ecx, OFFSET $SG379475
+	mov	ecx, OFFSET $SG379480
 $LL23@SK_DrawOSD:
 
 ; 1070 :     {
@@ -25450,11 +25448,11 @@ $LL23@SK_DrawOSD:
 	cmp	eax, 1
 	jle	SHORT $LN202@SK_DrawOSD
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
-	mov	edx, OFFSET $SG379474
+	mov	edx, OFFSET $SG379479
 	cmove	edx, ecx
 	jmp	SHORT $LN203@SK_DrawOSD
 $LN202@SK_DrawOSD:
-	mov	edx, OFFSET $SG379476
+	mov	edx, OFFSET $SG379481
 $LN203@SK_DrawOSD:
 	mov	ecx, DWORD PTR [esi-8]
 	mov	eax, DWORD PTR [esi-4]
@@ -25482,7 +25480,7 @@ $LN203@SK_DrawOSD:
 	push	ecx
 	push	edi
 	push	edx
-	push	OFFSET $SG379477
+	push	OFFSET $SG379482
 	push	ebx
 	call	_sprintf
 	add	esp, 48					; 00000030H
@@ -25514,7 +25512,7 @@ $LN168@SK_DrawOSD:
 	je	SHORT $LN170@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+40, 0
 	je	SHORT $LN170@SK_DrawOSD
-	push	OFFSET $SG379480
+	push	OFFSET $SG379485
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25535,7 +25533,7 @@ $LN170@SK_DrawOSD:
 	je	SHORT $LN172@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+40, 0
 	je	SHORT $LN172@SK_DrawOSD
-	push	OFFSET $SG379483
+	push	OFFSET $SG379488
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25556,7 +25554,7 @@ $LN172@SK_DrawOSD:
 	je	SHORT $LN174@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+40, 0
 	je	SHORT $LN174@SK_DrawOSD
-	push	OFFSET $SG379486
+	push	OFFSET $SG379491
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25570,7 +25568,7 @@ $LN174@SK_DrawOSD:
 	je	SHORT $LN175@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
 	je	SHORT $LN175@SK_DrawOSD
-	push	OFFSET $SG379488
+	push	OFFSET $SG379493
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25583,7 +25581,7 @@ $LN175@SK_DrawOSD:
 	mov	eax, DWORD PTR _nodes$1$[ebp]
 	inc	edi
 	add	esi, 32					; 00000020H
-	mov	ecx, OFFSET $SG379475
+	mov	ecx, OFFSET $SG379480
 	cmp	edi, eax
 	jl	$LL23@SK_DrawOSD
 $LN24@SK_DrawOSD:
@@ -25602,7 +25600,7 @@ $LN24@SK_DrawOSD:
 	je	SHORT $LN1388@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, al
 	je	SHORT $LN1388@SK_DrawOSD
-	push	OFFSET $SG379490
+	push	OFFSET $SG379495
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25665,11 +25663,11 @@ $LN1450@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	DWORD PTR _i$2$[ebp]
-	mov	ecx, OFFSET $SG379494
-	mov	eax, OFFSET $SG379493
+	mov	ecx, OFFSET $SG379499
+	mov	eax, OFFSET $SG379498
 	cmovle	eax, ecx
 	push	eax
-	push	OFFSET $SG379495
+	push	OFFSET $SG379500
 	push	ebx
 	call	_sprintf
 	mov	ecx, DWORD PTR _nodes$1$[ebp]
@@ -25705,7 +25703,7 @@ $LN26@SK_DrawOSD:
 	je	SHORT $LN179@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
 	je	SHORT $LN179@SK_DrawOSD
-	push	OFFSET $SG379497
+	push	OFFSET $SG379502
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25752,7 +25750,7 @@ $LN179@SK_DrawOSD:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG379499
+	push	OFFSET $SG379504
 	push	ebx
 	call	_sprintf
 	add	esp, 40					; 00000028H
@@ -25775,7 +25773,7 @@ $LN1464@SK_DrawOSD:
 	je	SHORT $LN181@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
 	je	SHORT $LN181@SK_DrawOSD
-	push	OFFSET $SG379501
+	push	OFFSET $SG379506
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25795,7 +25793,7 @@ $LN181@SK_DrawOSD:
 	je	$LN948@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
 	je	$LN948@SK_DrawOSD
-	push	OFFSET $SG379505
+	push	OFFSET $SG379510
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -25894,7 +25892,7 @@ $LN182@SK_DrawOSD:
 ; 1156 :     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
 
 	push	eax
-	push	OFFSET $SG379507
+	push	OFFSET $SG379512
 	push	ebx
 	call	_sprintf
 	add	esp, 20					; 00000014H
@@ -25990,7 +25988,7 @@ $LN185@SK_DrawOSD:
 ; 1169 :     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
 
 	push	eax
-	push	OFFSET $SG379509
+	push	OFFSET $SG379514
 	push	ebx
 	call	_sprintf
 	add	esp, 20					; 00000014H
@@ -26915,7 +26913,7 @@ $LN1002@SK_DrawOSD:
 ; 1184 :     OSD_M_PRINTF "\n%s\n",
 
 	push	eax
-	push	OFFSET $SG379512
+	push	OFFSET $SG379517
 	push	ebx
 	call	_sprintf
 	add	ebx, eax
@@ -27057,7 +27055,7 @@ $LN1465@SK_DrawOSD:
 	je	$LN1448@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+132, 0
 	je	$LN1448@SK_DrawOSD
-	push	OFFSET $SG379516
+	push	OFFSET $SG379521
 	push	ebx
 	call	_sprintf
 	add	esp, 8
@@ -27156,7 +27154,7 @@ $LL29@SK_DrawOSD:
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A+108
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A+104
 	push	OFFSET ?disk_stats@@3Udisk_perf_t@@A+72
-	push	OFFSET $SG379520
+	push	OFFSET $SG379525
 
 ; 1215 :                                                  "Write %#3llu%%: %ws/s)\n",
 ; 1216 :           disk_stats.disks [i].name,
@@ -27217,7 +27215,7 @@ $LN192@SK_DrawOSD:
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A[esi+108]
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A[esi+104]
 	push	eax
-	push	OFFSET $SG379522
+	push	OFFSET $SG379527
 $LN1485@SK_DrawOSD:
 	push	ebx
 	call	_sprintf
@@ -27505,7 +27503,7 @@ $LN1448@SK_DrawOSD:
 	je	$LN1486@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+148, 0
 	je	$LN200@SK_DrawOSD
-	push	OFFSET $SG379526
+	push	OFFSET $SG379531
 
 ; 1263 :   }
 ; 1264 : 
@@ -27615,7 +27613,7 @@ $LL32@SK_DrawOSD:
 	push	eax
 	lea	eax, DWORD PTR [esi-256]
 	push	eax
-	push	OFFSET $SG379528
+	push	OFFSET $SG379533
 	push	ebx
 	call	_sprintf
 	add	esp, 24					; 00000018H
@@ -27933,7 +27931,7 @@ $LN1467@SK_DrawOSD:
 	je	SHORT $LN1486@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+148, 0
 	je	SHORT $LN200@SK_DrawOSD
-	push	OFFSET $SG379530
+	push	OFFSET $SG379535
 $LN1487@SK_DrawOSD:
 	push	ebx
 	call	_sprintf
@@ -28029,7 +28027,7 @@ _TEXT	SEGMENT
 ; 459  :   {
 ; 460  :     SK_TextOverlayManager::getInstance ()->createTextOverlay ("Special K");
 
-	push	OFFSET $SG379090
+	push	OFFSET $SG379095
 	call	?getInstance@SK_TextOverlayManager@@SAPAV1@XZ ; SK_TextOverlayManager::getInstance
 	mov	ecx, eax
 	call	?createTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z ; SK_TextOverlayManager::createTextOverlay

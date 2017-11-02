@@ -11,116 +11,116 @@ INCLUDELIB OLDNAMES
 
 PUBLIC	?SK_ImGui_Visible@@3_NA				; SK_ImGui_Visible
 PUBLIC	?nav_usable@@3_NA				; nav_usable
-PUBLIC	?analog_sensitivity@@3MA			; analog_sensitivity
 PUBLIC	?GImGui@@3PAUImGuiContext@@A			; GImGui
+PUBLIC	?analog_sensitivity@@3MA			; analog_sensitivity
 _BSS	SEGMENT
 ?SK_ImGui_Visible@@3_NA DB 01H DUP (?)			; SK_ImGui_Visible
 ?nav_usable@@3_NA DB 01H DUP (?)			; nav_usable
 _BSS	ENDS
 _DATA	SEGMENT
-?analog_sensitivity@@3MA DD 043a6aa3dr		; 333.33 ; analog_sensitivity
 ?GImGui@@3PAUImGuiContext@@A DD FLAT:?GImDefaultContext@@3UImGuiContext@@A ; GImGui
+?analog_sensitivity@@3MA DD 043a6aa3dr		; 333.33 ; analog_sensitivity
 ?STB_TEXTEDIT_NEWLINE@ImGuiStb@@3GA DW 0aH		; ImGuiStb::STB_TEXTEDIT_NEWLINE
 _DATA	ENDS
 CONST	SEGMENT
-$SG118813 DB	'rb', 00H
-$SG119096 DB	00H
-$SG118817 DB	'%.*s', 00H
+$SG118818 DB	'rb', 00H
+$SG119101 DB	00H
+$SG118822 DB	'%.*s', 00H
 $SG16770 DB	00H
-$SG123606 DB	00H
+$SG123611 DB	00H
 $SG17162 DB	00H
-$SG118822 DB	'Pos=%f,%f', 00H
-$SG124716 DB	00H
-$SG124718 DB	00H
-$SG118825 DB	'Size=%f,%f', 00H
+$SG118827 DB	'Pos=%f,%f', 00H
+$SG124721 DB	00H
+$SG124723 DB	00H
+$SG118830 DB	'Size=%f,%f', 00H
 	ORG $+1
-$SG118827 DB	'Collapsed=%d', 00H
+$SG118832 DB	'Collapsed=%d', 00H
 	ORG $+3
-$SG123960 DB	'*Unknown item*', 00H
+$SG123965 DB	'*Unknown item*', 00H
 	ORG $+1
-$SG118852 DB	'wt', 00H
+$SG118857 DB	'wt', 00H
 	ORG $+1
-$SG118856 DB	'###', 00H
-$SG118857 DB	'[%s]', 0aH, 00H
+$SG118861 DB	'###', 00H
+$SG118862 DB	'[%s]', 0aH, 00H
 	ORG $+2
-$SG118858 DB	'Pos=%d,%d', 0aH, 00H
+$SG118863 DB	'Pos=%d,%d', 0aH, 00H
 	ORG $+1
-$SG118859 DB	'Size=%d,%d', 0aH, 00H
-$SG121932 DB	'%.3f', 00H
+$SG118864 DB	'Size=%d,%d', 0aH, 00H
+$SG121937 DB	'%.3f', 00H
 	ORG $+3
-$SG118860 DB	'Collapsed=%li', 0aH, 00H
+$SG118865 DB	'Collapsed=%li', 0aH, 00H
 	ORG $+1
-$SG118861 DB	0aH, 00H
+$SG118866 DB	0aH, 00H
 	ORG $+2
-$SG124011 DB	'##MainMenuBar', 00H
+$SG124016 DB	'##MainMenuBar', 00H
 	ORG $+2
-$SG121974 DB	'%.3f', 00H
+$SG121979 DB	'%.3f', 00H
 	ORG $+3
-$SG124025 DB	'##menubar', 00H
+$SG124030 DB	'##menubar', 00H
 	ORG $+2
-$SG121987 DB	'%.0f deg', 00H
+$SG121992 DB	'%.0f deg', 00H
 	ORG $+3
-$SG122002 DB	'%.0f', 00H
+$SG122007 DB	'%.0f', 00H
 	ORG $+3
-$SG122018 DB	'%.0f', 00H
+$SG122023 DB	'%.0f', 00H
 	ORG $+3
-$SG122036 DB	'##v', 00H
-$SG124090 DB	'##menus', 00H
-$SG122077 DB	'##v', 00H
-$SG124138 DB	'#colorbutton', 00H
+$SG122041 DB	'##v', 00H
+$SG124095 DB	'##menus', 00H
+$SG122082 DB	'##v', 00H
+$SG124143 DB	'#colorbutton', 00H
 	ORG $+3
-$SG124141 DB	'Color:', 0aH, '(%.2f,%.2f,%.2f,%.2f)', 0aH, '#%02X%02X%0'
+$SG124146 DB	'Color:', 0aH, '(%.2f,%.2f,%.2f,%.2f)', 0aH, '#%02X%02X%0'
 	DB	'2X%02X', 00H
 	ORG $+1
-$SG119097 DB	0dH, 0aH, '%*s%.*s', 00H
+$SG119102 DB	0dH, 0aH, '%*s%.*s', 00H
 	ORG $+2
-$SG119098 DB	' %.*s', 00H
+$SG119103 DB	' %.*s', 00H
 	ORG $+2
-$SG124220 DB	'M:999', 00H
+$SG124225 DB	'M:999', 00H
 	ORG $+2
-$SG124221 DB	'##X', 00H
-$SG124222 DB	'##Y', 00H
-$SG124223 DB	'##Z', 00H
-$SG124224 DB	'##W', 00H
-$SG124225 DB	'%3.0f', 00H
+$SG124226 DB	'##X', 00H
+$SG124227 DB	'##Y', 00H
+$SG124228 DB	'##Z', 00H
+$SG124229 DB	'##W', 00H
+$SG124230 DB	'%3.0f', 00H
 	ORG $+2
-$SG124226 DB	'%3.0f', 00H
+$SG124231 DB	'%3.0f', 00H
 	ORG $+2
-$SG124227 DB	'%3.0f', 00H
+$SG124232 DB	'%3.0f', 00H
 	ORG $+2
-$SG122179 DB	'%.3f', 00H
+$SG122184 DB	'%.3f', 00H
 	ORG $+3
-$SG124228 DB	'%3.0f', 00H
+$SG124233 DB	'%3.0f', 00H
 	ORG $+2
-$SG124229 DB	'R:%3.0f', 00H
-$SG124230 DB	'G:%3.0f', 00H
-$SG124231 DB	'B:%3.0f', 00H
-$SG124232 DB	'A:%3.0f', 00H
-$SG124233 DB	'H:%3.0f', 00H
-$SG124234 DB	'S:%3.0f', 00H
-$SG124235 DB	'V:%3.0f', 00H
-$SG124236 DB	'A:%3.0f', 00H
-$SG124242 DB	'#%02X%02X%02X%02X', 00H
+$SG124234 DB	'R:%3.0f', 00H
+$SG124235 DB	'G:%3.0f', 00H
+$SG124236 DB	'B:%3.0f', 00H
+$SG124237 DB	'A:%3.0f', 00H
+$SG124238 DB	'H:%3.0f', 00H
+$SG124239 DB	'S:%3.0f', 00H
+$SG124240 DB	'V:%3.0f', 00H
+$SG124241 DB	'A:%3.0f', 00H
+$SG124247 DB	'#%02X%02X%02X%02X', 00H
 	ORG $+2
-$SG124243 DB	'#%02X%02X%02X', 00H
+$SG124248 DB	'#%02X%02X%02X', 00H
 	ORG $+2
-$SG124245 DB	'##Text', 00H
+$SG124250 DB	'##Text', 00H
 	ORG $+1
-$SG124249 DB	'%02X%02X%02X%02X', 00H
+$SG124254 DB	'%02X%02X%02X%02X', 00H
 	ORG $+3
-$SG124250 DB	'%02X%02X%02X', 00H
+$SG124255 DB	'%02X%02X%02X', 00H
 	ORG $+3
-$SG124253 DB	'Color:', 0aH, '(%.2f,%.2f,%.2f,%.2f)', 0aH, '#%02X%02X%0'
+$SG124258 DB	'Color:', 0aH, '(%.2f,%.2f,%.2f,%.2f)', 0aH, '#%02X%02X%0'
 	DB	'2X%02X', 00H
 	ORG $+1
-$SG122206 DB	'##v', 00H
-$SG124255 DB	'RGB', 00H
-$SG124256 DB	'HSV', 00H
-$SG124257 DB	'HEX', 00H
-$SG120175 DB	'#RESIZE', 00H
-$SG124284 DB	0dH, 0aH, '--------------------------------', 00H
+$SG122211 DB	'##v', 00H
+$SG124260 DB	'RGB', 00H
+$SG124261 DB	'HSV', 00H
+$SG124262 DB	'HEX', 00H
+$SG120180 DB	'#RESIZE', 00H
+$SG124289 DB	0dH, 0aH, '--------------------------------', 00H
 	ORG $+1
-$SG142705 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG142710 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, ' ', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
@@ -128,79 +128,79 @@ $SG142705 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ')', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG142710 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG142715 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, ' ', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
 	DB	00H, 'e', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'c', 00H
 	DB	'o', 00H, 'n', 00H, 'n', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'e'
 	DB	00H, 'd', 00H, ')', 00H, 00H, 00H
-$SG122249 DB	'##min', 00H
+$SG122254 DB	'##min', 00H
 	ORG $+2
-$SG122250 DB	'##max', 00H
+$SG122255 DB	'##max', 00H
 	ORG $+2
-$SG120212 DB	'#COLLAPSE', 00H
+$SG120217 DB	'#COLLAPSE', 00H
 	ORG $+2
-$SG120216 DB	'#CLOSE', 00H
+$SG120221 DB	'#CLOSE', 00H
 	ORG $+1
-$SG122266 DB	'%.0f', 00H
+$SG122271 DB	'%.0f', 00H
 	ORG $+3
-$SG120227 DB	'#CloseColumns', 00H
+$SG120232 DB	'#CloseColumns', 00H
 	ORG $+2
-$SG122284 DB	'##v', 00H
-$SG121264 DB	'#image', 00H
+$SG122289 DB	'##v', 00H
+$SG121269 DB	'#image', 00H
 	ORG $+1
-$SG121284 DB	'ab', 00H
+$SG121289 DB	'ab', 00H
 	ORG $+1
-$SG121298 DB	0dH, 0aH, 00H
+$SG121303 DB	0dH, 0aH, 00H
 	ORG $+1
-$SG122323 DB	'##min', 00H
+$SG122328 DB	'##min', 00H
 	ORG $+2
-$SG122324 DB	'##max', 00H
+$SG122329 DB	'##max', 00H
 	ORG $+2
-$SG120280 DB	'#SCROLLX', 00H
+$SG120285 DB	'#SCROLLX', 00H
 	ORG $+3
-$SG120281 DB	'#SCROLLY', 00H
+$SG120286 DB	'#SCROLLY', 00H
 	ORG $+3
-$SG121312 DB	'LogButtons', 00H
+$SG121317 DB	'LogButtons', 00H
 	ORG $+1
-$SG121313 DB	'Log To TTY', 00H
+$SG121318 DB	'Log To TTY', 00H
 	ORG $+1
-$SG121314 DB	'Log To File', 00H
-$SG121315 DB	'Log To Clipboard', 00H
+$SG121319 DB	'Log To File', 00H
+$SG121320 DB	'Log To Clipboard', 00H
 	ORG $+3
-$SG121316 DB	'Depth', 00H
+$SG121321 DB	'Depth', 00H
 	ORG $+2
 $SG16890 DB	'#MOVE', 00H
 	ORG $+2
-$SG123409 DB	'#SCROLLY', 00H
+$SG123414 DB	'#SCROLLY', 00H
 	ORG $+3
-$SG124458 DB	'columns', 00H
-$SG124475 DB	'#TreePush', 00H
+$SG124463 DB	'columns', 00H
+$SG124480 DB	'#TreePush', 00H
 	ORG $+2
-$SG124481 DB	'#TreePush', 00H
+$SG124486 DB	'#TreePush', 00H
 	ORG $+2
-$SG121409 DB	0aH, '##', 00H
-$SG121410 DB	'##', 00H
+$SG121414 DB	0aH, '##', 00H
+$SG121415 DB	'##', 00H
 	ORG $+1
-$SG121417 DB	'>', 00H
+$SG121422 DB	'>', 00H
 	ORG $+2
-$SG124493 DB	'true', 00H
+$SG124498 DB	'true', 00H
 	ORG $+3
-$SG124494 DB	'false', 00H
+$SG124499 DB	'false', 00H
 	ORG $+2
-$SG124495 DB	'%s: %s', 00H
-	ORG $+1
-$SG124500 DB	'%s: %d', 00H
+$SG124500 DB	'%s: %s', 00H
 	ORG $+1
 $SG124505 DB	'%s: %d', 00H
 	ORG $+1
-$SG124515 DB	'%%s: %s', 00H
-$SG124516 DB	'%s: %.3f', 00H
+$SG124510 DB	'%s: %d', 00H
+	ORG $+1
+$SG124520 DB	'%%s: %s', 00H
+$SG124521 DB	'%s: %.3f', 00H
 	ORG $+3
-$SG124521 DB	'%s: (%.2f,%.2f,%.2f,%.2f)', 00H
+$SG124526 DB	'%s: (%.2f,%.2f,%.2f,%.2f)', 00H
 	ORG $+2
-$SG124527 DB	'%s: %08X', 00H
+$SG124532 DB	'%s: %08X', 00H
 	ORG $+3
 ?GStyleVarInfo@@3QBUImGuiStyleVarInfo@@B DD 01H		; GStyleVarInfo
 	DD	00H
@@ -226,211 +226,211 @@ $SG124527 DB	'%s: %08X', 00H
 	DD	058H
 	DD	02H
 	DD	060H
-$SG123518 DB	'#SCROLLY', 00H
+$SG123523 DB	'#SCROLLY', 00H
 	ORG $+3
-$SG122518 DB	'%.0f%%', 00H
+$SG122523 DB	'%.0f%%', 00H
 	ORG $+1
-$SG120512 DB	'Text', 00H
+$SG120517 DB	'Text', 00H
 	ORG $+3
-$SG120514 DB	'TextDisabled', 00H
+$SG120519 DB	'TextDisabled', 00H
 	ORG $+3
-$SG122564 DB	'[x]', 00H
-$SG120516 DB	'WindowBg', 00H
+$SG122569 DB	'[x]', 00H
+$SG120521 DB	'WindowBg', 00H
 	ORG $+3
-$SG122565 DB	'[ ]', 00H
-$SG120518 DB	'ChildWindowBg', 00H
+$SG122570 DB	'[ ]', 00H
+$SG120523 DB	'ChildWindowBg', 00H
 	ORG $+2
-$SG120520 DB	'PopupBg', 00H
-$SG120522 DB	'Border', 00H
+$SG120525 DB	'PopupBg', 00H
+$SG120527 DB	'Border', 00H
 	ORG $+1
-$SG120524 DB	'BorderShadow', 00H
+$SG120529 DB	'BorderShadow', 00H
 	ORG $+3
-$SG120526 DB	'FrameBg', 00H
-$SG120528 DB	'FrameBgHovered', 00H
+$SG120531 DB	'FrameBg', 00H
+$SG120533 DB	'FrameBgHovered', 00H
 	ORG $+1
-$SG120530 DB	'FrameBgActive', 00H
+$SG120535 DB	'FrameBgActive', 00H
 	ORG $+2
-$SG120532 DB	'TitleBg', 00H
-$SG120534 DB	'TitleBgCollapsed', 00H
+$SG120537 DB	'TitleBg', 00H
+$SG120539 DB	'TitleBgCollapsed', 00H
 	ORG $+3
-$SG120536 DB	'TitleBgActive', 00H
+$SG120541 DB	'TitleBgActive', 00H
 	ORG $+2
-$SG123609 DB	'-', 00H
+$SG123614 DB	'-', 00H
 	ORG $+2
-$SG120538 DB	'MenuBarBg', 00H
+$SG120543 DB	'MenuBarBg', 00H
 	ORG $+2
-$SG123611 DB	'+', 00H
+$SG123616 DB	'+', 00H
 	ORG $+2
-$SG120540 DB	'ScrollbarBg', 00H
-$SG120542 DB	'ScrollbarGrab', 00H
+$SG120545 DB	'ScrollbarBg', 00H
+$SG120547 DB	'ScrollbarGrab', 00H
 	ORG $+2
-$SG120544 DB	'ScrollbarGrabHovered', 00H
+$SG120549 DB	'ScrollbarGrabHovered', 00H
 	ORG $+3
-$SG120546 DB	'ScrollbarGrabActive', 00H
-$SG120548 DB	'ComboBg', 00H
-$SG120550 DB	'CheckMark', 00H
+$SG120551 DB	'ScrollbarGrabActive', 00H
+$SG120553 DB	'ComboBg', 00H
+$SG120555 DB	'CheckMark', 00H
 	ORG $+2
-$SG120552 DB	'SliderGrab', 00H
+$SG120557 DB	'SliderGrab', 00H
 	ORG $+1
-$SG120554 DB	'SliderGrabActive', 00H
+$SG120559 DB	'SliderGrabActive', 00H
 	ORG $+3
-$SG123628 DB	'%f', 00H
+$SG123633 DB	'%f', 00H
 	ORG $+1
-$SG120556 DB	'Button', 00H
+$SG120561 DB	'Button', 00H
 	ORG $+1
-$SG123629 DB	'%%.%df', 00H
+$SG123634 DB	'%%.%df', 00H
 	ORG $+1
-$SG119533 DB	'##Tooltip', 00H
+$SG119538 DB	'##Tooltip', 00H
 	ORG $+2
-$SG120558 DB	'ButtonHovered', 00H
+$SG120563 DB	'ButtonHovered', 00H
 	ORG $+2
-$SG120560 DB	'ButtonActive', 00H
+$SG120565 DB	'ButtonActive', 00H
 	ORG $+3
-$SG120562 DB	'Header', 00H
+$SG120567 DB	'Header', 00H
 	ORG $+1
-$SG120564 DB	'HeaderHovered', 00H
+$SG120569 DB	'HeaderHovered', 00H
 	ORG $+2
-$SG120566 DB	'HeaderActive', 00H
+$SG120571 DB	'HeaderActive', 00H
 	ORG $+3
-$SG120568 DB	'Column', 00H
+$SG120573 DB	'Column', 00H
 	ORG $+1
-$SG123641 DB	'%08X', 00H
+$SG123646 DB	'%08X', 00H
 	ORG $+3
-$SG123642 DB	'%d', 00H
+$SG123647 DB	'%d', 00H
 	ORG $+1
-$SG120570 DB	'ColumnHovered', 00H
+$SG120575 DB	'ColumnHovered', 00H
 	ORG $+2
-$SG120572 DB	'ColumnActive', 00H
+$SG120577 DB	'ColumnActive', 00H
 	ORG $+3
-$SG120574 DB	'ResizeGrip', 00H
+$SG120579 DB	'ResizeGrip', 00H
 	ORG $+1
-$SG122623 DB	'(x)', 00H
-$SG122624 DB	'( )', 00H
-$SG120576 DB	'ResizeGripHovered', 00H
+$SG122628 DB	'(x)', 00H
+$SG122629 DB	'( )', 00H
+$SG120581 DB	'ResizeGripHovered', 00H
 	ORG $+2
-$SG120578 DB	'ResizeGripActive', 00H
+$SG120583 DB	'ResizeGripActive', 00H
 	ORG $+3
-$SG120580 DB	'CloseButton', 00H
-$SG119557 DB	'##menus', 00H
-$SG120582 DB	'CloseButtonHovered', 00H
+$SG120585 DB	'CloseButton', 00H
+$SG119562 DB	'##menus', 00H
+$SG120587 DB	'CloseButtonHovered', 00H
 	ORG $+1
-$SG120584 DB	'CloseButtonActive', 00H
+$SG120589 DB	'CloseButtonActive', 00H
 	ORG $+2
-$SG123658 DB	'##v', 00H
-$SG120586 DB	'PlotLines', 00H
+$SG123663 DB	'##v', 00H
+$SG120591 DB	'PlotLines', 00H
 	ORG $+2
-$SG120588 DB	'PlotLinesHovered', 00H
-	ORG $+3
-$SG120590 DB	'PlotHistogram', 00H
-	ORG $+2
-$SG120592 DB	'PlotHistogramHovered', 00H
+$SG120593 DB	'PlotLinesHovered', 00H
 	ORG $+3
 $SG17169 DB	'1.50 WIP', 00H
 	ORG $+3
-$SG120594 DB	'TextSelectedBg', 00H
-	ORG $+1
-$SG120596 DB	'ModalWindowDarkening', 00H
-	ORG $+3
-$SG120598 DB	'NavHighlight', 00H
-	ORG $+3
-$SG120600 DB	'NavWindowingHighlight', 00H
+$SG120595 DB	'PlotHistogram', 00H
 	ORG $+2
-$SG120601 DB	'Unknown', 00H
-$SG124700 DB	'ImGui Metrics', 00H
+$SG120597 DB	'PlotHistogramHovered', 00H
+	ORG $+3
+$SG120599 DB	'TextSelectedBg', 00H
+	ORG $+1
+$SG120601 DB	'ModalWindowDarkening', 00H
+	ORG $+3
+$SG120603 DB	'NavHighlight', 00H
+	ORG $+3
+$SG120605 DB	'NavWindowingHighlight', 00H
 	ORG $+2
-$SG124701 DB	'ImGui %s', 00H
-	ORG $+3
-$SG124702 DB	'Application average %.3f ms/frame (%.1f FPS)', 00H
-	ORG $+3
-$SG124703 DB	'%d vertices, %d indices (%d triangles)', 00H
-	ORG $+1
-$SG124704 DB	'%d allocations', 00H
-	ORG $+1
-$SG124705 DB	'sizeof(ImGuiContext) = %u, sizeof(ImGuiWindow) = %u', 00H
-$SG124706 DB	'Show clipping rectangles when hovering a ImDrawCmd', 00H
-	ORG $+1
-$SG124707 DB	'Windows', 00H
-$SG124709 DB	'Active DrawLists (%d)', 00H
+$SG120606 DB	'Unknown', 00H
+$SG124705 DB	'ImGui Metrics', 00H
 	ORG $+2
-$SG124710 DB	'DrawList', 00H
+$SG124706 DB	'ImGui %s', 00H
 	ORG $+3
-$SG124711 DB	'DrawList', 00H
+$SG124707 DB	'Application average %.3f ms/frame (%.1f FPS)', 00H
 	ORG $+3
-$SG124713 DB	'Open Popups Stack (%d)', 00H
+$SG124708 DB	'%d vertices, %d indices (%d triangles)', 00H
 	ORG $+1
-$SG124714 DB	'Popups', 00H
+$SG124709 DB	'%d allocations', 00H
 	ORG $+1
-$SG124715 DB	' ChildMenu', 00H
+$SG124710 DB	'sizeof(ImGuiContext) = %u, sizeof(ImGuiWindow) = %u', 00H
+$SG124711 DB	'Show clipping rectangles when hovering a ImDrawCmd', 00H
 	ORG $+1
-$SG123691 DB	'##v', 00H
-$SG124717 DB	' ChildWindow', 00H
-	ORG $+3
-$SG124719 DB	'NULL', 00H
-	ORG $+3
-$SG124720 DB	'PopupID: %08x, Window: ''%s''%s%s', 00H
-$SG124722 DB	'Basic state', 00H
-$SG124723 DB	'None', 00H
-	ORG $+3
-$SG124724 DB	'Mouse', 00H
+$SG124712 DB	'Windows', 00H
+$SG124714 DB	'Active DrawLists (%d)', 00H
 	ORG $+2
-$SG124725 DB	'Nav', 00H
-$SG124726 DB	'NULL', 00H
+$SG124715 DB	'DrawList', 00H
 	ORG $+3
-$SG124727 DB	'HoveredWindow: ''%s''', 00H
-$SG124728 DB	'NULL', 00H
+$SG124716 DB	'DrawList', 00H
 	ORG $+3
-$SG124729 DB	'HoveredRootWindow: ''%s''', 00H
-$SG124730 DB	'HoveredId: 0x%08X/0x%08X', 00H
-	ORG $+3
-$SG124731 DB	'ActiveId: 0x%08X/0x%08X, ActiveIdSource: %s', 00H
-$SG124732 DB	'NULL', 00H
-	ORG $+3
-$SG124733 DB	'ActiveIdWindow: ''%s', 00H
-$SG124734 DB	'NULL', 00H
-	ORG $+3
-$SG124735 DB	'NavWindow: ''%s'', NavId: 0x%08X, NavLayer: %d', 00H
-	ORG $+3
-$SG124736 DB	'NavRefRectRel: (%.1f,%.1f)(%.1f,%.1f)', 00H
-	ORG $+2
-$SG124737 DB	'NavUsable: %d, NavActive: %d', 00H
-	ORG $+3
-$SG124738 DB	'NavDisableHighlight: %d, NavDisableMouseHover: %d', 00H
-	ORG $+2
-$SG121671 DB	'%d', 00H
+$SG124718 DB	'Open Popups Stack (%d)', 00H
 	ORG $+1
-$SG121672 DB	'%.*d', 00H
-	ORG $+3
-$SG121676 DB	'%f', 00H
+$SG124719 DB	'Popups', 00H
 	ORG $+1
-$SG121677 DB	'%.*f', 00H
+$SG124720 DB	' ChildMenu', 00H
+	ORG $+1
+$SG123696 DB	'##v', 00H
+$SG124722 DB	' ChildWindow', 00H
 	ORG $+3
-$SG119632 DB	'##menu_%d', 00H
+$SG124724 DB	'NULL', 00H
+	ORG $+3
+$SG124725 DB	'PopupID: %08x, Window: ''%s''%s%s', 00H
+$SG124727 DB	'Basic state', 00H
+$SG124728 DB	'None', 00H
+	ORG $+3
+$SG124729 DB	'Mouse', 00H
 	ORG $+2
-$SG119633 DB	'##popup_%08x', 00H
+$SG124730 DB	'Nav', 00H
+$SG124731 DB	'NULL', 00H
+	ORG $+3
+$SG124732 DB	'HoveredWindow: ''%s''', 00H
+$SG124733 DB	'NULL', 00H
+	ORG $+3
+$SG124734 DB	'HoveredRootWindow: ''%s''', 00H
+$SG124735 DB	'HoveredId: 0x%08X/0x%08X', 00H
+	ORG $+3
+$SG124736 DB	'ActiveId: 0x%08X/0x%08X, ActiveIdSource: %s', 00H
+$SG124737 DB	'NULL', 00H
+	ORG $+3
+$SG124738 DB	'ActiveIdWindow: ''%s', 00H
+$SG124739 DB	'NULL', 00H
+	ORG $+3
+$SG124740 DB	'NavWindow: ''%s'', NavId: 0x%08X, NavLayer: %d', 00H
+	ORG $+3
+$SG124741 DB	'NavRefRectRel: (%.1f,%.1f)(%.1f,%.1f)', 00H
+	ORG $+2
+$SG124742 DB	'NavUsable: %d, NavActive: %d', 00H
+	ORG $+3
+$SG124743 DB	'NavDisableHighlight: %d, NavDisableMouseHover: %d', 00H
+	ORG $+2
+$SG121676 DB	'%d', 00H
+	ORG $+1
+$SG121677 DB	'%.*d', 00H
+	ORG $+3
+$SG121681 DB	'%f', 00H
+	ORG $+1
+$SG121682 DB	'%.*f', 00H
+	ORG $+3
+$SG119637 DB	'##menu_%d', 00H
+	ORG $+2
+$SG119638 DB	'##popup_%08x', 00H
 	ORG $+3
 $SG16217 DB	'imgui.ini', 00H
 	ORG $+2
 $SG16218 DB	'imgui_log.txt', 00H
 	ORG $+2
-$SG119671 DB	'window_context_menu', 00H
-$SG119680 DB	'void_context_menu', 00H
+$SG119676 DB	'window_context_menu', 00H
+$SG119685 DB	'void_context_menu', 00H
 	ORG $+2
-$SG121737 DB	'%d', 00H
+$SG121742 DB	'%d', 00H
 	ORG $+1
-$SG121742 DB	'%f', 00H
+$SG121747 DB	'%f', 00H
 	ORG $+1
-$SG121746 DB	'%f', 00H
+$SG121751 DB	'%f', 00H
 	ORG $+1
-$SG121750 DB	'%f', 00H
+$SG121755 DB	'%f', 00H
 	ORG $+1
-$SG121753 DB	'%f', 00H
+$SG121758 DB	'%f', 00H
 	ORG $+1
-$SG119706 DB	'%s.%s.%08X', 00H
+$SG119711 DB	'%s.%s.%08X', 00H
 	ORG $+1
-$SG119707 DB	'%s.%08X', 00H
-$SG123824 DB	'*Unknown item*', 00H
+$SG119712 DB	'%s.%08X', 00H
+$SG123829 DB	'*Unknown item*', 00H
 	ORG $+1
-$SG118738 DB	'Debug', 00H
+$SG118743 DB	'Debug', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	??0ImVec2@@QAE@XZ				; ImVec2::ImVec2
@@ -3458,7 +3458,7 @@ $LN3@SK_ImGui_P:
 ; 12284:   bool api_bridge =
 ; 12285:     config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+678, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	movss	xmm5, DWORD PTR __real@3a83126f
 	jne	SHORT $LN27@SK_ImGui_P
 	cmp	DWORD PTR ?steam_to_xi@@3PAU_XINPUT_STATE@@A, 0 ; steam_to_xi
@@ -3482,7 +3482,7 @@ $LN3@SK_ImGui_P:
 
 	lea	eax, DWORD PTR _state$[ebp]
 	push	eax
-	push	DWORD PTR ?config@@3Usk_config_t@@A+684
+	push	DWORD PTR ?config@@3Usk_config_t@@A+696
 	movups	XMMWORD PTR _state$[ebp], xmm0
 	call	?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z ; SK_XInput_PollController
 	add	esp, 8
@@ -4479,7 +4479,7 @@ $LL4@SK_ImGui_P:
 ; 12106: 
 ; 12107:     if (config.input.keyboard.catch_alt_f4)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+713, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+725, 0
 	je	SHORT $LN6@SK_ImGui_P
 
 ; 12108:     {
@@ -4542,7 +4542,7 @@ $LN6@SK_ImGui_P:
 ; 12127:   bool api_bridge =
 ; 12128:     config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+678, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	xorps	xmm0, xmm0
 	mov	esi, DWORD PTR __imp__timeGetTime@0
 	movaps	XMMWORD PTR _state$[ebp], xmm0
@@ -4565,7 +4565,7 @@ $LN6@SK_ImGui_P:
 
 	lea	eax, DWORD PTR _state$[ebp]
 	push	eax
-	push	DWORD PTR ?config@@3Usk_config_t@@A+684
+	push	DWORD PTR ?config@@3Usk_config_t@@A+696
 	movups	XMMWORD PTR _state$[ebp], xmm0
 	call	?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z ; SK_XInput_PollController
 	add	esp, 8
@@ -4826,7 +4826,7 @@ $LN43@SK_ImGui_P:
 
 ; 12207:   if (SK_ImGui_Active () && config.input.gamepad.haptic_ui)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
 	je	$LN101@SK_ImGui_P
 
 ; 12208:   {
@@ -4951,7 +4951,7 @@ $LN29@SK_ImGui_P:
 ; 12012:       
 ; 12013:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN47@SK_ImGui_P
@@ -4989,7 +4989,7 @@ $LN48@SK_ImGui_P:
 ; 12012:       
 ; 12013:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN54@SK_ImGui_P
@@ -5018,7 +5018,7 @@ $LN55@SK_ImGui_P:
 ; 12012:       
 ; 12013:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN61@SK_ImGui_P
@@ -5047,7 +5047,7 @@ $LN62@SK_ImGui_P:
 ; 12012:       
 ; 12013:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN68@SK_ImGui_P
@@ -5087,7 +5087,7 @@ $LN69@SK_ImGui_P:
 ; 12012:       
 ; 12013:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN78@SK_ImGui_P
@@ -5116,7 +5116,7 @@ $LN79@SK_ImGui_P:
 ; 12012:       
 ; 12013:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN85@SK_ImGui_P
@@ -5149,7 +5149,7 @@ $LN86@SK_ImGui_P:
 	minss	xmm0, DWORD PTR __real@3ecccccd
 	addss	xmm1, xmm0
 	movss	DWORD PTR [esp], xmm1
-	push	DWORD PTR ?config@@3Usk_config_t@@A+684
+	push	DWORD PTR ?config@@3Usk_config_t@@A+696
 	call	?SK_XInput_PulseController@@YA_NHMM@Z	; SK_XInput_PulseController
 
 ; 12238:                                   haptic_events.PulseTitle.run  () +
@@ -5337,7 +5337,7 @@ $LN29@SK_ImGui_T:
 
 ; 12073:       SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
 
-	push	DWORD PTR ?config@@3Usk_config_t@@A+684
+	push	DWORD PTR ?config@@3Usk_config_t@@A+696
 	call	?SK_XInput_ZeroHaptics@@YAXH@Z		; SK_XInput_ZeroHaptics
 	add	esp, 4
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -5446,7 +5446,7 @@ tv79 = -4						; size = 4
 ; 12012:       
 ; 12013:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+674, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN3@run
@@ -5537,7 +5537,7 @@ _pState$ = 12						; size = 4
 	test	al, al
 	je	SHORT $LN2@SK_ImGui_F
 	mov	eax, DWORD PTR _dwUserIndex$[ebp]
-	cmp	eax, DWORD PTR ?config@@3Usk_config_t@@A+684
+	cmp	eax, DWORD PTR ?config@@3Usk_config_t@@A+696
 	jne	SHORT $LN2@SK_ImGui_F
 
 ; 11990:        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot )
@@ -7362,20 +7362,20 @@ $LN5@ImGui_WndP:
 ; 11499:           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
 ; 11500:                config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+688, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+700, 0
 	jne	SHORT $LN8@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+689, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+701, 0
 	jne	SHORT $LN8@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+702, 0
 	jne	SHORT $LN8@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+691, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+703, 0
 	je	SHORT $LN11@ImGui_WndP
 $LN8@ImGui_WndP:
 
 ; 11501:           {
 ; 11502:             dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
 
-	push	OFFSET $SG142705
+	push	OFFSET $SG142710
 $LN134@ImGui_WndP:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -7415,20 +7415,20 @@ $LN9@ImGui_WndP:
 ; 11516:           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
 ; 11517:                config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+688, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+700, 0
 	jne	SHORT $LN12@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+689, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+701, 0
 	jne	SHORT $LN12@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+702, 0
 	jne	SHORT $LN12@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+691, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+703, 0
 	je	SHORT $LN11@ImGui_WndP
 $LN12@ImGui_WndP:
 
 ; 11518:           {
 ; 11519:             dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
 
-	push	OFFSET $SG142710
+	push	OFFSET $SG142715
 
 ; 11520:             return true;
 
@@ -7976,7 +7976,7 @@ $LN16@ImGui_WndP:
 ; 11940: 
 ; 11941:     if (config.input.ui.capture_mouse)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+664, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+676, 0
 	je	SHORT $LN37@ImGui_WndP
 
 ; 11942:     {
@@ -8198,7 +8198,7 @@ $LN3@SK_ImGui_D:
 ; 11459:     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
 
 	movss	xmm0, DWORD PTR __real@42c80000
-	divss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+720
+	divss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+732
 	mov	ecx, DWORD PTR _center$1[ebp]
 	mov	eax, ecx
 	sub	eax, DWORD PTR _local$1$[ebp]
@@ -8623,7 +8623,7 @@ $LN18@operator:
 ; 11198:             // Block keyboard input to the game while it's in the background
 ; 11199:             if (config.window.background_render && (! game_window.active))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+752, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+764, 0
 	je	SHORT $LN19@operator
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	movzx	ebx, bl
@@ -8702,7 +8702,7 @@ $LN7@operator:
 ; 11152:             // Block mouse input to the game while it's in the background
 ; 11153:             if (config.window.background_render && (! game_window.active))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+752, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+764, 0
 	je	SHORT $LN8@operator
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	movzx	ebx, bl
@@ -9096,7 +9096,7 @@ $LN13@SK_ImGui_P:
 	call	?SK_ImGui_IsMouseRelevant@@YA_NXZ	; SK_ImGui_IsMouseRelevant
 	test	al, al
 	je	SHORT $LN15@SK_ImGui_P
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+717, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+729, 0
 	je	SHORT $LN15@SK_ImGui_P
 
 ; 11233:           {
@@ -17230,7 +17230,7 @@ $LN3@BeginChild:
 	push	eax
 	push	DWORD PTR [esi]
 	lea	eax, DWORD PTR _title$[ebp]
-	push	OFFSET $SG119706
+	push	OFFSET $SG119711
 	push	256					; 00000100H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -17245,7 +17245,7 @@ $LN5@BeginChild:
 
 	push	DWORD PTR [esi]
 	lea	eax, DWORD PTR _title$[ebp]
-	push	OFFSET $SG119707
+	push	OFFSET $SG119712
 	push	256					; 00000100H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -25137,7 +25137,7 @@ $LN9@DataTypeAp:
 ; 7340 :         const int old_v = *v;
 
 	mov	eax, DWORD PTR _scalar_format$[ebp]
-	mov	ecx, OFFSET $SG121737
+	mov	ecx, OFFSET $SG121742
 	mov	edi, DWORD PTR _data_ptr$[ebp]
 	test	eax, eax
 	cmovne	ecx, eax
@@ -25177,7 +25177,7 @@ $LN13@DataTypeAp:
 	jne	SHORT $LN14@DataTypeAp
 	lea	eax, DWORD PTR _arg1$4[ebp]
 	push	eax
-	push	OFFSET $SG121742
+	push	OFFSET $SG121747
 	push	esi
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25211,7 +25211,7 @@ $LN14@DataTypeAp:
 	jne	SHORT $LN17@DataTypeAp
 	lea	eax, DWORD PTR _arg1$4[ebp]
 	push	eax
-	push	OFFSET $SG121746
+	push	OFFSET $SG121751
 	push	esi
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25245,7 +25245,7 @@ $LN17@DataTypeAp:
 	jne	SHORT $LN20@DataTypeAp
 	lea	eax, DWORD PTR _arg1$4[ebp]
 	push	eax
-	push	OFFSET $SG121750
+	push	OFFSET $SG121755
 	push	esi
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25333,7 +25333,7 @@ $LN10@DataTypeAp:
 	je	SHORT $LN25@DataTypeAp
 	lea	eax, DWORD PTR _arg0$1[ebp]
 	push	eax
-	push	OFFSET $SG121753
+	push	OFFSET $SG121758
 	push	DWORD PTR _initial_value_buf$[ebp]
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25349,7 +25349,7 @@ $LN25@DataTypeAp:
 	lea	eax, DWORD PTR _arg1$3[ebp]
 	mov	DWORD PTR _arg1$3[ebp], 0
 	push	eax
-	push	OFFSET $SG121753
+	push	OFFSET $SG121758
 	push	esi
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25590,7 +25590,7 @@ _buf_size$ = 24						; size = 4
 	push	DWORD PTR [eax]
 	test	ecx, ecx
 	jns	SHORT $LN4@DataTypeFo
-	push	OFFSET $SG121671
+	push	OFFSET $SG121676
 	push	DWORD PTR _buf_size$[ebp]
 	push	DWORD PTR _buf$[ebp]
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -25607,7 +25607,7 @@ $LN4@DataTypeFo:
 ; 7284 :             ImFormatString(buf, buf_size, "%.*d", decimal_precision, *(int*)data_ptr);
 
 	push	ecx
-	push	OFFSET $SG121672
+	push	OFFSET $SG121677
 	push	DWORD PTR _buf_size$[ebp]
 	push	DWORD PTR _buf$[ebp]
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -25638,7 +25638,7 @@ $LN2@DataTypeFo:
 	movsd	QWORD PTR [esp], xmm0
 	test	ecx, ecx
 	jns	SHORT $LN7@DataTypeFo
-	push	OFFSET $SG121676
+	push	OFFSET $SG121681
 	push	DWORD PTR _buf_size$[ebp]
 	push	DWORD PTR _buf$[ebp]
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -25655,7 +25655,7 @@ $LN7@DataTypeFo:
 ; 7291 :             ImFormatString(buf, buf_size, "%.*f", decimal_precision, *(float*)data_ptr);
 
 	push	ecx
-	push	OFFSET $SG121677
+	push	OFFSET $SG121682
 	push	DWORD PTR _buf_size$[ebp]
 	push	DWORD PTR _buf$[ebp]
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -27261,7 +27261,7 @@ $LN2@BeginPopup:
 	test	esi, 134217728				; 08000000H
 	je	SHORT $LN3@BeginPopup
 	push	DWORD PTR [edi+6368]
-	push	OFFSET $SG119632
+	push	OFFSET $SG119637
 
 ; 4380 :     else
 
@@ -27271,7 +27271,7 @@ $LN3@BeginPopup:
 ; 4381 :         ImFormatString(name, IM_ARRAYSIZE(name), "##popup_%08x", id); // Not recycling, so we can close/open during the same frame
 
 	push	ebx
-	push	OFFSET $SG119633
+	push	OFFSET $SG119638
 $LN10@BeginPopup:
 	push	20					; 00000014H
 	push	eax
@@ -28445,10 +28445,10 @@ _horizontal$ = 12					; size = 1
 ; 5392 :     const ImGuiID id = window->GetID(horizontal ? "#SCROLLX" : "#SCROLLY");
 
 	cmp	BYTE PTR _horizontal$[ebp], 0
-	mov	ecx, OFFSET $SG120281
+	mov	ecx, OFFSET $SG120286
 	push	esi
 	mov	esi, DWORD PTR _window$[ebp]
-	mov	eax, OFFSET $SG120280
+	mov	eax, OFFSET $SG120285
 	push	edi
 	mov	edi, DWORD PTR ?GImGui@@3PAUImGuiContext@@A ; GImGui
 	cmove	eax, ecx
@@ -31000,7 +31000,7 @@ $LN14@LogRendere:
 
 	push	ecx
 	push	eax
-	push	OFFSET $SG119098
+	push	OFFSET $SG119103
 	call	?LogText@ImGui@@YAXPBDZZ		; ImGui::LogText
 	add	esp, 12					; 0000000cH
 	jmp	SHORT $LN32@LogRendere
@@ -31010,10 +31010,10 @@ $LN17@LogRendere:
 
 	push	ecx
 	push	eax
-	push	OFFSET $SG119096
+	push	OFFSET $SG119101
 	lea	eax, DWORD PTR [edx*4]
 	push	eax
-	push	OFFSET $SG119097
+	push	OFFSET $SG119102
 	call	?LogText@ImGui@@YAXPBDZZ		; ImGui::LogText
 	add	esp, 20					; 00000014H
 $LN32@LogRendere:
@@ -34530,9 +34530,9 @@ $LN38@TreeNodeBe:
 ; 6998 :             const char log_prefix[] = "\n##";
 ; 6999 :             const char log_suffix[] = "##";
 
-	mov	ax, WORD PTR $SG121410
+	mov	ax, WORD PTR $SG121415
 	mov	WORD PTR _log_suffix$19[ebp], ax
-	mov	al, BYTE PTR $SG121410+2
+	mov	al, BYTE PTR $SG121415+2
 	mov	BYTE PTR _log_suffix$19[ebp+2], al
 
 ; 7000 :             LogRenderedText(text_pos, log_prefix, log_prefix+3);
@@ -34767,7 +34767,7 @@ $LN21@TreeNodeBe:
 
 	push	0
 	lea	eax, DWORD PTR _text_pos$[ebp]
-	push	OFFSET $SG121417
+	push	OFFSET $SG121422
 	push	eax
 	call	?LogRenderedText@@YAXABUImVec2@@PBD1@Z	; LogRenderedText
 	add	esp, 12					; 0000000cH
@@ -35252,7 +35252,7 @@ $LN34@InputScala:
 	push	edx
 	push	64					; 00000040H
 	push	eax
-	push	OFFSET $SG123606
+	push	OFFSET $SG123611
 	call	?InputText@ImGui@@YA_NPBDPADIHP6AHPAUImGuiTextEditCallbackData@@@ZPAX@Z ; ImGui::InputText
 	add	esp, 24					; 00000018H
 	test	al, al
@@ -35305,7 +35305,7 @@ $LN5@InputScala:
 	push	65					; 00000041H
 	lea	eax, DWORD PTR _button_sz$[ebp]
 	push	eax
-	push	OFFSET $SG123609
+	push	OFFSET $SG123614
 	call	?ButtonEx@ImGui@@YA_NPBDABUImVec2@@H@Z	; ImGui::ButtonEx
 	mov	edi, DWORD PTR _step_fast_ptr$[ebp]
 	add	esp, 20					; 00000014H
@@ -35349,7 +35349,7 @@ $LN7@InputScala:
 	push	65					; 00000041H
 	lea	eax, DWORD PTR _button_sz$[ebp]
 	push	eax
-	push	OFFSET $SG123611
+	push	OFFSET $SG123616
 	call	?ButtonEx@ImGui@@YA_NPBDABUImVec2@@H@Z	; ImGui::ButtonEx
 	add	esp, 20					; 00000014H
 	test	al, al
@@ -35571,7 +35571,7 @@ $LL4@InputIntN:
 	push	0
 	push	0
 	push	edi
-	push	OFFSET $SG123691
+	push	OFFSET $SG123696
 	call	?InputInt@ImGui@@YA_NPBDPAHHHH@Z	; ImGui::InputInt
 	or	bl, al
 
@@ -35745,7 +35745,7 @@ $LL4@InputFloat:
 	mov	DWORD PTR [esp+4], 0
 	mov	DWORD PTR [esp], 0
 	push	edi
-	push	OFFSET $SG123658
+	push	OFFSET $SG123663
 	call	?InputFloat@ImGui@@YA_NPBDPAMMMHH@Z	; ImGui::InputFloat
 	or	bl, al
 
@@ -36571,7 +36571,7 @@ $LN181@InputTextE:
 	jne	SHORT $LN182@InputTextE
 	mov	ecx, DWORD PTR _draw_window$1$[ebp]
 	push	0
-	push	OFFSET $SG123409
+	push	OFFSET $SG123414
 	call	?GetIDNoKeepAlive@ImGuiWindow@@QAEIPBD0@Z ; ImGuiWindow::GetIDNoKeepAlive
 	cmp	DWORD PTR [edi+6268], eax
 	jne	SHORT $LN182@InputTextE
@@ -38544,7 +38544,7 @@ $LN510@InputTextE:
 	je	SHORT $LN219@InputTextE
 	mov	ecx, DWORD PTR _draw_window$1$[ebp]
 	push	0
-	push	OFFSET $SG123518
+	push	OFFSET $SG123523
 	call	?GetIDNoKeepAlive@ImGuiWindow@@QAEIPBD0@Z ; ImGuiWindow::GetIDNoKeepAlive
 	cmp	DWORD PTR [edi+6264], eax
 	jne	SHORT $LN219@InputTextE
@@ -39856,7 +39856,7 @@ $LL4@DragIntN:
 	push	ecx
 	movss	DWORD PTR [esp], xmm0
 	push	edi
-	push	OFFSET $SG122284
+	push	OFFSET $SG122289
 	call	?DragInt@ImGui@@YA_NPBDPAHMHH0@Z	; ImGui::DragInt
 	or	bl, al
 
@@ -40037,7 +40037,7 @@ $LL4@DragFloatN:
 	movss	xmm0, DWORD PTR _v_speed$[ebp]
 	movss	DWORD PTR [esp], xmm0
 	push	DWORD PTR _v$[ebp]
-	push	OFFSET $SG122206
+	push	OFFSET $SG122211
 	call	?DragFloat@ImGui@@YA_NPBDPAMMMM0M@Z	; ImGui::DragFloat
 	or	bl, al
 
@@ -40727,7 +40727,7 @@ $LL4@SliderIntN:
 	push	DWORD PTR _v_max$[ebp]
 	push	DWORD PTR _v_min$[ebp]
 	push	edi
-	push	OFFSET $SG122077
+	push	OFFSET $SG122082
 	call	?SliderInt@ImGui@@YA_NPBDPAHHH0@Z	; ImGui::SliderInt
 	or	bl, al
 
@@ -40891,7 +40891,7 @@ $LL4@SliderFloa:
 	movss	xmm0, DWORD PTR _v_min$[ebp]
 	movss	DWORD PTR [esp], xmm0
 	push	DWORD PTR _v$[ebp]
-	push	OFFSET $SG122036
+	push	OFFSET $SG122041
 	call	?SliderFloat@ImGui@@YA_NPBDPAMMM0M@Z	; ImGui::SliderFloat
 	or	bl, al
 
@@ -45203,7 +45203,7 @@ $LN8@OpenPopupE:
 ; 4270 :     ImGuiPopupRef popup_ref = ImGuiPopupRef(id, window, window->GetID("##menus"), popup_pos, mouse_pos); // Tagged as new ref because constructor sets Window to NULL (we are passing the ParentWindow info here)
 
 	push	0
-	push	OFFSET $SG119557
+	push	OFFSET $SG119562
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
 ; 380  :     ImGuiPopupRef(ImGuiID id, ImGuiWindow* parent_window, ImGuiID parent_menu_set, const ImVec2& popup_pos, const ImVec2& mouse_pos) { PopupId = id; Window = NULL; ParentWindow = parent_window; ParentMenuSet = parent_menu_set; PopupPosOnOpen = popup_pos; MousePosOnOpen = mouse_pos; }
@@ -69768,7 +69768,7 @@ $LN4@GetStyleCo:
 ; 5750 :     {
 ; 5751 :     case ImGuiCol_Text: return "Text";
 
-	mov	eax, OFFSET $SG120512
+	mov	eax, OFFSET $SG120517
 
 ; 5799 : }
 
@@ -69778,7 +69778,7 @@ $LN5@GetStyleCo:
 
 ; 5752 :     case ImGuiCol_TextDisabled: return "TextDisabled";
 
-	mov	eax, OFFSET $SG120514
+	mov	eax, OFFSET $SG120519
 
 ; 5799 : }
 
@@ -69788,7 +69788,7 @@ $LN6@GetStyleCo:
 
 ; 5753 :     case ImGuiCol_WindowBg: return "WindowBg";
 
-	mov	eax, OFFSET $SG120516
+	mov	eax, OFFSET $SG120521
 
 ; 5799 : }
 
@@ -69798,7 +69798,7 @@ $LN7@GetStyleCo:
 
 ; 5754 :     case ImGuiCol_ChildWindowBg: return "ChildWindowBg";
 
-	mov	eax, OFFSET $SG120518
+	mov	eax, OFFSET $SG120523
 
 ; 5799 : }
 
@@ -69808,7 +69808,7 @@ $LN8@GetStyleCo:
 
 ; 5755 :     case ImGuiCol_PopupBg: return "PopupBg";
 
-	mov	eax, OFFSET $SG120520
+	mov	eax, OFFSET $SG120525
 
 ; 5799 : }
 
@@ -69818,7 +69818,7 @@ $LN9@GetStyleCo:
 
 ; 5756 :     case ImGuiCol_Border: return "Border";
 
-	mov	eax, OFFSET $SG120522
+	mov	eax, OFFSET $SG120527
 
 ; 5799 : }
 
@@ -69828,7 +69828,7 @@ $LN10@GetStyleCo:
 
 ; 5757 :     case ImGuiCol_BorderShadow: return "BorderShadow";
 
-	mov	eax, OFFSET $SG120524
+	mov	eax, OFFSET $SG120529
 
 ; 5799 : }
 
@@ -69838,7 +69838,7 @@ $LN11@GetStyleCo:
 
 ; 5758 :     case ImGuiCol_FrameBg: return "FrameBg";
 
-	mov	eax, OFFSET $SG120526
+	mov	eax, OFFSET $SG120531
 
 ; 5799 : }
 
@@ -69848,7 +69848,7 @@ $LN12@GetStyleCo:
 
 ; 5759 :     case ImGuiCol_FrameBgHovered: return "FrameBgHovered";
 
-	mov	eax, OFFSET $SG120528
+	mov	eax, OFFSET $SG120533
 
 ; 5799 : }
 
@@ -69858,7 +69858,7 @@ $LN13@GetStyleCo:
 
 ; 5760 :     case ImGuiCol_FrameBgActive: return "FrameBgActive";
 
-	mov	eax, OFFSET $SG120530
+	mov	eax, OFFSET $SG120535
 
 ; 5799 : }
 
@@ -69868,7 +69868,7 @@ $LN14@GetStyleCo:
 
 ; 5761 :     case ImGuiCol_TitleBg: return "TitleBg";
 
-	mov	eax, OFFSET $SG120532
+	mov	eax, OFFSET $SG120537
 
 ; 5799 : }
 
@@ -69878,7 +69878,7 @@ $LN15@GetStyleCo:
 
 ; 5762 :     case ImGuiCol_TitleBgCollapsed: return "TitleBgCollapsed";
 
-	mov	eax, OFFSET $SG120534
+	mov	eax, OFFSET $SG120539
 
 ; 5799 : }
 
@@ -69888,7 +69888,7 @@ $LN16@GetStyleCo:
 
 ; 5763 :     case ImGuiCol_TitleBgActive: return "TitleBgActive";
 
-	mov	eax, OFFSET $SG120536
+	mov	eax, OFFSET $SG120541
 
 ; 5799 : }
 
@@ -69898,7 +69898,7 @@ $LN17@GetStyleCo:
 
 ; 5764 :     case ImGuiCol_MenuBarBg: return "MenuBarBg";
 
-	mov	eax, OFFSET $SG120538
+	mov	eax, OFFSET $SG120543
 
 ; 5799 : }
 
@@ -69908,7 +69908,7 @@ $LN18@GetStyleCo:
 
 ; 5765 :     case ImGuiCol_ScrollbarBg: return "ScrollbarBg";
 
-	mov	eax, OFFSET $SG120540
+	mov	eax, OFFSET $SG120545
 
 ; 5799 : }
 
@@ -69918,7 +69918,7 @@ $LN19@GetStyleCo:
 
 ; 5766 :     case ImGuiCol_ScrollbarGrab: return "ScrollbarGrab";
 
-	mov	eax, OFFSET $SG120542
+	mov	eax, OFFSET $SG120547
 
 ; 5799 : }
 
@@ -69928,7 +69928,7 @@ $LN20@GetStyleCo:
 
 ; 5767 :     case ImGuiCol_ScrollbarGrabHovered: return "ScrollbarGrabHovered";
 
-	mov	eax, OFFSET $SG120544
+	mov	eax, OFFSET $SG120549
 
 ; 5799 : }
 
@@ -69938,7 +69938,7 @@ $LN21@GetStyleCo:
 
 ; 5768 :     case ImGuiCol_ScrollbarGrabActive: return "ScrollbarGrabActive";
 
-	mov	eax, OFFSET $SG120546
+	mov	eax, OFFSET $SG120551
 
 ; 5799 : }
 
@@ -69948,7 +69948,7 @@ $LN22@GetStyleCo:
 
 ; 5769 :     case ImGuiCol_ComboBg: return "ComboBg";
 
-	mov	eax, OFFSET $SG120548
+	mov	eax, OFFSET $SG120553
 
 ; 5799 : }
 
@@ -69958,7 +69958,7 @@ $LN23@GetStyleCo:
 
 ; 5770 :     case ImGuiCol_CheckMark: return "CheckMark";
 
-	mov	eax, OFFSET $SG120550
+	mov	eax, OFFSET $SG120555
 
 ; 5799 : }
 
@@ -69968,7 +69968,7 @@ $LN24@GetStyleCo:
 
 ; 5771 :     case ImGuiCol_SliderGrab: return "SliderGrab";
 
-	mov	eax, OFFSET $SG120552
+	mov	eax, OFFSET $SG120557
 
 ; 5799 : }
 
@@ -69978,7 +69978,7 @@ $LN25@GetStyleCo:
 
 ; 5772 :     case ImGuiCol_SliderGrabActive: return "SliderGrabActive";
 
-	mov	eax, OFFSET $SG120554
+	mov	eax, OFFSET $SG120559
 
 ; 5799 : }
 
@@ -69988,7 +69988,7 @@ $LN26@GetStyleCo:
 
 ; 5773 :     case ImGuiCol_Button: return "Button";
 
-	mov	eax, OFFSET $SG120556
+	mov	eax, OFFSET $SG120561
 
 ; 5799 : }
 
@@ -69998,7 +69998,7 @@ $LN27@GetStyleCo:
 
 ; 5774 :     case ImGuiCol_ButtonHovered: return "ButtonHovered";
 
-	mov	eax, OFFSET $SG120558
+	mov	eax, OFFSET $SG120563
 
 ; 5799 : }
 
@@ -70008,7 +70008,7 @@ $LN28@GetStyleCo:
 
 ; 5775 :     case ImGuiCol_ButtonActive: return "ButtonActive";
 
-	mov	eax, OFFSET $SG120560
+	mov	eax, OFFSET $SG120565
 
 ; 5799 : }
 
@@ -70018,7 +70018,7 @@ $LN29@GetStyleCo:
 
 ; 5776 :     case ImGuiCol_Header: return "Header";
 
-	mov	eax, OFFSET $SG120562
+	mov	eax, OFFSET $SG120567
 
 ; 5799 : }
 
@@ -70028,7 +70028,7 @@ $LN30@GetStyleCo:
 
 ; 5777 :     case ImGuiCol_HeaderHovered: return "HeaderHovered";
 
-	mov	eax, OFFSET $SG120564
+	mov	eax, OFFSET $SG120569
 
 ; 5799 : }
 
@@ -70038,7 +70038,7 @@ $LN31@GetStyleCo:
 
 ; 5778 :     case ImGuiCol_HeaderActive: return "HeaderActive";
 
-	mov	eax, OFFSET $SG120566
+	mov	eax, OFFSET $SG120571
 
 ; 5799 : }
 
@@ -70048,7 +70048,7 @@ $LN32@GetStyleCo:
 
 ; 5779 :     case ImGuiCol_Column: return "Column";
 
-	mov	eax, OFFSET $SG120568
+	mov	eax, OFFSET $SG120573
 
 ; 5799 : }
 
@@ -70058,7 +70058,7 @@ $LN33@GetStyleCo:
 
 ; 5780 :     case ImGuiCol_ColumnHovered: return "ColumnHovered";
 
-	mov	eax, OFFSET $SG120570
+	mov	eax, OFFSET $SG120575
 
 ; 5799 : }
 
@@ -70068,7 +70068,7 @@ $LN34@GetStyleCo:
 
 ; 5781 :     case ImGuiCol_ColumnActive: return "ColumnActive";
 
-	mov	eax, OFFSET $SG120572
+	mov	eax, OFFSET $SG120577
 
 ; 5799 : }
 
@@ -70078,7 +70078,7 @@ $LN35@GetStyleCo:
 
 ; 5782 :     case ImGuiCol_ResizeGrip: return "ResizeGrip";
 
-	mov	eax, OFFSET $SG120574
+	mov	eax, OFFSET $SG120579
 
 ; 5799 : }
 
@@ -70088,7 +70088,7 @@ $LN36@GetStyleCo:
 
 ; 5783 :     case ImGuiCol_ResizeGripHovered: return "ResizeGripHovered";
 
-	mov	eax, OFFSET $SG120576
+	mov	eax, OFFSET $SG120581
 
 ; 5799 : }
 
@@ -70098,7 +70098,7 @@ $LN37@GetStyleCo:
 
 ; 5784 :     case ImGuiCol_ResizeGripActive: return "ResizeGripActive";
 
-	mov	eax, OFFSET $SG120578
+	mov	eax, OFFSET $SG120583
 
 ; 5799 : }
 
@@ -70108,7 +70108,7 @@ $LN38@GetStyleCo:
 
 ; 5785 :     case ImGuiCol_CloseButton: return "CloseButton";
 
-	mov	eax, OFFSET $SG120580
+	mov	eax, OFFSET $SG120585
 
 ; 5799 : }
 
@@ -70118,7 +70118,7 @@ $LN39@GetStyleCo:
 
 ; 5786 :     case ImGuiCol_CloseButtonHovered: return "CloseButtonHovered";
 
-	mov	eax, OFFSET $SG120582
+	mov	eax, OFFSET $SG120587
 
 ; 5799 : }
 
@@ -70128,7 +70128,7 @@ $LN40@GetStyleCo:
 
 ; 5787 :     case ImGuiCol_CloseButtonActive: return "CloseButtonActive";
 
-	mov	eax, OFFSET $SG120584
+	mov	eax, OFFSET $SG120589
 
 ; 5799 : }
 
@@ -70138,7 +70138,7 @@ $LN41@GetStyleCo:
 
 ; 5788 :     case ImGuiCol_PlotLines: return "PlotLines";
 
-	mov	eax, OFFSET $SG120586
+	mov	eax, OFFSET $SG120591
 
 ; 5799 : }
 
@@ -70148,7 +70148,7 @@ $LN42@GetStyleCo:
 
 ; 5789 :     case ImGuiCol_PlotLinesHovered: return "PlotLinesHovered";
 
-	mov	eax, OFFSET $SG120588
+	mov	eax, OFFSET $SG120593
 
 ; 5799 : }
 
@@ -70158,7 +70158,7 @@ $LN43@GetStyleCo:
 
 ; 5790 :     case ImGuiCol_PlotHistogram: return "PlotHistogram";
 
-	mov	eax, OFFSET $SG120590
+	mov	eax, OFFSET $SG120595
 
 ; 5799 : }
 
@@ -70168,7 +70168,7 @@ $LN44@GetStyleCo:
 
 ; 5791 :     case ImGuiCol_PlotHistogramHovered: return "PlotHistogramHovered";
 
-	mov	eax, OFFSET $SG120592
+	mov	eax, OFFSET $SG120597
 
 ; 5799 : }
 
@@ -70178,7 +70178,7 @@ $LN45@GetStyleCo:
 
 ; 5792 :     case ImGuiCol_TextSelectedBg: return "TextSelectedBg";
 
-	mov	eax, OFFSET $SG120594
+	mov	eax, OFFSET $SG120599
 
 ; 5799 : }
 
@@ -70188,7 +70188,7 @@ $LN46@GetStyleCo:
 
 ; 5793 :     case ImGuiCol_ModalWindowDarkening: return "ModalWindowDarkening";
 
-	mov	eax, OFFSET $SG120596
+	mov	eax, OFFSET $SG120601
 
 ; 5799 : }
 
@@ -70198,7 +70198,7 @@ $LN47@GetStyleCo:
 
 ; 5794 :     case ImGuiCol_NavHighlight: return "NavHighlight";
 
-	mov	eax, OFFSET $SG120598
+	mov	eax, OFFSET $SG120603
 
 ; 5799 : }
 
@@ -70208,7 +70208,7 @@ $LN48@GetStyleCo:
 
 ; 5795 :     case ImGuiCol_NavWindowingHighlight: return "NavWindowingHighlight"; 
 
-	mov	eax, OFFSET $SG120600
+	mov	eax, OFFSET $SG120605
 
 ; 5799 : }
 
@@ -70220,7 +70220,7 @@ $LN2@GetStyleCo:
 ; 5797 :     IM_ASSERT(0);
 ; 5798 :     return "Unknown";
 
-	mov	eax, OFFSET $SG120601
+	mov	eax, OFFSET $SG120606
 
 ; 5799 : }
 
@@ -71552,7 +71552,7 @@ _log_to_file$1$ = -1					; size = 1
 ; 6853 : 
 ; 6854 :     PushID("LogButtons");
 
-	push	OFFSET $SG121312
+	push	OFFSET $SG121317
 	call	?PushID@ImGui@@YAXPBD@Z			; ImGui::PushID
 
 ; 6855 :     const bool log_to_tty = Button("Log To TTY"); SameLine();
@@ -71568,7 +71568,7 @@ _log_to_file$1$ = -1					; size = 1
 ; 6855 :     const bool log_to_tty = Button("Log To TTY"); SameLine();
 
 	push	eax
-	push	OFFSET $SG121313
+	push	OFFSET $SG121318
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -71598,7 +71598,7 @@ _log_to_file$1$ = -1					; size = 1
 ; 6856 :     const bool log_to_file = Button("Log To File"); SameLine();
 
 	push	eax
-	push	OFFSET $SG121314
+	push	OFFSET $SG121319
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -71628,7 +71628,7 @@ _log_to_file$1$ = -1					; size = 1
 ; 6857 :     const bool log_to_clipboard = Button("Log To Clipboard"); SameLine();
 
 	push	eax
-	push	OFFSET $SG121315
+	push	OFFSET $SG121320
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -71663,7 +71663,7 @@ _log_to_file$1$ = -1					; size = 1
 	push	0
 	lea	esi, DWORD PTR [edi+11616]
 	push	esi
-	push	OFFSET $SG121316
+	push	OFFSET $SG121321
 	call	?SliderInt@ImGui@@YA_NPBDPAHHH0@Z	; ImGui::SliderInt
 	add	esp, 28					; 0000001cH
 
@@ -71759,7 +71759,7 @@ $T1 = -1						; size = 1
 ; 6831 : 
 ; 6832 :     LogText(IM_NEWLINE);
 
-	push	OFFSET $SG121298
+	push	OFFSET $SG121303
 	call	?LogText@ImGui@@YAXPBDZZ		; ImGui::LogText
 	add	esp, 4
 
@@ -71977,7 +71977,7 @@ $LN4@LogToFile:
 ; 6798 : 
 ; 6799 :     g.LogFile = ImFileOpen(filename, "ab");
 
-	push	OFFSET $SG121284
+	push	OFFSET $SG121289
 	push	eax
 	call	?ImFileOpen@@YAPAU_iobuf@@PBD0@Z	; ImFileOpen
 	add	esp, 8
@@ -72236,7 +72236,7 @@ _mouse_button$ = 12					; size = 4
 	mov	eax, DWORD PTR _str_id$[ebp]
 	test	eax, eax
 	push	esi
-	mov	esi, OFFSET $SG119680
+	mov	esi, OFFSET $SG119685
 	cmovne	esi, eax
 
 ; 4462 :     if (!str_id) str_id = "void_context_menu";
@@ -72289,7 +72289,7 @@ _mouse_button$ = 16					; size = 4
 	mov	eax, DWORD PTR _str_id$[ebp]
 	test	eax, eax
 	push	esi
-	mov	esi, OFFSET $SG119671
+	mov	esi, OFFSET $SG119676
 	cmovne	esi, eax
 
 ; 4453 :     if (!str_id) str_id = "window_context_menu";
@@ -73222,7 +73222,7 @@ $LN2@BeginMenu:
 ; 9937 :     bool menuset_is_open = !(window->Flags & ImGuiWindowFlags_Popup) && (g.OpenPopupStack.Size > g.CurrentPopupStack.Size && g.OpenPopupStack[g.CurrentPopupStack.Size].ParentMenuSet == window->GetID("##menus"));
 
 	push	0
-	push	OFFSET $SG124090
+	push	OFFSET $SG124095
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 912  :     inline value_type&          operator[](int i)               { IM_ASSERT(i < Size); return Data[i]; }
@@ -74339,7 +74339,7 @@ $LN2@BeginMenuB:
 
 ; 9894 :     PushID("##menubar");
 
-	push	OFFSET $SG124025
+	push	OFFSET $SG124030
 	call	?PushID@ImGui@@YAXPBD@Z			; ImGui::PushID
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
@@ -74728,7 +74728,7 @@ $T3 = -8						; size = 8
 
 	push	1359					; 0000054fH
 	push	0
-	push	OFFSET $SG124011
+	push	OFFSET $SG124016
 	call	?Begin@ImGui@@YA_NPBDPA_NH@Z		; ImGui::Begin
 	add	esp, 28					; 0000001cH
 	test	al, al
@@ -74801,7 +74801,7 @@ _TEXT	SEGMENT
 
 	push	16777543				; 01000147H
 	push	0
-	push	OFFSET $SG119533
+	push	OFFSET $SG119538
 	call	?Begin@ImGui@@YA_NPBDPA_NH@Z		; ImGui::Begin
 	add	esp, 12					; 0000000cH
 
@@ -74889,7 +74889,7 @@ _v$ = 12						; size = 4
 
 	push	DWORD PTR _v$[ebp]
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124527
+	push	OFFSET $SG124532
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10707:     SameLine();
@@ -74951,7 +74951,7 @@ _v$ = 12						; size = 4
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124521
+	push	OFFSET $SG124526
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10700:     SameLine();
@@ -75003,7 +75003,7 @@ _float_format$ = 16					; size = 4
 ; 10687:         ImFormatString(fmt, IM_ARRAYSIZE(fmt), "%%s: %s", float_format);
 
 	push	eax
-	push	OFFSET $SG124515
+	push	OFFSET $SG124520
 	lea	eax, DWORD PTR _fmt$1[ebp]
 	push	64					; 00000040H
 	push	eax
@@ -75045,7 +75045,7 @@ $LN2@Value:
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124516
+	push	OFFSET $SG124521
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 16					; 00000010H
 
@@ -75074,7 +75074,7 @@ _v$ = 12						; size = 4
 
 	push	DWORD PTR _v$[ebp]
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124505
+	push	OFFSET $SG124510
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 12					; 0000000cH
 
@@ -75101,7 +75101,7 @@ _v$ = 12						; size = 4
 
 	push	DWORD PTR _v$[ebp]
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124500
+	push	OFFSET $SG124505
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 12					; 0000000cH
 
@@ -75127,12 +75127,12 @@ _b$ = 12						; size = 1
 ; 10669:     Text("%s: %s", prefix, (b ? "true" : "false"));
 
 	cmp	BYTE PTR _b$[ebp], 0
-	mov	ecx, OFFSET $SG124494
-	mov	eax, OFFSET $SG124493
+	mov	ecx, OFFSET $SG124499
+	mov	eax, OFFSET $SG124498
 	cmove	eax, ecx
 	push	eax
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124495
+	push	OFFSET $SG124500
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 12					; 0000000cH
 
@@ -75738,7 +75738,7 @@ $LL6@ListBox:
 	sete	BYTE PTR _item_selected$2[ebp]
 	call	DWORD PTR _items_getter$[ebp]
 	test	al, al
-	mov	ecx, OFFSET $SG123960
+	mov	ecx, OFFSET $SG123965
 
 ; 9805 :                 item_text = "*Unknown item*";
 ; 9806 : 
@@ -77001,7 +77001,7 @@ _ptr_id$ = 8						; size = 4
 ; 10648:     PushID(ptr_id ? ptr_id : (const void*)"#TreePush");
 
 	mov	eax, DWORD PTR _ptr_id$[ebp]
-	mov	ecx, OFFSET $SG124481
+	mov	ecx, OFFSET $SG124486
 	test	eax, eax
 	cmovne	ecx, eax
 	pop	esi
@@ -77064,7 +77064,7 @@ _str_id$ = 8						; size = 4
 ; 10640:     PushID(str_id ? str_id : "#TreePush");
 
 	mov	eax, DWORD PTR _str_id$[ebp]
-	mov	ecx, OFFSET $SG124475
+	mov	ecx, OFFSET $SG124480
 	test	eax, eax
 	cmovne	ecx, eax
 	pop	esi
@@ -77585,7 +77585,7 @@ _display_format$ = 28					; size = 4
 
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	mov	ecx, OFFSET $SG122018
+	mov	ecx, OFFSET $SG122023
 	cmovne	ecx, eax
 	lea	eax, DWORD PTR _v_f$[ebp]
 	movd	xmm0, DWORD PTR [esi]
@@ -77923,7 +77923,7 @@ $LN4@VSliderFlo:
 ; 7702 :     int decimal_precision = ParseFormatPrecision(display_format, 3);
 
 	mov	eax, DWORD PTR _display_format$[ebp]
-	mov	ecx, OFFSET $SG121974
+	mov	ecx, OFFSET $SG121979
 	test	eax, eax
 	push	3
 	cmovne	ecx, eax
@@ -78242,7 +78242,7 @@ _display_format$ = 24					; size = 4
 
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	mov	ecx, OFFSET $SG122002
+	mov	ecx, OFFSET $SG122007
 	cmovne	ecx, eax
 	lea	eax, DWORD PTR _v_f$[ebp]
 	movd	xmm0, DWORD PTR [esi]
@@ -78300,7 +78300,7 @@ _v_degrees_max$ = 20					; size = 4
 	lea	eax, DWORD PTR _v_deg$[ebp]
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	push	OFFSET $SG121987
+	push	OFFSET $SG121992
 	movss	xmm0, DWORD PTR [esi]
 	sub	esp, 8
 	mulss	xmm0, DWORD PTR __real@42652ee0
@@ -78756,7 +78756,7 @@ $LN4@SliderFloa:
 ; 7644 :     int decimal_precision = ParseFormatPrecision(display_format, 3);
 
 	mov	eax, DWORD PTR _display_format$[ebp]
-	mov	ecx, OFFSET $SG121932
+	mov	ecx, OFFSET $SG121937
 	test	eax, eax
 	push	3
 	cmovne	ecx, eax
@@ -79097,7 +79097,7 @@ _extra_flags$ = 24					; size = 4
 ; 9370 :     // Hexadecimal input provided as a convenience but the flag name is awkward. Typically you'd use InputText() to parse your own data, if you want to handle prefixes.
 ; 9371 :     const char* scalar_format = (extra_flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%08X" : "%d";
 
-	mov	ecx, OFFSET $SG123642
+	mov	ecx, OFFSET $SG123647
 
 ; 9372 :     return InputScalarEx(label, ImGuiDataType_Int, (void*)v, (void*)(step>0.0f ? &step : NULL), (void*)(step_fast>0.0f ? &step_fast : NULL), scalar_format, extra_flags);
 
@@ -79105,7 +79105,7 @@ _extra_flags$ = 24					; size = 4
 	xorps	xmm1, xmm1
 	push	eax
 	test	al, 2
-	mov	eax, OFFSET $SG123641
+	mov	eax, OFFSET $SG123646
 	cvtdq2ps xmm0, xmm0
 	cmove	eax, ecx
 	xor	ecx, ecx
@@ -79253,9 +79253,9 @@ _extra_flags$ = 28					; size = 4
 
 ; 9362 :         strcpy(display_format, "%f");      // Ideally we'd have a minimum decimal precision of 1 to visually denote that this is a float, while hiding non-significant digits? %f doesn't have a minimum of 1
 
-	mov	ax, WORD PTR $SG123628
+	mov	ax, WORD PTR $SG123633
 	mov	WORD PTR _display_format$[ebp], ax
-	mov	al, BYTE PTR $SG123628+2
+	mov	al, BYTE PTR $SG123633+2
 	mov	BYTE PTR _display_format$[ebp+2], al
 
 ; 9363 :     else
@@ -79266,7 +79266,7 @@ $LN2@InputFloat:
 ; 9364 :         ImFormatString(display_format, IM_ARRAYSIZE(display_format), "%%.%df", decimal_precision);
 
 	push	eax
-	push	OFFSET $SG123629
+	push	OFFSET $SG123634
 	lea	eax, DWORD PTR _display_format$[ebp]
 	push	16					; 00000010H
 	push	eax
@@ -79514,7 +79514,7 @@ $LN5@DragIntRan:
 	push	ecx
 	movss	DWORD PTR [esp], xmm0
 	push	DWORD PTR _v_current_min$[ebp]
-	push	OFFSET $SG122323
+	push	OFFSET $SG122328
 	call	?DragInt@ImGui@@YA_NPBDPAHMHH0@Z	; ImGui::DragInt
 	mov	BYTE PTR _value_changed$1$[ebp], al
 
@@ -79563,7 +79563,7 @@ $LN7@DragIntRan:
 	push	ecx
 	movss	DWORD PTR [esp], xmm0
 	push	ebx
-	push	OFFSET $SG122324
+	push	OFFSET $SG122329
 	call	?DragInt@ImGui@@YA_NPBDPAHMHH0@Z	; ImGui::DragInt
 	mov	bl, BYTE PTR _value_changed$1$[ebp]
 	or	bl, al
@@ -79758,7 +79758,7 @@ _display_format$ = 28					; size = 4
 
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	mov	ecx, OFFSET $SG122266
+	mov	ecx, OFFSET $SG122271
 	cmovne	ecx, eax
 	lea	eax, DWORD PTR _v_f$[ebp]
 	movd	xmm0, DWORD PTR [esi]
@@ -79903,7 +79903,7 @@ $LN6@DragFloatR:
 	movss	xmm0, DWORD PTR _v_speed$[ebp]
 	movss	DWORD PTR [esp], xmm0
 	push	ebx
-	push	OFFSET $SG122249
+	push	OFFSET $SG122254
 	call	?DragFloat@ImGui@@YA_NPBDPAMMMM0M@Z	; ImGui::DragFloat
 	mov	BYTE PTR _value_changed$1$[ebp], al
 
@@ -79953,7 +79953,7 @@ $LN11@DragFloatR:
 	movss	xmm0, DWORD PTR _v_speed$[ebp]
 	movss	DWORD PTR [esp], xmm0
 	push	esi
-	push	OFFSET $SG122250
+	push	OFFSET $SG122255
 	call	?DragFloat@ImGui@@YA_NPBDPAMMMM0M@Z	; ImGui::DragFloat
 	mov	bl, BYTE PTR _value_changed$1$[ebp]
 	or	bl, al
@@ -80455,7 +80455,7 @@ $LN4@DragFloat:
 ; 7953 :     int decimal_precision = ParseFormatPrecision(display_format, 3);
 
 	mov	eax, DWORD PTR _display_format$[ebp]
-	mov	ecx, OFFSET $SG122179
+	mov	ecx, OFFSET $SG122184
 	test	eax, eax
 	push	3
 	cmovne	ecx, eax
@@ -81021,7 +81021,7 @@ $LN17@ProgressBa:
 	addss	xmm0, DWORD PTR __real@3c23d70a
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG122518
+	push	OFFSET $SG122523
 	push	32					; 00000020H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -81761,7 +81761,7 @@ $LN41@ColorEdit4:
 	push	DWORD PTR _i$[ebp+8]
 	push	DWORD PTR _i$[ebp+4]
 	push	DWORD PTR _i$[ebp]
-	push	OFFSET $SG124242
+	push	OFFSET $SG124247
 	push	64					; 00000040H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -81777,7 +81777,7 @@ $LN20@ColorEdit4:
 	push	DWORD PTR _i$[ebp+8]
 	push	DWORD PTR _i$[ebp+4]
 	push	DWORD PTR _i$[ebp]
-	push	OFFSET $SG124243
+	push	OFFSET $SG124248
 	push	64					; 00000040H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -81800,7 +81800,7 @@ $LN21@ColorEdit4:
 	push	64					; 00000040H
 	lea	eax, DWORD PTR _buf$1[ebp]
 	push	eax
-	push	OFFSET $SG124245
+	push	OFFSET $SG124250
 	call	?InputText@ImGui@@YA_NPBDPADIHP6AHPAUImGuiTextEditCallbackData@@@ZPAX@Z ; ImGui::InputText
 	add	esp, 28					; 0000001cH
 	test	al, al
@@ -81861,7 +81861,7 @@ $LN124@ColorEdit4:
 	push	eax
 	lea	eax, DWORD PTR _i$[ebp]
 	push	eax
-	push	OFFSET $SG124249
+	push	OFFSET $SG124254
 	push	ecx
 	call	_sscanf
 	add	esp, 24					; 00000018H
@@ -81882,7 +81882,7 @@ $LN24@ColorEdit4:
 	push	eax
 	lea	eax, DWORD PTR _i$[ebp]
 	push	eax
-	push	OFFSET $SG124250
+	push	OFFSET $SG124255
 	push	ecx
 	call	_sscanf
 	add	esp, 20					; 00000014H
@@ -81922,12 +81922,12 @@ $LN16@ColorEdit4:
 
 ; 10139:             const char* ids[4] = { "##X", "##Y", "##Z", "##W" };
 
-	mov	DWORD PTR _ids$3[ebp], OFFSET $SG124221
-	mov	DWORD PTR _ids$3[ebp+4], OFFSET $SG124222
+	mov	DWORD PTR _ids$3[ebp], OFFSET $SG124226
+	mov	DWORD PTR _ids$3[ebp+4], OFFSET $SG124227
 	subss	xmm3, xmm0
-	mov	DWORD PTR _ids$3[ebp+8], OFFSET $SG124223
+	mov	DWORD PTR _ids$3[ebp+8], OFFSET $SG124228
 	movaps	xmm0, xmm2
-	mov	DWORD PTR _ids$3[ebp+12], OFFSET $SG124224
+	mov	DWORD PTR _ids$3[ebp+12], OFFSET $SG124229
 	mulss	xmm0, xmm4
 	push	0
 	push	0
@@ -81937,29 +81937,29 @@ $LN16@ColorEdit4:
 ; 10141:             {
 ; 10142:                 {   "%3.0f",   "%3.0f",   "%3.0f",   "%3.0f" },
 
-	mov	DWORD PTR _fmt_table$2[ebp], OFFSET $SG124225
+	mov	DWORD PTR _fmt_table$2[ebp], OFFSET $SG124230
 	subss	xmm1, xmm0
-	mov	DWORD PTR _fmt_table$2[ebp+4], OFFSET $SG124226
+	mov	DWORD PTR _fmt_table$2[ebp+4], OFFSET $SG124231
 	movd	xmm0, ebx
 	cvtdq2ps xmm0, xmm0
-	push	OFFSET $SG124220
-	mov	DWORD PTR _fmt_table$2[ebp+8], OFFSET $SG124227
-	mov	DWORD PTR _fmt_table$2[ebp+12], OFFSET $SG124228
+	push	OFFSET $SG124225
+	mov	DWORD PTR _fmt_table$2[ebp+8], OFFSET $SG124232
+	mov	DWORD PTR _fmt_table$2[ebp+12], OFFSET $SG124233
 
 ; 10143:                 { "R:%3.0f", "G:%3.0f", "B:%3.0f", "A:%3.0f" },
 
-	mov	DWORD PTR _fmt_table$2[ebp+16], OFFSET $SG124229
-	mov	DWORD PTR _fmt_table$2[ebp+20], OFFSET $SG124230
+	mov	DWORD PTR _fmt_table$2[ebp+16], OFFSET $SG124234
+	mov	DWORD PTR _fmt_table$2[ebp+20], OFFSET $SG124235
 	divss	xmm1, xmm0
-	mov	DWORD PTR _fmt_table$2[ebp+24], OFFSET $SG124231
-	mov	DWORD PTR _fmt_table$2[ebp+28], OFFSET $SG124232
+	mov	DWORD PTR _fmt_table$2[ebp+24], OFFSET $SG124236
+	mov	DWORD PTR _fmt_table$2[ebp+28], OFFSET $SG124237
 
 ; 10144:                 { "H:%3.0f", "S:%3.0f", "V:%3.0f", "A:%3.0f" }
 
-	mov	DWORD PTR _fmt_table$2[ebp+32], OFFSET $SG124233
-	mov	DWORD PTR _fmt_table$2[ebp+36], OFFSET $SG124234
-	mov	DWORD PTR _fmt_table$2[ebp+40], OFFSET $SG124235
-	mov	DWORD PTR _fmt_table$2[ebp+44], OFFSET $SG124236
+	mov	DWORD PTR _fmt_table$2[ebp+32], OFFSET $SG124238
+	mov	DWORD PTR _fmt_table$2[ebp+36], OFFSET $SG124239
+	mov	DWORD PTR _fmt_table$2[ebp+40], OFFSET $SG124240
+	mov	DWORD PTR _fmt_table$2[ebp+44], OFFSET $SG124241
 	cvttss2si eax, xmm1
 	movd	xmm0, eax
 	cvtdq2ps xmm0, xmm0
@@ -82249,7 +82249,7 @@ $LN86@ColorEdit4:
 	movsd	QWORD PTR [esp+8], xmm0
 	cvtps2pd xmm0, xmm4
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG124253
+	push	OFFSET $SG124258
 	call	?SetTooltip@ImGui@@YAXPBDZZ		; ImGui::SetTooltip
 	add	esp, 52					; 00000034H
 $LN27@ColorEdit4:
@@ -82274,10 +82274,10 @@ $LN27@ColorEdit4:
 
 	push	64					; 00000040H
 	lea	eax, DWORD PTR $T4[ebp]
-	mov	DWORD PTR _button_titles$5[ebp], OFFSET $SG124255
+	mov	DWORD PTR _button_titles$5[ebp], OFFSET $SG124260
 	push	eax
-	mov	DWORD PTR _button_titles$5[ebp+4], OFFSET $SG124256
-	mov	DWORD PTR _button_titles$5[ebp+8], OFFSET $SG124257
+	mov	DWORD PTR _button_titles$5[ebp+4], OFFSET $SG124261
+	mov	DWORD PTR _button_titles$5[ebp+8], OFFSET $SG124262
 	push	DWORD PTR _button_titles$5[ebp+ebx*4]
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
@@ -82589,7 +82589,7 @@ $LN2@ColorButto:
 
 	mov	ecx, esi
 	push	0
-	push	OFFSET $SG124138
+	push	OFFSET $SG124143
 	call	?GetID@ImGuiWindow@@QAEIPBD0@Z		; ImGuiWindow::GetID
 
 ; 10067:     const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(square_size + style.FramePadding.y*2, square_size + (small_height ? 0 : style.FramePadding.y*2)));
@@ -82860,7 +82860,7 @@ $LN43@ColorButto:
 	movss	xmm0, DWORD PTR [esi]
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG124141
+	push	OFFSET $SG124146
 	call	?SetTooltip@ImGui@@YAXPBDZZ		; ImGui::SetTooltip
 	add	esp, 52					; 00000034H
 $LN4@ColorButto:
@@ -83945,7 +83945,7 @@ $LL4@Combo:
 	sete	BYTE PTR _item_selected$18[ebp]
 	call	DWORD PTR _items_getter$[ebp]
 	test	al, al
-	mov	ecx, OFFSET $SG123824
+	mov	ecx, OFFSET $SG123829
 
 ; 9611 :                     item_text = "*Unknown item*";
 ; 9612 :                 if (Selectable(item_text, item_selected))
@@ -84862,7 +84862,7 @@ $LN7@RadioButto:
 
 ; 8432 :         LogRenderedText(text_bb.GetTL(), active ? "(x)" : "( )");
 
-	mov	ecx, OFFSET $SG122624
+	mov	ecx, OFFSET $SG122629
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
 ; 248  :     ImVec2      GetTL() const                   { return Min; }                   // Top-left
@@ -84882,7 +84882,7 @@ $LN7@RadioButto:
 
 ; 8432 :         LogRenderedText(text_bb.GetTL(), active ? "(x)" : "( )");
 
-	mov	eax, OFFSET $SG122623
+	mov	eax, OFFSET $SG122628
 	cmove	eax, ecx
 	push	0
 	push	eax
@@ -85630,8 +85630,8 @@ $LN7@Checkbox:
 ; 8359 :         LogRenderedText(text_bb.GetTL(), *v ? "[x]" : "[ ]");
 
 	cmp	BYTE PTR [edi], 0
-	mov	ecx, OFFSET $SG122565
-	mov	eax, OFFSET $SG122564
+	mov	ecx, OFFSET $SG122570
+	mov	eax, OFFSET $SG122569
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
 ; 248  :     ImVec2      GetTL() const                   { return Min; }                   // Top-left
@@ -85801,7 +85801,7 @@ $LN2@ImageButto:
 
 	mov	ecx, esi
 	push	0
-	push	OFFSET $SG121264
+	push	OFFSET $SG121269
 	call	?GetID@ImGuiWindow@@QAEIPBD0@Z		; ImGuiWindow::GetID
 	mov	ebx, eax
 	mov	DWORD PTR _id$[ebp], ebx
@@ -89825,7 +89825,7 @@ $LN3@Columns:
 
 ; 10581:     window->DC.ColumnsSetId = window->GetID(id ? id : "columns");
 
-	mov	eax, OFFSET $SG124458
+	mov	eax, OFFSET $SG124463
 	test	esi, esi
 	mov	ecx, edi
 	cmovne	eax, esi
@@ -91816,7 +91816,7 @@ $LN5@Separator:
 
 ; 10268:         LogText(IM_NEWLINE "--------------------------------");
 
-	push	OFFSET $SG124284
+	push	OFFSET $SG124289
 	call	?LogText@ImGui@@YAXPBDZZ		; ImGui::LogText
 	add	esp, 4
 $LN7@Separator:
@@ -94915,7 +94915,7 @@ _TEXT	SEGMENT
 ; 5367 :     Columns(1, "#CloseColumns");
 
 	push	1
-	push	OFFSET $SG120227
+	push	OFFSET $SG120232
 	mov	edi, DWORD PTR [esi+6240]
 	push	1
 	call	?Columns@ImGui@@YAXHPBD_N@Z		; ImGui::Columns
@@ -98176,7 +98176,7 @@ $LN80@Begin:
 ; 5084 :                 const ImGuiID resize_id = window->GetID("#RESIZE");
 
 	push	0
-	push	OFFSET $SG120175
+	push	OFFSET $SG120180
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -100802,7 +100802,7 @@ $LN115@Begin:
 ; 5265 :                 ImGuiID id = window->GetID("#COLLAPSE");
 
 	push	0
-	push	OFFSET $SG120212
+	push	OFFSET $SG120217
 	mov	ecx, edi
 	call	?GetID@ImGuiWindow@@QAEIPBD0@Z		; ImGuiWindow::GetID
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
@@ -101042,7 +101042,7 @@ $LN874@Begin:
 	subss	xmm1, xmm3
 	push	eax
 	push	0
-	push	OFFSET $SG120216
+	push	OFFSET $SG120221
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
 ; 114  : static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x+rhs.x, lhs.y+rhs.y); }
@@ -101797,7 +101797,7 @@ _p_open$ = 8						; size = 4
 
 	push	0
 	push	DWORD PTR _p_open$[ebp]
-	push	OFFSET $SG124700
+	push	OFFSET $SG124705
 	call	?Begin@ImGui@@YA_NPBDPA_NH@Z		; ImGui::Begin
 	add	esp, 12					; 0000000cH
 	test	al, al
@@ -101810,7 +101810,7 @@ _p_open$ = 8						; size = 4
 	push	edi
 	call	?GetVersion@ImGui@@YAPBDXZ		; ImGui::GetVersion
 	push	eax
-	push	OFFSET $SG124701
+	push	OFFSET $SG124706
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10823:         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -101824,7 +101824,7 @@ _p_open$ = 8						; size = 4
 	divss	xmm0, xmm1
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG124702
+	push	OFFSET $SG124707
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10824:         ImGui::Text("%d vertices, %d indices (%d triangles)", ImGui::GetIO().MetricsRenderVertices, ImGui::GetIO().MetricsRenderIndices, ImGui::GetIO().MetricsRenderIndices / 3);
@@ -101840,7 +101840,7 @@ _p_open$ = 8						; size = 4
 	push	ecx
 	push	esi
 	push	DWORD PTR [edi+856]
-	push	OFFSET $SG124703
+	push	OFFSET $SG124708
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10825:         ImGui::Text("%d allocations", ImGui::GetIO().MetricsAllocs);
@@ -101848,21 +101848,21 @@ _p_open$ = 8						; size = 4
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	eax, DWORD PTR [eax+852]
 	push	eax
-	push	OFFSET $SG124704
+	push	OFFSET $SG124709
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10826:         ImGui::Text("sizeof(ImGuiContext) = %u, sizeof(ImGuiWindow) = %u", (int)sizeof(ImGuiContext), (int)sizeof(ImGuiWindow));
 
 	push	668					; 0000029cH
 	push	15192					; 00003b58H
-	push	OFFSET $SG124705
+	push	OFFSET $SG124710
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10827:         static bool show_clip_rects = true;
 ; 10828:         ImGui::Checkbox("Show clipping rectangles when hovering a ImDrawCmd", &show_clip_rects);
 
 	push	OFFSET ?show_clip_rects@?4??ShowMetricsWindow@ImGui@@YAXPA_N@Z@4_NA
-	push	OFFSET $SG124706
+	push	OFFSET $SG124711
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	add	esp, 64					; 00000040H
 
@@ -101962,7 +101962,7 @@ _p_open$ = 8						; size = 4
 
 ; 10917:         Funcs::NodeWindows(g.Windows, "Windows");
 
-	push	OFFSET $SG124707
+	push	OFFSET $SG124712
 	lea	eax, DWORD PTR [esi+6204]
 	push	eax
 	call	?NodeWindows@Funcs@?4??ShowMetricsWindow@ImGui@@YAXPA_N@Z@SAXAAV?$ImVector@PAUImGuiWindow@@@@PBD@Z ; `ImGui::ShowMetricsWindow'::`5'::Funcs::NodeWindows
@@ -101970,8 +101970,8 @@ _p_open$ = 8						; size = 4
 ; 10918:         if (ImGui::TreeNode("DrawList", "Active DrawLists (%d)", g.RenderDrawLists[0].Size))
 
 	push	DWORD PTR [esi+6616]
-	push	OFFSET $SG124709
-	push	OFFSET $SG124710
+	push	OFFSET $SG124714
+	push	OFFSET $SG124715
 	call	?TreeNode@ImGui@@YA_NPBD0ZZ		; ImGui::TreeNode
 	add	esp, 20					; 00000014H
 	test	al, al
@@ -101989,7 +101989,7 @@ $LL4@ShowMetric:
 ; 10921:                 Funcs::NodeDrawList(g.RenderDrawLists[0][i], "DrawList");
 
 	mov	eax, DWORD PTR [esi+6624]
-	push	OFFSET $SG124711
+	push	OFFSET $SG124716
 	push	DWORD PTR [eax+edi*4]
 	call	?NodeDrawList@Funcs@?4??ShowMetricsWindow@ImGui@@YAXPA_N@Z@SAXPAUImDrawList@@PBD@Z ; `ImGui::ShowMetricsWindow'::`5'::Funcs::NodeDrawList
 	inc	edi
@@ -102007,8 +102007,8 @@ $LN9@ShowMetric:
 ; 10924:         if (ImGui::TreeNode("Popups", "Open Popups Stack (%d)", g.OpenPopupStack.Size))
 
 	push	DWORD PTR [esi+6356]
-	push	OFFSET $SG124713
-	push	OFFSET $SG124714
+	push	OFFSET $SG124718
+	push	OFFSET $SG124719
 	call	?TreeNode@ImGui@@YA_NPBD0ZZ		; ImGui::TreeNode
 	add	esp, 12					; 0000000cH
 	test	al, al
@@ -102035,32 +102035,32 @@ $LL7@ShowMetric:
 	test	eax, eax
 	je	SHORT $LN13@ShowMetric
 	test	DWORD PTR [eax+8], 134217728		; 08000000H
-	mov	edx, OFFSET $SG124715
+	mov	edx, OFFSET $SG124720
 	jne	SHORT $LN14@ShowMetric
 $LN13@ShowMetric:
-	mov	edx, OFFSET $SG124716
+	mov	edx, OFFSET $SG124721
 $LN14@ShowMetric:
 	test	eax, eax
 	je	SHORT $LN15@ShowMetric
 	test	DWORD PTR [eax+8], 4194304		; 00400000H
-	mov	ecx, OFFSET $SG124717
+	mov	ecx, OFFSET $SG124722
 	jne	SHORT $LN16@ShowMetric
 $LN15@ShowMetric:
-	mov	ecx, OFFSET $SG124718
+	mov	ecx, OFFSET $SG124723
 $LN16@ShowMetric:
 	test	eax, eax
 	je	SHORT $LN17@ShowMetric
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN18@ShowMetric
 $LN17@ShowMetric:
-	mov	eax, OFFSET $SG124719
+	mov	eax, OFFSET $SG124724
 $LN18@ShowMetric:
 	push	edx
 	push	ecx
 	push	eax
 	mov	eax, DWORD PTR [esi+6364]
 	push	DWORD PTR [edi+eax]
-	push	OFFSET $SG124720
+	push	OFFSET $SG124725
 	call	?BulletText@ImGui@@YAXPBDZZ		; ImGui::BulletText
 	inc	ebx
 	add	esp, 20					; 00000014H
@@ -102079,7 +102079,7 @@ $LN10@ShowMetric:
 ; 10932:         }
 ; 10933:         if (ImGui::TreeNode("Basic state"))
 
-	push	OFFSET $SG124722
+	push	OFFSET $SG124727
 	call	?TreeNode@ImGui@@YA_NPBD@Z		; ImGui::TreeNode
 	add	esp, 4
 	test	al, al
@@ -102090,18 +102090,18 @@ $LN10@ShowMetric:
 ; 10936:             ImGui::Text("HoveredWindow: '%s'", g.HoveredWindow ? g.HoveredWindow->Name : "NULL");
 
 	mov	eax, DWORD PTR [esi+6244]
-	mov	DWORD PTR _input_source_names$1[ebp], OFFSET $SG124723
-	mov	DWORD PTR _input_source_names$1[ebp+4], OFFSET $SG124724
-	mov	DWORD PTR _input_source_names$1[ebp+8], OFFSET $SG124725
+	mov	DWORD PTR _input_source_names$1[ebp], OFFSET $SG124728
+	mov	DWORD PTR _input_source_names$1[ebp+4], OFFSET $SG124729
+	mov	DWORD PTR _input_source_names$1[ebp+8], OFFSET $SG124730
 	test	eax, eax
 	je	SHORT $LN19@ShowMetric
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN20@ShowMetric
 $LN19@ShowMetric:
-	mov	eax, OFFSET $SG124726
+	mov	eax, OFFSET $SG124731
 $LN20@ShowMetric:
 	push	eax
-	push	OFFSET $SG124727
+	push	OFFSET $SG124732
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10937:             ImGui::Text("HoveredRootWindow: '%s'", g.HoveredRootWindow ? g.HoveredRootWindow->Name : "NULL");
@@ -102113,17 +102113,17 @@ $LN20@ShowMetric:
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN22@ShowMetric
 $LN21@ShowMetric:
-	mov	eax, OFFSET $SG124728
+	mov	eax, OFFSET $SG124733
 $LN22@ShowMetric:
 	push	eax
-	push	OFFSET $SG124729
+	push	OFFSET $SG124734
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10938:             ImGui::Text("HoveredId: 0x%08X/0x%08X", g.HoveredId, g.HoveredIdPreviousFrame); // Data is "in-flight" so depending on when the Metrics window is called we may see current frame information or not
 
 	push	DWORD PTR [esi+6260]
 	push	DWORD PTR [esi+6252]
-	push	OFFSET $SG124730
+	push	OFFSET $SG124735
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10939:             ImGui::Text("ActiveId: 0x%08X/0x%08X, ActiveIdSource: %s", g.ActiveId, g.ActiveIdPreviousFrame, input_source_names[g.ActiveIdSource]);
@@ -102132,7 +102132,7 @@ $LN22@ShowMetric:
 	push	DWORD PTR _input_source_names$1[ebp+eax*4]
 	push	DWORD PTR [esi+6268]
 	push	DWORD PTR [esi+6264]
-	push	OFFSET $SG124731
+	push	OFFSET $SG124736
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10940:             ImGui::Text("ActiveIdWindow: '%s", g.ActiveIdWindow ? g.ActiveIdWindow->Name : "NULL");
@@ -102144,10 +102144,10 @@ $LN22@ShowMetric:
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN24@ShowMetric
 $LN23@ShowMetric:
-	mov	eax, OFFSET $SG124732
+	mov	eax, OFFSET $SG124737
 $LN24@ShowMetric:
 	push	eax
-	push	OFFSET $SG124733
+	push	OFFSET $SG124738
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10941:             ImGui::Text("NavWindow: '%s', NavId: 0x%08X, NavLayer: %d", g.NavWindow ? g.NavWindow->Name : "NULL", g.NavId, g.NavLayer);
@@ -102159,12 +102159,12 @@ $LN24@ShowMetric:
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN26@ShowMetric
 $LN25@ShowMetric:
-	mov	eax, OFFSET $SG124734
+	mov	eax, OFFSET $SG124739
 $LN26@ShowMetric:
 	push	DWORD PTR [esi+6444]
 	push	DWORD PTR [esi+6384]
 	push	eax
-	push	OFFSET $SG124735
+	push	OFFSET $SG124740
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	movss	xmm0, DWORD PTR [esi+6412]
 
@@ -102182,7 +102182,7 @@ $LN26@ShowMetric:
 	movss	xmm0, DWORD PTR [esi+6400]
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG124736
+	push	OFFSET $SG124741
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10943:             ImGui::Text("NavUsable: %d, NavActive: %d", g.IO.NavUsable, g.IO.NavActive);
@@ -102191,7 +102191,7 @@ $LN26@ShowMetric:
 	push	eax
 	movzx	eax, BYTE PTR [esi+848]
 	push	eax
-	push	OFFSET $SG124737
+	push	OFFSET $SG124742
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10944:             ImGui::Text("NavDisableHighlight: %d, NavDisableMouseHover: %d", g.NavDisableHighlight, g.NavDisableMouseHover);
@@ -102200,7 +102200,7 @@ $LN26@ShowMetric:
 	push	eax
 	movzx	eax, BYTE PTR [esi+6454]
 	push	eax
-	push	OFFSET $SG124738
+	push	OFFSET $SG124743
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 60					; 0000003cH
 
@@ -105195,7 +105195,7 @@ $LN212@NewFrame:
 
 	push	0
 	push	0
-	push	OFFSET $SG118738
+	push	OFFSET $SG118743
 	call	?Begin@ImGui@@YA_NPBDPA_NH@Z		; ImGui::Begin
 	add	esp, 20					; 00000014H
 
