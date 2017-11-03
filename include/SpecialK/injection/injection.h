@@ -64,7 +64,7 @@ SK_Inject_AcquireProcess (void);
 struct SK_InjectionRecord_s
 {
   struct {
-    wchar_t    name [MAX_PATH] = {  };
+    wchar_t    name [MAX_PATH] =  { 0 };
     DWORD      id              =    0;
     __time64_t inject          = 0ULL;
     __time64_t eject           = 0ULL;

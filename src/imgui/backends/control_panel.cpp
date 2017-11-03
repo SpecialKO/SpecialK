@@ -1964,20 +1964,39 @@ SK_ImGui_ControlPanel (void)
             int count = InterlockedAdd (&SK_InjectionRecord_s::count, 0UL);
             ImGui::BulletText   ("%lu injections since restart", count);
 
-#if 0
-           for (int i = 0; i < count; i++)
-           {
-             SK_InjectionRecord_s* record =
-               SK_Inject_GetRecord (i);
-           
-             ImGui::Text ( " pid %04x: [%ws] { %llu Frames }",
-                             record->process.id,
-                               record->process.name,
-                                 record->render.frames );
-           }
-#endif
 
-           ImGui::EndTooltip   ();
+            ImGui::BeginGroup ();
+            for (int i = 0; i < count; i++)
+            {
+              SK_InjectionRecord_s* record =
+                SK_Inject_GetRecord (i);
+            
+              ImGui::Text ( " pid %04x:  ", record->process.id );
+            }
+            ImGui::EndGroup   ();
+            ImGui::SameLine   ();
+            ImGui::BeginGroup ();
+            for (int i = 0; i < count; i++)
+            {
+              SK_InjectionRecord_s* record =
+                SK_Inject_GetRecord (i);
+            
+              ImGui::Text ( " [%ws]  ", record->process.name );
+            }
+            ImGui::EndGroup   ();
+            //ImGui::SameLine   ();
+            //ImGui::BeginGroup ();
+            //for (int i = 0; i < count; i++)
+            //{
+            //  SK_InjectionRecord_s* record =
+            //    SK_Inject_GetRecord (i);
+            //
+            //  ImGui::Text ( " { %llu Frames }", record->process.id == GetCurrentProcessId () ?
+            //                                      SK_GetFramesDrawn () :
+            //                                      record->render.frames );
+            //}
+            //ImGui::EndGroup  ();
+           ImGui::EndTooltip ();
          }
        }
        else
@@ -2498,6 +2517,9 @@ SK_ImGui_ControlPanel (void)
         {
           if (target_fps != 0.0f) // Negative zero... it exists and we don't want it.
             target_fps = -target_fps;
+
+          if (target_fps == 0.0f)
+            target_fps = 60.0f;
         }
 
         if (limit && ImGui::IsItemHovered ())

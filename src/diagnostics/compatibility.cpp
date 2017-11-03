@@ -1591,6 +1591,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
 
 extern volatile LONG SK_bypass_dialog_active;
+extern volatile LONG SK_bypass_dialog_tid;
                 HWND SK_bypass_dialog_hwnd;
 
 HRESULT
@@ -1633,12 +1634,13 @@ TaskDialogCallback (
                             SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
                             SWP_NOMOVE         | SWP_NOSIZE );
 
-    while (ReadAcquire (&SK_bypass_dialog_active) > 1)
+    while (ReadAcquire (&SK_bypass_dialog_active) > 1 && ReadAcquire (&SK_bypass_dialog_tid) != GetCurrentThreadId ())
       SleepEx (10, TRUE);
 
     SK_bypass_dialog_hwnd = hWnd;
 
     InterlockedIncrementAcquire (&SK_bypass_dialog_active);
+    InterlockedExchange         (&SK_bypass_dialog_tid, GetCurrentThreadId ());
   }
 
   if (uNotification == TDN_CREATED)
@@ -1650,6 +1652,7 @@ TaskDialogCallback (
   {
     SK_bypass_dialog_hwnd = nullptr;
     InterlockedDecrementRelease (&SK_bypass_dialog_active);
+    InterlockedExchange         (&SK_bypass_dialog_tid, 0);
   }
 
   return S_OK;
@@ -2061,6 +2064,8 @@ DWORD
 WINAPI
 SK_Bypass_CRT (LPVOID user)
 {
+  InterlockedExchange (&SK_bypass_dialog_tid, GetCurrentThreadId ());
+
   UNREFERENCED_PARAMETER (user);
 
   static BOOL     disable      = __bypass.disable;
@@ -2670,6 +2675,7 @@ SK_Bypass_CRT (LPVOID user)
     SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 
     InterlockedDecrement (&SK_bypass_dialog_active);
+    InterlockedExchange  (&SK_bypass_dialog_tid, 0);
 
     SK_ResumeThreads (suspended_tids);
   }
@@ -2792,6 +2798,7 @@ SK_BypassInject (void)
   __bypass.disable = 
     (GetFileAttributesW (__bypass.wszBlacklist) != INVALID_FILE_ATTRIBUTES);
 
+  InterlockedExchange  (&SK_bypass_dialog_tid, GetCurrentThreadId ());
   InterlockedIncrement (&SK_bypass_dialog_active);
 
   CreateThread ( nullptr,

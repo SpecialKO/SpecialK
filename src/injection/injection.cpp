@@ -30,23 +30,25 @@
 #include <Shlwapi.h>
 #include <time.h>
 
+SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 #pragma data_seg (".SK_Hooks")
 volatile HHOOK          g_hHookCBT    = nullptr;
 volatile HHOOK          g_hHookShell  = nullptr;
 volatile HANDLE         g_hShutdown   = nullptr;
 
-// TODO: Replace with interlocked linked-list instead of obliterating cache
-//         every time two processes try to walk this thing simultaneously.
-//
-                 LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { };
+                 LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { 0 };
 
-          SK_InjectionRecord_s __SK_InjectionHistory
-                                    [MAX_INJECTED_PROC_HISTORY] = { };
+    wchar_t    __SK_InjectionHistory_name     [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
+    DWORD      __SK_InjectionHistory_ids      [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+    __time64_t __SK_InjectionHistory_inject   [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+    __time64_t __SK_InjectionHistory_eject    [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
 
-       volatile LONG SK_InjectionRecord_s::count               = 0L;
-       volatile LONG SK_InjectionRecord_s::rollovers           = 0L;
+    SK_RenderAPI __SK_InjectionHistory_api    [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
+    ULONG64      __SK_InjectionHistory_frames [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
 
+       volatile LONG SK_InjectionRecord_s::count                 =  0L;
+       volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
 
 wchar_t whitelist_patterns [16 * MAX_PATH] = { 0 };
 int     whitelist_count                    =   0;
@@ -65,11 +67,18 @@ extern volatile LONG __SK_HookContextOwner;
 SK_InjectionRecord_s*
 SK_Inject_GetRecord (int idx)
 {
+  wcsncpy (__SK_InjectionHistory [idx].process.name,   &__SK_InjectionHistory_name   [idx * MAX_PATH], MAX_PATH - 1);
+           __SK_InjectionHistory [idx].process.id     = __SK_InjectionHistory_ids    [idx];
+           __SK_InjectionHistory [idx].process.inject = __SK_InjectionHistory_inject [idx];
+           __SK_InjectionHistory [idx].process.eject  = __SK_InjectionHistory_eject  [idx];
+           
+           __SK_InjectionHistory [idx].render.api     = __SK_InjectionHistory_api    [idx];
+           __SK_InjectionHistory [idx].render.frames  = __SK_InjectionHistory_frames [idx];
+
   return &__SK_InjectionHistory [idx];
 }
 
-
-SK_InjectionRecord_s* local_record = nullptr;
+LONG local_record = 0;
 
 
 void
@@ -111,12 +120,12 @@ SK_Inject_ReleaseProcess (void)
     InterlockedCompareExchange (&g_sHookedPID, 0, GetCurrentProcessId ());
   }
 
-  if (local_record != nullptr)
+  //if (local_record != 0)
   {
-    _time64 (&local_record->process.eject);
+    _time64 (&__SK_InjectionHistory_eject [local_record]);
 
-    local_record->render.api    = SK_GetCurrentRenderBackend ().api;
-    local_record->render.frames = SK_GetFramesDrawn ();
+    __SK_InjectionHistory_api    [local_record] = SK_GetCurrentRenderBackend ().api;
+    __SK_InjectionHistory_frames [local_record] = SK_GetFramesDrawn          ();
 
     //local_record.input.xinput  = SK_Input_
     // ...
@@ -152,19 +161,21 @@ SK_Inject_AcquireProcess (void)
       }
 
       local_record =
-        &__SK_InjectionHistory [injection_idx - 1];
+        injection_idx - 1;
 
-                local_record->process.id = GetCurrentProcessId ();
-      _time64 (&local_record->process.inject);
-      wcsncpy ( local_record->process.name,
-                  SK_GetModuleFullName (GetModuleHandle (nullptr)).c_str (),
-                    MAX_PATH - 1 );
+                __SK_InjectionHistory_ids    [local_record] = GetCurrentProcessId ();
+      _time64 (&__SK_InjectionHistory_inject [local_record]);
 
-      PathStripPath (local_record->process.name);
+      wchar_t wszName [MAX_PATH] = { 0 };
+
+      wcsncpy (wszName, SK_GetModuleFullName (GetModuleHandle (nullptr)).c_str (),
+                    MAX_PATH - 1);
+      PathStripPath (wszName);
+
+      wcsncpy (&__SK_InjectionHistory_name [local_record * MAX_PATH], wszName, MAX_PATH - 1);
 
       // Hold a reference so that removing the CBT hook doesn't crash the software
-      GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                          GET_MODULE_HANDLE_EX_FLAG_PIN,
+      GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                             (LPCWSTR)&SK_Inject_AcquireProcess,
                                &hModHookInstance );
 

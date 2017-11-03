@@ -218,10 +218,22 @@ extern iSK_Logger steam_log;
 extern iSK_Logger budget_log;
 extern iSK_Logger game_debug;
 
+extern volatile LONG __SK_DLL_Ending;
+extern volatile LONG __SK_DLL_Attached;
+
 LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
+  // Sadly, if this ever happens, there's no way to report the problem, so just
+  //   terminate with exit code = -1.
+  if ( ReadAcquire (&__SK_DLL_Ending)   != 0 ||
+       ReadAcquire (&__SK_DLL_Attached) == 0 )
+  {
+    TerminateProcess (GetCurrentProcess (), -1);
+  }
+
+
   bool scaleform = false;
 
 #if 1

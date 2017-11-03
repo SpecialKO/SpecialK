@@ -2557,6 +2557,8 @@ ___formal$ = 20						; size = 1
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\ini.cpp
 
+; 942  : }
+
 	mov	DWORD PTR [esi], OFFSET ??_7iSK_INISection@@6B@
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
 
@@ -4344,6 +4346,8 @@ _<_Val_2>$ = 24						; size = 4
 	test	ecx, ecx
 	je	SHORT $LN54@Buynode
 ; File c:\users\andon\source\repos\specialk\src\ini.cpp
+
+; 942  : }
 
 	mov	eax, DWORD PTR _<_Val_1>$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple

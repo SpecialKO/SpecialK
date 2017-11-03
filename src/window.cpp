@@ -3021,6 +3021,7 @@ bool
 SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 {
   LRESULT lRet = 0;
+
   if ( SK_ImGui_HandlesMessage (lpMsg, remove, peek) )
   {
     if (remove)
@@ -5503,6 +5504,8 @@ SK_MakeWindowHook (LPVOID class_proc, LPVOID wnd_proc)
   SK_ApplyQueuedHooks ();
 }
 
+extern volatile LONG SK_bypass_dialog_tid;
+
 HWND
 WINAPI
 CreateWindowExA_Detour (
@@ -5528,17 +5531,17 @@ CreateWindowExA_Detour (
 
   if ((dwStyle & WS_POPUP))
   {
-    if (ReadAcquire (&SK_bypass_dialog_active))
+    if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
     {
       if (IsGUIThread (FALSE))
       {
-        while (ReadAcquire ((&SK_bypass_dialog_active)))
+        while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
           MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
       }
 
       else
       {
-        while (ReadAcquire ((&SK_bypass_dialog_active)))
+        while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
           WaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
       }
     }
@@ -5607,17 +5610,17 @@ CreateWindowExW_Detour(
 
   if ((dwStyle & WS_POPUP))
   {
-    if (ReadAcquire (&SK_bypass_dialog_active))
+    if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
     {
       if (IsGUIThread (FALSE))
       {
-        while (ReadAcquire ((&SK_bypass_dialog_active)))
+        while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
           MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
       }
 
       else
       {
-        while (ReadAcquire ((&SK_bypass_dialog_active)))
+        while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
           WaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
       }
     }

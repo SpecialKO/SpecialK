@@ -453,25 +453,94 @@ $SG260405 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 $SG260417 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG260503 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG260507 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260506 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG260509 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+4
+$SG260510 DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'l', 00H, 'i', 00H
+	DB	'c', 00H, 't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'l'
+	DB	00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'D', 00H
+	DB	'L', 00H, 'L', 00H, 's', 00H, ' ', 00H, 'd', 00H, 'e', 00H, 't'
+	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H
+	DB	'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e'
+	DB	00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'K', 00H
+	DB	00H, 00H
+	ORG $+4
+$SG260511 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
+	DB	' ', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e'
+	DB	00H, ' ', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'o', 00H, 'r', 00H, ' '
+	DB	00H, 'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'a'
+	DB	00H, 'n', 00H, 'd', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 's', 00H
+	DB	't', 00H, 'a', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'y', 00H, 'o'
+	DB	00H, 'u', 00H, 'r', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H
+	DB	'e', 00H, ',', 00H, ' ', 00H, 'i', 00H, 't', 00H, ' ', 00H, 'i'
+	DB	00H, 's', 00H, ' ', 00H, 'n', 00H, 'o', 00H, 't', 00H, ' ', 00H
+	DB	'p', 00H, 'o', 00H, 's', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l'
+	DB	00H, 'e', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'p', 00H
+	DB	'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 't', 00H, 'h', 00H, 'i'
+	DB	00H, 's', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+	DB	' ', 00H, 'w', 00H, 'i', 00H, 't', 00H, 'h', 00H, ' ', 00H, 't'
+	DB	00H, 'w', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'p', 00H
+	DB	'i', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' '
+	DB	00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 'j'
+	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H
+	DB	':', 00H, ')', 00H, 00H, 00H
+	ORG $+2
+$SG260514 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260509 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG260517 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260512 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG260520 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260515 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG260523 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260519 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG260527 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG260529 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+6
+$SG260530 DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'l', 00H, 'i', 00H
+	DB	'c', 00H, 't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'l'
+	DB	00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'D', 00H
+	DB	'L', 00H, 'L', 00H, 's', 00H, ' ', 00H, 'd', 00H, 'e', 00H, 't'
+	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H
+	DB	'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e'
+	DB	00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'K', 00H
+	DB	00H, 00H
 	ORG $+4
-$SG260545 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG260531 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
+	DB	' ', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e'
+	DB	00H, ' ', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'o', 00H, 'r', 00H, ' '
+	DB	00H, 'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'a'
+	DB	00H, 'n', 00H, 'd', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 's', 00H
+	DB	't', 00H, 'a', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'y', 00H, 'o'
+	DB	00H, 'u', 00H, 'r', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H
+	DB	'e', 00H, ',', 00H, ' ', 00H, 'i', 00H, 't', 00H, ' ', 00H, 'i'
+	DB	00H, 's', 00H, ' ', 00H, 'n', 00H, 'o', 00H, 't', 00H, ' ', 00H
+	DB	'p', 00H, 'o', 00H, 's', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l'
+	DB	00H, 'e', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'p', 00H
+	DB	'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 't', 00H, 'h', 00H, 'i'
+	DB	00H, 's', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+	DB	' ', 00H, 'w', 00H, 'i', 00H, 't', 00H, 'h', 00H, ' ', 00H, 't'
+	DB	00H, 'w', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'p', 00H
+	DB	'i', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' '
+	DB	00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 'j'
+	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H
+	DB	':', 00H, ')', 00H, 00H, 00H
+	ORG $+2
+$SG260557 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'U', 00H, 'N', 00H
 	DB	'C', 00H, 'L', 00H, 'E', 00H, 'A', 00H, 'N', 00H, ' ', 00H, 'D'
@@ -479,16 +548,16 @@ $SG260545 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'c', 00H, 'e', 00H, 's', 00H, 's', 00H, ' ', 00H, 'D', 00H, 'e'
 	DB	00H, 't', 00H, 'a', 00H, 'c', 00H, 'h', 00H, ' ', 00H, '!', 00H
 	DB	'!', 00H, ' ', 00H, '*', 00H, '*', 00H, 00H, 00H
-$SG260589 DB	'QueryPerformanceCounter', 00H
-$SG260590 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG260601 DB	'QueryPerformanceCounter', 00H
+$SG260602 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260598 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG260610 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '6', 00H, '4', 00H, '.', 00H, 'p', 00H, 'i'
 	DB	00H, 'd', 00H, 00H, 00H
 	ORG $+2
-$SG260599 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG260611 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p', 00H, 'i'
 	DB	00H, 'd', 00H, 00H, 00H
 CONST	ENDS
@@ -1424,6 +1493,7 @@ EXTRN	?SK_GetFullyQualifiedApp@@YAPB_WXZ:PROC		; SK_GetFullyQualifiedApp
 EXTRN	?SK_GetHostApp@@YAPB_WXZ:PROC			; SK_GetHostApp
 EXTRN	?SK_GetHostPath@@YAPB_WXZ:PROC			; SK_GetHostPath
 EXTRN	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK_GetDocumentsDir
+EXTRN	?SK_MessageBox@@YAHV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0I@Z:PROC ; SK_MessageBox
 EXTRN	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ:PROC ; SK_FormatString
 EXTRN	?SK_IsRunDLLInvocation@@YA_NXZ:PROC		; SK_IsRunDLLInvocation
 EXTRN	?SK_IsDLLSpecialK@@YG_NPB_W@Z:PROC		; SK_IsDLLSpecialK
@@ -3218,7 +3288,7 @@ __ehfuncinfo$_DllMain@12 DD 019930522H
 	DD	00H
 	DD	01H
 __ehfuncinfo$?SK_Attach@@YGHW4DLL_ROLE@@@Z DD 019930522H
-	DD	05H
+	DD	07H
 	DD	FLAT:__unwindtable$?SK_Attach@@YGHW4DLL_ROLE@@@Z
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
@@ -3262,6 +3332,10 @@ __unwindtable$?SK_Attach@@YGHW4DLL_ROLE@@@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$3
 	DD	0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$4
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$5
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$7
 xdata$x	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -3734,7 +3808,7 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1090 : }
+; 1104 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -3784,7 +3858,7 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1090 : }
+; 1104 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -3833,8 +3907,6 @@ _<_Args_2>$ = 20					; size = 4
 	test	ecx, ecx
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
-
-; 1090 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -6465,7 +6537,7 @@ _<_Val_2>$ = 24						; size = 4
 	je	SHORT $LN54@Buynode
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1090 : }
+; 1104 : }
 
 	mov	ecx, DWORD PTR _<_Val_1>$[ebp]
 	mov	ecx, DWORD PTR [ecx]
@@ -18233,7 +18305,7 @@ ___that$ = 8						; size = 4
 ??0?$tuple@ABQAX@std@@QAE@$$QAV01@@Z PROC		; std::tuple<void * const &>::tuple<void * const &>, COMDAT
 ; _this$ = ecx
 
-; 1090 : }
+; 1104 : }
 
 	npad	2
 	push	ebp
@@ -35479,7 +35551,7 @@ _ul_reason_for_call$ = 12				; size = 4
 _lpReserved$ = 16					; size = 4
 _DllMain@12 PROC
 
-; 841  : {
+; 855  : {
 
 	npad	2
 	push	ebp
@@ -35491,9 +35563,9 @@ _DllMain@12 PROC
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 588				; 0000024cH
 
-; 842  :   UNREFERENCED_PARAMETER (lpReserved);
-; 843  : 
-; 844  :   switch (ul_reason_for_call)
+; 856  :   UNREFERENCED_PARAMETER (lpReserved);
+; 857  : 
+; 858  :   switch (ul_reason_for_call)
 
 	mov	eax, DWORD PTR _ul_reason_for_call$[ebp]
 	push	esi
@@ -35512,7 +35584,7 @@ $LN6@DllMain:
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 860  :       if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, nullptr))
+; 874  :       if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, nullptr))
 
 	test	eax, eax
 	jne	$LN74@DllMain
@@ -35536,7 +35608,7 @@ $LN8@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Attached@@3JC	; __SK_DLL_Attached
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 874  :       if ( ReadAcquire (&__SK_DLL_Attached) ||
+; 888  :       if ( ReadAcquire (&__SK_DLL_Attached) ||
 
 	test	eax, eax
 	jne	$LN10@DllMain
@@ -35547,7 +35619,7 @@ $LN8@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Ending@@3JC	; __SK_DLL_Ending
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 874  :       if ( ReadAcquire (&__SK_DLL_Attached) ||
+; 888  :       if ( ReadAcquire (&__SK_DLL_Attached) ||
 
 	test	eax, eax
 	jne	$LN10@DllMain
@@ -35558,15 +35630,15 @@ $LN8@DllMain:
 	lock	 inc	 DWORD PTR ?__SK_DLL_Refs@@3KC
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 887  :       SK_PreInitLoadLibrary ();
+; 901  :       SK_PreInitLoadLibrary ();
 
 	call	?SK_PreInitLoadLibrary@@YGXXZ		; SK_PreInitLoadLibrary
 
-; 888  : 
-; 889  : 
-; 890  : 
-; 891  :       DWORD   dwProcessSize = MAX_PATH;
-; 892  :       wchar_t wszProcessName [MAX_PATH + 2] = { };
+; 902  : 
+; 903  : 
+; 904  : 
+; 905  :       DWORD   dwProcessSize = MAX_PATH;
+; 906  :       wchar_t wszProcessName [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszProcessName$2[ebp]
@@ -35576,13 +35648,13 @@ $LN8@DllMain:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 893  : 
-; 894  :       HANDLE hProc = GetCurrentProcess ();
+; 907  : 
+; 908  :       HANDLE hProc = GetCurrentProcess ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 
-; 895  : 
-; 896  :       QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+; 909  : 
+; 910  :       QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
 
 	lea	ecx, DWORD PTR _dwProcessSize$7[ebp]
 	push	ecx
@@ -35592,8 +35664,8 @@ $LN8@DllMain:
 	push	eax
 	call	DWORD PTR __imp__QueryFullProcessImageNameW@16
 
-; 897  : 
-; 898  :       wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
+; 911  : 
+; 912  :       wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
 
 	lea	eax, DWORD PTR _wszProcessName$2[ebp]
 	push	eax
@@ -35601,8 +35673,8 @@ $LN8@DllMain:
 	lea	ecx, DWORD PTR _wszProcessName$2[ebp]
 	lea	eax, DWORD PTR [ecx+eax*2]
 
-; 899  : 
-; 900  :       while (  pwszShortName      >  wszProcessName &&
+; 913  : 
+; 914  :       while (  pwszShortName      >  wszProcessName &&
 
 	cmp	eax, ecx
 	jbe	SHORT $LN72@DllMain
@@ -35615,22 +35687,22 @@ $LL4@DllMain:
 	ja	SHORT $LL4@DllMain
 $LN72@DllMain:
 
-; 901  :              *(pwszShortName - 1) != L'\\')
-; 902  :              --pwszShortName;
-; 903  : 
-; 904  : 
-; 905  : 
-; 906  :       // We reserve the right to deny attaching the DLL, this will generally
-; 907  :       //   happen if a game does not opt-in to system wide injection.
-; 908  :       if (! SK_EstablishDllRole (hModule))
+; 915  :              *(pwszShortName - 1) != L'\\')
+; 916  :              --pwszShortName;
+; 917  : 
+; 918  : 
+; 919  : 
+; 920  :       // We reserve the right to deny attaching the DLL, this will generally
+; 921  :       //   happen if a game does not opt-in to system wide injection.
+; 922  :       if (! SK_EstablishDllRole (hModule))
 
 	push	esi
 	call	?SK_EstablishDllRole@@YG_NPAUHINSTANCE__@@@Z ; SK_EstablishDllRole
 	test	al, al
 	jne	SHORT $LN11@DllMain
 
-; 909  :       {
-; 910  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
+; 923  :       {
+; 924  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -35646,19 +35718,19 @@ $LN72@DllMain:
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 $LN74@DllMain:
 
-; 911  : 
-; 912  :         return FALSE;
+; 925  : 
+; 926  :         return FALSE;
 
 	xor	eax, eax
 	pop	esi
 
-; 1043 :         }
-; 1044 :       }
-; 1045 :     } break;
-; 1046 :   }
-; 1047 : 
-; 1048 :   return TRUE;
-; 1049 : }
+; 1057 :         }
+; 1058 :       }
+; 1059 :     } break;
+; 1060 :   }
+; 1061 : 
+; 1062 :   return TRUE;
+; 1063 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -35667,60 +35739,60 @@ $LN74@DllMain:
 	ret	12					; 0000000cH
 $LN11@DllMain:
 
-; 913  :       }
-; 914  : 
-; 915  :       // We don't want to initialize the DLL, but we also don't want it to
-; 916  :       //   re-inject itself constantly; just return TRUE here.
-; 917  :       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+; 927  :       }
+; 928  : 
+; 929  :       // We don't want to initialize the DLL, but we also don't want it to
+; 930  :       //   re-inject itself constantly; just return TRUE here.
+; 931  :       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	eax, eax
 	je	$LN31@DllMain
 
-; 918  :       {
-; 919  :         return TRUE;
-; 920  :       }
-; 921  : 
-; 922  : 
-; 923  :       QueryPerformanceCounter_Original =
+; 932  :       {
+; 933  :         return TRUE;
+; 934  :       }
+; 935  : 
+; 936  : 
+; 937  :       QueryPerformanceCounter_Original =
 
-	push	OFFSET $SG260589
-	push	OFFSET $SG260590
+	push	OFFSET $SG260601
+	push	OFFSET $SG260602
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA, eax ; QueryPerformanceCounter_Original
 
-; 924  :         reinterpret_cast <QueryPerformanceCounter_pfn> (
-; 925  :           GetProcAddress (
-; 926  :             GetModuleHandle ( L"kernel32.dll"),
-; 927  :                                 "QueryPerformanceCounter" )
-; 928  :         );
-; 929  : 
-; 930  :       SK_Init_MinHook        ();
+; 938  :         reinterpret_cast <QueryPerformanceCounter_pfn> (
+; 939  :           GetProcAddress (
+; 940  :             GetModuleHandle ( L"kernel32.dll"),
+; 941  :                                 "QueryPerformanceCounter" )
+; 942  :         );
+; 943  : 
+; 944  :       SK_Init_MinHook        ();
 
 	call	?SK_Init_MinHook@@YG?AW4MH_STATUS@@XZ	; SK_Init_MinHook
 
-; 931  :       SK_InitCompatBlacklist ();
+; 945  :       SK_InitCompatBlacklist ();
 
 	call	?SK_InitCompatBlacklist@@YGXXZ		; SK_InitCompatBlacklist
 
-; 932  : 
-; 933  :       BOOL bRet = SK_Attach (SK_GetDLLRole ());
+; 946  : 
+; 947  :       BOOL bRet = SK_Attach (SK_GetDLLRole ());
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	push	eax
 	call	?SK_Attach@@YGHW4DLL_ROLE@@@Z		; SK_Attach
 	mov	esi, eax
 
-; 934  : 
-; 935  :       if (! bRet)
+; 948  : 
+; 949  :       if (! bRet)
 
 	test	esi, esi
 	jne	SHORT $LN14@DllMain
 
-; 936  :       {
-; 937  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
+; 950  :       {
+; 951  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -35737,50 +35809,50 @@ $LN11@DllMain:
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 $LN14@DllMain:
 
-; 938  :       }
-; 939  : 
-; 940  :       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+; 952  :       }
+; 953  : 
+; 954  :       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	eax, eax
 	je	$LN31@DllMain
 
-; 941  :       {
-; 942  :         return TRUE;
-; 943  :       }
-; 944  : 
-; 945  : 
-; 946  :       // If we got this far, it's because this is an injection target
-; 947  :       //
-; 948  :       //   Must hold a reference to this DLL so that removing the CBT hook does
-; 949  :       //     not crash the game.
-; 950  :       if (SK_IsInjected ())
+; 955  :       {
+; 956  :         return TRUE;
+; 957  :       }
+; 958  : 
+; 959  : 
+; 960  :       // If we got this far, it's because this is an injection target
+; 961  :       //
+; 962  :       //   Must hold a reference to this DLL so that removing the CBT hook does
+; 963  :       //     not crash the game.
+; 964  :       if (SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN16@DllMain
 
-; 951  :       {
-; 952  :         SK_Inject_AcquireProcess ();
+; 965  :       {
+; 966  :         SK_Inject_AcquireProcess ();
 
 	call	?SK_Inject_AcquireProcess@@YAXXZ	; SK_Inject_AcquireProcess
 $LN16@DllMain:
 
-; 953  :       }
-; 954  : 
-; 955  :       return bRet;
+; 967  :       }
+; 968  : 
+; 969  :       return bRet;
 
 	mov	eax, esi
 	pop	esi
 
-; 1043 :         }
-; 1044 :       }
-; 1045 :     } break;
-; 1046 :   }
-; 1047 : 
-; 1048 :   return TRUE;
-; 1049 : }
+; 1057 :         }
+; 1058 :       }
+; 1059 :     } break;
+; 1060 :   }
+; 1061 : 
+; 1062 :   return TRUE;
+; 1063 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -35789,28 +35861,28 @@ $LN16@DllMain:
 	ret	12					; 0000000cH
 $LN10@DllMain:
 
-; 875  :            ReadAcquire (&__SK_DLL_Ending)      )
-; 876  :       {
-; 877  :         SK_EstablishRootPath ();
+; 889  :            ReadAcquire (&__SK_DLL_Ending)      )
+; 890  :       {
+; 891  :         SK_EstablishRootPath ();
 
 	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
 
-; 878  :         return TRUE;
+; 892  :         return TRUE;
 
 	jmp	$LN31@DllMain
 $LN17@DllMain:
 
-; 956  :     } break;
-; 957  : 
-; 958  : 
-; 959  :     case DLL_PROCESS_DETACH:
-; 960  :     {
-; 961  :       SK_Inject_ReleaseProcess ();
+; 970  :     } break;
+; 971  : 
+; 972  : 
+; 973  :     case DLL_PROCESS_DETACH:
+; 974  :     {
+; 975  :       SK_Inject_ReleaseProcess ();
 
 	call	?SK_Inject_ReleaseProcess@@YAXXZ	; SK_Inject_ReleaseProcess
 
-; 962  : 
-; 963  :       if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
+; 976  : 
+; 977  :       if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
 
 	mov	ecx, 1
 	mov	esi, OFFSET ?__SK_DLL_Ending@@3JC	; __SK_DLL_Ending
@@ -35825,13 +35897,13 @@ $LN17@DllMain:
 	mov	eax, DWORD PTR ?__SK_HookContextOwner@@3JC ; __SK_HookContextOwner
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 967  :         if (ReadAcquire (&__SK_HookContextOwner))
+; 981  :         if (ReadAcquire (&__SK_HookContextOwner))
 
 	test	eax, eax
 	je	SHORT $LN36@DllMain
 
-; 968  :         {
-; 969  :           SKX_RemoveCBTHook ();
+; 982  :         {
+; 983  :           SKX_RemoveCBTHook ();
 
 	call	?SKX_RemoveCBTHook@@YGXXZ		; SKX_RemoveCBTHook
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -35841,16 +35913,16 @@ $LN17@DllMain:
 	mov	eax, DWORD PTR ?__SK_HookContextOwner@@3JC ; __SK_HookContextOwner
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 972  :           if (! ReadAcquire (&__SK_HookContextOwner))
+; 986  :           if (! ReadAcquire (&__SK_HookContextOwner))
 
 	test	eax, eax
 	jne	SHORT $LN36@DllMain
 
-; 973  :           {
-; 974  :             SK_RunIf64Bit (DeleteFileW (L"SpecialK64.pid"));
-; 975  :             SK_RunIf32Bit (DeleteFileW (L"SpecialK32.pid"));
+; 987  :           {
+; 988  :             SK_RunIf64Bit (DeleteFileW (L"SpecialK64.pid"));
+; 989  :             SK_RunIf32Bit (DeleteFileW (L"SpecialK32.pid"));
 
-	push	OFFSET $SG260599
+	push	OFFSET $SG260611
 	call	DWORD PTR __imp__DeleteFileW@4
 $LN36@DllMain:
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -35860,13 +35932,13 @@ $LN36@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Attached@@3JC	; __SK_DLL_Attached
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 979  :         if (ReadAcquire (&__SK_DLL_Attached))
+; 993  :         if (ReadAcquire (&__SK_DLL_Attached))
 
 	test	eax, eax
 	je	SHORT $LN21@DllMain
 
-; 980  :         {
-; 981  :           InterlockedExchange (&__SK_DLL_Ending, TRUE);
+; 994  :         {
+; 995  :           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
 	mov	eax, 1
 	xchg	DWORD PTR [esi], eax
@@ -35878,37 +35950,37 @@ $LN21@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Attached@@3JC	; __SK_DLL_Attached
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 985  :       if (ReadAcquire (&__SK_DLL_Attached))
+; 999  :       if (ReadAcquire (&__SK_DLL_Attached))
 
 	test	eax, eax
 	je	SHORT $LN22@DllMain
 
-; 986  :         SK_Detach (SK_GetDLLRole ());
+; 1000 :         SK_Detach (SK_GetDLLRole ());
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	push	eax
 	call	?SK_Detach@@YGHW4DLL_ROLE@@@Z		; SK_Detach
 $LN22@DllMain:
 
-; 987  : 
-; 988  :       if (__SK_TLS_INDEX != MAXDWORD)
+; 1001 : 
+; 1002 :       if (__SK_TLS_INDEX != MAXDWORD)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
 	je	$LN31@DllMain
 
-; 989  :         TlsFree (__SK_TLS_INDEX);
+; 1003 :         TlsFree (__SK_TLS_INDEX);
 
 	mov	ecx, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	ecx
 	call	DWORD PTR __imp__TlsFree@4
 
-; 990  : 
-; 991  :       //else {
-; 992  :         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
-; 993  :         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
-; 994  :       //}
-; 995  : 
-; 996  :       return TRUE;
+; 1004 : 
+; 1005 :       //else {
+; 1006 :         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
+; 1007 :         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
+; 1008 :       //}
+; 1009 : 
+; 1010 :       return TRUE;
 
 	jmp	$LN31@DllMain
 $LN24@DllMain:
@@ -35919,30 +35991,30 @@ $LN24@DllMain:
 	lock	 inc	 DWORD PTR ?__SK_Threads_Attached@@3KC
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1005 :       if (__SK_TLS_INDEX != MAXDWORD)
+; 1019 :       if (__SK_TLS_INDEX != MAXDWORD)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
 	je	$LN31@DllMain
 
-; 1006 :       {
-; 1007 :         auto lpvData =
-; 1008 :           static_cast <LPVOID> (
-; 1009 :             LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
+; 1020 :       {
+; 1021 :         auto lpvData =
+; 1022 :           static_cast <LPVOID> (
+; 1023 :             LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
 
 	push	1720					; 000006b8H
 	push	64					; 00000040H
 	call	DWORD PTR __imp__LocalAlloc@8
 	mov	esi, eax
 
-; 1010 :           );
-; 1011 : 
-; 1012 :         if (lpvData != nullptr)
+; 1024 :           );
+; 1025 : 
+; 1026 :         if (lpvData != nullptr)
 
 	test	esi, esi
 	je	$LN31@DllMain
 
-; 1013 :         {
-; 1014 :           if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+; 1027 :         {
+; 1028 :           if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
 
 	mov	ecx, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	esi
@@ -35951,63 +36023,63 @@ $LN24@DllMain:
 	test	eax, eax
 	jne	SHORT $LN27@DllMain
 
-; 1015 :           {
-; 1016 :             LocalFree (lpvData);
+; 1029 :           {
+; 1030 :             LocalFree (lpvData);
 
 	push	esi
 	call	DWORD PTR __imp__LocalFree@4
 
-; 1017 :           }
-; 1018 : 
-; 1019 :           else
+; 1031 :           }
+; 1032 : 
+; 1033 :           else
 
 	jmp	SHORT $LN31@DllMain
 $LN27@DllMain:
 
-; 1020 :             (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
+; 1034 :             (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
 
 	mov	DWORD PTR [esi+856], 0
 
-; 1021 :         }
-; 1022 :       }
-; 1023 :     } break;
+; 1035 :         }
+; 1036 :       }
+; 1037 :     } break;
 
 	jmp	SHORT $LN31@DllMain
 $LN29@DllMain:
 
-; 1024 : 
-; 1025 : 
-; 1026 :     case DLL_THREAD_DETACH:
-; 1027 :     {
-; 1028 :       if (__SK_TLS_INDEX != MAXDWORD)
+; 1038 : 
+; 1039 : 
+; 1040 :     case DLL_THREAD_DETACH:
+; 1041 :     {
+; 1042 :       if (__SK_TLS_INDEX != MAXDWORD)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
 	je	SHORT $LN31@DllMain
 
-; 1029 :       {
-; 1030 :         auto lpvData =
-; 1031 :           static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
+; 1043 :       {
+; 1044 :         auto lpvData =
+; 1045 :           static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
 
 	mov	eax, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	eax
 	call	DWORD PTR __imp__TlsGetValue@4
 	mov	esi, eax
 
-; 1032 : 
-; 1033 :         if (lpvData != nullptr)
+; 1046 : 
+; 1047 :         if (lpvData != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN31@DllMain
 
-; 1034 :         {
-; 1035 :           if (SK_TLS_Bottom ()->known_modules.pResolved != nullptr)
+; 1048 :         {
+; 1049 :           if (SK_TLS_Bottom ()->known_modules.pResolved != nullptr)
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	cmp	DWORD PTR [eax], 0
 	je	SHORT $LN32@DllMain
 
-; 1036 :           {
-; 1037 :             delete SK_TLS_Bottom ()->known_modules.pResolved;
+; 1050 :           {
+; 1051 :             delete SK_TLS_Bottom ()->known_modules.pResolved;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	push	0
@@ -36015,20 +36087,20 @@ $LN29@DllMain:
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
 
-; 1038 :                    SK_TLS_Bottom ()->known_modules.pResolved = nullptr;
+; 1052 :                    SK_TLS_Bottom ()->known_modules.pResolved = nullptr;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax], 0
 $LN32@DllMain:
 
-; 1039 :           }
-; 1040 : 
-; 1041 :           LocalFree   (lpvData);
+; 1053 :           }
+; 1054 : 
+; 1055 :           LocalFree   (lpvData);
 
 	push	esi
 	call	DWORD PTR __imp__LocalFree@4
 
-; 1042 :           TlsSetValue (__SK_TLS_INDEX, nullptr);
+; 1056 :           TlsSetValue (__SK_TLS_INDEX, nullptr);
 
 	mov	eax, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	0
@@ -36036,13 +36108,13 @@ $LN32@DllMain:
 	call	DWORD PTR __imp__TlsSetValue@8
 $LN31@DllMain:
 
-; 1043 :         }
-; 1044 :       }
-; 1045 :     } break;
-; 1046 :   }
-; 1047 : 
-; 1048 :   return TRUE;
-; 1049 : }
+; 1057 :         }
+; 1058 :       }
+; 1059 :     } break;
+; 1060 :   }
+; 1061 : 
+; 1062 :   return TRUE;
+; 1063 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, 1
@@ -36088,7 +36160,7 @@ _TEXT	SEGMENT
 _role$ = 8						; size = 4
 ?SK_Detach@@YGHW4DLL_ROLE@@@Z PROC			; SK_Detach
 
-; 777  : {
+; 791  : {
 
 	npad	2
 	push	ebp
@@ -36096,7 +36168,7 @@ _role$ = 8						; size = 4
 	push	ecx
 	push	esi
 
-; 778  :   BOOL  ret        = FALSE;
+; 792  :   BOOL  ret        = FALSE;
 
 	xor	esi, esi
 ; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
@@ -36108,7 +36180,7 @@ _role$ = 8						; size = 4
 	dec	eax
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 781  :   if ( local_refs == 0 &&
+; 795  :   if ( local_refs == 0 &&
 
 	jne	$LN4@SK_Detach
 	xor	ecx, ecx
@@ -36118,14 +36190,14 @@ _role$ = 8						; size = 4
 	test	eax, eax
 	je	$LN4@SK_Detach
 
-; 782  :          InterlockedCompareExchangeRelease (
-; 783  :                     &__SK_DLL_Attached,
-; 784  :                       FALSE,
-; 785  :                         TRUE
-; 786  :          )
-; 787  :      )
-; 788  :   {
-; 789  :     switch (role)
+; 796  :          InterlockedCompareExchangeRelease (
+; 797  :                     &__SK_DLL_Attached,
+; 798  :                       FALSE,
+; 799  :                         TRUE
+; 800  :          )
+; 801  :      )
+; 802  :   {
+; 803  :     switch (role)
 
 	mov	eax, DWORD PTR _role$[ebp]
 	cmp	eax, 2
@@ -36138,79 +36210,79 @@ _role$ = 8						; size = 4
 	cmp	eax, 1
 	jne	SHORT $LN2@SK_Detach
 
-; 790  :     {
-; 791  :       case DLL_ROLE::DXGI:
-; 792  :         ret = SK::DXGI::Shutdown ();
+; 804  :     {
+; 805  :       case DLL_ROLE::DXGI:
+; 806  :         ret = SK::DXGI::Shutdown ();
 
 	call	?Shutdown@DXGI@SK@@YA_NXZ		; SK::DXGI::Shutdown
 
-; 793  :         break;
+; 807  :         break;
 
 	jmp	SHORT $LN64@SK_Detach
 $LN9@SK_Detach:
 
-; 803  : 
-; 804  :       case DLL_ROLE::DDraw:
-; 805  :         ret = SK::DDraw::Shutdown ();
+; 817  : 
+; 818  :       case DLL_ROLE::DDraw:
+; 819  :         ret = SK::DDraw::Shutdown ();
 
 	call	?Shutdown@DDraw@SK@@YA_NXZ		; SK::DDraw::Shutdown
 
-; 806  :         break;
+; 820  :         break;
 
 	jmp	SHORT $LN64@SK_Detach
 $LN8@SK_Detach:
 
-; 798  : 
-; 799  : #ifndef _WIN64
-; 800  :       case DLL_ROLE::D3D8:
-; 801  :         ret = SK::D3D8::Shutdown ();
+; 812  : 
+; 813  : #ifndef _WIN64
+; 814  :       case DLL_ROLE::D3D8:
+; 815  :         ret = SK::D3D8::Shutdown ();
 
 	call	?Shutdown@D3D8@SK@@YA_NXZ		; SK::D3D8::Shutdown
 
-; 802  :         break;
+; 816  :         break;
 
 	jmp	SHORT $LN64@SK_Detach
 $LN7@SK_Detach:
 
-; 794  : 
-; 795  :       case DLL_ROLE::D3D9:
-; 796  :         ret = SK::D3D9::Shutdown ();
+; 808  : 
+; 809  :       case DLL_ROLE::D3D9:
+; 810  :         ret = SK::D3D9::Shutdown ();
 
 	call	?Shutdown@D3D9@SK@@YA_NXZ		; SK::D3D9::Shutdown
 
-; 797  :         break;
+; 811  :         break;
 
 	jmp	SHORT $LN64@SK_Detach
 $LN13@SK_Detach:
 
-; 782  :          InterlockedCompareExchangeRelease (
-; 783  :                     &__SK_DLL_Attached,
-; 784  :                       FALSE,
-; 785  :                         TRUE
-; 786  :          )
-; 787  :      )
-; 788  :   {
-; 789  :     switch (role)
+; 796  :          InterlockedCompareExchangeRelease (
+; 797  :                     &__SK_DLL_Attached,
+; 798  :                       FALSE,
+; 799  :                         TRUE
+; 800  :          )
+; 801  :      )
+; 802  :   {
+; 803  :     switch (role)
 
 	cmp	eax, 4
 	je	SHORT $LN10@SK_Detach
 	cmp	eax, 256				; 00000100H
 	jne	SHORT $LN2@SK_Detach
 
-; 812  :         break;
-; 813  : 
-; 814  :       case DLL_ROLE::DInput8:
-; 815  :         ret = SK::DI8::Shutdown ();
+; 826  :         break;
+; 827  : 
+; 828  :       case DLL_ROLE::DInput8:
+; 829  :         ret = SK::DI8::Shutdown ();
 
 	call	?Shutdown@DI8@SK@@YA_NXZ		; SK::DI8::Shutdown
 	jmp	SHORT $LN64@SK_Detach
 $LN10@SK_Detach:
 
-; 807  : #else
-; 808  : #endif
-; 809  : 
-; 810  :       case DLL_ROLE::OpenGL:
-; 811  :         ret = SK::OpenGL::Shutdown ();
+; 821  : #else
+; 822  : #endif
+; 823  : 
+; 824  :       case DLL_ROLE::OpenGL:
+; 825  :         ret = SK::OpenGL::Shutdown ();
 
 	call	?Shutdown@OpenGL@SK@@YA_NXZ		; SK::OpenGL::Shutdown
 $LN64@SK_Detach:
@@ -36218,10 +36290,10 @@ $LN64@SK_Detach:
 $LN2@SK_Detach:
 	push	ebx
 
-; 816  :         break;
-; 817  :     }
-; 818  : 
-; 819  :     delete budget_mutex;
+; 830  :         break;
+; 831  :     }
+; 832  : 
+; 833  :     delete budget_mutex;
 
 	mov	ebx, DWORD PTR __imp__DeleteCriticalSection@4
 	push	edi
@@ -36247,7 +36319,7 @@ $LN2@SK_Detach:
 $LN27@SK_Detach:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 820  :     delete loader_lock;
+; 834  :     delete loader_lock;
 
 	mov	edi, DWORD PTR ?loader_lock@@3PAVSK_Thread_HybridSpinlock@@A ; loader_lock
 	test	edi, edi
@@ -36271,7 +36343,7 @@ $LN27@SK_Detach:
 $LN34@SK_Detach:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 821  :     delete init_mutex;
+; 835  :     delete init_mutex;
 
 	mov	edi, DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A ; init_mutex
 	test	edi, edi
@@ -36295,7 +36367,7 @@ $LN34@SK_Detach:
 $LN41@SK_Detach:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 822  :     delete cs_dbghelp;
+; 836  :     delete cs_dbghelp;
 
 	mov	edi, DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A ; cs_dbghelp
 	test	edi, edi
@@ -36319,7 +36391,7 @@ $LN41@SK_Detach:
 $LN48@SK_Detach:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 823  :     delete wmi_cs;
+; 837  :     delete wmi_cs;
 
 	mov	edi, DWORD PTR ?wmi_cs@@3PAVSK_Thread_HybridSpinlock@@A ; wmi_cs
 	test	edi, edi
@@ -36345,34 +36417,34 @@ $LN61@SK_Detach:
 	pop	ebx
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 830  :   return ret;
+; 844  :   return ret;
 
 	mov	eax, esi
 	pop	esi
 
-; 831  : }
+; 845  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN4@SK_Detach:
 
-; 824  :   }
-; 825  : 
-; 826  :   else {
-; 827  :     dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
+; 838  :   }
+; 839  : 
+; 840  :   else {
+; 841  :     dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
 
-	push	OFFSET $SG260545
+	push	OFFSET $SG260557
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 830  :   return ret;
+; 844  :   return ret;
 
 	mov	eax, esi
 	pop	esi
 
-; 831  : }
+; 845  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -36428,6 +36500,8 @@ $T6 = -20						; size = 4
 $T7 = -14						; size = 1
 _DontInject$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
+$T8 = 8							; size = 4
+$T9 = 8							; size = 4
 _role$ = 8						; size = 4
 ?SK_Attach@@YGHW4DLL_ROLE@@@Z PROC			; SK_Attach
 
@@ -36443,6 +36517,8 @@ _role$ = 8						; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 8
 	push	ebx
+	push	esi
+	push	edi
 
 ; 622  :   auto DontInject = [] (void) ->
 
@@ -36463,8 +36539,6 @@ _role$ = 8						; size = 4
 
 ; 633  :     budget_mutex = new SK_Thread_HybridSpinlock ( 400);
 
-	push	esi
-	push	edi
 	push	4
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
@@ -36473,7 +36547,7 @@ _role$ = 8						; size = 4
 	mov	edi, DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	test	esi, esi
-	je	SHORT $LN21@SK_Attach
+	je	SHORT $LN23@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
 ; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
@@ -36495,10 +36569,10 @@ _role$ = 8						; size = 4
 
 ; 633  :     budget_mutex = new SK_Thread_HybridSpinlock ( 400);
 
-	jmp	SHORT $LN22@SK_Attach
-$LN21@SK_Attach:
+	jmp	SHORT $LN24@SK_Attach
+$LN23@SK_Attach:
 	xor	esi, esi
-$LN22@SK_Attach:
+$LN24@SK_Attach:
 
 ; 634  :     init_mutex   = new SK_Thread_HybridSpinlock (5000);
 
@@ -36511,7 +36585,7 @@ $LN22@SK_Attach:
 	mov	DWORD PTR $T5[ebp], esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	esi, esi
-	je	SHORT $LN23@SK_Attach
+	je	SHORT $LN25@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
 ; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
@@ -36533,10 +36607,10 @@ $LN22@SK_Attach:
 
 ; 634  :     init_mutex   = new SK_Thread_HybridSpinlock (5000);
 
-	jmp	SHORT $LN24@SK_Attach
-$LN23@SK_Attach:
+	jmp	SHORT $LN26@SK_Attach
+$LN25@SK_Attach:
 	xor	esi, esi
-$LN24@SK_Attach:
+$LN26@SK_Attach:
 
 ; 635  :     loader_lock  = new SK_Thread_HybridSpinlock (6536);
 
@@ -36549,7 +36623,7 @@ $LN24@SK_Attach:
 	mov	DWORD PTR $T4[ebp], esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
 	test	esi, esi
-	je	SHORT $LN25@SK_Attach
+	je	SHORT $LN27@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
 ; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
@@ -36571,10 +36645,10 @@ $LN24@SK_Attach:
 
 ; 635  :     loader_lock  = new SK_Thread_HybridSpinlock (6536);
 
-	jmp	SHORT $LN26@SK_Attach
-$LN25@SK_Attach:
+	jmp	SHORT $LN28@SK_Attach
+$LN27@SK_Attach:
 	xor	esi, esi
-$LN26@SK_Attach:
+$LN28@SK_Attach:
 
 ; 636  :     wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
 
@@ -36587,7 +36661,7 @@ $LN26@SK_Attach:
 	mov	DWORD PTR $T3[ebp], esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 3
 	test	esi, esi
-	je	SHORT $LN27@SK_Attach
+	je	SHORT $LN29@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
 ; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
@@ -36609,10 +36683,10 @@ $LN26@SK_Attach:
 
 ; 636  :     wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
 
-	jmp	SHORT $LN28@SK_Attach
-$LN27@SK_Attach:
+	jmp	SHORT $LN30@SK_Attach
+$LN29@SK_Attach:
 	xor	esi, esi
-$LN28@SK_Attach:
+$LN30@SK_Attach:
 
 ; 637  :     cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
 
@@ -36625,7 +36699,7 @@ $LN28@SK_Attach:
 	mov	DWORD PTR $T2[ebp], esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 4
 	test	esi, esi
-	je	SHORT $LN29@SK_Attach
+	je	SHORT $LN31@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
 ; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
@@ -36647,10 +36721,10 @@ $LN28@SK_Attach:
 
 ; 637  :     cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
 
-	jmp	SHORT $LN30@SK_Attach
-$LN29@SK_Attach:
+	jmp	SHORT $LN32@SK_Attach
+$LN31@SK_Attach:
 	xor	esi, esi
-$LN30@SK_Attach:
+$LN32@SK_Attach:
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	mov	DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A, esi ; cs_dbghelp
 
@@ -36664,8 +36738,6 @@ $LN30@SK_Attach:
 ; 641  :     if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
-	pop	edi
-	pop	esi
 	je	$LN6@SK_Attach
 
 ; 642  :     {
@@ -36691,12 +36763,12 @@ $LN30@SK_Attach:
 	mov	eax, DWORD PTR _role$[ebp]
 	add	esp, 4
 	cmp	eax, 2
-	jg	$LN31@SK_Attach
-	je	$LN9@SK_Attach
+	jg	$LN33@SK_Attach
+	je	$LN10@SK_Attach
 	cmp	eax, -1073741808			; c0000010H
-	je	SHORT $LN11@SK_Attach
+	je	$LN12@SK_Attach
 	cmp	eax, -1073741792			; c0000020H
-	je	SHORT $LN13@SK_Attach
+	je	$LN14@SK_Attach
 	cmp	eax, 1
 	jne	$LN2@SK_Attach
 
@@ -36711,258 +36783,346 @@ $LN30@SK_Attach:
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN8@SK_Attach
-	push	OFFSET $SG260503
+	push	OFFSET $SG260507
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	je	SHORT $LN8@SK_Attach
-$LN63@SK_Attach:
+	jne	SHORT $LN69@SK_Attach
+$LN8@SK_Attach:
 
 ; 663  :           {
 ; 664  :             return DontInject ();
-
-	lea	ecx, DWORD PTR _DontInject$[ebp]
-	call	??R<lambda_c61068de2d98b561348eb1175917bf09>@@QBEHXZ ; <lambda_c61068de2d98b561348eb1175917bf09>::operator()
-	pop	ebx
-
-; 763  :       //return
-; 764  :       //  InterlockedExchangeAddRelease (
-; 765  :       //    &__SK_DLL_Attached,
-; 766  :       //      1
-; 767  :       //  );
-; 768  :     }
-; 769  :   }
-; 770  : 
-; 771  :   return DontInject ();
-; 772  : }
-
-	mov	ecx, DWORD PTR __$EHRec$[ebp]
-	mov	DWORD PTR fs:0, ecx
-	mov	esp, ebp
-	pop	ebp
-	ret	4
-$LN8@SK_Attach:
-
 ; 665  :           }
 ; 666  : 
-; 667  :           InterlockedCompareExchange (
+; 667  :           if (SK_IsDLLSpecialK (L"dinput8.dll"))
 
-	call	?Startup@DXGI@SK@@YA_NXZ		; SK::DXGI::Startup
-
-; 668  :             &__SK_DLL_Attached,
-; 669  :               SK::DXGI::Startup (),
-; 670  :                 1
-; 671  :           );
-; 672  :         } break;
-
-	jmp	$LN62@SK_Attach
-$LN13@SK_Attach:
-
-; 706  : 
-; 707  :         case DLL_ROLE::DDraw:
-; 708  :         {
-; 709  :           // If this is the global injector and there is a wrapper version
-; 710  :           //   of Special K in the DLL search path, then bail-out!
-; 711  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll"))
-
-	push	0
-	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
-	test	al, al
-	je	SHORT $LN14@SK_Attach
-	push	OFFSET $SG260512
-	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
-	test	al, al
-	jne	SHORT $LN63@SK_Attach
-$LN14@SK_Attach:
-
-; 712  :           {
-; 713  :             return DontInject ();
-; 714  :           }
-; 715  : 
-; 716  :           InterlockedCompareExchange (
-
-	call	?Startup@DDraw@SK@@YA_NXZ		; SK::DDraw::Startup
-
-; 717  :             &__SK_DLL_Attached,
-; 718  :               SK::DDraw::Startup (),
-; 719  :                 1
-; 720  :           );
-; 721  :         } break;
-
-	jmp	$LN62@SK_Attach
-$LN11@SK_Attach:
-
-; 689  : 
-; 690  : #ifndef _WIN64
-; 691  :         case DLL_ROLE::D3D8:
-; 692  :         {
-; 693  :           // If this is the global injector and there is a wrapper version
-; 694  :           //   of Special K in the DLL search path, then bail-out!
-; 695  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll"))
-
-	push	0
-	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
-	test	al, al
-	je	SHORT $LN12@SK_Attach
 	push	OFFSET $SG260509
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	SHORT $LN63@SK_Attach
-$LN12@SK_Attach:
+	je	SHORT $LN9@SK_Attach
 
-; 696  :           {
-; 697  :             return DontInject ();
-; 698  :           }
-; 699  : 
-; 700  :           InterlockedCompareExchange (
+; 668  :           {
+; 669  :             SK_MessageBox ( L"Please delete dxgi.dll or dinput8.dll and restart your game, it is not possible to play this game with two copies of Special K injected :)",
 
-	call	?Startup@D3D8@SK@@YA_NXZ		; SK::D3D8::Startup
+	push	64					; 00000040H
+	sub	esp, 24					; 00000018H
+	mov	ecx, esp
+	mov	DWORD PTR $T9[ebp], esp
+	push	OFFSET $SG260510
+	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+	sub	esp, 24					; 00000018H
+	mov	DWORD PTR __$EHRec$[ebp+8], 5
+	mov	ecx, esp
+	push	OFFSET $SG260511
+	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	call	?SK_MessageBox@@YAHV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0I@Z ; SK_MessageBox
+	add	esp, 52					; 00000034H
+$LN69@SK_Attach:
 
-; 701  :             &__SK_DLL_Attached,
-; 702  :               SK::D3D8::Startup (),
-; 703  :                 1
-; 704  :           );
-; 705  :         } break;
+; 670  :                             L"Conflicting local DLLs detected for Special K", MB_ICONASTERISK | MB_OK);
+; 671  :             return DontInject ();
 
-	jmp	SHORT $LN62@SK_Attach
+	lea	ecx, DWORD PTR _DontInject$[ebp]
+	call	??R<lambda_c61068de2d98b561348eb1175917bf09>@@QBEHXZ ; <lambda_c61068de2d98b561348eb1175917bf09>::operator()
+
+; 777  :       //return
+; 778  :       //  InterlockedExchangeAddRelease (
+; 779  :       //    &__SK_DLL_Attached,
+; 780  :       //      1
+; 781  :       //  );
+; 782  :     }
+; 783  :   }
+; 784  : 
+; 785  :   return DontInject ();
+; 786  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	edi
+	pop	esi
+	pop	ebx
+	mov	esp, ebp
+	pop	ebp
+	ret	4
 $LN9@SK_Attach:
 
+; 672  :           }
 ; 673  : 
-; 674  :         case DLL_ROLE::D3D9:
-; 675  :         {
-; 676  :           // If this is the global injector and there is a wrapper version
-; 677  :           //   of Special K in the DLL search path, then bail-out!
-; 678  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
+; 674  :           InterlockedCompareExchange (
+
+	call	?Startup@DXGI@SK@@YA_NXZ		; SK::DXGI::Startup
+
+; 675  :             &__SK_DLL_Attached,
+; 676  :               SK::DXGI::Startup (),
+; 677  :                 1
+; 678  :           );
+; 679  :         } break;
+
+	jmp	$LN68@SK_Attach
+$LN14@SK_Attach:
+
+; 713  : 
+; 714  :         case DLL_ROLE::DDraw:
+; 715  :         {
+; 716  :           // If this is the global injector and there is a wrapper version
+; 717  :           //   of Special K in the DLL search path, then bail-out!
+; 718  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll"))
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	je	SHORT $LN10@SK_Attach
-	push	OFFSET $SG260506
+	je	SHORT $LN15@SK_Attach
+	push	OFFSET $SG260520
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	SHORT $LN63@SK_Attach
+	jne	SHORT $LN69@SK_Attach
+$LN15@SK_Attach:
+
+; 719  :           {
+; 720  :             return DontInject ();
+; 721  :           }
+; 722  : 
+; 723  :           InterlockedCompareExchange (
+
+	call	?Startup@DDraw@SK@@YA_NXZ		; SK::DDraw::Startup
+
+; 724  :             &__SK_DLL_Attached,
+; 725  :               SK::DDraw::Startup (),
+; 726  :                 1
+; 727  :           );
+; 728  :         } break;
+
+	jmp	$LN68@SK_Attach
+$LN12@SK_Attach:
+
+; 696  : 
+; 697  : #ifndef _WIN64
+; 698  :         case DLL_ROLE::D3D8:
+; 699  :         {
+; 700  :           // If this is the global injector and there is a wrapper version
+; 701  :           //   of Special K in the DLL search path, then bail-out!
+; 702  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll"))
+
+	push	0
+	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
+	test	al, al
+	je	SHORT $LN13@SK_Attach
+	push	OFFSET $SG260517
+	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
+	test	al, al
+	jne	SHORT $LN69@SK_Attach
+$LN13@SK_Attach:
+
+; 703  :           {
+; 704  :             return DontInject ();
+; 705  :           }
+; 706  : 
+; 707  :           InterlockedCompareExchange (
+
+	call	?Startup@D3D8@SK@@YA_NXZ		; SK::D3D8::Startup
+
+; 708  :             &__SK_DLL_Attached,
+; 709  :               SK::D3D8::Startup (),
+; 710  :                 1
+; 711  :           );
+; 712  :         } break;
+
+	jmp	$LN68@SK_Attach
 $LN10@SK_Attach:
 
-; 679  :           {
-; 680  :             return DontInject ();
-; 681  :           }
-; 682  : 
-; 683  :           InterlockedCompareExchange (
+; 680  : 
+; 681  :         case DLL_ROLE::D3D9:
+; 682  :         {
+; 683  :           // If this is the global injector and there is a wrapper version
+; 684  :           //   of Special K in the DLL search path, then bail-out!
+; 685  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
+
+	push	0
+	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
+	test	al, al
+	je	SHORT $LN11@SK_Attach
+	push	OFFSET $SG260514
+	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
+	test	al, al
+	jne	$LN69@SK_Attach
+$LN11@SK_Attach:
+
+; 686  :           {
+; 687  :             return DontInject ();
+; 688  :           }
+; 689  : 
+; 690  :           InterlockedCompareExchange (
 
 	call	?Startup@D3D9@SK@@YA_NXZ		; SK::D3D9::Startup
 
-; 684  :             &__SK_DLL_Attached,
-; 685  :               SK::D3D9::Startup (),
-; 686  :                 1
-; 687  :           );
-; 688  :         } break;
+; 691  :             &__SK_DLL_Attached,
+; 692  :               SK::D3D9::Startup (),
+; 693  :                 1
+; 694  :           );
+; 695  :         } break;
 
-	jmp	SHORT $LN62@SK_Attach
-$LN31@SK_Attach:
+	jmp	$LN68@SK_Attach
+$LN33@SK_Attach:
 
 ; 655  : 
 ; 656  :       switch (role)
 
 	cmp	eax, 4
-	je	SHORT $LN15@SK_Attach
+	je	$LN16@SK_Attach
 	cmp	eax, 8
-	je	SHORT $LN6@SK_Attach
+	je	$LN6@SK_Attach
 	cmp	eax, 256				; 00000100H
-	jne	SHORT $LN2@SK_Attach
+	jne	$LN2@SK_Attach
 
-; 734  :             &__SK_DLL_Attached,
-; 735  :               SK::OpenGL::Startup (),
-; 736  :                 1
-; 737  :           );
-; 738  :         } break;
-; 739  : 
-; 740  :         case DLL_ROLE::Vulkan:
-; 741  :         {
-; 742  :           return DontInject ();
-; 743  :         } break;
-; 744  : 
-; 745  :         case DLL_ROLE::DInput8:
-; 746  :         {
-; 747  :           // If this is the global injector and there is a wrapper version
-; 748  :           //   of Special K in the DLL search path, then bail-out!
-; 749  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll"))
+; 741  :             &__SK_DLL_Attached,
+; 742  :               SK::OpenGL::Startup (),
+; 743  :                 1
+; 744  :           );
+; 745  :         } break;
+; 746  : 
+; 747  :         case DLL_ROLE::Vulkan:
+; 748  :         {
+; 749  :           return DontInject ();
+; 750  :         } break;
+; 751  : 
+; 752  :         case DLL_ROLE::DInput8:
+; 753  :         {
+; 754  :           // If this is the global injector and there is a wrapper version
+; 755  :           //   of Special K in the DLL search path, then bail-out!
+; 756  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll"))
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	je	SHORT $LN19@SK_Attach
-	push	OFFSET $SG260519
+	je	SHORT $LN20@SK_Attach
+	push	OFFSET $SG260527
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	$LN63@SK_Attach
-$LN19@SK_Attach:
+	jne	$LN69@SK_Attach
+$LN20@SK_Attach:
 
-; 750  :           {
-; 751  :             return DontInject ();
-; 752  :           }
-; 753  : 
-; 754  :           InterlockedCompareExchange (
+; 757  :           {
+; 758  :             return DontInject ();
+; 759  :           }
+; 760  : 
+; 761  :           if (SK_IsDLLSpecialK (L"dxgi.dll"))
+
+	push	OFFSET $SG260529
+	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
+	test	al, al
+	je	SHORT $LN21@SK_Attach
+
+; 762  :           {
+; 763  :             SK_MessageBox ( L"Please delete dxgi.dll or dinput8.dll and restart your game, it is not possible to play this game with two copies of Special K injected :)",
+
+	push	64					; 00000040H
+	sub	esp, 24					; 00000018H
+	mov	ecx, esp
+	mov	DWORD PTR $T8[ebp], esp
+	push	OFFSET $SG260530
+	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+	sub	esp, 24					; 00000018H
+	mov	DWORD PTR __$EHRec$[ebp+8], 6
+	mov	ecx, esp
+	push	OFFSET $SG260531
+	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	call	?SK_MessageBox@@YAHV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0I@Z ; SK_MessageBox
+	add	esp, 52					; 00000034H
+
+; 764  :                             L"Conflicting local DLLs detected for Special K", MB_ICONASTERISK | MB_OK);
+; 765  :             return DontInject ();
+
+	lea	ecx, DWORD PTR _DontInject$[ebp]
+	call	??R<lambda_c61068de2d98b561348eb1175917bf09>@@QBEHXZ ; <lambda_c61068de2d98b561348eb1175917bf09>::operator()
+
+; 777  :       //return
+; 778  :       //  InterlockedExchangeAddRelease (
+; 779  :       //    &__SK_DLL_Attached,
+; 780  :       //      1
+; 781  :       //  );
+; 782  :     }
+; 783  :   }
+; 784  : 
+; 785  :   return DontInject ();
+; 786  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	edi
+	pop	esi
+	pop	ebx
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+$LN21@SK_Attach:
+
+; 766  :           }
+; 767  : 
+; 768  :           InterlockedCompareExchange (
 
 	call	?Startup@DI8@SK@@YA_NXZ			; SK::DI8::Startup
-	jmp	SHORT $LN62@SK_Attach
-$LN15@SK_Attach:
+	jmp	SHORT $LN68@SK_Attach
+$LN16@SK_Attach:
 
-; 722  : #endif
-; 723  : 
-; 724  :         case DLL_ROLE::OpenGL:
-; 725  :         {
-; 726  :           // If this is the global injector and there is a wrapper version
-; 727  :           //   of Special K in the DLL search path, then bail-out!
-; 728  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
+; 729  : #endif
+; 730  : 
+; 731  :         case DLL_ROLE::OpenGL:
+; 732  :         {
+; 733  :           // If this is the global injector and there is a wrapper version
+; 734  :           //   of Special K in the DLL search path, then bail-out!
+; 735  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	je	SHORT $LN16@SK_Attach
-	push	OFFSET $SG260515
+	je	SHORT $LN17@SK_Attach
+	push	OFFSET $SG260523
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	$LN63@SK_Attach
-$LN16@SK_Attach:
+	jne	$LN69@SK_Attach
+$LN17@SK_Attach:
 
-; 729  :           {
-; 730  :             return DontInject ();
-; 731  :           }
-; 732  : 
-; 733  :           InterlockedCompareExchange (
+; 736  :           {
+; 737  :             return DontInject ();
+; 738  :           }
+; 739  : 
+; 740  :           InterlockedCompareExchange (
 
 	call	?Startup@OpenGL@SK@@YA_NXZ		; SK::OpenGL::Startup
-$LN62@SK_Attach:
+$LN68@SK_Attach:
 	movzx	ecx, al
 	mov	eax, 1
 	lock	 cmpxchg DWORD PTR [ebx], ecx
 $LN2@SK_Attach:
 
-; 755  :             &__SK_DLL_Attached,
-; 756  :               SK::DI8::Startup (),
-; 757  :                 1
-; 758  :           );
-; 759  :         } break;
-; 760  :       }
-; 761  : 
-; 762  :       return true;
+; 769  :             &__SK_DLL_Attached,
+; 770  :               SK::DI8::Startup (),
+; 771  :                 1
+; 772  :           );
+; 773  :         } break;
+; 774  :       }
+; 775  : 
+; 776  :       return true;
 
 	mov	eax, 1
-	pop	ebx
 
-; 763  :       //return
-; 764  :       //  InterlockedExchangeAddRelease (
-; 765  :       //    &__SK_DLL_Attached,
-; 766  :       //      1
-; 767  :       //  );
-; 768  :     }
-; 769  :   }
-; 770  : 
-; 771  :   return DontInject ();
-; 772  : }
+; 777  :       //return
+; 778  :       //  InterlockedExchangeAddRelease (
+; 779  :       //    &__SK_DLL_Attached,
+; 780  :       //      1
+; 781  :       //  );
+; 782  :     }
+; 783  :   }
+; 784  : 
+; 785  :   return DontInject ();
+; 786  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
+	pop	edi
+	pop	esi
+	pop	ebx
 	mov	esp, ebp
 	pop	ebp
 	ret	4
@@ -36979,21 +37139,23 @@ $LN6@SK_Attach:
 	add	esp, 4
 	xchg	DWORD PTR [ebx], eax
 
-; 763  :       //return
-; 764  :       //  InterlockedExchangeAddRelease (
-; 765  :       //    &__SK_DLL_Attached,
-; 766  :       //      1
-; 767  :       //  );
-; 768  :     }
-; 769  :   }
-; 770  : 
-; 771  :   return DontInject ();
-; 772  : }
+; 777  :       //return
+; 778  :       //  InterlockedExchangeAddRelease (
+; 779  :       //    &__SK_DLL_Attached,
+; 780  :       //      1
+; 781  :       //  );
+; 782  :     }
+; 783  :   }
+; 784  : 
+; 785  :   return DontInject ();
+; 786  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	xor	eax, eax
-	pop	ebx
+	pop	edi
+	pop	esi
 	mov	DWORD PTR fs:0, ecx
+	pop	ebx
 	mov	esp, ebp
 	pop	ebp
 	ret	4
@@ -37034,6 +37196,12 @@ __unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$4:
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
 	ret	0
+__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$5:
+	mov	ecx, DWORD PTR $T9[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$7:
+	mov	ecx, DWORD PTR $T8[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$?SK_Attach@@YGHW4DLL_ROLE@@@Z:
 	mov	eax, OFFSET __ehfuncinfo$?SK_Attach@@YGHW4DLL_ROLE@@@Z
 	jmp	___CxxFrameHandler3
@@ -50722,7 +50890,7 @@ _hMod$ = 12						; size = 4
 ?insert@SK_ModuleAddrMap@@QAEXPAXPAUHINSTANCE__@@@Z PROC ; SK_ModuleAddrMap::insert
 ; _this$ = ecx
 
-; 1081 : {
+; 1095 : {
 
 	npad	2
 	push	ebp
@@ -50737,12 +50905,12 @@ _hMod$ = 12						; size = 4
 	push	edi
 	mov	edi, ecx
 
-; 1082 :   if (pResolved == nullptr)
+; 1096 :   if (pResolved == nullptr)
 
 	cmp	DWORD PTR [edi], 0
 	jne	SHORT $LN2@insert
 
-; 1083 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
+; 1097 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
 
 	push	32					; 00000020H
 	call	??2@YAPAXI@Z				; operator new
@@ -50773,7 +50941,7 @@ _hMod$ = 12						; size = 4
 	call	??0?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE@ABV?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@1@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1083 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
+; 1097 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
 
 	jmp	SHORT $LN5@insert
 $LN4@insert:
@@ -50783,9 +50951,9 @@ $LN5@insert:
 	mov	DWORD PTR [edi], esi
 $LN2@insert:
 
-; 1084 : 
-; 1085 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ = 
-; 1086 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+; 1098 : 
+; 1099 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ = 
+; 1100 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
 
 	mov	esi, DWORD PTR [edi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -50838,14 +51006,14 @@ $LN2@insert:
 	call	??$emplace@ABUpiecewise_construct_t@std@@V?$tuple@ABQAX@2@V?$tuple@$$V@2@@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@_N@1@ABUpiecewise_construct_t@1@$$QAV?$tuple@ABQAX@1@$$QAV?$tuple@$$V@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::emplace<std::piecewise_construct_t const &,std::tuple<void * const &>,std::tuple<> >
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1088 :   (*pResolved_) [pAddr] = hMod;
+; 1102 :   (*pResolved_) [pAddr] = hMod;
 
 	mov	eax, DWORD PTR $T2[ebp]
 $LN42@insert:
 	mov	ecx, DWORD PTR _hMod$[ebp]
 	mov	DWORD PTR [eax+12], ecx
 
-; 1089 : }
+; 1103 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -50906,7 +51074,7 @@ _phMod$ = 12						; size = 4
 ?contains@SK_ModuleAddrMap@@QAE_NPAXPAPAUHINSTANCE__@@@Z PROC ; SK_ModuleAddrMap::contains
 ; _this$ = ecx
 
-; 1063 : {
+; 1077 : {
 
 	npad	2
 	push	ebp
@@ -50921,12 +51089,12 @@ _phMod$ = 12						; size = 4
 	push	edi
 	mov	edi, ecx
 
-; 1064 :   if (pResolved == nullptr)
+; 1078 :   if (pResolved == nullptr)
 
 	cmp	DWORD PTR [edi], 0
 	jne	SHORT $LN2@contains
 
-; 1065 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
+; 1079 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
 
 	push	32					; 00000020H
 	call	??2@YAPAXI@Z				; operator new
@@ -50957,7 +51125,7 @@ _phMod$ = 12						; size = 4
 	call	??0?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE@ABV?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@1@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1065 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
+; 1079 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
 
 	jmp	SHORT $LN6@contains
 $LN5@contains:
@@ -50967,9 +51135,9 @@ $LN6@contains:
 	mov	DWORD PTR [edi], esi
 $LN2@contains:
 
-; 1066 : 
-; 1067 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ =
-; 1068 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+; 1080 : 
+; 1081 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ =
+; 1082 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
 
 	mov	esi, DWORD PTR [edi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -51025,7 +51193,7 @@ $LL45@contains:
 	jne	SHORT $LL45@contains
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1070 :   if (pResolved_->count (pAddr))
+; 1084 :   if (pResolved_->count (pAddr))
 
 	test	edx, edx
 	je	SHORT $LN3@contains
@@ -51081,7 +51249,7 @@ $LL45@contains:
 $LN60@contains:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1072 :     *phMod = (*pResolved_) [pAddr];
+; 1086 :     *phMod = (*pResolved_) [pAddr];
 
 	mov	ecx, DWORD PTR [eax+12]
 	mov	eax, DWORD PTR _phMod$[ebp]
@@ -51089,14 +51257,14 @@ $LN60@contains:
 	pop	esi
 	mov	DWORD PTR [eax], ecx
 
-; 1073 :     return true;
+; 1087 :     return true;
 
 	mov	al, 1
 
-; 1074 :   }
-; 1075 : 
-; 1076 :   return false;
-; 1077 : }
+; 1088 :   }
+; 1089 : 
+; 1090 :   return false;
+; 1091 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -51140,7 +51308,7 @@ _TEXT	SEGMENT
 	mov	DWORD PTR [ecx], 0
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1059 : SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
+; 1073 : SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
 
 	mov	eax, ecx
 	ret	0
@@ -57386,7 +57554,7 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 1090 : }
+; 1104 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
@@ -57398,7 +57566,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 1090 : }
+; 1104 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

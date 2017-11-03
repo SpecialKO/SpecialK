@@ -775,6 +775,7 @@ DWORD
 WINAPI
 CheckVersionThread (LPVOID user);
 
+volatile LONG   SK_bypass_dialog_tid    =     0;
 volatile LONG   SK_bypass_dialog_active = FALSE;
 volatile LONG __SK_Init                 = FALSE;
 
@@ -973,7 +974,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
          callback_fn (SK_InitFinishCallback);
 
 
-  if (! ReadAcquire (&SK_bypass_dialog_active))
+  if ((! ReadAcquire (&SK_bypass_dialog_active)) && (GetCurrentThreadId () != ReadAcquire (&SK_bypass_dialog_tid)))
   {
     // Setup the compatibility backend, which monitors loaded libraries,
     //   blacklists bad DLLs and detects render APIs...
@@ -999,7 +1000,7 @@ WaitForInit (void)
       break;
   }
 
-  while (ReadAcquire (&SK_bypass_dialog_active))
+  while (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != ReadAcquire (&SK_bypass_dialog_tid)))
   {
     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
                       GetCurrentThreadId () );
@@ -1161,18 +1162,19 @@ CheckVersionThread (LPVOID user)
   // If a local repository is present, use that.
   if (GetFileAttributes (L"Version\\installed.ini") == INVALID_FILE_ATTRIBUTES)
   {
-    InterlockedIncrement (&SK_bypass_dialog_active);
-
     if (SK_FetchVersionInfo (L"SpecialK"))
     {
       // ↑ Check, but ↓ don't update unless running the global injector version
       if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
       {
+        InterlockedIncrement (&SK_bypass_dialog_active);
+        InterlockedExchange  (&SK_bypass_dialog_tid, GetCurrentThreadId ());
+
         SK_UpdateSoftware (L"SpecialK");
+
+        InterlockedDecrement (&SK_bypass_dialog_active);
       }
     }
-
-    InterlockedDecrement (&SK_bypass_dialog_active);
   }
 
   CloseHandle (GetCurrentThread ());
@@ -1957,7 +1959,7 @@ STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
   // Throttle, but do not deadlock the render loop
-  while (ReadNoFence (&SK_bypass_dialog_active))
+  while (ReadNoFence (&SK_bypass_dialog_active) && (GetCurrentThreadId () != ReadAcquire (&SK_bypass_dialog_tid)))
     MsgWaitForMultipleObjectsEx (0, nullptr, 166, QS_ALLINPUT, MWMO_ALERTABLE);
 
   // ^^^ Use condition variable instead

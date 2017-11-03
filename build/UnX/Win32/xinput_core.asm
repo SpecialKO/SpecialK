@@ -352,7 +352,7 @@ $SG132522 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H
 	DB	00H
 	ORG $+6
-$SG133805 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132592 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o'
@@ -371,26 +371,26 @@ $SG133805 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, ' ', 00H, 'a', 00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H
 	DB	't', 00H, 'e', 00H, 'n', 00H, 'd', 00H, 'e', 00H, 'd', 00H, '.'
 	DB	00H, 00H, 00H
-$SG133806 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132593 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133808 DB	'XInputGetState', 00H
+$SG132595 DB	'XInputGetState', 00H
 	ORG $+1
-$SG133811 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132598 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133813 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132600 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133815 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132602 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG133836 DB	'XInput1_3.dll', 00H
+$SG132618 DB	'XInput1_3.dll', 00H
 	ORG $+2
-$SG133837 DB	'XInput1_4.dll', 00H
+$SG132619 DB	'XInput1_4.dll', 00H
 	ORG $+2
-$SG133838 DB	'XInput9_1_0.dll', 00H
-$SG133849 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132620 DB	'XInput9_1_0.dll', 00H
+$SG133834 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'u', 00H
 	DB	's', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'X', 00H, 'I', 00H, 'n'
@@ -400,13 +400,13 @@ $SG133849 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'u', 00H, 't', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o', 00H, 'k'
 	DB	00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG133854 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133839 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133856 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133841 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG133858 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG133843 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+4
@@ -1054,13 +1054,13 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A
 _DATA	SEGMENT
-?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG133836 ; `SK_Input_PreHookXInput'::`7'::tests
+?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG132618 ; `SK_Input_PreHookXInput'::`7'::tests
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG133837
+	DD	FLAT:$SG132619
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG133838
+	DD	FLAT:$SG132620
 	DB	00H
 	ORG $+3
 _DATA	ENDS
@@ -1214,20 +1214,9 @@ __unwindtable$?SK_XInput_EstablishPrimaryHook@@YAXPAUHINSTANCE__@@PAUinstance_s@
 	DD	FLAT:__unwindfunclet$?SK_XInput_EstablishPrimaryHook@@YAXPAUHINSTANCE__@@PAUinstance_s@SK_XInputContext@@@Z$0
 __unwindtable$?SK_Input_PreHookXInput@@YAXXZ DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Input_PreHookXInput@@YAXXZ$0
-__unwindtable$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z DD 0ffffffffH
-	DD	FLAT:__unwindfunclet$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z$0
-	DD	0ffffffffH
-	DD	FLAT:__unwindfunclet$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z$2
 __ehfuncinfo$?SK_XInput_EstablishPrimaryHook@@YAXPAUHINSTANCE__@@PAUinstance_s@SK_XInputContext@@@Z DD 019930522H
 	DD	01H
 	DD	FLAT:__unwindtable$?SK_XInput_EstablishPrimaryHook@@YAXPAUHINSTANCE__@@PAUinstance_s@SK_XInputContext@@@Z
-	DD	2 DUP(00H)
-	DD	2 DUP(00H)
-	DD	00H
-	DD	01H
-__ehfuncinfo$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z DD 019930522H
-	DD	02H
-	DD	FLAT:__unwindtable$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
 	DD	00H
@@ -20918,19 +20907,19 @@ $T1 = -4						; size = 4
 _iJoyID$ = 8						; size = 4
 ?SK_XInput_ZeroHaptics@@YAXH@Z PROC			; SK_XInput_ZeroHaptics
 
-; 1471 : {
+; 1462 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ecx
 
-; 1472 :   SK_XInput_RehookIfNeeded ();
+; 1463 :   SK_XInput_RehookIfNeeded ();
 
 	call	?SK_XInput_RehookIfNeeded@@YAXXZ	; SK_XInput_RehookIfNeeded
 
-; 1473 : 
-; 1474 :   if (! (xinput_enabled && xinput_ctx.primary_hook))
+; 1464 : 
+; 1465 :   if (! (xinput_enabled && xinput_ctx.primary_hook))
 
 	cmp	DWORD PTR ?xinput_enabled@@3HA, 0	; xinput_enabled
 	je	SHORT $LN3@SK_XInput_
@@ -20946,7 +20935,7 @@ _iJoyID$ = 8						; size = 4
 	lea	eax, DWORD PTR $T1[ebp]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 
-; 1478 :   iJoyID =
+; 1469 :   iJoyID =
 
 	mov	DWORD PTR $T1[ebp], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -20964,32 +20953,32 @@ _iJoyID$ = 8						; size = 4
 	cmovg	ecx, eax
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 
-; 1478 :   iJoyID =
+; 1469 :   iJoyID =
 
 	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+704]
 
-; 1479 :     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
-; 1480 : 
-; 1481 :   if (iJoyID >= XUSER_MAX_COUNT) return;
+; 1470 :     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
+; 1471 : 
+; 1472 :   if (iJoyID >= XUSER_MAX_COUNT) return;
 
 	cmp	esi, 4
 	jge	SHORT $LN14@SK_XInput_
 
-; 1482 : 
-; 1483 :   if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
+; 1473 : 
+; 1474 :   if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
 
 	mov	eax, DWORD PTR [edx+156]
 	test	eax, eax
 	je	SHORT $LN5@SK_XInput_
 
-; 1484 :     xinput_ctx.primary_hook->XInputEnable_Original (false);
+; 1475 :     xinput_ctx.primary_hook->XInputEnable_Original (false);
 
 	push	0
 	call	eax
 $LN5@SK_XInput_:
 
-; 1485 : 
-; 1486 :   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
+; 1476 : 
+; 1477 :   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
 
 	sub	esp, 8
 	mov	DWORD PTR [esp+4], 0
@@ -20997,8 +20986,8 @@ $LN5@SK_XInput_:
 	push	esi
 	call	?SK_XInput_PulseController@@YA_NHMM@Z	; SK_XInput_PulseController
 
-; 1487 : 
-; 1488 :   if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
+; 1478 : 
+; 1479 :   if (xinput_ctx.primary_hook->XInputEnable_Original != nullptr)
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	add	esp, 12					; 0000000cH
@@ -21006,7 +20995,7 @@ $LN5@SK_XInput_:
 	test	eax, eax
 	je	SHORT $LN14@SK_XInput_
 
-; 1489 :     xinput_ctx.primary_hook->XInputEnable_Original (xinput_enabled);
+; 1480 :     xinput_ctx.primary_hook->XInputEnable_Original (xinput_enabled);
 
 	push	DWORD PTR ?xinput_enabled@@3HA		; xinput_enabled
 	call	eax
@@ -21014,7 +21003,7 @@ $LN14@SK_XInput_:
 	pop	esi
 $LN3@SK_XInput_:
 
-; 1490 : }
+; 1481 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -21173,26 +21162,9 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
-; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
-; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
-; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 _TEXT	SEGMENT
-_suspended_tids$2 = -80					; size = 20
-_suspended_tids$3 = -60					; size = 20
-_xstate$ = -40						; size = 20
-$T4 = -20						; size = 4
-$T5 = -16						; size = 4
-__$EHRec$ = -12						; size = 12
-_this$ = 8						; size = 4
-_this$ = 8						; size = 4
+_xstate$ = -24						; size = 20
+$T1 = -4						; size = 4
 _iJoyID$ = 8						; size = 4
 _pState$ = 12						; size = 4
 ?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z PROC ; SK_XInput_PollController
@@ -21202,61 +21174,53 @@ _pState$ = 12						; size = 4
 	npad	2
 	push	ebp
 	mov	ebp, esp
-	push	-1
-	push	__ehhandler$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z
-	mov	eax, DWORD PTR fs:0
-	push	eax
-	mov	DWORD PTR fs:0, esp
-	sub	esp, 68					; 00000044H
+	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
 
 ; 3779 : 	return (_DEBUG_LT(_Right, _Left) ? _Right : _Left);
 
 	cmp	DWORD PTR _iJoyID$[ebp], 3
-	lea	eax, DWORD PTR _iJoyID$[ebp]
-	lea	ecx, DWORD PTR $T5[ebp]
+	lea	ecx, DWORD PTR _iJoyID$[ebp]
+	lea	eax, DWORD PTR $T1[ebp]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 
 ; 1277 :   iJoyID =
 
-	mov	DWORD PTR $T5[ebp], 3
+	mov	DWORD PTR $T1[ebp], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
 
 ; 3779 : 	return (_DEBUG_LT(_Right, _Left) ? _Right : _Left);
 
-	cmovle	ecx, eax
-; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
-
-; 1277 :   iJoyID =
-
-	mov	DWORD PTR $T4[ebp], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+	cmovle	eax, ecx
 
 ; 3743 : 	return (_DEBUG_LT(_Left, _Right) ? _Right : _Left);
 
-	lea	eax, DWORD PTR $T4[ebp]
-; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
-
-; 1276 : {
-
+	xor	ecx, ecx
 	push	esi
-	push	edi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
-
-; 3743 : 	return (_DEBUG_LT(_Left, _Right) ? _Right : _Left);
-
-	cmp	DWORD PTR [ecx], 0
-	cmovg	eax, ecx
+	mov	eax, DWORD PTR [eax]
+	test	eax, eax
+	cmovg	ecx, eax
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 
 ; 1280 :   if (! config.input.gamepad.hook_xinput)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+689, 0
-	mov	eax, DWORD PTR [eax]
-	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+704]
-	je	$LN20@SK_XInput_
+	mov	esi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+704]
+	jne	SHORT $LN2@SK_XInput_
+$LN38@SK_XInput_:
 
 ; 1281 :     return false;
+
+	xor	al, al
+	pop	esi
+
+; 1415 : }
+
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+$LN2@SK_XInput_:
+
 ; 1282 : 
 ; 1283 :   SK_XInputContext::instance_s* pCtx =
 ; 1284 :     xinput_ctx.primary_hook;
@@ -21271,7 +21235,7 @@ _pState$ = 12						; size = 4
 	test	eax, eax
 	je	SHORT $LN4@SK_XInput_
 	cmp	DWORD PTR [eax+12], 0
-	jne	$LN49@SK_XInput_
+	jne	$LN3@SK_XInput_
 $LN4@SK_XInput_:
 
 ; 1289 :   {
@@ -21280,35 +21244,27 @@ $LN4@SK_XInput_:
 ; 1292 :     if (tried_to_hook)
 
 	cmp	BYTE PTR ?tried_to_hook@?6??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4_NA, 0
-	jne	$LN20@SK_XInput_
+	jne	SHORT $LN38@SK_XInput_
 
 ; 1293 :       return false;
 ; 1294 : 
 ; 1295 :     tried_to_hook = true;
-; 1296 : 
-; 1297 :     std::queue <DWORD> suspended_tids =
-; 1298 :       SK_SuspendAllOtherThreads ();
 
-	lea	eax, DWORD PTR _suspended_tids$2[ebp]
 	mov	BYTE PTR ?tried_to_hook@?6??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4_NA, 1
-	push	eax
-	call	?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ ; SK_SuspendAllOtherThreads
-	add	esp, 4
-	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 1299 : 
-; 1300 :     // First try 1.3, that's generally available.
-; 1301 :     SK_Input_HookXInput1_3 ();
+; 1296 : 
+; 1297 :     // First try 1.3, that's generally available.
+; 1298 :     SK_Input_HookXInput1_3 ();
 
 	call	?SK_Input_HookXInput1_3@@YAXXZ		; SK_Input_HookXInput1_3
 
-; 1302 :     pCtx = xinput_ctx.primary_hook;
+; 1299 :     pCtx = xinput_ctx.primary_hook;
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 
-; 1303 : 
-; 1304 :     // Then 1.4
-; 1305 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
+; 1300 : 
+; 1301 :     // Then 1.4
+; 1302 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
 
 	test	eax, eax
 	je	SHORT $LN7@SK_XInput_
@@ -21316,20 +21272,20 @@ $LN4@SK_XInput_:
 	jne	SHORT $LN6@SK_XInput_
 $LN7@SK_XInput_:
 
-; 1306 :     {
-; 1307 :       SK_Input_HookXInput1_4 ();
+; 1303 :     {
+; 1304 :       SK_Input_HookXInput1_4 ();
 
 	call	?SK_Input_HookXInput1_4@@YAXXZ		; SK_Input_HookXInput1_4
 
-; 1308 :       pCtx = xinput_ctx.primary_hook;
+; 1305 :       pCtx = xinput_ctx.primary_hook;
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 $LN6@SK_XInput_:
 
-; 1309 :     }
-; 1310 : 
-; 1311 :     // Down-level 9_1_0 if all else fails (does not support XInputEx)
-; 1312 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
+; 1306 :     }
+; 1307 : 
+; 1308 :     // Down-level 9_1_0 if all else fails (does not support XInputEx)
+; 1309 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
 
 	test	eax, eax
 	je	SHORT $LN9@SK_XInput_
@@ -21337,21 +21293,21 @@ $LN6@SK_XInput_:
 	jne	SHORT $LN8@SK_XInput_
 $LN9@SK_XInput_:
 
-; 1313 :     {
-; 1314 :       SK_Input_HookXInput9_1_0 ();
+; 1310 :     {
+; 1311 :       SK_Input_HookXInput9_1_0 ();
 
 	call	?SK_Input_HookXInput9_1_0@@YAXXZ	; SK_Input_HookXInput9_1_0
 
-; 1315 :       pCtx = xinput_ctx.primary_hook;
+; 1312 :       pCtx = xinput_ctx.primary_hook;
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 $LN8@SK_XInput_:
 
-; 1316 :     }
-; 1317 : 
-; 1318 : 
-; 1319 :     // No XInput?! User shouldn't be playing games :P
-; 1320 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
+; 1313 :     }
+; 1314 : 
+; 1315 : 
+; 1316 :     // No XInput?! User shouldn't be playing games :P
+; 1317 :     if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
 
 	test	eax, eax
 	je	SHORT $LN11@SK_XInput_
@@ -21359,225 +21315,153 @@ $LN8@SK_XInput_:
 	jne	SHORT $LN13@SK_XInput_
 $LN11@SK_XInput_:
 
-; 1321 :     {
-; 1322 :       SK_LOG0 ( ( L"Unable to hook XInput, attempting to enter limp-mode..."
+; 1318 :     {
+; 1319 :       SK_LOG0 ( ( L"Unable to hook XInput, attempting to enter limp-mode..."
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+824, 0
 	jl	SHORT $LN12@SK_XInput_
-	push	OFFSET $SG133805
+	push	OFFSET $SG132592
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN12@SK_XInput_:
 
-; 1323 :                   L" input-related features may not work as intended." ),
-; 1324 :                   L"Input Mgr." );
-; 1325 :       xinput_ctx.primary_hook =
-; 1326 :         &xinput_ctx.XInput1_3;
-; 1327 : 
-; 1328 :       pCtx = xinput_ctx.primary_hook;
-; 1329 : 
-; 1330 :       HMODULE hModXInput1_3 =
-; 1331 :         LoadLibraryW_Original (L"XInput1_3.dll");
+; 1320 :                   L" input-related features may not work as intended." ),
+; 1321 :                   L"Input Mgr." );
+; 1322 :       xinput_ctx.primary_hook =
+; 1323 :         &xinput_ctx.XInput1_3;
+; 1324 : 
+; 1325 :       pCtx = xinput_ctx.primary_hook;
+; 1326 : 
+; 1327 :       HMODULE hModXInput1_3 =
+; 1328 :         LoadLibraryW_Original (L"XInput1_3.dll");
 
-	push	OFFSET $SG133806
+	push	OFFSET $SG132593
 	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672, OFFSET ?xinput_ctx@@3USK_XInputContext@@A ; xinput_ctx
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 
-; 1332 : 
-; 1333 :       if (hModXInput1_3 != nullptr)
+; 1329 : 
+; 1330 :       if (hModXInput1_3 != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN13@SK_XInput_
 
-; 1334 :       {
-; 1335 :         pCtx->XInputGetState_Original =
+; 1331 :       {
+; 1332 :         pCtx->XInputGetState_Original =
 
-	push	OFFSET $SG133808
+	push	OFFSET $SG132595
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+12, eax
 $LN13@SK_XInput_:
 
-; 1336 :           (XInputGetState_pfn)
-; 1337 :             GetProcAddress ( hModXInput1_3,
-; 1338 :                              "XInputGetState" );
-; 1339 :       }
-; 1340 :     }
-; 1341 : 
-; 1342 :     SK_ApplyQueuedHooks ();
+; 1333 :           (XInputGetState_pfn)
+; 1334 :             GetProcAddress ( hModXInput1_3,
+; 1335 :                              "XInputGetState" );
+; 1336 :       }
+; 1337 :     }
+; 1338 : 
+; 1339 :     SK_ApplyQueuedHooks ();
 
 	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
+$LN3@SK_XInput_:
 
-; 1343 : 
-; 1344 :     SK_ResumeThreads (suspended_tids);
-
-	sub	esp, 20					; 00000014H
-	lea	eax, DWORD PTR _suspended_tids$2[ebp]
-	mov	ecx, esp
-	mov	DWORD PTR _this$[ebp], ecx
-	push	eax
-	call	??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
-	call	?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z ; SK_ResumeThreads
-	add	esp, 20					; 00000014H
-
-; 1345 :   }
-
-	mov	DWORD PTR __$EHRec$[ebp+8], -1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
-
-; 1244 : 		_Tidy();
-
-	lea	ecx, DWORD PTR _suspended_tids$2[ebp]
-	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	8
-	push	1
-	push	DWORD PTR _suspended_tids$2[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN49@SK_XInput_:
-; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
-
-; 1349 :   if (first_frame)
+; 1340 :   }
+; 1341 : 
+; 1342 :   // Lazy-load DLLs if somehow a game uses an XInput DLL not listed
+; 1343 :   //   in its import table and also not caught by our LoadLibrary hook
+; 1344 :   if (first_frame)
 
 	cmp	BYTE PTR ?first_frame@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4_NA, 0
-	je	$LN107@SK_XInput_
+	push	edi
+	je	SHORT $LN14@SK_XInput_
 
-; 1350 :   {
-; 1351 :     std::queue <DWORD> suspended_tids =
-; 1352 :       SK_SuspendAllOtherThreads ();
-
-	lea	eax, DWORD PTR _suspended_tids$3[ebp]
-	push	eax
-	call	?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ ; SK_SuspendAllOtherThreads
-	add	esp, 4
-
-; 1353 : 
-; 1354 :     if (GetModuleHandle (L"XInput1_3.dll"))
+; 1345 :   {
+; 1346 :     if (GetModuleHandle (L"XInput1_3.dll"))
 
 	mov	edi, DWORD PTR __imp__GetModuleHandleW@4
-	push	OFFSET $SG133811
-	mov	DWORD PTR __$EHRec$[ebp+8], 1
+	push	OFFSET $SG132598
 	call	edi
 	test	eax, eax
 	je	SHORT $LN15@SK_XInput_
 
-; 1355 :       SK_Input_HookXInput1_3 ();
+; 1347 :       SK_Input_HookXInput1_3 ();
 
 	call	?SK_Input_HookXInput1_3@@YAXXZ		; SK_Input_HookXInput1_3
 $LN15@SK_XInput_:
 
-; 1356 : 
-; 1357 :     if (GetModuleHandle (L"XInput1_4.dll"))
+; 1348 : 
+; 1349 :     if (GetModuleHandle (L"XInput1_4.dll"))
 
-	push	OFFSET $SG133813
+	push	OFFSET $SG132600
 	call	edi
 	test	eax, eax
 	je	SHORT $LN16@SK_XInput_
 
-; 1358 :       SK_Input_HookXInput1_4 ();
+; 1350 :       SK_Input_HookXInput1_4 ();
 
 	call	?SK_Input_HookXInput1_4@@YAXXZ		; SK_Input_HookXInput1_4
 $LN16@SK_XInput_:
 
-; 1359 : 
-; 1360 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
+; 1351 : 
+; 1352 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
 
-	push	OFFSET $SG133815
+	push	OFFSET $SG132602
 	call	edi
 	test	eax, eax
 	je	SHORT $LN17@SK_XInput_
 
-; 1361 :       SK_Input_HookXInput9_1_0 ();
+; 1353 :       SK_Input_HookXInput9_1_0 ();
 
 	call	?SK_Input_HookXInput9_1_0@@YAXXZ	; SK_Input_HookXInput9_1_0
 $LN17@SK_XInput_:
 
-; 1362 : 
-; 1363 :     first_frame = false;
+; 1354 : 
+; 1355 :     first_frame = false;
 
 	mov	BYTE PTR ?first_frame@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4_NA, 0
 
-; 1364 : 
-; 1365 :     SK_ApplyQueuedHooks ();
+; 1356 : 
+; 1357 :     SK_ApplyQueuedHooks ();
 
 	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
+$LN14@SK_XInput_:
 
-; 1366 :     SK_ResumeThreads    (suspended_tids);
-
-	sub	esp, 20					; 00000014H
-	lea	eax, DWORD PTR _suspended_tids$3[ebp]
-	mov	ecx, esp
-	mov	DWORD PTR _this$[ebp], ecx
-	push	eax
-	call	??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
-	call	?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z ; SK_ResumeThreads
-	add	esp, 20					; 00000014H
-
-; 1367 :   }
-
-	mov	DWORD PTR __$EHRec$[ebp+8], -1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
-
-; 1244 : 		_Tidy();
-
-	lea	ecx, DWORD PTR _suspended_tids$3[ebp]
-	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	8
-	push	1
-	push	DWORD PTR _suspended_tids$3[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
-
-; 866  : 		_Myproxy() = 0;
-
-	mov	DWORD PTR _suspended_tids$3[ebp], 0
-$LN107@SK_XInput_:
-; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
-
-; 1369 :   if (iJoyID == -1)
+; 1358 :   }
+; 1359 : 
+; 1360 :   if (iJoyID == -1)
 
 	cmp	esi, -1
 	je	$LN27@SK_XInput_
 
-; 1370 :     return true;
-; 1371 : 
-; 1372 :   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
+; 1361 :     return true;
+; 1362 : 
+; 1363 :   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
 
 	cmp	esi, 3
 	ja	$LN20@SK_XInput_
 
-; 1373 :     return false;
-; 1374 : 
-; 1375 : 
-; 1376 : 
-; 1377 :   SK_XInput_RehookIfNeeded ();
+; 1365 : 
+; 1366 : 
+; 1367 : 
+; 1368 :   SK_XInput_RehookIfNeeded ();
 
 	call	?SK_XInput_RehookIfNeeded@@YAXXZ	; SK_XInput_RehookIfNeeded
 
-; 1378 : 
+; 1369 : 
+; 1370 : 
+; 1371 : 
+; 1372 : 
+; 1373 :   XINPUT_STATE_EX xstate = { };
+; 1374 :   xstate.dwPacketNumber  =  1;
+; 1375 : 
+; 1376 :   static DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
+; 1377 :   static DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
+; 1378 :                                                ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
 ; 1379 : 
-; 1380 : 
-; 1381 : 
-; 1382 :   XINPUT_STATE_EX xstate = { };
-; 1383 :   xstate.dwPacketNumber  =  1;
-; 1384 : 
-; 1385 :   static DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
-; 1386 :   static DWORD dwRet     [XUSER_MAX_COUNT] = { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
-; 1387 :                                                ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
-; 1388 : 
-; 1389 :   // This function is actually a performance hazzard when no controllers
-; 1390 :   //   are plugged in, so ... throttle the sucker.
-; 1391 :   if (last_poll [iJoyID] < timeGetTime () - 500UL)
+; 1380 :   // This function is actually a performance hazzard when no controllers
+; 1381 :   //   are plugged in, so ... throttle the sucker.
+; 1382 :   if (last_poll [iJoyID] < timeGetTime () - 500UL)
 
 	mov	edi, DWORD PTR __imp__timeGetTime@0
 	xorps	xmm0, xmm0
@@ -21589,127 +21473,118 @@ $LN107@SK_XInput_:
 	cmp	DWORD PTR ?last_poll@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], eax
 	jae	SHORT $LN25@SK_XInput_
 
-; 1392 :   {
-; 1393 :     if (xinput_ctx.primary_hook->XInputGetStateEx_Original != nullptr)
+; 1383 :   {
+; 1384 :     if (xinput_ctx.primary_hook->XInputGetStateEx_Original != nullptr)
 
 	mov	eax, DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	mov	ecx, DWORD PTR [eax+192]
 	test	ecx, ecx
 	je	SHORT $LN22@SK_XInput_
 
-; 1394 :     {
-; 1395 :       dwRet [iJoyID] =
+; 1385 :     {
+; 1386 :       dwRet [iJoyID] =
 
 	lea	eax, DWORD PTR _xstate$[ebp]
 	push	eax
 	push	esi
 	call	ecx
 
-; 1396 :         xinput_ctx.primary_hook->XInputGetStateEx_Original (iJoyID, &xstate);
-; 1397 :     }
-; 1398 : 
-; 1399 :     // Down-level XInput
-; 1400 :     else
+; 1387 :         xinput_ctx.primary_hook->XInputGetStateEx_Original (iJoyID, &xstate);
+; 1388 :     }
+; 1389 : 
+; 1390 :     // Down-level XInput
+; 1391 :     else
 
-	jmp	SHORT $LN156@SK_XInput_
+	jmp	SHORT $LN36@SK_XInput_
 $LN22@SK_XInput_:
 
-; 1401 :     {
-; 1402 :       if (xinput_ctx.primary_hook->XInputGetState_Original != nullptr)
+; 1392 :     {
+; 1393 :       if (xinput_ctx.primary_hook->XInputGetState_Original != nullptr)
 
 	mov	eax, DWORD PTR [eax+12]
 	test	eax, eax
 	je	SHORT $LN24@SK_XInput_
 
-; 1403 :       {
-; 1404 :         dwRet [iJoyID] =
+; 1394 :       {
+; 1395 :         dwRet [iJoyID] =
 
 	lea	ecx, DWORD PTR _xstate$[ebp]
 	push	ecx
 	push	esi
 	call	eax
-$LN156@SK_XInput_:
+$LN36@SK_XInput_:
 	mov	DWORD PTR ?dwRet@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], eax
 $LN24@SK_XInput_:
 
-; 1405 :           xinput_ctx.primary_hook->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate);
-; 1406 :       }
-; 1407 :     }
-; 1408 : 
-; 1409 :     if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
+; 1396 :           xinput_ctx.primary_hook->XInputGetState_Original (iJoyID, (XINPUT_STATE *)&xstate);
+; 1397 :       }
+; 1398 :     }
+; 1399 : 
+; 1400 :     if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
 
 	cmp	DWORD PTR ?dwRet@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], 1167 ; 0000048fH
 	jne	SHORT $LN26@SK_XInput_
 
-; 1410 :       last_poll [iJoyID] = timeGetTime ();
+; 1401 :       last_poll [iJoyID] = timeGetTime ();
 
 	call	edi
 	mov	DWORD PTR ?last_poll@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], eax
 $LN25@SK_XInput_:
 
-; 1411 :   }
-; 1412 : 
-; 1413 :   if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
+; 1402 :   }
+; 1403 : 
+; 1404 :   if (dwRet [iJoyID] == ERROR_DEVICE_NOT_CONNECTED)
 
 	cmp	DWORD PTR ?dwRet@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], 1167 ; 0000048fH
 	je	SHORT $LN20@SK_XInput_
 $LN26@SK_XInput_:
 
-; 1414 :     return false;
-; 1415 : 
-; 1416 :   last_poll [iJoyID] = 0; // Feel free to poll this controller again immediately,
-; 1417 :                           //   the performance penalty from a disconnected controller
-; 1418 :                           //     won't be there.
-; 1419 : 
-; 1420 :   if (pState != nullptr)
+; 1405 :     return false;
+; 1406 : 
+; 1407 :   last_poll [iJoyID] = 0; // Feel free to poll this controller again immediately,
+; 1408 :                           //   the performance penalty from a disconnected controller
+; 1409 :                           //     won't be there.
+; 1410 : 
+; 1411 :   if (pState != nullptr)
 
 	mov	eax, DWORD PTR _pState$[ebp]
 	mov	DWORD PTR ?last_poll@?1??SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z@4PAKA[esi*4], 0
 	test	eax, eax
 	je	SHORT $LN27@SK_XInput_
 
-; 1421 :     memcpy (pState, &xstate, sizeof XINPUT_STATE);
+; 1412 :     memcpy (pState, &xstate, sizeof XINPUT_STATE);
 
 	movups	xmm0, XMMWORD PTR _xstate$[ebp]
 	movups	XMMWORD PTR [eax], xmm0
 $LN27@SK_XInput_:
 
-; 1422 : 
-; 1423 :   return true;
+; 1413 : 
+; 1414 :   return true;
 
-	mov	al, 1
-
-; 1424 : }
-
-	mov	ecx, DWORD PTR __$EHRec$[ebp]
-	mov	DWORD PTR fs:0, ecx
 	pop	edi
+	mov	al, 1
 	pop	esi
+
+; 1415 : }
+
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN20@SK_XInput_:
-	mov	ecx, DWORD PTR __$EHRec$[ebp]
-	xor	al, al
 	pop	edi
-	mov	DWORD PTR fs:0, ecx
+
+; 1364 :     return false;
+
+	xor	al, al
 	pop	esi
+
+; 1415 : }
+
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-_TEXT	ENDS
-text$x	SEGMENT
-__unwindfunclet$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z$0:
-	lea	ecx, DWORD PTR _suspended_tids$2[ebp]
-	jmp	??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ
-__unwindfunclet$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z$2:
-	lea	ecx, DWORD PTR _suspended_tids$3[ebp]
-	jmp	??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ
-__ehhandler$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z:
-	mov	eax, OFFSET __ehfuncinfo$?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z
-	jmp	___CxxFrameHandler3
-text$x	ENDS
 ?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z ENDP ; SK_XInput_PollController
+_TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\include\specialk\input\input.h
 ;	COMDAT ?markWrite@sk_input_api_context_s@@QAEXW4sk_input_dev_type@@@Z
@@ -21829,7 +21704,7 @@ _this$ = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ?SK_Input_PreHookXInput@@YAXXZ PROC			; SK_Input_PreHookXInput
 
-; 1430 : {
+; 1421 : {
 
 	npad	2
 	push	ebp
@@ -21841,25 +21716,25 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 24					; 00000018H
 
-; 1431 :   if (! config.input.gamepad.hook_xinput)
+; 1422 :   if (! config.input.gamepad.hook_xinput)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+689, 0
 	push	esi
 	je	$LN26@SK_Input_P
 
-; 1432 :     return;
-; 1433 : 
-; 1434 :   if (xinput_ctx.primary_hook == nullptr)
+; 1423 :     return;
+; 1424 : 
+; 1425 :   if (xinput_ctx.primary_hook == nullptr)
 
 	cmp	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672, 0
 	jne	$LN26@SK_Input_P
 
-; 1435 :   {
-; 1436 :     static sk_import_test_s tests [] = { { "XInput1_3.dll",   false },
-; 1437 :                                          { "XInput1_4.dll",   false },
-; 1438 :                                          { "XInput9_1_0.dll", false } };
-; 1439 : 
-; 1440 :     SK_TestImports (GetModuleHandle (nullptr), tests, 3);
+; 1426 :   {
+; 1427 :     static sk_import_test_s tests [] = { { "XInput1_3.dll",   false },
+; 1428 :                                          { "XInput1_4.dll",   false },
+; 1429 :                                          { "XInput9_1_0.dll", false } };
+; 1430 : 
+; 1431 :     SK_TestImports (GetModuleHandle (nullptr), tests, 3);
 
 	mov	esi, DWORD PTR __imp__GetModuleHandleW@4
 	push	3
@@ -21869,17 +21744,17 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	call	?SK_TestImports@@YGXPAUHINSTANCE__@@PAUsk_import_test_s@@H@Z ; SK_TestImports
 
-; 1441 : 
-; 1442 :     std::queue <DWORD> suspended_tids =
-; 1443 :       SK_SuspendAllOtherThreads ();
+; 1432 : 
+; 1433 :     std::queue <DWORD> suspended_tids =
+; 1434 :       SK_SuspendAllOtherThreads ();
 
 	lea	eax, DWORD PTR _suspended_tids$2[ebp]
 	push	eax
 	call	?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ ; SK_SuspendAllOtherThreads
 	add	esp, 4
 
-; 1444 : 
-; 1445 :     if (tests [0].used || tests [1].used || tests [2].used)
+; 1435 : 
+; 1436 :     if (tests [0].used || tests [1].used || tests [2].used)
 
 	mov	al, BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+4
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -21891,82 +21766,82 @@ __$EHRec$ = -12						; size = 12
 	je	SHORT $LN9@SK_Input_P
 $LN5@SK_Input_P:
 
-; 1446 :     {
-; 1447 :       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
+; 1437 :     {
+; 1438 :       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+824, 0
 	jl	SHORT $LN6@SK_Input_P
-	push	OFFSET $SG133849
+	push	OFFSET $SG133834
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	mov	al, BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+4
 	add	esp, 8
 $LN6@SK_Input_P:
 
-; 1448 :                   L"   Input  " );
-; 1449 :       if (tests [0].used) SK_Input_HookXInput1_3   ();
+; 1439 :                   L"   Input  " );
+; 1440 :       if (tests [0].used) SK_Input_HookXInput1_3   ();
 
 	test	al, al
 	je	SHORT $LN7@SK_Input_P
 	call	?SK_Input_HookXInput1_3@@YAXXZ		; SK_Input_HookXInput1_3
 $LN7@SK_Input_P:
 
-; 1450 :       if (tests [1].used) SK_Input_HookXInput1_4   ();
+; 1441 :       if (tests [1].used) SK_Input_HookXInput1_4   ();
 
 	cmp	BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+12, 0
 	je	SHORT $LN8@SK_Input_P
 	call	?SK_Input_HookXInput1_4@@YAXXZ		; SK_Input_HookXInput1_4
 $LN8@SK_Input_P:
 
-; 1451 :       if (tests [2].used) SK_Input_HookXInput9_1_0 ();
+; 1442 :       if (tests [2].used) SK_Input_HookXInput9_1_0 ();
 
 	cmp	BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+20, 0
 	je	SHORT $LN9@SK_Input_P
 	call	?SK_Input_HookXInput9_1_0@@YAXXZ	; SK_Input_HookXInput9_1_0
 $LN9@SK_Input_P:
 
-; 1452 :     }
-; 1453 : 
-; 1454 :     if (GetModuleHandle (L"XInput1_3.dll"))
+; 1443 :     }
+; 1444 : 
+; 1445 :     if (GetModuleHandle (L"XInput1_3.dll"))
 
-	push	OFFSET $SG133854
+	push	OFFSET $SG133839
 	call	esi
 	test	eax, eax
 	je	SHORT $LN10@SK_Input_P
 
-; 1455 :       SK_Input_HookXInput1_3 ();
+; 1446 :       SK_Input_HookXInput1_3 ();
 
 	call	?SK_Input_HookXInput1_3@@YAXXZ		; SK_Input_HookXInput1_3
 $LN10@SK_Input_P:
 
-; 1456 : 
-; 1457 :     if (GetModuleHandle (L"XInput1_4.dll"))
+; 1447 : 
+; 1448 :     if (GetModuleHandle (L"XInput1_4.dll"))
 
-	push	OFFSET $SG133856
+	push	OFFSET $SG133841
 	call	esi
 	test	eax, eax
 	je	SHORT $LN11@SK_Input_P
 
-; 1458 :       SK_Input_HookXInput1_4 ();
+; 1449 :       SK_Input_HookXInput1_4 ();
 
 	call	?SK_Input_HookXInput1_4@@YAXXZ		; SK_Input_HookXInput1_4
 $LN11@SK_Input_P:
 
-; 1459 :     
-; 1460 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
+; 1450 :     
+; 1451 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
 
-	push	OFFSET $SG133858
+	push	OFFSET $SG133843
 	call	esi
 	test	eax, eax
 	je	SHORT $LN12@SK_Input_P
 
-; 1461 :       SK_Input_HookXInput9_1_0 ();
+; 1452 :       SK_Input_HookXInput9_1_0 ();
 
 	call	?SK_Input_HookXInput9_1_0@@YAXXZ	; SK_Input_HookXInput9_1_0
 $LN12@SK_Input_P:
 
-; 1462 : 
-; 1463 :     SK_ResumeThreads (suspended_tids);
+; 1453 : 
+; 1454 :     SK_ResumeThreads (suspended_tids);
 
 	sub	esp, 20					; 00000014H
 	lea	eax, DWORD PTR _suspended_tids$2[ebp]
@@ -21994,7 +21869,7 @@ $LN12@SK_Input_P:
 $LN26@SK_Input_P:
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
 
-; 1465 : }
+; 1456 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx

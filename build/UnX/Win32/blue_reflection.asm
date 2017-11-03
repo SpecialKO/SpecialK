@@ -3520,6 +3520,8 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
+; 523  : };
+
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -4215,8 +4217,6 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 523  : };
-
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -4549,8 +4549,6 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
 
-; 523  : };
-
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -4665,8 +4663,6 @@ _<_Args_2>$ = 20					; size = 4
 	test	esi, esi
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
-
-; 523  : };
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -5305,8 +5301,6 @@ _<_Args_2>$ = 24					; size = 4
 	test	ecx, ecx
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
-
-; 523  : };
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	xorps	xmm0, xmm0
@@ -6180,6 +6174,8 @@ _<_Args_2>$ = 20					; size = 4
 	test	ecx, ecx
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
+
+; 523  : };
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	xorps	xmm0, xmm0
@@ -7878,6 +7874,8 @@ _<_Val_2>$ = 16						; size = 4
 	test	edx, edx
 	je	SHORT $LN65@Buynode
 ; File c:\users\andon\source\repos\specialk\src\plugins\blue_reflection.cpp
+
+; 523  : };
 
 	mov	ecx, DWORD PTR _<_Val_1>$[ebp]
 	xorps	xmm0, xmm0

@@ -586,10 +586,10 @@ EnterSpinLock (VOID)
         // generates a full memory barrier itself.
 
         // Prevent the loop from being too busy.
-        if (spinCount < 64)
-            SleepEx (0, FALSE);
+        if (spinCount < 16)
+            SleepEx (0, TRUE);
         else
-            SleepEx (1, FALSE);
+            SleepEx (1, TRUE);
 
         spinCount++;
     }

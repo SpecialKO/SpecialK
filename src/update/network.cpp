@@ -1227,6 +1227,10 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
         }
       }
 
+      extern volatile LONG SK_bypass_dialog_tid;
+      InterlockedExchange  (&SK_bypass_dialog_tid, GetCurrentThreadId ());
+      InterlockedDecrement (&SK_bypass_dialog_active);
+
       if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr)))
       {
         if (get->status == STATUS_UPDATED)
@@ -1351,5 +1355,10 @@ HRESULT
 __stdcall
 SK_UpdateSoftware (const wchar_t* wszProduct)
 {
-  return SK_UpdateSoftware1 (wszProduct);
+  HRESULT hr =SK_UpdateSoftware1 (wszProduct);
+
+  extern volatile LONG  SK_bypass_dialog_tid;
+  InterlockedExchange (&SK_bypass_dialog_tid, 0);
+
+  return hr;
 }

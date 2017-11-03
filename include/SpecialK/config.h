@@ -622,6 +622,7 @@ enum class SK_GAME_ID
   DukeNukemForever,             // DukeForever.exe
   BlueReflection,               // BLUE_REFLECTION.exe
   ZeroEscape,                   // Zero Escape.exe
+  DotHackGU,                    // hackGU.exe
   UNKNOWN_GAME               = 0xffff
 };
 

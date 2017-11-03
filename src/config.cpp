@@ -464,7 +464,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (create)
     SK_CreateDirectories (full_name.c_str ());
 
-  static ULONG        init     = FALSE;
+  static LONG         init     = FALSE;
   static bool         empty    = true;
   static std::wstring last_try = name;
 
@@ -986,6 +986,7 @@ struct param_decl_s {
   games.emplace ( L"DukeForever.exe",                        SK_GAME_ID::DukeNukemForever             );
   games.emplace ( L"BLUE_REFLECTION.exe",                    SK_GAME_ID::BlueReflection               );
   games.emplace ( L"Zero Escape.exe",                        SK_GAME_ID::ZeroEscape                   );
+  games.emplace ( L"hackGU.exe",                             SK_GAME_ID::DotHackGU                    );
 
   //
   // Application Compatibility Overrides
@@ -1252,6 +1253,11 @@ struct param_decl_s {
         config.apis.OpenGL.hook        = false;
         break;
 #endif
+
+      case SK_GAME_ID::DotHackGU:
+        config.cegui.safe_init         = false; // If not turned off, the game will have problems
+                                                // loading its constituent DLLs
+        break;
     }
   }
 

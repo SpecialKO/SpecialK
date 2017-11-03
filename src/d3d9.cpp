@@ -1516,7 +1516,7 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
   {
     if (SUCCEEDED (This->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
     {
-      if (SUCCEEDED (D3D9CreateRenderTarget_Original (This, ImGui::GetIO ( ).DisplaySize.x, ImGui::GetIO ( ).DisplaySize.y, D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE, 0, FALSE, &pBackBufferCopy, nullptr)))
+      if (SUCCEEDED (D3D9CreateRenderTarget_Original (This, ImGui::GetIO ().DisplaySize.x, ImGui::GetIO ().DisplaySize.y, D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE, 0, FALSE, &pBackBufferCopy, nullptr)))
       {
         D3D9StretchRect_Original (This, pBackBuffer, nullptr, pBackBufferCopy, nullptr, D3DTEXF_NONE);
       }

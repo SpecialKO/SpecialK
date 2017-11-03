@@ -927,7 +927,7 @@ struct memory_tracking_s
       //constant_buffers.reserve (2048);
     //}
 
-    void clear (SK_Thread_CriticalSection* cs)
+    void clear (SK_Thread_CriticalSection* /*cs*/)
     {
       ///std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs);
 
