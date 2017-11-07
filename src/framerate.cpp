@@ -171,22 +171,14 @@ Sleep_Detour (DWORD dwMilliseconds)
     return;
   }
 
-#define DUAL_USE_MAX_DELTA
-#ifdef DUAL_USE_MAX_DELTA
   // TODO: Stop this nonsense and make an actual parameter for this...
   //         (min sleep?)
   if ( static_cast <DWORD> (config.render.framerate.max_delta_time) <=
                             dwMilliseconds
      )
   {
-    //if (dwMilliseconds == 0)
-      //return YieldProcessor ();
-#endif
-
     Sleep_Original (dwMilliseconds);
-#ifdef DUAL_USE_MAX_DELTA
   }
-#endif
 }
 
 extern volatile LONG SK_BypassResult;

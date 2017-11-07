@@ -303,6 +303,9 @@ struct sk_config_t
               res_root            = L"SK_Res";
       bool    highlight_debug     = true;
       bool    injection_keeps_fmt = false;
+      bool    generate_mips       = false;
+      bool    cache_gen_mips      = true;
+      bool    uncompressed_mips   = true;
     } d3d11;
     struct {
       int     min_evict           = 64;

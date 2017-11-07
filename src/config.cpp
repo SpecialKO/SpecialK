@@ -283,6 +283,7 @@ struct {
     sk::ParameterBool*    dump;
     sk::ParameterBool*    inject;
     sk::ParameterBool*    injection_keeps_format;
+    sk::ParameterBool*    gen_mips;
     sk::ParameterBool*    cache;
     sk::ParameterStringW* res_root;
   } d3d11;
@@ -741,6 +742,7 @@ struct param_decl_s {
     ConfigEntry (texture.d3d11.inject,                   L"Inject Textures",                                           dll_ini,         L"Textures.D3D11",        L"Inject"),
     ConfigEntry (texture.d3d11.res_root,                 L"Resource Root",                                             dll_ini,         L"Textures.D3D11",        L"ResourceRoot"),
     ConfigEntry (texture.d3d11.injection_keeps_format,   L"Allow image format to change during texture injection",     dll_ini,         L"Textures.D3D11",        L"InjectionKeepsFormat"),
+    ConfigEntry (texture.d3d11.gen_mips,                 L"Create complete mipmap chain for textures without them",    dll_ini,         L"Textures.D3D11",        L"GenerateMipmaps"),
     ConfigEntry (texture.res_root,                       L"Resource Root",                                             dll_ini,         L"Textures.General",      L"ResourceRoot"),
     ConfigEntry (texture.dump_on_load,                   L"Dump Textures while Loading",                               dll_ini,         L"Textures.General",      L"DumpOnFirstLoad"),
     ConfigEntry (texture.cache.min_entries,              L"Minimum Cached Textures",                                   dll_ini,         L"Textures.Cache",        L"MinEntries"),
@@ -1257,6 +1259,7 @@ struct param_decl_s {
       case SK_GAME_ID::DotHackGU:
         config.cegui.safe_init         = false; // If not turned off, the game will have problems
                                                 // loading its constituent DLLs
+      //config.textures.d3d11.generate_mips = true;
         break;
     }
   }
@@ -1597,6 +1600,8 @@ struct param_decl_s {
 
   texture.d3d11.injection_keeps_format->load (config.textures.d3d11.injection_keeps_fmt);
                   texture.dump_on_load->load (config.textures.dump_on_load);
+
+  texture.d3d11.gen_mips->load     (config.textures.d3d11.generate_mips);
 
   texture.cache.max_entries->load       (config.textures.cache.max_entries);
   texture.cache.min_entries->load       (config.textures.cache.min_entries);
@@ -2307,6 +2312,7 @@ SK_SaveConfig ( std::wstring name,
       texture.d3d11.dump->store                   (config.textures.d3d11.dump);
       texture.d3d11.inject->store                 (config.textures.d3d11.inject);
       texture.d3d11.injection_keeps_format->store (config.textures.d3d11.injection_keeps_fmt);
+      texture.d3d11.gen_mips->store               (config.textures.d3d11.generate_mips);
       texture.d3d11.res_root->store               (config.textures.d3d11.res_root);
 
       texture.cache.max_entries->store            (config.textures.cache.max_entries);

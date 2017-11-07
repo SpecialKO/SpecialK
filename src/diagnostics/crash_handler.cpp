@@ -230,7 +230,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   if ( ReadAcquire (&__SK_DLL_Ending)   != 0 ||
        ReadAcquire (&__SK_DLL_Attached) == 0 )
   {
-    TerminateProcess (GetCurrentProcess (), -1);
+    TerminateProcess (GetCurrentProcess (), (UINT)-1);
   }
 
 

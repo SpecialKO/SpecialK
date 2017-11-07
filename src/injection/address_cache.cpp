@@ -23,10 +23,88 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/utility.h>
 
+#include <atlbase.h>
+
+time_t
+SK_Win32_FILETIME_to_time_t ( FILETIME const& ft)
+{
+  ULARGE_INTEGER ull;
+
+  ull.LowPart  = ft.dwLowDateTime;
+  ull.HighPart = ft.dwHighDateTime;
+
+  return ull.QuadPart / 10000000ULL - 11644473600ULL;
+}
+
+extern bool __SK_RunDLL_Bypass;
+
 SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry (void)
 {
   auto injection_config =
     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
+
+  auto injection_lock =
+    SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini.lock";
+
+
+  // We're building the cache table
+  if (__SK_RunDLL_Bypass)
+  {
+    while (GetFileAttributes (injection_lock.c_str ()) != INVALID_FILE_ATTRIBUTES)
+    {
+      CHandle hLockFile (
+          CreateFileW ( injection_lock.c_str (),
+                          GENERIC_WRITE,
+                            FILE_SHARE_READ | FILE_SHARE_DELETE,
+                              nullptr,
+                                OPEN_EXISTING,
+                                  FILE_ATTRIBUTE_NORMAL |
+                                  FILE_FLAG_SEQUENTIAL_SCAN,
+                                    nullptr )
+      );
+
+      FILETIME creation    = { };
+      FILETIME modifiction = { };
+      FILETIME access      = { };
+
+      if (hLockFile != INVALID_HANDLE_VALUE && GetFileTime (hLockFile.m_h, &creation, &modifiction, &access))
+      {
+        time_t time_now  = 0;
+        time (&time_now);
+
+        time_t time_lock = SK_Win32_FILETIME_to_time_t (modifiction);
+
+        if (time_lock < time_now - 45)
+        {
+          hLockFile.Close ();
+          DeleteFileW     (injection_lock.c_str ());
+          break;
+        }
+      }
+
+      else
+      {
+        DeleteFileW (injection_lock.c_str ());
+        break;
+      }
+
+      SleepEx (66UL, TRUE);
+    }
+
+    CHandle hLockFile (
+        CreateFileW ( injection_lock.c_str (),
+                        GENERIC_WRITE,
+                          FILE_SHARE_READ | FILE_SHARE_DELETE,
+                            nullptr,
+                              CREATE_NEW,
+                                FILE_ATTRIBUTE_NORMAL |
+                                FILE_FLAG_SEQUENTIAL_SCAN,
+                                  nullptr )
+    );
+
+    DWORD dwWritten = 0;
+    WriteFile (hLockFile, "Locked", strlen ("Locked"), &dwWritten, nullptr);
+  }
 
   address_ini_ =
     std::shared_ptr <iSK_INI> (
@@ -66,6 +144,14 @@ SK_Inject_AddressCacheRegistry::~SK_Inject_AddressCacheRegistry (void)
 
   address_ini_->import (export_data.c_str ());
   address_ini_->write  (address_ini_->get_filename ());
+
+  if (__SK_RunDLL_Bypass)
+  {
+    auto injection_lock =
+      SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini.lock";
+
+    DeleteFileW (injection_lock.c_str ());
+  }
 }
 
 auto SecName =

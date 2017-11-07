@@ -665,6 +665,9 @@
     <ClCompile Include="src\plugins\blue_reflection.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\dothack_gu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SpecialK.def">

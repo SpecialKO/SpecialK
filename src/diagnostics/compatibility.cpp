@@ -2791,8 +2791,6 @@ std::pair <std::queue <DWORD>, BOOL>
 __stdcall
 SK_BypassInject (void)
 {
-  suspended_tids = SK_SuspendAllOtherThreads ();
-
   lstrcpyW (__bypass.wszBlacklist, SK_GetBlacklistFilename ());
 
   __bypass.disable = 

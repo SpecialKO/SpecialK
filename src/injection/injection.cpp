@@ -333,6 +333,14 @@ void
 __stdcall
 SKX_InstallShellHook (void);
 
+#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/hooks.h>
+#include <SpecialK/framerate.h>
+#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/injection/address_cache.h>
+#include <SpecialK/ini.h>
+
 void
 __stdcall
 SKX_InstallCBTHook (void)
@@ -373,22 +381,21 @@ SKX_InstallCBTHook (void)
 #endif
     }
 
+    wchar_t wszCurrentDir [MAX_PATH * 2] = { };
+    GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
 
-  wchar_t wszCurrentDir [MAX_PATH * 2] = { };
-  GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
-
-  SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+    SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 #ifdef _WIN64
-  wchar_t wszWOW64 [MAX_PATH + 2] = { };
-  GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
+    wchar_t wszWOW64 [MAX_PATH + 2] = { };
+    GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
 #else
-  wchar_t wszWOW64 [MAX_PATH + 2] = { };
-  GetSystemDirectoryW      (wszWOW64, MAX_PATH);
+    wchar_t wszWOW64 [MAX_PATH + 2] = { };
+    GetSystemDirectoryW      (wszWOW64, MAX_PATH);
 #endif
 
-  wchar_t wszSys32 [MAX_PATH + 2] = { };
-  GetSystemDirectoryW      (wszSys32, MAX_PATH);
+    wchar_t wszSys32 [MAX_PATH + 2] = { };
+    GetSystemDirectoryW      (wszSys32, MAX_PATH);
 
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
@@ -399,23 +406,129 @@ SKX_InstallCBTHook (void)
     {
       __SK_HookContextOwner = true;
 
-#ifdef _WIN64
-      GetSystemDirectoryW (wszSys32, MAX_PATH);
-      PathAppendW         (wszSys32, L"rundll32.exe");
-      ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
+      extern volatile ULONG  __SK_DLL_Refs;
+      InterlockedIncrement (&__SK_DLL_Refs);
 
-      GetSystemDirectoryW (wszSys32, MAX_PATH);
-      PathAppendW         (wszSys32, L"rundll32.exe");
-      ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
-#else
-      GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
-      PathAppendW              (wszWOW64, L"rundll32.exe");
-      ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
-    
-      GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
-      PathAppendW              (wszWOW64, L"rundll32.exe");
-      ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
+      extern void
+      __stdcall
+      SK_EstablishRootPath (void);
+
+      config.system.central_repository = true;
+      SK_EstablishRootPath ();
+
+      // Setup unhooked function pointers
+      SK_PreInitLoadLibrary ();
+
+      QueryPerformanceCounter_Original =
+        reinterpret_cast <QueryPerformanceCounter_pfn> (
+          GetProcAddress (
+            GetModuleHandle ( L"kernel32.dll"),
+                                "QueryPerformanceCounter" )
+        );
+
+      SK_Init_MinHook        ();
+      SK_ApplyQueuedHooks    ();
+
+      if (SK_Inject_AddressManager != nullptr)
+      {
+        delete SK_Inject_AddressManager;
+        SK_Inject_AddressManager = nullptr;
+      }
+
+      budget_mutex = new SK_Thread_HybridSpinlock ( 400);
+      init_mutex   = new SK_Thread_HybridSpinlock (5000);
+      loader_lock  = new SK_Thread_HybridSpinlock (6536);
+      wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
+      cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
+
+      extern volatile DWORD __SK_TLS_INDEX;
+      __SK_TLS_INDEX = TlsAlloc ();
+
+      if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
+      {
+#if 0
+        MessageBox ( NULL,
+                       L"Out of TLS Indexes",
+                         L"Cannot Init. Special K",
+                           MB_ICONERROR | MB_OK |
+                           MB_APPLMODAL | MB_SETFOREGROUND );
 #endif
+      }
+
+      else
+      {
+        SK_SetDLLRole (DLL_ROLE::DXGI);
+
+        extern __time64_t __SK_DLL_AttachTime;
+        _time64 (&__SK_DLL_AttachTime);
+
+        extern bool __SK_RunDLL_Bypass;
+                    __SK_RunDLL_Bypass = true;
+
+        CreateThread (nullptr, 0x0, [](LPVOID /*user*/) ->
+        DWORD
+        {
+          if (SK::DXGI::Startup ())
+          {
+            WaitForInit ();
+
+            extern PresentSwapChain_pfn Present_Target;
+
+            SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+            SK_Inject_AddressManager->storeNamedAddress (L"dxgi", "IDXGISwapChain::Present", reinterpret_cast <uintptr_t> (Present_Target));
+
+            delete SK_Inject_AddressManager;
+
+            dll_log.Log (L"IDXGISwapChain::Present = %ph", Present_Target);
+
+            config.apis.d3d9.hook    = true;  config.apis.d3d9ex.hook     = true;
+            config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = true;
+            config.apis.NvAPI.enable = false;
+            config.cegui.enable                          = false;
+            config.steam.preload_overlay                 = false;
+            config.steam.silent                          = true;
+            config.system.trace_load_library             = false;
+            config.system.handle_crashes                 = false;
+            config.system.central_repository             = true;
+            config.system.game_output                    = false;
+            config.render.dxgi.rehook_present            = false;
+            config.injection.global.use_static_addresses = false;
+            config.input.gamepad.hook_dinput8            = false;
+            config.input.gamepad.hook_hid                = false;
+            config.input.gamepad.hook_xinput             = false;
+
+            SK_BootD3D9 ();
+
+            extern D3D9PresentDevice_pfn         D3D9Present_Target;
+            extern D3D9PresentDeviceEx_pfn       D3D9PresentEx_Target;
+            extern D3D9PresentSwapChain_pfn      D3D9PresentSwap_Target;
+            extern D3D9Reset_pfn                 D3D9Reset_Target;
+            extern D3D9ResetEx_pfn               D3D9ResetEx_Target;
+
+            SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+
+            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Present",     reinterpret_cast <uintptr_t> (D3D9Present_Target));
+            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::PresentEx", reinterpret_cast <uintptr_t> (D3D9PresentEx_Target));
+            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DSwapChain9::Present",  reinterpret_cast <uintptr_t> (D3D9PresentSwap_Target));
+
+            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Reset",       reinterpret_cast <uintptr_t> (D3D9Reset_Target));
+            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::ResetEx",   reinterpret_cast <uintptr_t> (D3D9ResetEx_Target));
+
+            delete SK_Inject_AddressManager;
+
+            //SK::DXGI::Shutdown ();
+            //
+            //extern iSK_INI* dll_ini;
+            //DeleteFileW (dll_ini->get_filename ());
+          }
+
+        //TlsFree (__SK_TLS_INDEX);
+
+          CloseHandle (GetCurrentThread ());
+
+          return 0;
+        }, nullptr, 0, nullptr);
+      }
     }
   }
 }

@@ -2187,14 +2187,14 @@ struct sk_host_process_s {
   wchar_t wszSystemDir [MAX_PATH * 2] = { };
 } host_proc;
 
+bool __SK_RunDLL_Bypass = false;
+
 bool
 __cdecl
 SK_IsHostAppSKIM (void)
 {
-  return (StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
+  return ((! __SK_RunDLL_Bypass) && StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
 }
-
-bool __SK_RunDLL_Bypass = false;
 
 bool
 __cdecl

@@ -445,6 +445,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     {
       dll_log.Log ( L"[   DXGI   ]  ** Failed to acquire SwapChain's Backbuffer;"
                     L" will try again next frame." );
+      SK_D3D11_ResetTexCache ();
     }
   }
 }
@@ -654,6 +655,9 @@ extern HRESULT STDMETHODCALLTYPE
 
 extern HRESULT STDMETHODCALLTYPE
             SK_IT_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
+
+extern HRESULT STDMETHODCALLTYPE
+            SK_DGPU_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
 #endif
 
 extern DWORD WINAPI SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID);
@@ -2431,8 +2435,8 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
     }
   }
 
-  __try                                { hr = Present_Original (This, SyncInterval, Flags); }
-  __except (EXCEPTION_EXECUTE_HANDLER) {                                                    }
+  __try                                { hr = Present_Original (This, SyncInterval, Flags);                          }
+  __except (EXCEPTION_EXECUTE_HANDLER) { ResetCEGUI_D3D11 (This); hr = Present_Original (This, SyncInterval, Flags); }
 
   return hr;
 }
@@ -2507,6 +2511,9 @@ extern HRESULT
 
     else if (! lstrcmpW (SK_GetHostApp (), L"BLUE_REFLECTION.exe"))
       SK_IT_PresentFirstFrame (This, SyncInterval, Flags);
+
+    else if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+      SK_DGPU_PresentFirstFrame (This, SyncInterval, Flags);
 #endif
 
     // TODO: Clean this code up
@@ -2958,11 +2965,20 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   //
   if (SUCCEEDED (ret))
   {
+    void
+    __stdcall
+    SK_D3D11_ResetTexCache (void);
+
+    ////SK_D3D11_ResetTexCache ();
+
     if (bFlipMode)
     {
       // Steam Overlay does not like this, even though for compliance sake we are supposed to do it :(
-      ResizeBuffers_Original ( This, 0, 0, 0, DXGI_FORMAT_UNKNOWN,
-                                 DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH );
+      if (Fullscreen)
+      {
+        ResizeBuffers_Original ( This, 0, 0, 0, DXGI_FORMAT_UNKNOWN,
+                                   DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH );
+      }
     }
 
     ///ResizeBuffers_Original (This, desc.BufferCount, desc.BufferDesc.Width,
@@ -2994,6 +3010,131 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   return ret;
 }
 
+
+HRESULT
+SK_DXGI_ValidateSwapChainResize (IDXGISwapChain* pSwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT Format)
+{
+  static CRITICAL_SECTION cs_resize = { };
+  static volatile LONG    init      = FALSE;
+
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    InitializeCriticalSectionAndSpinCount (&cs_resize, 1024UL);
+
+    InterlockedExchange (&init, -1);
+  }
+
+  while (ReadAcquire (&init) != -1)
+    SleepEx (16, TRUE);
+
+  EnterCriticalSection (&cs_resize);
+
+  static std::unordered_map <IDXGISwapChain *, UINT>        last_width;
+  static std::unordered_map <IDXGISwapChain *, UINT>        last_height;
+  static std::unordered_map <IDXGISwapChain *, UINT>        last_buffers;
+  static std::unordered_map <IDXGISwapChain *, DXGI_FORMAT> last_format;
+
+
+  DXGI_SWAP_CHAIN_DESC desc     = { };
+  RECT                 rcClient = { };
+
+  pSwapChain->GetDesc (&desc);
+         GetClientRect (desc.OutputWindow, &rcClient);
+
+  //
+  //  Resolve default values for any optional parameters (assigned 0)
+  //
+  if (Width  == 0) Width  = ( rcClient.right  - rcClient.left );
+  if (Height == 0) Height = ( rcClient.bottom - rcClient.top  );
+
+  if (last_format.count (pSwapChain) && Format == DXGI_FORMAT_UNKNOWN)
+    Format      = last_format  [pSwapChain];
+
+  if (last_buffers.count (pSwapChain) && BufferCount == 0)
+    BufferCount = last_buffers [pSwapChain];
+
+
+  bool skip = true;
+
+
+  //
+  //  Test to make sure something actually changed
+  //
+  if ((! last_format.count       (pSwapChain)) || last_format  [pSwapChain] != Format)
+  {
+    if (last_format.count (pSwapChain))
+    {
+      if (Format != last_format [pSwapChain])
+        skip = false;
+    }
+
+    else
+    {
+      if  (desc.BufferDesc.Format != Format)
+        skip = false;
+    }
+  }
+
+  else if ((! last_width.count   (pSwapChain)) || last_width   [pSwapChain] != Width)
+  {
+    if (last_width.count (pSwapChain))
+    {
+      if (Width != last_width [pSwapChain])
+        skip = false;
+    }
+
+    else
+    {
+      if  (desc.BufferDesc.Width != Width)
+        skip = false;
+    }
+  }
+
+  else if ((! last_height.count  (pSwapChain)) || last_height  [pSwapChain] != Height)
+  {
+    if (last_height.count (pSwapChain))
+    {
+      if (Height != last_height [pSwapChain])
+        skip = false;
+    }
+
+    else
+    {
+      if  (desc.BufferDesc.Height != Height)
+        skip = false;
+    }
+  }
+
+  else if ((! last_buffers.count (pSwapChain)) || last_buffers [pSwapChain] != BufferCount)
+  {
+    if (last_buffers.count (pSwapChain))
+    {
+      if (BufferCount != last_buffers [pSwapChain])
+        skip = false;
+    }
+
+    else
+    {
+      if  (desc.BufferCount != BufferCount)
+        skip = false;
+    }
+  }
+
+
+  last_width   [pSwapChain] = Width;
+  last_height  [pSwapChain] = Height;
+  last_buffers [pSwapChain] = BufferCount;
+  last_format  [pSwapChain] = Format;
+
+  LeaveCriticalSection (&cs_resize);
+
+  if (skip)
+    return S_OK;
+
+  return E_UNEXPECTED;
+}
+
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -3009,6 +3150,10 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                          BufferCount, Width, Height,
                    (UINT)NewFormat, SwapChainFlags );
 
+  if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (This, BufferCount, Width, Height, NewFormat)))
+    return S_OK;
+
+
   // Can't do this if waitable
   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
     return S_OK;
@@ -3017,8 +3162,9 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   {
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
-    SK_D3D11_EndFrame        ();
-    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+    SK_D3D11_EndFrame (    );
+    ResetCEGUI_D3D11  (This);
+    ////SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
   }
 
 
@@ -3073,7 +3219,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   }
 
 
-  //NewFormat = DXGI_FORMAT_UNKNOWN;
+  if (SK_GetCurrentGameID ( ) == SK_GAME_ID::DotHackGU)
+    NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
 
   HRESULT     ret;
   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
@@ -3232,6 +3379,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
 
 
+    SK_DXGI_ValidateSwapChainResize (This, 0, pNewNewTargetParameters->Width, pNewNewTargetParameters->Height, pNewNewTargetParameters->Format);
+
     DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
 
     if (SUCCEEDED (ret))
@@ -3255,6 +3404,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
   else
   {
+    SK_DXGI_ValidateSwapChainResize (This, 0, pNewTargetParameters->Width, pNewTargetParameters->Height, pNewTargetParameters->Format);
+    
     DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
 
     if (SUCCEEDED (ret))
@@ -3269,7 +3420,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
       {
         RECT client;
 
-        GetClientRect (game_window.hWnd, &client);
+        GetClientRect    (game_window.hWnd, &client);
         SK_SetWindowResX (client.right  - client.left);
         SK_SetWindowResY (client.bottom - client.top);
       }
@@ -3471,6 +3622,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
         }
       }
     }
+
+    pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
     if (       config.render.framerate.buffer_count != -1                  &&
          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
@@ -5178,11 +5331,13 @@ HookDXGI (LPVOID user)
   desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
   desc.SampleDesc.Count            = 1;
   desc.SampleDesc.Quality          = 0;
-  desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER;
+  desc.BufferDesc.Width            = 2;
+  desc.BufferDesc.Height           = 2;
+  desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_BACK_BUFFER;
   desc.BufferCount                 = 1;
   desc.OutputWindow                = hWnd;
   desc.Windowed                    = TRUE;
-  desc.SwapEffect                  = DXGI_SWAP_EFFECT_SEQUENTIAL;
+  desc.SwapEffect                  = DXGI_SWAP_EFFECT_DISCARD;
 
   extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
 
@@ -5196,9 +5351,9 @@ HookDXGI (LPVOID user)
                 0,
                   D3D11_SDK_VERSION,
                     &desc, &pSwapChain,
-                    &pDevice,
-                      &featureLevel,
-                        &pImmediateContext );
+                      &pDevice,
+                        &featureLevel,
+                          &pImmediateContext );
 
   d3d11_hook_ctx.ppDevice           = &pDevice;
   d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;

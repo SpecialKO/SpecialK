@@ -246,9 +246,9 @@ SK_BootDI8 (void)
   InterlockedExchange (&__di8_ready, TRUE);
 
 
-CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD
-{
-  UNREFERENCED_PARAMETER (user);
+//CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD
+//{
+  //UNREFERENCED_PARAMETER (user);
 
   // OpenGL
   //
@@ -285,10 +285,10 @@ CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD
   SK_LoadPlugIns32 ();
 #endif
 
-  CloseHandle (GetCurrentThread ());
-
-  return 0;
-}, nullptr, 0x00, nullptr);
+//  CloseHandle (GetCurrentThread ());
+//
+//  return 0;
+//}, nullptr, 0x00, nullptr);
 }
 
 unsigned int

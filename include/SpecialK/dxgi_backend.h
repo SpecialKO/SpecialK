@@ -2249,6 +2249,23 @@ typedef struct D3DX11_IMAGE_LOAD_INFO {
 
 interface ID3DX11ThreadPump;
 
+typedef HRESULT (WINAPI *D3DX11FilterTexture_pfn)(
+   ID3D11DeviceContext *pContext,
+   ID3D11Resource      *pTexture,
+   UINT                SrcLevel,
+   UINT                MipFilter
+);
+
+typedef HRESULT (WINAPI *D3DX11CreateTextureFromMemory_pfn)(
+  _In_  ID3D11Device           *pDevice,
+  _In_  LPCVOID                pSrcData,
+  _In_  SIZE_T                 SrcDataSize,
+  _In_  D3DX11_IMAGE_LOAD_INFO *pLoadInfo,
+  _In_  ID3DX11ThreadPump      *pPump,
+  _Out_ ID3D11Resource         **ppTexture,
+  _Out_ HRESULT                *pHResult
+);
+
 typedef HRESULT (WINAPI *D3DX11CreateTextureFromFileW_pfn)(
   _In_  ID3D11Device           *pDevice,
   _In_  LPCWSTR                pSrcFile,

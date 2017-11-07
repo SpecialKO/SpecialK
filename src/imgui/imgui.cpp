@@ -11063,6 +11063,8 @@ extern INT SK_ImGui_ActivationKeys [256];
 #define SK_RAWINPUT_READ(type)  SK_RawInput_Backend.markRead  (type);
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend.markWrite (type);
 
+SK_Thread_HybridSpinlock raw_input_lock (9000);
+
 UINT
 WINAPI
 SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
@@ -11072,6 +11074,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _In_      UINT      cbSizeHeader,
                                      BOOL      self )
 {
+  std::lock_guard <SK_Thread_HybridSpinlock> lock (raw_input_lock);
+
   HWND hWndActive =
     GetActiveWindow ();
 

@@ -3358,6 +3358,9 @@ SteamAPI_Init_Detour (void)
     SK_Steam_StartPump ();
 
     LeaveCriticalSection (&init_cs);
+
+    MH_ApplyQueued ();
+
     return true;
   }
 

@@ -1705,6 +1705,9 @@ AdjustWindowRect_Detour (
   if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
     return TRUE;
 
+  if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+    return TRUE;
+
   // Override if forcing Fullscreen Borderless
   //
   if (config.window.fullscreen && config.window.borderless && (! bMenu))
@@ -1750,6 +1753,9 @@ AdjustWindowRectEx_Detour (
                L"Window Mgr" );
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
+    return TRUE;
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
     return TRUE;
 
   // Override if forcing Fullscreen Borderless
@@ -2896,6 +2902,20 @@ GetSystemMetrics_Detour (_In_ int nIndex)
                   SK_SummarizeCaller ().c_str () ),
               L"Resolution" );
 
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+  {
+    if (nIndex == SM_CYCAPTION)      return 0;
+    if (nIndex == SM_CYMENU)         return 0;
+    if (nIndex == SM_CXBORDER)       return 0;
+    if (nIndex == SM_CYBORDER)       return 0;
+    if (nIndex == SM_CXDLGFRAME)     return 0;
+    if (nIndex == SM_CYDLGFRAME)     return 0;
+    if (nIndex == SM_CXFRAME)        return 0;
+    if (nIndex == SM_CYFRAME)        return 0;
+    if (nIndex == SM_CXPADDEDBORDER) return 0;
+  }
+
 #if 0
   if (config.window.borderless)
   {
@@ -3097,7 +3117,7 @@ PeekMessageW_Detour (
         if (! (wRemoveMsg & PM_REMOVE))
         {
           PeekMessageW_Original ( &msg, lpMsg->hwnd, lpMsg->message,
-                                                     lpMsg->message, PM_REMOVE | PM_NOYIELD );
+                                                     lpMsg->message, PM_REMOVE );
         }
 
         if (lpMsg->message == WM_INPUT)
@@ -3161,7 +3181,7 @@ PeekMessageA_Detour (
         if (! (wRemoveMsg & PM_REMOVE))
         {
           PeekMessageA_Original ( &msg, lpMsg->hwnd, lpMsg->message,
-                                                     lpMsg->message, PM_REMOVE | PM_NOYIELD );
+                                                     lpMsg->message, PM_REMOVE );
         }
 
         if (lpMsg->message == WM_INPUT)
@@ -4826,8 +4846,43 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       // Fallthrough to WM_MOVE
 
     case WM_MOVE:
+    {
       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+      if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+      {
+        if ( game_window.actual.window.right - game_window.actual.window.left ==
+             game_window.actual.client.right - game_window.actual.client.left + 6 )
+        {
+          SetWindowLongW (hWnd, GWL_STYLE,   SK_BORDERLESS);
+          SetWindowLongW (hWnd, GWL_EXSTYLE, SK_BORDERLESS_EX);
+
+          HMONITOR hMonitor =
+          MonitorFromWindow ( hWnd,
+                                MONITOR_DEFAULTTONEAREST );
+
+          MONITORINFO mi = { 0 };
+          mi.cbSize      = sizeof (mi);
+
+          GetMonitorInfo (hMonitor, &mi);
+
+          game_window.actual.window = mi.rcMonitor;
+
+          game_window.actual.client.left   = 0;
+          game_window.actual.client.right  = game_window.actual.window.right - game_window.actual.window.left;
+          game_window.actual.client.top    = 0;
+          game_window.actual.client.bottom = game_window.actual.window.bottom - game_window.actual.window.top;
+
+          SetWindowPos_Original ( game_window.hWnd,
+                HWND_TOP,
+                  game_window.actual.client.left, game_window.actual.client.top,
+                    game_window.actual.window.right  - game_window.actual.window.left,
+                    game_window.actual.window.bottom - game_window.actual.window.top,
+                      SWP_NOZORDER     | SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS |
+                      SWP_FRAMECHANGED | SWP_SHOWWINDOW );
+        }
+      }
 
       if (config.window.confine_cursor)
         ClipCursor_Original (&game_window.actual.window);
@@ -4838,7 +4893,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       // Filter this message
       if (config.window.borderless && config.window.fullscreen)
         return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
-      break;
+    } break;
 
 
       case WM_SIZING:

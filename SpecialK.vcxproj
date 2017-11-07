@@ -2122,6 +2122,7 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\plugins\blue_reflection.cpp" />
+    <ClCompile Include="src\plugins\dothack_gu.cpp" />
     <ClCompile Include="src\plugins\nier.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>

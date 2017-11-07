@@ -2981,6 +2981,7 @@ SK_ImGui_ControlPanel (void)
 
           if (orig_cache)
           {
+#if 0
             LONG contains_ = 0L;
             LONG erase_    = 0L;
             LONG index_    = 0L;
@@ -3012,6 +3013,8 @@ SK_ImGui_ControlPanel (void)
                   busiest.second.second.second = "contains ()";
                 else if (max_val == e)
                   busiest.second.second.second = "erase ()";
+                else
+                  busiest.second.second.second = "unknown";
 
                 busiest.second.second.first    = max_val;
               }
@@ -3060,6 +3063,7 @@ SK_ImGui_ControlPanel (void)
               }
               ImGui::EndGroup   (                                 );
             }
+#endif
           }
           else
           {

@@ -956,6 +956,14 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
     SK_IT_InitPlugin ();
   }
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+  {
+    extern void
+    SK_DGPU_InitPlugin (void);
+
+    SK_DGPU_InitPlugin ();
+  }
 #endif
 
 
@@ -1482,6 +1490,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     goto BACKEND_INIT;
 
 
+  init_tids = SK_SuspendAllOtherThreads ();
+
 
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
@@ -1703,9 +1713,6 @@ BACKEND_INIT:
   else
     dll_log.silent = false;
 
-
-  //init_tids = SK_SuspendAllOtherThreads ();
-
   InterlockedExchangePointer (
     (LPVOID *)&hInitThread,
       CreateThread ( nullptr,
@@ -1764,12 +1771,12 @@ SK_Win32_CreateDummyWindow (void)
   wc.style         = CS_CLASSDC | CS_GLOBALCLASS;
   wc.lpfnWndProc   = DefWindowProcW;
   wc.hInstance     = SK_GetDLL ();
-  wc.lpszClassName = L"Special K Dummy Window Class";
+  wc.lpszClassName = L"Special K Dummy Window Class 2";
 
   if (RegisterClassW (&wc))
   {
     HWND hWnd =
-      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class",
+      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class 2",
                                      L"Special K Dummy Window",
                                        WS_POPUP | WS_CLIPCHILDREN |
                                        WS_CLIPSIBLINGS,
@@ -1947,6 +1954,8 @@ SK_ShutdownCore (const wchar_t* backend)
   crash_log.close ();
 
   config.system.handle_crashes = false;
+
+  InterlockedExchange (&__SK_Init, FALSE);
 
   return true;
 }
