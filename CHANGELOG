@@ -1,3 +1,15 @@
+0.8.51
+
+ + Added windowed mode compatibility fixes for World of Final Fantasy
+
+  >> Delete any existing config profile (dxgi.ini/SpecialK.ini) to take advantage of
+
+ + Fixed HWND ping-pong issue in World of Final Fantasy 
+ + Added XInput haptic recursion protection (safeguard against Steam overlay)
+ + Added automatic mipmap generation option in D3D11
+ + Corrected cached VRAM total calculation when injecting textures in D3D11
+
+
 0.8.50
 
  (.1): Enabled persistent storage of sleep-wait framerate limiter preferences

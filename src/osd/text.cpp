@@ -640,7 +640,7 @@ SK_DrawOSD (void)
 
     if (mean != INFINITY)
     {
-      if (SK::Framerate::GetLimiter ()->get_limit () != 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0)
+      if (SK::Framerate::GetLimiter ()->get_limit () > 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0)
       {
         const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>";
 

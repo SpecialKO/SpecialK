@@ -2203,7 +2203,7 @@ SK_BeginBufferSwap (void)
       if (! config.cegui.safe_init)
       {
         SetCurrentDirectory (wszWorkingDir);
-        //SK_ResumeThreads  (tids);
+      //SK_ResumeThreads    (tids);
       }
 
       SK_UnlockDllLoader  ();

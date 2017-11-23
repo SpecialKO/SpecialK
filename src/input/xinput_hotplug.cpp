@@ -333,6 +333,10 @@ RegisterDeviceNotificationW_Detour (
     }
   }
 
+  if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] || 
+       config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+    return 0;
+
   return RegisterDeviceNotificationW_Original (hRecipient, NotificationFilter, Flags);
 }
 
@@ -371,6 +375,10 @@ RegisterDeviceNotificationA_Detour (
                  L"XInput_Hot" );
     }
   }
+
+  if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] || 
+       config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+    return 0;
 
   return RegisterDeviceNotificationA_Original (hRecipient, NotificationFilter, Flags);
 }

@@ -2306,6 +2306,14 @@ HRESULT
 
     else if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
       SK_DS3_PresentFirstFrame (This, SyncInterval, flags);
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
+    {
+      extern void
+      SK_DeferCommand (const char* szCommand);
+
+      SK_DeferCommand ("Window.Borderless toggle"); SK_DeferCommand ("Window.Borderless toggle");
+    }
 #endif
 
     // TODO: Clean this code up
@@ -2839,9 +2847,21 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
                                               /* [annotation][in]  */
                                     _In_opt_  IUnknown       *pConcernedDevice )
 {
-  DXGI_LOG_CALL_I3 ( L"       IDXGIOutput", L"FindClosestMatchingMode         ",
-                       L"%lu, %lu, %lu",
-                         0, 0, 0 );
+  DXGI_LOG_CALL_I4 ( L"       IDXGIOutput", L"FindClosestMatchingMode         ",
+                       L"%p, %p, %p, %p",
+      This, pModeToMatch, pClosestMatch, pConcernedDevice );
+
+  SK_LOG0 ( (L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%s, Scaling=%s, Scanlines=%s",
+               pModeToMatch->Width, pModeToMatch->Height,
+                 pModeToMatch->RefreshRate.Denominator != 0 ?
+                   static_cast <float> (pModeToMatch->RefreshRate.Numerator) /
+                   static_cast <float> (pModeToMatch->RefreshRate.Denominator) :
+                     std::numeric_limits <float>::quiet_NaN (),
+               SK_DXGI_FormatToStr           (pModeToMatch->Format).c_str (),
+               SK_DXGI_DescribeScalingMode   (pModeToMatch->Scaling),
+               SK_DXGI_DescribeScanlineOrder (pModeToMatch->ScanlineOrdering) ),
+             L"   DXGI   " );
+
 
   DXGI_MODE_DESC mode_to_match = *pModeToMatch;
 
@@ -2881,7 +2901,22 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
 
   pModeToMatch = &mode_to_match;
 
-  return FindClosestMatchingMode_Original (This, pModeToMatch, pClosestMatch, pConcernedDevice );
+
+  HRESULT ret;
+  DXGI_CALL (ret, FindClosestMatchingMode_Original (This, pModeToMatch, pClosestMatch, pConcernedDevice));
+
+  SK_LOG0 ( ( L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, Scanlines=%s",
+              pClosestMatch->Width, pClosestMatch->Height,
+                pClosestMatch->RefreshRate.Denominator != 0 ?
+                  static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
+                  static_cast <float> (pClosestMatch->RefreshRate.Denominator) :
+                    std::numeric_limits <float>::quiet_NaN (),
+              SK_DXGI_FormatToStr           (pClosestMatch->Format).c_str (),
+              SK_DXGI_DescribeScalingMode   (pClosestMatch->Scaling),
+              SK_DXGI_DescribeScanlineOrder (pClosestMatch->ScanlineOrdering) ),
+            L"   DXGI   " );
+
+  return ret;
 }
 
 __declspec (noinline)
@@ -3163,8 +3198,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
     SK_D3D11_EndFrame (    );
-    ResetCEGUI_D3D11  (This);
-    ////SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+    ////ResetCEGUI_D3D11  (This);
+    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
   }
 
 
@@ -3219,8 +3254,9 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   }
 
 
-  if (SK_GetCurrentGameID ( ) == SK_GAME_ID::DotHackGU)
+  if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
     NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
+
 
   HRESULT     ret;
   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
@@ -3379,7 +3415,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
 
 
-    SK_DXGI_ValidateSwapChainResize (This, 0, pNewNewTargetParameters->Width, pNewNewTargetParameters->Height, pNewNewTargetParameters->Format);
+    //SK_DXGI_ValidateSwapChainResize (This, 0, pNewNewTargetParameters->Width, pNewNewTargetParameters->Height, pNewNewTargetParameters->Format);
 
     DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
 
@@ -3404,7 +3440,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
   else
   {
-    SK_DXGI_ValidateSwapChainResize (This, 0, pNewTargetParameters->Width, pNewTargetParameters->Height, pNewTargetParameters->Format);
+    //SK_DXGI_ValidateSwapChainResize (This, 0, pNewTargetParameters->Width, pNewTargetParameters->Height, pNewTargetParameters->Format);
     
     DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
 
@@ -3623,7 +3659,10 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       }
     }
 
-    pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+      pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+
 
     if (       config.render.framerate.buffer_count != -1                  &&
          (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&

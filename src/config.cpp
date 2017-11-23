@@ -989,6 +989,7 @@ struct param_decl_s {
   games.emplace ( L"BLUE_REFLECTION.exe",                    SK_GAME_ID::BlueReflection               );
   games.emplace ( L"Zero Escape.exe",                        SK_GAME_ID::ZeroEscape                   );
   games.emplace ( L"hackGU.exe",                             SK_GAME_ID::DotHackGU                    );
+  games.emplace ( L"WOFF.exe",                               SK_GAME_ID::WorldOfFinalFantasy          );
 
   //
   // Application Compatibility Overrides
@@ -1261,6 +1262,39 @@ struct param_decl_s {
                                                 // loading its constituent DLLs
       //config.textures.d3d11.generate_mips = true;
         break;
+
+      case SK_GAME_ID::WorldOfFinalFantasy:
+      {
+        config.window.borderless                 = true;
+      //config.window.fullscreen                 = true;
+        config.window.offset.x.absolute          = -1;
+        config.window.offset.y.absolute          = -1;
+        config.render.framerate.buffer_count     =  3;
+        config.render.framerate.target_fps       = -30.0f;
+        config.render.framerate.flip_discard     = true;
+        config.render.framerate.present_interval = 2;
+        config.render.framerate.pre_render_limit = 2;
+        config.render.framerate.sleepless_window = true;
+        config.input.cursor.manage               = true;
+        config.input.cursor.timeout              = 0;
+
+        HMONITOR hMonitor =
+          MonitorFromWindow ( HWND_DESKTOP,
+                                MONITOR_DEFAULTTOPRIMARY );
+
+        MONITORINFO mi   = {         };
+        mi.cbSize        = sizeof (mi);
+        GetMonitorInfo (hMonitor, &mi);
+
+        config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
+        config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+        //  config.render.dxgi.res.min.x = config.window.res.override.x;
+        //  config.render.dxgi.res.max.x = config.window.res.override.x;
+        //  
+        //  config.render.dxgi.res.min.y = config.window.res.override.y;
+        //  config.render.dxgi.res.max.y = config.window.res.override.y;
+      } break;
     }
   }
 

@@ -2437,8 +2437,8 @@ SK_AdjustBorder (void)
   game_window.game.client = game_window.actual.client;
 }
 
-void
-SK_ResetWindow (void)
+  void
+  SK_ResetWindow (void)
 {
   SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
 
@@ -3040,7 +3040,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 bool
 SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 {
-  LRESULT lRet = 0;
+  //LRESULT lRet = 0;
 
   if ( SK_ImGui_HandlesMessage (lpMsg, remove, peek) )
   {
@@ -3172,7 +3172,7 @@ PeekMessageA_Detour (
   {
     *lpMsg = msg;
 
-    // Avoid processing the message twice if it's marshalled because
+    // Avoid processing the message twice if it's marshaled because
     //   stupid software called the wrong version of this function ;)
     if (! IsWindowUnicode (lpMsg->hwnd))
     {
@@ -4340,12 +4340,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   if (hWnd != game_window.hWnd)
   {
-    if (game_window.hWnd != nullptr)
+    if (game_window.hWnd != nullptr && hWnd != hWndRender)
     {
       dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
                     L" for rendering... (Old=%p, New=%p)",
                       game_window.hWnd, hWnd );
     }
+
+    else
+      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
 
     game_window.hWnd = hWnd;
 
@@ -4489,113 +4493,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  auto ActivateWindow =[&](bool active = false)
-  {
-    bool state_changed =
-      (game_window.active != active);
-
-    game_window.active = active;
-
-    if (state_changed)
-    {
-      SK_Console::getInstance ()->reset ();
-
-      if (config.window.background_mute)
-        SK_WindowManager::getInstance ()->muteGame ((! active));
-
-      // Keep Unity games from crashing at startup when forced into FULLSCREEN
-      //
-      //  ... also prevents a game from staying topmost when you Alt+Tab
-      //
-
-      if ( active && config.display.force_fullscreen &&
-           ( static_cast <int> (SK_GetCurrentRenderBackend ().api)  &
-             static_cast <int> (SK_RenderAPI::D3D9               )
-           )
-         )
-      {
-        SetWindowLongPtrW    (game_window.hWnd, GWL_EXSTYLE,
-         ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)
-         ) | WS_EX_APPWINDOW );
-        //SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-        //                                                                 SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-        //                                                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
-        //SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-        //                                                           SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-        //                                                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
-
-        extern void
-        SK_D3D9_TriggerReset (bool);
-      
-        SK_D3D9_TriggerReset (false);
-      }
-    }
-
-
-    if (active && state_changed)
-    {
-      if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
-      {
-        if (! game_window.cursor_visible)
-        {
-          while (ShowCursor (FALSE) >= 0)
-            ;
-        }
-
-        ClipCursor_Original (&game_window.cursor_clip);
-      }
-    }
-
-    else if ((! active) && state_changed)
-    {
-      if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
-      {
-        game_window.cursor_visible =
-          ShowCursor (TRUE) >= 1;
-
-        while (ShowCursor (TRUE) < 0)
-          ;
-
-        ClipCursor_Original (nullptr);
-      }
-    }
-
-
-    if (config.window.confine_cursor && state_changed)
-    {
-      if (active)
-      {
-        SK_LOG4 ( ( L"Confining Mouse Cursor" ),
-                    L"Window Mgr" );
-
-        ////// XXX: Is this really necessary? State should be consistent unless we missed
-        //////        an event --- Write unit test?
-        GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-        ClipCursor_Original    (&game_window.actual.window);
-      }
-
-      else
-      {
-        SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
-                    L"Window Mgr" );
-
-        ClipCursor_Original (nullptr);
-      }
-    }
-
-    if (config.window.unconfine_cursor && state_changed)
-    {
-      SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
-                  L"Window Mgr" );
-      
-      ClipCursor_Original (nullptr);
-    }
-
-    if (state_changed)
-      SK_ImGui_Cursor.activateWindow (active);
-  };
-
-
   switch (uMsg)
   {
     case WM_SYSCOMMAND:
@@ -4608,7 +4505,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
       {
-        ActivateWindow (true);
+        ActivateWindow (hWnd, true);
 
         if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
         {
@@ -4620,7 +4517,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       else
       {
-        ActivateWindow (false);
+        ActivateWindow (hWnd, false);
 
         // Game window was deactivated, but the game doesn't need to know this!
         //   in fact, it needs to be told the opposite.
@@ -4648,7 +4545,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
                         L"Window Mgr" );
 
-          ActivateWindow (true);
+          ActivateWindow (hWnd, true);
         }
 
         else
@@ -4657,7 +4554,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
                         L"Window Mgr" );
 
-          ActivateWindow (false);
+          ActivateWindow (hWnd, false);
 
           // We must fully consume one of these messages or audio will stop playing
           //   when the game loses focus, so do not simply pass this through to the
@@ -4693,7 +4590,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             activate = reinterpret_cast <HWND> (lParam) != game_window.hWnd;
             source   = LOWORD (wParam) == 1 ? L"(WM_ACTIVATE [ WA_ACTIVE ])" :
                                               L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
-            ActivateWindow (activate);
+            ActivateWindow (hWnd, activate);
           } break;
 
           case WA_INACTIVE:
@@ -4701,7 +4598,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             activate = ( lParam                           == 0                ) ||
                        ( reinterpret_cast <HWND> (lParam) == game_window.hWnd );
             source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
-            ActivateWindow (activate);
+            ActivateWindow (hWnd, activate);
           } break;
         }
 
@@ -4850,39 +4747,39 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
-      if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
-      {
-        if ( game_window.actual.window.right - game_window.actual.window.left ==
-             game_window.actual.client.right - game_window.actual.client.left + 6 )
-        {
-          SetWindowLongW (hWnd, GWL_STYLE,   SK_BORDERLESS);
-          SetWindowLongW (hWnd, GWL_EXSTYLE, SK_BORDERLESS_EX);
-
-          HMONITOR hMonitor =
-          MonitorFromWindow ( hWnd,
-                                MONITOR_DEFAULTTONEAREST );
-
-          MONITORINFO mi = { 0 };
-          mi.cbSize      = sizeof (mi);
-
-          GetMonitorInfo (hMonitor, &mi);
-
-          game_window.actual.window = mi.rcMonitor;
-
-          game_window.actual.client.left   = 0;
-          game_window.actual.client.right  = game_window.actual.window.right - game_window.actual.window.left;
-          game_window.actual.client.top    = 0;
-          game_window.actual.client.bottom = game_window.actual.window.bottom - game_window.actual.window.top;
-
-          SetWindowPos_Original ( game_window.hWnd,
-                HWND_TOP,
-                  game_window.actual.client.left, game_window.actual.client.top,
-                    game_window.actual.window.right  - game_window.actual.window.left,
-                    game_window.actual.window.bottom - game_window.actual.window.top,
-                      SWP_NOZORDER     | SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS |
-                      SWP_FRAMECHANGED | SWP_SHOWWINDOW );
-        }
-      }
+      //if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+      //{
+      //  if ( game_window.actual.window.right - game_window.actual.window.left ==
+      //       game_window.actual.client.right - game_window.actual.client.left + 6 )
+      //  {
+      //    SetWindowLongW (hWnd, GWL_STYLE,   SK_BORDERLESS);
+      //    SetWindowLongW (hWnd, GWL_EXSTYLE, SK_BORDERLESS_EX);
+      //
+      //    HMONITOR hMonitor =
+      //    MonitorFromWindow ( hWnd,
+      //                          MONITOR_DEFAULTTONEAREST );
+      //
+      //    MONITORINFO mi = { 0 };
+      //    mi.cbSize      = sizeof (mi);
+      //
+      //    GetMonitorInfo (hMonitor, &mi);
+      //
+      //    game_window.actual.window = mi.rcMonitor;
+      //
+      //    game_window.actual.client.left   = 0;
+      //    game_window.actual.client.right  = game_window.actual.window.right - game_window.actual.window.left;
+      //    game_window.actual.client.top    = 0;
+      //    game_window.actual.client.bottom = game_window.actual.window.bottom - game_window.actual.window.top;
+      //
+      //    SetWindowPos_Original ( game_window.hWnd,
+      //          HWND_TOP,
+      //            game_window.actual.client.left, game_window.actual.client.top,
+      //              game_window.actual.window.right  - game_window.actual.window.left,
+      //              game_window.actual.window.bottom - game_window.actual.window.top,
+      //                SWP_NOZORDER     | SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS |
+      //                SWP_FRAMECHANGED | SWP_SHOWWINDOW );
+      //  }
+      //}
 
       if (config.window.confine_cursor)
         ClipCursor_Original (&game_window.actual.window);

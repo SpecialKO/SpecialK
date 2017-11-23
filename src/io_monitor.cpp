@@ -257,7 +257,8 @@ SK_WMI_ServerThread (LPVOID lpUser)
   InterlockedExchange   (&COM::base.wmi.init, 1);
 
   // Keep the thread alive indefinitely so that the WMI stuff continues running
-  WaitForSingleObject (COM::base.wmi.hShutdownServer, INFINITE);
+  while (WaitForSingleObject (COM::base.wmi.hShutdownServer, INFINITE) != WAIT_OBJECT_0)
+    ;
 
 
   extern HMODULE hModOverlay;

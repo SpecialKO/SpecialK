@@ -62,6 +62,8 @@
 
 #include <SpecialK/plugin/reshade.h>
 
+#include <concurrent_queue.h>
+
 
 #include <windows.h>
 #include <cstdio>
@@ -329,6 +331,69 @@ namespace SK_ImGui
     return false;
   }
 } // namespace SK_ImGui
+
+concurrency::concurrent_queue <std::wstring> SK_ImGui_Warnings;
+
+void
+SK_ImGui_Warning (const wchar_t* wszMessage)
+{
+  SK_ImGui_Warnings.push (wszMessage);
+}
+
+void
+SK_ImGui_ProcessWarnings (void)
+{
+  static std::wstring warning_msg = L"";
+
+  if (! SK_ImGui_Warnings.empty ())
+  {
+    if (warning_msg.empty ())
+      SK_ImGui_Warnings.try_pop (warning_msg);
+  }
+
+  if (warning_msg.empty ())
+    return;
+
+  ImGuiIO& io = ImGui::GetIO ();
+
+  // Stupid hack to show ImGui windows without the control panel open
+  SK_ReShade_Visible = true;
+
+  ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
+  ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
+                                                                         0.925f * io.DisplaySize.y ) );
+  ImGui::SetNextWindowFocus           (                                                               );
+
+  ImGui::OpenPopup ("Special K Warning");
+
+
+  if ( ImGui::BeginPopupModal ( "Special K Warning",
+                                  nullptr,
+                                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+                                    ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse )
+     )
+  {
+    ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n         %ws         \n\n", warning_msg.c_str ());
+
+    ImGui::Separator ();
+
+    ImGui::TextColored ( ImColor::HSV (0.15f, 1.0f, 1.0f), "   " );
+
+    ImGui::SameLine ();
+
+    ImGui::Spacing (); ImGui::SameLine ();
+
+    if (ImGui::Button ("Okay"))
+    {
+      SK_ReShade_Visible = false;
+      warning_msg.clear ();
+
+      ImGui::CloseCurrentPopup ();
+    }
+
+    ImGui::EndPopup ();
+  }
+}
 
 bool SK_ImGui_WantExit = false;
 
@@ -953,17 +1018,6 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if (! pDevCtx)
         return;
 
-      //CComPtr <ID3D11RenderTargetView> pRTView = nullptr;
-      //CComPtr <ID3D11DepthStencilView> pDSView = nullptr;
-      //
-      //pDevCtx->OMGetRenderTargets (1, &pRTView, &pDSView);
-      //
-      //D3D11_DEPTH_STENCIL_VIEW_DESC              dsv_desc = { };
-      //if (pDSView != nullptr) pDSView->GetDesc (&dsv_desc);
-
-      //D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = { };
-      //pRTView->GetDesc (&rtv_desc);
-
       ImGui::BeginTooltip    ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.95f, 0.95f, 0.45f));
       ImGui::TextUnformatted ("Framebuffer and Presentation Setup");
@@ -1011,7 +1065,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if (rb.present_interval == 0)
         ImGui::Text          ("%u: VSYNC OFF",                           rb.present_interval);
       else if (rb.present_interval == 1)
-        ImGui::Text          ("%u: Normal V-SYNC",                       rb.present_interval);
+        ImGui::Text ("%u: Normal V-SYNC", rb.present_interval);
       else if (rb.present_interval == 2)
         ImGui::Text          ("%u: 1/2 Refresh V-SYNC",                  rb.present_interval);
       else if (rb.present_interval == 3)
@@ -2481,8 +2535,8 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        bool enable = evil || even_stranger || wired;
-
+        //bool enable = evil || even_stranger || wired;
+        //
         //extern void
         //SK_D3D11_EnableTracking (bool state);
         //SK_D3D11_EnableTracking (enable || show_shader_mod_dlg);
@@ -5982,6 +6036,9 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     }
   }
 
+
+
+  SK_ImGui_ProcessWarnings ();
 
 
   if (SK_ImGui_WantExit)

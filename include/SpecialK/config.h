@@ -626,6 +626,7 @@ enum class SK_GAME_ID
   BlueReflection,               // BLUE_REFLECTION.exe
   ZeroEscape,                   // Zero Escape.exe
   DotHackGU,                    // hackGU.exe
+  WorldOfFinalFantasy,          // WOFF.exe
   UNKNOWN_GAME               = 0xffff
 };
 

@@ -42,7 +42,7 @@
 
 #include <atlbase.h>
 
-#define DGPU_VERSION_NUM L"0.1.0"
+#define DGPU_VERSION_NUM L"0.1.1"
 #define DGPU_VERSION_STR L".hack//G.P.U. v " DGPU_VERSION_NUM
 
 volatile LONG __DGPU_init = FALSE;
@@ -173,7 +173,43 @@ SK_DGPU_ControlPanel (void)
       ImGui::TreePop  ();
     }
 
-    if (ImGui::CollapsingHeader ("Texture Management##DotHack", ImGuiTreeNodeFlags_DefaultOpen))
+
+    extern LONG SK_D3D11_Resampler_GetActiveJobCount  (void);
+    extern LONG SK_D3D11_Resampler_GetWaitingJobCount (void);
+    extern LONG SK_D3D11_Resampler_GetRetiredCount    (void);
+    extern LONG SK_D3D11_Resampler_GetErrorCount      (void);
+
+    bool tex_manage = ImGui::CollapsingHeader ("Texture Management##DotHack", ImGuiTreeNodeFlags_DefaultOpen);
+
+    LONG jobs = SK_D3D11_Resampler_GetActiveJobCount () + SK_D3D11_Resampler_GetWaitingJobCount ();
+
+    static DWORD dwLastActive = 0;
+
+    if (jobs != 0 || dwLastActive > timeGetTime () - 500)
+    {
+      if (jobs > 0)
+        dwLastActive = timeGetTime ();
+
+      if (jobs > 0)
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (SK_D3D11_Resampler_GetActiveJobCount ()) / (float)jobs), 0.15f, 1.0f));
+      else
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - dwLastActive) / 500.0f), 1.0f, 0.8f));
+
+      ImGui::SameLine       ();
+      if (SK_D3D11_Resampler_GetErrorCount ())
+        ImGui::Text         ("       Textures ReSampling (%li / %li) { Error Count: %li }",
+                               SK_D3D11_Resampler_GetActiveJobCount (),
+                                 jobs,
+                               SK_D3D11_Resampler_GetErrorCount     ()
+                            );
+      else
+        ImGui::Text         ("       Textures ReSampling (%li / %li)",
+                               SK_D3D11_Resampler_GetActiveJobCount (),
+                                 jobs );
+      ImGui::PopStyleColor  ();
+    }
+
+    if (tex_manage)
     {
       ImGui::TreePush    ("");
       ImGui::BeginGroup  ();
@@ -191,7 +227,7 @@ SK_DGPU_ControlPanel (void)
         ImGui::TextUnformatted ("SIGNIFICANTLY");
         ImGui::PopStyleColor   (); ImGui::SameLine ();
         ImGui::TextUnformatted ("reduces texture aliasing");
-        ImGui::BulletText      ("May introduce slightly longer load-times, use the cache options to minimize this.");
+        ImGui::BulletText      ("May increase load-times and/or hurt compatibility with third-party software");
         ImGui::EndTooltip      ();
       }
 
@@ -201,20 +237,20 @@ SK_DGPU_ControlPanel (void)
              changed |= ImGui::Checkbox ("Cache Mipmaps to Disk", &config.textures.d3d11.cache_gen_mips);
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Eliminates virtually all stutter, but may consume a lot of disk space.");
+          ImGui::SetTooltip ("Eliminates possible texture pop-in, but will slow down loading and consume disk space.");
 
-        ImGui::EndGroup ();
-        ImGui::SameLine ();
-
+        ImGui::EndGroup        ();
+        ImGui::SameLine        ();
         ImGui::BeginGroup      ();
+
         ImGui::TextUnformatted ("Mipmap Quality "); ImGui::SameLine ();
-
+        
         int sel = config.textures.d3d11.uncompressed_mips ? 1 : 0;
-
+        
         changed |= ImGui::Combo ("###dGPU_MipmapQuality", &sel, "Compressed (Low)\0Uncompressed (High)\0\0", 2);
-
+        
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Uncompressed textures stutter less, but use more memory.");
+          ImGui::SetTooltip ("Uncompressed textures stutter less at load-time, but use significantly more memory.");
 
         if (ImGui::Button   (" Purge Cache "))
         {
@@ -230,14 +266,17 @@ SK_DGPU_ControlPanel (void)
           SK_DGPU_MipmapCacheSize -= SK_DeleteTemporaryFiles (wszPath, L"*.dds");
           SK_DGPU_MipmapCacheSize  = 0;
         }
+
         ImGui::SameLine ();
         ImGui::Text     ("Current Cache Size: %.2f MiB", (double)SK_DGPU_MipmapCacheSize / (1024.0 * 1024.0));
         ImGui::EndGroup ();
 
         if (changed)
         {
+          config.textures.d3d11.uncompressed_mips = (sel == 1 ? true : false);
+
           dgpu_config.mipmaps.cache_mipmaps->store        (config.textures.d3d11.cache_gen_mips);
-          dgpu_config.mipmaps.uncompressed_mipmaps->store (sel == 1 ? true : false);
+          dgpu_config.mipmaps.uncompressed_mipmaps->store (config.textures.d3d11.uncompressed_mips);
 
           SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
         }
@@ -246,24 +285,11 @@ SK_DGPU_ControlPanel (void)
       else
         ImGui::EndGroup ();
 
-
-      //if (! config.textures.d3d11.generate_mips)
-      //{
-      //  ImGui::SameLine    ();
-      //  ImGui::TextColored (ImVec4 (0.5f, 1.0f, 0.1f, 1.0f), " Enable to reduce texture aliasing");
-      //}
-      //
-      //else
-      //{
-      //  ImGui::SameLine    ();
-      //  ImGui::TextColored (ImVec4 (1.0f, 0.5f, 0.1f, 1.0f), " Disable to reduce load time");
-      //}
-
-      ImGui::TreePop           ();
+      ImGui::TreePop    ();
     }
 
     ImGui::PopStyleColor (3);
-    ImGui::TreePop ();
+    ImGui::TreePop       ( );
   }
 }
 
@@ -335,13 +361,6 @@ SK_DGPU_InitPlugin (void)
                                 SK_DGPU_ControlPanel,
      static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
-
-  //SK_CreateFuncHook ( L"SK_ImGUI_DrawEULA_PlugIn",
-  //                      SK_ImGui_DrawEULA_PlugIn,
-   //                            SK_IT_EULA_Insert,
-  //                              &dontcare     );
-  //
-  //MH_QueueEnableHook (SK_ImGui_DrawEULA_PlugIn);
 
   SK_ReShade_SetResolutionScale =
     (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
