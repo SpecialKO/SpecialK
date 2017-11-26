@@ -926,6 +926,26 @@ struct param_decl_s {
         break;
     }
 
+
+
+    if (wcsstr ((*sec).first.c_str (), L"Macro."))
+    {
+      for ( auto it : (*sec).second.keys )
+      {
+        SK_KeyCommand cmd;
+
+        cmd.binding.human_readable = it.first;
+        cmd.binding.parse ();
+
+        cmd.command = it.second;
+
+        extern std::vector <SK_KeyCommand> SK_KeyboardMacros;
+        SK_KeyboardMacros.push_back (cmd);
+      }
+    }
+
+
+
     ++sec;
   }
 
@@ -1266,15 +1286,16 @@ struct param_decl_s {
       case SK_GAME_ID::WorldOfFinalFantasy:
       {
         config.window.borderless                 = true;
-      //config.window.fullscreen                 = true;
+        config.window.fullscreen                 = true;
         config.window.offset.x.absolute          = -1;
         config.window.offset.y.absolute          = -1;
+        config.window.center                     = false;
         config.render.framerate.buffer_count     =  3;
         config.render.framerate.target_fps       = -30.0f;
         config.render.framerate.flip_discard     = true;
         config.render.framerate.present_interval = 2;
         config.render.framerate.pre_render_limit = 2;
-        config.render.framerate.sleepless_window = true;
+        config.render.framerate.sleepless_window = false;
         config.input.cursor.manage               = true;
         config.input.cursor.timeout              = 0;
 
@@ -1288,12 +1309,6 @@ struct param_decl_s {
 
         config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
         config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
-
-        //  config.render.dxgi.res.min.x = config.window.res.override.x;
-        //  config.render.dxgi.res.max.x = config.window.res.override.x;
-        //  
-        //  config.render.dxgi.res.min.y = config.window.res.override.y;
-        //  config.render.dxgi.res.max.y = config.window.res.override.y;
       } break;
     }
   }

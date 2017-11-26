@@ -2811,6 +2811,34 @@ SK_BypassInject (void)
 
 
 
+void
+SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
+{
+  if (Fullscreen)
+  {
+    if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
+    {
+      ShowCursor  (TRUE);
+      ShowWindow  ( GetForegroundWindow (), SW_HIDE );
+      MessageBox  ( GetForegroundWindow (),
+                      L"Please re-configure this game to run in windowed mode",
+                        L"Special K Conflict",
+                          MB_OK        | MB_SETFOREGROUND |
+                          MB_APPLMODAL | MB_ICONASTERISK );
+
+      ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF_config.exe", nullptr, nullptr, SW_NORMAL);
+
+      while (SK_IsProcessRunning (L"WOFF_config.exe"))
+        SleepEx (250UL, FALSE);
+
+      ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF.exe",        nullptr, nullptr, SW_NORMAL);
+      ExitProcess   (0x00);
+    }
+  }
+}
+
+
+
 
 
 

@@ -1,5 +1,7 @@
 0.8.51
 
+ (.1): Corrects mouse cursor activity detection in World of Final Fantasy
+
  + Added windowed mode compatibility fixes for World of Final Fantasy
 
   >> Delete any existing config profile (dxgi.ini/SpecialK.ini) to take advantage of

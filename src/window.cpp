@@ -780,9 +780,11 @@ private:
 auto ActivateWindow =[&](HWND hWnd, bool active = false)
 {
   bool state_changed =
-    (game_window.active != active);
+    (wm_dispatch.active_windows [hWnd] != active && hWnd == game_window.hWnd);//game_window.active != active);
 
-  game_window.active = active;
+  if (hWnd == game_window.hWnd)
+    game_window.active = active;
+
 
   if (state_changed)
   {
@@ -4325,49 +4327,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 
-  static bool first_run = true;
-
-  if (first_run)
-  {
-    // Start unmuted (in case the game crashed in the background)
-    if (config.window.background_mute)
-      SK_SetGameMute (FALSE);
-
-    first_run = false;
-  }
-
-
-
-  if (hWnd != game_window.hWnd)
-  {
-    if (game_window.hWnd != nullptr && hWnd != hWndRender)
-    {
-      dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
-                    L" for rendering... (Old=%p, New=%p)",
-                      game_window.hWnd, hWnd );
-    }
-
-    else
-      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-
-    game_window.hWnd = hWnd;
-
-    game_window.active       = true;
-    game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-    game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-    game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
-
-    GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
-    GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
-    GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-    GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
-
-    SK_InitWindow (hWnd, false);
-  }
-
-
-
   static bool last_active = game_window.active;
 
   bool console_visible =
@@ -4490,6 +4449,47 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       else
         ActivateCursor ();
     }
+  }
+
+
+  static bool first_run = true;
+
+  if (hWnd != game_window.hWnd || first_run)
+  {
+    if (first_run)
+    {
+      // Start unmuted (in case the game crashed in the background)
+      if (config.window.background_mute)
+        SK_SetGameMute (FALSE);
+
+      first_run = false;
+    }
+
+
+    if (game_window.hWnd != nullptr && hWnd != hWndRender)
+    {
+      dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
+                    L" for rendering... (Old=%p, New=%p)",
+                      game_window.hWnd, hWnd );
+    }
+
+    else
+      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+
+    game_window.hWnd = hWnd;
+
+    game_window.active       = GetForegroundWindow () == game_window.hWnd;
+    game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+    game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+    game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
+
+    GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
+    GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
+    GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+    GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+
+    SK_InitWindow (hWnd, false);
   }
 
 

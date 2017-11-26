@@ -305,7 +305,7 @@ struct sk_config_t
       bool    injection_keeps_fmt = false;
       bool    generate_mips       = false;
       bool    cache_gen_mips      = true;
-      bool    uncompressed_mips   = true;
+      bool    uncompressed_mips   = false;
     } d3d11;
     struct {
       int     min_evict           = 64;
@@ -545,6 +545,14 @@ struct SK_Keybind
   void parse  (void);
   void update (void);
 };
+
+
+struct SK_KeyCommand
+{
+  std::wstring command;  
+  SK_Keybind   binding;
+};
+
 
 bool SK_LoadConfigEx (std::wstring name, bool create = true);
 bool SK_LoadConfig   (std::wstring name         = L"dxgi");

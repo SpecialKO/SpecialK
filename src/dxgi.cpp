@@ -2307,12 +2307,13 @@ HRESULT
     else if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
       SK_DS3_PresentFirstFrame (This, SyncInterval, flags);
 
-    if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
+    else if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
     {
       extern void
       SK_DeferCommand (const char* szCommand);
 
-      SK_DeferCommand ("Window.Borderless toggle"); SK_DeferCommand ("Window.Borderless toggle");
+      SK_DeferCommand ("Window.Borderless toggle");
+      SK_DeferCommand ("Window.Borderless toggle");
     }
 #endif
 
@@ -2522,6 +2523,16 @@ extern HRESULT
 
     else if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
       SK_DGPU_PresentFirstFrame (This, SyncInterval, Flags);
+
+    else if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
+    {
+      extern void
+      SK_DeferCommand (const char* szCommand);
+
+      SK_DeferCommand ("Window.Borderless toggle");
+      SleepEx (33, FALSE);
+      SK_DeferCommand ("Window.Borderless toggle");
+    }
 #endif
 
     // TODO: Clean this code up
@@ -2939,6 +2950,9 @@ DXGISwap_GetFullscreenState_Override ( IDXGISwapChain  *This,
   return GetFullscreenState_Original (This, pFullscreen, ppTarget);
 }
 
+#include <shellapi.h>
+#include <SpecialK/utility.h>
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -2952,6 +2966,14 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                                    L"{ Windowed }",     pTarget );
 
   InterlockedExchange (&__gui_reset, TRUE);
+
+
+  extern void
+  SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
+
+  SK_COMPAT_FixUpFullscreen_DXGI (Fullscreen);
+
+
 
   if (config.render.framerate.swapchain_wait != 0)
   {

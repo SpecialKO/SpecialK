@@ -3082,8 +3082,8 @@ D3D11_UpdateSubresource1_Override (
                                                    SrcDepthPitch, CopyFlags );
   }
 
-  dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource1 (%ph, %lu, %ph, %ph, %lu, %lu, %x)",
-            pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch, CopyFlags);
+  //dll_log.Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource1 (%ph, %lu, %ph, %ph, %lu, %lu, %x)",
+  //          pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch, CopyFlags);
 
   D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
   pDstResource->GetType  (&rdim);
@@ -7566,7 +7566,7 @@ D3D11Dev_CreateShaderResourceView_Override (
           newFormat =
             cache_desc.desc.Format;
 
-          if (pDescOrig->Format != newFormat)
+          if (pDescOrig->Format != newFormat)// && SK_DXGI_FormatToStr (pDescOrig->Format) != L"UNKNOWN")
           {
             override = true;
 
@@ -7896,6 +7896,9 @@ SK_D3DX11_SAFE_CreateTextureFromFileW ( ID3D11Device*           pDevice,   LPCWS
 HRESULT
 SK_D3D11_ReloadTexture (ID3D11Texture2D* pTex)
 {
+  HRESULT hr =
+    E_UNEXPECTED;
+
   SK_ScopedBool auto_bool  (&SK_TLS_Bottom ()->texture_management.injection_thread);
   SK_ScopedBool auto_bool2 (&SK_TLS_Bottom ()->imgui.drawing);
 
@@ -7917,29 +7920,26 @@ SK_D3D11_ReloadTexture (ID3D11Texture2D* pTex)
       LARGE_INTEGER load_start =
         SK_QueryPerf ();
 
-      HRESULT hr =
-        E_UNEXPECTED;
-
       if (SUCCEEDED ((hr = SK_D3DX11_SAFE_GetImageInfoFromFileW (fname.c_str (), &img_info))))
       {
         load_info.BindFlags      = texDesc2D.desc.BindFlags;
         load_info.CpuAccessFlags = texDesc2D.desc.CPUAccessFlags;
-        load_info.Depth          = img_info.Depth;
+        load_info.Depth          = texDesc2D.desc.ArraySize;
         load_info.Filter         = D3DX11_DEFAULT;
         load_info.FirstMipLevel  = 0;
       
         if (config.textures.d3d11.injection_keeps_fmt)
           load_info.Format       = texDesc2D.desc.Format;
         else
-          load_info.Format       = img_info.Format;
+          load_info.Format       = texDesc2D.desc.Format;
 
-        load_info.Height         = img_info.Height;
+        load_info.Height         = texDesc2D.desc.Height;
         load_info.MipFilter      = D3DX11_DEFAULT;
-        load_info.MipLevels      = img_info.MipLevels;
-        load_info.MiscFlags      = img_info.MiscFlags;
+        load_info.MipLevels      = texDesc2D.desc.MipLevels;
+        load_info.MiscFlags      = texDesc2D.desc.MiscFlags;
         load_info.pSrcInfo       = &img_info;
-        load_info.Usage          = texDesc2D.desc.Usage;
-        load_info.Width          = img_info.Width;
+        load_info.Usage          = D3D11_USAGE_DEFAULT;
+        load_info.Width          = texDesc2D.desc.Width;
 
         CComPtr <ID3D11Texture2D> pInjTex = nullptr;
 
@@ -7952,7 +7952,6 @@ reinterpret_cast <ID3D11Resource **> (&pInjTex)
 
         if (SUCCEEDED (hr))
         {
-
           CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
           ((ID3D11Device *)SK_GetCurrentRenderBackend ().device)->GetImmediateContext (&pDevCtx);
 
@@ -7968,6 +7967,9 @@ reinterpret_cast <ID3D11Resource **> (&pInjTex)
       }
     }
   }
+
+  SK_LOG0 ( ( L" >> Texture Reload Failure (HRESULT: %x)", hr),
+              L"DX11TexMgr" );
 
   return E_FAIL;
 }
@@ -8071,7 +8073,7 @@ D3D11Dev_CreateTexture2D_Impl (
         (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)    ||
         (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS) )) &&
         (pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)     &&
-        (pDesc->Usage     < D3D11_USAGE_DYNAMIC); // Cancel out Staging
+        (pDesc->Usage    <= D3D11_USAGE_DYNAMIC); // Cancel out Staging
                                                    //   They will be handled through a
                                                    //     different codepath.
 
@@ -8284,6 +8286,11 @@ D3D11Dev_CreateTexture2D_Impl (
 
         HRESULT hr = E_UNEXPECTED;
 
+        // To allow texture reloads, we cannot allow immutable usage on these textures.
+        //
+        if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
+          pDesc->Usage    = D3D11_USAGE_DEFAULT;
+
         if (SUCCEEDED ((hr = SK_D3DX11_SAFE_GetImageInfoFromFileW (wszTex, &img_info))))
         {
           load_info.BindFlags      = pDesc->BindFlags;
@@ -8328,6 +8335,12 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
             pDesc->MiscFlags      = load_info.MiscFlags;
             pDesc->Usage          = load_info.Usage;
             pDesc->Width          = load_info.Width;
+
+            if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
+            {
+              pDesc->Usage    = D3D11_USAGE_DEFAULT;
+              orig_desc.Usage = D3D11_USAGE_DEFAULT;
+            }
 
             size =
               SK_D3D11_ComputeTextureSize (pDesc);
@@ -8389,6 +8402,9 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
     D3D11_TEXTURE2D_DESC original_desc =
       *pDesc;
        pDesc->MipLevels = CalcMipmapLODs (pDesc->Width, pDesc->Height);
+
+       if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
+         pDesc->Usage    = D3D11_USAGE_DEFAULT;
 
     DirectX::TexMetadata mdata;
 
@@ -10883,7 +10899,7 @@ SK_D3D11_LoadShaderState (bool clear = true)
 
 
 void
-SK_D3D11_DumpShaderState (void)
+SK_D3D11_StoreShaderState (void)
 {
   auto wszShaderConfigFile =
     SK_FormatStringW ( LR"(%s\d3d11_shaders.ini)",
@@ -12666,9 +12682,9 @@ SK_D3D11_ShaderModDlg (void)
 
         ImGui::SameLine ();
 
-        if (ImGui::Button (" Dump Shader State "))
+        if (ImGui::Button (" Store Shader State "))
         {
-          SK_D3D11_DumpShaderState ();
+          SK_D3D11_StoreShaderState ();
         }
 
         ImGui::SameLine ();
@@ -13899,3 +13915,312 @@ protected:
   ID3D11DeviceContext* _ctx;
 };
 #endif
+
+
+
+
+
+
+
+static const
+  std::unordered_map <std::wstring, SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+    SK_D3D11_ShaderClassMap
+    {
+      std::make_pair (L"Vertex",   (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.vertex),
+      std::make_pair (L"VS",       (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.vertex),
+    
+      std::make_pair (L"Pixel",    (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.pixel),
+      std::make_pair (L"PS",       (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.pixel),
+    
+      std::make_pair (L"Geometry", (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.geometry),
+      std::make_pair (L"GS",       (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.geometry),
+    
+      std::make_pair (L"Hull",     (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.hull),
+      std::make_pair (L"HS",       (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.hull),
+    
+      std::make_pair (L"Domain",   (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.domain),
+      std::make_pair (L"DS",       (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.domain),
+    
+      std::make_pair (L"Compute",  (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.compute),
+      std::make_pair (L"CS",       (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.compute)
+    };
+
+struct SK_D3D11_CommandBase
+{
+  struct ShaderMods
+  {
+    class Load : public SK_ICommand
+    {
+    public:
+      SK_ICommandResult execute (const char* szArgs) override 
+      {
+        SK_D3D11_LoadShaderState (true);
+
+        return SK_ICommandResult ("D3D11.ShaderMods.Load", szArgs, "done", 1, nullptr, this);
+      }
+
+      const char* getHelp       (void)               override
+      {
+        return "(Re)Load d3d11_shaders.ini";
+      }
+    };
+
+    class Store : public SK_ICommand
+    {
+    public:
+      SK_ICommandResult execute (const char* szArgs) override
+      {
+        SK_D3D11_StoreShaderState ();
+
+        return SK_ICommandResult ("D3D11.ShaderMods.Store", szArgs, "done", 1, nullptr, this);
+      }
+
+      const char* getHelp       (void)               override
+      {
+        return "Store d3d11_shaders.ini";
+      }
+    };
+
+    class Clear : public SK_ICommand
+    {
+    public:
+      SK_ICommandResult execute (const char* szArgs) override
+      {
+        SK_D3D11_ClearShaderState ();
+
+        return SK_ICommandResult ("D3D11.ShaderMods.Clear", szArgs, "done", 1, nullptr, this);
+      }
+
+      const char* getHelp       (void)               override
+      {
+        return "Disable all Shader Mods";
+      }
+    };
+
+    class Set : public SK_ICommand
+    {
+    public:
+      SK_ICommandResult execute (const char* szArgs) override
+      {
+        std::wstring wstr_cpy (SK_UTF8ToWideChar (szArgs));
+
+        wchar_t* wszBuf = nullptr;
+        wchar_t* wszTok =
+          std::wcstok (wstr_cpy.data (), L" ", &wszBuf);
+
+        int arg = 0;
+
+        SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* shader_registry = nullptr;
+        uint32_t                                          shader_hash     = 0x0;
+
+        while (wszTok)
+        {
+          switch (arg++)
+          {
+            case 0:
+            {
+              if (! SK_D3D11_ShaderClassMap.count (wszTok))
+                return SK_ICommandResult ("D3D11.ShaderMod.Set", szArgs, "Invalid Shader Type", 0, nullptr, this);
+              else
+                shader_registry = SK_D3D11_ShaderClassMap.at (std::wstring (wszTok));
+            } break;
+
+            case 1:
+            {
+              shader_hash = std::wcstoul (wszTok, nullptr, 16);
+            } break;
+
+            case 2:
+            {
+              if (! _wcsicmp (wszTok, L"Wireframe"))
+                shader_registry->wireframe.emplace (shader_hash);
+              else if (! _wcsicmp (wszTok, L"OnTop"))
+                shader_registry->on_top.emplace (shader_hash);
+              else if (! _wcsicmp (wszTok, L"Disable"))
+                shader_registry->blacklist.emplace (shader_hash);
+              else if (! _wcsicmp (wszTok, L"TriggerReShade"))
+                shader_registry->trigger_reshade.before.emplace (shader_hash);
+              else
+                return SK_ICommandResult ("D3D11.ShaderMod.Set", szArgs, "Invalid Shader State", 0, nullptr, this);
+            } break;
+          }
+
+          wszTok =
+            std::wcstok (nullptr, L" ", &wszBuf);
+        }
+
+        return SK_ICommandResult ("D3D11.ShaderMods.Set", szArgs, "done", 1, nullptr, this);
+      }
+
+      const char* getHelp       (void)               override
+      {
+        return "(Vertex,VS)|(Pixel,PS)|(Geometry,GS)|(Hull,HS)|(Domain,DS)|(Compute,CS)  <Hash>  {Disable|Wireframe|OnTop|TriggerReShade}";
+      }
+    };
+
+    class Unset : public SK_ICommand
+    {
+    public:
+      SK_ICommandResult execute (const char* szArgs) override
+      {
+        std::wstring wstr_cpy (SK_UTF8ToWideChar (szArgs));
+
+        wchar_t* wszBuf = nullptr;
+        wchar_t* wszTok =
+          std::wcstok (wstr_cpy.data (), L" ", &wszBuf);
+
+        int arg = 0;
+
+        SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* shader_registry = nullptr;
+        uint32_t                                          shader_hash     = 0x0;
+
+        while (wszTok)
+        {
+          switch (arg++)
+          {
+            case 0:
+            {
+              if (! SK_D3D11_ShaderClassMap.count (wszTok))
+                return SK_ICommandResult ("D3D11.ShaderMod.Unset", szArgs, "Invalid Shader Type", 0, nullptr, this);
+              else
+                shader_registry = SK_D3D11_ShaderClassMap.at (wszTok);
+            } break;
+
+            case 1:
+            {
+              shader_hash = std::wcstoul (wszTok, nullptr, 16);
+            } break;
+
+            case 2:
+            {
+              if (! _wcsicmp (wszTok, L"Wireframe"))
+                shader_registry->wireframe.erase (shader_hash);
+              else if (! _wcsicmp (wszTok, L"OnTop"))
+                shader_registry->on_top.erase (shader_hash);
+              else if (! _wcsicmp (wszTok, L"Disable"))
+                shader_registry->blacklist.erase (shader_hash);
+              else if (! _wcsicmp (wszTok, L"TriggerReShade"))
+                shader_registry->trigger_reshade.before.erase (shader_hash);
+              else
+                return SK_ICommandResult ("D3D11.ShaderMod.Unset", szArgs, "Invalid Shader State", 0, nullptr, this);
+            } break;
+          }
+
+          wszTok =
+            std::wcstok (nullptr, L" ", &wszBuf);
+        }
+
+        return SK_ICommandResult ("D3D11.ShaderMods.Unset", szArgs, "done", 1, nullptr, this);
+      }
+
+      const char* getHelp       (void)               override
+      {
+        return "(Vertex,VS)|(Pixel,PS)|(Geometry,GS)|(Hull,HS)|(Domain,DS)|(Compute,CS)  <Hash>  {Disable|Wireframe|OnTop|TriggerReShade}";
+      }
+    };
+
+    class Toggle : public SK_ICommand
+    {
+    public:
+      SK_ICommandResult execute (const char* szArgs) override
+      {
+        std::wstring wstr_cpy (SK_UTF8ToWideChar (szArgs));
+
+        wchar_t* wszBuf = nullptr;
+        wchar_t* wszTok =
+          std::wcstok (wstr_cpy.data (), L" ", &wszBuf);
+
+        int arg = 0;
+
+        SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* shader_registry = nullptr;
+        uint32_t                                          shader_hash     = 0x0;
+
+        while (wszTok)
+        {
+          switch (arg++)
+          {
+            case 0:
+            {
+              if (! SK_D3D11_ShaderClassMap.count (wszTok))
+                return SK_ICommandResult ("D3D11.ShaderMod.Toggle", szArgs, "Invalid Shader Type", 1, nullptr, this);
+              else
+                shader_registry = SK_D3D11_ShaderClassMap.at (wszTok);
+            } break;
+
+            case 1:
+            {
+              shader_hash = std::wcstoul (wszTok, nullptr, 16);
+            } break;
+
+            case 2:
+            {
+              if (! _wcsicmp (wszTok, L"Wireframe"))
+              {
+                if (! shader_registry->wireframe.count   (shader_hash))
+                      shader_registry->wireframe.emplace (shader_hash);
+                else
+                      shader_registry->wireframe.erase   (shader_hash);
+              }
+              else if (! _wcsicmp (wszTok, L"OnTop"))
+              {
+                if (! shader_registry->on_top.count   (shader_hash))
+                      shader_registry->on_top.emplace (shader_hash);
+                else
+                      shader_registry->on_top.erase   (shader_hash);
+              }
+              else if (! _wcsicmp (wszTok, L"Disable"))
+              {
+                if (! shader_registry->blacklist.count   (shader_hash))
+                      shader_registry->blacklist.emplace (shader_hash);
+                else
+                      shader_registry->blacklist.erase   (shader_hash);
+              }
+              else if (! _wcsicmp (wszTok, L"TriggerReShade"))
+              {
+                if (! shader_registry->trigger_reshade.before.count   (shader_hash))
+                      shader_registry->trigger_reshade.before.emplace (shader_hash);
+                else
+                      shader_registry->trigger_reshade.before.erase   (shader_hash);
+              }
+              else
+                return SK_ICommandResult ("D3D11.ShaderMod.Toggle", szArgs, "Invalid Shader State", 1, nullptr, this);
+            } break;
+          }
+
+          wszTok =
+            std::wcstok (nullptr, L" ", &wszBuf);
+        }
+
+        return SK_ICommandResult ("D3D11.ShaderMods.Toggle", szArgs, "done", 1, nullptr, this);
+      }
+
+      const char* getHelp       (void)               override
+      {
+        return "(Vertex,VS)|(Pixel,PS)|(Geometry,GS)|(Hull,HS)|(Domain,DS)|(Compute,CS)  <Hash>  {Disable|Wireframe|OnTop|TriggerReShade}";
+      }
+    };
+  };
+
+  SK_D3D11_CommandBase (void)
+  {
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Load",   new ShaderMods::Load   ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Store",  new ShaderMods::Store  ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Clear",  new ShaderMods::Clear  ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Set",    new ShaderMods::Set    ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Unset",  new ShaderMods::Unset  ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Toggle", new ShaderMods::Toggle ());
+  }
+} SK_D3D11_Commands;
+
+//SK_ICommand
+//{
+//  virtual SK_ICommandResult execute (const char* szArgs) = 0;
+//
+//  virtual const char* getHelp            (void) { return "No Help Available"; }
+//
+//  virtual int         getNumArgs         (void) { return 0; }
+//  virtual int         getNumOptionalArgs (void) { return 0; }
+//  virtual int         getNumRequiredArgs (void) {
+//    return getNumArgs () - getNumOptionalArgs ();
+//  }
+//};

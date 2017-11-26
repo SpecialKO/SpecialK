@@ -43,8 +43,8 @@ interface SK_ICommandResult
                             int           status = false,
                       const SK_IVariable*  var    = nullptr,
                       const SK_ICommand*   cmd    = nullptr ) : word_   (word),
-                                                             args_   (arguments),
-                                                             result_ (result) {
+                                                                args_   (arguments),
+                                                                result_ (result) {
     var_    = var;
     cmd_    = cmd;
     status_ = status;

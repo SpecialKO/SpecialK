@@ -156,6 +156,9 @@ SK_Console::reset (void)
   memset (keys_, 0, 256);
 }
 
+
+std::vector <SK_KeyCommand> SK_KeyboardMacros;
+
 // Plugins can hook this if they do not have their own input handler
 __declspec (noinline)
 void
@@ -167,6 +170,20 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   UNREFERENCED_PARAMETER (Alt);
 
   SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode);
+
+
+  for (auto it : SK_KeyboardMacros)
+  {
+#define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
+  (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
+                  (((shift)!= 0) << 10) |   \
+                  (((alt)  != 0) << 11))
+
+    if (it.binding.masked_code == SK_MakeKeyMask (vkCode, Control, Shift, Alt))
+    {
+      SK_GetCommandProcessor ()->ProcessCommandLine (SK_WideCharToUTF8 (it.command).c_str ());
+    }
+  }
 }
 
 BOOL

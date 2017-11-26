@@ -247,6 +247,9 @@ SK_InjectMemory ( LPVOID  base_addr,
                   DWORD   permissions,
                   void   *old_data     = nullptr );
 
+bool
+SK_IsProcessRunning (const wchar_t* wszProcName);
+
 class SK_Thread_CriticalSection
 {
 public:
