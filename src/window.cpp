@@ -5481,7 +5481,7 @@ CreateWindowExA_Detour (
                                 X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
   }
 
-  if ((dwStyle & WS_POPUP))
+  if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
   {
     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
     {
@@ -5560,7 +5560,7 @@ CreateWindowExW_Detour(
                                 X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
   }
 
-  if ((dwStyle & WS_POPUP))
+  if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
   {
     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
     {

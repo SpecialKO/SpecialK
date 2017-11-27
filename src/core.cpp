@@ -1505,8 +1505,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (config.steam.preload_overlay)
   {
-
     CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD {
+                                   WaitForInputIdle (GetCurrentProcess (), INFINITE);
+
+                                   bool SK_InitWMI (void);
+                                   if (SK_InitWMI            ())
+                                     SK_StartPerfMonThreads  ();
+
                                    SK_Steam_LoadOverlayEarly ();
                                    SK_Input_Init             ();
 
@@ -1713,6 +1718,9 @@ BACKEND_INIT:
   else
     dll_log.silent = false;
 
+  bool SK_InitWMI (void);
+    SK_InitWMI    (    );
+
   InterlockedExchangePointer (
     (LPVOID *)&hInitThread,
       CreateThread ( nullptr,
@@ -1725,22 +1733,6 @@ BACKEND_INIT:
 
   init_mutex->unlock ();
 
-
-  //// Performance monitorng pre-init  (Steam overlay hack; it hooks Wbem and blows stuff up almost immediately)
-  CreateThread ( nullptr, 0,
-                   [](LPVOID) -> DWORD
-                   {
-                     WaitForInputIdle (GetCurrentProcess (), INFINITE);
-
-                     bool SK_InitWMI (void);
-                       SK_InitWMI    (    );
-
-                     CloseHandle (GetCurrentThread ());
-
-                     return 0;
-                   }, nullptr,
-                 0x00,
-               nullptr );
   return true;
 }
 

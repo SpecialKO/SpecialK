@@ -1,3 +1,10 @@
+0.8.52
+
+ + Fixed WMI performance monitoring thread init when Steam overlay is
+     loaded first
+ + Added support for keyboard macros (see ReadMe\cvars.txt)
+
+
 0.8.51
 
  (.1): Corrects mouse cursor activity detection in World of Final Fantasy

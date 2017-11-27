@@ -144,7 +144,7 @@ namespace COM {
       IWbemLocator*    pWbemLocator    = nullptr;
       BSTR             bstrNameSpace   = nullptr;
 
-      HANDLE           hServerThread   = INVALID_HANDLE_VALUE;
+      volatile HANDLE  hServerThread   = INVALID_HANDLE_VALUE;
       HANDLE           hShutdownServer = nullptr;
 
       void Lock         (void);
@@ -250,7 +250,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   pUnk->Release ();
 
-  Sleep (1500UL);
+  SleepEx (1500UL, TRUE);
 
   COM::base.wmi.Unlock (                      );
 
@@ -359,10 +359,21 @@ SK_InitWMI (void)
     COM::base.wmi.hShutdownServer =
       CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
 
-    InterlockedExchangePointer ( &COM::base.wmi.hServerThread,
-                                   GetCurrentThread () );
+    CreateThread (nullptr, 0,
+                  [](LPVOID) ->
+                  DWORD
+                  {
+                    InterlockedExchangePointer ( &COM::base.wmi.hServerThread,
+                                                   GetCurrentThread () );
 
-    SK_WMI_ServerThread (nullptr);
+                    SK_AutoCOMInit auto_com;
+
+                    SK_InitCOM ();
+
+                    return SK_WMI_ServerThread (nullptr);
+                  },
+                  nullptr, 0x00, nullptr
+                  );
   }
 
   else
@@ -386,7 +397,7 @@ SK_ShutdownWMI (void)
 
     if (hServerThread)
     {
-      InterlockedExchangePointer (&hServerThread, nullptr);
+      InterlockedExchangePointer (&COM::base.wmi.hServerThread, nullptr);
     }
 
     while (ReadAcquire (&COM::base.wmi.init))
