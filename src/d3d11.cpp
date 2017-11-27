@@ -8073,7 +8073,7 @@ D3D11Dev_CreateTexture2D_Impl (
         (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)    ||
         (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS) )) &&
         (pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)     &&
-        (pDesc->Usage    <= D3D11_USAGE_DYNAMIC); // Cancel out Staging
+        (pDesc->Usage     < D3D11_USAGE_DYNAMIC); // Cancel out Staging
                                                    //   They will be handled through a
                                                    //     different codepath.
 
@@ -8403,8 +8403,8 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
       *pDesc;
        pDesc->MipLevels = CalcMipmapLODs (pDesc->Width, pDesc->Height);
 
-       if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
-         pDesc->Usage    = D3D11_USAGE_DEFAULT;
+    if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
+      pDesc->Usage    = D3D11_USAGE_DEFAULT;
 
     DirectX::TexMetadata mdata;
 

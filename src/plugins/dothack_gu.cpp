@@ -1,5 +1,5 @@
 //
-// Copyright 2017  Andon  "Kaldaien" Coleman
+// Copyright 2017 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -42,7 +42,7 @@
 
 #include <atlbase.h>
 
-#define DGPU_VERSION_NUM L"0.1.1"
+#define DGPU_VERSION_NUM L"0.2.0.1"
 #define DGPU_VERSION_STR L".hack//G.P.U. v " DGPU_VERSION_NUM
 
 volatile LONG __DGPU_init = FALSE;
@@ -75,6 +75,21 @@ static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = 
 
 size_t SK_DGPU_MipmapCacheSize = 0ULL;
 
+struct SK_DGPU_ScreenFlare_Inst {
+  struct
+  {
+    float gBlendType  [4] = { .0f, .0f, .0f, .0f };
+    float flare_color [4] = { .0f, .0f, .0f, .0f };
+    float flare_param [4] = { .0f, .0f, .0f, .0f }; // N/A for Global
+    float flare_pos   [4] = { .0f, .0f, .0f, .0f }; // N/A for Global
+  } data;
+  ID3D11Buffer* buffer   = nullptr;
+  bool          override = false;
+  bool          stale    = true;
+  const char*   type     = "";
+} SK_DGPU_ScreenFlare_Global,
+  SK_DGPU_ScreenFlare_Local;
+
 struct dpgu_cfg_s
 {
   sk::ParameterFactory factory;
@@ -89,6 +104,122 @@ struct dpgu_cfg_s
     sk::ParameterBool* cache_mipmaps        = nullptr;
     sk::ParameterBool* uncompressed_mipmaps = nullptr;
   } mipmaps;
+
+  struct flares_s
+  {
+    struct flare_type_s
+    {
+      flare_type_s (const char*               type,
+                    SK_DGPU_ScreenFlare_Inst* backing_store)
+      {
+        data_       = backing_store;
+        data_->type = type;
+      };
+
+      sk::ParameterBool* override = nullptr;
+      sk::ParameterInt*  blend_eq = nullptr;
+      sk::ParameterInt*  color_r  = nullptr;
+      sk::ParameterInt*  color_g  = nullptr;
+      sk::ParameterInt*  color_b  = nullptr;
+      sk::ParameterInt*  color_a  = nullptr;
+
+      void init  (void)
+      {
+        override =
+          dynamic_cast <sk::ParameterBool *>
+            (dgpu_config.factory.create_parameter <bool> (L"Override Flares"));
+
+        override->register_to_ini ( SK_GetDLLConfig (),
+                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                        L"Override" );
+
+        blend_eq =
+          dynamic_cast <sk::ParameterInt *>
+            (dgpu_config.factory.create_parameter <int> (L"Blend Equation"));
+
+        blend_eq->register_to_ini ( SK_GetDLLConfig (),
+                                      SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                        L"BlendEq" );
+
+        color_r =
+          dynamic_cast <sk::ParameterInt *>
+            (dgpu_config.factory.create_parameter <int> (L"Constant Red Value"));
+
+        color_r->register_to_ini ( SK_GetDLLConfig (),
+                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                       L"Red" );
+
+        color_g =
+          dynamic_cast <sk::ParameterInt *>
+            (dgpu_config.factory.create_parameter <int> (L"Constant Green Value"));
+
+        color_g->register_to_ini ( SK_GetDLLConfig (),
+                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                       L"Green" );
+
+        color_b =
+          dynamic_cast <sk::ParameterInt *>
+            (dgpu_config.factory.create_parameter <int> (L"Constant Blue Value"));
+
+        color_b->register_to_ini ( SK_GetDLLConfig (),
+                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                       L"Blue" );
+
+        color_a =
+          dynamic_cast <sk::ParameterInt *>
+            (dgpu_config.factory.create_parameter <int> (L"Constant Alpha Value"));
+
+        color_a->register_to_ini ( SK_GetDLLConfig (),
+                                     SK_FormatStringW (L"dGPU.Flares{%hs}", data_->type).c_str (),
+                                       L"Alpha" );
+      }
+
+      void load (void)
+      {
+        override->load (data_->override);
+
+        int             eq = 0;
+        blend_eq->load (eq);
+
+        data_->data.gBlendType [0] = static_cast <float> (eq);
+
+        int r,g,b,a;
+
+        color_r->load (r); color_g->load (g);
+        color_b->load (b); color_a->load (a);
+
+        data_->data.flare_color [0] = static_cast <float> (r) / 255.0f;
+        data_->data.flare_color [1] = static_cast <float> (g) / 255.0f;
+        data_->data.flare_color [2] = static_cast <float> (b) / 255.0f;
+        data_->data.flare_color [3] = static_cast <float> (a) / 255.0f;
+      }
+
+      void store (void)
+      {
+        override->store (data_->override);
+
+        int              eq = static_cast <int> (data_->data.gBlendType [0]);
+        blend_eq->store (eq);
+
+        data_->data.gBlendType [0] = static_cast <float> (eq);
+
+        int r,g,b,a;
+
+        r = static_cast <int> (data_->data.flare_color [0] * 255.0f);
+        g = static_cast <int> (data_->data.flare_color [1] * 255.0f);
+        b = static_cast <int> (data_->data.flare_color [2] * 255.0f);
+        a = static_cast <int> (data_->data.flare_color [3] * 255.0f);
+
+        color_r->store (r); color_g->store (g);
+        color_b->store (b); color_a->store (a);
+
+        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+      }
+
+      SK_DGPU_ScreenFlare_Inst* data_ = nullptr;
+    } global { "Global", &SK_DGPU_ScreenFlare_Global },
+      local  { "Local",  &SK_DGPU_ScreenFlare_Local  };
+  } flares;
 } dgpu_config;
 
 
@@ -96,6 +227,35 @@ struct
 {
   float scale = 0.0f;
 } aa_prefs;
+
+
+
+void
+SK_DGPU_UpdateFlareBuffers (void)
+{
+  IUnknown_AtomicRelease ((void **)&SK_DGPU_ScreenFlare_Global.buffer);
+  IUnknown_AtomicRelease ((void **)&SK_DGPU_ScreenFlare_Local.buffer );
+
+  D3D11_BUFFER_DESC      FlareDesc   = { };
+  D3D11_SUBRESOURCE_DATA FlareData_G = { };
+  D3D11_SUBRESOURCE_DATA FlareData_L = { };
+
+  FlareDesc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
+  FlareDesc.ByteWidth           = 64;
+  FlareDesc.StructureByteStride = 64;
+  FlareDesc.CPUAccessFlags      = 0;
+  FlareDesc.MiscFlags           = 0;
+  FlareDesc.Usage               = D3D11_USAGE_IMMUTABLE;
+
+  FlareData_G.pSysMem           = &SK_DGPU_ScreenFlare_Global.data.gBlendType [0];
+  FlareData_L.pSysMem           = &SK_DGPU_ScreenFlare_Local.data.gBlendType  [0];
+  
+  ((ID3D11Device *)SK_GetCurrentRenderBackend ().device)->CreateBuffer (&FlareDesc, &FlareData_G, &SK_DGPU_ScreenFlare_Global.buffer);
+  ((ID3D11Device *)SK_GetCurrentRenderBackend ().device)->CreateBuffer (&FlareDesc, &FlareData_L, &SK_DGPU_ScreenFlare_Local.buffer);
+}
+
+
+
 
 extern void
 __stdcall
@@ -107,13 +267,18 @@ SK_DGPU_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  extern volatile LONG   SK_bypass_dialog_active;
-  InterlockedIncrement (&SK_bypass_dialog_active);
-
   if (SK_FetchVersionInfo (L"dGPU"))
+  {
+    extern volatile LONG   SK_bypass_dialog_active;
+    extern volatile LONG   SK_bypass_dialog_tid;
+
+    InterlockedIncrement (&SK_bypass_dialog_active);
+    InterlockedExchange  (&SK_bypass_dialog_tid, GetCurrentThreadId ());
+
     SK_UpdateSoftware (L"dGPU");
 
-  InterlockedDecrement (&SK_bypass_dialog_active);
+    InterlockedDecrement (&SK_bypass_dialog_active);
+  }
 
   return 0;
 }
@@ -288,11 +453,60 @@ SK_DGPU_ControlPanel (void)
       ImGui::TreePop    ();
     }
 
+    if (ImGui::CollapsingHeader ("Screen Flares", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+      ImGui::TreePush ("");
+
+      auto FlareMenu =
+      [](const char* name, SK_DGPU_ScreenFlare_Inst* pInst) -> bool
+      {
+        ImGui::BeginGroup (    );
+        ImGui::PushID     (name);
+
+        pInst->stale |=
+          ImGui::Checkbox (SK_FormatString ("Override %hs", name).c_str (), &pInst->override);
+
+        if (pInst->override || pInst->stale)
+        {
+          int type = (int)pInst->data.gBlendType [0];
+
+              pInst->stale |= ImGui::Combo ( "Blend Method", &type, "Modulate\0Add\0Subtract\0"
+                                                                     "Unknown0\0Unknown1\0\0", 5 );
+          if (pInst->stale) { pInst->data.gBlendType [0] = (float)type; }
+
+          pInst->stale |= ImGui::ColorEdit4 ("Flare Color", pInst->data.flare_color);
+
+          if (pInst->stale)
+          {
+            SK_DGPU_UpdateFlareBuffers ();
+            pInst->stale = false;
+
+            ImGui::PopID    ();
+            ImGui::EndGroup ();
+            return true;
+          }
+        }
+
+        ImGui::PopID    ();
+        ImGui::EndGroup ();
+        return false;
+      };
+
+      if (FlareMenu ("Stationary", &SK_DGPU_ScreenFlare_Global))
+        dgpu_config.flares.global.store ();
+
+      ImGui::SameLine ();
+
+      if (FlareMenu ("Positional", &SK_DGPU_ScreenFlare_Local))
+        dgpu_config.flares.local.store ();
+
+      ImGui::TreePop  ();
+    }
+
     ImGui::PopStyleColor (3);
     ImGui::TreePop       ( );
   }
 }
-
 
 HRESULT
 STDMETHODCALLTYPE
@@ -314,11 +528,49 @@ SK_DGPU_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT F
       );
   }
 
+  if (SK_ReShade_SetResolutionScale == nullptr)
+  {
+    SK_ReShade_SetResolutionScale =
+      (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
+        GetModuleHandle (L"d3d11.dll"),
+          "SK_ReShade_SetResolutionScale"
+      );
+  }
+
   if (SK_ReShade_SetResolutionScale != nullptr)
     SK_ReShade_SetResolutionScale (aa_prefs.scale);
 
   return S_OK;
 }
+
+
+ extern bool   SK_D3D11_DrawHandler     (ID3D11DeviceContext* pDevCtx);
+typedef bool (*SK_D3D11_DrawHandler_pfn)(ID3D11DeviceContext* pDevCtx);
+               SK_D3D11_DrawHandler_pfn SK_D3D11_DrawHandler_Original = nullptr;
+
+bool
+SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx)
+{
+  if ( SK_DGPU_ScreenFlare_Local.override || 
+       SK_DGPU_ScreenFlare_Global.override )
+  {
+    uint32_t current_pixel_shader = 
+      SK_D3D11_Shaders.pixel.current.shader [pDevCtx];
+
+    const uint32_t PS_GLOBAL_FLARE = 0xD18AEDF1;  // Has position, but we're not going to bother with that.
+    const uint32_t PS_LOCAL_FLARE  = 0xBDCAA539;  // No position, just one constant color screwing up the whole screen!
+
+    if ( SK_DGPU_ScreenFlare_Global.override && current_pixel_shader == PS_GLOBAL_FLARE )
+      pDevCtx->PSSetConstantBuffers (0, 1, &SK_DGPU_ScreenFlare_Global.buffer);
+
+    else if ( SK_DGPU_ScreenFlare_Local.override && current_pixel_shader == PS_LOCAL_FLARE )
+      pDevCtx->PSSetConstantBuffers (0, 1, &SK_DGPU_ScreenFlare_Local.buffer);
+  }
+
+
+  return SK_D3D11_DrawHandler_Original (pDevCtx);
+}
+
 
 void
 SK_DGPU_InitPlugin (void)
@@ -356,11 +608,25 @@ SK_DGPU_InitPlugin (void)
   dgpu_config.mipmaps.cache_mipmaps->load        (config.textures.d3d11.cache_gen_mips);
   dgpu_config.mipmaps.uncompressed_mipmaps->load (config.textures.d3d11.uncompressed_mips);
 
+
+  dgpu_config.flares.global.init ();
+  dgpu_config.flares.local.init  ();
+
+  dgpu_config.flares.global.load ();
+  dgpu_config.flares.local.load  ();
+
+
   SK_CreateFuncHook (       L"SK_PlugIn_ControlPanelWidget",
                               SK_PlugIn_ControlPanelWidget,
                                 SK_DGPU_ControlPanel,
      static_cast_p2p <void> (&SK_PlugIn_ControlPanelWidget_Original) );
   MH_QueueEnableHook (        SK_PlugIn_ControlPanelWidget           );
+
+  SK_CreateFuncHook (        L"SK_D3D11_DrawHandler",
+                               SK_D3D11_DrawHandler,
+                                SK_DGPU_DrawHandler,
+     static_cast_p2p <void> (&SK_D3D11_DrawHandler_Original) );
+  MH_QueueEnableHook (        SK_D3D11_DrawHandler           );
 
   SK_ReShade_SetResolutionScale =
     (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
