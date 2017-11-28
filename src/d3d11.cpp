@@ -4399,18 +4399,21 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
   if ((! on_top) &&    SK_D3D11_Shaders.vertex.on_top.count(current_vs))  on_top = true;
   if ((! on_top) &&    SK_D3D11_Shaders.pixel.on_top.count (current_ps))  on_top = true;
 
-  if (on_top)
-  {
-    if (SK_D3D11_Shaders.vertex.tracked.on_top)
-    {
-      if (SK_D3D11_Shaders.vertex.tracked.crc32c != current_vs) on_top = false;
-    }
-
-    if (SK_D3D11_Shaders.pixel.tracked.on_top)
-    {
-      if (SK_D3D11_Shaders.pixel.tracked.crc32c != current_ps) on_top = false;
-    }
-  }
+  //
+  // Hack to track combinations of VS + PS OnTop, not important.
+  //
+  /////if (on_top)
+  /////{
+  /////  if (SK_D3D11_Shaders.vertex.tracked.on_top)
+  /////  {
+  /////    if (SK_D3D11_Shaders.vertex.tracked.crc32c != current_vs) on_top = false;
+  /////  }
+  /////
+  /////  if (SK_D3D11_Shaders.pixel.tracked.on_top)
+  /////  {
+  /////    if (SK_D3D11_Shaders.pixel.tracked.crc32c != current_ps) on_top = false;
+  /////  }
+  /////}
 
   if ((! on_top) && SK_D3D11_Shaders.geometry.on_top.count (current_gs)) on_top = true;
   if ((! on_top) && SK_D3D11_Shaders.hull.on_top.count     (current_hs)) on_top = true;

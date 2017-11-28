@@ -46,6 +46,11 @@
 
 #include <windowsx.h>
 
+#define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
+  (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
+                  (((shift)!= 0) << 10) |   \
+                  (((alt)  != 0) << 11))
+
 SK_Console::SK_Console (void)
 {
   visible        = false;
@@ -157,7 +162,8 @@ SK_Console::reset (void)
 }
 
 
-std::vector <SK_KeyCommand> SK_KeyboardMacros;
+std::unordered_multimap <uint32_t, SK_KeyCommand> SK_KeyboardMacros;
+
 
 // Plugins can hook this if they do not have their own input handler
 __declspec (noinline)
@@ -172,17 +178,22 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode);
 
 
-  for (auto it : SK_KeyboardMacros)
-  {
-#define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
-  (UINT)((vKey) | (((ctrl) != 0) <<  9) |   \
-                  (((shift)!= 0) << 10) |   \
-                  (((alt)  != 0) << 11))
+  uint32_t masked =
+    SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-    if (it.binding.masked_code == SK_MakeKeyMask (vkCode, Control, Shift, Alt))
-    {
-      SK_GetCommandProcessor ()->ProcessCommandLine (SK_WideCharToUTF8 (it.command).c_str ());
-    }
+  if (SK_KeyboardMacros.count (masked))
+  {
+    auto range =
+      SK_KeyboardMacros.equal_range (masked);
+
+    for_each ( range.first, range.second,
+      [] (std::unordered_multimap <uint32_t, SK_KeyCommand>::value_type& cmd_pair)
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine (
+          SK_WideCharToUTF8 (cmd_pair.second.command).c_str ()
+        );
+      }
+    );
   }
 }
 
@@ -247,7 +258,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
         SK_PluginKeyPress   (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
 
         // Finally, toggle the command console
-        if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && vkCode == VK_TAB)
+        if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
+             SK_MakeKeyMask (VK_TAB, 1, 1, 0) )
         {
           visible = ! visible;
 

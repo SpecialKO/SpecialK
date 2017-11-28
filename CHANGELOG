@@ -1,8 +1,25 @@
 0.8.52
 
+ Keyboard Macros
+ ===============
+
+ + Added support for keyboard macros
+
+  >> (See ReadMe\cvars.txt for partial list of commands)
+
+    *** Structure in INI is  [Macro.<NameOfMacroGroup>]
+                             KeyBind=Command
+                             ...
+
+     ( Multiple commands may share the same keybinding, but order of execution
+         is undefined. )
+
+ + Added support for global macros and turned all OSD toggle keys into macros
+
+  >> (Refer to Global\macros.ini)
+
  + Fixed WMI performance monitoring thread init when Steam overlay is
      loaded first
- + Added support for keyboard macros (see ReadMe\cvars.txt)
 
 
 0.8.51

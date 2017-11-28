@@ -46,6 +46,7 @@ const wchar_t*       SK_VER_STR = SK_VERSION_STR_W;
 iSK_INI*             dll_ini         = nullptr;
 iSK_INI*             osd_ini         = nullptr;
 iSK_INI*             achievement_ini = nullptr;
+iSK_INI*             macro_ini       = nullptr;
 sk_config_t          config;
 sk::ParameterFactory g_ParameterFactory;
 
@@ -454,8 +455,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 {
   // Load INI File
   std::wstring full_name;
-  std::wstring osd_config;
-  std::wstring achievement_config;
+  std::wstring osd_config, achievement_config, macro_config;
 
 
   full_name = SK_GetConfigPath () +
@@ -482,6 +482,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
   achievement_config =
     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini";
 
+  macro_config =
+    SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\macros.ini";
+
   while (init < 0)
     SleepEx (15, FALSE);
 
@@ -501,6 +504,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
     achievement_ini =
       SK_CreateINI (achievement_config.c_str ());
+
+    macro_ini =
+      SK_CreateINI (macro_config.c_str ());
 
   #define ConfigEntry(param,descrip,ini,sec,key) { (sk::iParameter **)&(param), std::type_index (typeid ((param))), (descrip), (ini), (sec), (key) }
 
@@ -847,13 +853,20 @@ struct param_decl_s {
   iSK_INI::_TSectionMap& sections =
     dll_ini->get_sections ();
 
-  auto sec =
+  auto&& sec =
     sections.begin ();
 
   int import = 0;
 
   host_executable.hLibrary     = GetModuleHandle     (nullptr);
   host_executable.product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (host_executable.hLibrary).c_str ());
+
+
+
+  extern std::unordered_multimap <uint32_t, SK_KeyCommand> SK_KeyboardMacros;
+
+  SK_KeyboardMacros.clear   ();
+
 
   while (sec != sections.end ())
   {
@@ -939,8 +952,7 @@ struct param_decl_s {
 
         cmd.command = it.second;
 
-        extern std::vector <SK_KeyCommand> SK_KeyboardMacros;
-        SK_KeyboardMacros.push_back (cmd);
+        SK_KeyboardMacros.emplace (cmd.binding.masked_code, cmd);
       }
     }
 
@@ -948,6 +960,58 @@ struct param_decl_s {
 
     ++sec;
   }
+
+
+
+  //
+  // Load Global Macro Table
+  //
+  if (macro_ini->get_sections ().empty ())
+  {
+    macro_ini->import ( L"[Macro.SpecialK_OSD_Toggles]\n"
+                        L"Ctrl+Shift+O=OSD.Show toggle\n"
+                        L"Ctrl+Shift+M=OSD.Memory.Show toggle\n"
+                        L"Ctrl+Shift+T=OSD.Clock.Show toggle\n"
+                        L"Ctrl+Shift+I=OSD.IOPS.Show toggle\n"
+                        L"Ctrl+Shift+F=OSD.FPS.Show toggle\n"
+                        L"Ctrl+Shift+G=OSD.GPU.Show toggle\n"
+                        L"Ctrl+Shift+R=OSD.Shaders.Show toggle\n"
+                        L"Ctrl+Alt+Shift+D=OSD.Disk.Show toggle\n"
+                        L"Ctrl+Alt+Shift+P=OSD.Pagefile.Show toggle\n"
+                        L"Ctrl+Alt+Shift+S=OSD.SLI.Show toggle\n"
+                        L"Ctrl+Shift+C=OSD.CPU.Show toggle\n\n"
+                      );
+                        //L"[Macro.SpecialK_CommandConsole]\n"
+                        //L"Ctrl+Shift+Tab=Console.Show toggle\n\n" );
+    macro_ini->write (macro_ini->get_filename ());
+  }
+
+  auto& macro_sections =
+    macro_ini->get_sections ();
+
+  sec =
+    macro_sections.begin ();
+
+  while (sec != macro_sections.end ())
+  {
+    if (wcsstr ((*sec).first.c_str (), L"Macro."))
+    {
+      for ( auto it : (*sec).second.keys )
+      {
+        SK_KeyCommand cmd;
+
+        cmd.binding.human_readable = it.first;
+        cmd.binding.parse ();
+
+        cmd.command = it.second;
+
+        SK_KeyboardMacros.emplace (cmd.binding.masked_code, cmd);
+      }
+    }
+
+    ++sec;
+  }
+
 
   config.window.border_override    = true;
 
@@ -2764,6 +2828,10 @@ SK_SaveConfig ( std::wstring name,
                      L"\\My Mods\\SpecialK\\Global\\achievements.ini"
                    ).c_str () );
 
+  macro_ini->write ( std::wstring ( SK_GetDocumentsDir () +
+                     L"\\My Mods\\SpecialK\\Global\\macros.ini"
+                   ).c_str () );
+
   if (close_config)
   {
     if (dll_ini != nullptr)
@@ -2782,6 +2850,12 @@ SK_SaveConfig ( std::wstring name,
     {
       delete achievement_ini;
       achievement_ini = nullptr;
+    }
+
+    if (macro_ini != nullptr)
+    {
+      delete macro_ini;
+      macro_ini = nullptr;
     }
   }
 }

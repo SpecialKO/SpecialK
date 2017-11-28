@@ -65,6 +65,44 @@ SK_TextOverlayManager::SK_TextOverlayManager (void)
   cmd->AddVariable ("OSD.PosX",  pos_.x);
   cmd->AddVariable ("OSD.PosY",  pos_.y);
   cmd->AddVariable ("OSD.Scale", scale_);
+
+  osd_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.osd.show);
+  fps_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.fps.show);
+  gpu_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.gpu.show);
+  cpu_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.cpu.show);
+  mem_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.mem.show);
+  disk_.show     = SK_CreateVar (SK_IVariable::Boolean, &config.disk.show);
+  io_.show       = SK_CreateVar (SK_IVariable::Boolean, &config.io.show);
+  pagefile_.show = SK_CreateVar (SK_IVariable::Boolean, &config.pagefile.show);
+  sli_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.sli.show);
+
+  cmd->AddVariable ("OSD.Show",                osd_.show);
+
+  cmd->AddVariable ("OSD.FPS.Show",            fps_.show);
+  cmd->AddVariable ("OSD.Shaders.Show",        SK_CreateVar (SK_IVariable::Boolean, &config.render.show));
+
+  cmd->AddVariable ("OSD.Memory.Show",         mem_.show);
+  cmd->AddVariable ("OSD.Memory.UpdateFreq",   SK_CreateVar (SK_IVariable::Float,   &config.mem.interval));
+
+  cmd->AddVariable ("OSD.SLI.Show",            sli_.show);
+
+  cmd->AddVariable ("OSD.CPU.Show",            cpu_.show);
+  cmd->AddVariable ("OSD.CPU.Simple",          SK_CreateVar (SK_IVariable::Boolean, &config.cpu.simple));
+  cmd->AddVariable ("OSD.CPU.UpdateFreq",      SK_CreateVar (SK_IVariable::Float,   &config.cpu.interval));
+
+  cmd->AddVariable ("OSD.GPU.Show",            gpu_.show);
+  cmd->AddVariable ("OSD.GPU.PrintSlowdown",   SK_CreateVar (SK_IVariable::Boolean, &config.gpu.print_slowdown));
+  cmd->AddVariable ("OSD.GPU.UpdateFreq",      SK_CreateVar (SK_IVariable::Float,   &config.gpu.interval));
+
+  cmd->AddVariable ("OSD.Disk.Show",           disk_.show);
+  cmd->AddVariable ("OSD.Disk.Type",           SK_CreateVar (SK_IVariable::Int,     &config.disk.type));
+  cmd->AddVariable ("OSD.Disk.UpdateFreq",     SK_CreateVar (SK_IVariable::Float,   &config.disk.interval));
+
+  cmd->AddVariable ("OSD.Pagefile.Show",       pagefile_.show);
+  cmd->AddVariable ("OSD.Pagefile.UpdateFreq", SK_CreateVar (SK_IVariable::Float,   &config.pagefile.interval));
+
+  cmd->AddVariable ("OSD.IOPS.Show",           io_.show);
+  cmd->AddVariable ("OSD.IOPS.UpdateFreq",     SK_CreateVar (SK_IVariable::Float,   &config.io.interval));
 }
 
 
@@ -1949,6 +1987,57 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
 
       ++it;
     }
+
+    return true;
+  }
+
+
+
+  void
+  __stdcall
+  SK_StartPerfMonThreads (void);
+
+
+  if ( var == mem_.show  ||
+       var == cpu_.show  ||
+       var == disk_.show ||
+       var == pagefile_.show )
+  {
+    *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+
+    if (*static_cast <bool *> (val))
+      SK_StartPerfMonThreads ();
+
+    return true;
+  }
+
+  else if (var == sli_.show)
+  {
+    if (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs () > 1)
+    {
+      *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+
+      return true;
+    }
+
+    return false;
+  }
+
+  else if ( var == io_.show  ||
+            var == gpu_.show || 
+            var == fps_.show )
+  {
+    *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+
+    return true;
+  }
+
+  else if (var == osd_.show)
+  {
+    *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+
+    if (*static_cast <bool *> (val))
+      SK_InstallOSD ();
 
     return true;
   }

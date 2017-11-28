@@ -144,6 +144,13 @@ private:
 
   SK_IVariable*                            scale_ = nullptr;
 
+  struct
+  {
+    SK_IVariable*                          show   = nullptr;
+  } osd_, fps_, gpu_, disk_, pagefile_,
+          mem_, cpu_, io_,   clock_,
+          sli_;
+
 public:
   virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
 };
