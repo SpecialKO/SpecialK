@@ -1506,12 +1506,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.steam.preload_overlay)
   {
     CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD {
-                                   WaitForInputIdle (GetCurrentProcess (), INFINITE);
-
-                                   bool SK_InitWMI (void);
-                                   if (SK_InitWMI            ())
-                                     SK_StartPerfMonThreads  ();
-
                                    SK_Steam_LoadOverlayEarly ();
                                    SK_Input_Init             ();
 

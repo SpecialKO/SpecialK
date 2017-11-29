@@ -4589,6 +4589,27 @@ extern float SK_ImGui_PulseNav_Strength;
           }
         }
 
+        ImGui::Text     ("Window Layering");
+        ImGui::TreePush ("");
+
+        bool changed = false;
+
+        changed |= ImGui::RadioButton ("No Preference",         &config.window.always_on_top, -1); ImGui::SameLine ();
+        changed |= ImGui::RadioButton ("Prevent Always-On-Top", &config.window.always_on_top,  0); ImGui::SameLine ();
+        changed |= ImGui::RadioButton ("Force Always-On-Top",   &config.window.always_on_top,  1);
+
+        if (changed)
+        {
+          void
+          SK_Window_SetTopMost (bool bTop, bool bBringToTop);
+
+          if (config.window.always_on_top == 1)
+            SK_Window_SetTopMost (true, true);
+          else if (config.window.always_on_top == 0)
+            SK_Window_SetTopMost (false, false);
+        }
+
+        ImGui::TreePop ();
         ImGui::TreePop ();
       }
 

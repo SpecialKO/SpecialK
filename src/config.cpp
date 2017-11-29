@@ -362,6 +362,7 @@ struct {
   sk::ParameterBool*      fullscreen;
   sk::ParameterStringW*   override;
   sk::ParameterBool*      fix_mouse_coords;
+  sk::ParameterInt*       always_on_top;
 } window;
 
 struct {
@@ -623,6 +624,7 @@ struct param_decl_s {
     ConfigEntry (window.fullscreen,                      L"Make the Game Window Fill the Screen (scale to fit)",       dll_ini,         L"Window.System",         L"Fullscreen"),
     ConfigEntry (window.override,                        L"Force the Client Region to this Size in Windowed Mode",     dll_ini,         L"Window.System",         L"OverrideRes"),
     ConfigEntry (window.fix_mouse_coords,                L"Re-Compute Mouse Coordinates for Resized Windows",          dll_ini,         L"Window.System",         L"FixMouseCoords"),
+    ConfigEntry (window.always_on_top,                   L"Prevent (0) or Force (1) a game's window Always-On-Top",    dll_ini,         L"Window.System",         L"AlwaysOnTop"),
 
     // Compatibility
     //////////////////////////////////////////////////////////////////////////
@@ -1074,6 +1076,7 @@ struct param_decl_s {
   games.emplace ( L"Zero Escape.exe",                        SK_GAME_ID::ZeroEscape                   );
   games.emplace ( L"hackGU.exe",                             SK_GAME_ID::DotHackGU                    );
   games.emplace ( L"WOFF.exe",                               SK_GAME_ID::WorldOfFinalFantasy          );
+  games.emplace ( L"StarOceanTheLastHope.exe",               SK_GAME_ID::StarOcean4                   );
 
   //
   // Application Compatibility Overrides
@@ -1374,6 +1377,11 @@ struct param_decl_s {
         config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
         config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
       } break;
+
+      case SK_GAME_ID::StarOcean4:
+        // Prevent the game from layering windows always on top.
+        config.window.always_on_top = 0;
+        break;
     }
   }
 
@@ -1851,6 +1859,7 @@ struct param_decl_s {
   window.persistent_drag->load  (config.window.persistent_drag);
   window.fullscreen->load       (config.window.fullscreen);
   window.fix_mouse_coords->load (config.window.res.override.fix_mouse);
+  window.always_on_top->load    (config.window.always_on_top);
 
   if (((sk::iParameter *)window.override)->load ())
   {
@@ -2367,6 +2376,7 @@ SK_SaveConfig ( std::wstring name,
   window.persistent_drag->store           (config.window.persistent_drag);
   window.fullscreen->store                (config.window.fullscreen);
   window.fix_mouse_coords->store          (config.window.res.override.fix_mouse);
+  window.always_on_top->store             (config.window.always_on_top);
 
   wchar_t wszFormattedRes [64] = { };
 

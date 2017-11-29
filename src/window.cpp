@@ -140,6 +140,13 @@ GetWindowRect_pfn      GetWindowRect_Original      = nullptr;
 GetClientRect_pfn      GetClientRect_Original      = nullptr;
 
 
+bool
+SK_Window_IsTopMost (void);
+
+void
+SK_Window_SetTopMost (bool bTop, bool bBringToTop = false);
+
+
 struct window_message_dispatch_s {
 public:
   bool ProcessMessage (HWND hWnd, UINT uMsg, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet = nullptr)
@@ -209,6 +216,26 @@ public:
 
   virtual bool OnVarChange (SK_IVariable* var, void* val) override
   {
+    if (var == top_most_)
+    {
+      if (val != nullptr)
+      {
+        bool orig = SK_Window_IsTopMost ();
+        bool set =
+          *static_cast <bool *> (val);
+
+        if (set != orig)
+        {
+          SK_Window_SetTopMost (set, set);
+        }
+
+        *static_cast <bool *> (var->getValuePointer ()) =
+          SK_Window_IsTopMost ();
+      }
+
+      return true;
+    }
+
     if (var == confine_cursor_)
     {
       if (val != nullptr)
@@ -220,12 +247,12 @@ public:
         {
           if (! config.window.unconfine_cursor)
           {
-            ClipCursor_Original    (&game_window.cursor_clip);
-            SK_AdjustWindow        ();
+            ClipCursor_Original (&game_window.cursor_clip);
+            SK_AdjustWindow     ();
           }
 
           else
-            ClipCursor_Original    (nullptr);
+            ClipCursor_Original (nullptr);
         }
 
         else
@@ -585,6 +612,15 @@ public:
         confine_cursor_
     );
 
+    static bool dontcare;
+    top_most_ =
+     SK_CreateVar (SK_IVariable::Boolean, &dontcare, this);
+
+    cmd->AddVariable (
+      "Window.TopMost",
+        top_most_
+    );
+
     borderless_ =
       SK_CreateVar (SK_IVariable::Boolean, &config.window.borderless,      this);
 
@@ -755,6 +791,7 @@ protected:
   SK_IVariable* borderless_;
   SK_IVariable* background_mute_;
   SK_IVariable* confine_cursor_;
+  SK_IVariable* top_most_;
   SK_IVariable* unconfine_cursor_;
   SK_IVariable* center_window_;
   SK_IVariable* fullscreen_;
@@ -777,8 +814,24 @@ private:
   static SK_WindowManager* pWindowManager;
 };
 
+const int PreventAlwaysOnTop = 0;
+const int        AlwaysOnTop = 1;
+
 auto ActivateWindow =[&](HWND hWnd, bool active = false)
 {
+  if (config.window.always_on_top == PreventAlwaysOnTop)
+  {
+    SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost true");
+    SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost false");
+  }
+
+  else if (config.window.always_on_top == AlwaysOnTop)
+  {
+    SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost false");
+    SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost true");
+  }
+
+
   bool state_changed =
     (wm_dispatch.active_windows [hWnd] != active && hWnd == game_window.hWnd);//game_window.active != active);
 
@@ -4973,6 +5026,47 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 #endif
 
 #include <SpecialK/core.h>
+
+bool
+SK_Window_IsTopMost (void)
+{
+  WINDOWINFO winfo        = { };
+             winfo.cbSize = sizeof (WINDOWINFO);
+
+  GetWindowInfo (game_window.hWnd, &winfo);
+
+  return (winfo.dwExStyle & WS_EX_TOPMOST);
+}
+
+void
+SK_Window_SetTopMost (bool bTop, bool bBringToTop)
+{
+  HWND      hWndOrder = 0;
+  DWORD_PTR dwStyleEx =
+    GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE);
+
+  if (bTop)
+  {
+    dwStyleEx |= WS_EX_TOPMOST;
+    hWndOrder  =  HWND_TOPMOST;
+  }
+
+  else
+  {
+    dwStyleEx &= (~WS_EX_TOPMOST);
+    hWndOrder  =  HWND_NOTOPMOST;
+  }
+
+  SetWindowLongPtrW_Original ( game_window.hWnd, GWL_EXSTYLE, dwStyleEx );
+  SetWindowPos_Original      ( game_window.hWnd,
+                                 hWndOrder,
+                                   0, 0, 0, 0,
+                                     SWP_NOACTIVATE | SWP_NOMOVE |
+                                     SWP_NOSIZE     | SWP_NOSENDCHANGING );
+
+  if (bBringToTop)
+    BringWindowToTop (game_window.hWnd);
+}
 
 void
 SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)

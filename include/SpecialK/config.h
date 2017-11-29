@@ -433,6 +433,7 @@ struct sk_config_t
     bool    persistent_drag     = false;
     bool    drag_lock           = false; // NOT SAVED IN INI
     bool    fullscreen          = false;
+    int     always_on_top       = -1;
     struct {
       struct {
         unsigned int x          = 0;
@@ -635,6 +636,7 @@ enum class SK_GAME_ID
   ZeroEscape,                   // Zero Escape.exe
   DotHackGU,                    // hackGU.exe
   WorldOfFinalFantasy,          // WOFF.exe
+  StarOcean4,                   // StarOceanTheLastHope.exe
   UNKNOWN_GAME               = 0xffff
 };
 
