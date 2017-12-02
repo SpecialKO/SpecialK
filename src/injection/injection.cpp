@@ -341,6 +341,8 @@ SKX_InstallShellHook (void);
 #include <SpecialK/injection/address_cache.h>
 #include <SpecialK/ini.h>
 
+bool temp_tls = false;
+
 void
 __stdcall
 SKX_InstallCBTHook (void)
@@ -442,7 +444,12 @@ SKX_InstallCBTHook (void)
       cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
 
       extern volatile DWORD __SK_TLS_INDEX;
-      __SK_TLS_INDEX = TlsAlloc ();
+
+      if (__SK_TLS_INDEX == 0)
+      {
+        __SK_TLS_INDEX = TlsAlloc ();
+        temp_tls       = true;
+      }
 
       if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
       {
@@ -468,6 +475,22 @@ SKX_InstallCBTHook (void)
         CreateThread (nullptr, 0x0, [](LPVOID /*user*/) ->
         DWORD
         {
+          config.apis.d3d9.hook    = false;  config.apis.d3d9ex.hook    = false;
+          config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = true;
+          config.apis.NvAPI.enable = false;
+          config.cegui.enable                          = false;
+          config.steam.preload_overlay                 = false;
+          config.steam.silent                          = true;
+          config.system.trace_load_library             = false;
+          config.system.handle_crashes                 = false;
+          config.system.central_repository             = true;
+          config.system.game_output                    = false;
+          config.render.dxgi.rehook_present            = false;
+          config.injection.global.use_static_addresses = false;
+          config.input.gamepad.hook_dinput8            = false;
+          config.input.gamepad.hook_hid                = false;
+          config.input.gamepad.hook_xinput             = false;
+
           if (SK::DXGI::Startup ())
           {
             WaitForInit ();
@@ -478,11 +501,12 @@ SKX_InstallCBTHook (void)
             SK_Inject_AddressManager->storeNamedAddress (L"dxgi", "IDXGISwapChain::Present", reinterpret_cast <uintptr_t> (Present_Target));
 
             delete SK_Inject_AddressManager;
+                   SK_Inject_AddressManager = nullptr;
 
             dll_log.Log (L"IDXGISwapChain::Present = %ph", Present_Target);
 
             config.apis.d3d9.hook    = true;  config.apis.d3d9ex.hook     = true;
-            config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = true;
+            config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = false;
             config.apis.NvAPI.enable = false;
             config.cegui.enable                          = false;
             config.steam.preload_overlay                 = false;
@@ -515,14 +539,20 @@ SKX_InstallCBTHook (void)
             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::ResetEx",   reinterpret_cast <uintptr_t> (D3D9ResetEx_Target));
 
             delete SK_Inject_AddressManager;
+                   SK_Inject_AddressManager = nullptr;
 
             //SK::DXGI::Shutdown ();
-            //
-            //extern iSK_INI* dll_ini;
-            //DeleteFileW (dll_ini->get_filename ());
+            
+            extern iSK_INI* dll_ini;
+            DeleteFileW (dll_ini->get_filename ());
           }
 
-        //TlsFree (__SK_TLS_INDEX);
+          if (temp_tls)
+          {
+            TlsFree (__SK_TLS_INDEX);
+                     __SK_TLS_INDEX = 0;
+            temp_tls = false;
+          }
 
           CloseHandle (GetCurrentThread ());
 

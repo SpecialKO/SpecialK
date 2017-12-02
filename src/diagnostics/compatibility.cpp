@@ -1634,8 +1634,9 @@ TaskDialogCallback (
                             SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
                             SWP_NOMOVE         | SWP_NOSIZE );
 
-    while (ReadAcquire (&SK_bypass_dialog_active) > 1 && ReadAcquire (&SK_bypass_dialog_tid) != GetCurrentThreadId ())
-      SleepEx (10, TRUE);
+    while ( ReadAcquire (&SK_bypass_dialog_active) > 1 &&
+            ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+      SleepEx (10, FALSE);
 
     SK_bypass_dialog_hwnd = hWnd;
 

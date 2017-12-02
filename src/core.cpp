@@ -894,7 +894,7 @@ SK_InitCore (const wchar_t* backend, void* callback)
                                                                 L"Failed ");
 
     // Yes, AMD driver is in working order ...
-    if (adl_init)
+    if (adl_init > 0)
     {
       dll_log.Log ( L"[DisplayLib]  * Number of Reported AMD Adapters: %i (%i active)",
                       SK_ADL_CountPhysicalGPUs (),
@@ -990,7 +990,8 @@ SK_InitCore (const wchar_t* backend, void* callback)
          callback_fn (SK_InitFinishCallback);
 
 
-  if ((! ReadAcquire (&SK_bypass_dialog_active)) && (GetCurrentThreadId () != ReadAcquire (&SK_bypass_dialog_tid)))
+  if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
+          ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
   {
     // Setup the compatibility backend, which monitors loaded libraries,
     //   blacklists bad DLLs and detects render APIs...
@@ -1016,7 +1017,8 @@ WaitForInit (void)
       break;
   }
 
-  while (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != ReadAcquire (&SK_bypass_dialog_tid)))
+  if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
+          ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
   {
     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
                       GetCurrentThreadId () );
@@ -1061,6 +1063,15 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
+  bool rundll_invoked =
+    (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
+
+  if (rundll_invoked || SK_IsSuperSpecialK ())
+  {
+    init_mutex->unlock ();
+    return;
+  }
+
   SK_Input_Init       ();
   SK_ApplyQueuedHooks ();
 
@@ -1070,12 +1081,6 @@ SK_InitFinishCallback (void)
   SK::Framerate::Init ();
 
   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
-
-  if (SK_IsSuperSpecialK ())
-  {
-    init_mutex->unlock ();
-    return;
-  }
 
   extern int32_t SK_D3D11_amount_to_purge;
   SK_GetCommandProcessor ()->AddVariable (
@@ -1374,7 +1379,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
 
-  static bool bypass = false;
+  extern bool __SK_RunDLL_Bypass;
+
+  bool rundll_invoked =
+    (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
+  bool skim =
+    rundll_invoked || SK_IsSuperSpecialK () || __SK_RunDLL_Bypass;
+
+  static bool bypass  = false;
+              bypass |= skim;
 
   // Injection Compatibility Menu
   if ( (! bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
@@ -1432,8 +1445,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   dll_log.init (log_fname, L"w");
   dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
 
-
-  if (SK_IsSuperSpecialK ())
+  if (skim)
   {
     init_mutex->unlock ();
     return TRUE;
@@ -1492,6 +1504,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_SaveConfig (config_name);
     dll_log.LogEx (false, L"done!\n");
   }
+
 
 
   if (bypass)
@@ -1760,17 +1773,18 @@ std::set <HWND> dummy_windows;
 HWND
 SK_Win32_CreateDummyWindow (void)
 {
-  WNDCLASSW wc = { };
+  WNDCLASSW wc         = { };
+  WNDCLASS wc_existing = { };
 
   wc.style         = CS_CLASSDC | CS_GLOBALCLASS;
   wc.lpfnWndProc   = DefWindowProcW;
   wc.hInstance     = SK_GetDLL ();
-  wc.lpszClassName = L"Special K Dummy Window Class 2";
+  wc.lpszClassName = L"Special K Dummy Window Class";
 
-  if (RegisterClassW (&wc))
+  if (RegisterClassW (&wc) || GetClassInfo (SK_GetDLL (), L"Special K Dummy Window Class", &wc_existing))
   {
     HWND hWnd =
-      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class 2",
+      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class",
                                      L"Special K Dummy Window",
                                        WS_POPUP | WS_CLIPCHILDREN |
                                        WS_CLIPSIBLINGS,
@@ -1962,8 +1976,11 @@ STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
   // Throttle, but do not deadlock the render loop
-  while (ReadNoFence (&SK_bypass_dialog_active) && (GetCurrentThreadId () != ReadAcquire (&SK_bypass_dialog_tid)))
+  if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
+          ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+  {
     MsgWaitForMultipleObjectsEx (0, nullptr, 166, QS_ALLINPUT, MWMO_ALERTABLE);
+  }
 
   // ^^^ Use condition variable instead
 

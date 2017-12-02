@@ -210,6 +210,12 @@ struct {
   } api;
 } nvidia;
 
+struct {
+  struct {
+    sk::ParameterBool*    disable;
+  } adl;
+} amd;
+
 sk::ParameterBool*        enable_cegui;
 sk::ParameterBool*        safe_cegui;
 sk::ParameterFloat*       mem_reserve;
@@ -770,6 +776,8 @@ struct param_decl_s {
     ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
     ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
     ConfigEntry (nvidia.sli.override,                    L"Override Driver Defaults",                                  dll_ini,         L"NVIDIA.SLI",            L"Override"),
+
+    ConfigEntry (amd.adl.disable,                        L"Disable AMD's ADL library",                                 dll_ini,         L"AMD.ADL",               L"Disable"),
 
     ConfigEntry (imgui.show_eula,                        L"Show Software EULA",                                        dll_ini,         L"SpecialK.System",       L"ShowEULA"),
     ConfigEntry (imgui.disable_alpha,                    L"Disable Alpha Transparency (reduce flicker)",               dll_ini,         L"ImGui.Render",          L"DisableAlpha"),
@@ -1467,6 +1475,9 @@ struct param_decl_s {
 
   if (nvidia.api.disable->load (config.apis.NvAPI.enable))
      config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
+
+  if (amd.adl.disable->load (config.apis.ADL.enable))
+     config.apis.ADL.enable = (! amd.adl.disable->get_value ());
 
 
 
@@ -2546,10 +2557,13 @@ SK_SaveConfig ( std::wstring name,
   steam.achievements.popup.animate->store      (config.steam.achievements.popup.animate);
   steam.achievements.popup.show_title->store   (config.steam.achievements.popup.show_title);
 
-  if (config.steam.appid == 0) {
+  if (config.steam.appid == 0)
+  {
     if (SK::SteamAPI::AppID () != 0 &&
         SK::SteamAPI::AppID () != 1)
+    {
       config.steam.appid = SK::SteamAPI::AppID ();
+    }
   }
 
   steam.system.appid->store                 (config.steam.appid);
@@ -2665,6 +2679,9 @@ SK_SaveConfig ( std::wstring name,
   {
     injection.global.use_static_addresses->store (config.injection.global.use_static_addresses);
   }
+
+  nvidia.api.disable->store                 (! config.apis.NvAPI.enable);
+  amd.adl.disable->store                    (! config.apis.ADL.enable);
 
 #if 0
   nvidia.api.disable->store                ();

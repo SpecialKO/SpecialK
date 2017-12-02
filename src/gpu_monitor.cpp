@@ -391,7 +391,11 @@ SK_GPUPollingThread (LPVOID user)
         stats.gpus [i].clocks_kHz.gpu    = activity.iEngineClock * 10UL;
         stats.gpus [i].clocks_kHz.ram    = activity.iMemoryClock * 10UL;
 
-        stats.gpus [i].volts_mV.supported = true;
+        // This rarely reads right on AMD's drivers and I don't have AMD hardware anymore, so ...
+        //   disable it for now :)
+        stats.gpus [i].volts_mV.supported = false;//true;
+
+
         stats.gpus [i].volts_mV.over      = false;
         stats.gpus [i].volts_mV.core      = static_cast <float> (activity.iVddc); // mV?
 

@@ -138,7 +138,7 @@ struct resample_job_s {
   DirectX::ScratchImage *data;
   uint32_t               crc32c;
   ID3D11Texture2D       *texture;
-  uint64_t               start_time;
+  int64_t                start_time;
 };
 
 struct resample_dispatch_s
@@ -182,7 +182,7 @@ struct resample_dispatch_s
                                                 ID3D11Texture2D*         pOutTex,
                                                 DirectX::ScratchImage** ppOutImg );
 
-              HRESULT hr =
+              //HRESULT hr =
                 SK_D3D11_MipmapCacheTexture2DEx ( *job.data,
                                                    job.crc32c,
                                                    job.texture,
@@ -220,11 +220,11 @@ struct resample_dispatch_s
 
   bool processFinished (ID3D11Device* pDev, ID3D11DeviceContext* pDevCtx)
   {
-    const int MAX_TEXTURE_UPLOADS_PER_FRAME   = finished_textures.unsafe_size () / 2 + 1;
-    const int MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 10;
+    const size_t MAX_TEXTURE_UPLOADS_PER_FRAME   = finished_textures.unsafe_size () / 2 + 1;
+    const int    MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 10;
 
-    int   uploaded    = 0;
-    DWORD dwStartTime = timeGetTime ();
+    size_t uploaded    = 0;
+    DWORD  dwStartTime = timeGetTime ();
 
     SK_ScopedBool auto_bool_tex (&SK_TLS_Bottom ()->texture_management.injection_thread);
     SK_ScopedBool auto_bool_mem (&SK_TLS_Bottom ()->imgui.drawing);
@@ -6205,9 +6205,9 @@ SK_D3D11_RecursiveEnumAndAddTex ( std::wstring   directory, unsigned int& files,
 
           else
           {
-            extern size_t SK_DGPU_MipmapCacheSize;
-                          SK_DGPU_MipmapCacheSize += fsize.QuadPart;
-                          SK_D3D11_EnumeratedMipmapCache.emplace (wszPath, top_crc32);
+            extern uint64_t SK_DGPU_MipmapCacheSize;
+                            SK_DGPU_MipmapCacheSize += fsize.QuadPart;
+                            SK_D3D11_EnumeratedMipmapCache.emplace (wszPath, top_crc32);
           }
         }
       }
@@ -6875,7 +6875,7 @@ HRESULT
 __stdcall
 SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
                                   uint32_t                 crc32c, 
-                                  ID3D11Texture2D*         pOutTex,
+                                  ID3D11Texture2D*       /*pOutTex*/,
                                   DirectX::ScratchImage** ppOutImg )
 {
   SK_ScopedBool auto_bool  (&SK_TLS_Bottom ()->texture_management.injection_thread);
@@ -6988,8 +6988,8 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
 
     if (config.textures.d3d11.cache_gen_mips)
     {
-      extern size_t SK_DGPU_MipmapCacheSize;
-                    SK_DGPU_MipmapCacheSize += size;
+      extern uint64_t SK_DGPU_MipmapCacheSize;
+                      SK_DGPU_MipmapCacheSize += size;
 
       SK_D3D11_AddDumped  (crc32c, crc32c);
       SK_D3D11_AddTexHash (wszOutName, crc32c, 0);
@@ -13735,9 +13735,6 @@ RunDLL_HookManager_DXGI ( HWND  hwnd,        HINSTANCE hInst,
 
   if (StrStrA (lpszCmdLine, "dump"))
   {
-    extern volatile ULONG  __SK_DLL_Refs;
-    InterlockedIncrement (&__SK_DLL_Refs);
-
     extern void
     __stdcall
     SK_EstablishRootPath (void);
@@ -13754,6 +13751,22 @@ RunDLL_HookManager_DXGI ( HWND  hwnd,        HINSTANCE hInst,
           GetModuleHandle ( L"kernel32.dll"),
                               "QueryPerformanceCounter" )
       );
+
+    config.apis.d3d9.hook    = false; config.apis.d3d9ex.hook     = false;
+    config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = true;
+    config.apis.NvAPI.enable = false;
+    config.textures.d3d11.inject                 = false;
+    config.steam.preload_overlay                 = false;
+    config.steam.silent                          = true;
+    config.system.trace_load_library             = false;
+    config.system.handle_crashes                 = false;
+    config.system.central_repository             = true;
+    config.system.game_output                    = false;
+    config.render.dxgi.rehook_present            = false;
+    config.injection.global.use_static_addresses = false;
+    config.input.gamepad.hook_dinput8            = false;
+    config.input.gamepad.hook_hid                = false;
+    config.input.gamepad.hook_xinput             = false;
 
     SK_Init_MinHook        ();
     SK_ApplyQueuedHooks    ();
@@ -13783,6 +13796,9 @@ RunDLL_HookManager_DXGI ( HWND  hwnd,        HINSTANCE hInst,
       dll_log.Log (L"IDXGISwapChain::Present = %ph", Present_Target);
 
       SK::DXGI::Shutdown ();
+
+      extern iSK_INI* dll_ini;
+      DeleteFileW (dll_ini->get_filename ());
     }
 
     ExitProcess (0x00);

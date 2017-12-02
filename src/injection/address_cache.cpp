@@ -40,6 +40,8 @@ extern bool __SK_RunDLL_Bypass;
 
 SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry (void)
 {
+  address_ini_ = nullptr;
+
   auto injection_config =
     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
 
@@ -74,7 +76,7 @@ SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry (void)
 
         time_t time_lock = SK_Win32_FILETIME_to_time_t (modifiction);
 
-        if (time_lock < time_now - 45)
+        if (time_lock < time_now - 15)
         {
           hLockFile.Close ();
           DeleteFileW     (injection_lock.c_str ());
@@ -88,7 +90,7 @@ SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry (void)
         break;
       }
 
-      SleepEx (66UL, TRUE);
+      SleepEx (66UL, FALSE);
     }
 
     CHandle hLockFile (
