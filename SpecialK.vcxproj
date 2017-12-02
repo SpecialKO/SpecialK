@@ -2123,6 +2123,7 @@ Exit 0</Command>
     </ClCompile>
     <ClCompile Include="src\plugins\blue_reflection.cpp" />
     <ClCompile Include="src\plugins\dothack_gu.cpp" />
+    <ClCompile Include="src\plugins\lego_marvel2.cpp" />
     <ClCompile Include="src\plugins\nier.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>

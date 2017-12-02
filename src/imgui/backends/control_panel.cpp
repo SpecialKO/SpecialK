@@ -4600,13 +4600,10 @@ extern float SK_ImGui_PulseNav_Strength;
 
         if (changed)
         {
-          void
-          SK_Window_SetTopMost (bool bTop, bool bBringToTop);
-
           if (config.window.always_on_top == 1)
-            SK_Window_SetTopMost (true, true);
+            SK_DeferCommand ("Window.TopMost true");
           else if (config.window.always_on_top == 0)
-            SK_Window_SetTopMost (false, false);
+            SK_DeferCommand ("Window.TopMost false");
         }
 
         ImGui::TreePop ();

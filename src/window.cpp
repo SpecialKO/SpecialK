@@ -5043,7 +5043,7 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop)
 {
   HWND      hWndOrder = 0;
   DWORD_PTR dwStyleEx =
-    GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE);
+    GetWindowLongW (game_window.hWnd, GWL_EXSTYLE);
 
   if (bTop)
   {
@@ -5057,12 +5057,12 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop)
     hWndOrder  =  HWND_NOTOPMOST;
   }
 
-  SetWindowLongPtrW_Original ( game_window.hWnd, GWL_EXSTYLE, dwStyleEx );
-  SetWindowPos_Original      ( game_window.hWnd,
-                                 hWndOrder,
-                                   0, 0, 0, 0,
-                                     SWP_NOACTIVATE | SWP_NOMOVE |
-                                     SWP_NOSIZE     | SWP_NOSENDCHANGING );
+  SetWindowLongW        ( game_window.hWnd, GWL_EXSTYLE, dwStyleEx );
+  SetWindowPos_Original ( game_window.hWnd,
+                            hWndOrder,
+                              0, 0, 0, 0,
+                                SWP_NOACTIVATE | SWP_NOMOVE |
+                                SWP_NOSIZE     | SWP_NOSENDCHANGING );
 
   if (bBringToTop)
     BringWindowToTop (game_window.hWnd);

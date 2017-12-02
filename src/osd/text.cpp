@@ -1059,13 +1059,15 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
                 cpu_stats.cpus [0].percent_interrupt
     OSD_END
 
+    static const int digits = (cpu_stats.num_cpus / 11 > 0 ? 2 : 1);
+
     for (DWORD i = 1; i < cpu_stats.num_cpus; i++)
     {
       if (! config.cpu.simple)
       {
-        OSD_C_PRINTF "  CPU%lu   : %#3llu%%  -  (Kernel: %#3llu%%   "
+        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3llu%%  -  (Kernel: %#3llu%%   "
                      "User: %#3llu%%   Interrupt: %#3llu%%)\n",
-          i-1,
+          digits, i-1, 4-digits, "",
             cpu_stats.cpus [i].percent_load,
               cpu_stats.cpus [i].percent_kernel,
                 cpu_stats.cpus [i].percent_user,
@@ -1075,8 +1077,8 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
       else
       {
-        OSD_C_PRINTF "  CPU%lu   : %#3llu%%\n",
-          i-1,
+        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3llu%%\n",
+          digits, i-1, 4-digits, "",
             cpu_stats.cpus [i].percent_load
         OSD_END
       }

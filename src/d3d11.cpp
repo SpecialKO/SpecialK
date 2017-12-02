@@ -7811,6 +7811,26 @@ D3D11Dev_CreateSamplerState_Override
 {
   D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
 
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::LEGOMarvelSuperheroes2)
+  {
+    if (new_desc.Filter <= D3D11_FILTER_ANISOTROPIC)
+    {
+      new_desc.Filter        = D3D11_FILTER_ANISOTROPIC;
+      new_desc.MaxAnisotropy = 16;
+
+      new_desc.MipLODBias    = 0.0f;
+      new_desc.MinLOD        = 0.0f;
+      new_desc.MaxLOD        = D3D11_FLOAT32_MAX;
+
+      HRESULT hr =
+        D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
+
+      if (SUCCEEDED (hr))
+        return hr;
+    }
+  }
+
   if (config.textures.d3d11.generate_mips && new_desc.Filter <= D3D11_FILTER_ANISOTROPIC)
   {
     if (new_desc.MipLODBias != 0.0f || new_desc.Filter != D3D11_FILTER_MIN_MAG_MIP_POINT)
