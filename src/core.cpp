@@ -1976,8 +1976,8 @@ STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
   // Throttle, but do not deadlock the render loop
-  if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
-          ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+  if ( ReadAcquire (&SK_bypass_dialog_active) &&
+       ReadAcquire (&SK_bypass_dialog_tid) == static_cast <LONG> (GetCurrentThreadId ()) )
   {
     MsgWaitForMultipleObjectsEx (0, nullptr, 166, QS_ALLINPUT, MWMO_ALERTABLE);
   }
