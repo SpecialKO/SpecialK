@@ -264,10 +264,10 @@ XInputGetStateEx1_3_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [dwUserIndex]);
-
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [dwUserIndex]);
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)
@@ -311,10 +311,10 @@ XInputGetCapabilities1_3_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [dwUserIndex]);
-
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [dwUserIndex]);
 
   SK_LOG_FIRST_CALL
   SK_XINPUT_READ (sk_input_dev_type::Gamepad)

@@ -1067,7 +1067,10 @@ SK_ModuleAddrMap::contains (LPVOID pAddr, HMODULE* phMod)
   std::unordered_map <LPVOID, HMODULE> *pResolved_ =
     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
 
-  if (pResolved_->count (pAddr))
+  const auto&& it =
+    pResolved_->find (pAddr);
+
+  if (it != pResolved_->cend ())
   {
     *phMod = (*pResolved_) [pAddr];
     return true;

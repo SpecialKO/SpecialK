@@ -4521,9 +4521,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     if (game_window.hWnd != nullptr && hWnd != hWndRender)
     {
-      dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
-                    L" for rendering... (Old=%p, New=%p)",
-                      game_window.hWnd, hWnd );
+      if (hWndRender != 0)
+      {
+        dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
+                      L" for rendering... (Old=%p, New=%p)",
+                        game_window.hWnd, hWnd );
+      }
     }
 
     else

@@ -1,5 +1,6 @@
 0.8.52
 
+ (.3): Fix XInput lock behavior in games that use out-of-range controller idx
  (.2): Corrected SKIM64 start/stop behavior and AMD ADL
  (.1): Added Window.TopMost variable to fix Star Ocean 4
 
