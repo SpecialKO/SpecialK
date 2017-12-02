@@ -543,9 +543,9 @@ public:
   }
 
   STEAM_CALLRESULT ( SK_SteamAPIContext,
-                     OnFileSigDone,
-                     CheckFileSignature_t,
-                     chk_file_sig );
+                     OnFileDetailsDone,
+                     FileDetailsResult_t,
+                     get_file_details );
 
   void Shutdown (void)
   {

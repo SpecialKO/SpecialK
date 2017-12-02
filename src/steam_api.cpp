@@ -4110,6 +4110,7 @@ static uint32_t        verdict        = 0x00;
 static bool            decided        = false;
 
 static SteamAPICall_t  hAsyncSigCheck = 0; // File Signature Validation
+static std::string     check_file     = "";
 
 enum class SK_Steam_FileSigPass_e
 {
@@ -4127,17 +4128,22 @@ uint32_t
 __stdcall
 SK_Steam_PiratesAhoy (void)
 {
-#if 0
-  if (validation_pass != SK_Steam_FileSigPass_e::Done)
+  //   Older versions of SteamAPI may not support the necessary interface version
+  if ( steam_ctx.Apps () != nullptr &&
+       validation_pass   != SK_Steam_FileSigPass_e::Done )
   {
-    if ( InterlockedCompareExchange (&hAsyncSigCheck, 1, 0) == 0 && steam_ctx.Utils () != nullptr && (! config.steam.silent) )
+    if ( InterlockedCompareExchange (&hAsyncSigCheck, 1, 0) == 0 &&
+         (! config.steam.silent) )
     {
       switch (validation_pass)
       {
         case SK_Steam_FileSigPass_e::Executable:
         {
+          check_file =
+            SK_WideCharToUTF8 (SK_GetHostApp ());
+
           InterlockedExchange (&hAsyncSigCheck,
-            steam_ctx.Utils ()->CheckFileSignature (SK_WideCharToUTF8 (SK_GetHostApp ()).c_str ()));
+            steam_ctx.Apps ()->GetFileDetails (check_file.c_str ()));
         } break;
 
         case SK_Steam_FileSigPass_e::SteamAPI:
@@ -4155,18 +4161,21 @@ SK_Steam_PiratesAhoy (void)
           snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, "%ws\\steam_api.dll",
                        SK_GetHostPath () );
 #endif
+
+          check_file =
+            szRelSteamAPI;
+
           InterlockedExchange (&hAsyncSigCheck,
-            steam_ctx.Utils ()->CheckFileSignature (szRelSteamAPI));
+            steam_ctx.Apps ()->GetFileDetails (check_file.c_str ()));
         } break;
       }
 
-      steam_ctx.chk_file_sig.Set (
+      steam_ctx.get_file_details.Set (
         hAsyncSigCheck,
           &steam_ctx,
-            &SK_SteamAPIContext::OnFileSigDone );
+            &SK_SteamAPIContext::OnFileDetailsDone );
     }
   }
-#endif
 
   if (decided)
   {
@@ -4217,62 +4226,69 @@ SK_Steam_PiratesAhoy2 (void)
 }
 
 void
-SK_SteamAPIContext::OnFileSigDone ( CheckFileSignature_t* pParam,
-                                    bool                  bFailed )
+SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
+                                        bool                 bFailed )
 {
-  ECheckFileSignature result =
-    bFailed ? k_ECheckFileSignatureNoSignaturesFoundForThisApp :
-              pParam->m_eCheckFileSignature;
+  
+  EResult result =
+    bFailed ?  k_EResultFileNotFound :
+              pParam->m_eResult;
 
 
   auto HandleResult =
     [&](const wchar_t* wszFileName)
     {
+      char   szSHA1 [21] = { };
+      char* pszSHA1      = szSHA1;
+
+      for (int i = 20; i >= 0; i--)
+        sprintf (pszSHA1++, "%x", (uint8_t)pParam->m_FileSHA [i]);
+
       switch (result)
       {
-        case k_ECheckFileSignatureNoSignaturesFoundForThisApp:
+        case k_EResultOK:
         {
-          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
-                          L" No Signatures For This App" );
-        } break;
+          uint64_t size =
+            SK_GetFileSize (wszFileName);
 
-        case k_ECheckFileSignatureNoSignaturesFoundForThisFile:
-        {
-          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
-                          L" No Signature For This App File :: '%ws'",
-                            wszFileName );
-        } break;
-
-        case k_ECheckFileSignatureFileNotFound:
-        {
-          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
-                          L" Signature File Not Found :: '%ws'",
-                            wszFileName );
-        } break;
-
-        case k_ECheckFileSignatureInvalidSignature:
-        {
-          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
-                          L" INVALID File Signature :: '%ws'",
-                            wszFileName );
-          if ( validation_pass == SK_Steam_FileSigPass_e::SteamAPI ||
-               validation_pass == SK_Steam_FileSigPass_e::DLC )
+          if (size == pParam->m_ulFileSize)
           {
-            verdict |= ~( k_ECheckFileSignatureInvalidSignature );
-            decided  =    true;
+            steam_log.Log ( L"> SteamAPI Application File Verification:  "
+                            L" Match  ( File: %ws,\n"
+L"                                                                              SHA1: %20hs,\n"
+L"                                                                              Size: %lu bytes )",
+                              wszFileName, szSHA1, pParam->m_ulFileSize );
           }
-        } break;
 
-        case k_ECheckFileSignatureValidSignature:
-        {
-          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
-                          L" VALID File Signature :: '%ws'",
-                            wszFileName );
+          else if (size != 0)
+          {
+            steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                            L" Size Mismatch ( File: %ws,\n"
+L"                                                                              SHA1: %20hs,\n"
+L"                                                                              Size: %lu bytes )",
+                              wszFileName,
+                                szSHA1,
+                                 pParam->m_ulFileSize );
+
+            dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                          L" Size Mismatch ( File: %ws,\n"
+L"                                                                              SHA1: %20hs,\n"
+L"                                                                              Size: %lu bytes )",
+                              wszFileName,
+                                szSHA1,
+                                 pParam->m_ulFileSize );
+
+            if (validation_pass == SK_Steam_FileSigPass_e::SteamAPI)
+            {
+              verdict |= ~( k_ECheckFileSignatureInvalidSignature );
+              decided  =    true;
+            }
+          }
         } break;
 
         default:
         {
-          steam_log.Log ( L"> SteamAPI Application Signature Verification:  "
+          steam_log.Log ( L"> SteamAPI File Verification:                "
                           L" UNKNOWN STATUS (%lu) :: '%ws'",
                             result, wszFileName );
         } break;
@@ -4284,7 +4300,7 @@ SK_SteamAPIContext::OnFileSigDone ( CheckFileSignature_t* pParam,
   {
     case SK_Steam_FileSigPass_e::Executable:
     {
-      HandleResult (SK_GetHostApp ());
+      HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
 
       validation_pass = SK_Steam_FileSigPass_e::SteamAPI;
       InterlockedExchange (&hAsyncSigCheck, 0);
@@ -4292,7 +4308,7 @@ SK_SteamAPIContext::OnFileSigDone ( CheckFileSignature_t* pParam,
 
     case SK_Steam_FileSigPass_e::SteamAPI:
     {
-      HandleResult (L"SteamAPI");
+      HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
 
       validation_pass = SK_Steam_FileSigPass_e::Done;
       InterlockedExchange (&hAsyncSigCheck, 0);
@@ -4300,7 +4316,7 @@ SK_SteamAPIContext::OnFileSigDone ( CheckFileSignature_t* pParam,
   }
 
 
-  chk_file_sig.Cancel ();
+  get_file_details.Cancel ();
 }
 
 
