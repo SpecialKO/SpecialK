@@ -965,13 +965,13 @@ SK_InitCore (const wchar_t* backend, void* callback)
     SK_DGPU_InitPlugin ();
   }
 
-  else if (SK_GetCurrentGameID () == SK_GAME_ID::LEGOMarvelSuperheroes2)
-  {
-    extern void
-    SK_MSS_InitPlugin (void);
-
-    SK_MSS_InitPlugin ();
-  }
+  //else if (SK_GetCurrentGameID () == SK_GAME_ID::LEGOMarvelSuperheroes2)
+  //{
+  //  extern void
+  //  SK_MSS_InitPlugin (void);
+  //
+  //  SK_MSS_InitPlugin ();
+  //}
 #endif
 
 

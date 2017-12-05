@@ -4697,6 +4697,9 @@ extern float SK_ImGui_PulseNav_Strength;
         }
 
         ImGui::TreePop ();
+
+        ImGui::Checkbox ("Disable Screensaver", &config.window.disable_screensaver);
+
         ImGui::TreePop ();
       }
 

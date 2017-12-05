@@ -2935,7 +2935,7 @@ HRESULT
 STDMETHODCALLTYPE
 DXGIOutput_WaitForVBlank_Override ( IDXGIOutput *This )
 {
-  DXGI_LOG_CALL_I0 (L"       IDXGIOutput", L"WaitForVBlank         ");
+  //DXGI_LOG_CALL_I0 (L"       IDXGIOutput", L"WaitForVBlank         ");
 
   return WaitForVBlank_Original (This);
 }

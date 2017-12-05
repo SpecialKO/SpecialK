@@ -1,3 +1,10 @@
+0.8.53
+
+ + Added SteamAPI DLL SHA1 Verification for diagnostic purposes since CodexAPI is
+     a stability problem... pirates just opt-out of SteamAPI enhancements please.
+ + Added option to disable screensaver
+
+
 0.8.52
 
  (.4): HOTFIX for 5 FPS issue

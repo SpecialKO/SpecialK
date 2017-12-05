@@ -4552,9 +4552,19 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   switch (uMsg)
   {
     case WM_SYSCOMMAND:
+    {
       if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
         return 0;
+
+      if ( (wParam & 0xfff0) == SC_SCREENSAVE ||
+           (wParam & 0xfff0) == SC_MONITORPOWER )
+      {
+        if (config.window.disable_screensaver)
+          return 0;
+      }
+
       break;
+    }
 
     // Ignore (and physically remove) this event from the message queue if background_render = true
     case WM_MOUSEACTIVATE:

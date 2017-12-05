@@ -434,6 +434,7 @@ struct sk_config_t
     bool    drag_lock           = false; // NOT SAVED IN INI
     bool    fullscreen          = false;
     int     always_on_top       = -1;
+    bool    disable_screensaver = false;
     struct {
       struct {
         unsigned int x          = 0;
