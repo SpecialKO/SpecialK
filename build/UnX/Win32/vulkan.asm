@@ -18,158 +18,158 @@ _BSS	SEGMENT
 ?__vk_ready@@3JC DD 01H DUP (?)				; __vk_ready
 _BSS	ENDS
 CONST	SEGMENT
-$SG120646 DB	'V', 00H, 'K', 00H, '_', 00H, 'S', 00H, 'U', 00H, 'C', 00H
+$SG120674 DB	'V', 00H, 'K', 00H, '_', 00H, 'S', 00H, 'U', 00H, 'C', 00H
 	DB	'C', 00H, 'E', 00H, 'S', 00H, 'S', 00H, 00H, 00H
 	ORG $+2
-$SG120648 DB	'V', 00H, 'K', 00H, '_', 00H, 'N', 00H, 'O', 00H, 'T', 00H
+$SG120676 DB	'V', 00H, 'K', 00H, '_', 00H, 'N', 00H, 'O', 00H, 'T', 00H
 	DB	'_', 00H, 'R', 00H, 'E', 00H, 'A', 00H, 'D', 00H, 'Y', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG120650 DB	'V', 00H, 'K', 00H, '_', 00H, 'T', 00H, 'I', 00H, 'M', 00H
+$SG120678 DB	'V', 00H, 'K', 00H, '_', 00H, 'T', 00H, 'I', 00H, 'M', 00H
 	DB	'E', 00H, 'O', 00H, 'U', 00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG120652 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'V', 00H, 'E', 00H
+$SG120680 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'V', 00H, 'E', 00H
 	DB	'N', 00H, 'T', 00H, '_', 00H, 'S', 00H, 'E', 00H, 'T', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG120654 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'V', 00H, 'E', 00H
+$SG120682 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'V', 00H, 'E', 00H
 	DB	'N', 00H, 'T', 00H, '_', 00H, 'R', 00H, 'E', 00H, 'S', 00H, 'E'
 	DB	00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG120656 DB	'V', 00H, 'K', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'C', 00H
+$SG120684 DB	'V', 00H, 'K', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'C', 00H
 	DB	'O', 00H, 'M', 00H, 'P', 00H, 'L', 00H, 'E', 00H, 'T', 00H, 'E'
 	DB	00H, 00H, 00H
-$SG120658 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120686 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'O', 00H, 'U', 00H, 'T', 00H, '_'
 	DB	00H, 'O', 00H, 'F', 00H, '_', 00H, 'H', 00H, 'O', 00H, 'S', 00H
 	DB	'T', 00H, '_', 00H, 'M', 00H, 'E', 00H, 'M', 00H, 'O', 00H, 'R'
 	DB	00H, 'Y', 00H, 00H, 00H
-$SG120660 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120688 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'O', 00H, 'U', 00H, 'T', 00H, '_'
 	DB	00H, 'O', 00H, 'F', 00H, '_', 00H, 'D', 00H, 'E', 00H, 'V', 00H
 	DB	'I', 00H, 'C', 00H, 'E', 00H, '_', 00H, 'M', 00H, 'E', 00H, 'M'
 	DB	00H, 'O', 00H, 'R', 00H, 'Y', 00H, 00H, 00H
-$SG120662 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120690 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'I', 00H, 'T'
 	DB	00H, 'I', 00H, 'A', 00H, 'L', 00H, 'I', 00H, 'Z', 00H, 'A', 00H
 	DB	'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H, '_', 00H, 'F', 00H, 'A'
 	DB	00H, 'I', 00H, 'L', 00H, 'E', 00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG120664 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120692 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'D', 00H, 'E', 00H, 'V', 00H, 'I'
 	DB	00H, 'C', 00H, 'E', 00H, '_', 00H, 'L', 00H, 'O', 00H, 'S', 00H
 	DB	'T', 00H, 00H, 00H
 	ORG $+2
-$SG120666 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120694 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'M', 00H, 'E', 00H, 'M', 00H, 'O'
 	DB	00H, 'R', 00H, 'Y', 00H, '_', 00H, 'M', 00H, 'A', 00H, 'P', 00H
 	DB	'_', 00H, 'F', 00H, 'A', 00H, 'I', 00H, 'L', 00H, 'E', 00H, 'D'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG120668 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120696 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'L', 00H, 'A', 00H, 'Y', 00H, 'E'
 	DB	00H, 'R', 00H, '_', 00H, 'N', 00H, 'O', 00H, 'T', 00H, '_', 00H
 	DB	'P', 00H, 'R', 00H, 'E', 00H, 'S', 00H, 'E', 00H, 'N', 00H, 'T'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG120670 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120698 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'E', 00H, 'X', 00H, 'T', 00H, 'E'
 	DB	00H, 'N', 00H, 'S', 00H, 'I', 00H, 'O', 00H, 'N', 00H, '_', 00H
 	DB	'N', 00H, 'O', 00H, 'T', 00H, '_', 00H, 'P', 00H, 'R', 00H, 'E'
 	DB	00H, 'S', 00H, 'E', 00H, 'N', 00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG120672 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120700 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'F', 00H, 'E', 00H, 'A', 00H, 'T'
 	DB	00H, 'U', 00H, 'R', 00H, 'E', 00H, '_', 00H, 'N', 00H, 'O', 00H
 	DB	'T', 00H, '_', 00H, 'P', 00H, 'R', 00H, 'E', 00H, 'S', 00H, 'E'
 	DB	00H, 'N', 00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG120674 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120702 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'C', 00H, 'O'
 	DB	00H, 'M', 00H, 'P', 00H, 'A', 00H, 'T', 00H, 'I', 00H, 'B', 00H
 	DB	'L', 00H, 'E', 00H, '_', 00H, 'D', 00H, 'R', 00H, 'I', 00H, 'V'
 	DB	00H, 'E', 00H, 'R', 00H, 00H, 00H
 	ORG $+2
-$SG120676 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120704 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'T', 00H, 'O', 00H, 'O', 00H, '_'
 	DB	00H, 'M', 00H, 'A', 00H, 'N', 00H, 'Y', 00H, '_', 00H, 'O', 00H
 	DB	'B', 00H, 'J', 00H, 'E', 00H, 'C', 00H, 'T', 00H, 'S', 00H, 00H
 	DB	00H
-$SG120678 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120706 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'F', 00H, 'O', 00H, 'R', 00H, 'M'
 	DB	00H, 'A', 00H, 'T', 00H, '_', 00H, 'N', 00H, 'O', 00H, 'T', 00H
 	DB	'_', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P', 00H, 'O', 00H, 'R'
 	DB	00H, 'T', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-$SG120680 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120708 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'F', 00H, 'R', 00H, 'A', 00H, 'G'
 	DB	00H, 'M', 00H, 'E', 00H, 'N', 00H, 'T', 00H, 'E', 00H, 'D', 00H
 	DB	'_', 00H, 'P', 00H, 'O', 00H, 'O', 00H, 'L', 00H, 00H, 00H
 	ORG $+2
-$SG120682 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120710 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'S', 00H, 'U', 00H, 'R', 00H, 'F'
 	DB	00H, 'A', 00H, 'C', 00H, 'E', 00H, '_', 00H, 'L', 00H, 'O', 00H
 	DB	'S', 00H, 'T', 00H, '_', 00H, 'K', 00H, 'H', 00H, 'R', 00H, 00H
 	DB	00H
 	ORG $+4
-$SG120684 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120712 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'N', 00H, 'A', 00H, 'T', 00H, 'I'
 	DB	00H, 'V', 00H, 'E', 00H, '_', 00H, 'W', 00H, 'I', 00H, 'N', 00H
 	DB	'D', 00H, 'O', 00H, 'W', 00H, '_', 00H, 'I', 00H, 'N', 00H, '_'
 	DB	00H, 'U', 00H, 'S', 00H, 'E', 00H, '_', 00H, 'K', 00H, 'H', 00H
 	DB	'R', 00H, 00H, 00H
-$SG120686 DB	'V', 00H, 'K', 00H, '_', 00H, 'S', 00H, 'U', 00H, 'B', 00H
+$SG120714 DB	'V', 00H, 'K', 00H, '_', 00H, 'S', 00H, 'U', 00H, 'B', 00H
 	DB	'O', 00H, 'P', 00H, 'T', 00H, 'I', 00H, 'M', 00H, 'A', 00H, 'L'
 	DB	00H, '_', 00H, 'K', 00H, 'H', 00H, 'R', 00H, 00H, 00H
-$SG120688 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120716 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'O', 00H, 'U', 00H, 'T', 00H, '_'
 	DB	00H, 'O', 00H, 'F', 00H, '_', 00H, 'D', 00H, 'A', 00H, 'T', 00H
 	DB	'E', 00H, '_', 00H, 'K', 00H, 'H', 00H, 'R', 00H, 00H, 00H
 	ORG $+6
-$SG120690 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120718 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'C', 00H, 'O'
 	DB	00H, 'M', 00H, 'P', 00H, 'A', 00H, 'T', 00H, 'I', 00H, 'B', 00H
 	DB	'L', 00H, 'E', 00H, '_', 00H, 'D', 00H, 'I', 00H, 'S', 00H, 'P'
 	DB	00H, 'L', 00H, 'A', 00H, 'Y', 00H, '_', 00H, 'K', 00H, 'H', 00H
 	DB	'R', 00H, 00H, 00H
-$SG120692 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120720 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I'
 	DB	00H, 'D', 00H, 'A', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H
 	DB	'_', 00H, 'F', 00H, 'A', 00H, 'I', 00H, 'L', 00H, 'E', 00H, 'D'
 	DB	00H, '_', 00H, 'E', 00H, 'X', 00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG120694 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+$SG120722 DB	'V', 00H, 'K', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H
 	DB	'O', 00H, 'R', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A'
 	DB	00H, 'L', 00H, 'I', 00H, 'D', 00H, '_', 00H, 'S', 00H, 'H', 00H
 	DB	'A', 00H, 'D', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'N', 00H, 'V'
 	DB	00H, 00H, 00H
 	ORG $+6
-$SG120696 DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'E', 00H
+$SG120724 DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'E', 00H
 	DB	'n', 00H, 'c', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 't', 00H, 'e'
 	DB	00H, 'r', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'u', 00H, 'n', 00H
 	DB	'k', 00H, 'n', 00H, 'o', 00H, 'w', 00H, 'n', 00H, ' ', 00H, 'V'
 	DB	00H, 'k', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'u', 00H, 'l', 00H
 	DB	't', 00H, ':', 00H, ' ', 00H, '(', 00H, '0', 00H, 'x', 00H, '%'
 	DB	00H, '0', 00H, '8', 00H, 'X', 00H, ')', 00H, 00H, 00H
-$SG120697 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+$SG120725 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
 	DB	'N', 00H, 00H, 00H
-$SG120712 DB	' ', 00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, 'v', 00H
+$SG120740 DB	' ', 00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, 'v', 00H
 	DB	'k', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
 	DB	00H, 'W', 00H, 'i', 00H, 'n', 00H, '3', 00H, '2', 00H, 'S', 00H
 	DB	'u', 00H, 'r', 00H, 'f', 00H, 'a', 00H, 'c', 00H, 'e', 00H, 'K'
 	DB	00H, 'H', 00H, 'R', 00H, 00H, 00H
 	ORG $+2
-$SG120713 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
+$SG120741 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
 	DB	'k', 00H, 'a', 00H, 'n', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
-$SG120714 DB	'H', 00H, 'W', 00H, 'N', 00H, 'D', 00H, '=', 00H, '%', 00H
+$SG120742 DB	'H', 00H, 'W', 00H, 'N', 00H, 'D', 00H, '=', 00H, '%', 00H
 	DB	'p', 00H, 00H, 00H
-$SG120715 DB	')', 00H, ' ', 00H, '-', 00H, '-', 00H, ' ', 00H, '[', 00H
+$SG120743 DB	')', 00H, ' ', 00H, '-', 00H, '-', 00H, ' ', 00H, '[', 00H
 	DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, 't', 00H, 'i', 00H, 'd'
 	DB	00H, '=', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H
 	DB	'x', 00H, ']', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG120718 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
+$SG120746 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
 	DB	'k', 00H, 'a', 00H, 'n', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -190,22 +190,22 @@ $SG120718 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
 	DB	00H, 'r', 00H, 'f', 00H, 'a', 00H, 'c', 00H, 'e', 00H, ' ', 00H
 	DB	')', 00H, ' ', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG120727 DB	' ', 00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, 'v', 00H
+$SG120755 DB	' ', 00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, 'v', 00H
 	DB	'k', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
 	DB	00H, 'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'c', 00H, 'h', 00H
 	DB	'a', 00H, 'i', 00H, 'n', 00H, 'K', 00H, 'H', 00H, 'R', 00H, 00H
 	DB	00H
-$SG120728 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
+$SG120756 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
 	DB	'k', 00H, 'a', 00H, 'n', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, 00H, 00H
-$SG120729 DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG120730 DB	')', 00H, ' ', 00H, '-', 00H, '-', 00H, ' ', 00H, '[', 00H
+$SG120757 DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
+$SG120758 DB	')', 00H, ' ', 00H, '-', 00H, '-', 00H, ' ', 00H, '[', 00H
 	DB	'%', 00H, 's', 00H, ',', 00H, ' ', 00H, 't', 00H, 'i', 00H, 'd'
 	DB	00H, '=', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H
 	DB	'x', 00H, ']', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG120731 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
+$SG120759 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
 	DB	'k', 00H, 'a', 00H, 'n', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '@', 00H, ']', 00H, ' ', 00H, ' ', 00H, 'R', 00H
 	DB	'e', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'n', 00H, ':', 00H, ' '
@@ -225,10 +225,10 @@ $SG120731 DB	'[', 00H, ' ', 00H, ' ', 00H, 'V', 00H, 'u', 00H, 'l', 00H
 	DB	'S', 00H, 'w', 00H, 'a', 00H, 'p', 00H, 'c', 00H, 'h', 00H, 'a'
 	DB	00H, 'i', 00H, 'n', 00H, ' ', 00H, ')', 00H, ' ', 00H, '>', 00H
 	DB	00H, 00H
-$SG120761 DB	'V', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
+$SG120789 DB	'V', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG120766 DB	'V', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
+$SG120794 DB	'V', 00H, 'u', 00H, 'l', 00H, 'k', 00H, 'a', 00H, 'n', 00H
 	DB	00H, 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
@@ -618,12 +618,12 @@ _pSwapchain$ = 20					; size = 4
 
 ; 181  :   VK_LOG_CALL (L" [!] vkCreateSwapchainKHR", L"..."));
 
-	push	OFFSET $SG120727
-	push	OFFSET $SG120728
+	push	OFFSET $SG120755
+	push	OFFSET $SG120756
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
-	push	OFFSET $SG120729
+	push	OFFSET $SG120757
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -659,7 +659,7 @@ $LN17@vkCreateSw:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
 	push	esi
-	push	OFFSET $SG120730
+	push	OFFSET $SG120758
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -714,7 +714,7 @@ $LN27@vkCreateSw:
 	push	esi
 	call	?SK_DescribeVkResult@@YGPB_WW4VkResult@@@Z ; SK_DescribeVkResult
 	push	eax
-	push	OFFSET $SG120731
+	push	OFFSET $SG120759
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -770,14 +770,14 @@ _pSurface$ = 20						; size = 4
 
 ; 144  :   VK_LOG_CALL (L" [!] vkCreateWin32SurfaceKHR", L"HWND=%p"), pCreateInfo->hwnd);
 
-	push	OFFSET $SG120712
-	push	OFFSET $SG120713
+	push	OFFSET $SG120740
+	push	OFFSET $SG120741
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	mov	edi, DWORD PTR _pCreateInfo$[ebp]
 	push	DWORD PTR [edi+16]
-	push	OFFSET $SG120714
+	push	OFFSET $SG120742
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -813,7 +813,7 @@ $LN22@vkCreateWi:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
 	push	esi
-	push	OFFSET $SG120715
+	push	OFFSET $SG120743
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -918,7 +918,7 @@ $LN3@vkCreateWi:
 	push	esi
 	call	?SK_DescribeVkResult@@YGPB_WW4VkResult@@@Z ; SK_DescribeVkResult
 	push	eax
-	push	OFFSET $SG120718
+	push	OFFSET $SG120746
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -974,7 +974,7 @@ _result$ = 8						; size = 4
 ; 106  :     case VK_ERROR_INCOMPATIBLE_DISPLAY_KHR:
 ; 107  :       return L"VK_ERROR_INCOMPATIBLE_DISPLAY_KHR";
 
-	mov	eax, OFFSET $SG120690
+	mov	eax, OFFSET $SG120718
 
 ; 117  :   }
 ; 118  : }
@@ -986,7 +986,7 @@ $LN27@SK_Describ:
 ; 108  :     case VK_ERROR_VALIDATION_FAILED_EXT:
 ; 109  :       return L"VK_ERROR_VALIDATION_FAILED_EXT";
 
-	mov	eax, OFFSET $SG120692
+	mov	eax, OFFSET $SG120720
 
 ; 117  :   }
 ; 118  : }
@@ -998,7 +998,7 @@ $LN28@SK_Describ:
 ; 110  :     case VK_ERROR_INVALID_SHADER_NV:
 ; 111  :       return L"VK_ERROR_INVALID_SHADER_NV";
 
-	mov	eax, OFFSET $SG120694
+	mov	eax, OFFSET $SG120722
 
 ; 117  :   }
 ; 118  : }
@@ -1011,7 +1011,7 @@ $LN25@SK_Describ:
 ; 104  :     case VK_ERROR_OUT_OF_DATE_KHR:
 ; 105  :       return L"VK_ERROR_OUT_OF_DATE_KHR";
 
-	mov	eax, OFFSET $SG120688
+	mov	eax, OFFSET $SG120716
 
 ; 117  :   }
 ; 118  : }
@@ -1030,7 +1030,7 @@ $LN32@SK_Describ:
 ; 96   :     case VK_ERROR_SURFACE_LOST_KHR:
 ; 97   :       return L"VK_ERROR_SURFACE_LOST_KHR";
 
-	mov	eax, OFFSET $SG120682
+	mov	eax, OFFSET $SG120710
 
 ; 117  :   }
 ; 118  : }
@@ -1042,7 +1042,7 @@ $LN23@SK_Describ:
 ; 98   :     case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
 ; 99   :       return L"VK_ERROR_NATIVE_WINDOW_IN_USE_KHR";
 
-	mov	eax, OFFSET $SG120684
+	mov	eax, OFFSET $SG120712
 
 ; 117  :   }
 ; 118  : }
@@ -1054,7 +1054,7 @@ $LN21@SK_Describ:
 ; 94   :     case VK_ERROR_FRAGMENTED_POOL:
 ; 95   :       return L"VK_ERROR_FRAGMENTED_POOL";
 
-	mov	eax, OFFSET $SG120680
+	mov	eax, OFFSET $SG120708
 
 ; 117  :   }
 ; 118  : }
@@ -1078,7 +1078,7 @@ $LN4@SK_Describ:
 ; 58   :     case VK_SUCCESS:
 ; 59   :       return L"VK_SUCCESS";
 
-	mov	eax, OFFSET $SG120646
+	mov	eax, OFFSET $SG120674
 
 ; 117  :   }
 ; 118  : }
@@ -1091,7 +1091,7 @@ $LN5@SK_Describ:
 ; 61   :     case VK_NOT_READY:
 ; 62   :       return L"VK_NOT_READY";
 
-	mov	eax, OFFSET $SG120648
+	mov	eax, OFFSET $SG120676
 
 ; 117  :   }
 ; 118  : }
@@ -1103,7 +1103,7 @@ $LN6@SK_Describ:
 ; 63   :     case VK_TIMEOUT:
 ; 64   :       return L"VK_TIMEOUT";
 
-	mov	eax, OFFSET $SG120650
+	mov	eax, OFFSET $SG120678
 
 ; 117  :   }
 ; 118  : }
@@ -1115,7 +1115,7 @@ $LN7@SK_Describ:
 ; 65   :     case VK_EVENT_SET:
 ; 66   :       return L"VK_EVENT_SET";
 
-	mov	eax, OFFSET $SG120652
+	mov	eax, OFFSET $SG120680
 
 ; 117  :   }
 ; 118  : }
@@ -1127,7 +1127,7 @@ $LN8@SK_Describ:
 ; 67   :     case VK_EVENT_RESET:
 ; 68   :       return L"VK_EVENT_RESET";
 
-	mov	eax, OFFSET $SG120654
+	mov	eax, OFFSET $SG120682
 
 ; 117  :   }
 ; 118  : }
@@ -1139,7 +1139,7 @@ $LN9@SK_Describ:
 ; 69   :     case VK_INCOMPLETE:
 ; 70   :       return L"VK_INCOMPLETE";
 
-	mov	eax, OFFSET $SG120656
+	mov	eax, OFFSET $SG120684
 
 ; 117  :   }
 ; 118  : }
@@ -1152,7 +1152,7 @@ $LN10@SK_Describ:
 ; 72   :     case VK_ERROR_OUT_OF_HOST_MEMORY:
 ; 73   :       return L"VK_ERROR_OUT_OF_HOST_MEMORY";
 
-	mov	eax, OFFSET $SG120658
+	mov	eax, OFFSET $SG120686
 
 ; 117  :   }
 ; 118  : }
@@ -1164,7 +1164,7 @@ $LN11@SK_Describ:
 ; 74   :     case VK_ERROR_OUT_OF_DEVICE_MEMORY:
 ; 75   :       return L"VK_ERROR_OUT_OF_DEVICE_MEMORY";
 
-	mov	eax, OFFSET $SG120660
+	mov	eax, OFFSET $SG120688
 
 ; 117  :   }
 ; 118  : }
@@ -1176,7 +1176,7 @@ $LN12@SK_Describ:
 ; 76   :     case VK_ERROR_INITIALIZATION_FAILED:
 ; 77   :       return L"VK_ERROR_INITIALIZATION_FAILED";
 
-	mov	eax, OFFSET $SG120662
+	mov	eax, OFFSET $SG120690
 
 ; 117  :   }
 ; 118  : }
@@ -1188,7 +1188,7 @@ $LN13@SK_Describ:
 ; 78   :     case VK_ERROR_DEVICE_LOST:
 ; 79   :       return L"VK_ERROR_DEVICE_LOST";
 
-	mov	eax, OFFSET $SG120664
+	mov	eax, OFFSET $SG120692
 
 ; 117  :   }
 ; 118  : }
@@ -1200,7 +1200,7 @@ $LN14@SK_Describ:
 ; 80   :     case VK_ERROR_MEMORY_MAP_FAILED:
 ; 81   :       return L"VK_ERROR_MEMORY_MAP_FAILED";
 
-	mov	eax, OFFSET $SG120666
+	mov	eax, OFFSET $SG120694
 
 ; 117  :   }
 ; 118  : }
@@ -1212,7 +1212,7 @@ $LN15@SK_Describ:
 ; 82   :     case VK_ERROR_LAYER_NOT_PRESENT:
 ; 83   :       return L"VK_ERROR_LAYER_NOT_PRESENT";
 
-	mov	eax, OFFSET $SG120668
+	mov	eax, OFFSET $SG120696
 
 ; 117  :   }
 ; 118  : }
@@ -1224,7 +1224,7 @@ $LN16@SK_Describ:
 ; 84   :     case VK_ERROR_EXTENSION_NOT_PRESENT:
 ; 85   :       return L"VK_ERROR_EXTENSION_NOT_PRESENT";
 
-	mov	eax, OFFSET $SG120670
+	mov	eax, OFFSET $SG120698
 
 ; 117  :   }
 ; 118  : }
@@ -1236,7 +1236,7 @@ $LN17@SK_Describ:
 ; 86   :     case VK_ERROR_FEATURE_NOT_PRESENT:
 ; 87   :       return L"VK_ERROR_FEATURE_NOT_PRESENT";
 
-	mov	eax, OFFSET $SG120672
+	mov	eax, OFFSET $SG120700
 
 ; 117  :   }
 ; 118  : }
@@ -1248,7 +1248,7 @@ $LN18@SK_Describ:
 ; 88   :     case VK_ERROR_INCOMPATIBLE_DRIVER:
 ; 89   :       return L"VK_ERROR_INCOMPATIBLE_DRIVER";
 
-	mov	eax, OFFSET $SG120674
+	mov	eax, OFFSET $SG120702
 
 ; 117  :   }
 ; 118  : }
@@ -1260,7 +1260,7 @@ $LN19@SK_Describ:
 ; 90   :     case VK_ERROR_TOO_MANY_OBJECTS:
 ; 91   :       return L"VK_ERROR_TOO_MANY_OBJECTS";
 
-	mov	eax, OFFSET $SG120676
+	mov	eax, OFFSET $SG120704
 
 ; 117  :   }
 ; 118  : }
@@ -1272,7 +1272,7 @@ $LN20@SK_Describ:
 ; 92   :     case VK_ERROR_FORMAT_NOT_SUPPORTED:
 ; 93   :       return L"VK_ERROR_FORMAT_NOT_SUPPORTED";
 
-	mov	eax, OFFSET $SG120678
+	mov	eax, OFFSET $SG120706
 
 ; 117  :   }
 ; 118  : }
@@ -1285,7 +1285,7 @@ $LN24@SK_Describ:
 ; 101  :     case VK_SUBOPTIMAL_KHR:
 ; 102  :       return L"VK_SUBOPTIMAL_KHR";
 
-	mov	eax, OFFSET $SG120686
+	mov	eax, OFFSET $SG120714
 
 ; 117  :   }
 ; 118  : }
@@ -1299,7 +1299,7 @@ $LN33@SK_Describ:
 ; 114  :     dll_log.Log (L" *** Encountered unknown VkResult: (0x%08X)",
 
 	push	eax
-	push	OFFSET $SG120696
+	push	OFFSET $SG120724
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -1307,7 +1307,7 @@ $LN33@SK_Describ:
 ; 115  :       static_cast <unsigned long> (result));
 ; 116  :     return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG120697
+	mov	eax, OFFSET $SG120725
 
 ; 117  :   }
 ; 118  : }
@@ -1361,7 +1361,7 @@ $LL2@WaitForIni:
 
 	push	2
 	push	1279					; 000004ffH
-	push	DWORD PTR ?config@@3Usk_config_t@@A+816
+	push	DWORD PTR ?config@@3Usk_config_t@@A+828
 	push	0
 	push	0
 	call	esi
@@ -2063,7 +2063,7 @@ $LN2@Shutdown:
 ; 332  : 
 ; 333  :   return SK_ShutdownCore (L"Vulkan");
 
-	push	OFFSET $SG120766
+	push	OFFSET $SG120794
 	call	?SK_ShutdownCore@@YG_NPB_W@Z		; SK_ShutdownCore
 
 ; 334  : }
@@ -2079,7 +2079,7 @@ _TEXT	SEGMENT
 ; 321  :   return SK_StartupCore (L"Vulkan", vulkan_init_callback);
 
 	push	OFFSET ?vulkan_init_callback@@YGXP6GXXZ@Z ; vulkan_init_callback
-	push	OFFSET $SG120761
+	push	OFFSET $SG120789
 	call	?SK_StartupCore@@YG_NPB_WPAX@Z		; SK_StartupCore
 
 ; 322  : }

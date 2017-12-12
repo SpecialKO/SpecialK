@@ -61,11 +61,10 @@ using SKPlugIn_Shutdown_pfn = BOOL (WINAPI *)(LPVOID  user);
 #pragma warning (disable : 4091)
 
 #define _NO_CVCONST_H
+#define _IMAGEHLP_SOURCE_
 #include <dbghelp.h>
 
 #include <diagnostics/debug_utils.h>
-
-#pragma comment( lib, "dbghelp.lib" )
 
 bool
 SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)

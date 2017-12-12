@@ -45,9 +45,9 @@
 #pragma warning (disable : 4091)
 
 #define _NO_CVCONST_H
-#include <dbghelp.h>
 
-#pragma comment( lib, "dbghelp.lib" )
+#define _IMAGEHLP_SOURCE_
+#include <dbghelp.h>
 
 extern HMODULE __stdcall SK_GetDLL (void);
 

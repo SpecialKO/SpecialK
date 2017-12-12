@@ -16,7 +16,7 @@ _BSS	SEGMENT
 ?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA DD 01H DUP (?) ; RegisterDeviceNotificationA_Original
 _BSS	ENDS
 CONST	SEGMENT
-$SG128003 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
+$SG128035 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
 	DB	'0', 00H, '0', 00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0'
 	DB	00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
 	DB	'-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '-', 00H, '0'
@@ -24,24 +24,24 @@ $SG128003 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
 	DB	'0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '}', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG128004 DB	'RegisterDeviceNotificationW', 00H
-$SG128005 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG128036 DB	'RegisterDeviceNotificationW', 00H
+$SG128037 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG128006 DB	'RegisterDeviceNotificationA', 00H
-$SG128007 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG128038 DB	'RegisterDeviceNotificationA', 00H
+$SG128039 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG118813 DB	'RegisterDeviceNotificationW_Detour', 00H
+$SG118839 DB	'RegisterDeviceNotificationW_Detour', 00H
 	ORG $+5
-$SG118814 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118840 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+6
-$SG118818 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118844 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'i', 00H
 	DB	'x', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'Z', 00H, 'e'
@@ -54,16 +54,16 @@ $SG118818 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	00H, 'o', 00H, 't', 00H, 'i', 00H, 'f', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 'W', 00H, ' '
 	DB	00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, 00H, 00H
-$SG118831 DB	'RegisterDeviceNotificationA_Detour', 00H
+$SG118859 DB	'RegisterDeviceNotificationA_Detour', 00H
 	ORG $+5
-$SG118832 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118860 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+6
-$SG118836 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118864 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'i', 00H
 	DB	'x', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'Z', 00H, 'e'
@@ -151,33 +151,33 @@ _NotificationFilter$ = 12				; size = 4
 _Flags$ = 16						; size = 4
 ?RegisterDeviceNotificationA_Detour@@YGPAXPAX0K@Z PROC	; RegisterDeviceNotificationA_Detour
 
-; 347  : {
+; 351  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 348  :   SK_LOG_FIRST_CALL
+; 352  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??RegisterDeviceNotificationA_Detour@@YGPAXPAX0K@Z@4_NA, 0
-	jne	SHORT $LN12@RegisterDe
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+824, 0
+	jne	SHORT $LN14@RegisterDe
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@RegisterDe
-	push	OFFSET $SG118831
-	push	OFFSET $SG118832
+	push	OFFSET $SG118859
+	push	OFFSET $SG118860
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 $LN3@RegisterDe:
 	mov	BYTE PTR ?called@?2??RegisterDeviceNotificationA_Detour@@YGPAXPAX0K@Z@4_NA, 1
-$LN12@RegisterDe:
+$LN14@RegisterDe:
 	push	ebx
 
-; 349  : 
-; 350  :   auto* pNotifyFilter = 
-; 351  :     static_cast <DEV_BROADCAST_DEVICEINTERFACE_A *> (NotificationFilter);
-; 352  : 
-; 353  :   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
+; 353  : 
+; 354  :   auto* pNotifyFilter = 
+; 355  :     static_cast <DEV_BROADCAST_DEVICEINTERFACE_A *> (NotificationFilter);
+; 356  : 
+; 357  :   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
 
 	mov	ebx, DWORD PTR _Flags$[ebp]
 	push	esi
@@ -188,19 +188,19 @@ $LN12@RegisterDe:
 	test	bl, 1
 	jne	SHORT $LN6@RegisterDe
 
-; 354  :   {
-; 355  : #if 0
-; 356  :     OLECHAR wszGUID [128] = { };
-; 357  : 
-; 358  :     HRESULT hr =
-; 359  :       StringFromGUID2 (pNotifyFilter->dbcc_classguid, wszGUID, 127);
-; 360  : 
-; 361  :     SK_LOG0 ( ( L"@ Game registered device notification for GUID: '%s'", wszGUID ),
-; 362  :                 L"Input Mgr." );
-; 363  : #endif
+; 358  :   {
+; 359  : #if 0
+; 360  :     OLECHAR wszGUID [128] = { };
+; 361  : 
+; 362  :     HRESULT hr =
+; 363  :       StringFromGUID2 (pNotifyFilter->dbcc_classguid, wszGUID, 127);
 ; 364  : 
-; 365  :     // Fix for Watch_Dogs 2 and possibly other games
-; 366  :     if (IsEqualGUID (pNotifyFilter->dbcc_classguid, GUID_Zero))
+; 365  :     SK_LOG0 ( ( L"@ Game registered device notification for GUID: '%s'", wszGUID ),
+; 366  :                 L"Input Mgr." );
+; 367  : #endif
+; 368  : 
+; 369  :     // Fix for Watch_Dogs 2 and possibly other games
+; 370  :     if (IsEqualGUID (pNotifyFilter->dbcc_classguid, GUID_Zero))
 
 	lea	ecx, DWORD PTR [edi+12]
 ; File c:\program files (x86)\windows kits\8.1\include\shared\guiddef.h
@@ -209,32 +209,45 @@ $LN12@RegisterDe:
 
 	mov	edx, OFFSET ?GUID_Zero@@3U_GUID@@A
 	mov	esi, 12					; 0000000cH
-$LL11@RegisterDe:
+$LL13@RegisterDe:
 	mov	eax, DWORD PTR [ecx]
 	cmp	eax, DWORD PTR [edx]
 	jne	SHORT $LN6@RegisterDe
 	add	ecx, 4
 	add	edx, 4
 	sub	esi, 4
-	jae	SHORT $LL11@RegisterDe
+	jae	SHORT $LL13@RegisterDe
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_hotplug.cpp
 
-; 370  :       SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationA (...)"),
+; 374  :       SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationA (...)"),
 
 	or	ebx, 4
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+824, 1
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 1
 	jl	SHORT $LN6@RegisterDe
-	push	OFFSET $SG118836
+	push	OFFSET $SG118864
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN6@RegisterDe:
 
-; 371  :                  L"XInput_Hot" );
-; 372  :     }
-; 373  :   }
-; 374  : 
-; 375  :   return RegisterDeviceNotificationA_Original (hRecipient, NotificationFilter, Flags);
+; 375  :                  L"XInput_Hot" );
+; 376  :     }
+; 377  :   }
+; 378  : 
+; 379  :   if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] || 
+; 380  :        config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+704, 0
+	jne	SHORT $LN8@RegisterDe
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+705, 0
+	jne	SHORT $LN8@RegisterDe
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+706, 0
+	jne	SHORT $LN8@RegisterDe
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+707, 0
+	jne	SHORT $LN8@RegisterDe
+
+; 382  : 
+; 383  :   return RegisterDeviceNotificationA_Original (hRecipient, NotificationFilter, Flags);
 
 	push	ebx
 	push	edi
@@ -244,7 +257,20 @@ $LN6@RegisterDe:
 	pop	esi
 	pop	ebx
 
-; 376  : }
+; 384  : }
+
+	pop	ebp
+	ret	12					; 0000000cH
+$LN8@RegisterDe:
+	pop	edi
+	pop	esi
+
+; 381  :     return 0;
+
+	xor	eax, eax
+	pop	ebx
+
+; 384  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -269,17 +295,17 @@ _Flags$ = 16						; size = 4
 ; 309  :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??RegisterDeviceNotificationW_Detour@@YGPAXPAX0K@Z@4_NA, 0
-	jne	SHORT $LN12@RegisterDe
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+824, 0
+	jne	SHORT $LN14@RegisterDe
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@RegisterDe
-	push	OFFSET $SG118813
-	push	OFFSET $SG118814
+	push	OFFSET $SG118839
+	push	OFFSET $SG118840
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 $LN3@RegisterDe:
 	mov	BYTE PTR ?called@?2??RegisterDeviceNotificationW_Detour@@YGPAXPAX0K@Z@4_NA, 1
-$LN12@RegisterDe:
+$LN14@RegisterDe:
 	push	ebx
 
 ; 310  : 
@@ -318,22 +344,22 @@ $LN12@RegisterDe:
 
 	mov	edx, OFFSET ?GUID_Zero@@3U_GUID@@A
 	mov	esi, 12					; 0000000cH
-$LL11@RegisterDe:
+$LL13@RegisterDe:
 	mov	eax, DWORD PTR [ecx]
 	cmp	eax, DWORD PTR [edx]
 	jne	SHORT $LN6@RegisterDe
 	add	ecx, 4
 	add	edx, 4
 	sub	esi, 4
-	jae	SHORT $LL11@RegisterDe
+	jae	SHORT $LL13@RegisterDe
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_hotplug.cpp
 
 ; 331  :       SK_LOG1 ( (L" >> Fixing Zero GUID used in call to RegisterDeviceNotificationW (...)"),
 
 	or	ebx, 4
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+824, 1
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 1
 	jl	SHORT $LN6@RegisterDe
-	push	OFFSET $SG118818
+	push	OFFSET $SG118844
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -343,7 +369,20 @@ $LN6@RegisterDe:
 ; 333  :     }
 ; 334  :   }
 ; 335  : 
-; 336  :   return RegisterDeviceNotificationW_Original (hRecipient, NotificationFilter, Flags);
+; 336  :   if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] || 
+; 337  :        config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+704, 0
+	jne	SHORT $LN8@RegisterDe
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+705, 0
+	jne	SHORT $LN8@RegisterDe
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+706, 0
+	jne	SHORT $LN8@RegisterDe
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+707, 0
+	jne	SHORT $LN8@RegisterDe
+
+; 339  : 
+; 340  :   return RegisterDeviceNotificationW_Original (hRecipient, NotificationFilter, Flags);
 
 	push	ebx
 	push	edi
@@ -353,7 +392,20 @@ $LN6@RegisterDe:
 	pop	esi
 	pop	ebx
 
-; 337  : }
+; 341  : }
+
+	pop	ebp
+	ret	12					; 0000000cH
+$LN8@RegisterDe:
+	pop	edi
+	pop	esi
+
+; 338  :     return 0;
+
+	xor	eax, eax
+	pop	ebx
+
+; 341  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -431,40 +483,40 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_XInput_InitHotPlugHooks@@YAXXZ PROC			; SK_XInput_InitHotPlugHooks
 
-; 384  :   CLSIDFromString (L"{00000000-0000-0000-0000-000000000000}", &GUID_Zero);
+; 392  :   CLSIDFromString (L"{00000000-0000-0000-0000-000000000000}", &GUID_Zero);
 
 	push	OFFSET ?GUID_Zero@@3U_GUID@@A
-	push	OFFSET $SG128003
+	push	OFFSET $SG128035
 	call	DWORD PTR __imp__CLSIDFromString@8
 
-; 385  : 
-; 386  : // According to the DLL Export Table, ...A and ...W are the same freaking function :)
-; 387  :   SK_CreateDLLHook3 (       L"user32.dll",
+; 393  : 
+; 394  : // According to the DLL Export Table, ...A and ...W are the same freaking function :)
+; 395  :   SK_CreateDLLHook3 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?RegisterDeviceNotificationW_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationW_Original
 	push	OFFSET ?RegisterDeviceNotificationW_Detour@@YGPAXPAX0K@Z ; RegisterDeviceNotificationW_Detour
-	push	OFFSET $SG128004
-	push	OFFSET $SG128005
+	push	OFFSET $SG128036
+	push	OFFSET $SG128037
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
-; 388  :                              "RegisterDeviceNotificationW",
-; 389  :                               RegisterDeviceNotificationW_Detour,
-; 390  :      static_cast_p2p <void> (&RegisterDeviceNotificationW_Original) );
-; 391  : 
-; 392  :   SK_CreateDLLHook3 (       L"user32.dll",
+; 396  :                              "RegisterDeviceNotificationW",
+; 397  :                               RegisterDeviceNotificationW_Detour,
+; 398  :      static_cast_p2p <void> (&RegisterDeviceNotificationW_Original) );
+; 399  : 
+; 400  :   SK_CreateDLLHook3 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationA_Original
 	push	OFFSET ?RegisterDeviceNotificationA_Detour@@YGPAXPAX0K@Z ; RegisterDeviceNotificationA_Detour
-	push	OFFSET $SG128006
-	push	OFFSET $SG128007
+	push	OFFSET $SG128038
+	push	OFFSET $SG128039
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
-; 393  :                              "RegisterDeviceNotificationA",
-; 394  :                               RegisterDeviceNotificationA_Detour,
-; 395  :      static_cast_p2p <void> (&RegisterDeviceNotificationA_Original) );
-; 396  : }
+; 401  :                              "RegisterDeviceNotificationA",
+; 402  :                               RegisterDeviceNotificationA_Detour,
+; 403  :      static_cast_p2p <void> (&RegisterDeviceNotificationA_Original) );
+; 404  : }
 
 	ret	0
 ?SK_XInput_InitHotPlugHooks@@YAXXZ ENDP			; SK_XInput_InitHotPlugHooks
@@ -625,7 +677,7 @@ $LN3@SK_XInput_:
 	mov	eax, DWORD PTR _dwRet$[ebp]
 	test	eax, eax
 	je	SHORT $LN1@SK_XInput_
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+700], 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+704], 0
 	je	SHORT $LN1@SK_XInput_
 
 ; 229  :        config.input.gamepad.xinput.placehold [dwUserIndex] )
@@ -768,7 +820,7 @@ $LN3@SK_XInput_:
 	mov	eax, DWORD PTR _dwRet$[ebp]
 	test	eax, eax
 	je	SHORT $LN9@SK_XInput_
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+700], 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+704], 0
 	je	SHORT $LN9@SK_XInput_
 
 ; 192  :        config.input.gamepad.xinput.placehold [dwUserIndex] )
@@ -919,7 +971,7 @@ $LN3@SK_XInput_:
 	mov	eax, DWORD PTR _dwRet$[ebp]
 	test	eax, eax
 	je	SHORT $LN9@SK_XInput_
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+700], 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A[esi+704], 0
 	je	SHORT $LN9@SK_XInput_
 
 ; 148  :        config.input.gamepad.xinput.placehold [dwUserIndex] )
@@ -1084,7 +1136,7 @@ $LN3@SK_XInput_:
 	mov	BYTE PTR _was_holding$1$[ebp], cl
 	test	eax, eax
 	je	$LN17@SK_XInput_
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A[edi+700], 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A[edi+704], 0
 	je	$LN17@SK_XInput_
 
 ; 83   :        config.input.gamepad.xinput.placehold [dwUserIndex] )
@@ -1280,7 +1332,7 @@ _dwUserIndex$ = 12					; size = 4
 
 ; 50   :   dwUserIndex =
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+704]
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+708]
 
 ; 51   :     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 ; 52   : 

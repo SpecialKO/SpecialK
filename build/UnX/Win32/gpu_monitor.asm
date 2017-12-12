@@ -21,7 +21,7 @@ _DATA	SEGMENT
 ?gpu_stats@@3AAUgpu_sensors_t@@A DD FLAT:?gpu_stats_buffers@@3PAUgpu_sensors_t@@A ; gpu_stats
 _DATA	ENDS
 CONST	SEGMENT
-$SG126283 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
+$SG126309 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
 	DB	'a', 00H, 'y', 00H, 'L', 00H, 'i', 00H, 'b', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H
 	DB	'D', 00H, ' ', 00H, 'A', 00H, 'D', 00H, 'L', 00H, ' ', 00H, 'A'
@@ -6136,12 +6136,16 @@ $LL25@SK_GPUPoll:
 
 ; 392  :         stats.gpus [i].clocks_kHz.ram    = activity.iMemoryClock * 10UL;
 ; 393  : 
-; 394  :         stats.gpus [i].volts_mV.supported = true;
-; 395  :         stats.gpus [i].volts_mV.over      = false;
-; 396  :         stats.gpus [i].volts_mV.core      = static_cast <float> (activity.iVddc); // mV?
+; 394  :         // This rarely reads right on AMD's drivers and I don't have AMD hardware anymore, so ...
+; 395  :         //   disable it for now :)
+; 396  :         stats.gpus [i].volts_mV.supported = false;//true;
+; 397  : 
+; 398  : 
+; 399  :         stats.gpus [i].volts_mV.over      = false;
+; 400  :         stats.gpus [i].volts_mV.core      = static_cast <float> (activity.iVddc); // mV?
 
 	cvtdq2ps xmm0, xmm0
-	mov	WORD PTR [edi-72], 256			; 00000100H
+	mov	WORD PTR [edi-72], 0
 	lea	eax, DWORD PTR [eax+eax*4]
 	add	eax, eax
 	mov	DWORD PTR [edi-88], eax
@@ -6149,20 +6153,20 @@ $LL25@SK_GPUPoll:
 	movss	DWORD PTR [edi-80], xmm0
 	xorps	xmm0, xmm0
 
-; 397  : 
-; 398  :         ADLTemperature temp       = {                   };
+; 401  : 
+; 402  :         ADLTemperature temp       = {                   };
 
 	movq	QWORD PTR _temp$12[ebp], xmm0
 
-; 399  :                        temp.iSize = sizeof ADLTemperature;
+; 403  :                        temp.iSize = sizeof ADLTemperature;
 
 	mov	DWORD PTR _temp$12[ebp], 8
 	lea	eax, DWORD PTR [eax+eax*4]
 	add	eax, eax
 	mov	DWORD PTR [edi-84], eax
 
-; 400  : 
-; 401  :         ADL_Overdrive5_Temperature_Get (pAdapter->iAdapterIndex, 0, &temp);
+; 404  : 
+; 405  :         ADL_Overdrive5_Temperature_Get (pAdapter->iAdapterIndex, 0, &temp);
 
 	lea	eax, DWORD PTR _temp$12[ebp]
 	push	eax
@@ -6170,22 +6174,22 @@ $LL25@SK_GPUPoll:
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR ?ADL_Overdrive5_Temperature_Get@@3P6AHHHPAUADLTemperature@@@ZA ; ADL_Overdrive5_Temperature_Get
 
-; 402  : 
-; 403  :         stats.gpus [i].temps_c.gpu = temp.iTemperature / 1000UL;
+; 406  : 
+; 407  :         stats.gpus [i].temps_c.gpu = temp.iTemperature / 1000UL;
 
 	mov	eax, 274877907				; 10624dd3H
 	xorps	xmm0, xmm0
 	mul	DWORD PTR _temp$12[ebp+4]
 
-; 404  : 
-; 405  :         ADLFanSpeedValue fanspeed            = {                           };
+; 408  : 
+; 409  :         ADLFanSpeedValue fanspeed            = {                           };
 
 	movups	XMMWORD PTR _fanspeed$11[ebp], xmm0
 
-; 406  :                          fanspeed.iSize      = sizeof ADLFanSpeedValue;
-; 407  :                          fanspeed.iSpeedType = ADL_DL_FANCTRL_SPEED_TYPE_RPM;
-; 408  : 
-; 409  :         ADL_Overdrive5_FanSpeed_Get (pAdapter->iAdapterIndex, 0, &fanspeed);
+; 410  :                          fanspeed.iSize      = sizeof ADLFanSpeedValue;
+; 411  :                          fanspeed.iSpeedType = ADL_DL_FANCTRL_SPEED_TYPE_RPM;
+; 412  : 
+; 413  :         ADL_Overdrive5_FanSpeed_Get (pAdapter->iAdapterIndex, 0, &fanspeed);
 
 	lea	eax, DWORD PTR _fanspeed$11[ebp]
 	mov	DWORD PTR _fanspeed$11[ebp], 16		; 00000010H
@@ -6197,8 +6201,8 @@ $LL25@SK_GPUPoll:
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR ?ADL_Overdrive5_FanSpeed_Get@@3P6AHHHPAUADLFanSpeedValue@@@ZA ; ADL_Overdrive5_FanSpeed_Get
 
-; 410  : 
-; 411  :         stats.gpus [i].fans_rpm.gpu       = fanspeed.iFanSpeed;
+; 414  : 
+; 415  :         stats.gpus [i].fans_rpm.gpu       = fanspeed.iFanSpeed;
 
 	mov	eax, DWORD PTR _fanspeed$11[ebp+8]
 	add	esp, 32					; 00000020H
@@ -6207,7 +6211,7 @@ $LL25@SK_GPUPoll:
 	inc	ecx
 	mov	eax, DWORD PTR _stats$1$[ebp]
 
-; 412  :         stats.gpus [i].fans_rpm.supported = true;
+; 416  :         stats.gpus [i].fans_rpm.supported = true;
 
 	mov	BYTE PTR [edi-48], 1
 	sub	edi, -128				; ffffff80H
@@ -6226,16 +6230,16 @@ $LN181@SK_GPUPoll:
 ; 378  :           dll_log.Log (L"[DisplayLib] INVALID ADL ADAPTER: %i", pAdapter->iAdapterIndex);
 
 	push	ecx
-	push	OFFSET $SG126283
+	push	OFFSET $SG126309
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 $LN24@SK_GPUPoll:
 
-; 413  :       }
-; 414  :     }
-; 415  : 
-; 416  :     gpu_stats = gpu_stats_buffers [current_gpu_stat];
+; 417  :       }
+; 418  :     }
+; 419  : 
+; 420  :     gpu_stats = gpu_stats_buffers [current_gpu_stat];
 
 	imul	eax, DWORD PTR ?current_gpu_stat@@3KC, 8208 ; current_gpu_stat
 	push	8208					; 00002010H
@@ -6245,7 +6249,7 @@ $LN24@SK_GPUPoll:
 	call	_memcpy
 	add	esp, 12					; 0000000cH
 
-; 417  :     ResetEvent (hPollEvent);
+; 421  :     ResetEvent (hPollEvent);
 
 	push	DWORD PTR ?hPollEvent@@3PAXA
 	call	DWORD PTR __imp__ResetEvent@4
@@ -6259,28 +6263,28 @@ $LN24@SK_GPUPoll:
 	jne	$LL2@SK_GPUPoll
 $LN182@SK_GPUPoll:
 
-; 418  :   }
-; 419  : 
-; 420  :   hPollThread = nullptr;
+; 422  :   }
+; 423  : 
+; 424  :   hPollThread = nullptr;
 
 	mov	DWORD PTR ?hPollThread@@3PAXA, 0
 
-; 421  : 
-; 422  :   CloseHandle (GetCurrentThread ());
+; 425  : 
+; 426  :   CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 $LN184@SK_GPUPoll:
 
-; 423  : 
-; 424  :   return 0;
+; 427  : 
+; 428  :   return 0;
 
 	pop	edi
 	xor	eax, eax
 	pop	esi
 
-; 425  : }
+; 429  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6642,7 +6646,7 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_EndGPUPolling@@YAXXZ PROC				; SK_EndGPUPolling
 
-; 430  :   if (hShutdownEvent != nullptr && hPollThread != nullptr)
+; 434  :   if (hShutdownEvent != nullptr && hPollThread != nullptr)
 
 	mov	eax, DWORD PTR ?hShutdownEvent@@3PAXA
 	test	eax, eax
@@ -6651,8 +6655,8 @@ _TEXT	SEGMENT
 	test	ecx, ecx
 	je	SHORT $LN2@SK_EndGPUP
 
-; 431  :   {
-; 432  :     if (SignalObjectAndWait (hShutdownEvent, hPollThread, 333UL, TRUE) != WAIT_OBJECT_0)
+; 435  :   {
+; 436  :     if (SignalObjectAndWait (hShutdownEvent, hPollThread, 333UL, TRUE) != WAIT_OBJECT_0)
 
 	push	1
 	push	333					; 0000014dH
@@ -6662,27 +6666,27 @@ _TEXT	SEGMENT
 	test	eax, eax
 	je	SHORT $LN3@SK_EndGPUP
 
-; 433  :     {
-; 434  :       TerminateThread (hPollThread, 0x00);
+; 437  :     {
+; 438  :       TerminateThread (hPollThread, 0x00);
 
 	push	0
 	push	DWORD PTR ?hPollThread@@3PAXA
 	call	DWORD PTR __imp__TerminateThread@8
 $LN3@SK_EndGPUP:
 
-; 435  :     }
-; 436  : 
-; 437  :     hShutdownEvent = nullptr;
+; 439  :     }
+; 440  : 
+; 441  :     hShutdownEvent = nullptr;
 
 	mov	DWORD PTR ?hShutdownEvent@@3PAXA, 0
 
-; 438  :     hPollThread    = nullptr;
+; 442  :     hPollThread    = nullptr;
 
 	mov	DWORD PTR ?hPollThread@@3PAXA, 0
 $LN2@SK_EndGPUP:
 
-; 439  :   }
-; 440  : }
+; 443  :   }
+; 444  : }
 
 	ret	0
 ?SK_EndGPUPolling@@YAXXZ ENDP				; SK_EndGPUPolling
@@ -6696,33 +6700,33 @@ _update_time$ = -24					; size = 16
 _update_ftime$ = -8					; size = 8
 ?SK_PollGPU@@YAXXZ PROC					; SK_PollGPU
 
-; 444  : {
+; 448  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 24					; 00000018H
 
-; 445  :   if (! nvapi_init)
+; 449  :   if (! nvapi_init)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
 	jne	SHORT $LN3@SK_PollGPU
 
-; 446  :   {
-; 447  :     if (! ADL_init)
+; 450  :   {
+; 451  :     if (! ADL_init)
 
 	cmp	DWORD PTR ?ADL_init@@3HA, 0		; ADL_init
 	jne	SHORT $LN3@SK_PollGPU
 
-; 448  :     {
-; 449  :       gpu_stats.num_gpus = 0;
+; 452  :     {
+; 453  :       gpu_stats.num_gpus = 0;
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	mov	DWORD PTR [eax+8192], 0
 
-; 483  :     }
-; 484  :   }
-; 485  : }
+; 487  :     }
+; 488  :   }
+; 489  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6739,13 +6743,13 @@ $LN3@SK_PollGPU:
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\gpu_monitor.cpp
 
-; 456  :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+; 460  :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
 
 	test	eax, eax
 	jne	SHORT $LN4@SK_PollGPU
 
-; 457  :   {
-; 458  :     hShutdownEvent = CreateEvent  (nullptr, FALSE, FALSE, nullptr);
+; 461  :   {
+; 462  :     hShutdownEvent = CreateEvent  (nullptr, FALSE, FALSE, nullptr);
 
 	mov	esi, DWORD PTR __imp__CreateEventW@16
 	push	eax
@@ -6754,7 +6758,7 @@ $LN3@SK_PollGPU:
 	push	eax
 	call	esi
 
-; 459  :     hPollEvent     = CreateEvent  (nullptr, TRUE,  FALSE, nullptr);
+; 463  :     hPollEvent     = CreateEvent  (nullptr, TRUE,  FALSE, nullptr);
 
 	push	0
 	push	0
@@ -6763,7 +6767,7 @@ $LN3@SK_PollGPU:
 	mov	DWORD PTR ?hShutdownEvent@@3PAXA, eax
 	call	esi
 
-; 460  :     hPollThread    = CreateThread (nullptr, 0, SK_GPUPollingThread, nullptr, 0x00, nullptr);
+; 464  :     hPollThread    = CreateThread (nullptr, 0, SK_GPUPollingThread, nullptr, 0x00, nullptr);
 
 	push	0
 	push	0
@@ -6776,20 +6780,20 @@ $LN3@SK_PollGPU:
 	mov	DWORD PTR ?hPollThread@@3PAXA, eax
 $LN4@SK_PollGPU:
 
-; 461  :   }
-; 462  : 
-; 463  :   SYSTEMTIME     update_time;
-; 464  :   FILETIME       update_ftime;
-; 465  :   ULARGE_INTEGER update_ul;
+; 465  :   }
 ; 466  : 
-; 467  :   GetSystemTime        (&update_time);
+; 467  :   SYSTEMTIME     update_time;
+; 468  :   FILETIME       update_ftime;
+; 469  :   ULARGE_INTEGER update_ul;
+; 470  : 
+; 471  :   GetSystemTime        (&update_time);
 
 	push	edi
 	lea	eax, DWORD PTR _update_time$[ebp]
 	push	eax
 	call	DWORD PTR __imp__GetSystemTime@4
 
-; 468  :   SystemTimeToFileTime (&update_time, &update_ftime);
+; 472  :   SystemTimeToFileTime (&update_time, &update_ftime);
 
 	lea	eax, DWORD PTR _update_ftime$[ebp]
 	push	eax
@@ -6797,14 +6801,14 @@ $LN4@SK_PollGPU:
 	push	eax
 	call	DWORD PTR __imp__SystemTimeToFileTime@8
 
-; 469  : 
-; 470  :   update_ul.HighPart = update_ftime.dwHighDateTime;
-; 471  :   update_ul.LowPart  = update_ftime.dwLowDateTime;
+; 473  : 
+; 474  :   update_ul.HighPart = update_ftime.dwHighDateTime;
+; 475  :   update_ul.LowPart  = update_ftime.dwLowDateTime;
 
 	mov	edi, DWORD PTR _update_ftime$[ebp]
 
-; 472  : 
-; 473  :   double dt = (update_ul.QuadPart - gpu_stats_buffers [0].last_update.QuadPart) * 1.0e-7;
+; 476  : 
+; 477  :   double dt = (update_ul.QuadPart - gpu_stats_buffers [0].last_update.QuadPart) * 1.0e-7;
 
 	mov	ecx, edi
 	sub	ecx, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A+8200
@@ -6815,15 +6819,15 @@ $LN4@SK_PollGPU:
 	movss	xmm1, DWORD PTR ?config@@3Usk_config_t@@A+124
 	mulsd	xmm0, QWORD PTR __real@3e7ad7f29abcaf48
 
-; 474  : 
-; 475  :   if (dt > config.gpu.interval)
+; 478  : 
+; 479  :   if (dt > config.gpu.interval)
 
 	cvtps2pd xmm1, xmm1
 	comisd	xmm0, xmm1
 	jbe	SHORT $LN12@SK_PollGPU
 
-; 476  :   {
-; 477  :     if (WaitForSingleObject (hPollEvent, 0) == WAIT_TIMEOUT)
+; 480  :   {
+; 481  :     if (WaitForSingleObject (hPollEvent, 0) == WAIT_TIMEOUT)
 
 	push	0
 	push	DWORD PTR ?hPollEvent@@3PAXA
@@ -6831,10 +6835,10 @@ $LN4@SK_PollGPU:
 	cmp	eax, 258				; 00000102H
 	jne	SHORT $LN12@SK_PollGPU
 
-; 478  :     {
-; 479  :       gpu_stats_buffers [0].last_update.QuadPart = update_ul.QuadPart;
-; 480  : 
-; 481  :       if (hPollEvent != nullptr)
+; 482  :     {
+; 483  :       gpu_stats_buffers [0].last_update.QuadPart = update_ul.QuadPart;
+; 484  : 
+; 485  :       if (hPollEvent != nullptr)
 
 	mov	eax, DWORD PTR ?hPollEvent@@3PAXA
 	mov	DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A+8200, edi
@@ -6842,7 +6846,7 @@ $LN4@SK_PollGPU:
 	test	eax, eax
 	je	SHORT $LN12@SK_PollGPU
 
-; 482  :       SetEvent (hPollEvent);
+; 486  :       SetEvent (hPollEvent);
 
 	push	eax
 	call	DWORD PTR __imp__SetEvent@4
@@ -6850,9 +6854,9 @@ $LN12@SK_PollGPU:
 	pop	edi
 	pop	esi
 
-; 483  :     }
-; 484  :   }
-; 485  : }
+; 487  :     }
+; 488  :   }
+; 489  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6866,20 +6870,20 @@ tv86 = -8						; size = 8
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetVRAMBudget@@YG_KH@Z PROC			; SK_GPU_GetVRAMBudget
 
-; 592  : {
+; 596  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 593  :   buffer_t buffer = mem_info [0].buffer;
-; 594  :   int      nodes  = mem_info [buffer].nodes;
+; 597  :   buffer_t buffer = mem_info [0].buffer;
+; 598  :   int      nodes  = mem_info [buffer].nodes;
 
 	imul	edx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A+272, 280
 	sub	esp, 8
 
-; 595  : 
-; 596  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+; 599  : 
+; 600  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
 
 	mov	ecx, DWORD PTR _gpu$[ebp]
 	push	esi
@@ -6896,27 +6900,27 @@ _gpu$ = 8						; size = 4
 	mov	eax, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[ecx+edx]
 	mov	edx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[ecx+edx+4]
 
-; 597  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                  :
-; 598  :                             SK_GPU_GetVRAMCapacity (gpu) )                       :
-; 599  :                                      0;
-; 600  : }
+; 601  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                  :
+; 602  :                             SK_GPU_GetVRAMCapacity (gpu) )                       :
+; 603  :                                      0;
+; 604  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN4@SK_GPU_Get:
 
-; 595  : 
-; 596  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+; 599  : 
+; 600  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
 
 	push	ecx
 	call	?SK_GPU_GetVRAMCapacity@@YG_KH@Z	; SK_GPU_GetVRAMCapacity
 	pop	esi
 
-; 597  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                  :
-; 598  :                             SK_GPU_GetVRAMCapacity (gpu) )                       :
-; 599  :                                      0;
-; 600  : }
+; 601  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                  :
+; 602  :                             SK_GPU_GetVRAMCapacity (gpu) )                       :
+; 603  :                                      0;
+; 604  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6924,18 +6928,18 @@ $LN4@SK_GPU_Get:
 $LN3@SK_GPU_Get:
 	xorps	xmm0, xmm0
 
-; 595  : 
-; 596  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+; 599  : 
+; 600  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
 
 	movlpd	QWORD PTR tv86[ebp], xmm0
 	mov	eax, DWORD PTR tv86[ebp]
 	mov	edx, DWORD PTR tv86[ebp+4]
 	pop	esi
 
-; 597  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                  :
-; 598  :                             SK_GPU_GetVRAMCapacity (gpu) )                       :
-; 599  :                                      0;
-; 600  : }
+; 601  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                  :
+; 602  :                             SK_GPU_GetVRAMCapacity (gpu) )                       :
+; 603  :                                      0;
+; 604  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6949,13 +6953,13 @@ tv78 = -8						; size = 8
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetVRAMCapacity@@YG_KH@Z PROC			; SK_GPU_GetVRAMCapacity
 
-; 583  : {
+; 587  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 584  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                    ?
+; 588  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                    ?
 
 	mov	ecx, DWORD PTR _gpu$[ebp]
 	sub	esp, 8
@@ -6969,9 +6973,9 @@ _gpu$ = 8						; size = 4
 	mov	eax, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A[edx+ecx+88]
 	mov	edx, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A[edx+ecx+92]
 
-; 585  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].memory_B.capacity :
-; 586  :                                               0;
-; 587  : }
+; 589  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].memory_B.capacity :
+; 590  :                                               0;
+; 591  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -6979,15 +6983,15 @@ _gpu$ = 8						; size = 4
 $LN3@SK_GPU_Get:
 	xorps	xmm0, xmm0
 
-; 584  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                    ?
+; 588  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                    ?
 
 	movlpd	QWORD PTR tv78[ebp], xmm0
 	mov	eax, DWORD PTR tv78[ebp]
 	mov	edx, DWORD PTR tv78[ebp+4]
 
-; 585  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].memory_B.capacity :
-; 586  :                                               0;
-; 587  : }
+; 589  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].memory_B.capacity :
+; 590  :                                               0;
+; 591  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -7001,20 +7005,20 @@ tv90 = -8						; size = 8
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetVRAMShared@@YG_KH@Z PROC			; SK_GPU_GetVRAMShared
 
-; 570  : {
+; 574  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 571  :   buffer_t buffer = mem_info [0].buffer;
-; 572  :   int      nodes  = mem_info [buffer].nodes;
+; 575  :   buffer_t buffer = mem_info [0].buffer;
+; 576  :   int      nodes  = mem_info [buffer].nodes;
 
 	imul	ecx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A+272, 280
 	sub	esp, 8
 
-; 573  : 
-; 574  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+; 577  : 
+; 578  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
 
 	mov	edx, DWORD PTR _gpu$[ebp]
 	push	esi
@@ -7031,28 +7035,28 @@ _gpu$ = 8						; size = 4
 	mov	eax, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edx+ecx+136]
 	mov	edx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edx+ecx+140]
 
-; 575  :          ( nodes >= gpu ?  mem_info [buffer].nonlocal [gpu].CurrentUsage         :
-; 576  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal ) :
-; 577  :                                      0;
-; 578  : }
+; 579  :          ( nodes >= gpu ?  mem_info [buffer].nonlocal [gpu].CurrentUsage         :
+; 580  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal ) :
+; 581  :                                      0;
+; 582  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN4@SK_GPU_Get:
 
-; 573  : 
-; 574  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+; 577  : 
+; 578  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
 
 	imul	edx, DWORD PTR ?current_gpu_stat@@3KC, 8208 ; current_gpu_stat
 	pop	esi
 	mov	eax, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A[edx+72]
 	mov	edx, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A[edx+76]
 
-; 575  :          ( nodes >= gpu ?  mem_info [buffer].nonlocal [gpu].CurrentUsage         :
-; 576  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal ) :
-; 577  :                                      0;
-; 578  : }
+; 579  :          ( nodes >= gpu ?  mem_info [buffer].nonlocal [gpu].CurrentUsage         :
+; 580  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal ) :
+; 581  :                                      0;
+; 582  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -7060,18 +7064,18 @@ $LN4@SK_GPU_Get:
 $LN3@SK_GPU_Get:
 	xorps	xmm0, xmm0
 
-; 573  : 
-; 574  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+; 577  : 
+; 578  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
 
 	movlpd	QWORD PTR tv90[ebp], xmm0
 	mov	eax, DWORD PTR tv90[ebp]
 	mov	edx, DWORD PTR tv90[ebp+4]
 	pop	esi
 
-; 575  :          ( nodes >= gpu ?  mem_info [buffer].nonlocal [gpu].CurrentUsage         :
-; 576  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal ) :
-; 577  :                                      0;
-; 578  : }
+; 579  :          ( nodes >= gpu ?  mem_info [buffer].nonlocal [gpu].CurrentUsage         :
+; 580  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal ) :
+; 581  :                                      0;
+; 582  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -7085,20 +7089,20 @@ tv90 = -8						; size = 8
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetVRAMUsed@@YG_KH@Z PROC			; SK_GPU_GetVRAMUsed
 
-; 557  : {
+; 561  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 558  :   buffer_t buffer = mem_info [0].buffer;
-; 559  :   int      nodes  = mem_info [buffer].nodes;
+; 562  :   buffer_t buffer = mem_info [0].buffer;
+; 563  :   int      nodes  = mem_info [buffer].nodes;
 
 	imul	ecx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A+272, 280
 	sub	esp, 8
 
-; 560  : 
-; 561  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+; 564  : 
+; 565  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
 
 	mov	edx, DWORD PTR _gpu$[ebp]
 	push	esi
@@ -7115,28 +7119,28 @@ _gpu$ = 8						; size = 4
 	mov	eax, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edx+ecx+8]
 	mov	edx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edx+ecx+12]
 
-; 562  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].CurrentUsage            :
-; 563  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local )    :
-; 564  :                                      0;
-; 565  : }
+; 566  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].CurrentUsage            :
+; 567  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local )    :
+; 568  :                                      0;
+; 569  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN4@SK_GPU_Get:
 
-; 560  : 
-; 561  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+; 564  : 
+; 565  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
 
 	imul	edx, DWORD PTR ?current_gpu_stat@@3KC, 8208 ; current_gpu_stat
 	pop	esi
 	mov	eax, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A[edx+64]
 	mov	edx, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A[edx+68]
 
-; 562  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].CurrentUsage            :
-; 563  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local )    :
-; 564  :                                      0;
-; 565  : }
+; 566  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].CurrentUsage            :
+; 567  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local )    :
+; 568  :                                      0;
+; 569  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -7144,18 +7148,18 @@ $LN4@SK_GPU_Get:
 $LN3@SK_GPU_Get:
 	xorps	xmm0, xmm0
 
-; 560  : 
-; 561  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+; 564  : 
+; 565  :   return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
 
 	movlpd	QWORD PTR tv90[ebp], xmm0
 	mov	eax, DWORD PTR tv90[ebp]
 	mov	edx, DWORD PTR tv90[ebp+4]
 	pop	esi
 
-; 562  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].CurrentUsage            :
-; 563  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local )    :
-; 564  :                                      0;
-; 565  : }
+; 566  :          ( nodes >= gpu ?  mem_info [buffer].local [gpu].CurrentUsage            :
+; 567  :                   gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local )    :
+; 568  :                                      0;
+; 569  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -7168,13 +7172,13 @@ _TEXT	SEGMENT
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetFanSpeedRPM@@YGIH@Z PROC			; SK_GPU_GetFanSpeedRPM
 
-; 546  : {
+; 550  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 547  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+; 551  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
 
 	mov	ecx, DWORD PTR _gpu$[ebp]
 	cmp	ecx, -1
@@ -7189,21 +7193,21 @@ _gpu$ = 8						; size = 4
 	imul	eax, DWORD PTR ?current_gpu_stat@@3KC, 8208 ; current_gpu_stat
 	mov	eax, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A[eax+ecx+52]
 
-; 548  :     gpu_stats_buffers   [current_gpu_stat].gpus [gpu].fans_rpm.supported   ?
-; 549  :       gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.gpu : 0 : 0;
-; 550  : }
+; 552  :     gpu_stats_buffers   [current_gpu_stat].gpus [gpu].fans_rpm.supported   ?
+; 553  :       gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.gpu : 0 : 0;
+; 554  : }
 
 	pop	ebp
 	ret	4
 $LN3@SK_GPU_Get:
 
-; 547  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+; 551  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
 
 	xor	eax, eax
 
-; 548  :     gpu_stats_buffers   [current_gpu_stat].gpus [gpu].fans_rpm.supported   ?
-; 549  :       gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.gpu : 0 : 0;
-; 550  : }
+; 552  :     gpu_stats_buffers   [current_gpu_stat].gpus [gpu].fans_rpm.supported   ?
+; 553  :       gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.gpu : 0 : 0;
+; 554  : }
 
 	pop	ebp
 	ret	4
@@ -7216,13 +7220,13 @@ tv79 = 8						; size = 4
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetTempInC@@YGMH@Z PROC				; SK_GPU_GetTempInC
 
-; 537  : {
+; 541  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 538  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)               ?
+; 542  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)               ?
 
 	mov	ecx, DWORD PTR _gpu$[ebp]
 	cmp	ecx, -1
@@ -7237,22 +7241,22 @@ _gpu$ = 8						; size = 4
 	movss	DWORD PTR tv79[ebp], xmm0
 	fld	DWORD PTR tv79[ebp]
 
-; 539  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].temps_c.gpu) :
-; 540  :                                              0.0f;
-; 541  : }
+; 543  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].temps_c.gpu) :
+; 544  :                                              0.0f;
+; 545  : }
 
 	pop	ebp
 	ret	4
 $LN3@SK_GPU_Get:
 
-; 538  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)               ?
+; 542  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)               ?
 
 	mov	DWORD PTR tv79[ebp], 0
 	fld	DWORD PTR tv79[ebp]
 
-; 539  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].temps_c.gpu) :
-; 540  :                                              0.0f;
-; 541  : }
+; 543  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].temps_c.gpu) :
+; 544  :                                              0.0f;
+; 545  : }
 
 	pop	ebp
 	ret	4
@@ -7265,13 +7269,13 @@ tv79 = 8						; size = 4
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetGPULoad@@YGMH@Z PROC				; SK_GPU_GetGPULoad
 
-; 528  : {
+; 532  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 529  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+; 533  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
 
 	mov	ecx, DWORD PTR _gpu$[ebp]
 	cmp	ecx, -1
@@ -7290,22 +7294,22 @@ _gpu$ = 8						; size = 4
 	movss	DWORD PTR tv79[ebp], xmm0
 	fld	DWORD PTR tv79[ebp]
 
-; 530  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.gpu) :
-; 531  :                                              0.0f;
-; 532  : }
+; 534  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.gpu) :
+; 535  :                                              0.0f;
+; 536  : }
 
 	pop	ebp
 	ret	4
 $LN3@SK_GPU_Get:
 
-; 529  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+; 533  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
 
 	mov	DWORD PTR tv79[ebp], 0
 	fld	DWORD PTR tv79[ebp]
 
-; 530  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.gpu) :
-; 531  :                                              0.0f;
-; 532  : }
+; 534  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.gpu) :
+; 535  :                                              0.0f;
+; 536  : }
 
 	pop	ebp
 	ret	4
@@ -7318,13 +7322,13 @@ tv79 = 8						; size = 4
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetMemoryLoad@@YGMH@Z PROC			; SK_GPU_GetMemoryLoad
 
-; 520  : {
+; 524  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 521  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+; 525  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
 
 	mov	ecx, DWORD PTR _gpu$[ebp]
 	cmp	ecx, -1
@@ -7343,22 +7347,22 @@ _gpu$ = 8						; size = 4
 	movss	DWORD PTR tv79[ebp], xmm0
 	fld	DWORD PTR tv79[ebp]
 
-; 522  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.fb) :
-; 523  :                                              0.0f;
-; 524  : }
+; 526  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.fb) :
+; 527  :                                              0.0f;
+; 528  : }
 
 	pop	ebp
 	ret	4
 $LN3@SK_GPU_Get:
 
-; 521  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+; 525  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
 
 	mov	DWORD PTR tv79[ebp], 0
 	fld	DWORD PTR tv79[ebp]
 
-; 522  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.fb) :
-; 523  :                                              0.0f;
-; 524  : }
+; 526  :        static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.fb) :
+; 527  :                                              0.0f;
+; 528  : }
 
 	pop	ebp
 	ret	4
@@ -7371,13 +7375,13 @@ tv92 = -8						; size = 8
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetMemoryBandwidth@@YG_KH@Z PROC		; SK_GPU_GetMemoryBandwidth
 
-; 510  : {
+; 514  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 511  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+; 515  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
 
 	mov	edx, DWORD PTR _gpu$[ebp]
 	sub	esp, 8
@@ -7399,10 +7403,10 @@ _gpu$ = 8						; size = 4
 	shrd	eax, edx, 3
 	shr	edx, 3
 
-; 512  :       (static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram) * 2ULL * 1000ULL *
-; 513  :        static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].hwinfo.mem_bus_width)) / 8 :
-; 514  :                                                  0;
-; 515  : }
+; 516  :       (static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram) * 2ULL * 1000ULL *
+; 517  :        static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].hwinfo.mem_bus_width)) / 8 :
+; 518  :                                                  0;
+; 519  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -7410,16 +7414,16 @@ _gpu$ = 8						; size = 4
 $LN3@SK_GPU_Get:
 	xorps	xmm0, xmm0
 
-; 511  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
+; 515  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
 
 	movlpd	QWORD PTR tv92[ebp], xmm0
 	mov	eax, DWORD PTR tv92[ebp]
 	mov	edx, DWORD PTR tv92[ebp+4]
 
-; 512  :       (static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram) * 2ULL * 1000ULL *
-; 513  :        static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].hwinfo.mem_bus_width)) / 8 :
-; 514  :                                                  0;
-; 515  : }
+; 516  :       (static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram) * 2ULL * 1000ULL *
+; 517  :        static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].hwinfo.mem_bus_width)) / 8 :
+; 518  :                                                  0;
+; 519  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -7432,13 +7436,13 @@ _TEXT	SEGMENT
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetMemClockRateInkHz@@YGIH@Z PROC		; SK_GPU_GetMemClockRateInkHz
 
-; 501  : {
+; 505  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 502  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
+; 506  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
 
 	mov	ecx, DWORD PTR _gpu$[ebp]
 	cmp	ecx, -1
@@ -7450,21 +7454,21 @@ _gpu$ = 8						; size = 4
 	shl	ecx, 7
 	mov	eax, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A[eax+ecx+20]
 
-; 503  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram  :
-; 504  :                                               0;
-; 505  : };
+; 507  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram  :
+; 508  :                                               0;
+; 509  : };
 
 	pop	ebp
 	ret	4
 $LN3@SK_GPU_Get:
 
-; 502  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
+; 506  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
 
 	xor	eax, eax
 
-; 503  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram  :
-; 504  :                                               0;
-; 505  : };
+; 507  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram  :
+; 508  :                                               0;
+; 509  : };
 
 	pop	ebp
 	ret	4
@@ -7476,13 +7480,13 @@ _TEXT	SEGMENT
 _gpu$ = 8						; size = 4
 ?SK_GPU_GetClockRateInkHz@@YGIH@Z PROC			; SK_GPU_GetClockRateInkHz
 
-; 492  : {
+; 496  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 493  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
+; 497  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
 
 	mov	ecx, DWORD PTR _gpu$[ebp]
 	cmp	ecx, -1
@@ -7494,21 +7498,21 @@ _gpu$ = 8						; size = 4
 	shl	ecx, 7
 	mov	eax, DWORD PTR ?gpu_stats_buffers@@3PAUgpu_sensors_t@@A[eax+ecx+16]
 
-; 494  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.gpu  :
-; 495  :                                               0;
-; 496  : }
+; 498  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.gpu  :
+; 499  :                                               0;
+; 500  : }
 
 	pop	ebp
 	ret	4
 $LN3@SK_GPU_Get:
 
-; 493  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
+; 497  :   return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
 
 	xor	eax, eax
 
-; 494  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.gpu  :
-; 495  :                                               0;
-; 496  : }
+; 498  :                             gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.gpu  :
+; 499  :                                               0;
+; 500  : }
 
 	pop	ebp
 	ret	4
@@ -7675,7 +7679,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 601  : }
+; 605  : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

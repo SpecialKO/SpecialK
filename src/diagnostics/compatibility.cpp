@@ -25,6 +25,7 @@
 #include <process.h>
 
 #pragma warning (disable:4091)
+#define _IMAGEHLP_SOURCE_
 #include <DbgHelp.h>
 
 #include <psapi.h>

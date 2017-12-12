@@ -9,6 +9,9 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
+PUBLIC	_IID_IAxWinAmbientDispatchEx
+PUBLIC	_LIBID_ATLLib
+PUBLIC	_IID_IInternalConnection
 PUBLIC	?osd_shutting_down@@3_NA			; osd_shutting_down
 PUBLIC	?osd_init@@3JC					; osd_init
 PUBLIC	___pobjMapEntryFirst
@@ -41,9 +44,6 @@ PUBLIC	_IID_IAxWinAmbientDispatch
 PUBLIC	?pSelf@SK_TextOverlayManager@@0PAV1@A		; SK_TextOverlayManager::pSelf
 PUBLIC	?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
-PUBLIC	_IID_IAxWinAmbientDispatchEx
-PUBLIC	_LIBID_ATLLib
-PUBLIC	_IID_IInternalConnection
 _BSS	SEGMENT
 ?osd_shutting_down@@3_NA DB 01H DUP (?)			; osd_shutting_down
 	ALIGN	4
@@ -81,48 +81,6 @@ _BSS	ENDS
 _BSS	SEGMENT
 ?_pAtlModule@ATL@@3PAVCAtlModule@1@A DD 01H DUP (?)	; ATL::_pAtlModule
 _BSS	ENDS
-;	COMDAT _IID_IInternalConnection
-CONST	SEGMENT
-_IID_IInternalConnection DD 072ad0770H
-	DW	06a9fH
-	DW	011d1H
-	DB	0bcH
-	DB	0ecH
-	DB	00H
-	DB	060H
-	DB	08H
-	DB	08fH
-	DB	044H
-	DB	04eH
-CONST	ENDS
-;	COMDAT _LIBID_ATLLib
-CONST	SEGMENT
-_LIBID_ATLLib DD 044ec0535H
-	DW	0400fH
-	DW	011d0H
-	DB	09dH
-	DB	0cdH
-	DB	00H
-	DB	0a0H
-	DB	0c9H
-	DB	03H
-	DB	091H
-	DB	0d3H
-CONST	ENDS
-;	COMDAT _IID_IAxWinAmbientDispatchEx
-CONST	SEGMENT
-_IID_IAxWinAmbientDispatchEx DD 0b2d0778bH
-	DW	0ac99H
-	DW	04c58H
-	DB	0a5H
-	DB	0c8H
-	DB	0e7H
-	DB	072H
-	DB	04eH
-	DB	053H
-	DB	016H
-	DB	0b5H
-CONST	ENDS
 ;	COMDAT _IID_IAxWinAmbientDispatch
 CONST	SEGMENT
 _IID_IAxWinAmbientDispatch DD 0b6ea2051H
@@ -167,35 +125,35 @@ _IID_IAxWinHostWindow DD 0b6ea2050H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG250221			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG250292			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG250219		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG250290		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG250217		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG250288		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG250215		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG250286		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG250213		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG250284		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG250211		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG250282		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG250209		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG250280		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG250207		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG250278		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -267,379 +225,454 @@ ATL$__z	ENDS
 ATL$__a	SEGMENT
 ___pobjMapEntryFirst DD 00H
 ATL$__a	ENDS
+;	COMDAT _IID_IInternalConnection
 CONST	SEGMENT
-$SG250897 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG250898 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG250899 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+_IID_IInternalConnection DD 072ad0770H
+	DW	06a9fH
+	DW	011d1H
+	DB	0bcH
+	DB	0ecH
+	DB	00H
+	DB	060H
+	DB	08H
+	DB	08fH
+	DB	044H
+	DB	04eH
+CONST	ENDS
+;	COMDAT _LIBID_ATLLib
+CONST	SEGMENT
+_LIBID_ATLLib DD 044ec0535H
+	DW	0400fH
+	DW	011d0H
+	DB	09dH
+	DB	0cdH
+	DB	00H
+	DB	0a0H
+	DB	0c9H
+	DB	03H
+	DB	091H
+	DB	0d3H
+CONST	ENDS
+;	COMDAT _IID_IAxWinAmbientDispatchEx
+CONST	SEGMENT
+_IID_IAxWinAmbientDispatchEx DD 0b2d0778bH
+	DW	0ac99H
+	DW	04c58H
+	DB	0a5H
+	DB	0c8H
+	DB	0e7H
+	DB	072H
+	DB	04eH
+	DB	053H
+	DB	016H
+	DB	0b5H
+CONST	ENDS
+CONST	SEGMENT
+$SG238599 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+$SG379558 DB	00H
+$SG379561 DB	00H
+$SG238646 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG250968 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG250969 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG250970 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
 	DB	's', 00H, 00H, 00H
-$SG379609 DB	00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-$SG250900 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+$SG379700 DB	00H
+$SG250971 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
 	DB	'p', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250901 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+$SG250972 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
 	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG250902 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+$SG250973 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250903 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+$SG250974 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250904 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG250905 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+$SG250975 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG250976 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
 	DB	'T', 00H, 'Y', 00H, 00H, 00H
 	ORG $+2
-$SG250906 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+$SG250977 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG250907 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG250978 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250908 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG250979 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG238622 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238693 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG238669 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238740 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG379003 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
-	DB	' ', 00H, 'G', 00H, 'i', 00H, 'B', 00H, 00H, 00H
-	ORG $+2
-$SG238716 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238787 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG379005 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
-	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 00H, 00H
-	ORG $+2
-$SG379007 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
-	DB	' ', 00H, 'K', 00H, 'i', 00H, 'B', 00H, 00H, 00H
-	ORG $+2
-$SG379009 DB	'%', 00H, '#', 00H, '3', 00H, 'l', 00H, 'l', 00H, 'u', 00H
-	DB	' ', 00H, 'B', 00H, 'y', 00H, 't', 00H, 'e', 00H, 's', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG379031 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
+$SG379087 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'G', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG379033 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
+$SG379089 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG379035 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
+$SG379091 DB	'%', 00H, '#', 00H, '5', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'K', 00H, 'i', 00H, 'B', 00H, 00H, 00H
 	ORG $+2
-$SG379037 DB	'%', 00H, '#', 00H, '*', 00H, 'l', 00H, 'l', 00H, 'u', 00H
+$SG379093 DB	'%', 00H, '#', 00H, '3', 00H, 'l', 00H, 'l', 00H, 'u', 00H
 	DB	' ', 00H, 'B', 00H, 'y', 00H, 't', 00H, 'e', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG238763 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG379115 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
+	DB	' ', 00H, 'G', 00H, 'i', 00H, 'B', 00H, 00H, 00H
+	ORG $+2
+$SG379117 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
+	DB	' ', 00H, 'M', 00H, 'i', 00H, 'B', 00H, 00H, 00H
+	ORG $+2
+$SG379119 DB	'%', 00H, '#', 00H, '*', 00H, '.', 00H, '*', 00H, 'f', 00H
+	DB	' ', 00H, 'K', 00H, 'i', 00H, 'B', 00H, 00H, 00H
+	ORG $+2
+$SG379121 DB	'%', 00H, '#', 00H, '*', 00H, 'l', 00H, 'l', 00H, 'u', 00H
+	DB	' ', 00H, 'B', 00H, 'y', 00H, 't', 00H, 'e', 00H, 's', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG238834 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG379052 DB	'%', 00H, '#', 00H, '3', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
+$SG379136 DB	'%', 00H, '#', 00H, '3', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
 	DB	'F', 00H, 00H, 00H
-$SG379055 DB	'%', 00H, '#', 00H, '2', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
+$SG379139 DB	'%', 00H, '#', 00H, '2', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
 	DB	'C', 00H, 00H, 00H
-$SG379056 DB	'%', 00H, '#', 00H, '2', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
+$SG379140 DB	'%', 00H, '#', 00H, '2', 00H, 'l', 00H, 'i', 00H, 0b0H, 00H
 	DB	'C', 00H, 00H, 00H
-$SG379095 DB	'Special K', 00H
-	ORG $+2
-$SG238810 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238881 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG238857 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG379179 DB	'Special K', 00H
+	ORG $+2
+$SG238928 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG238904 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238975 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG250207 DB	'S', 00H, 00H, 00H
-$SG250209 DB	'M', 00H, 00H, 00H
-$SG250211 DB	'D', 00H, 00H, 00H
-$SG250213 DB	'B', 00H, 00H, 00H
-$SG250215 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG238951 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG250278 DB	'S', 00H, 00H, 00H
+$SG250280 DB	'M', 00H, 00H, 00H
+$SG250282 DB	'D', 00H, 00H, 00H
+$SG250284 DB	'B', 00H, 00H, 00H
+$SG250286 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG239022 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG250217 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG250288 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG250219 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG250290 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG250221 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG250292 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG238998 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239069 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG379289 DB	'B', 00H, 'a', 00H, 't', 00H, 'm', 00H, 'a', 00H, 'n', 00H
+$SG379378 DB	'B', 00H, 'a', 00H, 't', 00H, 'm', 00H, 'a', 00H, 'n', 00H
 	DB	'A', 00H, 'K', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379292 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
+$SG379381 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
 	DB	'o', 00H, 'f', 00H, ' ', 00H, 'Z', 00H, 'e', 00H, 's', 00H, 't'
 	DB	00H, 'i', 00H, 'r', 00H, 'i', 00H, 'a', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
-$SG379295 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
+$SG379384 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
 	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379298 DB	'N', 00H, 'i', 00H, 'e', 00H, 'R', 00H, 'A', 00H, 'u', 00H
+$SG379387 DB	'N', 00H, 'i', 00H, 'e', 00H, 'R', 00H, 'A', 00H, 'u', 00H
 	DB	't', 00H, 'o', 00H, 'm', 00H, 'a', 00H, 't', 00H, 'a', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379300 DB	'D', 00H, 'a', 00H, 'r', 00H, 'k', 00H, 'S', 00H, 'o', 00H
+$SG379389 DB	'D', 00H, 'a', 00H, 'r', 00H, 'k', 00H, 'S', 00H, 'o', 00H
 	DB	'u', 00H, 'l', 00H, 's', 00H, 'I', 00H, 'I', 00H, 'I', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG379304 DB	'Fallout 4 "Works" v 0.3.5   %ws', 0aH, 0aH, 00H
+$SG379393 DB	'Fallout 4 "Works" v 0.3.5   %ws', 0aH, 0aH, 00H
 	ORG $+2
-$SG379308 DB	'%ws   %ws', 0aH, 0aH, 00H
-$SG379312 DB	'Batman "Fix" v 0.20   %ws', 0aH, 0aH, 00H
-$SG379316 DB	'%ws   %ws', 0aH, 0aH, 00H
-$SG379320 DB	'%ws   %ws', 0aH, 0aH, 00H
-$SG379322 DB	'Special K v %ws   %ws', 0aH, 0aH, 00H
-$SG239045 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG379397 DB	'%ws   %ws', 0aH, 0aH, 00H
+$SG379401 DB	'Batman "Fix" v 0.20   %ws', 0aH, 0aH, 00H
+$SG239116 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG379334 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,ma'
+$SG379405 DB	'%ws   %ws', 0aH, 0aH, 00H
+$SG379409 DB	'%ws   %ws', 0aH, 0aH, 00H
+$SG379411 DB	'Special K v %ws   %ws', 0aH, 0aH, 00H
+$SG379431 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms', 00H
+	ORG $+1
+$SG379423 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,ma'
 	DB	'x=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>', 00H
 	ORG $+2
-$SG379336 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%'
+$SG379425 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%'
 	DB	'3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>', 00H
 	ORG $+3
-$SG379338 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,ma'
+$SG379427 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,ma'
 	DB	'x=%3.2f,hitches=%d)', 00H
-$SG379342 DB	'  %-7ws:  %#4.01f FPS, %#13.01f ms', 00H
-	ORG $+1
-$SG379340 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%'
+$SG379433 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms', 00H
+	ORG $+3
+$SG379429 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%'
 	DB	'3.2f,max=%3.2f,hitches=%d)', 00H
 	ORG $+1
-$SG379344 DB	'  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms', 00H
-	ORG $+3
-$SG379347 DB	0aH, 00H
+$SG379436 DB	0aH, 00H
 	ORG $+2
-$SG379350 DB	'  GPU%i   :            %#3lu%%', 00H
+$SG379439 DB	'  GPU%i   :            %#3lu%%', 00H
 	ORG $+1
-$SG379354 DB	',  VID%i %#3lu%%  ,', 00H
-$SG379356 DB	',              ', 00H
-$SG379358 DB	' %#4lu MHz', 00H
+$SG379443 DB	',  VID%i %#3lu%%  ,', 00H
+$SG379445 DB	',              ', 00H
+$SG379447 DB	' %#4lu MHz', 00H
 	ORG $+1
-$SG379364 DB	', %#6.1fmV (%+#6.1fmV)', 00H
-	ORG $+1
-$SG379366 DB	', %#6.1fmV', 00H
-	ORG $+1
-$SG379368 DB	',         ', 00H
-	ORG $+1
-$SG379372 DB	', %#4lu RPM', 00H
-$SG379374 DB	',         ', 00H
-	ORG $+1
-$SG379376 DB	', (%ws)', 00H
-$SG379380 DB	'@', 00H
-	ORG $+2
-$SG239092 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239163 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379383 DB	'!', 00H
-	ORG $+2
-$SG379386 DB	'#', 00H
-	ORG $+2
-$SG379389 DB	'   SLOWDOWN:', 00H
-	ORG $+3
-$SG379392 DB	' (Battery)', 00H
+$SG379453 DB	', %#6.1fmV (%+#6.1fmV)', 00H
 	ORG $+1
-$SG379395 DB	' (Driver)', 00H
-	ORG $+2
-$SG379398 DB	' (Power Supply)', 00H
-$SG379401 DB	' (Power Limit)', 00H
+$SG379455 DB	', %#6.1fmV', 00H
 	ORG $+1
-$SG379404 DB	' (Thermal Limit)', 00H
-	ORG $+3
-$SG379406 DB	0aH, 00H
-	ORG $+2
-$SG379412 DB	'  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)', 00H
-	ORG $+3
-$SG379414 DB	'  VRAM%i  : %#5llu MiB', 00H
+$SG379457 DB	',         ', 00H
 	ORG $+1
-$SG379416 DB	', %#4lu MHz', 00H
-$SG379419 DB	', (%ws)', 00H
-$SG379421 DB	0aH, 00H
-	ORG $+2
-$SG379425 DB	'  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %'
-	DB	'i.0x%lu', 0aH, 00H
-	ORG $+3
-$SG379427 DB	'  SHARE%i : %#5llu MiB, PCIe %i.0x%lu', 0aH, 00H
+$SG379461 DB	', %#4lu RPM', 00H
+$SG379463 DB	',         ', 00H
 	ORG $+1
-$SG239139 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG379465 DB	', (%ws)', 00H
+$SG379469 DB	'@', 00H
+	ORG $+2
+$SG379472 DB	'!', 00H
+	ORG $+2
+$SG379475 DB	'#', 00H
+	ORG $+2
+$SG379478 DB	'   SLOWDOWN:', 00H
+	ORG $+3
+$SG379481 DB	' (Battery)', 00H
+	ORG $+1
+$SG379484 DB	' (Driver)', 00H
+	ORG $+2
+$SG379487 DB	' (Power Supply)', 00H
+$SG379490 DB	' (Power Limit)', 00H
+	ORG $+1
+$SG379493 DB	' (Thermal Limit)', 00H
+	ORG $+3
+$SG379495 DB	0aH, 00H
+	ORG $+2
+$SG239210 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG379431 DB	'  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)', 00H
+$SG379501 DB	'  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)', 00H
 	ORG $+3
-$SG379433 DB	'  VRAM%i  : %#5llu MiB', 00H
+$SG379503 DB	'  VRAM%i  : %#5llu MiB', 00H
 	ORG $+1
-$SG379435 DB	', %#4lu MHz', 00H
-$SG379437 DB	0aH, 00H
+$SG379505 DB	', %#4lu MHz', 00H
+$SG379508 DB	', (%ws)', 00H
+$SG379510 DB	0aH, 00H
 	ORG $+2
-$SG379443 DB	'  SHARE%i : %#5llu MiB, PCIe %i.0x%lu', 0aH, 00H
-	ORG $+1
-$SG379446 DB	', (%ws)', 00H
-$SG379463 DB	0aH, '  Starting CPU Monitor...', 0aH, 00H
-$SG379441 DB	'  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %'
+$SG379514 DB	'  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %'
 	DB	'i.0x%lu', 0aH, 00H
 	ORG $+3
-$SG379452 DB	0aH, '%ws', 00H
-	ORG $+3
-$SG379456 DB	0aH, '%ws', 00H
-	ORG $+3
-$SG379459 DB	0aH, '%ws', 00H
-	ORG $+3
-$SG379471 DB	'  CPU%lu   : %#3llu%%', 0aH, 00H
+$SG379516 DB	'  SHARE%i : %#5llu MiB, PCIe %i.0x%lu', 0aH, 00H
 	ORG $+1
-$SG239186 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG379520 DB	'  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)', 00H
+	ORG $+3
+$SG379522 DB	'  VRAM%i  : %#5llu MiB', 00H
+	ORG $+1
+$SG379524 DB	', %#4lu MHz', 00H
+$SG379526 DB	0aH, 00H
+	ORG $+2
+$SG379530 DB	'  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %'
+	DB	'i.0x%lu', 0aH, 00H
+	ORG $+3
+$SG379532 DB	'  SHARE%i : %#5llu MiB, PCIe %i.0x%lu', 0aH, 00H
+	ORG $+1
+$SG379535 DB	', (%ws)', 00H
+$SG379541 DB	0aH, '%ws', 00H
+	ORG $+3
+$SG379545 DB	0aH, '%ws', 00H
+	ORG $+3
+$SG239257 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG379479 DB	'SLI Node', 00H
+$SG379548 DB	0aH, '%ws', 00H
 	ORG $+3
-$SG379465 DB	0aH, '  Total  : %#3llu%%  -  (Kernel: %#3llu%%   User: %'
+$SG379552 DB	0aH, '  Starting CPU Monitor...', 0aH, 00H
+$SG379554 DB	0aH, '  Total  : %#3llu%%  -  (Kernel: %#3llu%%   User: %'
 	DB	'#3llu%%   Interrupt: %#3llu%%)', 0aH, 00H
-$SG379480 DB	'CFX Node', 00H
-	ORG $+3
-$SG379469 DB	'  CPU%lu   : %#3llu%%  -  (Kernel: %#3llu%%   User: %#3l'
-	DB	'lu%%   Interrupt: %#3llu%%)', 0aH, 00H
-	ORG $+3
-$SG379474 DB	0aH, '  Read   :%#6.02f MiB/s - (%#6.01f IOP/s)', 0aH, ' '
+$SG379562 DB	'  CPU%0*lu%-*s: %#3llu%%', 0aH, 00H
+	ORG $+2
+$SG379559 DB	'  CPU%0*lu%-*s: %#3llu%%  -  (Kernel: %#3llu%%   User: %'
+	DB	'#3llu%%   Interrupt: %#3llu%%)', 0aH, 00H
+$SG379565 DB	0aH, '  Read   :%#6.02f MiB/s - (%#6.01f IOP/s)', 0aH, ' '
 	DB	' Write  :%#6.02f MiB/s - (%#6.01f IOP/s)', 0aH, '  Other  :%#'
 	DB	'6.02f MiB/s - (%#6.01f IOP/s)', 0aH, 00H
-$SG379477 DB	0aH, '----- (DXGI 1.4): Local Memory --------------------'
+$SG379568 DB	0aH, '----- (DXGI 1.4): Local Memory --------------------'
 	DB	'-------------------------', 0aH, 00H
 	ORG $+1
-$SG379481 DB	'GPU', 00H
-$SG379485 DB	'@', 00H
+$SG379570 DB	'SLI Node', 00H
+	ORG $+3
+$SG379571 DB	'CFX Node', 00H
+	ORG $+3
+$SG379572 DB	'GPU', 00H
+$SG379576 DB	'@', 00H
 	ORG $+2
-$SG379482 DB	'  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  Budget:  %#'
+$SG379573 DB	'  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  Budget:  %#'
 	DB	'5llu / %#5llu MiB)', 00H
 	ORG $+1
-$SG379488 DB	'!', 00H
+$SG379579 DB	'!', 00H
 	ORG $+2
-$SG379491 DB	'#', 00H
+$SG379582 DB	'#', 00H
 	ORG $+2
-$SG379493 DB	0aH, 00H
+$SG379584 DB	0aH, 00H
 	ORG $+2
-$SG379495 DB	'----- (DXGI 1.4): Non-Local Memory ---------------------'
+$SG379586 DB	'----- (DXGI 1.4): Non-Local Memory ---------------------'
 	DB	'--------------------', 0aH, 00H
 	ORG $+2
-$SG379498 DB	'SLI Node', 00H
+$SG379589 DB	'SLI Node', 00H
 	ORG $+3
-$SG379499 DB	'GPU', 00H
-$SG379500 DB	'  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  Budget:  %#'
+$SG379590 DB	'GPU', 00H
+$SG379591 DB	'  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  Budget:  %#'
 	DB	'5llu / %#5llu MiB)', 0aH, 00H
-$SG379506 DB	0aH, 00H
-	ORG $+2
-$SG379502 DB	'----- (DXGI 1.4): Miscellaneous ------------------------'
-	DB	'--------------------', 0aH, 00H
-	ORG $+2
-$SG379504 DB	'  Max. Resident Set:  %#5llu MiB  -  Max. Over Budget:  '
-	DB	'%#5llu MiB', 0aH, '     Budget Changes:  %#5llu      -       '
-	DB	'Budget Left:  %#5lli MiB', 0aH, 00H
-	ORG $+1
-$SG379510 DB	'  Starting Memory Monitor...', 0aH, 00H
-	ORG $+2
-$SG379512 DB	'  Working Set: %ws,  Committed: %ws,  Address Space: %ws'
-	DB	0aH, 00H
-	ORG $+2
-$SG379514 DB	'        *Peak: %ws,      *Peak: %ws,          *Peak: %ws'
-	DB	0aH, 00H
-	ORG $+2
-$SG379517 DB	0aH, '%s', 0aH, 00H
-	ORG $+3
-$SG379521 DB	0aH, '  Starting Disk Monitor...', 0aH, 00H
-	ORG $+3
-$SG239233 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239304 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG379525 DB	0aH, '  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, Wri'
+$SG379597 DB	0aH, 00H
+	ORG $+2
+$SG379593 DB	'----- (DXGI 1.4): Miscellaneous ------------------------'
+	DB	'--------------------', 0aH, 00H
+	ORG $+2
+$SG379595 DB	'  Max. Resident Set:  %#5llu MiB  -  Max. Over Budget:  '
+	DB	'%#5llu MiB', 0aH, '     Budget Changes:  %#5llu      -       '
+	DB	'Budget Left:  %#5lli MiB', 0aH, 00H
+	ORG $+1
+$SG379601 DB	'  Starting Memory Monitor...', 0aH, 00H
+	ORG $+2
+$SG379603 DB	'  Working Set: %ws,  Committed: %ws,  Address Space: %ws'
+	DB	0aH, 00H
+	ORG $+2
+$SG379605 DB	'        *Peak: %ws,      *Peak: %ws,          *Peak: %ws'
+	DB	0aH, 00H
+	ORG $+2
+$SG379608 DB	0aH, '%s', 0aH, 00H
+	ORG $+3
+$SG379612 DB	0aH, '  Starting Disk Monitor...', 0aH, 00H
+	ORG $+3
+$SG379616 DB	0aH, '  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, Wri'
 	DB	'te %#3llu%%: %ws/s)', 0aH, 00H
 	ORG $+3
-$SG379531 DB	0aH, '  Starting Pagefile Monitor...', 0aH, 00H
+$SG379622 DB	0aH, '  Starting Pagefile Monitor...', 0aH, 00H
 	ORG $+3
-$SG379527 DB	'  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, Write %'
+$SG379618 DB	'  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, Write %'
 	DB	'#3llu%%: %ws/s)', 0aH, 00H
 	ORG $+3
-$SG379533 DB	0aH, '  Pagefile %20s  %ws / %ws  (Peak: %ws)', 00H
+$SG379624 DB	0aH, '  Pagefile %20s  %ws / %ws  (Peak: %ws)', 00H
 	ORG $+3
-$SG379535 DB	0aH, 00H
+$SG379626 DB	0aH, 00H
 	ORG $+2
-$SG379546 DB	'Special K', 00H
+$SG379637 DB	'Special K', 00H
 	ORG $+2
-$SG379564 DB	'Special K', 00H
-	ORG $+2
-$SG239280 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239351 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG239285 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239356 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG379582 DB	'Special K', 00H
+$SG379655 DB	'Special K', 00H
 	ORG $+2
-$SG379587 DB	'Special K', 00H
+$SG379673 DB	'Special K', 00H
 	ORG $+2
-$SG379588 DB	'OSD.Scale %f', 00H
+$SG379678 DB	'Special K', 00H
+	ORG $+2
+$SG379679 DB	'OSD.Scale %f', 00H
 	ORG $+3
-$SG379596 DB	'Special K', 00H
+$SG379687 DB	'Special K', 00H
 	ORG $+2
-$SG239332 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239403 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG234248 DB	'OSD.Red', 00H
-$SG234249 DB	'OSD.Green', 00H
+$SG234298 DB	'OSD.Red', 00H
+$SG234299 DB	'OSD.Green', 00H
 	ORG $+2
-$SG234250 DB	'OSD.Blue', 00H
+$SG234300 DB	'OSD.Blue', 00H
 	ORG $+3
-$SG234251 DB	'OSD.PosX', 00H
+$SG234301 DB	'OSD.PosX', 00H
 	ORG $+3
-$SG234252 DB	'OSD.PosY', 00H
+$SG234302 DB	'OSD.PosY', 00H
 	ORG $+3
-$SG234253 DB	'OSD.Scale', 00H
+$SG234303 DB	'OSD.Scale', 00H
 	ORG $+2
-$SG239379 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG234304 DB	'OSD.Show', 00H
+	ORG $+3
+$SG234305 DB	'OSD.FPS.Show', 00H
+	ORG $+3
+$SG234306 DB	'OSD.Shaders.Show', 00H
+	ORG $+3
+$SG234307 DB	'OSD.Memory.Show', 00H
+$SG234308 DB	'OSD.Memory.UpdateFreq', 00H
+	ORG $+2
+$SG234309 DB	'OSD.SLI.Show', 00H
+	ORG $+3
+$SG234310 DB	'OSD.CPU.Show', 00H
+	ORG $+3
+$SG234311 DB	'OSD.CPU.Simple', 00H
+	ORG $+1
+$SG234312 DB	'OSD.CPU.UpdateFreq', 00H
+	ORG $+1
+$SG234313 DB	'OSD.GPU.Show', 00H
+	ORG $+3
+$SG234314 DB	'OSD.GPU.PrintSlowdown', 00H
+	ORG $+2
+$SG234315 DB	'OSD.GPU.UpdateFreq', 00H
+	ORG $+1
+$SG234316 DB	'OSD.Disk.Show', 00H
+	ORG $+2
+$SG234317 DB	'OSD.Disk.Type', 00H
+	ORG $+2
+$SG234318 DB	'OSD.Disk.UpdateFreq', 00H
+$SG234319 DB	'OSD.Pagefile.Show', 00H
+	ORG $+2
+$SG234320 DB	'OSD.Pagefile.UpdateFreq', 00H
+$SG234321 DB	'OSD.IOPS.Show', 00H
+	ORG $+2
+$SG234322 DB	'OSD.IOPS.UpdateFreq', 00H
+$SG239450 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG239426 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG239497 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, 00H, 00H
-$SG238410 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238481 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG379752 DB	0aH, 00H
+$SG379843 DB	0aH, 00H
 	ORG $+2
-$SG379758 DB	0aH, 00H
+$SG379849 DB	0aH, 00H
 	ORG $+2
-$SG379761 DB	0aH, 00H
+$SG379852 DB	0aH, 00H
 	ORG $+2
-$SG379767 DB	0aH, 00H
+$SG379858 DB	0aH, 00H
 	ORG $+2
-$SG238481 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG238552 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG379811 DB	'SpecialK Console', 00H
+$SG234480 DB	'Consolas-12.font', 00H
 	ORG $+3
-$SG234409 DB	'Consolas-12.font', 00H
-	ORG $+3
-$SG238528 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
-	ORG $+2
-$SG238575 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG379902 DB	'SpecialK Console', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
@@ -903,6 +936,7 @@ PUBLIC	??0?$map@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PA
 PUBLIC	??A?$map@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@@std@@@2@@std@@QAEAAPAVSK_TextOverlay@@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@@Z ; std::map<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,SK_TextOverlay *,std::less<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::allocator<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,SK_TextOverlay *> > >::operator[]
 PUBLIC	??1?$map@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@@std@@@2@@std@@QAE@XZ ; std::map<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,SK_TextOverlay *,std::less<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::allocator<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,SK_TextOverlay *> > >::~map<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,SK_TextOverlay *,std::less<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::allocator<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,SK_TextOverlay *> > >
 PUBLIC	??0<unnamed-type-pos_>@SK_TextOverlayManager@@QAE@XZ ; SK_TextOverlayManager::<unnamed-type-pos_>::<unnamed-type-pos_>
+PUBLIC	??0<unnamed-type-osd_>@SK_TextOverlayManager@@QAE@XZ ; SK_TextOverlayManager::<unnamed-type-osd_>::<unnamed-type-osd_>
 PUBLIC	?OnVarChange@SK_TextOverlayManager@@UAE_NPAUSK_IVariable@@PAX@Z ; SK_TextOverlayManager::OnVarChange
 PUBLIC	??0SK_AutoCriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@_N@Z ; SK_AutoCriticalSection::SK_AutoCriticalSection
 PUBLIC	??1SK_AutoCriticalSection@@QAE@XZ		; SK_AutoCriticalSection::~SK_AutoCriticalSection
@@ -1256,11 +1290,13 @@ EXTRN	?calcNumSamples@Stats@Framerate@SK@@QAEHN@Z:PROC ; SK::Framerate::Stats::c
 EXTRN	?getPipelineStatsDesc@DXGI@SK@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK::DXGI::getPipelineStatsDesc
 EXTRN	?getPipelineStatsDesc@D3D9@SK@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK::D3D9::getPipelineStatsDesc
 EXTRN	?getPipelineStatsDesc@OpenGL@SK@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK::OpenGL::getPipelineStatsDesc
+EXTRN	?CountSLIGPUs@NVAPI@sk@@YAHXZ:PROC		; sk::NVAPI::CountSLIGPUs
 EXTRN	?SK_GetPluginName@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK_GetPluginName
 EXTRN	?SK_HasPlugin@@YG_NXZ:PROC			; SK_HasPlugin
 EXTRN	?SK_CEGUI_QueueResetD3D11@@YAXXZ:PROC		; SK_CEGUI_QueueResetD3D11
 EXTRN	?SK_CEGUI_QueueResetD3D9@@YAXXZ:PROC		; SK_CEGUI_QueueResetD3D9
 EXTRN	?SK_D3D11_SummarizeTexCache@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ:PROC ; SK_D3D11_SummarizeTexCache
+EXTRN	?SK_StartPerfMonThreads@@YGXXZ:PROC		; SK_StartPerfMonThreads
 EXTRN	__CxxThrowException@8:PROC
 EXTRN	___CxxFrameHandler3:PROC
 EXTRN	__alldiv:PROC
@@ -1429,6 +1465,14 @@ _BSS	ENDS
 ;	COMDAT ?$TSS2@?EG@??SK_DrawOSD@@YGHXZ@4HA
 _BSS	SEGMENT
 ?$TSS2@?EG@??SK_DrawOSD@@YGHXZ@4HA DD 01H DUP (?)	; TSS2<`template-parameter-70',__int8 volatile * const volatile,awOSD,int, ?? &>
+_BSS	ENDS
+;	COMDAT ?digits@?BEL@??SK_DrawOSD@@YGHXZ@4HB
+_BSS	SEGMENT
+?digits@?BEL@??SK_DrawOSD@@YGHXZ@4HB DD 01H DUP (?)	; `SK_DrawOSD'::`331'::digits
+_BSS	ENDS
+;	COMDAT ?$TSS3@?BEL@??SK_DrawOSD@@YGHXZ@4HA
+_BSS	SEGMENT
+?$TSS3@?BEL@??SK_DrawOSD@@YGHXZ@4HA DD 01H DUP (?)	; TSS3<`template-parameter-331',__int8 volatile * const volatile,awOSD,int, ?? &>
 _BSS	ENDS
 ;	COMDAT ?tpos@?1??strtok_ex@@YAPADPAD0@Z@4PADA
 _BSS	SEGMENT
@@ -2336,7 +2380,7 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1958 : }
+; 2049 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2471,8 +2515,6 @@ _<_Args_2>$ = 24					; size = 4
 	test	esi, esi
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
-
-; 1958 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -3879,6 +3921,8 @@ _<_Args_2>$ = 20					; size = 4
 	test	esi, esi
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
+
+; 2049 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5463,7 +5507,7 @@ ___that$ = 8						; size = 4
 ??0?$tuple@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@QAE@$$QAV01@@Z PROC ; std::tuple<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const &>::tuple<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const &>, COMDAT
 ; _this$ = ecx
 
-; 1958 : }
+; 2049 : }
 
 	npad	2
 	push	ebp
@@ -8823,28 +8867,28 @@ _g$ = 12						; size = 4
 _b$ = 16						; size = 4
 ?SK_OSD_GetDefaultColor@@YGXAAM00@Z PROC		; SK_OSD_GetDefaultColor
 
-; 1532 : {
+; 1572 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1533 :   r = (238.0f / 255.0f);
+; 1573 :   r = (238.0f / 255.0f);
 
 	mov	eax, DWORD PTR _r$[ebp]
 	mov	DWORD PTR [eax], 1064234735		; 3f6eeeefH
 
-; 1534 :   g = (250.0f / 255.0f);
+; 1574 :   g = (250.0f / 255.0f);
 
 	mov	eax, DWORD PTR _g$[ebp]
 	mov	DWORD PTR [eax], 1065024251		; 3f7afafbH
 
-; 1535 :   b = (  5.0f / 255.0f);
+; 1575 :   b = (  5.0f / 255.0f);
 
 	mov	eax, DWORD PTR _b$[ebp]
 	mov	DWORD PTR [eax], 1017159841		; 3ca0a0a1H
 
-; 1536 : }
+; 1576 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -8858,16 +8902,16 @@ _line$ = 8						; size = 4
 ??R<lambda_ae63503cf71297b3d2d4303217ab5e7f>@@QBEHPBD@Z PROC ; <lambda_ae63503cf71297b3d2d4303217ab5e7f>::operator(), COMDAT
 ; _this$ = ecx
 
-; 1518 : {
+; 1558 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1519 :   int num_lines;
-; 1520 : 
-; 1521 :   for ( num_lines = 0;
-; 1522 :           line [num_lines];
+; 1559 :   int num_lines;
+; 1560 : 
+; 1561 :   for ( num_lines = 0;
+; 1562 :           line [num_lines];
 
 	mov	ecx, DWORD PTR _line$[ebp]
 	xor	eax, eax
@@ -8876,7 +8920,7 @@ _line$ = 8						; size = 4
 	npad	2
 $LL7@operator:
 
-; 1523 :             line [num_lines] == '\n' ?  num_lines++ :
+; 1563 :             line [num_lines] == '\n' ?  num_lines++ :
 
 	cmp	BYTE PTR [eax+ecx], 10			; 0000000aH
 	jne	SHORT $LN6@operator
@@ -8886,19 +8930,19 @@ $LN6@operator:
 	inc	ecx
 $LN9@operator:
 
-; 1519 :   int num_lines;
-; 1520 : 
-; 1521 :   for ( num_lines = 0;
-; 1522 :           line [num_lines];
+; 1559 :   int num_lines;
+; 1560 : 
+; 1561 :   for ( num_lines = 0;
+; 1562 :           line [num_lines];
 
 	cmp	BYTE PTR [eax+ecx], 0
 	jne	SHORT $LL7@operator
 $LN3@operator:
 
-; 1524 :                                        *line++ );
-; 1525 : 
-; 1526 :   return num_lines;
-; 1527 : };
+; 1564 :                                        *line++ );
+; 1565 : 
+; 1566 :   return num_lines;
+; 1567 : };
 
 	pop	ebp
 	ret	4
@@ -8915,95 +8959,95 @@ _str$ = 8						; size = 4
 _seps$ = 12						; size = 4
 ?strtok_ex@@YAPADPAD0@Z PROC				; strtok_ex
 
-; 1472 : {
+; 1512 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1473 :   static char *tpos,
-; 1474 :               *tkn,
-; 1475 :               *pos = nullptr;
-; 1476 :   static char savech;
-; 1477 : 
-; 1478 :   if (str != nullptr)
+; 1513 :   static char *tpos,
+; 1514 :               *tkn,
+; 1515 :               *pos = nullptr;
+; 1516 :   static char savech;
+; 1517 : 
+; 1518 :   if (str != nullptr)
 
 	mov	eax, DWORD PTR _str$[ebp]
 	test	eax, eax
 	je	SHORT $LN6@strtok_ex
 
-; 1479 :   {
-; 1480 :     pos    = str;
+; 1519 :   {
+; 1520 :     pos    = str;
 
 	mov	DWORD PTR ?pos@?1??strtok_ex@@YAPADPAD0@Z@4PADA, eax
 
-; 1481 :     savech = 'x';
+; 1521 :     savech = 'x';
 
 	mov	BYTE PTR ?savech@?1??strtok_ex@@YAPADPAD0@Z@4DA, 120 ; 00000078H
 
-; 1482 :   }
-; 1483 : 
-; 1484 :   else
+; 1522 :   }
+; 1523 : 
+; 1524 :   else
 
 	jmp	SHORT $LN9@strtok_ex
 $LN6@strtok_ex:
 
-; 1485 :   {
-; 1486 :     if (pos == nullptr)
+; 1525 :   {
+; 1526 :     if (pos == nullptr)
 
 	mov	eax, DWORD PTR ?pos@?1??strtok_ex@@YAPADPAD0@Z@4PADA
 	test	eax, eax
 	jne	SHORT $LN14@strtok_ex
 $LN27@strtok_ex:
 
-; 1487 :       return nullptr;
+; 1527 :       return nullptr;
 
 	xor	eax, eax
 
-; 1512 : 
-; 1513 :   return pos;
-; 1514 : }
+; 1552 : 
+; 1553 :   return pos;
+; 1554 : }
 
 	pop	ebp
 	ret	0
 $LN14@strtok_ex:
 
-; 1488 : 
-; 1489 :     while (*pos != '\0')
+; 1528 : 
+; 1529 :     while (*pos != '\0')
 
 	cmp	BYTE PTR [eax], 0
 	je	SHORT $LN3@strtok_ex
 	npad	4
 $LL2@strtok_ex:
 
-; 1490 :       pos++;
+; 1530 :       pos++;
 
 	inc	eax
 	cmp	BYTE PTR [eax], 0
 	jne	SHORT $LL2@strtok_ex
 $LN3@strtok_ex:
 
-; 1491 : 
-; 1492 :     *pos++ = savech;
+; 1531 : 
+; 1532 :     *pos++ = savech;
 
 	mov	cl, BYTE PTR ?savech@?1??strtok_ex@@YAPADPAD0@Z@4DA
 	mov	BYTE PTR [eax], cl
 	inc	eax
 	mov	DWORD PTR ?pos@?1??strtok_ex@@YAPADPAD0@Z@4PADA, eax
 
-; 1493 :   }
-; 1494 : 
-; 1495 :   if (savech == '\0')
+; 1533 :   }
+; 1534 : 
+; 1535 :   if (savech == '\0')
 
 	test	cl, cl
 	je	SHORT $LN27@strtok_ex
 $LN9@strtok_ex:
 
-; 1496 :     return nullptr;
-; 1497 : 
-; 1498 :   tpos = pos;
-; 1499 : 
-; 1500 :   while (*tpos != '\0')
+; 1536 :     return nullptr;
+; 1537 : 
+; 1538 :   tpos = pos;
+; 1539 : 
+; 1540 :   while (*tpos != '\0')
 
 	cmp	BYTE PTR [eax], 0
 	mov	edx, eax
@@ -9015,7 +9059,7 @@ $LN9@strtok_ex:
 	mov	edi, DWORD PTR __imp__strchr
 $LL4@strtok_ex:
 
-; 1502 :     tkn = strchr (seps, *tpos);
+; 1542 :     tkn = strchr (seps, *tpos);
 
 	movsx	eax, BYTE PTR [edx]
 ; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h
@@ -9027,7 +9071,7 @@ $LL4@strtok_ex:
 	call	edi
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1507 :     tpos++;
+; 1547 :     tpos++;
 
 	mov	edx, DWORD PTR ?tpos@?1??strtok_ex@@YAPADPAD0@Z@4PADA
 ; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h
@@ -9037,17 +9081,17 @@ $LL4@strtok_ex:
 	add	esp, 8
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1502 :     tkn = strchr (seps, *tpos);
+; 1542 :     tkn = strchr (seps, *tpos);
 
 	mov	DWORD PTR ?tkn@?1??strtok_ex@@YAPADPAD0@Z@4PADA, eax
 
-; 1503 : 
-; 1504 :     if (tkn != nullptr)
+; 1543 : 
+; 1544 :     if (tkn != nullptr)
 
 	test	eax, eax
 	jne	SHORT $LN23@strtok_ex
 
-; 1507 :     tpos++;
+; 1547 :     tpos++;
 
 	inc	edx
 	mov	DWORD PTR ?tpos@?1??strtok_ex@@YAPADPAD0@Z@4PADA, edx
@@ -9055,31 +9099,31 @@ $LL4@strtok_ex:
 	jne	SHORT $LL4@strtok_ex
 $LN23@strtok_ex:
 
-; 1496 :     return nullptr;
-; 1497 : 
-; 1498 :   tpos = pos;
-; 1499 : 
-; 1500 :   while (*tpos != '\0')
+; 1536 :     return nullptr;
+; 1537 : 
+; 1538 :   tpos = pos;
+; 1539 : 
+; 1540 :   while (*tpos != '\0')
 
 	mov	eax, DWORD PTR ?pos@?1??strtok_ex@@YAPADPAD0@Z@4PADA
 	pop	edi
 	pop	esi
 $LN16@strtok_ex:
 
-; 1508 :   }
-; 1509 : 
-; 1510 :    savech = *tpos;
+; 1548 :   }
+; 1549 : 
+; 1550 :    savech = *tpos;
 
 	mov	cl, BYTE PTR [edx]
 	mov	BYTE PTR ?savech@?1??strtok_ex@@YAPADPAD0@Z@4DA, cl
 
-; 1511 :   *tpos   =  '\0';
+; 1551 :   *tpos   =  '\0';
 
 	mov	BYTE PTR [edx], 0
 
-; 1512 : 
-; 1513 :   return pos;
-; 1514 : }
+; 1552 : 
+; 1553 :   return pos;
+; 1554 : }
 
 	pop	ebp
 	ret	0
@@ -9093,7 +9137,7 @@ _TEXT	ENDS
 text$di	SEGMENT
 ??__Eframe_history2@@YAXXZ PROC				; `dynamic initializer for 'frame_history2'', COMDAT
 
-; 470  : SK::Framerate::Stats frame_history2;
+; 508  : SK::Framerate::Stats frame_history2;
 
 	mov	ecx, 120				; 00000078H
 ; File c:\users\andon\source\repos\specialk\include\specialk\framerate.h
@@ -9128,7 +9172,7 @@ $LL6@dynamic:
 	call	DWORD PTR __imp__QueryPerformanceFrequency@4
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 470  : SK::Framerate::Stats frame_history2;
+; 508  : SK::Framerate::Stats frame_history2;
 
 	ret	0
 ??__Eframe_history2@@YAXXZ ENDP				; `dynamic initializer for 'frame_history2''
@@ -9141,7 +9185,7 @@ text$di	ENDS
 text$di	SEGMENT
 ??__Eframe_history@@YAXXZ PROC				; `dynamic initializer for 'frame_history'', COMDAT
 
-; 469  : SK::Framerate::Stats frame_history;
+; 507  : SK::Framerate::Stats frame_history;
 
 	mov	ecx, 120				; 00000078H
 ; File c:\users\andon\source\repos\specialk\include\specialk\framerate.h
@@ -9176,7 +9220,7 @@ $LL6@dynamic:
 	call	DWORD PTR __imp__QueryPerformanceFrequency@4
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 469  : SK::Framerate::Stats frame_history;
+; 507  : SK::Framerate::Stats frame_history;
 
 	ret	0
 ??__Eframe_history@@YAXXZ ENDP				; `dynamic initializer for 'frame_history''
@@ -9191,7 +9235,7 @@ _szAppName$ = 8						; size = 4
 _szText$ = 12						; size = 4
 ?SKX_DrawExternalOSD@@YGHPBD0@Z PROC			; SKX_DrawExternalOSD
 
-; 433  : {
+; 471  : {
 
 	npad	2
 	push	ebp
@@ -9221,20 +9265,20 @@ $LL10@SKX_DrawEx:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 436  :   SK_UpdateOSD (szText, nullptr, szAppName);
+; 474  :   SK_UpdateOSD (szText, nullptr, szAppName);
 
 	push	esi
 	push	0
 	push	DWORD PTR _szText$[ebp]
 	call	?SK_UpdateOSD@@YGHPBDPAX0@Z		; SK_UpdateOSD
 
-; 437  : 
-; 438  :   return TRUE;
+; 475  : 
+; 476  :   return TRUE;
 
 	mov	eax, 1
 	pop	esi
 
-; 439  : }
+; 477  : }
 
 	pop	ebp
 	ret	8
@@ -9344,7 +9388,7 @@ text$di	SEGMENT
 	call	??0?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAE@XZ ; std::_Wrap_alloc<std::allocator<char> >::_Wrap_alloc<std::allocator<char> >
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 417  : std::string external_osd_name;
+; 455  : std::string external_osd_name;
 
 	push	OFFSET ??__Fexternal_osd_name@@YAXXZ	; `dynamic atexit destructor for 'external_osd_name''
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9363,7 +9407,7 @@ text$di	SEGMENT
 	mov	BYTE PTR ?external_osd_name@@3V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@A, 0
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 417  : std::string external_osd_name;
+; 455  : std::string external_osd_name;
 
 	call	_atexit
 	pop	ecx
@@ -9388,17 +9432,17 @@ _in_unit$ = 16						; size = 4
 _out_unit$ = 20						; size = 4
 ?SK_FormatTemperature@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@HW4SK_UNITS@@0@Z PROC ; SK_FormatTemperature
 
-; 392  : {
+; 430  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 36					; 00000024H
 
-; 393  :   int32_t converted;
-; 394  :   wchar_t wszOut [16] = { };
-; 395  : 
-; 396  :   if (in_unit == Celsius && out_unit == Fahrenheit)
+; 431  :   int32_t converted;
+; 432  :   wchar_t wszOut [16] = { };
+; 433  : 
+; 434  :   if (in_unit == Celsius && out_unit == Fahrenheit)
 
 	mov	eax, DWORD PTR _in_unit$[ebp]
 	xorps	xmm0, xmm0
@@ -9410,9 +9454,9 @@ _out_unit$ = 20						; size = 4
 	cmp	DWORD PTR _out_unit$[ebp], 1
 	jne	SHORT $LN4@SK_FormatT
 
-; 397  :   {
-; 398  :     //converted = in_temp * 2 + 30;
-; 399  :     converted = (int32_t)((float)(in_temp) * 9.0f/5.0f + 32.0f);
+; 435  :   {
+; 436  :     //converted = in_temp * 2 + 30;
+; 437  :     converted = (int32_t)((float)(in_temp) * 9.0f/5.0f + 32.0f);
 
 	movd	xmm0, DWORD PTR _in_temp$[ebp]
 	cvtdq2ps xmm0, xmm0
@@ -9420,24 +9464,24 @@ _out_unit$ = 20						; size = 4
 	addss	xmm0, DWORD PTR __real@42000000
 	cvttss2si eax, xmm0
 
-; 400  :     _swprintf (wszOut, L"%#3li°F", converted);
+; 438  :     _swprintf (wszOut, L"%#3li°F", converted);
 
 	push	eax
-	push	OFFSET $SG379052
+	push	OFFSET $SG379136
 	jmp	SHORT $LN34@SK_FormatT
 $LN2@SK_FormatT:
 
-; 401  :   }
-; 402  : 
-; 403  :   else if (in_unit == Fahrenheit && out_unit == Celsius)
+; 439  :   }
+; 440  : 
+; 441  :   else if (in_unit == Fahrenheit && out_unit == Celsius)
 
 	cmp	eax, 1
 	jne	SHORT $LN4@SK_FormatT
 	cmp	DWORD PTR _out_unit$[ebp], 0
 	jne	SHORT $LN4@SK_FormatT
 
-; 404  :   {
-; 405  :     converted = (int32_t)(((float)in_temp - 32.0f) * (5.0f/9.0f));
+; 442  :   {
+; 443  :     converted = (int32_t)(((float)in_temp - 32.0f) * (5.0f/9.0f));
 
 	movd	xmm0, DWORD PTR _in_temp$[ebp]
 	cvtdq2ps xmm0, xmm0
@@ -9445,23 +9489,23 @@ $LN2@SK_FormatT:
 	mulss	xmm0, DWORD PTR __real@3f0e38e4
 	cvttss2si eax, xmm0
 
-; 406  :     _swprintf (wszOut, L"%#2li°C", converted);
+; 444  :     _swprintf (wszOut, L"%#2li°C", converted);
 
 	push	eax
-	push	OFFSET $SG379055
+	push	OFFSET $SG379139
 
-; 407  :   }
-; 408  : 
-; 409  :   else
+; 445  :   }
+; 446  : 
+; 447  :   else
 
 	jmp	SHORT $LN34@SK_FormatT
 $LN4@SK_FormatT:
 
-; 410  :   {
-; 411  :     _swprintf (wszOut, L"%#2li°C", in_temp);
+; 448  :   {
+; 449  :     _swprintf (wszOut, L"%#2li°C", in_temp);
 
 	push	DWORD PTR _in_temp$[ebp]
-	push	OFFSET $SG379056
+	push	OFFSET $SG379140
 $LN34@SK_FormatT:
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
@@ -9526,12 +9570,12 @@ $LL33@SK_FormatT:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 414  :   return wszOut;
+; 452  :   return wszOut;
 
 	mov	eax, esi
 	pop	esi
 
-; 415  : }
+; 453  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -9558,14 +9602,14 @@ _precision$ = 24					; size = 4
 _unit$ = 28						; size = 4
 ?SK_SizeToStringF@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KHHW4SK_UNITS@@@Z PROC ; SK_SizeToStringF
 
-; 357  : {
+; 395  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 132				; 00000084H
 
-; 358  :   wchar_t str [64] = { };
+; 396  :   wchar_t str [64] = { };
 
 	push	128					; 00000080H
 	lea	eax, DWORD PTR _str$[ebp]
@@ -9574,8 +9618,8 @@ _unit$ = 28						; size = 4
 	push	eax
 	call	_memset
 
-; 359  : 
-; 360  :   if (unit == Auto)
+; 397  : 
+; 398  :   if (unit == Auto)
 
 	mov	eax, DWORD PTR _unit$[ebp]
 	add	esp, 12					; 0000000cH
@@ -9584,8 +9628,8 @@ _unit$ = 28						; size = 4
 	cmp	eax, 32					; 00000020H
 	jne	SHORT $LN10@SK_SizeToS
 
-; 361  :   {
-; 362  :     if      (size > (1ULL << 32ULL)) unit = GiB;
+; 399  :   {
+; 400  :     if      (size > (1ULL << 32ULL)) unit = GiB;
 
 	cmp	edx, 1
 	jb	SHORT $LN5@SK_SizeToS
@@ -9597,40 +9641,40 @@ $LN42@SK_SizeToS:
 	jmp	SHORT $LN10@SK_SizeToS
 $LN5@SK_SizeToS:
 
-; 363  :     else if (size > (1ULL << 22ULL)) unit = MiB;
+; 401  :     else if (size > (1ULL << 22ULL)) unit = MiB;
 
 	test	edx, edx
 	jne	SHORT $LN43@SK_SizeToS
 	cmp	ecx, 4194304				; 00400000H
 	ja	SHORT $LN43@SK_SizeToS
 
-; 364  :     else if (size > (1ULL << 12ULL)) unit = KiB;
+; 402  :     else if (size > (1ULL << 12ULL)) unit = KiB;
 
 	test	edx, edx
 	jne	SHORT $LN44@SK_SizeToS
 	cmp	ecx, 4096				; 00001000H
 	ja	SHORT $LN44@SK_SizeToS
 
-; 365  :     else                             unit = B;
+; 403  :     else                             unit = B;
 
 	lea	eax, DWORD PTR [edx+2]
 	jmp	SHORT $LN10@SK_SizeToS
 $LN44@SK_SizeToS:
 
-; 364  :     else if (size > (1ULL << 12ULL)) unit = KiB;
+; 402  :     else if (size > (1ULL << 12ULL)) unit = KiB;
 
 	mov	eax, 3
 	jmp	SHORT $LN10@SK_SizeToS
 $LN43@SK_SizeToS:
 
-; 363  :     else if (size > (1ULL << 22ULL)) unit = MiB;
+; 401  :     else if (size > (1ULL << 22ULL)) unit = MiB;
 
 	mov	eax, 4
 $LN10@SK_SizeToS:
 
-; 366  :   }
-; 367  : 
-; 368  :   switch (unit)
+; 404  :   }
+; 405  : 
+; 406  :   switch (unit)
 
 	sub	eax, 3
 	je	$LN13@SK_SizeToS
@@ -9639,10 +9683,10 @@ $LN10@SK_SizeToS:
 	sub	eax, 1
 	je	SHORT $LN11@SK_SizeToS
 
-; 380  :     break;
-; 381  :   case B:
-; 382  :   default:
-; 383  :     _swprintf (str, L"%#*llu Bytes", width-1-precision, size);
+; 418  :     break;
+; 419  :   case B:
+; 420  :   default:
+; 421  :     _swprintf (str, L"%#*llu Bytes", width-1-precision, size);
 
 	mov	eax, DWORD PTR _width$[ebp]
 	sub	eax, DWORD PTR _precision$[ebp]
@@ -9651,16 +9695,16 @@ $LN10@SK_SizeToS:
 	dec	eax
 	push	eax
 	lea	eax, DWORD PTR _str$[ebp]
-	push	OFFSET $SG379037
+	push	OFFSET $SG379121
 	push	eax
 	call	__swprintf
 	add	esp, 20					; 00000014H
 	jmp	$LN2@SK_SizeToS
 $LN11@SK_SizeToS:
 
-; 369  :   {
-; 370  :   case GiB:
-; 371  :     _swprintf (str, L"%#*.*f GiB", width, precision,
+; 407  :   {
+; 408  :   case GiB:
+; 409  :     _swprintf (str, L"%#*.*f GiB", width, precision,
 
 	call	__ultod3
 	cvtsd2ss xmm0, xmm0
@@ -9670,16 +9714,16 @@ $LN11@SK_SizeToS:
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _precision$[ebp]
 	push	DWORD PTR _width$[ebp]
-	push	OFFSET $SG379031
+	push	OFFSET $SG379115
 
-; 372  :               (float)size / (1024.0f * 1024.0f * 1024.0f));
-; 373  :     break;
+; 410  :               (float)size / (1024.0f * 1024.0f * 1024.0f));
+; 411  :     break;
 
 	jmp	SHORT $LN46@SK_SizeToS
 $LN12@SK_SizeToS:
 
-; 374  :   case MiB:
-; 375  :     _swprintf (str, L"%#*.*f MiB", width, precision,
+; 412  :   case MiB:
+; 413  :     _swprintf (str, L"%#*.*f MiB", width, precision,
 
 	call	__ultod3
 	cvtsd2ss xmm0, xmm0
@@ -9689,16 +9733,16 @@ $LN12@SK_SizeToS:
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _precision$[ebp]
 	push	DWORD PTR _width$[ebp]
-	push	OFFSET $SG379033
+	push	OFFSET $SG379117
 
-; 376  :               (float)size / (1024.0f * 1024.0f));
-; 377  :     break;
+; 414  :               (float)size / (1024.0f * 1024.0f));
+; 415  :     break;
 
 	jmp	SHORT $LN46@SK_SizeToS
 $LN13@SK_SizeToS:
 
-; 378  :   case KiB:
-; 379  :     _swprintf (str, L"%#*.*f KiB", width, precision, (float)size / 1024.0f);
+; 416  :   case KiB:
+; 417  :     _swprintf (str, L"%#*.*f KiB", width, precision, (float)size / 1024.0f);
 
 	call	__ultod3
 	cvtsd2ss xmm0, xmm0
@@ -9708,7 +9752,7 @@ $LN13@SK_SizeToS:
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _precision$[ebp]
 	push	DWORD PTR _width$[ebp]
-	push	OFFSET $SG379035
+	push	OFFSET $SG379119
 $LN46@SK_SizeToS:
 	lea	eax, DWORD PTR _str$[ebp]
 	push	eax
@@ -9777,12 +9821,12 @@ $LL45@SK_SizeToS:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 387  :   return str;
+; 425  :   return str;
 
 	mov	eax, esi
 	pop	esi
 
-; 388  : }
+; 426  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -9806,14 +9850,14 @@ _size$ = 12						; size = 8
 _unit$ = 20						; size = 4
 ?SK_SizeToString@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KW4SK_UNITS@@@Z PROC ; SK_SizeToString
 
-; 324  : {
+; 362  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 132				; 00000084H
 
-; 325  :   wchar_t str [64] = { };
+; 363  :   wchar_t str [64] = { };
 
 	push	128					; 00000080H
 	lea	eax, DWORD PTR _str$[ebp]
@@ -9822,8 +9866,8 @@ _unit$ = 20						; size = 4
 	push	eax
 	call	_memset
 
-; 326  : 
-; 327  :   if (unit == Auto)
+; 364  : 
+; 365  :   if (unit == Auto)
 
 	mov	edx, DWORD PTR _unit$[ebp]
 	add	esp, 12					; 0000000cH
@@ -9832,8 +9876,8 @@ _unit$ = 20						; size = 4
 	cmp	edx, 32					; 00000020H
 	jne	SHORT $LN10@SK_SizeToS
 
-; 328  :   {
-; 329  :     if      (size > (1ULL << 32ULL)) unit = GiB;
+; 366  :   {
+; 367  :     if      (size > (1ULL << 32ULL)) unit = GiB;
 
 	cmp	eax, 1
 	jb	SHORT $LN5@SK_SizeToS
@@ -9845,40 +9889,40 @@ $LN42@SK_SizeToS:
 	jmp	SHORT $LN10@SK_SizeToS
 $LN5@SK_SizeToS:
 
-; 330  :     else if (size > (1ULL << 22ULL)) unit = MiB;
+; 368  :     else if (size > (1ULL << 22ULL)) unit = MiB;
 
 	test	eax, eax
 	jne	SHORT $LN43@SK_SizeToS
 	cmp	ecx, 4194304				; 00400000H
 	ja	SHORT $LN43@SK_SizeToS
 
-; 331  :     else if (size > (1ULL << 12ULL)) unit = KiB;
+; 369  :     else if (size > (1ULL << 12ULL)) unit = KiB;
 
 	test	eax, eax
 	jne	SHORT $LN44@SK_SizeToS
 	cmp	ecx, 4096				; 00001000H
 	ja	SHORT $LN44@SK_SizeToS
 
-; 332  :     else                             unit = B;
+; 370  :     else                             unit = B;
 
 	lea	edx, DWORD PTR [eax+2]
 	jmp	SHORT $LN10@SK_SizeToS
 $LN44@SK_SizeToS:
 
-; 331  :     else if (size > (1ULL << 12ULL)) unit = KiB;
+; 369  :     else if (size > (1ULL << 12ULL)) unit = KiB;
 
 	mov	edx, 3
 	jmp	SHORT $LN10@SK_SizeToS
 $LN43@SK_SizeToS:
 
-; 330  :     else if (size > (1ULL << 22ULL)) unit = MiB;
+; 368  :     else if (size > (1ULL << 22ULL)) unit = MiB;
 
 	mov	edx, 4
 $LN10@SK_SizeToS:
 
-; 333  :   }
-; 334  : 
-; 335  :   switch (unit)
+; 371  :   }
+; 372  : 
+; 373  :   switch (unit)
 
 	sub	edx, 3
 	je	SHORT $LN13@SK_SizeToS
@@ -9887,54 +9931,54 @@ $LN10@SK_SizeToS:
 	sub	edx, 1
 	je	SHORT $LN11@SK_SizeToS
 
-; 345  :       break;
-; 346  :     case B:
-; 347  :     default:
-; 348  :       _swprintf (str, L"%#3llu Bytes", size);
+; 383  :       break;
+; 384  :     case B:
+; 385  :     default:
+; 386  :       _swprintf (str, L"%#3llu Bytes", size);
 
 	push	eax
 	push	ecx
-	push	OFFSET $SG379009
+	push	OFFSET $SG379093
 	jmp	SHORT $LN46@SK_SizeToS
 $LN11@SK_SizeToS:
 
-; 336  :   {
-; 337  :     case GiB:
-; 338  :       _swprintf (str, L"%#5llu GiB", size >> 30);
+; 374  :   {
+; 375  :     case GiB:
+; 376  :       _swprintf (str, L"%#5llu GiB", size >> 30);
 
 	shrd	ecx, eax, 30
 	shr	eax, 30					; 0000001eH
 	push	eax
 	push	ecx
-	push	OFFSET $SG379003
+	push	OFFSET $SG379087
 
-; 339  :       break;
+; 377  :       break;
 
 	jmp	SHORT $LN46@SK_SizeToS
 $LN12@SK_SizeToS:
 
-; 340  :     case MiB:
-; 341  :       _swprintf (str, L"%#5llu MiB", size >> 20);
+; 378  :     case MiB:
+; 379  :       _swprintf (str, L"%#5llu MiB", size >> 20);
 
 	shrd	ecx, eax, 20
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG379005
+	push	OFFSET $SG379089
 
-; 342  :       break;
+; 380  :       break;
 
 	jmp	SHORT $LN46@SK_SizeToS
 $LN13@SK_SizeToS:
 
-; 343  :     case KiB:
-; 344  :       _swprintf (str, L"%#5llu KiB", size >> 10);
+; 381  :     case KiB:
+; 382  :       _swprintf (str, L"%#5llu KiB", size >> 10);
 
 	shrd	ecx, eax, 10
 	shr	eax, 10					; 0000000aH
 	push	eax
 	push	ecx
-	push	OFFSET $SG379007
+	push	OFFSET $SG379091
 $LN46@SK_SizeToS:
 	lea	eax, DWORD PTR _str$[ebp]
 	push	eax
@@ -9998,12 +10042,12 @@ $LL45@SK_SizeToS:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 352  :   return str;
+; 390  :   return str;
 
 	mov	eax, esi
 	pop	esi
 
-; 353  : }
+; 391  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -10015,13 +10059,13 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsOpenGL@@YA_NXZ PROC				; SK_IsOpenGL
 
-; 309  :   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL);
+; 347  :   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL);
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax], 2
 	sete	al
 
-; 310  : }
+; 348  : }
 
 	ret	0
 ?SK_IsOpenGL@@YA_NXZ ENDP				; SK_IsOpenGL
@@ -10031,13 +10075,13 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsPureD3D12@@YA_NXZ PROC				; SK_IsPureD3D12
 
-; 303  :   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12);
+; 341  :   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12);
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax], 128			; 00000080H
 	sete	al
 
-; 304  : }
+; 342  : }
 
 	ret	0
 ?SK_IsPureD3D12@@YA_NXZ ENDP				; SK_IsPureD3D12
@@ -10047,14 +10091,14 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsD3D12@@YA_NXZ PROC				; SK_IsD3D12
 
-; 297  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D12) != 0x0;
+; 335  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D12) != 0x0;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
 	shr	eax, 7
 	and	eax, 1
 
-; 298  : }
+; 336  : }
 
 	ret	0
 ?SK_IsD3D12@@YA_NXZ ENDP				; SK_IsD3D12
@@ -10064,13 +10108,13 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsPureD3D11@@YG_NXZ PROC				; SK_IsPureD3D11
 
-; 291  :   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11);
+; 329  :   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11);
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax], 64			; 00000040H
 	sete	al
 
-; 292  : }
+; 330  : }
 
 	ret	0
 ?SK_IsPureD3D11@@YG_NXZ ENDP				; SK_IsPureD3D11
@@ -10080,14 +10124,14 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsD3D11@@YG_NXZ PROC				; SK_IsD3D11
 
-; 284  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) != 0x0;
+; 322  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11) != 0x0;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
 	shr	eax, 6
 	and	eax, 1
 
-; 285  : }
+; 323  : }
 
 	ret	0
 ?SK_IsD3D11@@YG_NXZ ENDP				; SK_IsD3D11
@@ -10097,14 +10141,14 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsD3D9@@YG_NXZ PROC					; SK_IsD3D9
 
-; 277  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) != 0x0;
+; 315  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) != 0x0;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
 	shr	eax, 3
 	and	eax, 1
 
-; 278  : }
+; 316  : }
 
 	ret	0
 ?SK_IsD3D9@@YG_NXZ ENDP					; SK_IsD3D9
@@ -10114,14 +10158,14 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsDDraw@@YG_NXZ PROC				; SK_IsDDraw
 
-; 270  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::DDraw) != 0x0;
+; 308  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::DDraw) != 0x0;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
 	shr	eax, 14					; 0000000eH
 	and	eax, 1
 
-; 271  : }
+; 309  : }
 
 	ret	0
 ?SK_IsDDraw@@YG_NXZ ENDP				; SK_IsDDraw
@@ -10131,14 +10175,14 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsD3D8@@YG_NXZ PROC					; SK_IsD3D8
 
-; 263  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D8) != 0x0;
+; 301  :   return ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D8) != 0x0;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
 	shr	eax, 13					; 0000000dH
 	and	eax, 1
 
-; 264  : }
+; 302  : }
 
 	ret	0
 ?SK_IsD3D8@@YG_NXZ ENDP					; SK_IsD3D8
@@ -10149,13 +10193,13 @@ _TEXT	SEGMENT
 _dwProcID$ = 8						; size = 4
 ?SK_GetSharedMemory@@YGPAXK@Z PROC			; SK_GetSharedMemory
 
-; 244  :   UNREFERENCED_PARAMETER (dwProcID);
-; 245  : 
-; 246  :   return nullptr;
+; 282  :   UNREFERENCED_PARAMETER (dwProcID);
+; 283  : 
+; 284  :   return nullptr;
 
 	xor	eax, eax
 
-; 247  : }
+; 285  : }
 
 	ret	4
 ?SK_GetSharedMemory@@YGPAXK@Z ENDP			; SK_GetSharedMemory
@@ -13106,30 +13150,30 @@ _TEXT	SEGMENT
 ?Leave@SK_AutoCriticalSection@@IAEXXZ PROC		; SK_AutoCriticalSection::Leave, COMDAT
 ; _this$ = ecx
 
-; 335  :   {
+; 338  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 336  :     if (acquired_ != false)
+; 339  :     if (acquired_ != false)
 
 	cmp	BYTE PTR [esi], 0
 	je	SHORT $LN4@Leave
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 $LN4@Leave:
 
-; 338  : 
-; 339  :     acquired_ = false;
+; 341  : 
+; 342  :     acquired_ = false;
 
 	mov	BYTE PTR [esi], 0
 	pop	esi
 
-; 340  :   }
+; 343  :   }
 
 	ret	0
 ?Leave@SK_AutoCriticalSection@@IAEXXZ ENDP		; SK_AutoCriticalSection::Leave
@@ -13141,24 +13185,24 @@ _TEXT	SEGMENT
 ?Enter@SK_AutoCriticalSection@@IAEXXZ PROC		; SK_AutoCriticalSection::Enter, COMDAT
 ; _this$ = ecx
 
-; 328  :   {
+; 331  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 330  : 
-; 331  :     acquired_ = true;
+; 333  : 
+; 334  :     acquired_ = true;
 
 	mov	BYTE PTR [esi], 1
 	pop	esi
 
-; 332  :   }
+; 335  :   }
 
 	ret	0
 ?Enter@SK_AutoCriticalSection@@IAEXXZ ENDP		; SK_AutoCriticalSection::Enter
@@ -13170,13 +13214,13 @@ _TEXT	SEGMENT
 ?TryEnter@SK_AutoCriticalSection@@IAE_NXZ PROC		; SK_AutoCriticalSection::TryEnter, COMDAT
 ; _this$ = ecx
 
-; 323  :   {
+; 326  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 324  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
+; 327  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
 
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__TryEnterCriticalSection@4
@@ -13186,7 +13230,7 @@ _TEXT	SEGMENT
 	mov	BYTE PTR [esi], al
 	pop	esi
 
-; 325  :   }
+; 328  :   }
 
 	ret	0
 ?TryEnter@SK_AutoCriticalSection@@IAE_NXZ ENDP		; SK_AutoCriticalSection::TryEnter
@@ -13198,31 +13242,31 @@ _TEXT	SEGMENT
 ??1SK_AutoCriticalSection@@QAE@XZ PROC			; SK_AutoCriticalSection::~SK_AutoCriticalSection, COMDAT
 ; _this$ = ecx
 
-; 305  :   {
+; 308  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 336  :     if (acquired_ != false)
+; 339  :     if (acquired_ != false)
 
 	cmp	BYTE PTR [esi], 0
 	je	SHORT $LN6@SK_AutoCri
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 $LN6@SK_AutoCri:
 
-; 338  : 
-; 339  :     acquired_ = false;
+; 341  : 
+; 342  :     acquired_ = false;
 
 	mov	BYTE PTR [esi], 0
 	pop	esi
 
-; 306  :     Leave ();
-; 307  :   }
+; 309  :     Leave ();
+; 310  :   }
 
 	ret	0
 ??1SK_AutoCriticalSection@@QAE@XZ ENDP			; SK_AutoCriticalSection::~SK_AutoCriticalSection
@@ -13236,51 +13280,51 @@ _try_only$ = 12						; size = 1
 ??0SK_AutoCriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@_N@Z PROC ; SK_AutoCriticalSection::SK_AutoCriticalSection, COMDAT
 ; _this$ = ecx
 
-; 291  :   SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
+; 294  :   SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 296  : 
-; 297  :     if (try_only)
+; 299  : 
+; 300  :     if (try_only)
 
 	cmp	BYTE PTR _try_only$[ebp], 0
 	mov	eax, DWORD PTR _pCS$[ebp]
 	push	esi
 	mov	esi, ecx
 
-; 324  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
+; 327  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
 
 	push	eax
 
-; 292  :                            bool              try_only = false )
-; 293  :   {
-; 294  :     acquired_ = false;
+; 295  :                            bool              try_only = false )
+; 296  :   {
+; 297  :     acquired_ = false;
 
 	mov	BYTE PTR [esi], 0
 
-; 295  :     cs_       = pCS;
+; 298  :     cs_       = pCS;
 
 	mov	DWORD PTR [esi+4], eax
 
-; 296  : 
-; 297  :     if (try_only)
+; 299  : 
+; 300  :     if (try_only)
 
 	je	SHORT $LN2@SK_AutoCri
 
-; 324  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
+; 327  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
 
 	call	DWORD PTR __imp__TryEnterCriticalSection@4
 	test	eax, eax
 	setne	al
 	mov	BYTE PTR [esi], al
 
-; 298  :       TryEnter ();
-; 299  :     else {
-; 300  :       Enter ();
-; 301  :     }
-; 302  :   }
+; 301  :       TryEnter ();
+; 302  :     else {
+; 303  :       Enter ();
+; 304  :     }
+; 305  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -13288,20 +13332,20 @@ _try_only$ = 12						; size = 1
 	ret	8
 $LN2@SK_AutoCri:
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 330  : 
-; 331  :     acquired_ = true;
+; 333  : 
+; 334  :     acquired_ = true;
 
 	mov	BYTE PTR [esi], 1
 
-; 298  :       TryEnter ();
-; 299  :     else {
-; 300  :       Enter ();
-; 301  :     }
-; 302  :   }
+; 301  :       TryEnter ();
+; 302  :     else {
+; 303  :       Enter ();
+; 304  :     }
+; 305  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -13324,48 +13368,215 @@ _val$ = 12						; size = 4
 ?OnVarChange@SK_TextOverlayManager@@UAE_NPAUSK_IVariable@@PAX@Z PROC ; SK_TextOverlayManager::OnVarChange
 ; _this$ = ecx
 
-; 1923 : {
+; 1963 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ebx
-
-; 1924 :   if (var == pos_.x || var == pos_.y || var == scale_)
-
-	mov	ebx, DWORD PTR _var$[ebp]
+	mov	ebx, ecx
 	push	edi
-	mov	edi, ecx
-	mov	eax, DWORD PTR [edi+20]
-	cmp	ebx, eax
-	je	SHORT $LN187@OnVarChang
-	cmp	ebx, DWORD PTR [edi+24]
-	je	SHORT $LN5@OnVarChang
-	cmp	ebx, DWORD PTR [edi+28]
-	je	SHORT $LN5@OnVarChang
 
-; 1954 :   }
-; 1955 : 
-; 1956 :   return false;
+; 1964 :   if (var == pos_.x || var == pos_.y || var == scale_)
 
+	mov	edi, DWORD PTR _var$[ebp]
+	mov	eax, DWORD PTR [ebx+20]
+	cmp	edi, eax
+	je	$LN199@OnVarChang
+	cmp	edi, DWORD PTR [ebx+24]
+	je	$LN5@OnVarChang
+	cmp	edi, DWORD PTR [ebx+28]
+	je	$LN5@OnVarChang
+
+; 1994 :   }
+; 1995 : 
+; 1996 : 
+; 1997 : 
+; 1998 :   void
+; 1999 :   __stdcall
+; 2000 :   SK_StartPerfMonThreads (void);
+; 2001 : 
+; 2002 : 
+; 2003 :   if ( var == mem_.show  ||
+; 2004 :        var == cpu_.show  ||
+; 2005 :        var == disk_.show ||
+
+	cmp	edi, DWORD PTR [ebx+52]
+	je	$LN17@OnVarChang
+	cmp	edi, DWORD PTR [ebx+56]
+	je	$LN17@OnVarChang
+	cmp	edi, DWORD PTR [ebx+44]
+	je	SHORT $LN17@OnVarChang
+	cmp	edi, DWORD PTR [ebx+48]
+	je	SHORT $LN17@OnVarChang
+
+; 2012 : 
+; 2013 :     return true;
+; 2014 :   }
+; 2015 : 
+; 2016 :   else if (var == sli_.show)
+
+	cmp	edi, DWORD PTR [ebx+68]
+	jne	SHORT $LN19@OnVarChang
+
+; 2017 :   {
+; 2018 :     if (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs () > 1)
+
+	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
+	je	SHORT $LN21@OnVarChang
+	cmp	BYTE PTR ?nv_hardware@NVAPI@sk@@3_NA, 0	; sk::NVAPI::nv_hardware
+	je	SHORT $LN21@OnVarChang
+	call	?CountSLIGPUs@NVAPI@sk@@YAHXZ		; sk::NVAPI::CountSLIGPUs
+	cmp	eax, 1
+	jle	SHORT $LN21@OnVarChang
+$LN24@OnVarChang:
+
+; 2019 :     {
+; 2020 :       *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	call	DWORD PTR [eax+8]
+	mov	ecx, DWORD PTR _val$[ebp]
 	pop	edi
+	pop	ebx
+	mov	cl, BYTE PTR [ecx]
+	mov	BYTE PTR [eax], cl
+	mov	al, 1
+
+; 2043 : 
+; 2044 :     return true;
+; 2045 :   }
+; 2046 : 
+; 2047 :   return false;
+; 2048 : }
+
+	pop	ebp
+	ret	8
+$LN21@OnVarChang:
+	pop	edi
+
+; 2021 : 
+; 2022 :       return true;
+; 2023 :     }
+; 2024 : 
+; 2025 :     return false;
+
 	xor	al, al
 	pop	ebx
 
-; 1957 : }
+; 2043 : 
+; 2044 :     return true;
+; 2045 :   }
+; 2046 : 
+; 2047 :   return false;
+; 2048 : }
+
+	pop	ebp
+	ret	8
+$LN19@OnVarChang:
+
+; 2026 :   }
+; 2027 : 
+; 2028 :   else if ( var == io_.show  ||
+; 2029 :             var == gpu_.show || 
+
+	cmp	edi, DWORD PTR [ebx+60]
+	je	SHORT $LN24@OnVarChang
+	cmp	edi, DWORD PTR [ebx+40]
+	je	SHORT $LN24@OnVarChang
+	cmp	edi, DWORD PTR [ebx+36]
+	je	SHORT $LN24@OnVarChang
+
+; 2030 :             var == fps_.show )
+; 2031 :   {
+; 2032 :     *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+; 2033 : 
+; 2034 :     return true;
+; 2035 :   }
+; 2036 : 
+; 2037 :   else if (var == osd_.show)
+
+	cmp	edi, DWORD PTR [ebx+32]
+	jne	SHORT $LN21@OnVarChang
+
+; 2038 :   {
+; 2039 :     *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	call	DWORD PTR [eax+8]
+	mov	edx, DWORD PTR _val$[ebp]
+	mov	cl, BYTE PTR [edx]
+	mov	BYTE PTR [eax], cl
+
+; 2040 : 
+; 2041 :     if (*static_cast <bool *> (val))
+
+	cmp	BYTE PTR [edx], 0
+	je	$LN200@OnVarChang
+
+; 2042 :       SK_InstallOSD ();
+
+	call	?SK_InstallOSD@@YGXXZ			; SK_InstallOSD
+	pop	edi
+	mov	al, 1
+	pop	ebx
+
+; 2043 : 
+; 2044 :     return true;
+; 2045 :   }
+; 2046 : 
+; 2047 :   return false;
+; 2048 : }
+
+	pop	ebp
+	ret	8
+$LN17@OnVarChang:
+
+; 2006 :        var == pagefile_.show )
+; 2007 :   {
+; 2008 :     *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	call	DWORD PTR [eax+8]
+	mov	edx, DWORD PTR _val$[ebp]
+	mov	cl, BYTE PTR [edx]
+	mov	BYTE PTR [eax], cl
+
+; 2009 : 
+; 2010 :     if (*static_cast <bool *> (val))
+
+	cmp	BYTE PTR [edx], 0
+	je	$LN200@OnVarChang
+
+; 2011 :       SK_StartPerfMonThreads ();
+
+	call	?SK_StartPerfMonThreads@@YGXXZ		; SK_StartPerfMonThreads
+	pop	edi
+	mov	al, 1
+	pop	ebx
+
+; 2043 : 
+; 2044 :     return true;
+; 2045 :   }
+; 2046 : 
+; 2047 :   return false;
+; 2048 : }
 
 	pop	ebp
 	ret	8
 $LN5@OnVarChang:
 
-; 1925 :   {
-; 1926 :     if (var == pos_.x)
+; 1965 :   {
+; 1966 :     if (var == pos_.x)
 
-	cmp	ebx, eax
+	cmp	edi, eax
 	jne	SHORT $LN6@OnVarChang
-$LN187@OnVarChang:
+$LN199@OnVarChang:
 
-; 1927 :       config.osd.pos_x = *static_cast <signed int *> (val);
+; 1967 :       config.osd.pos_x = *static_cast <signed int *> (val);
 
 	mov	eax, DWORD PTR _val$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -13373,13 +13584,13 @@ $LN187@OnVarChang:
 	jmp	SHORT $LN10@OnVarChang
 $LN6@OnVarChang:
 
-; 1928 : 
-; 1929 :     else if (var == pos_.y)
+; 1968 : 
+; 1969 :     else if (var == pos_.y)
 
-	cmp	ebx, DWORD PTR [edi+24]
+	cmp	edi, DWORD PTR [ebx+24]
 	jne	SHORT $LN8@OnVarChang
 
-; 1930 :       config.osd.pos_y = *static_cast <signed int *> (val);
+; 1970 :       config.osd.pos_y = *static_cast <signed int *> (val);
 
 	mov	eax, DWORD PTR _val$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -13387,13 +13598,13 @@ $LN6@OnVarChang:
 	jmp	SHORT $LN10@OnVarChang
 $LN8@OnVarChang:
 
-; 1931 : 
-; 1932 :     else if (var == scale_)
+; 1971 : 
+; 1972 :     else if (var == scale_)
 
-	cmp	ebx, DWORD PTR [edi+28]
+	cmp	edi, DWORD PTR [ebx+28]
 	jne	SHORT $LN10@OnVarChang
 
-; 1933 :       config.osd.scale = *static_cast <float *> (val);
+; 1973 :       config.osd.scale = *static_cast <float *> (val);
 
 	mov	eax, DWORD PTR _val$[ebp]
 	movss	xmm0, DWORD PTR [eax]
@@ -13402,7 +13613,7 @@ $LN10@OnVarChang:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 	call	DWORD PTR __imp__EnterCriticalSection@4
@@ -13410,7 +13621,7 @@ $LN10@OnVarChang:
 
 ; 581  : 		return ((_Nodepref)_Pnode->_Left);
 
-	mov	eax, DWORD PTR [edi+12]
+	mov	eax, DWORD PTR [ebx+12]
 
 ; 43   : 		: _Ptr(_Pnode)
 
@@ -13421,38 +13632,38 @@ $LN10@OnVarChang:
 	cmp	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1939 :     while ( it != overlays_.end   () )
+; 1979 :     while ( it != overlays_.end   () )
 
-	je	$LN184@OnVarChang
-	npad	13
+	je	$LN196@OnVarChang
+	npad	2
 $LL2@OnVarChang:
 	movd	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+72
 	movd	xmm1, DWORD PTR ?config@@3Usk_config_t@@A+76
 
-; 1940 :     {
-; 1941 :       auto pos_x = static_cast <float> (config.osd.pos_x);
+; 1980 :     {
+; 1981 :       auto pos_x = static_cast <float> (config.osd.pos_x);
 
 	cvtdq2ps xmm0, xmm0
 
-; 1942 :       auto pos_y = static_cast <float> (config.osd.pos_y);
+; 1982 :       auto pos_y = static_cast <float> (config.osd.pos_y);
 
 	cvtdq2ps xmm1, xmm1
 
-; 1943 : 
-; 1944 :       if (var == pos_.x || var == pos_.y)
+; 1983 : 
+; 1984 :       if (var == pos_.x || var == pos_.y)
 
-	cmp	ebx, DWORD PTR [edi+20]
+	cmp	edi, DWORD PTR [ebx+20]
 	je	SHORT $LN13@OnVarChang
-	cmp	ebx, DWORD PTR [edi+24]
+	cmp	edi, DWORD PTR [ebx+24]
 	je	SHORT $LN13@OnVarChang
 
-; 1946 : 
-; 1947 :       else if (var == scale_)
+; 1986 : 
+; 1987 :       else if (var == scale_)
 
-	cmp	ebx, DWORD PTR [edi+28]
+	cmp	edi, DWORD PTR [ebx+28]
 	jne	SHORT $LN14@OnVarChang
 
-; 1948 :         it->second->setScale (config.osd.scale);
+; 1988 :         it->second->setScale (config.osd.scale);
 
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+68
 	push	ecx
@@ -13462,7 +13673,7 @@ $LL2@OnVarChang:
 	jmp	SHORT $LN14@OnVarChang
 $LN13@OnVarChang:
 
-; 1945 :         it->second->setPos (pos_x, pos_y);
+; 1985 :         it->second->setPos (pos_x, pos_y);
 
 	mov	ecx, DWORD PTR [esi+40]
 	sub	esp, 8
@@ -13475,7 +13686,7 @@ $LN14@OnVarChang:
 ; 60   : 		if (_Mytree::_Isnil(_Ptr))
 
 	cmp	BYTE PTR [esi+13], 0
-	jne	SHORT $LN141@OnVarChang
+	jne	SHORT $LN153@OnVarChang
 
 ; 576  : 		return ((char&)_Pnode->_Isnil);
 
@@ -13484,7 +13695,7 @@ $LN14@OnVarChang:
 ; 62   : 		else if (!_Mytree::_Isnil(_Mytree::_Right(_Ptr)))
 
 	cmp	BYTE PTR [eax+13], 0
-	jne	SHORT $LN175@OnVarChang
+	jne	SHORT $LN187@OnVarChang
 
 ; 63   : 			_Ptr = _Mytree::_Min(
 
@@ -13497,9 +13708,9 @@ $LN14@OnVarChang:
 ; 608  : 		while (!_Isnil(_Left(_Pnode)))
 
 	cmp	BYTE PTR [eax+13], 0
-	jne	SHORT $LN141@OnVarChang
+	jne	SHORT $LN153@OnVarChang
 	npad	4
-$LL152@OnVarChang:
+$LL164@OnVarChang:
 
 ; 609  : 			_Pnode = _Left(_Pnode);
 
@@ -13512,12 +13723,12 @@ $LL152@OnVarChang:
 ; 608  : 		while (!_Isnil(_Left(_Pnode)))
 
 	cmp	BYTE PTR [eax+13], 0
-	je	SHORT $LL152@OnVarChang
+	je	SHORT $LL164@OnVarChang
 
 ; 65   : 		else
 
-	jmp	SHORT $LN141@OnVarChang
-$LN175@OnVarChang:
+	jmp	SHORT $LN153@OnVarChang
+$LN187@OnVarChang:
 
 ; 66   : 			{	// climb looking for right subtree
 ; 67   : 			_Nodeptr _Pnode;
@@ -13526,53 +13737,69 @@ $LN175@OnVarChang:
 
 	mov	eax, DWORD PTR [esi+4]
 	cmp	BYTE PTR [eax+13], 0
-	jne	SHORT $LN185@OnVarChang
-$LL136@OnVarChang:
+	jne	SHORT $LN197@OnVarChang
+$LL148@OnVarChang:
 	cmp	esi, DWORD PTR [eax+8]
-	jne	SHORT $LN185@OnVarChang
+	jne	SHORT $LN197@OnVarChang
 
 ; 70   : 				_Ptr = _Pnode;	// ==> parent while right subtree
 
 	mov	esi, eax
 	mov	eax, DWORD PTR [eax+4]
 	cmp	BYTE PTR [eax+13], 0
-	je	SHORT $LL136@OnVarChang
-$LN185@OnVarChang:
+	je	SHORT $LL148@OnVarChang
+$LN197@OnVarChang:
 
 ; 71   : 			_Ptr = _Pnode;	// ==> parent (head if end())
 
 	mov	esi, eax
-$LN141@OnVarChang:
+$LN153@OnVarChang:
 
 ; 331  : 		return (this->_Ptr == _Right._Ptr);
 
-	cmp	esi, DWORD PTR [edi+12]
+	cmp	esi, DWORD PTR [ebx+12]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1939 :     while ( it != overlays_.end   () )
+; 1979 :     while ( it != overlays_.end   () )
 
 	jne	$LL2@OnVarChang
-$LN184@OnVarChang:
+$LN196@OnVarChang:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 	pop	esi
+$LN200@OnVarChang:
 	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1953 :     return true;
+; 1993 :     return true;
 
 	mov	al, 1
 	pop	ebx
 
-; 1957 : }
+; 2043 : 
+; 2044 :     return true;
+; 2045 :   }
+; 2046 : 
+; 2047 :   return false;
+; 2048 : }
 
 	pop	ebp
 	ret	8
 ?OnVarChange@SK_TextOverlayManager@@UAE_NPAUSK_IVariable@@PAX@Z ENDP ; SK_TextOverlayManager::OnVarChange
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+;	COMDAT ??0<unnamed-type-osd_>@SK_TextOverlayManager@@QAE@XZ
+_TEXT	SEGMENT
+??0<unnamed-type-osd_>@SK_TextOverlayManager@@QAE@XZ PROC ; SK_TextOverlayManager::<unnamed-type-osd_>::<unnamed-type-osd_>, COMDAT
+; _this$ = ecx
+	mov	DWORD PTR [ecx], 0
+	mov	eax, ecx
+	ret	0
+??0<unnamed-type-osd_>@SK_TextOverlayManager@@QAE@XZ ENDP ; SK_TextOverlayManager::<unnamed-type-osd_>::<unnamed-type-osd_>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ;	COMDAT ??0<unnamed-type-pos_>@SK_TextOverlayManager@@QAE@XZ
@@ -17551,6 +17778,8 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
+; File c:\users\andon\source\repos\specialk\include\specialk\osd\text.h
+; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 _TEXT	SEGMENT
 _this$ = -20						; size = 4
 _this$ = -16						; size = 4
@@ -17611,14 +17840,32 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR [esi], eax
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
+; 48   : {
+
+	mov	DWORD PTR [ebx+20], 0
+	mov	DWORD PTR [ebx+24], 0
+; File c:\users\andon\source\repos\specialk\include\specialk\osd\text.h
+
+; 145  :   SK_IVariable*                            scale_ = nullptr;
+
+	mov	DWORD PTR [ebx+28], 0
+	mov	DWORD PTR [ebx+32], 0
+	mov	DWORD PTR [ebx+36], 0
+	mov	DWORD PTR [ebx+40], 0
+	mov	DWORD PTR [ebx+44], 0
+	mov	DWORD PTR [ebx+48], 0
+	mov	DWORD PTR [ebx+52], 0
+	mov	DWORD PTR [ebx+56], 0
+	mov	DWORD PTR [ebx+60], 0
+; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
+
 ; 49   :   InitializeCriticalSectionAndSpinCount (&cs_, 104858);
 
 	push	104858					; 0001999aH
-	mov	DWORD PTR [ebx+20], 0
-	mov	DWORD PTR [ebx+24], 0
+	mov	DWORD PTR [ebx+64], 0
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
-	mov	DWORD PTR [ebx+28], 0
+	mov	DWORD PTR [ebx+68], 0
 	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 
 ; 50   : 
@@ -17646,7 +17893,7 @@ __$EHRec$ = -12						; size = 12
 	mov	esi, DWORD PTR [edi]
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG234248
+	push	OFFSET $SG234298
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
@@ -17658,7 +17905,7 @@ __$EHRec$ = -12						; size = 12
 	push	5
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG234249
+	push	OFFSET $SG234299
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
@@ -17670,7 +17917,7 @@ __$EHRec$ = -12						; size = 12
 	push	5
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG234250
+	push	OFFSET $SG234300
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
@@ -17703,9 +17950,9 @@ __$EHRec$ = -12						; size = 12
 
 	push	DWORD PTR [ebx+20]
 	mov	DWORD PTR [ebx+28], eax
-	mov	ecx, edi
 	mov	eax, DWORD PTR [edi]
-	push	OFFSET $SG234251
+	push	OFFSET $SG234301
+	mov	ecx, edi
 	call	DWORD PTR [eax+20]
 
 ; 66   :   cmd->AddVariable ("OSD.PosY",  pos_.y);
@@ -17713,18 +17960,292 @@ __$EHRec$ = -12						; size = 12
 	push	DWORD PTR [ebx+24]
 	mov	eax, DWORD PTR [edi]
 	mov	ecx, edi
-	push	OFFSET $SG234252
+	push	OFFSET $SG234302
 	call	DWORD PTR [eax+20]
 
 ; 67   :   cmd->AddVariable ("OSD.Scale", scale_);
 
-	mov	eax, DWORD PTR [edi]
 	push	DWORD PTR [ebx+28]
-	push	OFFSET $SG234253
+	mov	eax, DWORD PTR [edi]
 	mov	ecx, edi
+	push	OFFSET $SG234303
 	call	DWORD PTR [eax+20]
 
-; 68   : }
+; 68   : 
+; 69   :   osd_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.osd.show);
+
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+48
+	push	2
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+
+; 70   :   fps_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.fps.show);
+
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+112
+	push	2
+	mov	DWORD PTR [ebx+32], eax
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+
+; 71   :   gpu_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.gpu.show);
+
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+120
+	push	2
+	mov	DWORD PTR [ebx+36], eax
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+
+; 72   :   cpu_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.cpu.show);
+
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+96
+	push	2
+	mov	DWORD PTR [ebx+40], eax
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+
+; 73   :   mem_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.mem.show);
+
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+12
+	push	2
+	mov	DWORD PTR [ebx+56], eax
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+
+; 74   :   disk_.show     = SK_CreateVar (SK_IVariable::Boolean, &config.disk.show);
+
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+132
+	push	2
+	mov	DWORD PTR [ebx+52], eax
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+
+; 75   :   io_.show       = SK_CreateVar (SK_IVariable::Boolean, &config.io.show);
+
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+28
+	push	2
+	mov	DWORD PTR [ebx+44], eax
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+
+; 76   :   pagefile_.show = SK_CreateVar (SK_IVariable::Boolean, &config.pagefile.show);
+
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+148
+	push	2
+	mov	DWORD PTR [ebx+60], eax
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+
+; 77   :   sli_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.sli.show);
+
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+40
+	push	2
+	mov	DWORD PTR [ebx+48], eax
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+
+; 78   : 
+; 79   :   cmd->AddVariable ("OSD.Show",                osd_.show);
+
+	push	DWORD PTR [ebx+32]
+	mov	DWORD PTR [ebx+68], eax
+	mov	ecx, edi
+	mov	eax, DWORD PTR [edi]
+	push	OFFSET $SG234304
+	call	DWORD PTR [eax+20]
+
+; 80   : 
+; 81   :   cmd->AddVariable ("OSD.FPS.Show",            fps_.show);
+
+	push	DWORD PTR [ebx+36]
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	push	OFFSET $SG234305
+	call	DWORD PTR [eax+20]
+
+; 82   :   cmd->AddVariable ("OSD.Shaders.Show",        SK_CreateVar (SK_IVariable::Boolean, &config.render.show));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+508
+	push	2
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234306
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 83   : 
+; 84   :   cmd->AddVariable ("OSD.Memory.Show",         mem_.show);
+
+	push	DWORD PTR [ebx+52]
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	push	OFFSET $SG234307
+	call	DWORD PTR [eax+20]
+
+; 85   :   cmd->AddVariable ("OSD.Memory.UpdateFreq",   SK_CreateVar (SK_IVariable::Float,   &config.mem.interval));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+20
+	push	0
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234308
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 86   : 
+; 87   :   cmd->AddVariable ("OSD.SLI.Show",            sli_.show);
+
+	push	DWORD PTR [ebx+68]
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	push	OFFSET $SG234309
+	call	DWORD PTR [eax+20]
+
+; 88   : 
+; 89   :   cmd->AddVariable ("OSD.CPU.Show",            cpu_.show);
+
+	push	DWORD PTR [ebx+56]
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	push	OFFSET $SG234310
+	call	DWORD PTR [eax+20]
+
+; 90   :   cmd->AddVariable ("OSD.CPU.Simple",          SK_CreateVar (SK_IVariable::Boolean, &config.cpu.simple));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+104
+	push	2
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234311
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 91   :   cmd->AddVariable ("OSD.CPU.UpdateFreq",      SK_CreateVar (SK_IVariable::Float,   &config.cpu.interval));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+100
+	push	0
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234312
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 92   : 
+; 93   :   cmd->AddVariable ("OSD.GPU.Show",            gpu_.show);
+
+	push	DWORD PTR [ebx+40]
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	push	OFFSET $SG234313
+	call	DWORD PTR [eax+20]
+
+; 94   :   cmd->AddVariable ("OSD.GPU.PrintSlowdown",   SK_CreateVar (SK_IVariable::Boolean, &config.gpu.print_slowdown));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+121
+	push	2
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234314
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 95   :   cmd->AddVariable ("OSD.GPU.UpdateFreq",      SK_CreateVar (SK_IVariable::Float,   &config.gpu.interval));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+124
+	push	0
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234315
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 96   : 
+; 97   :   cmd->AddVariable ("OSD.Disk.Show",           disk_.show);
+
+	push	DWORD PTR [ebx+44]
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	push	OFFSET $SG234316
+	call	DWORD PTR [eax+20]
+
+; 98   :   cmd->AddVariable ("OSD.Disk.Type",           SK_CreateVar (SK_IVariable::Int,     &config.disk.type));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+140
+	push	5
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234317
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 99   :   cmd->AddVariable ("OSD.Disk.UpdateFreq",     SK_CreateVar (SK_IVariable::Float,   &config.disk.interval));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+136
+	push	0
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234318
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 100  : 
+; 101  :   cmd->AddVariable ("OSD.Pagefile.Show",       pagefile_.show);
+
+	push	DWORD PTR [ebx+48]
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	push	OFFSET $SG234319
+	call	DWORD PTR [eax+20]
+
+; 102  :   cmd->AddVariable ("OSD.Pagefile.UpdateFreq", SK_CreateVar (SK_IVariable::Float,   &config.pagefile.interval));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+152
+	push	0
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234320
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 103  : 
+; 104  :   cmd->AddVariable ("OSD.IOPS.Show",           io_.show);
+
+	push	DWORD PTR [ebx+60]
+	mov	eax, DWORD PTR [edi]
+	mov	ecx, edi
+	push	OFFSET $SG234321
+	call	DWORD PTR [eax+20]
+
+; 105  :   cmd->AddVariable ("OSD.IOPS.UpdateFreq",     SK_CreateVar (SK_IVariable::Float,   &config.io.interval));
+
+	mov	esi, DWORD PTR [edi]
+	push	0
+	push	OFFSET ?config@@3Usk_config_t@@A+32
+	push	0
+	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
+	push	eax
+	push	OFFSET $SG234322
+	mov	ecx, edi
+	call	DWORD PTR [esi+20]
+
+; 106  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, ebx
@@ -17767,7 +18288,7 @@ __$EHRec$ = -12						; size = 12
 ?destroyAllOverlays@SK_TextOverlayManager@@QAEXXZ PROC	; SK_TextOverlayManager::destroyAllOverlays
 ; _this$ = ecx
 
-; 1907 : {
+; 1947 : {
 
 	npad	2
 	push	ebp
@@ -17782,17 +18303,17 @@ __$EHRec$ = -12						; size = 12
 	push	edi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1907 : {
+; 1947 : {
 
 	mov	ebx, ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -17810,7 +18331,7 @@ __$EHRec$ = -12						; size = 12
 	cmp	esi, DWORD PTR [ebx+12]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1913 :   while (it != overlays_.end ())
+; 1953 :   while (it != overlays_.end ())
 
 	je	SHORT $LN3@destroyAll
 $LL2@destroyAll:
@@ -17896,7 +18417,7 @@ $LN291@destroyAll:
 $LN108@destroyAll:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1915 :     delete (it++)->second;
+; 1955 :     delete (it++)->second;
 
 	mov	edi, DWORD PTR [edi+40]
 	test	edi, edi
@@ -17915,7 +18436,7 @@ $LN148@destroyAll:
 	cmp	esi, DWORD PTR [ebx+12]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1913 :   while (it != overlays_.end ())
+; 1953 :   while (it != overlays_.end ())
 
 	jne	SHORT $LL2@destroyAll
 $LN3@destroyAll:
@@ -17934,7 +18455,7 @@ $LN3@destroyAll:
 	mov	eax, DWORD PTR [ebx+12]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -17961,12 +18482,12 @@ $LN3@destroyAll:
 	mov	DWORD PTR [ebx+16], 0
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1919 : }
+; 1959 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -18053,7 +18574,7 @@ _full$ = 16						; size = 1
 ?drawAllOverlays@SK_TextOverlayManager@@QAEMMM_N@Z PROC	; SK_TextOverlayManager::drawAllOverlays
 ; _this$ = ecx
 
-; 1838 : {
+; 1878 : {
 
 	npad	2
 	push	ebp
@@ -18069,31 +18590,31 @@ _full$ = 16						; size = 1
 	mov	esi, ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 295  :     cs_       = pCS;
+; 298  :     cs_       = pCS;
 
 	mov	DWORD PTR _auto_crit$[ebp+4], OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1838 : {
+; 1878 : {
 
 	mov	DWORD PTR _this$1$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 330  : 
-; 331  :     acquired_ = true;
+; 333  : 
+; 334  :     acquired_ = true;
 
 	mov	BYTE PTR _auto_crit$[ebp], 1
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1851 :   if (config.osd.pos_y >= 0)
+; 1891 :   if (config.osd.pos_y >= 0)
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+76, 0
 	movss	xmm1, DWORD PTR _y$[ebp]
@@ -18118,7 +18639,7 @@ _full$ = 16						; size = 1
 	cmp	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1858 :          it->second              == nullptr          ||
+; 1898 :          it->second              == nullptr          ||
 
 	je	$LN11@drawAllOve
 	mov	edx, DWORD PTR [eax+40]
@@ -18133,7 +18654,7 @@ _full$ = 16						; size = 1
 	cmp	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1866 :     while (it != overlays_.end ())
+; 1906 :     while (it != overlays_.end ())
 
 	je	$LN5@drawAllOve
 	fld	DWORD PTR _y$[ebp]
@@ -18141,7 +18662,7 @@ _full$ = 16						; size = 1
 	fstp	DWORD PTR _y$1$[ebp]
 $LL2@drawAllOve:
 
-; 1868 :       y += it->second->draw (x, y, full);
+; 1908 :       y += it->second->draw (x, y, full);
 
 	movss	xmm0, DWORD PTR _x$[ebp]
 	mov	ecx, DWORD PTR [eax+40]
@@ -18158,7 +18679,7 @@ $LL2@drawAllOve:
 	lea	ecx, DWORD PTR _it$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1868 :       y += it->second->draw (x, y, full);
+; 1908 :       y += it->second->draw (x, y, full);
 
 	fst	DWORD PTR _y$1$[ebp]
 	fstp	DWORD PTR _y$[ebp]
@@ -18173,7 +18694,7 @@ $LL2@drawAllOve:
 	mov	eax, DWORD PTR _it$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1866 :     while (it != overlays_.end ())
+; 1906 :     while (it != overlays_.end ())
 
 	movss	xmm1, DWORD PTR _y$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -18183,17 +18704,17 @@ $LL2@drawAllOve:
 	cmp	eax, DWORD PTR [esi+12]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1866 :     while (it != overlays_.end ())
+; 1906 :     while (it != overlays_.end ())
 
 	jne	SHORT $LL2@drawAllOve
 
-; 1869 : 
-; 1870 :       ++it;
-; 1871 :     }
-; 1872 :   }
-; 1873 : 
-; 1874 :   // Draw from the bottom up
-; 1875 :   else
+; 1909 : 
+; 1910 :       ++it;
+; 1911 :     }
+; 1912 :   }
+; 1913 : 
+; 1914 :   // Draw from the bottom up
+; 1915 :   else
 
 	jmp	$LN488@drawAllOve
 $LN6@drawAllOve:
@@ -18218,7 +18739,7 @@ $LN6@drawAllOve:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1882 :          it->second              == nullptr           ||
+; 1922 :          it->second              == nullptr           ||
 
 	je	$LN11@drawAllOve
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -18238,7 +18759,7 @@ $LN6@drawAllOve:
 	call	??F?$_Tree_unchecked_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAEAAV01@XZ ; std::_Tree_unchecked_const_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,SK_TextOverlay *> > >,std::_Iterator_base0>::operator--
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1882 :          it->second              == nullptr           ||
+; 1922 :          it->second              == nullptr           ||
 
 	mov	eax, DWORD PTR __Tmp$7[ebp]
 	cmp	DWORD PTR [eax+40], 0
@@ -18260,7 +18781,7 @@ $LN6@drawAllOve:
 	call	??F?$_Tree_unchecked_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAEAAV01@XZ ; std::_Tree_unchecked_const_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,SK_TextOverlay *> > >,std::_Iterator_base0>::operator--
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1882 :          it->second              == nullptr           ||
+; 1922 :          it->second              == nullptr           ||
 
 	mov	eax, DWORD PTR __Tmp$6[ebp]
 	mov	eax, DWORD PTR [eax+40]
@@ -18283,7 +18804,7 @@ $LN6@drawAllOve:
 	call	??F?$_Tree_unchecked_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAEAAV01@XZ ; std::_Tree_unchecked_const_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,SK_TextOverlay *> > >,std::_Iterator_base0>::operator--
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1891 :     y -= it->second->font_.cegui->getFontHeight (config.osd.scale);
+; 1931 :     y -= it->second->font_.cegui->getFontHeight (config.osd.scale);
 
 	mov	eax, DWORD PTR __Tmp$5[ebp]
 	movss	xmm1, DWORD PTR _y$3$[ebp]
@@ -18298,7 +18819,7 @@ $LN6@drawAllOve:
 	mulss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+68
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1891 :     y -= it->second->font_.cegui->getFontHeight (config.osd.scale);
+; 1931 :     y -= it->second->font_.cegui->getFontHeight (config.osd.scale);
 
 	subss	xmm1, xmm0
 	movss	DWORD PTR _y$3$[ebp], xmm1
@@ -18310,7 +18831,7 @@ $LN6@drawAllOve:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1893 :     while (it != overlays_.rend ())
+; 1933 :     while (it != overlays_.rend ())
 
 	je	SHORT $LN488@drawAllOve
 	fld	DWORD PTR _y$[ebp]
@@ -18334,7 +18855,7 @@ $LL4@drawAllOve:
 	call	??F?$_Tree_unchecked_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAEAAV01@XZ ; std::_Tree_unchecked_const_iterator<std::_Tree_val<std::_Tree_simple_types<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,SK_TextOverlay *> > >,std::_Iterator_base0>::operator--
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1895 :       y -= it->second->draw (x, y, full);
+; 1935 :       y -= it->second->draw (x, y, full);
 
 	push	DWORD PTR _full$[ebp]
 	movss	xmm0, DWORD PTR _y$3$[ebp]
@@ -18353,7 +18874,7 @@ $LL4@drawAllOve:
 	lea	ecx, DWORD PTR _it$2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1895 :       y -= it->second->draw (x, y, full);
+; 1935 :       y -= it->second->draw (x, y, full);
 
 	fst	DWORD PTR _y$2$[ebp]
 	fstp	DWORD PTR _y$[ebp]
@@ -18373,7 +18894,7 @@ $LL4@drawAllOve:
 	cmp	esi, DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1893 :     while (it != overlays_.rend ())
+; 1933 :     while (it != overlays_.rend ())
 
 	je	SHORT $LN487@drawAllOve
 	movss	xmm0, DWORD PTR _y$[ebp]
@@ -18385,7 +18906,7 @@ $LN488@drawAllOve:
 	movss	xmm0, DWORD PTR _base_y$1$[ebp]
 $LN5@drawAllOve:
 
-; 1902 :   return fabs (y - base_y);
+; 1942 :   return fabs (y - base_y);
 
 	subss	xmm1, xmm0
 ; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\math.h
@@ -18402,11 +18923,11 @@ $LN5@drawAllOve:
 $LN11@drawAllOve:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1885 :       SK_CEGUI_QueueResetD3D11 ();
+; 1925 :       SK_CEGUI_QueueResetD3D11 ();
 
 	call	?SK_CEGUI_QueueResetD3D11@@YAXXZ	; SK_CEGUI_QueueResetD3D11
 
-; 1886 :       SK_CEGUI_QueueResetD3D9  ();
+; 1926 :       SK_CEGUI_QueueResetD3D9  ();
 
 	call	?SK_CEGUI_QueueResetD3D9@@YAXXZ		; SK_CEGUI_QueueResetD3D9
 	xorps	xmm0, xmm0
@@ -18414,17 +18935,17 @@ $LN11@drawAllOve:
 $LN479@drawAllOve:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1902 :   return fabs (y - base_y);
+; 1942 :   return fabs (y - base_y);
 
 	fld	DWORD PTR $T8[ebp]
 
-; 1903 : }
+; 1943 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -18471,7 +18992,7 @@ _renderer$ = 8						; size = 4
 ?resetAllOverlays@SK_TextOverlayManager@@QAEXPAVRenderer@CEGUI@@@Z PROC ; SK_TextOverlayManager::resetAllOverlays
 ; _this$ = ecx
 
-; 1770 : {
+; 1810 : {
 
 	npad	2
 	push	ebp
@@ -18484,7 +19005,7 @@ _renderer$ = 8						; size = 4
 	sub	esp, 8
 	push	ebx
 
-; 1771 :   if (renderer != nullptr)
+; 1811 :   if (renderer != nullptr)
 
 	mov	ebx, DWORD PTR _renderer$[ebp]
 	push	esi
@@ -18493,8 +19014,8 @@ _renderer$ = 8						; size = 4
 	test	ebx, ebx
 	je	SHORT $LN6@resetAllOv
 
-; 1772 :   {
-; 1773 :     gui_ctx_ =
+; 1812 :   {
+; 1813 :     gui_ctx_ =
 
 	call	DWORD PTR __imp_?getDllSingleton@?$Singleton@VSystem@CEGUI@@@CEGUI@@SAAAVSystem@2@XZ
 	mov	ecx, eax
@@ -18503,20 +19024,20 @@ _renderer$ = 8						; size = 4
 $LN6@resetAllOv:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 
-; 295  :     cs_       = pCS;
+; 298  :     cs_       = pCS;
 
 	mov	DWORD PTR _auto_crit$[ebp+4], OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 330  : 
-; 331  :     acquired_ = true;
+; 333  : 
+; 334  :     acquired_ = true;
 
 	mov	BYTE PTR _auto_crit$[ebp], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -18526,7 +19047,7 @@ $LN6@resetAllOv:
 	mov	eax, DWORD PTR [edi+12]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1782 :   while (it != overlays_.end ())
+; 1822 :   while (it != overlays_.end ())
 
 	mov	edx, DWORD PTR __imp_?removeGeometryBuffer@RenderingSurface@CEGUI@@QAEXW4RenderQueueID@2@ABVGeometryBuffer@2@@Z
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -18541,20 +19062,20 @@ $LN6@resetAllOv:
 	cmp	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1782 :   while (it != overlays_.end ())
+; 1822 :   while (it != overlays_.end ())
 
 	je	$LN3@resetAllOv
 	npad	6
 $LL2@resetAllOv:
 
-; 1783 :   {
-; 1784 :     if (renderer == nullptr)
+; 1823 :   {
+; 1824 :     if (renderer == nullptr)
 
 	test	ebx, ebx
 	jne	SHORT $LN7@resetAllOv
 
-; 1785 :     {
-; 1786 :       it->second->pos_.x = static_cast <float> (config.osd.pos_x);
+; 1825 :     {
+; 1826 :       it->second->pos_.x = static_cast <float> (config.osd.pos_x);
 
 	movd	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+72
 	mov	eax, DWORD PTR [esi+40]
@@ -18562,21 +19083,21 @@ $LL2@resetAllOv:
 	movss	DWORD PTR [eax+164], xmm0
 	movd	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+76
 
-; 1787 :       it->second->pos_.y = static_cast <float> (config.osd.pos_y);
+; 1827 :       it->second->pos_.y = static_cast <float> (config.osd.pos_y);
 
 	mov	eax, DWORD PTR [esi+40]
 	cvtdq2ps xmm0, xmm0
 	movss	DWORD PTR [eax+168], xmm0
 
-; 1788 : 
-; 1789 :       it->second->font_.scale = config.osd.scale;
+; 1828 : 
+; 1829 :       it->second->font_.scale = config.osd.scale;
 
 	mov	eax, DWORD PTR [esi+40]
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+68
 	movss	DWORD PTR [eax+144], xmm0
 
-; 1790 : 
-; 1791 :       it->second->font_.primary_color =
+; 1830 : 
+; 1831 :       it->second->font_.primary_color =
 
 	movzx	ecx, BYTE PTR ?config@@3Usk_config_t@@A+56
 	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+60
@@ -18588,26 +19109,26 @@ $LL2@resetAllOv:
 	mov	eax, DWORD PTR [esi+40]
 	mov	DWORD PTR [eax+148], ecx
 
-; 1792 :        ( ( (config.osd.red   << 16) & 0xff0000 ) |
-; 1793 :          ( (config.osd.green << 8)  & 0xff00   ) |
-; 1794 :            (config.osd.blue         & 0xff     ) );
-; 1795 : 
-; 1796 :       it->second->font_.shadow_color = 0xff000000;
+; 1832 :        ( ( (config.osd.red   << 16) & 0xff0000 ) |
+; 1833 :          ( (config.osd.green << 8)  & 0xff00   ) |
+; 1834 :            (config.osd.blue         & 0xff     ) );
+; 1835 : 
+; 1836 :       it->second->font_.shadow_color = 0xff000000;
 
 	mov	eax, DWORD PTR [esi+40]
 	mov	DWORD PTR [eax+152], -16777216		; ff000000H
 $LN7@resetAllOv:
 
-; 1797 :     }
-; 1798 : 
-; 1799 :     if (it->second->geometry_ != nullptr)
+; 1837 :     }
+; 1838 : 
+; 1839 :     if (it->second->geometry_ != nullptr)
 
 	mov	eax, DWORD PTR [esi+40]
 	mov	eax, DWORD PTR [eax+156]
 	test	eax, eax
 	je	SHORT $LN8@resetAllOv
 
-; 1800 :       gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
+; 1840 :       gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
 
 	mov	ecx, DWORD PTR [edi+8]
 	push	eax
@@ -18615,27 +19136,27 @@ $LN7@resetAllOv:
 	call	edx
 $LN8@resetAllOv:
 
-; 1801 : 
-; 1802 :     it->second->reset (renderer);
+; 1841 : 
+; 1842 :     it->second->reset (renderer);
 
 	mov	ecx, DWORD PTR [esi+40]
 	push	ebx
 	call	?reset@SK_TextOverlay@@QAEXPAVRenderer@CEGUI@@@Z ; SK_TextOverlay::reset
 
-; 1803 : 
-; 1804 :     if (it->second->geometry_ != nullptr)
+; 1843 : 
+; 1844 :     if (it->second->geometry_ != nullptr)
 
 	mov	ecx, DWORD PTR [esi+40]
 	cmp	DWORD PTR [ecx+156], 0
 	je	SHORT $LN9@resetAllOv
 
-; 1805 :     {
-; 1806 :         it->second->update        (nullptr);
+; 1845 :     {
+; 1846 :         it->second->update        (nullptr);
 
 	push	0
 	call	?update@SK_TextOverlay@@QAEMPBD@Z	; SK_TextOverlay::update
 
-; 1807 :       gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
+; 1847 :       gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
 
 	mov	eax, DWORD PTR [esi+40]
 	fstp	ST(0)
@@ -18719,7 +19240,7 @@ $LN505@resetAllOv:
 $LN256@resetAllOv:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1782 :   while (it != overlays_.end ())
+; 1822 :   while (it != overlays_.end ())
 
 	mov	edx, DWORD PTR __imp_?removeGeometryBuffer@RenderingSurface@CEGUI@@QAEXW4RenderQueueID@2@ABVGeometryBuffer@2@@Z
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -18729,17 +19250,17 @@ $LN256@resetAllOv:
 	cmp	esi, DWORD PTR [edi+12]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1782 :   while (it != overlays_.end ())
+; 1822 :   while (it != overlays_.end ())
 
 	jne	$LL2@resetAllOv
 $LN3@resetAllOv:
 
-; 1808 :     }
-; 1809 : 
-; 1810 :     ++it;
-; 1811 :   }
-; 1812 : 
-; 1813 :   if (renderer == nullptr)
+; 1848 :     }
+; 1849 : 
+; 1850 :     ++it;
+; 1851 :   }
+; 1852 : 
+; 1853 :   if (renderer == nullptr)
 
 	test	ebx, ebx
 	jne	$LN504@resetAllOv
@@ -18750,7 +19271,7 @@ $LN3@resetAllOv:
 	mov	eax, DWORD PTR [edi+12]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1815 :     it =
+; 1855 :     it =
 
 	mov	esi, DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -18760,21 +19281,21 @@ $LN3@resetAllOv:
 	cmp	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1818 :     while (it != overlays_.end ())
+; 1858 :     while (it != overlays_.end ())
 
 	je	$LN504@resetAllOv
 	npad	10
 $LL4@resetAllOv:
 
-; 1819 :     {
-; 1820 :       if (it->second->geometry_ != nullptr)
+; 1859 :     {
+; 1860 :       if (it->second->geometry_ != nullptr)
 
 	mov	eax, DWORD PTR [esi+40]
 	mov	eax, DWORD PTR [eax+156]
 	test	eax, eax
 	je	SHORT $LN11@resetAllOv
 
-; 1821 :         gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
+; 1861 :         gui_ctx_->removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
 
 	mov	ecx, DWORD PTR [edi+8]
 	push	eax
@@ -18782,27 +19303,27 @@ $LL4@resetAllOv:
 	call	edx
 $LN11@resetAllOv:
 
-; 1822 : 
-; 1823 :       it->second->reset (renderer);
+; 1862 : 
+; 1863 :       it->second->reset (renderer);
 
 	mov	ecx, DWORD PTR [esi+40]
 	push	0
 	call	?reset@SK_TextOverlay@@QAEXPAVRenderer@CEGUI@@@Z ; SK_TextOverlay::reset
 
-; 1824 : 
-; 1825 :       if (it->second->geometry_ != nullptr)
+; 1864 : 
+; 1865 :       if (it->second->geometry_ != nullptr)
 
 	mov	ecx, DWORD PTR [esi+40]
 	cmp	DWORD PTR [ecx+156], 0
 	je	SHORT $LN12@resetAllOv
 
-; 1826 :       {
-; 1827 :           it->second->update        (nullptr);
+; 1866 :       {
+; 1867 :           it->second->update        (nullptr);
 
 	push	0
 	call	?update@SK_TextOverlay@@QAEMPBD@Z	; SK_TextOverlay::update
 
-; 1828 :         gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
+; 1868 :         gui_ctx_->addGeometryBuffer (CEGUI::RQ_UNDERLAY, *it->second->geometry_);
 
 	mov	eax, DWORD PTR [esi+40]
 	fstp	ST(0)
@@ -18885,7 +19406,7 @@ $LN506@resetAllOv:
 $LN450@resetAllOv:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1818 :     while (it != overlays_.end ())
+; 1858 :     while (it != overlays_.end ())
 
 	mov	edx, DWORD PTR __imp_?removeGeometryBuffer@RenderingSurface@CEGUI@@QAEXW4RenderQueueID@2@ABVGeometryBuffer@2@@Z
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -18895,19 +19416,19 @@ $LN450@resetAllOv:
 	cmp	esi, DWORD PTR [edi+12]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1818 :     while (it != overlays_.end ())
+; 1858 :     while (it != overlays_.end ())
 
 	jne	$LL4@resetAllOv
 $LN504@resetAllOv:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1834 : }
+; 1874 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -18934,13 +19455,13 @@ _renderer$ = 8						; size = 4
 ?queueReset@SK_TextOverlayManager@@QAEXPAVRenderer@CEGUI@@@Z PROC ; SK_TextOverlayManager::queueReset
 ; _this$ = ecx
 
-; 1763 :   UNREFERENCED_PARAMETER (renderer);
-; 1764 : 
-; 1765 :   need_full_reset_ = true;
+; 1803 :   UNREFERENCED_PARAMETER (renderer);
+; 1804 : 
+; 1805 :   need_full_reset_ = true;
 
 	mov	BYTE PTR [ecx+4], 1
 
-; 1766 : }
+; 1806 : }
 
 	ret	4
 ?queueReset@SK_TextOverlayManager@@QAEXPAVRenderer@CEGUI@@@Z ENDP ; SK_TextOverlayManager::queueReset
@@ -18982,7 +19503,7 @@ _szAppName$ = 8						; size = 4
 ?getTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z PROC ; SK_TextOverlayManager::getTextOverlay
 ; _this$ = ecx
 
-; 117  : {
+; 155  : {
 
 	npad	2
 	push	ebp
@@ -18997,26 +19518,26 @@ _szAppName$ = 8						; size = 4
 	push	edi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 117  : {
+; 155  : {
 
 	mov	esi, ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 295  :     cs_       = pCS;
+; 298  :     cs_       = pCS;
 
 	mov	DWORD PTR _auto_crit$[ebp+4], OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 330  : 
-; 331  :     acquired_ = true;
+; 333  : 
+; 334  :     acquired_ = true;
 
 	mov	BYTE PTR _auto_crit$[ebp], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -19027,7 +19548,7 @@ _szAppName$ = 8						; size = 4
 	mov	ecx, edx
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 118  :   SK_AutoCriticalSection auto_crit (&cs_);
+; 156  :   SK_AutoCriticalSection auto_crit (&cs_);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19069,7 +19590,7 @@ $LL104@getTextOve:
 	lea	eax, DWORD PTR _app_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 120  :   std::string app_name (szAppName);
+; 158  :   std::string app_name (szAppName);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -19092,7 +19613,7 @@ $LL104@getTextOve:
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 122  :   if (overlays_.count (app_name))
+; 160  :   if (overlays_.count (app_name))
 
 	test	eax, eax
 	je	SHORT $LN2@getTextOve
@@ -19112,7 +19633,7 @@ $LL104@getTextOve:
 $LN2@getTextOve:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 129  :   return nullptr;
+; 167  :   return nullptr;
 
 	xor	esi, esi
 $LN6@getTextOve:
@@ -19147,7 +19668,7 @@ $LN6@getTextOve:
 $LN72@getTextOve:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19166,12 +19687,12 @@ $LN72@getTextOve:
 	mov	BYTE PTR _app_name$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 130  : }
+; 168  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -19234,7 +19755,7 @@ _szAppName$ = 8						; size = 4
 ?removeTextOverlay@SK_TextOverlayManager@@QAE_NPBD@Z PROC ; SK_TextOverlayManager::removeTextOverlay
 ; _this$ = ecx
 
-; 100  : {
+; 138  : {
 
 	npad	2
 	push	ebp
@@ -19250,26 +19771,26 @@ _szAppName$ = 8						; size = 4
 	push	edi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 100  : {
+; 138  : {
 
 	mov	esi, ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 295  :     cs_       = pCS;
+; 298  :     cs_       = pCS;
 
 	mov	DWORD PTR _auto_crit$[ebp+4], OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 330  : 
-; 331  :     acquired_ = true;
+; 333  : 
+; 334  :     acquired_ = true;
 
 	mov	BYTE PTR _auto_crit$[ebp], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -19280,7 +19801,7 @@ _szAppName$ = 8						; size = 4
 	mov	ecx, edx
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 101  :   SK_AutoCriticalSection auto_crit (&cs_);
+; 139  :   SK_AutoCriticalSection auto_crit (&cs_);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19323,7 +19844,7 @@ $LL144@removeText:
 	lea	eax, DWORD PTR _app_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 103  :   std::string app_name (szAppName);
+; 141  :   std::string app_name (szAppName);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -19334,7 +19855,7 @@ $LL144@removeText:
 	lea	eax, DWORD PTR __Ans$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 105  :   if (overlays_.count (app_name))
+; 143  :   if (overlays_.count (app_name))
 
 	add	esi, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -19355,7 +19876,7 @@ $LL144@removeText:
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 105  :   if (overlays_.count (app_name))
+; 143  :   if (overlays_.count (app_name))
 
 	test	eax, eax
 	je	SHORT $LN2@removeText
@@ -19383,7 +19904,7 @@ $LL144@removeText:
 $LN2@removeText:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 112  :   return false;
+; 150  :   return false;
 
 	xor	bl, bl
 $LN6@removeText:
@@ -19418,7 +19939,7 @@ $LN6@removeText:
 $LN112@removeText:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19437,12 +19958,12 @@ $LN112@removeText:
 	mov	BYTE PTR _app_name$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 113  : }
+; 151  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	al, bl
@@ -19509,7 +20030,7 @@ _szAppName$ = 8						; size = 4
 ?createTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z PROC ; SK_TextOverlayManager::createTextOverlay
 ; _this$ = ecx
 
-; 73   : {
+; 111  : {
 
 	npad	2
 	push	ebp
@@ -19524,26 +20045,26 @@ _szAppName$ = 8						; size = 4
 	push	edi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 73   : {
+; 111  : {
 
 	mov	edi, ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 295  :     cs_       = pCS;
+; 298  :     cs_       = pCS;
 
 	mov	DWORD PTR _auto_crit$[ebp+4], OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 
-; 329  :     EnterCriticalSection (cs_);
+; 332  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 330  : 
-; 331  :     acquired_ = true;
+; 333  : 
+; 334  :     acquired_ = true;
 
 	mov	BYTE PTR _auto_crit$[ebp], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -19554,7 +20075,7 @@ _szAppName$ = 8						; size = 4
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 74   :   SK_AutoCriticalSection auto_crit (&cs_);
+; 112  :   SK_AutoCriticalSection auto_crit (&cs_);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19596,7 +20117,7 @@ $LL124@createText:
 	lea	eax, DWORD PTR _app_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 76   :   std::string app_name (szAppName);
+; 114  :   std::string app_name (szAppName);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -19607,7 +20128,7 @@ $LL124@createText:
 	lea	eax, DWORD PTR __Ans$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 78   :   if (overlays_.count (app_name))
+; 116  :   if (overlays_.count (app_name))
 
 	add	edi, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -19628,7 +20149,7 @@ $LL124@createText:
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 78   :   if (overlays_.count (app_name))
+; 116  :   if (overlays_.count (app_name))
 
 	test	eax, eax
 	je	SHORT $LN2@createText
@@ -19648,7 +20169,7 @@ $LL124@createText:
 $LN2@createText:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 87   :     new SK_TextOverlay (szAppName);
+; 125  :     new SK_TextOverlay (szAppName);
 
 	push	172					; 000000acH
 	call	??2@YAPAXI@Z				; operator new
@@ -19666,8 +20187,8 @@ $LN4@createText:
 $LN5@createText:
 	movd	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+76
 
-; 88   : 
-; 89   :   overlay->setPos   ( static_cast <float> (config.osd.pos_x),
+; 126  : 
+; 127  :   overlay->setPos   ( static_cast <float> (config.osd.pos_x),
 
 	sub	esp, 8
 	cvtdq2ps xmm0, xmm0
@@ -19678,8 +20199,8 @@ $LN5@createText:
 	movss	DWORD PTR [esp], xmm0
 	call	?setPos@SK_TextOverlay@@QAEXMM@Z	; SK_TextOverlay::setPos
 
-; 90   :                         static_cast <float> (config.osd.pos_y) );
-; 91   :   overlay->setScale ( config.osd.scale );
+; 128  :                         static_cast <float> (config.osd.pos_y) );
+; 129  :   overlay->setScale ( config.osd.scale );
 
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+68
 	push	ecx
@@ -19698,7 +20219,7 @@ $LN5@createText:
 	call	??$_Try_emplace@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@$$V@?$map@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@@std@@@2@@std@@QAE?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@U?$_Tree_simple_types@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAVSK_TextOverlay@@@std@@@std@@@std@@@std@@_N@1@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@@Z ; std::map<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,SK_TextOverlay *,std::less<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::allocator<std::pair<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const ,SK_TextOverlay *> > >::_Try_emplace<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const &>
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 93   :   overlays_ [app_name] = overlay;
+; 131  :   overlays_ [app_name] = overlay;
 
 	mov	eax, DWORD PTR $T2[ebp]
 	mov	DWORD PTR [eax+40], esi
@@ -19734,7 +20255,7 @@ $LN9@createText:
 $LN92@createText:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	push	OFFSET ?cs_@SK_TextOverlayManager@@0U_RTL_CRITICAL_SECTION@@A ; SK_TextOverlayManager::cs_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19753,12 +20274,12 @@ $LN92@createText:
 	mov	BYTE PTR _app_name$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 337  :       LeaveCriticalSection (cs_);
+; 340  :       LeaveCriticalSection (cs_);
 
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 96   : }
+; 134  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -19805,7 +20326,7 @@ __$EHRec$ = -12						; size = 12
 	mov	eax, DWORD PTR ?pSelf@SK_TextOverlayManager@@0PAV1@A ; SK_TextOverlayManager::pSelf
 	test	eax, eax
 	jne	SHORT $LN6@getInstanc
-	push	32					; 00000020H
+	push	72					; 00000048H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 	mov	DWORD PTR $T2[ebp], eax
@@ -19843,7 +20364,7 @@ $LN6@getInstanc:
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?getInstance@SK_TextOverlayManager@@SAPAV1@XZ$0:
-	push	32					; 00000020H
+	push	72					; 00000048H
 	mov	eax, DWORD PTR $T2[ebp]
 	push	eax
 	call	??3@YAXPAXI@Z				; operator delete
@@ -19938,7 +20459,7 @@ _szAppName$ = 8						; size = 4
 ??0SK_TextOverlay@@IAE@PBD@Z PROC			; SK_TextOverlay::SK_TextOverlay
 ; _this$ = ecx
 
-; 133  : {
+; 171  : {
 
 	npad	2
 	push	ebp
@@ -19958,7 +20479,7 @@ _szAppName$ = 8						; size = 4
 	mov	DWORD PTR [edi+76], 0
 	call	_memset
 
-; 134  :   strncpy (data_.name, szAppName,          32);
+; 172  :   strncpy (data_.name, szAppName,          32);
 
 	push	32					; 00000020H
 	push	DWORD PTR _szAppName$[ebp]
@@ -19970,17 +20491,17 @@ _szAppName$ = 8						; size = 4
 	mov	DWORD PTR [edi+168], 0
 	call	DWORD PTR __imp__strncpy
 
-; 135  :   strncpy (font_.name, "Consolas-12.font", 64);
+; 173  :   strncpy (font_.name, "Consolas-12.font", 64);
 
 	push	64					; 00000040H
 	lea	eax, DWORD PTR [edi+80]
-	push	OFFSET $SG234409
+	push	OFFSET $SG234480
 	push	eax
 	call	DWORD PTR __imp__strncpy
 
-; 136  : 
-; 137  :   data_.text_len = 32768;
-; 138  :   data_.text     = (char *)calloc (1, data_.text_len);
+; 174  : 
+; 175  :   data_.text_len = 32768;
+; 176  :   data_.text     = (char *)calloc (1, data_.text_len);
 
 	push	32768					; 00008000H
 	push	1
@@ -19989,35 +20510,35 @@ _szAppName$ = 8						; size = 4
 	add	esp, 56					; 00000038H
 	mov	DWORD PTR [edi+64], eax
 
-; 139  : 
-; 140  :   if (data_.text != nullptr)
+; 177  : 
+; 178  :   if (data_.text != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN2@SK_TextOve
 
-; 141  :     *data_.text  = '\0';
+; 179  :     *data_.text  = '\0';
 
 	mov	BYTE PTR [eax], 0
 
-; 142  :   else
+; 180  :   else
 
 	jmp	SHORT $LN3@SK_TextOve
 $LN2@SK_TextOve:
 
-; 143  :     data_.text_len = 0; // Failed to allocate memory
+; 181  :     data_.text_len = 0; // Failed to allocate memory
 
 	mov	DWORD PTR [edi+68], 0
 $LN3@SK_TextOve:
 
-; 144  : 
-; 145  :   geometry_   = nullptr;
+; 182  : 
+; 183  :   geometry_   = nullptr;
 
 	mov	DWORD PTR [edi+156], 0
 
-; 146  :   renderer_   = nullptr;
-; 147  :   font_.cegui = nullptr;
-; 148  :   font_.scale = 1.0f;
-; 149  : }
+; 184  :   renderer_   = nullptr;
+; 185  :   font_.cegui = nullptr;
+; 186  :   font_.scale = 1.0f;
+; 187  : }
 
 	mov	eax, edi
 	mov	DWORD PTR [edi+160], 0
@@ -20036,25 +20557,25 @@ _y$ = 12						; size = 4
 ?getPos@SK_TextOverlay@@QAEXAAM0@Z PROC			; SK_TextOverlay::getPos
 ; _this$ = ecx
 
-; 1754 : {
+; 1794 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1755 :   x = pos_.x;
+; 1795 :   x = pos_.x;
 
 	mov	eax, DWORD PTR _x$[ebp]
 	mov	edx, DWORD PTR [ecx+164]
 	mov	DWORD PTR [eax], edx
 
-; 1756 :   y = pos_.y;
+; 1796 :   y = pos_.y;
 
 	mov	eax, DWORD PTR _y$[ebp]
 	mov	ecx, DWORD PTR [ecx+168]
 	mov	DWORD PTR [eax], ecx
 
-; 1757 : }
+; 1797 : }
 
 	pop	ebp
 	ret	8
@@ -20068,7 +20589,7 @@ _y$ = 12						; size = 4
 ?setPos@SK_TextOverlay@@QAEXMM@Z PROC			; SK_TextOverlay::setPos
 ; _this$ = ecx
 
-; 1740 : {
+; 1780 : {
 
 	npad	2
 	push	ebp
@@ -20076,10 +20597,10 @@ _y$ = 12						; size = 4
 	push	esi
 	mov	esi, ecx
 
-; 1741 :   // We cannot anchor the command console to the left or bottom...
-; 1742 :   if (! strcmp (data_.name, "SpecialK Console"))
+; 1781 :   // We cannot anchor the command console to the left or bottom...
+; 1782 :   if (! strcmp (data_.name, "SpecialK Console"))
 
-	mov	edx, OFFSET $SG379811
+	mov	edx, OFFSET $SG379902
 	mov	eax, esi
 	push	ebx
 $LL10@setPos:
@@ -20112,21 +20633,21 @@ $LN13@setPos:
 	minss	xmm2, xmm0
 $LN2@setPos:
 
-; 1743 :   {
-; 1744 :     x = std::min (0.0f, x);
-; 1745 :     y = std::min (0.0f, y);
-; 1746 :   }
-; 1747 : 
-; 1748 :   pos_.x = x;
+; 1783 :   {
+; 1784 :     x = std::min (0.0f, x);
+; 1785 :     y = std::min (0.0f, y);
+; 1786 :   }
+; 1787 : 
+; 1788 :   pos_.x = x;
 
 	movss	DWORD PTR [esi+164], xmm1
 
-; 1749 :   pos_.y = y;
+; 1789 :   pos_.y = y;
 
 	movss	DWORD PTR [esi+168], xmm2
 	pop	esi
 
-; 1750 : }
+; 1790 : }
 
 	pop	ebp
 	ret	8
@@ -20142,7 +20663,7 @@ _y_off$ = 12						; size = 4
 ?move@SK_TextOverlay@@QAEXMM@Z PROC			; SK_TextOverlay::move
 ; _this$ = ecx
 
-; 1731 : {
+; 1771 : {
 
 	npad	2
 	push	ebp
@@ -20150,9 +20671,9 @@ _y_off$ = 12						; size = 4
 	sub	esp, 8
 	push	esi
 
-; 1732 :   float x,y;
-; 1733 : 
-; 1734 :   getPos (x, y);
+; 1772 :   float x,y;
+; 1773 : 
+; 1774 :   getPos (x, y);
 
 	lea	eax, DWORD PTR _y$[ebp]
 	mov	esi, ecx
@@ -20161,7 +20682,7 @@ _y_off$ = 12						; size = 4
 	push	eax
 	call	?getPos@SK_TextOverlay@@QAEXAAM0@Z	; SK_TextOverlay::getPos
 
-; 1735 :   setPos (x + x_off, y + y_off);
+; 1775 :   setPos (x + x_off, y + y_off);
 
 	movss	xmm0, DWORD PTR _y$[ebp]
 	sub	esp, 8
@@ -20174,7 +20695,7 @@ _y_off$ = 12						; size = 4
 	call	?setPos@SK_TextOverlay@@QAEXMM@Z	; SK_TextOverlay::setPos
 	pop	esi
 
-; 1736 : }
+; 1776 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -20187,11 +20708,11 @@ _TEXT	SEGMENT
 ?getScale@SK_TextOverlay@@QAEMXZ PROC			; SK_TextOverlay::getScale
 ; _this$ = ecx
 
-; 1720 :   return font_.scale;
+; 1760 :   return font_.scale;
 
 	fld	DWORD PTR [ecx+144]
 
-; 1721 : }
+; 1761 : }
 
 	ret	0
 ?getScale@SK_TextOverlay@@QAEMXZ ENDP			; SK_TextOverlay::getScale
@@ -20203,34 +20724,34 @@ _scale$ = 8						; size = 4
 ?setScale@SK_TextOverlay@@QAEXM@Z PROC			; SK_TextOverlay::setScale
 ; _this$ = ecx
 
-; 1710 : {
+; 1750 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1711 :   if (scale >= 0.1f)
+; 1751 :   if (scale >= 0.1f)
 
 	movss	xmm0, DWORD PTR _scale$[ebp]
 	comiss	xmm0, DWORD PTR __real@3dcccccd
 	jb	SHORT $LN2@setScale
 
-; 1712 :     font_.scale = scale;
+; 1752 :     font_.scale = scale;
 
 	movss	DWORD PTR [ecx+144], xmm0
 
-; 1715 : }
+; 1755 : }
 
 	pop	ebp
 	ret	4
 $LN2@setScale:
 
-; 1713 :   else
-; 1714 :     font_.scale = 0.1f;
+; 1753 :   else
+; 1754 :     font_.scale = 0.1f;
 
 	mov	DWORD PTR [ecx+144], 1036831949		; 3dcccccdH
 
-; 1715 : }
+; 1755 : }
 
 	pop	ebp
 	ret	4
@@ -20243,7 +20764,7 @@ _incr$ = 8						; size = 4
 ?resize@SK_TextOverlay@@QAEXM@Z PROC			; SK_TextOverlay::resize
 ; _this$ = ecx
 
-; 1725 : {
+; 1765 : {
 
 	npad	2
 	push	ebp
@@ -20251,7 +20772,7 @@ _incr$ = 8						; size = 4
 	push	esi
 	mov	esi, ecx
 
-; 1726 :   setScale (getScale () + incr);
+; 1766 :   setScale (getScale () + incr);
 
 	call	?getScale@SK_TextOverlay@@QAEMXZ	; SK_TextOverlay::getScale
 	fadd	DWORD PTR _incr$[ebp]
@@ -20261,7 +20782,7 @@ _incr$ = 8						; size = 4
 	call	?setScale@SK_TextOverlay@@QAEXM@Z	; SK_TextOverlay::setScale
 	pop	esi
 
-; 1727 : }
+; 1767 : }
 
 	pop	ebp
 	ret	4
@@ -20293,7 +20814,7 @@ _pRenderer$ = 8						; size = 4
 ?reset@SK_TextOverlay@@QAEXPAVRenderer@CEGUI@@@Z PROC	; SK_TextOverlay::reset
 ; _this$ = ecx
 
-; 1433 : {
+; 1473 : {
 
 	npad	2
 	push	ebp
@@ -20306,9 +20827,9 @@ _pRenderer$ = 8						; size = 4
 	sub	esp, 324				; 00000144H
 	push	ebx
 
-; 1434 :   font_.cegui = nullptr;
-; 1435 :   geometry_   = nullptr;
-; 1436 :   renderer_   = pRenderer;
+; 1474 :   font_.cegui = nullptr;
+; 1475 :   geometry_   = nullptr;
+; 1476 :   renderer_   = pRenderer;
 
 	mov	ebx, DWORD PTR _pRenderer$[ebp]
 	push	esi
@@ -20319,8 +20840,8 @@ _pRenderer$ = 8						; size = 4
 	mov	DWORD PTR [edi+156], 0
 	mov	DWORD PTR [edi+160], ebx
 
-; 1437 : 
-; 1438 :   if (pRenderer != nullptr)
+; 1477 : 
+; 1478 :   if (pRenderer != nullptr)
 
 	test	ebx, ebx
 	je	$LN12@reset
@@ -20331,7 +20852,7 @@ _pRenderer$ = 8						; size = 4
 	lea	ecx, DWORD PTR $T2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1440 :     try
+; 1480 :     try
 
 	mov	DWORD PTR __$EHRec$[ebp+12], 0
 ; File c:\users\andon\source\repos\specialk\depends\include\cegui\string.h
@@ -20343,7 +20864,7 @@ _pRenderer$ = 8						; size = 4
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	0
-	push	OFFSET $SG379609
+	push	OFFSET $SG379700
 	lea	ecx, DWORD PTR $T2[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 
@@ -20352,7 +20873,7 @@ _pRenderer$ = 8						; size = 4
 	lea	ecx, DWORD PTR $T3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1442 :       font_.cegui =
+; 1482 :       font_.cegui =
 
 	mov	BYTE PTR __$EHRec$[ebp+12], 1
 	lea	esi, DWORD PTR [edi+80]
@@ -20378,7 +20899,7 @@ $LL104@reset:
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1442 :       font_.cegui =
+; 1482 :       font_.cegui =
 
 	mov	BYTE PTR __$EHRec$[ebp+12], 2
 	call	DWORD PTR __imp_?getDllSingleton@?$Singleton@VFontManager@CEGUI@@@CEGUI@@SAAAVFontManager@2@XZ
@@ -20397,9 +20918,9 @@ $LL104@reset:
 	mov	BYTE PTR __$EHRec$[ebp+12], 0
 	call	esi
 
-; 1443 :         &CEGUI::FontManager::getDllSingleton ().createFromFile (font_.name);
-; 1444 : 
-; 1445 :       if (font_.cegui != nullptr && pRenderer->getDisplaySize () != CEGUI::Sizef (0.0f, 0.0f))
+; 1483 :         &CEGUI::FontManager::getDllSingleton ().createFromFile (font_.name);
+; 1484 : 
+; 1485 :       if (font_.cegui != nullptr && pRenderer->getDisplaySize () != CEGUI::Sizef (0.0f, 0.0f))
 
 	cmp	DWORD PTR [edi+76], 0
 	je	SHORT $LN4@reset
@@ -20425,7 +20946,7 @@ $LL104@reset:
 $LN79@reset:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1446 :         font_.cegui->setNativeResolution (pRenderer->getDisplaySize ());
+; 1486 :         font_.cegui->setNativeResolution (pRenderer->getDisplaySize ());
 
 	mov	eax, DWORD PTR [ebx]
 	mov	ecx, ebx
@@ -20435,8 +20956,8 @@ $LN79@reset:
 	call	DWORD PTR __imp_?setNativeResolution@Font@CEGUI@@QAEXABV?$Size@M@2@@Z
 $LN4@reset:
 
-; 1447 : 
-; 1448 :       const CEGUI::Rectf scrn (
+; 1487 : 
+; 1488 :       const CEGUI::Rectf scrn (
 
 	mov	eax, DWORD PTR [ebx]
 	mov	ecx, ebx
@@ -20448,7 +20969,7 @@ $LN4@reset:
 	mov	DWORD PTR _scrn$4[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1455 :       geometry_ = &pRenderer->createGeometryBuffer (    );
+; 1495 :       geometry_ = &pRenderer->createGeometryBuffer (    );
 
 	mov	ecx, ebx
 ; File c:\users\andon\source\repos\specialk\depends\include\cegui\vector.h
@@ -20464,7 +20985,7 @@ $LN4@reset:
 	movss	xmm1, DWORD PTR [eax+4]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1455 :       geometry_ = &pRenderer->createGeometryBuffer (    );
+; 1495 :       geometry_ = &pRenderer->createGeometryBuffer (    );
 
 	mov	eax, DWORD PTR [ebx]
 ; File c:\users\andon\source\repos\specialk\depends\include\cegui\vector.h
@@ -20478,18 +20999,18 @@ $LN4@reset:
 	movss	DWORD PTR _scrn$4[ebp+12], xmm1
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1455 :       geometry_ = &pRenderer->createGeometryBuffer (    );
+; 1495 :       geometry_ = &pRenderer->createGeometryBuffer (    );
 
 	call	DWORD PTR [eax+4]
 	mov	DWORD PTR [edi+156], eax
 
-; 1456 : 
-; 1457 :       if (geometry_)
+; 1496 : 
+; 1497 :       if (geometry_)
 
 	test	eax, eax
 	je	SHORT $LN12@reset
 
-; 1458 :         geometry_->setClippingRegion               (scrn);
+; 1498 :         geometry_->setClippingRegion               (scrn);
 
 	mov	edx, DWORD PTR [eax]
 	lea	ecx, DWORD PTR _scrn$4[ebp]
@@ -20498,8 +21019,8 @@ $LN4@reset:
 	call	DWORD PTR [edx+20]
 $LN12@reset:
 
-; 1464 :   }
-; 1465 : }
+; 1504 :   }
+; 1505 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp+4]
 	pop	edi
@@ -20511,11 +21032,11 @@ $LN12@reset:
 	ret	4
 __catch$?reset@SK_TextOverlay@@QAEXPAVRenderer@CEGUI@@@Z$0:
 
-; 1459 :     }
-; 1460 : 
-; 1461 :     catch (...)
-; 1462 :     {
-; 1463 :     }
+; 1499 :     }
+; 1500 : 
+; 1501 :     catch (...)
+; 1502 :     {
+; 1503 :     }
 
 	mov	eax, $LN12@reset
 	ret	0
@@ -20546,7 +21067,7 @@ _full$ = 16						; size = 1
 ?draw@SK_TextOverlay@@QAEMMM_N@Z PROC			; SK_TextOverlay::draw
 ; _this$ = ecx
 
-; 1691 : {
+; 1731 : {
 
 	npad	2
 	push	ebp
@@ -20555,7 +21076,7 @@ _full$ = 16						; size = 1
 	push	esi
 	mov	esi, ecx
 
-; 1692 :   if (geometry_)
+; 1732 :   if (geometry_)
 
 	mov	ecx, DWORD PTR [esi+156]
 	test	ecx, ecx
@@ -20567,7 +21088,7 @@ _full$ = 16						; size = 1
 	movss	xmm0, DWORD PTR _x$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1694 :     geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
+; 1734 :     geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
 
 	lea	edx, DWORD PTR $T1[ebp]
 ; File c:\users\andon\source\repos\specialk\depends\include\cegui\vector.h
@@ -20586,26 +21107,26 @@ _full$ = 16						; size = 1
 	mov	DWORD PTR $T1[ebp+8], 0
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1694 :     geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
+; 1734 :     geometry_->setTranslation (CEGUI::Vector3f (x, y, 0.0f));
 
 	mov	eax, DWORD PTR [ecx]
 	push	edx
 	call	DWORD PTR [eax+8]
 
-; 1695 : 
-; 1696 :     if (full)
+; 1735 : 
+; 1736 :     if (full)
 
 	cmp	BYTE PTR _full$[ebp], 0
 	je	SHORT $LN3@draw
 
-; 1697 :     {
-; 1698 :       geometry_->draw ();
+; 1737 :     {
+; 1738 :       geometry_->draw ();
 
 	mov	ecx, DWORD PTR [esi+156]
 	mov	eax, DWORD PTR [ecx]
 	call	DWORD PTR [eax+4]
 
-; 1699 :       update          (nullptr);
+; 1739 :       update          (nullptr);
 
 	push	0
 	mov	ecx, esi
@@ -20613,28 +21134,28 @@ _full$ = 16						; size = 1
 	fstp	ST(0)
 $LN3@draw:
 
-; 1700 :     }
-; 1701 : 
-; 1702 :     return data_.extent;
+; 1740 :     }
+; 1741 : 
+; 1742 :     return data_.extent;
 
 	fld	DWORD PTR [esi+72]
 	pop	esi
 
-; 1706 : }
+; 1746 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	12					; 0000000cH
 $LN2@draw:
 
-; 1703 :   }
-; 1704 : 
-; 1705 :   return 0.0f;
+; 1743 :   }
+; 1744 : 
+; 1745 :   return 0.0f;
 
 	fldz
 	pop	esi
 
-; 1706 : }
+; 1746 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -20693,7 +21214,7 @@ _has_tokens$20 = 11					; size = 1
 ?update@SK_TextOverlay@@QAEMPBD@Z PROC			; SK_TextOverlay::update
 ; _this$ = ecx
 
-; 1540 : {
+; 1580 : {
 
 	npad	2
 	push	ebp
@@ -20708,7 +21229,7 @@ _has_tokens$20 = 11					; size = 1
 	push	esi
 	push	edi
 
-; 1541 :   size_t len = szText != nullptr ? strlen (szText) : 0;
+; 1581 :   size_t len = szText != nullptr ? strlen (szText) : 0;
 
 	mov	edi, DWORD PTR _szText$[ebp]
 	mov	esi, ecx
@@ -20724,14 +21245,14 @@ $LL119@update:
 	test	al, al
 	jne	SHORT $LL119@update
 
-; 1542 : 
-; 1543 :   if (szText != nullptr) {
-; 1544 :     *data_.text = '\0';
+; 1582 : 
+; 1583 :   if (szText != nullptr) {
+; 1584 :     *data_.text = '\0';
 
 	mov	eax, DWORD PTR [esi+64]
 	sub	edx, ecx
 
-; 1545 :     strncat (data_.text, szText, std::min (len + 1, data_.text_len));
+; 1585 :     strncat (data_.text, szText, std::min (len + 1, data_.text_len));
 
 	mov	ebx, DWORD PTR __imp__strncat
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -20741,7 +21262,7 @@ $LL119@update:
 	lea	ecx, DWORD PTR $T19[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1545 :     strncat (data_.text, szText, std::min (len + 1, data_.text_len));
+; 1585 :     strncat (data_.text, szText, std::min (len + 1, data_.text_len));
 
 	inc	edx
 	mov	DWORD PTR $T19[ebp], edx
@@ -20755,7 +21276,7 @@ $LL119@update:
 	cmovb	ecx, eax
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1545 :     strncat (data_.text, szText, std::min (len + 1, data_.text_len));
+; 1585 :     strncat (data_.text, szText, std::min (len + 1, data_.text_len));
 
 	push	DWORD PTR [ecx]
 	push	edi
@@ -20767,9 +21288,9 @@ $LN125@update:
 	mov	ebx, DWORD PTR __imp__strncat
 $LN6@update:
 
-; 1546 :   }
-; 1547 : 
-; 1548 :   if (font_.cegui && geometry_)
+; 1586 :   }
+; 1587 : 
+; 1588 :   if (font_.cegui && geometry_)
 
 	mov	eax, DWORD PTR [esi+76]
 	test	eax, eax
@@ -20778,9 +21299,9 @@ $LN6@update:
 	test	edx, edx
 	je	$LN7@update
 
-; 1549 :   {
-; 1550 :     // Empty the gometry buffer and bail-out.
-; 1551 :     if (szText == nullptr || (! strlen (data_.text)))
+; 1589 :   {
+; 1590 :     // Empty the gometry buffer and bail-out.
+; 1591 :     if (szText == nullptr || (! strlen (data_.text)))
 
 	test	edi, edi
 	je	$LN9@update
@@ -20794,25 +21315,25 @@ $LL120@update:
 	sub	ecx, edi
 	je	$LN9@update
 
-; 1554 : 
-; 1555 :       data_.extent = 0.0f;
-; 1556 :       return data_.extent;
-; 1557 :     }
-; 1558 : 
-; 1559 :     float baseline = 0.0f;
-; 1560 :     float spacing  = font_.cegui->getLineSpacing () * font_.scale;
+; 1594 : 
+; 1595 :       data_.extent = 0.0f;
+; 1596 :       return data_.extent;
+; 1597 :     }
+; 1598 : 
+; 1599 :     float baseline = 0.0f;
+; 1600 :     float spacing  = font_.cegui->getLineSpacing () * font_.scale;
 
 	mov	eax, DWORD PTR [esi+76]
 	xorps	xmm0, xmm0
 
-; 1561 : 
-; 1562 :     float red   = static_cast <float> (config.osd.red)   / 255.0f;
-; 1563 :     float green = static_cast <float> (config.osd.green) / 255.0f;
+; 1601 : 
+; 1602 :     float red   = static_cast <float> (config.osd.red)   / 255.0f;
+; 1603 :     float green = static_cast <float> (config.osd.green) / 255.0f;
 
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+60
 	movss	DWORD PTR _baseline$12[ebp], xmm0
 
-; 1564 :     float blue  = static_cast <float> (config.osd.blue)  / 255.0f;
+; 1604 :     float blue  = static_cast <float> (config.osd.blue)  / 255.0f;
 
 	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+64
 	movss	xmm0, DWORD PTR [eax+648]
@@ -20836,8 +21357,8 @@ $LL120@update:
 	movss	DWORD PTR _blue$1$[ebp], xmm1
 	movss	DWORD PTR _blue$17[ebp], xmm1
 
-; 1565 : 
-; 1566 :     if (config.osd.red == -1 || config.osd.green == -1 || config.osd.blue == -1)
+; 1605 : 
+; 1606 :     if (config.osd.red == -1 || config.osd.green == -1 || config.osd.blue == -1)
 
 	cmp	eax, -1
 	je	SHORT $LN11@update
@@ -20847,8 +21368,8 @@ $LL120@update:
 	jne	SHORT $LN10@update
 $LN11@update:
 
-; 1567 :     {
-; 1568 :       SK_OSD_GetDefaultColor (red, green, blue);
+; 1607 :     {
+; 1608 :       SK_OSD_GetDefaultColor (red, green, blue);
 
 	lea	eax, DWORD PTR _blue$17[ebp]
 	push	eax
@@ -20865,10 +21386,10 @@ $LN11@update:
 	movss	DWORD PTR _blue$1$[ebp], xmm0
 $LN10@update:
 
-; 1569 :     }
-; 1570 : 
-; 1571 :     float   x, y;
-; 1572 :     getPos (x, y);
+; 1609 :     }
+; 1610 : 
+; 1611 :     float   x, y;
+; 1612 :     getPos (x, y);
 
 	lea	eax, DWORD PTR _y$14[ebp]
 	mov	ecx, esi
@@ -20877,15 +21398,15 @@ $LN10@update:
 	push	eax
 	call	?getPos@SK_TextOverlay@@QAEXAAM0@Z	; SK_TextOverlay::getPos
 
-; 1573 : 
-; 1574 :     static __declspec (thread) char text [32768] = { };
-; 1575 : 
-; 1576 :     *text = '\0';
+; 1613 : 
+; 1614 :     static __declspec (thread) char text [32768] = { };
+; 1615 : 
+; 1616 :     *text = '\0';
 
 	mov	ecx, DWORD PTR __tls_index
 	mov	eax, DWORD PTR fs:__tls_array
 
-; 1577 :     strncat (text, data_.text, 32766);
+; 1617 :     strncat (text, data_.text, 32766);
 
 	push	32766					; 00007ffeH
 	mov	eax, DWORD PTR [eax+ecx*4]
@@ -20896,33 +21417,33 @@ $LN10@update:
 	call	ebx
 	add	esp, 12					; 0000000cH
 
-; 1578 : 
-; 1579 :     int   num_lines    = SK_CountLines (text);
+; 1618 : 
+; 1619 :     int   num_lines    = SK_CountLines (text);
 
 	mov	ecx, OFFSET ?SK_CountLines@@3V<lambda>@@A ; SK_CountLines
 	push	edi
 	call	??R<lambda_ae63503cf71297b3d2d4303217ab5e7f>@@QBEHPBD@Z ; <lambda_ae63503cf71297b3d2d4303217ab5e7f>::operator()
 
-; 1580 :     char* line         = strtok_ex     (text, "\n");
+; 1620 :     char* line         = strtok_ex     (text, "\n");
 
-	push	OFFSET $SG379752
+	push	OFFSET $SG379843
 	push	edi
 	mov	DWORD PTR _num_lines$1$[ebp], eax
 	call	?strtok_ex@@YAPADPAD0@Z			; strtok_ex
 	add	esp, 8
 	mov	ebx, eax
 
-; 1581 : 
-; 1582 :     bool  has_tokens   = (num_lines > 0);
+; 1621 : 
+; 1622 :     bool  has_tokens   = (num_lines > 0);
 
 	cmp	DWORD PTR _num_lines$1$[ebp], 0
 	xorps	xmm0, xmm0
 
-; 1583 : 
-; 1584 :     if (! has_tokens)
-; 1585 :       line = text;
-; 1586 : 
-; 1587 :     float longest_line = 0.0f;
+; 1623 : 
+; 1624 :     if (! has_tokens)
+; 1625 :       line = text;
+; 1626 : 
+; 1627 :     float longest_line = 0.0f;
 
 	movss	DWORD PTR _longest_line$16[ebp], xmm0
 	setg	al
@@ -20930,23 +21451,23 @@ $LN10@update:
 	mov	BYTE PTR _has_tokens$20[ebp], al
 	cmove	ebx, edi
 
-; 1588 : 
-; 1589 :     // Compute the longest line so we can left-align text
-; 1590 :     if (x < 0.0f)
+; 1628 : 
+; 1629 :     // Compute the longest line so we can left-align text
+; 1630 :     if (x < 0.0f)
 
 	comiss	xmm0, DWORD PTR _x$13[ebp]
 	jbe	$LN127@update
 
-; 1591 :     {
-; 1592 :       while (line != nullptr)
+; 1631 :     {
+; 1632 :       while (line != nullptr)
 
 	test	ebx, ebx
 	je	$LN131@update
 $LL2@update:
 
-; 1593 :       {
-; 1594 :         // Fast-path: Skip blank lines
-; 1595 :         if (*line != '\0')
+; 1633 :       {
+; 1634 :         // Fast-path: Skip blank lines
+; 1635 :         if (*line != '\0')
 
 	cmp	BYTE PTR [ebx], 0
 	je	$LN14@update
@@ -20973,7 +21494,7 @@ $LL121@update:
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1598 :             font_.cegui->getTextExtent (line, font_.scale);
+; 1638 :             font_.cegui->getTextExtent (line, font_.scale);
 
 	movss	xmm0, DWORD PTR [esi+144]
 	lea	eax, DWORD PTR $T4[ebp]
@@ -20998,23 +21519,23 @@ $LL121@update:
 	cmovbe	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1600 :           longest_line = std::max (extent, longest_line);
+; 1640 :           longest_line = std::max (extent, longest_line);
 
 	movss	xmm1, DWORD PTR [eax]
 	mov	al, BYTE PTR _has_tokens$20[ebp]
 	movss	DWORD PTR _longest_line$16[ebp], xmm1
 $LN14@update:
 
-; 1601 :         }
-; 1602 : 
-; 1603 :         if (has_tokens)
+; 1641 :         }
+; 1642 : 
+; 1643 :         if (has_tokens)
 
 	test	al, al
 	je	SHORT $LN131@update
 
-; 1604 :           line = strtok_ex (nullptr, "\n");
+; 1644 :           line = strtok_ex (nullptr, "\n");
 
-	push	OFFSET $SG379758
+	push	OFFSET $SG379849
 	push	0
 	call	?strtok_ex@@YAPADPAD0@Z			; strtok_ex
 	mov	ebx, eax
@@ -21024,19 +21545,19 @@ $LN14@update:
 	jne	$LL2@update
 $LN131@update:
 
-; 1605 :         else
-; 1606 :           line = nullptr;
-; 1607 :       }
-; 1608 : 
-; 1609 :       // Add 1.0 so that an X position of -1.0 is perfectly flush with the right
-; 1610 :       x = renderer_->getDisplaySize ().d_width + x - longest_line + 1.0f;
+; 1645 :         else
+; 1646 :           line = nullptr;
+; 1647 :       }
+; 1648 : 
+; 1649 :       // Add 1.0 so that an X position of -1.0 is perfectly flush with the right
+; 1650 :       x = renderer_->getDisplaySize ().d_width + x - longest_line + 1.0f;
 
 	mov	ecx, DWORD PTR [esi+160]
 	mov	eax, DWORD PTR [ecx]
 	call	DWORD PTR [eax+72]
 
-; 1611 : 
-; 1612 :       strncpy (text, data_.text, 32766);
+; 1651 : 
+; 1652 :       strncpy (text, data_.text, 32766);
 
 	push	32766					; 00007ffeH
 	push	DWORD PTR [esi+64]
@@ -21049,34 +21570,34 @@ $LN131@update:
 	call	DWORD PTR __imp__strncpy
 	add	esp, 12					; 0000000cH
 
-; 1613 : 
-; 1614 :       // Restart tokenizing
-; 1615 :       if (! has_tokens)
+; 1653 : 
+; 1654 :       // Restart tokenizing
+; 1655 :       if (! has_tokens)
 
 	cmp	BYTE PTR _has_tokens$20[ebp], 0
 	jne	SHORT $LN17@update
 
-; 1616 :         line = text;
+; 1656 :         line = text;
 
 	mov	ebx, edi
 
-; 1617 :       else
+; 1657 :       else
 
 	jmp	SHORT $LN127@update
 $LN17@update:
 
-; 1618 :         line = strtok_ex (text, "\n");
+; 1658 :         line = strtok_ex (text, "\n");
 
-	push	OFFSET $SG379761
+	push	OFFSET $SG379852
 	push	edi
 	call	?strtok_ex@@YAPADPAD0@Z			; strtok_ex
 	add	esp, 8
 	mov	ebx, eax
 $LN127@update:
 
-; 1619 :     }
-; 1620 : 
-; 1621 :     CEGUI::System::getDllSingleton ().getDefaultGUIContext ().removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
+; 1659 :     }
+; 1660 : 
+; 1661 :     CEGUI::System::getDllSingleton ().getDefaultGUIContext ().removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
 
 	push	DWORD PTR [esi+156]
 	push	1
@@ -21086,14 +21607,14 @@ $LN127@update:
 	mov	ecx, eax
 	call	DWORD PTR __imp_?removeGeometryBuffer@RenderingSurface@CEGUI@@QAEXW4RenderQueueID@2@ABVGeometryBuffer@2@@Z
 
-; 1622 :     geometry_->reset ();
+; 1662 :     geometry_->reset ();
 
 	mov	ecx, DWORD PTR [esi+156]
 	mov	eax, DWORD PTR [ecx]
 	call	DWORD PTR [eax+36]
 
-; 1623 : 
-; 1624 :     CEGUI::ColourRect foreground (
+; 1663 : 
+; 1664 :     CEGUI::ColourRect foreground (
 
 	movss	xmm0, DWORD PTR _blue$1$[ebp]
 	lea	ecx, DWORD PTR $T7[ebp]
@@ -21111,12 +21632,12 @@ $LN127@update:
 	push	eax
 	call	esi
 
-; 1625 :       CEGUI::Colour ( red,
-; 1626 :                         green,
-; 1627 :                           blue )
-; 1628 :     );
-; 1629 : 
-; 1630 :     CEGUI::ColourRect shadow (
+; 1665 :       CEGUI::Colour ( red,
+; 1666 :                         green,
+; 1667 :                           blue )
+; 1668 :     );
+; 1669 : 
+; 1670 :     CEGUI::ColourRect shadow (
 
 	sub	esp, 16					; 00000010H
 	lea	ecx, DWORD PTR $T6[ebp]
@@ -21129,11 +21650,11 @@ $LN127@update:
 	lea	ecx, DWORD PTR _shadow$3[ebp]
 	call	esi
 
-; 1631 :       CEGUI::Colour ( 0.0f, 0.0f, 0.0f )
-; 1632 :     );
-; 1633 : 
-; 1634 :     if (y < 0.0f)
-; 1635 :       y = renderer_->getDisplaySize ().d_height + y - (num_lines * spacing) + 1.0f;
+; 1671 :       CEGUI::Colour ( 0.0f, 0.0f, 0.0f )
+; 1672 :     );
+; 1673 : 
+; 1674 :     if (y < 0.0f)
+; 1675 :       y = renderer_->getDisplaySize ().d_height + y - (num_lines * spacing) + 1.0f;
 
 	mov	esi, DWORD PTR _this$[ebp]
 	xorps	xmm0, xmm0
@@ -21154,15 +21675,15 @@ $LN129@update:
 	mov	al, BYTE PTR _has_tokens$20[ebp]
 $LL4@update:
 
-; 1636 : 
-; 1637 :     while (line != nullptr)
+; 1676 : 
+; 1677 :     while (line != nullptr)
 
 	test	ebx, ebx
 	je	$LN5@update
 
-; 1638 :     {
-; 1639 :       // Fast-path: Skip blank lines
-; 1640 :       if (*line != '\0')
+; 1678 :     {
+; 1679 :       // Fast-path: Skip blank lines
+; 1680 :       if (*line != '\0')
 
 	cmp	BYTE PTR [ebx], 0
 	je	$LN20@update
@@ -21189,7 +21710,7 @@ $LL122@update:
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1647 :         font_.cegui->drawText (
+; 1687 :         font_.cegui->drawText (
 
 	movss	xmm0, DWORD PTR _y$14[ebp]
 	lea	eax, DWORD PTR _shadow$3[ebp]
@@ -21213,7 +21734,7 @@ $LL122@update:
 	movss	DWORD PTR $T8[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1647 :         font_.cegui->drawText (
+; 1687 :         font_.cegui->drawText (
 
 	movss	xmm0, DWORD PTR [esi+144]
 	movss	DWORD PTR [esp+8], xmm0
@@ -21234,7 +21755,7 @@ $LL122@update:
 	movss	xmm0, DWORD PTR _x$13[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1659 :         font_.cegui->drawText (
+; 1699 :         font_.cegui->drawText (
 
 	lea	eax, DWORD PTR _foreground$2[ebp]
 	mov	ecx, DWORD PTR [esi+76]
@@ -21246,7 +21767,7 @@ $LL122@update:
 	movss	DWORD PTR $T9[ebp], xmm0
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1647 :         font_.cegui->drawText (
+; 1687 :         font_.cegui->drawText (
 
 	fstp	ST(0)
 ; File c:\users\andon\source\repos\specialk\depends\include\cegui\vector.h
@@ -21257,7 +21778,7 @@ $LL122@update:
 	movss	DWORD PTR $T9[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1659 :         font_.cegui->drawText (
+; 1699 :         font_.cegui->drawText (
 
 	movss	xmm0, DWORD PTR [esi+144]
 	movss	DWORD PTR [esp+8], xmm0
@@ -21275,15 +21796,15 @@ $LL122@update:
 	jmp	SHORT $LN32@update
 __catch$?update@SK_TextOverlay@@QAEMPBD@Z$0:
 
-; 1660 :           *geometry_,
-; 1661 :             cegui_line,
-; 1662 :               CEGUI::Vector2f (x, y + baseline),
-; 1663 :                 nullptr,
-; 1664 :                   foreground,
-; 1665 :                     0.0f,
-; 1666 :                       font_.scale,
-; 1667 :                       font_.scale );
-; 1668 :         } catch (...) { };
+; 1700 :           *geometry_,
+; 1701 :             cegui_line,
+; 1702 :               CEGUI::Vector2f (x, y + baseline),
+; 1703 :                 nullptr,
+; 1704 :                   foreground,
+; 1705 :                     0.0f,
+; 1706 :                       font_.scale,
+; 1707 :                       font_.scale );
+; 1708 :         } catch (...) { };
 
 	mov	eax, $LN128@update
 	ret	0
@@ -21291,7 +21812,7 @@ $LN128@update:
 	mov	esi, DWORD PTR _this$[ebp]
 $LN32@update:
 
-; 1669 :       }
+; 1709 :       }
 
 	lea	ecx, DWORD PTR _cegui_line$5[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+12], -1
@@ -21299,43 +21820,43 @@ $LN32@update:
 	mov	al, BYTE PTR _has_tokens$20[ebp]
 $LN20@update:
 
-; 1670 : 
-; 1671 :       baseline += spacing;
+; 1710 : 
+; 1711 :       baseline += spacing;
 
 	movss	xmm0, DWORD PTR _spacing$11[ebp]
 	addss	xmm0, DWORD PTR _baseline$12[ebp]
 	movss	DWORD PTR _baseline$12[ebp], xmm0
 
-; 1672 : 
-; 1673 :       if (has_tokens)
+; 1712 : 
+; 1713 :       if (has_tokens)
 
 	test	al, al
 	je	SHORT $LN22@update
 
-; 1674 :         line = strtok_ex (nullptr, "\n");
+; 1714 :         line = strtok_ex (nullptr, "\n");
 
-	push	OFFSET $SG379767
+	push	OFFSET $SG379858
 	push	0
 	call	?strtok_ex@@YAPADPAD0@Z			; strtok_ex
 	add	esp, 8
 	mov	ebx, eax
 
-; 1675 :       else
+; 1715 :       else
 
 	jmp	$LN129@update
 $LN22@update:
 
-; 1676 :         line = nullptr;
+; 1716 :         line = nullptr;
 
 	xor	ebx, ebx
 
-; 1677 :     }
+; 1717 :     }
 
 	jmp	$LL4@update
 $LN5@update:
 
-; 1678 : 
-; 1679 :     CEGUI::System::getDllSingleton ().getDefaultGUIContext ().addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
+; 1718 : 
+; 1719 :     CEGUI::System::getDllSingleton ().getDefaultGUIContext ().addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
 
 	push	DWORD PTR [esi+156]
 	push	1
@@ -21346,14 +21867,14 @@ $LN5@update:
 	call	DWORD PTR __imp_?addGeometryBuffer@RenderingSurface@CEGUI@@QAEXW4RenderQueueID@2@ABVGeometryBuffer@2@@Z
 	movss	xmm0, DWORD PTR _baseline$12[ebp]
 
-; 1680 : 
-; 1681 :     data_.extent = baseline;
-; 1682 :     return data_.extent;
+; 1720 : 
+; 1721 :     data_.extent = baseline;
+; 1722 :     return data_.extent;
 
 	fld	DWORD PTR _baseline$12[ebp]
 	movss	DWORD PTR [esi+72], xmm0
 
-; 1687 : }
+; 1727 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp+4]
 	mov	DWORD PTR fs:0, ecx
@@ -21365,22 +21886,22 @@ $LN5@update:
 	ret	4
 $LN9@update:
 
-; 1552 :     {
-; 1553 :       geometry_->reset ();
+; 1592 :     {
+; 1593 :       geometry_->reset ();
 
 	mov	eax, DWORD PTR [edx]
 	mov	ecx, edx
 	call	DWORD PTR [eax+36]
 $LN7@update:
 
-; 1683 :   }
-; 1684 : 
-; 1685 :   data_.extent = 0.0f;
-; 1686 :   return data_.extent;
+; 1723 :   }
+; 1724 : 
+; 1725 :   data_.extent = 0.0f;
+; 1726 :   return data_.extent;
 
 	fldz
 
-; 1687 : }
+; 1727 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp+4]
 	pop	edi
@@ -21411,7 +21932,7 @@ __$EHRec$ = -12						; size = 12
 ??1SK_TextOverlay@@QAE@XZ PROC				; SK_TextOverlay::~SK_TextOverlay
 ; _this$ = ecx
 
-; 152  : {
+; 190  : {
 
 	npad	2
 	push	ebp
@@ -21424,66 +21945,66 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	mov	esi, ecx
 
-; 153  :   SK_TextOverlayManager::getInstance ()->removeTextOverlay (data_.name);
+; 191  :   SK_TextOverlayManager::getInstance ()->removeTextOverlay (data_.name);
 
 	push	esi
 	call	?getInstance@SK_TextOverlayManager@@SAPAV1@XZ ; SK_TextOverlayManager::getInstance
 	mov	ecx, eax
 	call	?removeTextOverlay@SK_TextOverlayManager@@QAE_NPBD@Z ; SK_TextOverlayManager::removeTextOverlay
 
-; 154  : 
-; 155  :   if (data_.text != nullptr)
+; 192  : 
+; 193  :   if (data_.text != nullptr)
 
 	mov	eax, DWORD PTR [esi+64]
 	test	eax, eax
 	je	SHORT $LN2@SK_TextOve
 
-; 156  :   {
-; 157  :     free ((void *)data_.text);
+; 194  :   {
+; 195  :     free ((void *)data_.text);
 
 	push	eax
 	call	DWORD PTR __imp__free
 	add	esp, 4
 
-; 158  :     data_.text_len = 0;
+; 196  :     data_.text_len = 0;
 
 	mov	DWORD PTR [esi+68], 0
 
-; 159  :     data_.text     = nullptr;
+; 197  :     data_.text     = nullptr;
 
 	mov	DWORD PTR [esi+64], 0
 $LN2@SK_TextOve:
 
-; 160  :   }
-; 161  : 
-; 162  :   if (geometry_ != nullptr)
+; 198  :   }
+; 199  : 
+; 200  :   if (geometry_ != nullptr)
 
 	mov	edx, DWORD PTR [esi+156]
 	test	edx, edx
 	je	SHORT $LN4@SK_TextOve
 
-; 163  :   {
-; 164  :     if (renderer_ != nullptr)
+; 201  :   {
+; 202  :     if (renderer_ != nullptr)
 
 	mov	ecx, DWORD PTR [esi+160]
 	test	ecx, ecx
 	je	SHORT $LN4@SK_TextOve
 
-; 165  :     {
-; 166  :       renderer_->destroyGeometryBuffer (*geometry_);
+; 203  :     {
+; 204  :       renderer_->destroyGeometryBuffer (*geometry_);
 
 	mov	eax, DWORD PTR [ecx]
 	push	edx
 	call	DWORD PTR [eax+8]
 
-; 167  :       geometry_ = nullptr;
+; 205  :       geometry_ = nullptr;
 
 	mov	DWORD PTR [esi+156], 0
 $LN4@SK_TextOve:
 
-; 168  :     }
-; 169  :   }
-; 170  : }
+; 206  :     }
+; 207  :   }
+; 208  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -21505,18 +22026,18 @@ _scale_incr$ = 8					; size = 4
 _lpAppName$ = 12					; size = 4
 ?SK_ResizeOSD@@YGXMPBD@Z PROC				; SK_ResizeOSD
 
-; 1424 : {
+; 1464 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	mov	eax, DWORD PTR _lpAppName$[ebp]
-	mov	ecx, OFFSET $SG379596
+	mov	ecx, OFFSET $SG379687
 
-; 1425 :   if (lpAppName == nullptr)
-; 1426 :     lpAppName = "Special K";
-; 1427 : 
-; 1428 :   SK_SetOSDScale (scale_incr, true, lpAppName);
+; 1465 :   if (lpAppName == nullptr)
+; 1466 :     lpAppName = "Special K";
+; 1467 : 
+; 1468 :   SK_SetOSDScale (scale_incr, true, lpAppName);
 
 	movss	xmm0, DWORD PTR _scale_incr$[ebp]
 	test	eax, eax
@@ -21527,7 +22048,7 @@ _lpAppName$ = 12					; size = 4
 	movss	DWORD PTR [esp], xmm0
 	call	?SK_SetOSDScale@@YGXM_NPBD@Z		; SK_SetOSDScale
 
-; 1429 : }
+; 1469 : }
 
 	pop	ebp
 	ret	8
@@ -21542,7 +22063,7 @@ _relative$ = 12						; size = 1
 _lpAppName$ = 16					; size = 4
 ?SK_SetOSDScale@@YGXM_NPBD@Z PROC			; SK_SetOSDScale
 
-; 1392 : {
+; 1432 : {
 
 	npad	2
 	push	ebp
@@ -21551,40 +22072,40 @@ _lpAppName$ = 16					; size = 4
 	push	ebx
 	push	esi
 
-; 1393 :   if (lpAppName == nullptr)
-; 1394 :     lpAppName = "Special K";
-; 1395 : 
-; 1396 :   SK_TextOverlayManager* overlay_mgr =
-; 1397 :     SK_TextOverlayManager::getInstance ();
+; 1433 :   if (lpAppName == nullptr)
+; 1434 :     lpAppName = "Special K";
+; 1435 : 
+; 1436 :   SK_TextOverlayManager* overlay_mgr =
+; 1437 :     SK_TextOverlayManager::getInstance ();
 
 	call	?getInstance@SK_TextOverlayManager@@SAPAV1@XZ ; SK_TextOverlayManager::getInstance
 	mov	ecx, DWORD PTR _lpAppName$[ebp]
-	mov	edx, OFFSET $SG379582
+	mov	edx, OFFSET $SG379673
 	test	ecx, ecx
 	mov	esi, eax
 	cmovne	edx, ecx
 
-; 1398 : 
-; 1399 :   SK_TextOverlay* overlay =
-; 1400 :     overlay_mgr->getTextOverlay (lpAppName);
+; 1438 : 
+; 1439 :   SK_TextOverlay* overlay =
+; 1440 :     overlay_mgr->getTextOverlay (lpAppName);
 
 	mov	ecx, esi
 	push	edx
 	call	?getTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z ; SK_TextOverlayManager::getTextOverlay
 	mov	ebx, eax
 
-; 1401 : 
-; 1402 :   if (overlay != nullptr)
+; 1441 : 
+; 1442 :   if (overlay != nullptr)
 
 	test	ebx, ebx
 	je	SHORT $LN5@SK_SetOSDS
 
-; 1403 :   {
-; 1404 :     if (relative)
+; 1443 :   {
+; 1444 :     if (relative)
 
 	cmp	BYTE PTR _relative$[ebp], 0
 
-; 1405 :       overlay->resize (fScale);
+; 1445 :       overlay->resize (fScale);
 
 	movss	xmm0, DWORD PTR _fScale$[ebp]
 	push	ecx
@@ -21593,31 +22114,31 @@ _lpAppName$ = 16					; size = 4
 	je	SHORT $LN4@SK_SetOSDS
 	call	?resize@SK_TextOverlay@@QAEXM@Z		; SK_TextOverlay::resize
 
-; 1406 :     else
+; 1446 :     else
 
 	jmp	SHORT $LN5@SK_SetOSDS
 $LN4@SK_SetOSDS:
 
-; 1407 :       overlay->setScale (fScale);
+; 1447 :       overlay->setScale (fScale);
 
 	call	?setScale@SK_TextOverlay@@QAEXM@Z	; SK_TextOverlay::setScale
 $LN5@SK_SetOSDS:
 
-; 1408 :   }
-; 1409 : 
-; 1410 :   // TEMP HACK
-; 1411 :   // ---------
-; 1412 :   //
-; 1413 :   // If the primary overlay is rescaled, rescale everything else with it...
-; 1414 :   if (overlay == overlay_mgr->getTextOverlay ("Special K"))
+; 1448 :   }
+; 1449 : 
+; 1450 :   // TEMP HACK
+; 1451 :   // ---------
+; 1452 :   //
+; 1453 :   // If the primary overlay is rescaled, rescale everything else with it...
+; 1454 :   if (overlay == overlay_mgr->getTextOverlay ("Special K"))
 
-	push	OFFSET $SG379587
+	push	OFFSET $SG379678
 	mov	ecx, esi
 	call	?getTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z ; SK_TextOverlayManager::getTextOverlay
 	cmp	ebx, eax
 	jne	SHORT $LN6@SK_SetOSDS
 
-; 1415 :     SK_GetCommandProcessor ()->ProcessCommandFormatted (
+; 1455 :     SK_GetCommandProcessor ()->ProcessCommandFormatted (
 
 	push	edi
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
@@ -21628,7 +22149,7 @@ $LN5@SK_SetOSDS:
 	sub	esp, 8
 	lea	eax, DWORD PTR $T1[ebp]
 	fstp	QWORD PTR [esp]
-	push	OFFSET $SG379588
+	push	OFFSET $SG379679
 	push	eax
 	push	esi
 	call	DWORD PTR [edi+32]
@@ -21640,10 +22161,10 @@ $LN6@SK_SetOSDS:
 	pop	esi
 	pop	ebx
 
-; 1416 :       "OSD.Scale %f",
-; 1417 :         overlay->getScale ()
-; 1418 :     );
-; 1419 : }
+; 1456 :       "OSD.Scale %f",
+; 1457 :         overlay->getScale ()
+; 1458 :     );
+; 1459 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -21659,16 +22180,16 @@ _blue$ = 16						; size = 4
 _lpAppName$ = 20					; size = 4
 ?SK_SetOSDColor@@YGXHHHPBD@Z PROC			; SK_SetOSDColor
 
-; 1376 : #if 0
-; 1377 :   if (lpAppName == nullptr)
-; 1378 :     lpAppName = "Special K";
-; 1379 : #endif
-; 1380 : 
-; 1381 :   UNREFERENCED_PARAMETER (red);
-; 1382 :   UNREFERENCED_PARAMETER (green);
-; 1383 :   UNREFERENCED_PARAMETER (blue);
-; 1384 :   UNREFERENCED_PARAMETER (lpAppName);
-; 1385 : }
+; 1416 : #if 0
+; 1417 :   if (lpAppName == nullptr)
+; 1418 :     lpAppName = "Special K";
+; 1419 : #endif
+; 1420 : 
+; 1421 :   UNREFERENCED_PARAMETER (red);
+; 1422 :   UNREFERENCED_PARAMETER (green);
+; 1423 :   UNREFERENCED_PARAMETER (blue);
+; 1424 :   UNREFERENCED_PARAMETER (lpAppName);
+; 1425 : }
 
 	ret	16					; 00000010H
 ?SK_SetOSDColor@@YGXHHHPBD@Z ENDP			; SK_SetOSDColor
@@ -21681,21 +22202,21 @@ _y$ = 12						; size = 4
 _lpAppName$ = 16					; size = 4
 ?SK_SetOSDPos@@YGXHHPBD@Z PROC				; SK_SetOSDPos
 
-; 1349 : {
+; 1389 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	mov	eax, DWORD PTR _lpAppName$[ebp]
-	mov	ecx, OFFSET $SG379564
+	mov	ecx, OFFSET $SG379655
 	test	eax, eax
 	cmovne	ecx, eax
 
-; 1350 :   if (lpAppName == nullptr)
-; 1351 :     lpAppName = "Special K";
-; 1352 : 
-; 1353 :   // 0,0 means don't touch anything.
-; 1354 :   if (x == 0 && y == 0)
+; 1390 :   if (lpAppName == nullptr)
+; 1391 :     lpAppName = "Special K";
+; 1392 : 
+; 1393 :   // 0,0 means don't touch anything.
+; 1394 :   if (x == 0 && y == 0)
 
 	cmp	DWORD PTR _x$[ebp], 0
 	jne	SHORT $LN3@SK_SetOSDP
@@ -21703,27 +22224,27 @@ _lpAppName$ = 16					; size = 4
 	je	SHORT $LN4@SK_SetOSDP
 $LN3@SK_SetOSDP:
 
-; 1355 :     return;
-; 1356 : 
-; 1357 :   SK_TextOverlay* overlay =
-; 1358 :     SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
+; 1395 :     return;
+; 1396 : 
+; 1397 :   SK_TextOverlay* overlay =
+; 1398 :     SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
 
 	push	ecx
 	call	?getInstance@SK_TextOverlayManager@@SAPAV1@XZ ; SK_TextOverlayManager::getInstance
 	mov	ecx, eax
 	call	?getTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z ; SK_TextOverlayManager::getTextOverlay
 
-; 1359 : 
-; 1360 :   if (overlay != nullptr)
+; 1399 : 
+; 1400 :   if (overlay != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN4@SK_SetOSDP
 
-; 1361 :   {
-; 1362 :     auto fX = static_cast <float> (x);
-; 1363 :     auto fY = static_cast <float> (y);
-; 1364 : 
-; 1365 :     overlay->setPos (fX, fY);
+; 1401 :   {
+; 1402 :     auto fX = static_cast <float> (x);
+; 1403 :     auto fY = static_cast <float> (y);
+; 1404 : 
+; 1405 :     overlay->setPos (fX, fY);
 
 	movd	xmm0, DWORD PTR _y$[ebp]
 	sub	esp, 8
@@ -21736,8 +22257,8 @@ $LN3@SK_SetOSDP:
 	call	?setPos@SK_TextOverlay@@QAEXMM@Z	; SK_TextOverlay::setPos
 $LN4@SK_SetOSDP:
 
-; 1366 :   }
-; 1367 : }
+; 1406 :   }
+; 1407 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -21748,12 +22269,12 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_ReleaseOSD@@YGXXZ PROC				; SK_ReleaseOSD
 
-; 1341 :   // Made obsolete by removal of RTSS ... may repurpose this in the future
-; 1342 :   osd_shutting_down = true;
+; 1381 :   // Made obsolete by removal of RTSS ... may repurpose this in the future
+; 1382 :   osd_shutting_down = true;
 
 	mov	BYTE PTR ?osd_shutting_down@@3_NA, 1	; osd_shutting_down
 
-; 1343 : }
+; 1383 : }
 
 	ret	0
 ?SK_ReleaseOSD@@YGXXZ ENDP				; SK_ReleaseOSD
@@ -21769,7 +22290,7 @@ _pMapAddr$ = 12						; size = 4
 _lpAppName$ = 16					; size = 4
 ?SK_UpdateOSD@@YGHPBDPAX0@Z PROC			; SK_UpdateOSD
 
-; 1300 : {
+; 1340 : {
 
 	npad	2
 	push	ebp
@@ -21787,83 +22308,83 @@ _lpAppName$ = 16					; size = 4
 	mov	eax, DWORD PTR ?osd_init@@3JC		; osd_init
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1300 : {
+; 1340 : {
 
 	push	ebx
 	push	esi
 	push	edi
 	mov	DWORD PTR __$EHRec$[ebp], esp
 
-; 1301 :   UNREFERENCED_PARAMETER (pMapAddr);
-; 1302 : 
-; 1303 :   if (! ReadAcquire (&osd_init))
+; 1341 :   UNREFERENCED_PARAMETER (pMapAddr);
+; 1342 : 
+; 1343 :   if (! ReadAcquire (&osd_init))
 
 	test	eax, eax
 	je	SHORT $LN11@SK_UpdateO
 
-; 1304 :     return FALSE;
-; 1305 : 
-; 1306 :   if (lpAppName == nullptr)
-; 1307 :     lpAppName = "Special K";
-; 1308 : 
-; 1309 :   try
+; 1344 :     return FALSE;
+; 1345 : 
+; 1346 :   if (lpAppName == nullptr)
+; 1347 :     lpAppName = "Special K";
+; 1348 : 
+; 1349 :   try
 
 	mov	eax, DWORD PTR _lpAppName$[ebp]
-	mov	esi, OFFSET $SG379546
+	mov	esi, OFFSET $SG379637
 	test	eax, eax
 	mov	DWORD PTR __$EHRec$[ebp+12], 0
 	cmovne	esi, eax
 
-; 1310 :   {
-; 1311 :     SK_TextOverlay* pOverlay =
-; 1312 :       SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
+; 1350 :   {
+; 1351 :     SK_TextOverlay* pOverlay =
+; 1352 :       SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
 
 	call	?getInstance@SK_TextOverlayManager@@SAPAV1@XZ ; SK_TextOverlayManager::getInstance
 	push	esi
 	mov	ecx, eax
 	call	?getTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z ; SK_TextOverlayManager::getTextOverlay
 
-; 1313 : 
-; 1314 : #define IMPLICIT_CREATION
-; 1315 : #ifdef IMPLICIT_CREATION
-; 1316 :     if (pOverlay == nullptr)
+; 1353 : 
+; 1354 : #define IMPLICIT_CREATION
+; 1355 : #ifdef IMPLICIT_CREATION
+; 1356 :     if (pOverlay == nullptr)
 
 	test	eax, eax
 	jne	SHORT $LN14@SK_UpdateO
 
-; 1317 :     {
-; 1318 :       pOverlay =
+; 1357 :     {
+; 1358 :       pOverlay =
 
 	call	?getInstance@SK_TextOverlayManager@@SAPAV1@XZ ; SK_TextOverlayManager::getInstance
 	push	esi
 	mov	ecx, eax
 	call	?createTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z ; SK_TextOverlayManager::createTextOverlay
 
-; 1319 :         SK_TextOverlayManager::getInstance ()->createTextOverlay (lpAppName);
-; 1320 :     }
-; 1321 : #endif
-; 1322 : 
-; 1323 :     if (pOverlay != nullptr)
+; 1359 :         SK_TextOverlayManager::getInstance ()->createTextOverlay (lpAppName);
+; 1360 :     }
+; 1361 : #endif
+; 1362 : 
+; 1363 :     if (pOverlay != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN11@SK_UpdateO
 $LN14@SK_UpdateO:
 
-; 1324 :     {
-; 1325 :       pOverlay->update (lpText);
+; 1364 :     {
+; 1365 :       pOverlay->update (lpText);
 
 	push	DWORD PTR _lpText$[ebp]
 	mov	ecx, eax
 	call	?update@SK_TextOverlay@@QAEMPBD@Z	; SK_TextOverlay::update
 	fstp	ST(0)
 
-; 1326 :       return TRUE;
+; 1366 :       return TRUE;
 
 	mov	eax, 1
 
-; 1333 : 
-; 1334 :   return FALSE;
-; 1335 : }
+; 1373 : 
+; 1374 :   return FALSE;
+; 1375 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp+4]
 	mov	DWORD PTR fs:0, ecx
@@ -21875,20 +22396,20 @@ $LN14@SK_UpdateO:
 	ret	12					; 0000000cH
 __catch$?SK_UpdateOSD@@YGHPBDPAX0@Z$0:
 
-; 1327 :     }
-; 1328 :   }
-; 1329 : 
-; 1330 :   catch (...)
-; 1331 :   {
-; 1332 :   }
+; 1367 :     }
+; 1368 :   }
+; 1369 : 
+; 1370 :   catch (...)
+; 1371 :   {
+; 1372 :   }
 
 	mov	eax, $LN11@SK_UpdateO
 	ret	0
 $LN11@SK_UpdateO:
 
-; 1333 : 
-; 1334 :   return FALSE;
-; 1335 : }
+; 1373 : 
+; 1374 :   return FALSE;
+; 1375 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp+4]
 	xor	eax, eax
@@ -21931,7 +22452,7 @@ _app_name$ = 8						; size = 24
 _text$ = 32						; size = 24
 ?SK_DrawExternalOSD@@YGHV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z PROC ; SK_DrawExternalOSD
 
-; 422  : {
+; 460  : {
 
 	npad	2
 	push	ebp
@@ -21950,7 +22471,7 @@ _text$ = 32						; size = 24
 	lea	eax, DWORD PTR _app_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 422  : {
+; 460  : {
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21976,7 +22497,7 @@ _text$ = 32						; size = 24
 	cmp	DWORD PTR _text$[ebp+20], 16		; 00000010H
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 425  :   SK_UpdateOSD (text.c_str (), nullptr, app_name.c_str ());
+; 463  :   SK_UpdateOSD (text.c_str (), nullptr, app_name.c_str ());
 
 	push	ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21986,7 +22507,7 @@ _text$ = 32						; size = 24
 	cmovae	eax, DWORD PTR _text$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 425  :   SK_UpdateOSD (text.c_str (), nullptr, app_name.c_str ());
+; 463  :   SK_UpdateOSD (text.c_str (), nullptr, app_name.c_str ());
 
 	push	0
 	push	eax
@@ -22068,7 +22589,7 @@ $LN89@SK_DrawExt:
 $LN145@SK_DrawExt:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 428  : }
+; 466  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, 1
@@ -22302,59 +22823,59 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 _TEXT	SEGMENT
-_time$2 = -860						; size = 256
-$T3 = -604						; size = 24
-$T4 = -580						; size = 24
-$T5 = -556						; size = 24
-_st$6 = -532						; size = 16
-_usage$7 = -516						; size = 24
-$T8 = -492						; size = 24
-$T9 = -468						; size = 24
-_temp$10 = -444						; size = 24
+_time$2 = -868						; size = 256
+$T3 = -612						; size = 24
+$T4 = -588						; size = 24
+$T5 = -564						; size = 24
+_st$6 = -540						; size = 16
+_usage$7 = -524						; size = 24
+$T8 = -500						; size = 24
+$T9 = -476						; size = 24
+_temp$10 = -452						; size = 24
+tv7105 = -428						; size = 8
 _dt$ = -420						; size = 8
 $T11 = -412						; size = 24
 $T12 = -388						; size = 24
 _read_bytes_sec$13 = -364				; size = 24
 _temp$14 = -340						; size = 24
-_working_set$15 = -316					; size = 24
-_commit$16 = -292					; size = 24
-_virtual_size$17 = -268					; size = 24
-_working_set_peak$18 = -244				; size = 24
-_commit_peak$19 = -220					; size = 24
-_virtual_peak$20 = -196					; size = 24
-_temp$21 = -172						; size = 24
-_size$22 = -148						; size = 24
-_peak$23 = -124						; size = 24
-tv7093 = -100						; size = 8
-_effective_mean$24 = -100				; size = 8
-_write_bytes_sec$25 = -92				; size = 24
-_now$ = -68						; size = 8
-_max$26 = -60						; size = 8
+_commit$15 = -316					; size = 24
+_virtual_size$16 = -292					; size = 24
+_working_set_peak$17 = -268				; size = 24
+_commit_peak$18 = -244					; size = 24
+_virtual_peak$19 = -220					; size = 24
+_temp$20 = -196						; size = 24
+_size$21 = -172						; size = 24
+_peak$22 = -148						; size = 24
+_working_set$23 = -124					; size = 24
+_write_bytes_sec$24 = -100				; size = 24
+_now$ = -76						; size = 8
+_max$25 = -68						; size = 8
+_afr_next$1$ = -64					; size = 4
+_min$26 = -60						; size = 8
 _afr_idx$1$ = -56					; size = 4
-_min$27 = -52						; size = 8
+_sd$27 = -52						; size = 8
 _afr_last$1$ = -48					; size = 4
-_afr_next$1$ = -44					; size = 4
-tv6423 = -44						; size = 4
+tv6426 = -44						; size = 4
 _sample$ = -40						; size = 8
 _mean$28 = -40						; size = 8
-tv6467 = -36						; size = 4
-tv6487 = -32						; size = 4
-_sd$29 = -28						; size = 8
-_time$2$ = -24						; size = 4
-_i$1$ = -24						; size = 4
-_i$1$ = -24						; size = 4
-tv6449 = -24						; size = 4
+tv6470 = -36						; size = 4
+_effective_mean$29 = -32				; size = 8
+_time$2$ = -28						; size = 4
+_i$1$ = -28						; size = 4
+_i$1$ = -28						; size = 4
+tv6452 = -28						; size = 4
+tv6489 = -24						; size = 4
 _nodes$1$ = -20						; size = 4
 _time$1$ = -16						; size = 4
 _i$2$ = -16						; size = 4
 _i$1$ = -16						; size = 4
-tv6455 = -16						; size = 4
-tv6445 = -16						; size = 4
-tv6014 = -16						; size = 4
+tv6458 = -16						; size = 4
+tv6448 = -16						; size = 4
+tv6011 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ?SK_DrawOSD@@YGHXZ PROC					; SK_DrawOSD
 
-; 479  : {
+; 517  : {
 
 	npad	2
 	push	ebp
@@ -22365,10 +22886,10 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 488  :   SK::Framerate::Tick (dt, now);
+; 526  :   SK::Framerate::Tick (dt, now);
 
 	lea	eax, DWORD PTR _now$[ebp]
-	sub	esp, 848				; 00000350H
+	sub	esp, 856				; 00000358H
 	push	eax
 	lea	eax, DWORD PTR _dt$[ebp]
 	push	eax
@@ -22380,75 +22901,51 @@ __$EHRec$ = -12						; size = 12
 	mov	eax, DWORD PTR ?osd_init@@3JC		; osd_init
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 488  :   SK::Framerate::Tick (dt, now);
+; 526  :   SK::Framerate::Tick (dt, now);
 
 	add	esp, 8
 
-; 489  : 
-; 490  :   static bool cleared = false;
-; 491  : 
-; 492  :   if ((! ReadAcquire (&osd_init)))
+; 527  : 
+; 528  :   static bool cleared = false;
+; 529  : 
+; 530  :   if ((! ReadAcquire (&osd_init)))
 
 	test	eax, eax
-	jne	SHORT $LN33@SK_DrawOSD
+	jne	SHORT $LN34@SK_DrawOSD
 
-; 493  :     SK_InstallOSD ();
+; 531  :     SK_InstallOSD ();
 
 	call	?SK_InstallOSD@@YGXXZ			; SK_InstallOSD
-$LN33@SK_DrawOSD:
+$LN34@SK_DrawOSD:
 
-; 494  : 
-; 495  : #if 0
-; 496  :   // Automatically free VRAM cache when it is a bit on the excessive side
-; 497  :   if ((process_stats.memory.page_file_bytes >> 30ULL) > 28) {
-; 498  :     SK_GetCommandProcessor ()->ProcessCommandLine ("VRAM.Purge 9999");
-; 499  :   }
-; 500  : 
-; 501  :   if ((process_stats.memory.page_file_bytes >> 30ULL) < 12) {
-; 502  :     SK_GetCommandProcessor ()->ProcessCommandLine ("VRAM.Purge 0");
-; 503  :   }
-; 504  : #endif
-; 505  : 
-; 506  :   if ((! config.osd.show) && cleared)
+; 532  : 
+; 533  : #if 0
+; 534  :   // Automatically free VRAM cache when it is a bit on the excessive side
+; 535  :   if ((process_stats.memory.page_file_bytes >> 30ULL) > 28) {
+; 536  :     SK_GetCommandProcessor ()->ProcessCommandLine ("VRAM.Purge 9999");
+; 537  :   }
+; 538  : 
+; 539  :   if ((process_stats.memory.page_file_bytes >> 30ULL) < 12) {
+; 540  :     SK_GetCommandProcessor ()->ProcessCommandLine ("VRAM.Purge 0");
+; 541  :   }
+; 542  : #endif
+; 543  : 
+; 544  :   if ((! config.osd.show) && cleared)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	jne	SHORT $LN34@SK_DrawOSD
+	jne	SHORT $LN35@SK_DrawOSD
 	cmp	BYTE PTR ?cleared@?1??SK_DrawOSD@@YGHXZ@4_NA, 0
-	je	SHORT $LN34@SK_DrawOSD
+	je	SHORT $LN35@SK_DrawOSD
 
-; 507  :     return TRUE;
+; 545  :     return TRUE;
 
 	mov	eax, 1
 
-; 1291 : 
-; 1292 :   //game_debug.Log (L"%hs", szOSD);
-; 1293 : 
-; 1294 :   return ret;
-; 1295 : }
-
-	mov	ecx, DWORD PTR __$EHRec$[ebp]
-	mov	DWORD PTR fs:0, ecx
-	mov	esp, ebp
-	pop	ebp
-	ret	0
-$LN34@SK_DrawOSD:
-; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
-
-; 8063 :     Value = *Source;
-
-	mov	eax, DWORD PTR ?osd_init@@3JC		; osd_init
-; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
-
-; 509  :   if (! ReadAcquire (&osd_init))
-
-	test	eax, eax
-	jne	SHORT $LN35@SK_DrawOSD
-
-; 1291 : 
-; 1292 :   //game_debug.Log (L"%hs", szOSD);
-; 1293 : 
-; 1294 :   return ret;
-; 1295 : }
+; 1331 : 
+; 1332 :   //game_debug.Log (L"%hs", szOSD);
+; 1333 : 
+; 1334 :   return ret;
+; 1335 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -22456,14 +22953,38 @@ $LN34@SK_DrawOSD:
 	pop	ebp
 	ret	0
 $LN35@SK_DrawOSD:
+; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
-; 510  :     return FALSE;
-; 511  : 
-; 512  :   char* pszOSD = szOSD;
-; 513  :   *pszOSD = '\0';
-; 514  : 
-; 515  :   static io_perf_t
-; 516  :     io_counter;
+; 8063 :     Value = *Source;
+
+	mov	eax, DWORD PTR ?osd_init@@3JC		; osd_init
+; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
+
+; 547  :   if (! ReadAcquire (&osd_init))
+
+	test	eax, eax
+	jne	SHORT $LN36@SK_DrawOSD
+
+; 1331 : 
+; 1332 :   //game_debug.Log (L"%hs", szOSD);
+; 1333 : 
+; 1334 :   return ret;
+; 1335 : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+$LN36@SK_DrawOSD:
+
+; 548  :     return FALSE;
+; 549  : 
+; 550  :   char* pszOSD = szOSD;
+; 551  :   *pszOSD = '\0';
+; 552  : 
+; 553  :   static io_perf_t
+; 554  :     io_counter;
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -22473,34 +22994,34 @@ $LN35@SK_DrawOSD:
 	mov	esi, DWORD PTR [eax+ecx*4]
 	mov	ebx, OFFSET ?szOSD@@3PADA		; szOSD
 
-; 517  : 
-; 518  :   buffer_t buffer = mem_info [0].buffer;
-; 519  :   int      nodes  = mem_info [buffer].nodes;
+; 555  : 
+; 556  :   buffer_t buffer = mem_info [0].buffer;
+; 557  :   int      nodes  = mem_info [buffer].nodes;
 
 	imul	eax, DWORD PTR ?mem_info@@3PAUmem_info_t@@A+272, 280
 
-; 520  : 
-; 521  :   if (config.time.show)
+; 558  : 
+; 559  :   if (config.time.show)
 
 	mov	edi, 1
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A, 0
 	mov	BYTE PTR ?szOSD@@3PADA, 0
-	mov	DWORD PTR tv6423[ebp], esi
-	mov	DWORD PTR tv6487[ebp], eax
+	mov	DWORD PTR tv6426[ebp], esi
+	mov	DWORD PTR tv6489[ebp], eax
 	mov	eax, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax+276]
 	mov	DWORD PTR _nodes$1$[ebp], eax
-	je	$LN1452@SK_DrawOSD
+	je	$LN1453@SK_DrawOSD
 
-; 522  :   {
-; 523  :     SYSTEMTIME     st;
-; 524  :     GetLocalTime (&st);
+; 560  :   {
+; 561  :     SYSTEMTIME     st;
+; 562  :     GetLocalTime (&st);
 
 	lea	eax, DWORD PTR _st$6[ebp]
 	push	eax
 	call	DWORD PTR __imp__GetLocalTime@4
 
-; 525  : 
-; 526  :     wchar_t time [128] = { };
+; 563  : 
+; 564  :     wchar_t time [128] = { };
 
 	push	256					; 00000100H
 	lea	eax, DWORD PTR _time$2[ebp]
@@ -22509,8 +23030,8 @@ $LN35@SK_DrawOSD:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 527  : 
-; 528  :     GetTimeFormat ( config.time.format,
+; 565  : 
+; 566  :     GetTimeFormat ( config.time.format,
 
 	lea	eax, DWORD PTR _time$2[ebp]
 	push	128					; 00000080H
@@ -22522,13 +23043,13 @@ $LN35@SK_DrawOSD:
 	push	DWORD PTR ?config@@3Usk_config_t@@A+4
 	call	DWORD PTR __imp__GetTimeFormatW@24
 
-; 529  :                       0L,
-; 530  :                         &st,
-; 531  :                           nullptr,
-; 532  :                             time,
-; 533  :                               128 );
-; 534  : 
-; 535  :     static HMODULE hModGame = GetModuleHandle (nullptr);
+; 567  :                       0L,
+; 568  :                         &st,
+; 569  :                           nullptr,
+; 570  :                             time,
+; 571  :                               128 );
+; 572  : 
+; 573  :     static HMODULE hModGame = GetModuleHandle (nullptr);
 
 	mov	eax, DWORD PTR ?$TSS1@?L@??SK_DrawOSD@@YGHXZ@4HA
 	cmp	eax, DWORD PTR __Init_thread_epoch[esi]
@@ -22546,128 +23067,128 @@ $LN35@SK_DrawOSD:
 	add	esp, 4
 $LN3@SK_DrawOSD:
 
-; 536  :     static wchar_t wszGameName [MAX_PATH + 1] = { };
-; 537  : 
-; 538  :     if (wszGameName [0] == L'\0')
+; 574  :     static wchar_t wszGameName [MAX_PATH + 1] = { };
+; 575  : 
+; 576  :     if (wszGameName [0] == L'\0')
 
 	cmp	WORD PTR ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA, 0
-	jne	$LN1451@SK_DrawOSD
+	jne	$LN1452@SK_DrawOSD
 
-; 539  :     {
-; 540  :       GetModuleFileName (hModGame, wszGameName, MAX_PATH);
+; 577  :     {
+; 578  :       GetModuleFileName (hModGame, wszGameName, MAX_PATH);
 
 	push	260					; 00000104H
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	push	DWORD PTR ?hModGame@?L@??SK_DrawOSD@@YGHXZ@4PAUHINSTANCE__@@A
 	call	DWORD PTR __imp__GetModuleFileNameW@12
 
-; 541  : 
-; 542  :       if (StrStrIW (wszGameName, L"BatmanAK.exe"))
+; 579  : 
+; 580  :       if (StrStrIW (wszGameName, L"BatmanAK.exe"))
 
 	mov	esi, DWORD PTR __imp__StrStrIW@8
-	push	OFFSET $SG379289
+	push	OFFSET $SG379378
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	test	eax, eax
-	je	SHORT $LN38@SK_DrawOSD
+	je	SHORT $LN39@SK_DrawOSD
 
-; 543  :         isArkhamKnight = true;
+; 581  :         isArkhamKnight = true;
 
 	mov	BYTE PTR ?isArkhamKnight@@3_NA, 1	; isArkhamKnight
-	jmp	SHORT $LN1451@SK_DrawOSD
-$LN38@SK_DrawOSD:
+	jmp	SHORT $LN1452@SK_DrawOSD
+$LN39@SK_DrawOSD:
 
-; 544  :       else if (StrStrIW (wszGameName, L"Tales of Zestiria.exe"))
+; 582  :       else if (StrStrIW (wszGameName, L"Tales of Zestiria.exe"))
 
-	push	OFFSET $SG379292
+	push	OFFSET $SG379381
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	test	eax, eax
-	je	SHORT $LN40@SK_DrawOSD
+	je	SHORT $LN41@SK_DrawOSD
 
-; 545  :         isTalesOfZestiria = true;
+; 583  :         isTalesOfZestiria = true;
 
 	mov	BYTE PTR ?isTalesOfZestiria@@3_NA, 1	; isTalesOfZestiria
-	jmp	SHORT $LN1451@SK_DrawOSD
-$LN40@SK_DrawOSD:
+	jmp	SHORT $LN1452@SK_DrawOSD
+$LN41@SK_DrawOSD:
 
-; 546  :       else if (StrStrIW (wszGameName, L"Fallout4.exe"))
+; 584  :       else if (StrStrIW (wszGameName, L"Fallout4.exe"))
 
-	push	OFFSET $SG379295
+	push	OFFSET $SG379384
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	test	eax, eax
-	je	SHORT $LN42@SK_DrawOSD
+	je	SHORT $LN43@SK_DrawOSD
 
-; 547  :         isFallout4 = true;
+; 585  :         isFallout4 = true;
 
 	mov	BYTE PTR ?isFallout4@@3_NA, 1		; isFallout4
-	jmp	SHORT $LN1446@SK_DrawOSD
-$LN42@SK_DrawOSD:
+	jmp	SHORT $LN1447@SK_DrawOSD
+$LN43@SK_DrawOSD:
 
-; 548  :       else if (StrStrIW (wszGameName, L"NieRAutomata"))
+; 586  :       else if (StrStrIW (wszGameName, L"NieRAutomata"))
 
-	push	OFFSET $SG379298
+	push	OFFSET $SG379387
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	test	eax, eax
-	je	SHORT $LN44@SK_DrawOSD
+	je	SHORT $LN45@SK_DrawOSD
 
-; 549  :         isNieRAutomata = true;
+; 587  :         isNieRAutomata = true;
 
 	mov	BYTE PTR ?isNieRAutomata@@3_NA, 1	; isNieRAutomata
-	jmp	SHORT $LN1451@SK_DrawOSD
-$LN44@SK_DrawOSD:
+	jmp	SHORT $LN1452@SK_DrawOSD
+$LN45@SK_DrawOSD:
 
-; 550  :       else if (StrStrIW (wszGameName, L"DarkSoulsIII.exe"))
+; 588  :       else if (StrStrIW (wszGameName, L"DarkSoulsIII.exe"))
 
-	push	OFFSET $SG379300
+	push	OFFSET $SG379389
 	push	OFFSET ?wszGameName@?L@??SK_DrawOSD@@YGHXZ@4PA_WA
 	call	esi
 	movzx	ecx, BYTE PTR ?isDarkSouls3@@3_NA	; isDarkSouls3
 	test	eax, eax
 	cmovne	ecx, edi
 	mov	BYTE PTR ?isDarkSouls3@@3_NA, cl	; isDarkSouls3
-$LN1451@SK_DrawOSD:
+$LN1452@SK_DrawOSD:
 
-; 551  :         isDarkSouls3 = true;
-; 552  :     }
-; 553  : 
-; 554  :     if (isFallout4)
+; 589  :         isDarkSouls3 = true;
+; 590  :     }
+; 591  : 
+; 592  :     if (isFallout4)
 
 	cmp	BYTE PTR ?isFallout4@@3_NA, 0		; isFallout4
-	je	SHORT $LN47@SK_DrawOSD
-$LN1446@SK_DrawOSD:
+	je	SHORT $LN48@SK_DrawOSD
+$LN1447@SK_DrawOSD:
 
-; 555  :     {
-; 556  :       OSD_PRINTF "Fallout 4 \"Works\" v 0.3.5   %ws\n\n",
+; 593  :     {
+; 594  :       OSD_PRINTF "Fallout 4 \"Works\" v 0.3.5   %ws\n\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN1452@SK_DrawOSD
+	je	$LN1453@SK_DrawOSD
 	lea	eax, DWORD PTR _time$2[ebp]
 	push	eax
-	push	OFFSET $SG379304
+	push	OFFSET $SG379393
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 12					; 0000000cH
 
-; 557  :                  time
-; 558  :       OSD_END
-; 559  :     }
+; 595  :                  time
+; 596  :       OSD_END
+; 597  :     }
 
-	jmp	$LN1473@SK_DrawOSD
-$LN47@SK_DrawOSD:
+	jmp	$LN1475@SK_DrawOSD
+$LN48@SK_DrawOSD:
 
-; 560  : 
-; 561  :     else if (isNieRAutomata)
+; 598  : 
+; 599  :     else if (isNieRAutomata)
 
 	cmp	BYTE PTR ?isNieRAutomata@@3_NA, 0	; isNieRAutomata
-	je	SHORT $LN50@SK_DrawOSD
+	je	SHORT $LN51@SK_DrawOSD
 
-; 563  :       OSD_PRINTF "%ws   %ws\n\n",
+; 601  :       OSD_PRINTF "%ws   %ws\n\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN1452@SK_DrawOSD
+	je	$LN1453@SK_DrawOSD
 	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
 	call	?SK_GetPluginName@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetPluginName
@@ -22679,21 +23200,21 @@ $LN47@SK_DrawOSD:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN245@SK_DrawOSD
+	jb	SHORT $LN246@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN245@SK_DrawOSD:
+$LN246@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 563  :       OSD_PRINTF "%ws   %ws\n\n",
+; 601  :       OSD_PRINTF "%ws   %ws\n\n",
 
 	lea	ecx, DWORD PTR _time$2[ebp]
 	push	ecx
 	push	eax
-	push	OFFSET $SG379308
+	push	OFFSET $SG379397
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -22702,48 +23223,48 @@ $LN245@SK_DrawOSD:
 	add	ebx, OFFSET ?szOSD@@3PADA		; szOSD
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 564  :                  SK_GetPluginName ().c_str (), time
-; 565  :       OSD_END
-; 566  :     }
+; 602  :                  SK_GetPluginName ().c_str (), time
+; 603  :       OSD_END
+; 604  :     }
 
-	jmp	$LN1452@SK_DrawOSD
-$LN50@SK_DrawOSD:
+	jmp	$LN1453@SK_DrawOSD
+$LN51@SK_DrawOSD:
 
-; 567  : 
-; 568  :     else if (isArkhamKnight)
+; 605  : 
+; 606  :     else if (isArkhamKnight)
 
 	cmp	BYTE PTR ?isArkhamKnight@@3_NA, 0	; isArkhamKnight
-	je	SHORT $LN53@SK_DrawOSD
+	je	SHORT $LN54@SK_DrawOSD
 
-; 569  :     {
-; 570  :       OSD_PRINTF "Batman \"Fix\" v 0.20   %ws\n\n",
+; 607  :     {
+; 608  :       OSD_PRINTF "Batman \"Fix\" v 0.20   %ws\n\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN1452@SK_DrawOSD
+	je	$LN1453@SK_DrawOSD
 	lea	eax, DWORD PTR _time$2[ebp]
 	push	eax
-	push	OFFSET $SG379312
+	push	OFFSET $SG379401
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 12					; 0000000cH
 
-; 571  :                  time
-; 572  :       OSD_END
-; 573  :     }
+; 609  :                  time
+; 610  :       OSD_END
+; 611  :     }
 
-	jmp	$LN1473@SK_DrawOSD
-$LN53@SK_DrawOSD:
+	jmp	$LN1475@SK_DrawOSD
+$LN54@SK_DrawOSD:
 
-; 574  : 
-; 575  :     else if (isDarkSouls3)
+; 612  : 
+; 613  :     else if (isDarkSouls3)
 
 	cmp	BYTE PTR ?isDarkSouls3@@3_NA, 0		; isDarkSouls3
-	je	SHORT $LN56@SK_DrawOSD
+	je	SHORT $LN57@SK_DrawOSD
 
-; 577  :       OSD_PRINTF "%ws   %ws\n\n",
+; 615  :       OSD_PRINTF "%ws   %ws\n\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN1452@SK_DrawOSD
+	je	$LN1453@SK_DrawOSD
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
 	call	?SK_GetPluginName@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetPluginName
@@ -22755,21 +23276,21 @@ $LN53@SK_DrawOSD:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN264@SK_DrawOSD
+	jb	SHORT $LN265@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN264@SK_DrawOSD:
+$LN265@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 577  :       OSD_PRINTF "%ws   %ws\n\n",
+; 615  :       OSD_PRINTF "%ws   %ws\n\n",
 
 	lea	ecx, DWORD PTR _time$2[ebp]
 	push	ecx
 	push	eax
-	push	OFFSET $SG379316
+	push	OFFSET $SG379405
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -22778,24 +23299,24 @@ $LN264@SK_DrawOSD:
 	add	ebx, OFFSET ?szOSD@@3PADA		; szOSD
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 578  :                  SK_GetPluginName ().c_str (), time
-; 579  :       OSD_END
-; 580  :     }
+; 616  :                  SK_GetPluginName ().c_str (), time
+; 617  :       OSD_END
+; 618  :     }
 
-	jmp	$LN1452@SK_DrawOSD
-$LN56@SK_DrawOSD:
+	jmp	$LN1453@SK_DrawOSD
+$LN57@SK_DrawOSD:
 
-; 581  : 
-; 582  :     else if (SK_HasPlugin  ())
+; 619  : 
+; 620  :     else if (SK_HasPlugin  ())
 
 	call	?SK_HasPlugin@@YG_NXZ			; SK_HasPlugin
 	test	al, al
-	je	SHORT $LN59@SK_DrawOSD
+	je	SHORT $LN60@SK_DrawOSD
 
-; 584  :       OSD_PRINTF "%ws   %ws\n\n",
+; 622  :       OSD_PRINTF "%ws   %ws\n\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1452@SK_DrawOSD
+	je	SHORT $LN1453@SK_DrawOSD
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
 	call	?SK_GetPluginName@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetPluginName
@@ -22807,21 +23328,21 @@ $LN56@SK_DrawOSD:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN283@SK_DrawOSD
+	jb	SHORT $LN284@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN283@SK_DrawOSD:
+$LN284@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 584  :       OSD_PRINTF "%ws   %ws\n\n",
+; 622  :       OSD_PRINTF "%ws   %ws\n\n",
 
 	lea	ecx, DWORD PTR _time$2[ebp]
 	push	ecx
 	push	eax
-	push	OFFSET $SG379320
+	push	OFFSET $SG379409
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 16					; 00000010H
@@ -22830,42 +23351,42 @@ $LN283@SK_DrawOSD:
 	add	ebx, OFFSET ?szOSD@@3PADA		; szOSD
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 585  :                  SK_GetPluginName ().c_str (), time
-; 586  :       OSD_END
-; 587  :     }
-; 588  : 
-; 589  :     else
+; 623  :                  SK_GetPluginName ().c_str (), time
+; 624  :       OSD_END
+; 625  :     }
+; 626  : 
+; 627  :     else
 
-	jmp	SHORT $LN1452@SK_DrawOSD
-$LN59@SK_DrawOSD:
+	jmp	SHORT $LN1453@SK_DrawOSD
+$LN60@SK_DrawOSD:
 
-; 590  :     {
-; 591  :       OSD_PRINTF "Special K v %ws   %ws\n\n",
+; 628  :     {
+; 629  :       OSD_PRINTF "Special K v %ws   %ws\n\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1452@SK_DrawOSD
+	je	SHORT $LN1453@SK_DrawOSD
 	lea	eax, DWORD PTR _time$2[ebp]
 	push	eax
 	call	?SK_GetVersionStr@@YGPB_WXZ		; SK_GetVersionStr
 	push	eax
-	push	OFFSET $SG379322
+	push	OFFSET $SG379411
 	push	OFFSET ?szOSD@@3PADA			; szOSD
 	call	_sprintf
 	add	esp, 16					; 00000010H
-$LN1473@SK_DrawOSD:
+$LN1475@SK_DrawOSD:
 	mov	ebx, eax
 	add	ebx, OFFSET ?szOSD@@3PADA		; szOSD
-$LN1452@SK_DrawOSD:
+$LN1453@SK_DrawOSD:
 
-; 592  :                  SK_GetVersionStr (), time
-; 593  :       OSD_END
-; 594  :     }
-; 595  :   }
-; 596  : 
-; 597  :   if (config.fps.show)
+; 630  :                  SK_GetVersionStr (), time
+; 631  :       OSD_END
+; 632  :     }
+; 633  :   }
+; 634  : 
+; 635  :   if (config.fps.show)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+112, 0
-	je	$LN80@SK_DrawOSD
+	je	$LN81@SK_DrawOSD
 ; File c:\users\andon\source\repos\specialk\include\specialk\framerate.h
 
 ; 113  :         data [samples % MAX_SAMPLES].val  = sample;
@@ -22875,7 +23396,7 @@ $LN1452@SK_DrawOSD:
 	imul	esi
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 600  :     if (dt > 0.0001)
+; 638  :     if (dt > 0.0001)
 
 	movsd	xmm0, QWORD PTR _dt$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\framerate.h
@@ -22899,25 +23420,25 @@ $LN1452@SK_DrawOSD:
 	shl	esi, 4
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 600  :     if (dt > 0.0001)
+; 638  :     if (dt > 0.0001)
 
 	comisd	xmm0, QWORD PTR __real@3f1a36e2eb1c432d
-	jbe	SHORT $LN64@SK_DrawOSD
+	jbe	SHORT $LN65@SK_DrawOSD
 
-; 601  :       frame_history.addSample (1000.0 * dt, now);
+; 639  :       frame_history.addSample (1000.0 * dt, now);
 
 	mulsd	xmm0, QWORD PTR __real@408f400000000000
 
-; 602  :     else
+; 640  :     else
 
-	jmp	SHORT $LN1474@SK_DrawOSD
-$LN64@SK_DrawOSD:
+	jmp	SHORT $LN1476@SK_DrawOSD
+$LN65@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\include\specialk\framerate.h
 
 ; 113  :         data [samples % MAX_SAMPLES].val  = sample;
 
 	movsd	xmm0, QWORD PTR __real@7ff0000000000000
-$LN1474@SK_DrawOSD:
+$LN1476@SK_DrawOSD:
 	movsd	QWORD PTR ?frame_history@@3VStats@Framerate@SK@@A[esi], xmm0
 
 ; 114  :         data [samples % MAX_SAMPLES].when = time;
@@ -22948,7 +23469,7 @@ $LN1474@SK_DrawOSD:
 	mov	DWORD PTR _time$2$[ebp], eax
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 605  :     frame_history2.addSample (SK::Framerate::GetLimiter ()->effective_frametime (), now);
+; 643  :     frame_history2.addSample (SK::Framerate::GetLimiter ()->effective_frametime (), now);
 
 	call	?GetLimiter@Framerate@SK@@YAPAVLimiter@12@XZ ; SK::Framerate::GetLimiter
 	mov	ecx, eax
@@ -22962,7 +23483,7 @@ $LN1474@SK_DrawOSD:
 	imul	edi
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 605  :     frame_history2.addSample (SK::Framerate::GetLimiter ()->effective_frametime (), now);
+; 643  :     frame_history2.addSample (SK::Framerate::GetLimiter ()->effective_frametime (), now);
 
 	fstp	QWORD PTR _sample$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\framerate.h
@@ -22976,7 +23497,7 @@ $LN1474@SK_DrawOSD:
 	mov	eax, -2004318071			; 88888889H
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 607  :     double mean    = frame_history.calcMean     ();
+; 645  :     double mean    = frame_history.calcMean     ();
 
 	sub	esp, 8
 ; File c:\users\andon\source\repos\specialk\include\specialk\framerate.h
@@ -23002,7 +23523,7 @@ $LN1474@SK_DrawOSD:
 	imul	esi
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 607  :     double mean    = frame_history.calcMean     ();
+; 645  :     double mean    = frame_history.calcMean     ();
 
 	movsd	xmm0, QWORD PTR __real@3ff0000000000000
 	movsd	QWORD PTR [esp], xmm0
@@ -23020,7 +23541,7 @@ $LN1474@SK_DrawOSD:
 	sub	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 607  :     double mean    = frame_history.calcMean     ();
+; 645  :     double mean    = frame_history.calcMean     ();
 
 	mov	ecx, OFFSET ?frame_history@@3VStats@Framerate@SK@@A ; frame_history
 ; File c:\users\andon\source\repos\specialk\include\specialk\framerate.h
@@ -23041,11 +23562,11 @@ $LN1474@SK_DrawOSD:
 	inc	DWORD PTR ?frame_history2@@3VStats@Framerate@SK@@A+1920
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 607  :     double mean    = frame_history.calcMean     ();
+; 645  :     double mean    = frame_history.calcMean     ();
 
 	call	?calcMean@Stats@Framerate@SK@@QAENN@Z	; SK::Framerate::Stats::calcMean
 
-; 608  :     double sd      = frame_history.calcSqStdDev (mean);
+; 646  :     double sd      = frame_history.calcSqStdDev (mean);
 
 	movsd	xmm0, QWORD PTR __real@3ff0000000000000
 	sub	esp, 16					; 00000010H
@@ -23056,17 +23577,17 @@ $LN1474@SK_DrawOSD:
 	movsd	QWORD PTR [esp], xmm1
 	call	?calcSqStdDev@Stats@Framerate@SK@@QAENNN@Z ; SK::Framerate::Stats::calcSqStdDev
 
-; 609  :     double min     = frame_history.calcMin      ();
+; 647  :     double min     = frame_history.calcMin      ();
 
 	movsd	xmm0, QWORD PTR __real@3ff0000000000000
 	sub	esp, 8
-	fstp	QWORD PTR _sd$29[ebp]
+	fstp	QWORD PTR _sd$27[ebp]
 	mov	ecx, OFFSET ?frame_history@@3VStats@Framerate@SK@@A ; frame_history
 	movsd	QWORD PTR [esp], xmm0
 	call	?calcMin@Stats@Framerate@SK@@QAENN@Z	; SK::Framerate::Stats::calcMin
-	fstp	QWORD PTR _min$27[ebp]
+	fstp	QWORD PTR _min$26[ebp]
 
-; 610  :     double max     = frame_history.calcMax      ();
+; 648  :     double max     = frame_history.calcMax      ();
 
 	sub	esp, 8
 	movsd	xmm0, QWORD PTR __real@3ff0000000000000
@@ -23074,12 +23595,12 @@ $LN1474@SK_DrawOSD:
 	movsd	QWORD PTR [esp], xmm0
 	call	?calcMax@Stats@Framerate@SK@@QAENN@Z	; SK::Framerate::Stats::calcMax
 
-; 611  :     int    hitches = frame_history.calcHitches  (1.2, mean);
+; 649  :     int    hitches = frame_history.calcHitches  (1.2, mean);
 
 	movsd	xmm0, QWORD PTR __real@3ff0000000000000
 	sub	esp, 24					; 00000018H
 	mov	ecx, OFFSET ?frame_history@@3VStats@Framerate@SK@@A ; frame_history
-	fstp	QWORD PTR _max$26[ebp]
+	fstp	QWORD PTR _max$25[ebp]
 	movsd	QWORD PTR [esp+16], xmm0
 	movsd	xmm0, QWORD PTR _mean$28[ebp]
 	movsd	QWORD PTR [esp+8], xmm0
@@ -23087,8 +23608,8 @@ $LN1474@SK_DrawOSD:
 	movsd	QWORD PTR [esp], xmm0
 	call	?calcHitches@Stats@Framerate@SK@@QAEHNNN@Z ; SK::Framerate::Stats::calcHitches
 
-; 612  : 
-; 613  :     double effective_mean = frame_history2.calcMean  ();
+; 650  : 
+; 651  :     double effective_mean = frame_history2.calcMean  ();
 
 	movsd	xmm0, QWORD PTR __real@3ff0000000000000
 	sub	esp, 8
@@ -23097,14 +23618,14 @@ $LN1474@SK_DrawOSD:
 	movsd	QWORD PTR [esp], xmm0
 	call	?calcMean@Stats@Framerate@SK@@QAENN@Z	; SK::Framerate::Stats::calcMean
 
-; 614  : 
-; 615  :     static double fps           = 0.0;
-; 616  :     static DWORD  last_fps_time = timeGetTime ();
+; 652  : 
+; 653  :     static double fps           = 0.0;
+; 654  :     static DWORD  last_fps_time = timeGetTime ();
 
-	mov	ecx, DWORD PTR tv6423[ebp]
+	mov	ecx, DWORD PTR tv6426[ebp]
 	mov	eax, DWORD PTR ?$TSS2@?EG@??SK_DrawOSD@@YGHXZ@4HA
 	mov	esi, DWORD PTR __imp__timeGetTime@0
-	fstp	QWORD PTR _effective_mean$24[ebp]
+	fstp	QWORD PTR _effective_mean$29[ebp]
 	cmp	eax, DWORD PTR __Init_thread_epoch[ecx]
 	jle	SHORT $LN4@SK_DrawOSD
 	push	OFFSET ?$TSS2@?EG@??SK_DrawOSD@@YGHXZ@4HA
@@ -23119,85 +23640,85 @@ $LN1474@SK_DrawOSD:
 	add	esp, 4
 $LN4@SK_DrawOSD:
 
-; 617  : 
-; 618  :     const DWORD dwTime = timeGetTime ();
+; 655  : 
+; 656  :     const DWORD dwTime = timeGetTime ();
 
 	call	esi
 
-; 619  : 
-; 620  :     if (dwTime - last_fps_time > 666)
+; 657  : 
+; 658  :     if (dwTime - last_fps_time > 666)
 
 	mov	ecx, eax
 	sub	ecx, DWORD PTR ?last_fps_time@?EG@??SK_DrawOSD@@YGHXZ@4KA
 	cmp	ecx, 666				; 0000029aH
-	jbe	SHORT $LN66@SK_DrawOSD
+	jbe	SHORT $LN67@SK_DrawOSD
 
-; 621  :     {
-; 622  :       fps           = 1000.0 / mean;
+; 659  :     {
+; 660  :       fps           = 1000.0 / mean;
 
 	movsd	xmm0, QWORD PTR __real@408f400000000000
 	divsd	xmm0, QWORD PTR _mean$28[ebp]
 
-; 623  :       last_fps_time = dwTime;
+; 661  :       last_fps_time = dwTime;
 
 	mov	DWORD PTR ?last_fps_time@?EG@??SK_DrawOSD@@YGHXZ@4KA, eax
 	movsd	QWORD PTR ?fps@?EG@??SK_DrawOSD@@YGHXZ@4NA, xmm0
-$LN66@SK_DrawOSD:
+$LN67@SK_DrawOSD:
 
-; 624  :     }
-; 625  : 
-; 626  : 
-; 627  :     bool gsync = false;
+; 662  :     }
+; 663  : 
+; 664  : 
+; 665  :     bool gsync = false;
 
 	xor	cl, cl
-	mov	DWORD PTR tv6014[ebp], ecx
+	mov	DWORD PTR tv6011[ebp], ecx
 
-; 628  : 
-; 629  :     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+; 666  : 
+; 667  :     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
 
 	cmp	BYTE PTR ?nv_hardware@NVAPI@sk@@3_NA, cl ; sk::NVAPI::nv_hardware
-	je	SHORT $LN69@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+808, cl
-	je	SHORT $LN69@SK_DrawOSD
+	je	SHORT $LN70@SK_DrawOSD
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+820, cl
+	je	SHORT $LN70@SK_DrawOSD
 
-; 630  :     {
-; 631  :       if (SK_GetCurrentRenderBackend   ().gsync_state.capable)
+; 668  :     {
+; 669  :       if (SK_GetCurrentRenderBackend   ().gsync_state.capable)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax+72], 0
-	je	SHORT $LN1470@SK_DrawOSD
+	je	SHORT $LN1472@SK_DrawOSD
 
-; 632  :       {
-; 633  :         if (SK_GetCurrentRenderBackend ().gsync_state.active)
+; 670  :       {
+; 671  :         if (SK_GetCurrentRenderBackend ().gsync_state.active)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
-	mov	ecx, DWORD PTR tv6014[ebp]
+	mov	ecx, DWORD PTR tv6011[ebp]
 	movzx	ecx, cl
 	cmp	DWORD PTR [eax+76], 0
 	mov	eax, 1
 	cmovne	ecx, eax
-	mov	DWORD PTR tv6014[ebp], ecx
-	jmp	SHORT $LN69@SK_DrawOSD
-$LN1470@SK_DrawOSD:
-	mov	ecx, DWORD PTR tv6014[ebp]
-$LN69@SK_DrawOSD:
+	mov	DWORD PTR tv6011[ebp], ecx
+	jmp	SHORT $LN70@SK_DrawOSD
+$LN1472@SK_DrawOSD:
+	mov	ecx, DWORD PTR tv6011[ebp]
+$LN70@SK_DrawOSD:
 
-; 634  :         {
-; 635  :           gsync = true;
-; 636  :         }
-; 637  :       }
-; 638  :     }
-; 639  : 
-; 640  : 
-; 641  :     if (mean != INFINITY)
+; 672  :         {
+; 673  :           gsync = true;
+; 674  :         }
+; 675  :       }
+; 676  :     }
+; 677  : 
+; 678  : 
+; 679  :     if (mean != INFINITY)
 
 	movsd	xmm0, QWORD PTR _mean$28[ebp]
 	ucomisd	xmm0, QWORD PTR __real@7ff0000000000000
 	lahf
 	test	ah, 68					; 00000044H
-	jnp	$LN70@SK_DrawOSD
+	jnp	$LN71@SK_DrawOSD
 
-; 643  :       if (SK::Framerate::GetLimiter ()->get_limit () != 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0)
+; 681  :       if (SK::Framerate::GetLimiter ()->get_limit () > 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0)
 
 	call	?GetLimiter@Framerate@SK@@YAPAVLimiter@12@XZ ; SK::Framerate::GetLimiter
 ; File c:\users\andon\source\repos\specialk\include\specialk\framerate.h
@@ -23207,49 +23728,47 @@ $LN69@SK_DrawOSD:
 	movsd	xmm0, QWORD PTR [eax+8]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 643  :       if (SK::Framerate::GetLimiter ()->get_limit () != 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0)
+; 681  :       if (SK::Framerate::GetLimiter ()->get_limit () > 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0)
 
-	ucomisd	xmm0, QWORD PTR __real@0000000000000000
-	lahf
-	test	ah, 68					; 00000044H
-	jnp	$LN72@SK_DrawOSD
+	comisd	xmm0, QWORD PTR __real@0000000000000000
+	jbe	$LN73@SK_DrawOSD
 	cmp	BYTE PTR ?isTalesOfZestiria@@3_NA, 0	; isTalesOfZestiria
-	jne	$LN72@SK_DrawOSD
+	jne	$LN73@SK_DrawOSD
 	movsd	xmm0, QWORD PTR __real@3ff0000000000000
 	sub	esp, 8
 	mov	ecx, OFFSET ?frame_history2@@3VStats@Framerate@SK@@A ; frame_history2
 	movsd	QWORD PTR [esp], xmm0
 	call	?calcNumSamples@Stats@Framerate@SK@@QAEHN@Z ; SK::Framerate::Stats::calcNumSamples
 	test	eax, eax
-	jle	$LN72@SK_DrawOSD
+	jle	$LN73@SK_DrawOSD
 
-; 644  :       {
-; 645  :         const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>";
-; 646  : 
-; 647  :         if (gsync)
-; 648  :           format = "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>";
-; 649  : 
-; 650  :         OSD_PRINTF format,
+; 682  :       {
+; 683  :         const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>";
+; 684  : 
+; 685  :         if (gsync)
+; 686  :           format = "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>";
+; 687  : 
+; 688  :         OSD_PRINTF format,
 
-	cmp	BYTE PTR tv6014[ebp], 0
-	mov	esi, OFFSET $SG379334
-	mov	eax, OFFSET $SG379336
+	cmp	BYTE PTR tv6011[ebp], 0
+	mov	esi, OFFSET $SG379423
+	mov	eax, OFFSET $SG379425
 	cmovne	esi, eax
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN80@SK_DrawOSD
-	movsd	xmm0, QWORD PTR _effective_mean$24[ebp]
+	je	$LN81@SK_DrawOSD
+	movsd	xmm0, QWORD PTR _effective_mean$29[ebp]
 	sub	esp, 16					; 00000010H
 	movsd	xmm1, QWORD PTR __real@408f400000000000
 	divsd	xmm1, xmm0
 	movsd	QWORD PTR [esp+8], xmm0
-	movsd	xmm0, QWORD PTR _max$26[ebp]
+	movsd	xmm0, QWORD PTR _max$25[ebp]
 	movsd	QWORD PTR [esp], xmm1
 	push	edi
 	sub	esp, 40					; 00000028H
 	movsd	QWORD PTR [esp+32], xmm0
-	movsd	xmm0, QWORD PTR _min$27[ebp]
+	movsd	xmm0, QWORD PTR _min$26[ebp]
 	movsd	QWORD PTR [esp+24], xmm0
-	movsd	xmm0, QWORD PTR _sd$29[ebp]
+	movsd	xmm0, QWORD PTR _sd$27[ebp]
 	sqrtpd	xmm0, xmm0
 	movsd	QWORD PTR [esp+16], xmm0
 	movsd	xmm0, QWORD PTR _mean$28[ebp]
@@ -23264,46 +23783,46 @@ $LN69@SK_DrawOSD:
 	call	_sprintf
 	add	esp, 72					; 00000048H
 
-; 651  :           SK_GetCurrentRenderBackend ().name,
-; 652  :             // Cast to FP to avoid integer division by zero.
-; 653  :             fps,
-; 654  :               mean,
-; 655  :                 sqrt (sd),
-; 656  :                   min,
-; 657  :                     max,
-; 658  :                       hitches,
-; 659  :                         1000.0 / effective_mean,
-; 660  :                           effective_mean
-; 661  :         OSD_END
-; 662  :       }
-; 663  : 
-; 664  :       // No Effective Frametime History
-; 665  :       else
+; 689  :           SK_GetCurrentRenderBackend ().name,
+; 690  :             // Cast to FP to avoid integer division by zero.
+; 691  :             fps,
+; 692  :               mean,
+; 693  :                 sqrt (sd),
+; 694  :                   min,
+; 695  :                     max,
+; 696  :                       hitches,
+; 697  :                         1000.0 / effective_mean,
+; 698  :                           effective_mean
+; 699  :         OSD_END
+; 700  :       }
+; 701  : 
+; 702  :       // No Effective Frametime History
+; 703  :       else
 
-	jmp	$LN1475@SK_DrawOSD
-$LN72@SK_DrawOSD:
-	cmp	BYTE PTR tv6014[ebp], 0
-	mov	esi, OFFSET $SG379338
-	mov	eax, OFFSET $SG379340
+	jmp	$LN1477@SK_DrawOSD
+$LN73@SK_DrawOSD:
+	cmp	BYTE PTR tv6011[ebp], 0
+	mov	esi, OFFSET $SG379427
+	mov	eax, OFFSET $SG379429
 	cmovne	esi, eax
 
-; 666  :       {
-; 667  :         const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)";
-; 668  : 
-; 669  :         if (gsync)
-; 670  :           format = "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)";
-; 671  : 
-; 672  :         OSD_PRINTF format,
+; 704  :       {
+; 705  :         const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)";
+; 706  : 
+; 707  :         if (gsync)
+; 708  :           format = "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)";
+; 709  : 
+; 710  :         OSD_PRINTF format,
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN80@SK_DrawOSD
-	movsd	xmm0, QWORD PTR _max$26[ebp]
+	je	$LN81@SK_DrawOSD
+	movsd	xmm0, QWORD PTR _max$25[ebp]
 	push	edi
 	sub	esp, 40					; 00000028H
 	movsd	QWORD PTR [esp+32], xmm0
-	movsd	xmm0, QWORD PTR _min$27[ebp]
+	movsd	xmm0, QWORD PTR _min$26[ebp]
 	movsd	QWORD PTR [esp+24], xmm0
-	movsd	xmm0, QWORD PTR _sd$29[ebp]
+	movsd	xmm0, QWORD PTR _sd$27[ebp]
 	sqrtpd	xmm0, xmm0
 	movsd	QWORD PTR [esp+16], xmm0
 	movsd	xmm0, QWORD PTR _mean$28[ebp]
@@ -23318,38 +23837,38 @@ $LN72@SK_DrawOSD:
 	call	_sprintf
 	add	esp, 56					; 00000038H
 
-; 673  :           SK_GetCurrentRenderBackend ().name,
-; 674  :             // Cast to FP to avoid integer division by zero.
-; 675  :             fps,
-; 676  :               mean,
-; 677  :                 sqrt (sd),
-; 678  :                   min,
-; 679  :                     max,
-; 680  :                       hitches
-; 681  :         OSD_END
-; 682  :       }
-; 683  :     }
-; 684  : 
-; 685  :     // No Frametime History
-; 686  :     else
+; 711  :           SK_GetCurrentRenderBackend ().name,
+; 712  :             // Cast to FP to avoid integer division by zero.
+; 713  :             fps,
+; 714  :               mean,
+; 715  :                 sqrt (sd),
+; 716  :                   min,
+; 717  :                     max,
+; 718  :                       hitches
+; 719  :         OSD_END
+; 720  :       }
+; 721  :     }
+; 722  : 
+; 723  :     // No Frametime History
+; 724  :     else
 
-	jmp	SHORT $LN1475@SK_DrawOSD
-$LN70@SK_DrawOSD:
+	jmp	SHORT $LN1477@SK_DrawOSD
+$LN71@SK_DrawOSD:
 	test	cl, cl
-	mov	esi, OFFSET $SG379342
-	mov	eax, OFFSET $SG379344
+	mov	esi, OFFSET $SG379431
+	mov	eax, OFFSET $SG379433
 	cmovne	esi, eax
 
-; 687  :     {
-; 688  :       const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms";
-; 689  : 
-; 690  :       if (gsync)
-; 691  :         format = "  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms";
-; 692  : 
-; 693  :       OSD_PRINTF format,
+; 725  :     {
+; 726  :       const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms";
+; 727  : 
+; 728  :       if (gsync)
+; 729  :         format = "  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms";
+; 730  : 
+; 731  :       OSD_PRINTF format,
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN80@SK_DrawOSD
+	je	SHORT $LN81@SK_DrawOSD
 	sub	esp, 16					; 00000010H
 	xorps	xmm0, xmm0
 	movups	XMMWORD PTR [esp], xmm0
@@ -23360,45 +23879,45 @@ $LN70@SK_DrawOSD:
 	push	ebx
 	call	_sprintf
 	add	esp, 28					; 0000001cH
-$LN1475@SK_DrawOSD:
+$LN1477@SK_DrawOSD:
 	add	ebx, eax
 
-; 694  :         SK_GetCurrentRenderBackend ().name,
-; 695  :           // Cast to FP to avoid integer division by zero.
-; 696  :           1000.0f * 0.0f / 1.0f, 0.0f
-; 697  :       OSD_END
-; 698  :     }
-; 699  : 
-; 700  :     OSD_PRINTF "\n" OSD_END
+; 732  :         SK_GetCurrentRenderBackend ().name,
+; 733  :           // Cast to FP to avoid integer division by zero.
+; 734  :           1000.0f * 0.0f / 1.0f, 0.0f
+; 735  :       OSD_END
+; 736  :     }
+; 737  : 
+; 738  :     OSD_PRINTF "\n" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN80@SK_DrawOSD
-	push	OFFSET $SG379347
+	je	SHORT $LN81@SK_DrawOSD
+	push	OFFSET $SG379436
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN80@SK_DrawOSD:
-
-; 701  :   }
-; 702  : 
-; 703  :   // Poll GPU stats...
-; 704  :   if (config.gpu.show)
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN81@SK_DrawOSD
-
-; 705  :     SK_PollGPU ();
-
-	call	?SK_PollGPU@@YAXXZ			; SK_PollGPU
 $LN81@SK_DrawOSD:
 
-; 706  : 
-; 707  :   int afr_idx  = sli_state.currentAFRIndex,
+; 739  :   }
+; 740  : 
+; 741  :   // Poll GPU stats...
+; 742  :   if (config.gpu.show)
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
+	je	SHORT $LN82@SK_DrawOSD
+
+; 743  :     SK_PollGPU ();
+
+	call	?SK_PollGPU@@YAXXZ			; SK_PollGPU
+$LN82@SK_DrawOSD:
+
+; 744  : 
+; 745  :   int afr_idx  = sli_state.currentAFRIndex,
 
 	mov	eax, DWORD PTR ?sli_state@@3UNV_GET_CURRENT_SLI_STATE_V2@@A+12
 
-; 711  :   for (int i = 0; i < gpu_stats.num_gpus; i++)
+; 749  :   for (int i = 0; i < gpu_stats.num_gpus; i++)
 
 	xor	edi, edi
 	mov	DWORD PTR _afr_idx$1$[ebp], eax
@@ -23408,226 +23927,225 @@ $LN81@SK_DrawOSD:
 	mov	DWORD PTR _afr_next$1$[ebp], eax
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	cmp	DWORD PTR [eax+8192], edi
-	jle	$LN1455@SK_DrawOSD
+	jle	$LN1456@SK_DrawOSD
 
-; 706  : 
-; 707  :   int afr_idx  = sli_state.currentAFRIndex,
+; 744  : 
+; 745  :   int afr_idx  = sli_state.currentAFRIndex,
 
 	xor	esi, esi
-	npad	8
 $LL7@SK_DrawOSD:
 
-; 712  :   {
-; 713  :     OSD_G_PRINTF "  GPU%i   :            %#3lu%%",
+; 750  :   {
+; 751  :     OSD_G_PRINTF "  GPU%i   :            %#3lu%%",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN82@SK_DrawOSD
+	je	SHORT $LN83@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN82@SK_DrawOSD
+	je	SHORT $LN83@SK_DrawOSD
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	push	DWORD PTR [esi+eax]
 	push	edi
-	push	OFFSET $SG379350
+	push	OFFSET $SG379439
 	push	ebx
 	call	_sprintf
 	add	esp, 16					; 00000010H
 	add	ebx, eax
-$LN82@SK_DrawOSD:
+$LN83@SK_DrawOSD:
 
-; 714  :       i, gpu_stats.gpus [i].loads_percent.gpu
-; 715  :     OSD_END
-; 716  : 
-; 717  :     if (nvapi_init && gpu_stats.gpus [i].loads_percent.vid > 0)
+; 752  :       i, gpu_stats.gpus [i].loads_percent.gpu
+; 753  :     OSD_END
+; 754  : 
+; 755  :     if (nvapi_init && gpu_stats.gpus [i].loads_percent.vid > 0)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
-	je	SHORT $LN83@SK_DrawOSD
+	je	SHORT $LN84@SK_DrawOSD
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	mov	eax, DWORD PTR [esi+eax+8]
 	test	eax, eax
-	je	SHORT $LN83@SK_DrawOSD
+	je	SHORT $LN84@SK_DrawOSD
 
-; 718  :     {
-; 719  :       // Vector 3D (subtract 1 space)
-; 720  :       //OSD_G_PRINTF ",  VID%i %#3lu%% ,",
-; 721  : 
-; 722  :       // Raster 3D
-; 723  :       OSD_G_PRINTF ",  VID%i %#3lu%%  ,",
+; 756  :     {
+; 757  :       // Vector 3D (subtract 1 space)
+; 758  :       //OSD_G_PRINTF ",  VID%i %#3lu%% ,",
+; 759  : 
+; 760  :       // Raster 3D
+; 761  :       OSD_G_PRINTF ",  VID%i %#3lu%%  ,",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN87@SK_DrawOSD
+	je	SHORT $LN88@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN86@SK_DrawOSD
+	je	SHORT $LN87@SK_DrawOSD
 	push	eax
 	push	edi
-	push	OFFSET $SG379354
+	push	OFFSET $SG379443
 	push	ebx
 	call	_sprintf
 	add	esp, 16					; 00000010H
 
-; 724  :         i, gpu_stats.gpus [i].loads_percent.vid
-; 725  :       OSD_END
-; 726  :     } else {
-
-	jmp	SHORT $LN1476@SK_DrawOSD
-$LN83@SK_DrawOSD:
-
-; 727  :       // Vector 3D (subtract 1 space)
-; 728  :       //OSD_G_PRINTF ",             " OSD_END
-; 729  : 
-; 730  :       // Raster 3D
-; 731  :       OSD_G_PRINTF ",              " OSD_END
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN87@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN86@SK_DrawOSD
-	push	OFFSET $SG379356
-	push	ebx
-	call	_sprintf
-	add	esp, 8
-$LN1476@SK_DrawOSD:
-	add	ebx, eax
-$LN86@SK_DrawOSD:
-
-; 732  :     }
-; 733  : 
-; 734  :     OSD_G_PRINTF " %#4lu MHz",
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN87@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN87@SK_DrawOSD
-	mov	ecx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
-	mov	eax, 274877907				; 10624dd3H
-	mul	DWORD PTR [esi+ecx+16]
-	shr	edx, 6
-	push	edx
-	push	OFFSET $SG379358
-	push	ebx
-	call	_sprintf
-	add	esp, 12					; 0000000cH
-	add	ebx, eax
-$LN87@SK_DrawOSD:
-
-; 735  :           gpu_stats.gpus [i].clocks_kHz.gpu / 1000UL
-; 736  :     OSD_END
-; 737  : 
-; 738  :     if (gpu_stats.gpus [i].volts_mV.supported)
-
-	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
-	cmp	BYTE PTR [esi+eax+33], 0
-	je	SHORT $LN88@SK_DrawOSD
-
-; 739  :     {
-; 740  :       // Over (or under) voltage limit!
-; 741  :       if (false)//gpu_stats.gpus [i].volts_mV.over)
-; 742  :       {
-; 743  :         OSD_G_PRINTF ", %#6.1fmV (%+#6.1fmV)",
-; 744  :           gpu_stats.gpus [i].volts_mV.core, gpu_stats.gpus [i].volts_mV.ov
-; 745  :         OSD_END
-; 746  :       }
-; 747  : 
-; 748  :       else
-; 749  :       {
-; 750  :         OSD_G_PRINTF ", %#6.1fmV",
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN94@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN94@SK_DrawOSD
-	movss	xmm0, DWORD PTR [esi+eax+24]
-	sub	esp, 8
-	cvtps2pd xmm0, xmm0
-	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG379366
-	push	ebx
-	call	_sprintf
-	add	esp, 16					; 00000010H
-
-; 751  :           gpu_stats.gpus [i].volts_mV.core
-; 752  :         OSD_END
-; 753  :       }
-; 754  :     }
-; 755  : 
-; 756  :     else
-
-	jmp	SHORT $LN1477@SK_DrawOSD
-$LN88@SK_DrawOSD:
-
-; 757  :     {
-; 758  :       // Padding because no voltage reading is available
-; 759  :       OSD_G_PRINTF ",         "
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN94@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN94@SK_DrawOSD
-	push	OFFSET $SG379368
-	push	ebx
-	call	_sprintf
-	add	esp, 8
-$LN1477@SK_DrawOSD:
-	add	ebx, eax
-$LN94@SK_DrawOSD:
-
-; 760  :       OSD_END
-; 761  :     }
-; 762  : 
-; 763  :     if (gpu_stats.gpus [i].fans_rpm.supported && gpu_stats.gpus [i].fans_rpm.gpu > 0)
-
-	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
-	cmp	BYTE PTR [esi+eax+56], 0
-	je	SHORT $LN95@SK_DrawOSD
-	mov	eax, DWORD PTR [esi+eax+52]
-	test	eax, eax
-	je	SHORT $LN95@SK_DrawOSD
-
-; 764  :     {
-; 765  :       OSD_G_PRINTF ", %#4lu RPM",
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN98@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN98@SK_DrawOSD
-	push	eax
-	push	OFFSET $SG379372
-	push	ebx
-	call	_sprintf
-	add	esp, 12					; 0000000cH
-
-; 766  :         gpu_stats.gpus [i].fans_rpm.gpu
-; 767  :       OSD_END
-; 768  :     }
-; 769  : 
-; 770  :     else
+; 762  :         i, gpu_stats.gpus [i].loads_percent.vid
+; 763  :       OSD_END
+; 764  :     } else {
 
 	jmp	SHORT $LN1478@SK_DrawOSD
-$LN95@SK_DrawOSD:
+$LN84@SK_DrawOSD:
 
-; 771  :     {
-; 772  :       // Padding because no RPM reading is available
-; 773  :       OSD_G_PRINTF ",         "
+; 765  :       // Vector 3D (subtract 1 space)
+; 766  :       //OSD_G_PRINTF ",             " OSD_END
+; 767  : 
+; 768  :       // Raster 3D
+; 769  :       OSD_G_PRINTF ",              " OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN98@SK_DrawOSD
+	je	SHORT $LN88@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN98@SK_DrawOSD
-	push	OFFSET $SG379374
+	je	SHORT $LN87@SK_DrawOSD
+	push	OFFSET $SG379445
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 $LN1478@SK_DrawOSD:
 	add	ebx, eax
-$LN98@SK_DrawOSD:
+$LN87@SK_DrawOSD:
 
-; 774  :       OSD_END
-; 775  :     }
-; 776  : 
-; 777  :     std::wstring temp =
-; 778  :       SK_FormatTemperature (
+; 770  :     }
+; 771  : 
+; 772  :     OSD_G_PRINTF " %#4lu MHz",
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
+	je	SHORT $LN88@SK_DrawOSD
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
+	je	SHORT $LN88@SK_DrawOSD
+	mov	ecx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
+	mov	eax, 274877907				; 10624dd3H
+	mul	DWORD PTR [esi+ecx+16]
+	shr	edx, 6
+	push	edx
+	push	OFFSET $SG379447
+	push	ebx
+	call	_sprintf
+	add	esp, 12					; 0000000cH
+	add	ebx, eax
+$LN88@SK_DrawOSD:
+
+; 773  :           gpu_stats.gpus [i].clocks_kHz.gpu / 1000UL
+; 774  :     OSD_END
+; 775  : 
+; 776  :     if (gpu_stats.gpus [i].volts_mV.supported)
+
+	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
+	cmp	BYTE PTR [esi+eax+33], 0
+	je	SHORT $LN89@SK_DrawOSD
+
+; 777  :     {
+; 778  :       // Over (or under) voltage limit!
+; 779  :       if (false)//gpu_stats.gpus [i].volts_mV.over)
+; 780  :       {
+; 781  :         OSD_G_PRINTF ", %#6.1fmV (%+#6.1fmV)",
+; 782  :           gpu_stats.gpus [i].volts_mV.core, gpu_stats.gpus [i].volts_mV.ov
+; 783  :         OSD_END
+; 784  :       }
+; 785  : 
+; 786  :       else
+; 787  :       {
+; 788  :         OSD_G_PRINTF ", %#6.1fmV",
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
+	je	SHORT $LN95@SK_DrawOSD
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
+	je	SHORT $LN95@SK_DrawOSD
+	movss	xmm0, DWORD PTR [esi+eax+24]
+	sub	esp, 8
+	cvtps2pd xmm0, xmm0
+	movsd	QWORD PTR [esp], xmm0
+	push	OFFSET $SG379455
+	push	ebx
+	call	_sprintf
+	add	esp, 16					; 00000010H
+
+; 789  :           gpu_stats.gpus [i].volts_mV.core
+; 790  :         OSD_END
+; 791  :       }
+; 792  :     }
+; 793  : 
+; 794  :     else
+
+	jmp	SHORT $LN1479@SK_DrawOSD
+$LN89@SK_DrawOSD:
+
+; 795  :     {
+; 796  :       // Padding because no voltage reading is available
+; 797  :       OSD_G_PRINTF ",         "
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
+	je	SHORT $LN95@SK_DrawOSD
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
+	je	SHORT $LN95@SK_DrawOSD
+	push	OFFSET $SG379457
+	push	ebx
+	call	_sprintf
+	add	esp, 8
+$LN1479@SK_DrawOSD:
+	add	ebx, eax
+$LN95@SK_DrawOSD:
+
+; 798  :       OSD_END
+; 799  :     }
+; 800  : 
+; 801  :     if (gpu_stats.gpus [i].fans_rpm.supported && gpu_stats.gpus [i].fans_rpm.gpu > 0)
+
+	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
+	cmp	BYTE PTR [esi+eax+56], 0
+	je	SHORT $LN96@SK_DrawOSD
+	mov	eax, DWORD PTR [esi+eax+52]
+	test	eax, eax
+	je	SHORT $LN96@SK_DrawOSD
+
+; 802  :     {
+; 803  :       OSD_G_PRINTF ", %#4lu RPM",
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
+	je	SHORT $LN99@SK_DrawOSD
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
+	je	SHORT $LN99@SK_DrawOSD
+	push	eax
+	push	OFFSET $SG379461
+	push	ebx
+	call	_sprintf
+	add	esp, 12					; 0000000cH
+
+; 804  :         gpu_stats.gpus [i].fans_rpm.gpu
+; 805  :       OSD_END
+; 806  :     }
+; 807  : 
+; 808  :     else
+
+	jmp	SHORT $LN1480@SK_DrawOSD
+$LN96@SK_DrawOSD:
+
+; 809  :     {
+; 810  :       // Padding because no RPM reading is available
+; 811  :       OSD_G_PRINTF ",         "
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
+	je	SHORT $LN99@SK_DrawOSD
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
+	je	SHORT $LN99@SK_DrawOSD
+	push	OFFSET $SG379463
+	push	ebx
+	call	_sprintf
+	add	esp, 8
+$LN1480@SK_DrawOSD:
+	add	ebx, eax
+$LN99@SK_DrawOSD:
+
+; 812  :       OSD_END
+; 813  :     }
+; 814  : 
+; 815  :     std::wstring temp =
+; 816  :       SK_FormatTemperature (
 
 	xor	eax, eax
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+829, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+841, al
 	setne	al
 	push	eax
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
@@ -23638,12 +24156,12 @@ $LN98@SK_DrawOSD:
 	call	?SK_FormatTemperature@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@HW4SK_UNITS@@0@Z ; SK_FormatTemperature
 	add	esp, 16					; 00000010H
 
-; 783  :     OSD_G_PRINTF ", (%ws)",
+; 821  :     OSD_G_PRINTF ", (%ws)",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1453@SK_DrawOSD
+	je	SHORT $LN1454@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN1453@SK_DrawOSD
+	je	SHORT $LN1454@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -23656,218 +24174,218 @@ $LN98@SK_DrawOSD:
 	cmovae	eax, DWORD PTR _temp$10[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 783  :     OSD_G_PRINTF ", (%ws)",
+; 821  :     OSD_G_PRINTF ", (%ws)",
 
 	push	eax
-	push	OFFSET $SG379376
+	push	OFFSET $SG379465
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
 	add	ebx, eax
-$LN1453@SK_DrawOSD:
+$LN1454@SK_DrawOSD:
 
-; 784  :       temp.c_str ()
-; 785  :     OSD_END
-; 786  : 
-; 787  :     if (config.sli.show)
+; 822  :       temp.c_str ()
+; 823  :     OSD_END
+; 824  : 
+; 825  :     if (config.sli.show)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+40, 0
-	je	SHORT $LN106@SK_DrawOSD
+	je	SHORT $LN107@SK_DrawOSD
 
-; 788  :     {
-; 789  :       if (afr_last == i)
+; 826  :     {
+; 827  :       if (afr_last == i)
 
 	cmp	DWORD PTR _afr_last$1$[ebp], edi
-	jne	SHORT $LN102@SK_DrawOSD
+	jne	SHORT $LN103@SK_DrawOSD
 
-; 790  :         OSD_G_PRINTF "@" OSD_END
+; 828  :         OSD_G_PRINTF "@" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN102@SK_DrawOSD
+	je	SHORT $LN103@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN102@SK_DrawOSD
-	push	OFFSET $SG379380
+	je	SHORT $LN103@SK_DrawOSD
+	push	OFFSET $SG379469
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN102@SK_DrawOSD:
+$LN103@SK_DrawOSD:
 
-; 791  : 
-; 792  :       if (afr_idx == i)
+; 829  : 
+; 830  :       if (afr_idx == i)
 
 	cmp	DWORD PTR _afr_idx$1$[ebp], edi
-	jne	SHORT $LN104@SK_DrawOSD
+	jne	SHORT $LN105@SK_DrawOSD
 
-; 793  :         OSD_G_PRINTF "!" OSD_END
+; 831  :         OSD_G_PRINTF "!" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN104@SK_DrawOSD
+	je	SHORT $LN105@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN104@SK_DrawOSD
-	push	OFFSET $SG379383
+	je	SHORT $LN105@SK_DrawOSD
+	push	OFFSET $SG379472
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN104@SK_DrawOSD:
+$LN105@SK_DrawOSD:
 
-; 794  : 
-; 795  :       if (afr_next == i)
+; 832  : 
+; 833  :       if (afr_next == i)
 
 	cmp	DWORD PTR _afr_next$1$[ebp], edi
-	jne	SHORT $LN106@SK_DrawOSD
+	jne	SHORT $LN107@SK_DrawOSD
 
-; 796  :         OSD_G_PRINTF "#" OSD_END
+; 834  :         OSD_G_PRINTF "#" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN106@SK_DrawOSD
+	je	SHORT $LN107@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN106@SK_DrawOSD
-	push	OFFSET $SG379386
+	je	SHORT $LN107@SK_DrawOSD
+	push	OFFSET $SG379475
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN106@SK_DrawOSD:
+$LN107@SK_DrawOSD:
 
-; 797  :     }
-; 798  : 
-; 799  :     if (nvapi_init &&
-; 800  :         config.gpu.print_slowdown &&
+; 835  :     }
+; 836  : 
+; 837  :     if (nvapi_init &&
+; 838  :         config.gpu.print_slowdown &&
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
-	je	$LN1454@SK_DrawOSD
+	je	$LN1455@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+121, 0
-	je	$LN1454@SK_DrawOSD
+	je	$LN1455@SK_DrawOSD
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	cmp	DWORD PTR [esi+eax+120], 0
-	je	$LN1454@SK_DrawOSD
+	je	$LN1455@SK_DrawOSD
 
-; 801  :         gpu_stats.gpus [i].nv_perf_state != NV_GPU_PERF_DECREASE_NONE) {
-; 802  :       OSD_G_PRINTF "   SLOWDOWN:" OSD_END
+; 839  :         gpu_stats.gpus [i].nv_perf_state != NV_GPU_PERF_DECREASE_NONE) {
+; 840  :       OSD_G_PRINTF "   SLOWDOWN:" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN108@SK_DrawOSD
+	je	SHORT $LN109@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN108@SK_DrawOSD
-	push	OFFSET $SG379389
+	je	SHORT $LN109@SK_DrawOSD
+	push	OFFSET $SG379478
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN108@SK_DrawOSD:
+$LN109@SK_DrawOSD:
 
-; 803  : 
-; 804  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_AC_BATT)
+; 841  : 
+; 842  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_AC_BATT)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	test	BYTE PTR [esi+eax+120], 4
-	je	SHORT $LN110@SK_DrawOSD
+	je	SHORT $LN111@SK_DrawOSD
 
-; 805  :         OSD_G_PRINTF " (Battery)" OSD_END
+; 843  :         OSD_G_PRINTF " (Battery)" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN110@SK_DrawOSD
+	je	SHORT $LN111@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN110@SK_DrawOSD
-	push	OFFSET $SG379392
+	je	SHORT $LN111@SK_DrawOSD
+	push	OFFSET $SG379481
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN110@SK_DrawOSD:
+$LN111@SK_DrawOSD:
 
-; 806  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_API_TRIGGERED)
+; 844  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_API_TRIGGERED)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	test	BYTE PTR [esi+eax+120], 8
-	je	SHORT $LN112@SK_DrawOSD
+	je	SHORT $LN113@SK_DrawOSD
 
-; 807  :         OSD_G_PRINTF " (Driver)" OSD_END
+; 845  :         OSD_G_PRINTF " (Driver)" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN112@SK_DrawOSD
+	je	SHORT $LN113@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN112@SK_DrawOSD
-	push	OFFSET $SG379395
+	je	SHORT $LN113@SK_DrawOSD
+	push	OFFSET $SG379484
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN112@SK_DrawOSD:
+$LN113@SK_DrawOSD:
 
-; 808  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_INSUFFICIENT_POWER)
+; 846  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_INSUFFICIENT_POWER)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	test	BYTE PTR [esi+eax+120], 16		; 00000010H
-	je	SHORT $LN114@SK_DrawOSD
+	je	SHORT $LN115@SK_DrawOSD
 
-; 809  :         OSD_G_PRINTF " (Power Supply)" OSD_END
+; 847  :         OSD_G_PRINTF " (Power Supply)" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN114@SK_DrawOSD
+	je	SHORT $LN115@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN114@SK_DrawOSD
-	push	OFFSET $SG379398
+	je	SHORT $LN115@SK_DrawOSD
+	push	OFFSET $SG379487
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN114@SK_DrawOSD:
+$LN115@SK_DrawOSD:
 
-; 810  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_POWER_CONTROL)
+; 848  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_POWER_CONTROL)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	test	BYTE PTR [esi+eax+120], 2
-	je	SHORT $LN116@SK_DrawOSD
+	je	SHORT $LN117@SK_DrawOSD
 
-; 811  :         OSD_G_PRINTF " (Power Limit)" OSD_END
+; 849  :         OSD_G_PRINTF " (Power Limit)" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN116@SK_DrawOSD
+	je	SHORT $LN117@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN116@SK_DrawOSD
-	push	OFFSET $SG379401
+	je	SHORT $LN117@SK_DrawOSD
+	push	OFFSET $SG379490
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN116@SK_DrawOSD:
+$LN117@SK_DrawOSD:
 
-; 812  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_THERMAL_PROTECTION)
+; 850  :       if (gpu_stats.gpus [i].nv_perf_state & NV_GPU_PERF_DECREASE_REASON_THERMAL_PROTECTION)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	test	BYTE PTR [esi+eax+120], 1
-	je	SHORT $LN1454@SK_DrawOSD
+	je	SHORT $LN1455@SK_DrawOSD
 
-; 813  :         OSD_G_PRINTF " (Thermal Limit)" OSD_END
+; 851  :         OSD_G_PRINTF " (Thermal Limit)" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN119@SK_DrawOSD
+	je	SHORT $LN120@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN1454@SK_DrawOSD
-	push	OFFSET $SG379404
+	je	SHORT $LN1455@SK_DrawOSD
+	push	OFFSET $SG379493
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN1454@SK_DrawOSD:
+$LN1455@SK_DrawOSD:
 
-; 814  :     }
-; 815  : 
-; 816  :     OSD_G_PRINTF "\n" OSD_END
+; 852  :     }
+; 853  : 
+; 854  :     OSD_G_PRINTF "\n" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN119@SK_DrawOSD
+	je	SHORT $LN120@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN119@SK_DrawOSD
-	push	OFFSET $SG379406
+	je	SHORT $LN120@SK_DrawOSD
+	push	OFFSET $SG379495
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN119@SK_DrawOSD:
+$LN120@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -23877,7 +24395,7 @@ $LN119@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN320@SK_DrawOSD
+	jb	SHORT $LN321@SK_DrawOSD
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -23891,61 +24409,61 @@ $LN119@SK_DrawOSD:
 	push	DWORD PTR _temp$10[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN320@SK_DrawOSD:
+$LN321@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 711  :   for (int i = 0; i < gpu_stats.num_gpus; i++)
+; 749  :   for (int i = 0; i < gpu_stats.num_gpus; i++)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	inc	edi
 	sub	esi, -128				; ffffff80H
 	cmp	edi, DWORD PTR [eax+8192]
 	jl	$LL7@SK_DrawOSD
-$LN1455@SK_DrawOSD:
+$LN1456@SK_DrawOSD:
 
-; 817  :   }
-; 818  : 
-; 819  :   //
-; 820  :   // DXGI 1.4 Memory Info (VERY accurate)
-; 821  :   ///
-; 822  :   if (nodes > 0 && nodes < 4)
+; 855  :   }
+; 856  : 
+; 857  :   //
+; 858  :   // DXGI 1.4 Memory Info (VERY accurate)
+; 859  :   ///
+; 860  :   if (nodes > 0 && nodes < 4)
 
 	mov	eax, DWORD PTR _nodes$1$[ebp]
 
-; 823  :   {
-; 824  :     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
-; 825  :     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
-; 826  :     //     on that in the future.
-; 827  :     for (int i = 0; i < nodes; i++)
+; 861  :   {
+; 862  :     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
+; 863  :     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
+; 864  :     //     on that in the future.
+; 865  :     for (int i = 0; i < nodes; i++)
 
 	xor	esi, esi
 	mov	DWORD PTR _i$1$[ebp], esi
 	lea	ecx, DWORD PTR [eax-1]
-	mov	DWORD PTR tv6467[ebp], ecx
+	mov	DWORD PTR tv6470[ebp], ecx
 	cmp	ecx, 2
-	ja	$LN120@SK_DrawOSD
+	ja	$LN121@SK_DrawOSD
 	test	eax, eax
 	jle	$LN9@SK_DrawOSD
-	mov	eax, DWORD PTR tv6487[ebp]
+	mov	eax, DWORD PTR tv6489[ebp]
 	xor	edi, edi
 	lea	eax, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax+8]
-	mov	DWORD PTR tv6455[ebp], eax
-	npad	12
+	mov	DWORD PTR tv6458[ebp], eax
+	npad	8
 $LL10@SK_DrawOSD:
 
-; 828  :     {
-; 829  :       if (nvapi_init)
+; 866  :     {
+; 867  :       if (nvapi_init)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
-	je	$LN122@SK_DrawOSD
+	je	$LN123@SK_DrawOSD
 
-; 830  :       {
-; 831  :         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
+; 868  :       {
+; 869  :         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN126@SK_DrawOSD
+	je	$LN127@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	$LN125@SK_DrawOSD
+	je	$LN126@SK_DrawOSD
 	mov	ecx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	push	0
 	push	2000					; 000007d0H
@@ -23964,7 +24482,7 @@ $LL10@SK_DrawOSD:
 	movd	xmm1, esi
 	cvtdq2pd xmm1, xmm1
 	addsd	xmm1, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
-	mov	eax, DWORD PTR tv6455[ebp]
+	mov	eax, DWORD PTR tv6458[ebp]
 	mov	ecx, DWORD PTR [eax]
 	mov	eax, DWORD PTR [eax+4]
 	mulsd	xmm0, xmm1
@@ -23976,33 +24494,33 @@ $LL10@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG379412
+	push	OFFSET $SG379501
 	push	ebx
 	call	_sprintf
 	add	esp, 32					; 00000020H
 
-; 832  :           i,
-; 833  :                                    mem_info [buffer].local    [i].CurrentUsage            >>   20ULL,
-; 834  :                                                gpu_stats.gpus [i].loads_percent.fb,
-; 835  : static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
-; 836  :                        static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
-; 837  :                                                                            (1024.0 * 1024.0 * 1024.0) *
-; 838  : static_cast <double> (                         gpu_stats.gpus [i].loads_percent.fb      )  /   100.0
-; 839  :         OSD_END
-; 840  :       }
-; 841  : 
-; 842  :       else
+; 870  :           i,
+; 871  :                                    mem_info [buffer].local    [i].CurrentUsage            >>   20ULL,
+; 872  :                                                gpu_stats.gpus [i].loads_percent.fb,
+; 873  : static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
+; 874  :                        static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
+; 875  :                                                                            (1024.0 * 1024.0 * 1024.0) *
+; 876  : static_cast <double> (                         gpu_stats.gpus [i].loads_percent.fb      )  /   100.0
+; 877  :         OSD_END
+; 878  :       }
+; 879  : 
+; 880  :       else
 
-	jmp	SHORT $LN1479@SK_DrawOSD
-$LN122@SK_DrawOSD:
+	jmp	SHORT $LN1481@SK_DrawOSD
+$LN123@SK_DrawOSD:
 
-; 843  :       {
-; 844  :         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
+; 881  :       {
+; 882  :         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN126@SK_DrawOSD
+	je	SHORT $LN127@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN125@SK_DrawOSD
+	je	SHORT $LN126@SK_DrawOSD
 	mov	ecx, DWORD PTR [eax]
 	mov	eax, DWORD PTR [eax+4]
 	shrd	ecx, eax, 20
@@ -24010,54 +24528,54 @@ $LN122@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG379414
+	push	OFFSET $SG379503
 	push	ebx
 	call	_sprintf
 	add	esp, 20					; 00000014H
-$LN1479@SK_DrawOSD:
+$LN1481@SK_DrawOSD:
 	add	ebx, eax
-$LN125@SK_DrawOSD:
+$LN126@SK_DrawOSD:
 
-; 845  :           i, mem_info [buffer].local [i].CurrentUsage >> 20ULL
-; 846  :         OSD_END
-; 847  :       }
-; 848  : 
-; 849  :       OSD_G_PRINTF ", %#4lu MHz",
+; 883  :           i, mem_info [buffer].local [i].CurrentUsage >> 20ULL
+; 884  :         OSD_END
+; 885  :       }
+; 886  : 
+; 887  :       OSD_G_PRINTF ", %#4lu MHz",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN126@SK_DrawOSD
+	je	SHORT $LN127@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN126@SK_DrawOSD
+	je	SHORT $LN127@SK_DrawOSD
 	mov	ecx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	mov	eax, 274877907				; 10624dd3H
 	mul	DWORD PTR [edi+ecx+20]
 	shr	edx, 6
 	push	edx
-	push	OFFSET $SG379416
+	push	OFFSET $SG379505
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
 	add	ebx, eax
-$LN126@SK_DrawOSD:
+$LN127@SK_DrawOSD:
 
-; 850  :         gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
-; 851  :       OSD_END
-; 852  : 
-; 853  :       // Add memory temperature if it exists
-; 854  :       if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
+; 888  :         gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
+; 889  :       OSD_END
+; 890  : 
+; 891  :       // Add memory temperature if it exists
+; 892  :       if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
 
 	mov	edx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	cmp	esi, DWORD PTR [edx+8192]
-	jg	$LN366@SK_DrawOSD
+	jg	$LN367@SK_DrawOSD
 	cmp	DWORD PTR [edi+edx+40], 0
-	je	$LN366@SK_DrawOSD
+	je	$LN367@SK_DrawOSD
 
-; 855  :       {
-; 856  :         std::wstring temp =
-; 857  :           SK_FormatTemperature (
+; 893  :       {
+; 894  :         std::wstring temp =
+; 895  :           SK_FormatTemperature (
 
 	xor	eax, eax
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+829, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+841, al
 	setne	al
 	push	eax
 	push	0
@@ -24067,12 +24585,12 @@ $LN126@SK_DrawOSD:
 	call	?SK_FormatTemperature@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@HW4SK_UNITS@@0@Z ; SK_FormatTemperature
 	add	esp, 16					; 00000010H
 
-; 862  :         OSD_G_PRINTF ", (%ws)",
+; 900  :         OSD_G_PRINTF ", (%ws)",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1456@SK_DrawOSD
+	je	SHORT $LN1457@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN1456@SK_DrawOSD
+	je	SHORT $LN1457@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -24085,15 +24603,15 @@ $LN126@SK_DrawOSD:
 	cmovae	eax, DWORD PTR _temp$14[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 862  :         OSD_G_PRINTF ", (%ws)",
+; 900  :         OSD_G_PRINTF ", (%ws)",
 
 	push	eax
-	push	OFFSET $SG379419
+	push	OFFSET $SG379508
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
 	add	ebx, eax
-$LN1456@SK_DrawOSD:
+$LN1457@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -24103,7 +24621,7 @@ $LN1456@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN369@SK_DrawOSD
+	jb	SHORT $LN370@SK_DrawOSD
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -24117,7 +24635,7 @@ $LN1456@SK_DrawOSD:
 	push	DWORD PTR _temp$14[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN369@SK_DrawOSD:
+$LN370@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -24137,67 +24655,67 @@ $LN369@SK_DrawOSD:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR _temp$14[ebp], ax
-$LN366@SK_DrawOSD:
+$LN367@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 867  :       OSD_G_PRINTF "\n" OSD_END
+; 905  :       OSD_G_PRINTF "\n" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	SHORT $LN8@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
 	je	SHORT $LN8@SK_DrawOSD
-	push	OFFSET $SG379421
+	push	OFFSET $SG379510
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
 $LN8@SK_DrawOSD:
 
-; 823  :   {
-; 824  :     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
-; 825  :     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
-; 826  :     //     on that in the future.
-; 827  :     for (int i = 0; i < nodes; i++)
+; 861  :   {
+; 862  :     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
+; 863  :     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
+; 864  :     //     on that in the future.
+; 865  :     for (int i = 0; i < nodes; i++)
 
-	mov	eax, DWORD PTR tv6455[ebp]
+	mov	eax, DWORD PTR tv6458[ebp]
 	inc	esi
 	add	eax, 32					; 00000020H
 	mov	DWORD PTR _i$1$[ebp], esi
 	sub	edi, -128				; ffffff80H
-	mov	DWORD PTR tv6455[ebp], eax
+	mov	DWORD PTR tv6458[ebp], eax
 	cmp	esi, DWORD PTR _nodes$1$[ebp]
 	jl	$LL10@SK_DrawOSD
 	mov	eax, DWORD PTR _nodes$1$[ebp]
 $LN9@SK_DrawOSD:
 
-; 868  :     }
-; 869  : 
-; 870  :     for (int i = 0; i < nodes; i++)
+; 906  :     }
+; 907  : 
+; 908  :     for (int i = 0; i < nodes; i++)
 
 	xor	edx, edx
 	mov	DWORD PTR _i$1$[ebp], edx
 	test	eax, eax
-	jle	$LN1458@SK_DrawOSD
-	mov	eax, DWORD PTR tv6487[ebp]
+	jle	$LN1459@SK_DrawOSD
+	mov	eax, DWORD PTR tv6489[ebp]
 	xor	edi, edi
 	lea	esi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax+136]
-	mov	DWORD PTR tv6449[ebp], esi
+	mov	DWORD PTR tv6452[ebp], esi
 	npad	4
 $LL13@SK_DrawOSD:
 
-; 871  :     {
-; 872  :       // Figure out the generation from the transfer rate...
-; 873  :       int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
-; 874  : 
-; 875  :       if (nvapi_init)
+; 909  :     {
+; 910  :       // Figure out the generation from the transfer rate...
+; 911  :       int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
+; 912  : 
+; 913  :       if (nvapi_init)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	mov	ecx, DWORD PTR [edi+eax+108]
-	je	$LN130@SK_DrawOSD
+	je	$LN131@SK_DrawOSD
 
-; 876  :       {
-; 877  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
+; 914  :       {
+; 915  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	$LN11@SK_DrawOSD
@@ -24214,14 +24732,14 @@ $LL13@SK_DrawOSD:
 	cvtdq2pd xmm0, xmm0
 	shr	eax, 31					; 0000001fH
 	sub	esp, 8
-	fstp	QWORD PTR tv7093[ebp]
+	fstp	QWORD PTR tv7105[ebp]
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
-	movsd	xmm1, QWORD PTR tv7093[ebp]
+	movsd	xmm1, QWORD PTR tv7105[ebp]
 	mulsd	xmm1, QWORD PTR __real@3ee47ae147ae147b
 	mulsd	xmm1, xmm0
 	movsd	QWORD PTR [esp], xmm1
 	push	esi
-	mov	esi, DWORD PTR tv6449[ebp]
+	mov	esi, DWORD PTR tv6452[ebp]
 	mov	ecx, DWORD PTR [esi]
 	mov	eax, DWORD PTR [esi+4]
 	shrd	ecx, eax, 20
@@ -24229,29 +24747,29 @@ $LL13@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	DWORD PTR _i$1$[ebp]
-	push	OFFSET $SG379425
+	push	OFFSET $SG379514
 	push	ebx
 	call	_sprintf
 	add	esp, 40					; 00000028H
 
-; 878  :           i,
-; 879  :            mem_info [buffer].nonlocal [i].CurrentUsage               >>  20ULL,
-; 880  :                        gpu_stats.gpus [i].loads_percent.bus,
-; 881  :                        gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
-; 882  :  static_cast <double> (gpu_stats.gpus [i].loads_percent.bus)          /  100.0,
-; 883  :                        pcie_gen,
-; 884  :                        gpu_stats.gpus [i].hwinfo.pcie_lanes
-; 885  :                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
-; 886  :         OSD_END
-; 887  :       }
-; 888  : 
-; 889  :       else
+; 916  :           i,
+; 917  :            mem_info [buffer].nonlocal [i].CurrentUsage               >>  20ULL,
+; 918  :                        gpu_stats.gpus [i].loads_percent.bus,
+; 919  :                        gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
+; 920  :  static_cast <double> (gpu_stats.gpus [i].loads_percent.bus)          /  100.0,
+; 921  :                        pcie_gen,
+; 922  :                        gpu_stats.gpus [i].hwinfo.pcie_lanes
+; 923  :                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
+; 924  :         OSD_END
+; 925  :       }
+; 926  : 
+; 927  :       else
 
-	jmp	SHORT $LN1480@SK_DrawOSD
-$LN130@SK_DrawOSD:
+	jmp	SHORT $LN1482@SK_DrawOSD
+$LN131@SK_DrawOSD:
 
-; 890  :       {
-; 891  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
+; 928  :       {
+; 929  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	SHORT $LN11@SK_DrawOSD
@@ -24266,73 +24784,72 @@ $LN130@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	edx
-	push	OFFSET $SG379427
+	push	OFFSET $SG379516
 	push	ebx
 	call	_sprintf
 	add	esp, 28					; 0000001cH
-$LN1480@SK_DrawOSD:
+$LN1482@SK_DrawOSD:
 	mov	edx, DWORD PTR _i$1$[ebp]
 	add	ebx, eax
 $LN11@SK_DrawOSD:
 
-; 868  :     }
-; 869  : 
-; 870  :     for (int i = 0; i < nodes; i++)
+; 906  :     }
+; 907  : 
+; 908  :     for (int i = 0; i < nodes; i++)
 
 	inc	edx
 	add	esi, 32					; 00000020H
 	sub	edi, -128				; ffffff80H
 	mov	DWORD PTR _i$1$[ebp], edx
-	mov	DWORD PTR tv6449[ebp], esi
+	mov	DWORD PTR tv6452[ebp], esi
 	cmp	edx, DWORD PTR _nodes$1$[ebp]
 	jl	$LL13@SK_DrawOSD
 
-; 892  :           i,
-; 893  :           mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
-; 894  :           pcie_gen,
-; 895  :           gpu_stats.gpus [i].hwinfo.pcie_lanes
-; 896  :         OSD_END
-; 897  :       }
-; 898  :     }
-; 899  :   }
-; 900  : 
-; 901  :   //
-; 902  :   // NvAPI or ADL Memory Info (Reasonably Accurate on Windows 8.1 and older)
-; 903  :   //
-; 904  :   else
+; 930  :           i,
+; 931  :           mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
+; 932  :           pcie_gen,
+; 933  :           gpu_stats.gpus [i].hwinfo.pcie_lanes
+; 934  :         OSD_END
+; 935  :       }
+; 936  :     }
+; 937  :   }
+; 938  : 
+; 939  :   //
+; 940  :   // NvAPI or ADL Memory Info (Reasonably Accurate on Windows 8.1 and older)
+; 941  :   //
+; 942  :   else
 
-	jmp	$LN1458@SK_DrawOSD
-$LN120@SK_DrawOSD:
+	jmp	$LN1459@SK_DrawOSD
+$LN121@SK_DrawOSD:
 
-; 905  :   {
-; 906  :     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
-; 907  :     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
-; 908  :     //     on that in the future.
-; 909  :     for (int i = 0; i < gpu_stats.num_gpus; i++)
+; 943  :   {
+; 944  :     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
+; 945  :     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
+; 946  :     //     on that in the future.
+; 947  :     for (int i = 0; i < gpu_stats.num_gpus; i++)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	cmp	DWORD PTR [eax+8192], esi
 	jle	$LN15@SK_DrawOSD
-	mov	eax, DWORD PTR tv6487[ebp]
+	mov	eax, DWORD PTR tv6489[ebp]
 	xor	edi, edi
 	lea	ecx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[eax+8]
-	mov	DWORD PTR tv6445[ebp], ecx
-	npad	3
+	mov	DWORD PTR tv6448[ebp], ecx
 $LL16@SK_DrawOSD:
 
-; 910  :     {
-; 911  :       if (nvapi_init)
+; 948  :     {
+; 949  :       if (nvapi_init)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
-	je	$LN134@SK_DrawOSD
+	je	$LN135@SK_DrawOSD
 
-; 912  :       {
-; 913  :         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
+; 950  :       {
+; 951  :         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	$LN14@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	$LN137@SK_DrawOSD
+	je	$LN138@SK_DrawOSD
 	mov	ecx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	push	0
 	push	2000					; 000007d0H
@@ -24351,7 +24868,7 @@ $LL16@SK_DrawOSD:
 	movd	xmm1, esi
 	cvtdq2pd xmm1, xmm1
 	addsd	xmm1, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
-	mov	eax, DWORD PTR tv6445[ebp]
+	mov	eax, DWORD PTR tv6448[ebp]
 	mov	ecx, DWORD PTR [eax]
 	mov	eax, DWORD PTR [eax+4]
 	mulsd	xmm0, xmm1
@@ -24363,33 +24880,33 @@ $LL16@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG379431
+	push	OFFSET $SG379520
 	push	ebx
 	call	_sprintf
 	add	esp, 32					; 00000020H
 
-; 914  :           i,
-; 915  :           mem_info [buffer].local    [i].CurrentUsage >> 20ULL,
-; 916  :                       gpu_stats.gpus [i].loads_percent.fb,
-; 917  : static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
-; 918  :                        static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
-; 919  :                                                                            (1024.0 * 1024.0 * 1024.0) *
-; 920  : static_cast <double> (                         gpu_stats.gpus [i].loads_percent.fb      )  /   100.0
-; 921  :         OSD_END
-; 922  :       }
-; 923  : 
-; 924  :       else
+; 952  :           i,
+; 953  :           mem_info [buffer].local    [i].CurrentUsage >> 20ULL,
+; 954  :                       gpu_stats.gpus [i].loads_percent.fb,
+; 955  : static_cast <double> ( static_cast <uint64_t> (gpu_stats.gpus [i].clocks_kHz.ram) * 2ULL   * 1000ULL  *
+; 956  :                        static_cast <uint64_t> (gpu_stats.gpus [i].hwinfo.mem_bus_width) )  /     8.0  /
+; 957  :                                                                            (1024.0 * 1024.0 * 1024.0) *
+; 958  : static_cast <double> (                         gpu_stats.gpus [i].loads_percent.fb      )  /   100.0
+; 959  :         OSD_END
+; 960  :       }
+; 961  : 
+; 962  :       else
 
-	jmp	SHORT $LN1481@SK_DrawOSD
-$LN134@SK_DrawOSD:
+	jmp	SHORT $LN1483@SK_DrawOSD
+$LN135@SK_DrawOSD:
 
-; 925  :       {
-; 926  :         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
+; 963  :       {
+; 964  :         OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	$LN14@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN137@SK_DrawOSD
+	je	SHORT $LN138@SK_DrawOSD
 	mov	edx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	mov	ecx, DWORD PTR [edi+edx+64]
 	mov	eax, DWORD PTR [edi+edx+68]
@@ -24398,117 +24915,117 @@ $LN134@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	esi
-	push	OFFSET $SG379433
+	push	OFFSET $SG379522
 	push	ebx
 	call	_sprintf
 	add	esp, 20					; 00000014H
-$LN1481@SK_DrawOSD:
-	mov	ecx, DWORD PTR tv6445[ebp]
+$LN1483@SK_DrawOSD:
+	mov	ecx, DWORD PTR tv6448[ebp]
 	add	ebx, eax
-$LN137@SK_DrawOSD:
+$LN138@SK_DrawOSD:
 
-; 927  :           i, gpu_stats.gpus [i].memory_B.local >> 20ULL
-; 928  :         OSD_END
-; 929  :       }
-; 930  : 
-; 931  :       OSD_G_PRINTF ", %#4lu MHz",
+; 965  :           i, gpu_stats.gpus [i].memory_B.local >> 20ULL
+; 966  :         OSD_END
+; 967  :       }
+; 968  : 
+; 969  :       OSD_G_PRINTF ", %#4lu MHz",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	SHORT $LN14@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN138@SK_DrawOSD
+	je	SHORT $LN139@SK_DrawOSD
 	mov	ecx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	mov	eax, 274877907				; 10624dd3H
 	mul	DWORD PTR [edi+ecx+20]
 	shr	edx, 6
 	push	edx
-	push	OFFSET $SG379435
+	push	OFFSET $SG379524
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
 	add	ebx, eax
-$LN138@SK_DrawOSD:
+$LN139@SK_DrawOSD:
 
-; 932  :         gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
-; 933  :       OSD_END
-; 934  : 
-; 935  :       OSD_G_PRINTF "\n" OSD_END
+; 970  :         gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
+; 971  :       OSD_END
+; 972  : 
+; 973  :       OSD_G_PRINTF "\n" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1469@SK_DrawOSD
+	je	SHORT $LN1471@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN1469@SK_DrawOSD
-	push	OFFSET $SG379437
+	je	SHORT $LN1471@SK_DrawOSD
+	push	OFFSET $SG379526
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN1469@SK_DrawOSD:
-	mov	ecx, DWORD PTR tv6445[ebp]
+$LN1471@SK_DrawOSD:
+	mov	ecx, DWORD PTR tv6448[ebp]
 $LN14@SK_DrawOSD:
 
-; 905  :   {
-; 906  :     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
-; 907  :     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
-; 908  :     //     on that in the future.
-; 909  :     for (int i = 0; i < gpu_stats.num_gpus; i++)
+; 943  :   {
+; 944  :     // We need to be careful here, it's not guaranteed that NvAPI adapter indices
+; 945  :     //   match up with DXGI 1.4 node indices... Adapter LUID may shed some light
+; 946  :     //     on that in the future.
+; 947  :     for (int i = 0; i < gpu_stats.num_gpus; i++)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	inc	esi
 	add	ecx, 32					; 00000020H
 	mov	DWORD PTR _i$1$[ebp], esi
 	sub	edi, -128				; ffffff80H
-	mov	DWORD PTR tv6445[ebp], ecx
+	mov	DWORD PTR tv6448[ebp], ecx
 	cmp	esi, DWORD PTR [eax+8192]
 	jl	$LL16@SK_DrawOSD
 $LN15@SK_DrawOSD:
 
-; 938  :     for (int i = 0; i < gpu_stats.num_gpus; i++)
+; 976  :     for (int i = 0; i < gpu_stats.num_gpus; i++)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	xor	edi, edi
 	cmp	DWORD PTR [eax+8192], edi
-	jle	$LN1458@SK_DrawOSD
+	jle	$LN1459@SK_DrawOSD
 	xor	esi, esi
-	npad	4
+	npad	1
 $LL19@SK_DrawOSD:
 
-; 939  :     {
-; 940  :       // Figure out the generation from the transfer rate...
-; 941  :       int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
-; 942  : 
-; 943  :       if (nvapi_init)
+; 977  :     {
+; 978  :       // Figure out the generation from the transfer rate...
+; 979  :       int pcie_gen = gpu_stats.gpus [i].hwinfo.pcie_gen;
+; 980  : 
+; 981  :       if (nvapi_init)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
 	mov	edx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
-	je	$LN140@SK_DrawOSD
+	je	$LN141@SK_DrawOSD
 
-; 945  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
+; 983  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN143@SK_DrawOSD
+	je	$LN144@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	$LN143@SK_DrawOSD
+	je	$LN144@SK_DrawOSD
 ; File c:\users\andon\source\repos\specialk\include\specialk\gpu_monitor.h
 
 ; 106  :         if (pcie_gen == 2 || pcie_gen == 1 || pcie_gen == 0)
 
 	mov	eax, DWORD PTR [esi+edx+108]
 	cmp	eax, 2
-	je	SHORT $LN398@SK_DrawOSD
+	je	SHORT $LN399@SK_DrawOSD
 	cmp	eax, 1
-	je	SHORT $LN398@SK_DrawOSD
+	je	SHORT $LN399@SK_DrawOSD
 	test	eax, eax
-	je	SHORT $LN398@SK_DrawOSD
+	je	SHORT $LN399@SK_DrawOSD
 
 ; 109  :         }
 ; 110  : 
 ; 111  :         else if (pcie_gen == 3 || pcie_gen == 4)
 
 	cmp	eax, 3
-	je	SHORT $LN400@SK_DrawOSD
+	je	SHORT $LN401@SK_DrawOSD
 	cmp	eax, 4
-	je	SHORT $LN400@SK_DrawOSD
+	je	SHORT $LN401@SK_DrawOSD
 	xorps	xmm1, xmm1
 
 ; 114  :         }
@@ -24516,8 +25033,8 @@ $LL19@SK_DrawOSD:
 ; 116  :         // Something's rotten in GPU land.
 ; 117  :         return 0.0;
 
-	jmp	SHORT $LN395@SK_DrawOSD
-$LN400@SK_DrawOSD:
+	jmp	SHORT $LN396@SK_DrawOSD
+$LN401@SK_DrawOSD:
 
 ; 112  :         {
 ; 113  :           return (pcie_transfer_rate / 8.0) * (0.9846) * pcie_lanes;
@@ -24528,8 +25045,8 @@ $LN400@SK_DrawOSD:
 	shr	eax, 31					; 0000001fH
 	addsd	xmm1, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	mulsd	xmm1, QWORD PTR __real@3fbf81d7dbf487fd
-	jmp	SHORT $LN1482@SK_DrawOSD
-$LN398@SK_DrawOSD:
+	jmp	SHORT $LN1484@SK_DrawOSD
+$LN399@SK_DrawOSD:
 
 ; 107  :         {
 ; 108  :           return (pcie_transfer_rate / 8.0) * (0.8) * pcie_lanes;
@@ -24540,17 +25057,17 @@ $LN398@SK_DrawOSD:
 	shr	eax, 31					; 0000001fH
 	addsd	xmm1, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	mulsd	xmm1, QWORD PTR __real@3fb999999999999a
-$LN1482@SK_DrawOSD:
+$LN1484@SK_DrawOSD:
 	mov	eax, DWORD PTR [esi+edx+104]
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
 	shr	eax, 31					; 0000001fH
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	mulsd	xmm1, xmm0
-$LN395@SK_DrawOSD:
+$LN396@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 945  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
+; 983  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
 
 	mov	ecx, DWORD PTR [esi+edx+12]
 	mov	eax, ecx
@@ -24572,34 +25089,34 @@ $LN395@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	edi
-	push	OFFSET $SG379441
+	push	OFFSET $SG379530
 	push	ebx
 	call	_sprintf
 	add	esp, 40					; 00000028H
 
-; 946  :           i,
-; 947  :                        gpu_stats.gpus [i].memory_B.nonlocal          >> 20ULL,
-; 948  :                        gpu_stats.gpus [i].loads_percent.bus,
-; 949  :                        gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
-; 950  :  static_cast <double> (gpu_stats.gpus [i].loads_percent.bus)          / 100.0,
-; 951  :                        pcie_gen,
-; 952  :                        gpu_stats.gpus [i].hwinfo.pcie_lanes
-; 953  :                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
-; 954  :         OSD_END
-; 955  :       }
-; 956  : 
-; 957  :       else
+; 984  :           i,
+; 985  :                        gpu_stats.gpus [i].memory_B.nonlocal          >> 20ULL,
+; 986  :                        gpu_stats.gpus [i].loads_percent.bus,
+; 987  :                        gpu_stats.gpus [i].hwinfo.pcie_bandwidth_mb () / 1024.0 *
+; 988  :  static_cast <double> (gpu_stats.gpus [i].loads_percent.bus)          / 100.0,
+; 989  :                        pcie_gen,
+; 990  :                        gpu_stats.gpus [i].hwinfo.pcie_lanes
+; 991  :                        //gpu_stats.gpus [i].hwinfo.pcie_transfer_rate
+; 992  :         OSD_END
+; 993  :       }
+; 994  : 
+; 995  :       else
 
-	jmp	SHORT $LN1483@SK_DrawOSD
-$LN140@SK_DrawOSD:
+	jmp	SHORT $LN1485@SK_DrawOSD
+$LN141@SK_DrawOSD:
 
-; 958  :       {
-; 959  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
+; 996  :       {
+; 997  :         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN143@SK_DrawOSD
+	je	SHORT $LN144@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN143@SK_DrawOSD
+	je	SHORT $LN144@SK_DrawOSD
 	push	DWORD PTR [esi+edx+104]
 	mov	ecx, DWORD PTR [esi+edx+72]
 	push	DWORD PTR [esi+edx+108]
@@ -24609,23 +25126,23 @@ $LN140@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	edi
-	push	OFFSET $SG379443
+	push	OFFSET $SG379532
 	push	ebx
 	call	_sprintf
 	add	esp, 28					; 0000001cH
-$LN1483@SK_DrawOSD:
+$LN1485@SK_DrawOSD:
 	add	ebx, eax
-$LN143@SK_DrawOSD:
+$LN144@SK_DrawOSD:
 
-; 960  :           i,
-; 961  :           gpu_stats.gpus [i].memory_B.nonlocal    >> 20ULL,
-; 962  :           pcie_gen,
-; 963  :           gpu_stats.gpus [i].hwinfo.pcie_lanes
-; 964  :         OSD_END
-; 965  :       }
-; 966  : 
-; 967  :       // Add memory temperature if it exists
-; 968  :       if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
+; 998  :           i,
+; 999  :           gpu_stats.gpus [i].memory_B.nonlocal    >> 20ULL,
+; 1000 :           pcie_gen,
+; 1001 :           gpu_stats.gpus [i].hwinfo.pcie_lanes
+; 1002 :         OSD_END
+; 1003 :       }
+; 1004 : 
+; 1005 :       // Add memory temperature if it exists
+; 1006 :       if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
 
 	mov	edx, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	cmp	edi, DWORD PTR [edx+8192]
@@ -24633,63 +25150,63 @@ $LN143@SK_DrawOSD:
 	cmp	DWORD PTR [esi+edx+40], 0
 	je	$LN17@SK_DrawOSD
 
-; 969  :       {
-; 970  :         std::wstring temp =
-; 971  :           SK_FormatTemperature (
+; 1007 :       {
+; 1008 :         std::wstring temp =
+; 1009 :           SK_FormatTemperature (
 
 	xor	eax, eax
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+829, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+841, al
 	setne	al
 	push	eax
 	push	0
 	push	DWORD PTR [esi+edx+36]
-	lea	eax, DWORD PTR _temp$21[ebp]
+	lea	eax, DWORD PTR _temp$20[ebp]
 	push	eax
 	call	?SK_FormatTemperature@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@HW4SK_UNITS@@0@Z ; SK_FormatTemperature
 	add	esp, 16					; 00000010H
 
-; 976  :         OSD_G_PRINTF ", (%ws)",
+; 1014 :         OSD_G_PRINTF ", (%ws)",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1457@SK_DrawOSD
+	je	SHORT $LN1458@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	je	SHORT $LN1457@SK_DrawOSD
+	je	SHORT $LN1458@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _temp$21[ebp+20], 8
+	cmp	DWORD PTR _temp$20[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	eax, DWORD PTR _temp$21[ebp]
-	cmovae	eax, DWORD PTR _temp$21[ebp]
+	lea	eax, DWORD PTR _temp$20[ebp]
+	cmovae	eax, DWORD PTR _temp$20[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 976  :         OSD_G_PRINTF ", (%ws)",
+; 1014 :         OSD_G_PRINTF ", (%ws)",
 
 	push	eax
-	push	OFFSET $SG379446
+	push	OFFSET $SG379535
 	push	ebx
 	call	_sprintf
 	add	esp, 12					; 0000000cH
 	add	ebx, eax
-$LN1457@SK_DrawOSD:
+$LN1458@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _temp$21[ebp+20]
+	mov	eax, DWORD PTR _temp$20[ebp+20]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN455@SK_DrawOSD
+	jb	SHORT $LN456@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _temp$21[ebp]
+	mov	ecx, DWORD PTR _temp$20[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -24700,7 +25217,7 @@ $LN1457@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -24709,14 +25226,14 @@ $LN1457@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN450@SK_DrawOSD
+	jb	SHORT $LN451@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	$LN1395@SK_DrawOSD
+	jne	$LN1396@SK_DrawOSD
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -24738,7 +25255,7 @@ $LN1457@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	$LN1395@SK_DrawOSD
+	jae	$LN1396@SK_DrawOSD
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -24750,7 +25267,7 @@ $LN1457@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	$LN1395@SK_DrawOSD
+	jb	$LN1396@SK_DrawOSD
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -24758,14 +25275,14 @@ $LN1457@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN450@SK_DrawOSD:
+$LN451@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -24779,7 +25296,7 @@ $LN450@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN455@SK_DrawOSD:
+$LN456@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -24789,64 +25306,64 @@ $LN455@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _temp$21[ebp+16], 0
+	mov	DWORD PTR _temp$20[ebp+16], 0
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _temp$21[ebp+20], 7
+	mov	DWORD PTR _temp$20[ebp+20], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _temp$21[ebp], ax
+	mov	WORD PTR _temp$20[ebp], ax
 $LN17@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 938  :     for (int i = 0; i < gpu_stats.num_gpus; i++)
+; 976  :     for (int i = 0; i < gpu_stats.num_gpus; i++)
 
 	mov	eax, DWORD PTR ?gpu_stats@@3AAUgpu_sensors_t@@A ; gpu_stats
 	inc	edi
 	sub	esi, -128				; ffffff80H
 	cmp	edi, DWORD PTR [eax+8192]
 	jl	$LL19@SK_DrawOSD
-$LN1458@SK_DrawOSD:
+$LN1459@SK_DrawOSD:
 
-; 977  :           temp.c_str ()
-; 978  :         OSD_END
-; 979  :       }
-; 980  :     }
-; 981  :   }
-; 982  : 
-; 983  :   //OSD_G_PRINTF "\n" OSD_END
-; 984  : 
-; 985  :   if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 () || SK_IsOpenGL ()))
+; 1015 :           temp.c_str ()
+; 1016 :         OSD_END
+; 1017 :       }
+; 1018 :     }
+; 1019 :   }
+; 1020 : 
+; 1021 :   //OSD_G_PRINTF "\n" OSD_END
+; 1022 : 
+; 1023 :   if (config.render.show && (SK_IsD3D9 () || SK_IsD3D11 () || SK_IsOpenGL ()))
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+508, 0
-	je	$LN1459@SK_DrawOSD
+	je	$LN1460@SK_DrawOSD
 	call	?SK_IsD3D9@@YG_NXZ			; SK_IsD3D9
 	test	al, al
-	jne	SHORT $LN147@SK_DrawOSD
+	jne	SHORT $LN148@SK_DrawOSD
 	call	?SK_IsD3D11@@YG_NXZ			; SK_IsD3D11
 	test	al, al
-	jne	SHORT $LN147@SK_DrawOSD
+	jne	SHORT $LN148@SK_DrawOSD
 	call	?SK_IsOpenGL@@YA_NXZ			; SK_IsOpenGL
 	test	al, al
-	je	$LN1459@SK_DrawOSD
-$LN147@SK_DrawOSD:
+	je	$LN1460@SK_DrawOSD
+$LN148@SK_DrawOSD:
 
-; 986  :   {
-; 987  :     if (SK_IsD3D11 ())
+; 1024 :   {
+; 1025 :     if (SK_IsD3D11 ())
 
 	call	?SK_IsD3D11@@YG_NXZ			; SK_IsD3D11
 	test	al, al
-	je	$LN148@SK_DrawOSD
+	je	$LN149@SK_DrawOSD
 
-; 989  :       OSD_R_PRINTF "\n%ws",
+; 1027 :       OSD_R_PRINTF "\n%ws",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN1459@SK_DrawOSD
+	je	$LN1460@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+508, 0
-	je	$LN1459@SK_DrawOSD
+	je	$LN1460@SK_DrawOSD
 	lea	eax, DWORD PTR $T12[ebp]
 	push	eax
 	call	?getPipelineStatsDesc@DXGI@SK@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK::DXGI::getPipelineStatsDesc
@@ -24859,19 +25376,19 @@ $LN147@SK_DrawOSD:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN477@SK_DrawOSD
+	jb	SHORT $LN478@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN477@SK_DrawOSD:
+$LN478@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 989  :       OSD_R_PRINTF "\n%ws",
+; 1027 :       OSD_R_PRINTF "\n%ws",
 
 	push	eax
-	push	OFFSET $SG379452
+	push	OFFSET $SG379541
 	push	ebx
 	call	_sprintf
 	add	ebx, eax
@@ -24885,7 +25402,7 @@ $LN477@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN517@SK_DrawOSD
+	jb	SHORT $LN518@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -24901,11 +25418,11 @@ $LN477@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	jbe	SHORT $LN511@SK_DrawOSD
-$LN1395@SK_DrawOSD:
+	jbe	SHORT $LN512@SK_DrawOSD
+$LN1396@SK_DrawOSD:
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1488@SK_DrawOSD:
-$LN511@SK_DrawOSD:
+$LN1490@SK_DrawOSD:
+$LN512@SK_DrawOSD:
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -24914,17 +25431,17 @@ $LN511@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN512@SK_DrawOSD
+	jb	SHORT $LN513@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	BYTE PTR $T12[ebp], 31			; 0000001fH
-	je	SHORT $LN513@SK_DrawOSD
+	je	SHORT $LN514@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1489@SK_DrawOSD:
-$LN513@SK_DrawOSD:
+$LN1491@SK_DrawOSD:
+$LN514@SK_DrawOSD:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -24946,10 +25463,10 @@ $LN513@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN514@SK_DrawOSD
+	jb	SHORT $LN515@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1490@SK_DrawOSD:
-$LN514@SK_DrawOSD:
+$LN1492@SK_DrawOSD:
+$LN515@SK_DrawOSD:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -24961,10 +25478,10 @@ $LN514@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN515@SK_DrawOSD
+	jae	SHORT $LN516@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1491@SK_DrawOSD:
-$LN515@SK_DrawOSD:
+$LN1493@SK_DrawOSD:
+$LN516@SK_DrawOSD:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -24972,17 +25489,17 @@ $LN515@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN516@SK_DrawOSD
+	jbe	SHORT $LN517@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1492@SK_DrawOSD:
-$LN516@SK_DrawOSD:
+$LN1494@SK_DrawOSD:
+$LN517@SK_DrawOSD:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN512@SK_DrawOSD:
+$LN513@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -24996,7 +25513,7 @@ $LN512@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN517@SK_DrawOSD:
+$LN518@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -25018,24 +25535,24 @@ $LN517@SK_DrawOSD:
 	mov	WORD PTR $T12[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 992  :     }
+; 1030 :     }
 
-	jmp	$LN1459@SK_DrawOSD
-$LN148@SK_DrawOSD:
+	jmp	$LN1460@SK_DrawOSD
+$LN149@SK_DrawOSD:
 
-; 993  : 
-; 994  :     else if (SK_IsD3D9 ())
+; 1031 : 
+; 1032 :     else if (SK_IsD3D9 ())
 
 	call	?SK_IsD3D9@@YG_NXZ			; SK_IsD3D9
 	test	al, al
-	je	SHORT $LN151@SK_DrawOSD
+	je	$LN152@SK_DrawOSD
 
-; 996  :       OSD_R_PRINTF "\n%ws",
+; 1034 :       OSD_R_PRINTF "\n%ws",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN1459@SK_DrawOSD
+	je	$LN1460@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+508, 0
-	je	$LN1459@SK_DrawOSD
+	je	$LN1460@SK_DrawOSD
 	lea	eax, DWORD PTR $T9[ebp]
 	push	eax
 	call	?getPipelineStatsDesc@D3D9@SK@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK::D3D9::getPipelineStatsDesc
@@ -25047,19 +25564,19 @@ $LN148@SK_DrawOSD:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN538@SK_DrawOSD
+	jb	SHORT $LN539@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN538@SK_DrawOSD:
+$LN539@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 996  :       OSD_R_PRINTF "\n%ws",
+; 1034 :       OSD_R_PRINTF "\n%ws",
 
 	push	eax
-	push	OFFSET $SG379456
+	push	OFFSET $SG379545
 	push	ebx
 	call	_sprintf
 	add	ebx, eax
@@ -25073,7 +25590,7 @@ $LN538@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN548@SK_DrawOSD
+	jb	SHORT $LN549@SK_DrawOSD
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -25087,7 +25604,7 @@ $LN538@SK_DrawOSD:
 	push	DWORD PTR $T9[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN548@SK_DrawOSD:
+$LN549@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -25109,24 +25626,24 @@ $LN548@SK_DrawOSD:
 	mov	WORD PTR $T9[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 999  :     }
+; 1037 :     }
 
-	jmp	$LN1459@SK_DrawOSD
-$LN151@SK_DrawOSD:
+	jmp	$LN1460@SK_DrawOSD
+$LN152@SK_DrawOSD:
 
-; 1000 : 
-; 1001 :     else if (SK_IsOpenGL ())
+; 1038 : 
+; 1039 :     else if (SK_IsOpenGL ())
 
 	call	?SK_IsOpenGL@@YA_NXZ			; SK_IsOpenGL
 	test	al, al
-	je	SHORT $LN1459@SK_DrawOSD
+	je	SHORT $LN1460@SK_DrawOSD
 
-; 1003 :       OSD_R_PRINTF "\n%ws",
+; 1041 :       OSD_R_PRINTF "\n%ws",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1459@SK_DrawOSD
+	je	SHORT $LN1460@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+508, 0
-	je	SHORT $LN1459@SK_DrawOSD
+	je	SHORT $LN1460@SK_DrawOSD
 	lea	eax, DWORD PTR $T8[ebp]
 	push	eax
 	call	?getPipelineStatsDesc@OpenGL@SK@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK::OpenGL::getPipelineStatsDesc
@@ -25139,19 +25656,19 @@ $LN151@SK_DrawOSD:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN587@SK_DrawOSD
+	jb	SHORT $LN588@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN587@SK_DrawOSD:
+$LN588@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1003 :       OSD_R_PRINTF "\n%ws",
+; 1041 :       OSD_R_PRINTF "\n%ws",
 
 	push	eax
-	push	OFFSET $SG379459
+	push	OFFSET $SG379548
 	push	ebx
 	call	_sprintf
 	add	ebx, eax
@@ -25165,7 +25682,7 @@ $LN587@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN597@SK_DrawOSD
+	jb	SHORT $LN598@SK_DrawOSD
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -25179,7 +25696,7 @@ $LN587@SK_DrawOSD:
 	push	DWORD PTR $T8[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN597@SK_DrawOSD:
+$LN598@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -25199,41 +25716,41 @@ $LN597@SK_DrawOSD:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR $T8[ebp], ax
-$LN1459@SK_DrawOSD:
+$LN1460@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1009 :   if (cpu_stats.booting)
+; 1047 :   if (cpu_stats.booting)
 
 	cmp	BYTE PTR ?cpu_stats@@3Ucpu_perf_t@@A+36, 0
-	je	SHORT $LN156@SK_DrawOSD
+	je	SHORT $LN157@SK_DrawOSD
 
-; 1010 :   {
-; 1011 :     OSD_C_PRINTF "\n  Starting CPU Monitor...\n" OSD_END
+; 1048 :   {
+; 1049 :     OSD_C_PRINTF "\n  Starting CPU Monitor...\n" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN21@SK_DrawOSD
+	je	$LN22@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+96, 0
-	je	$LN21@SK_DrawOSD
-	push	OFFSET $SG379463
+	je	$LN22@SK_DrawOSD
+	push	OFFSET $SG379552
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
 
-; 1012 :   }
-; 1013 : 
-; 1014 :   else
+; 1050 :   }
+; 1051 : 
+; 1052 :   else
 
-	jmp	$LN21@SK_DrawOSD
-$LN156@SK_DrawOSD:
+	jmp	$LN22@SK_DrawOSD
+$LN157@SK_DrawOSD:
 
-; 1015 :   {
-; 1016 :     OSD_C_PRINTF "\n  Total  : %#3llu%%  -  (Kernel: %#3llu%%   "
+; 1053 :   {
+; 1054 :     OSD_C_PRINTF "\n  Total  : %#3llu%%  -  (Kernel: %#3llu%%   "
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1462@SK_DrawOSD
+	je	SHORT $LN1463@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+96, 0
-	je	SHORT $LN1462@SK_DrawOSD
+	je	SHORT $LN1463@SK_DrawOSD
 	push	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+100
 	push	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+96
 	push	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+92
@@ -25242,118 +25759,151 @@ $LN156@SK_DrawOSD:
 	push	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+80
 	push	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+68
 	push	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+64
-	push	OFFSET $SG379465
+	push	OFFSET $SG379554
 	push	ebx
 	call	_sprintf
 	add	esp, 40					; 00000028H
 	add	ebx, eax
-$LN1462@SK_DrawOSD:
+$LN1463@SK_DrawOSD:
 
-; 1017 :                    "User: %#3llu%%   Interrupt: %#3llu%%)\n",
-; 1018 :           cpu_stats.cpus [0].percent_load,
-; 1019 :             cpu_stats.cpus [0].percent_kernel,
-; 1020 :               cpu_stats.cpus [0].percent_user,
-; 1021 :                 cpu_stats.cpus [0].percent_interrupt
-; 1022 :     OSD_END
-; 1023 : 
-; 1024 :     for (DWORD i = 1; i < cpu_stats.num_cpus; i++)
+; 1055 :                    "User: %#3llu%%   Interrupt: %#3llu%%)\n",
+; 1056 :           cpu_stats.cpus [0].percent_load,
+; 1057 :             cpu_stats.cpus [0].percent_kernel,
+; 1058 :               cpu_stats.cpus [0].percent_user,
+; 1059 :                 cpu_stats.cpus [0].percent_interrupt
+; 1060 :     OSD_END
+; 1061 : 
+; 1062 :     static const int digits = (cpu_stats.num_cpus / 11 > 0 ? 2 : 1);
+
+	mov	ecx, DWORD PTR tv6426[ebp]
+	mov	eax, DWORD PTR ?$TSS3@?BEL@??SK_DrawOSD@@YGHXZ@4HA
+	cmp	eax, DWORD PTR __Init_thread_epoch[ecx]
+	jle	SHORT $LN1464@SK_DrawOSD
+	push	OFFSET ?$TSS3@?BEL@??SK_DrawOSD@@YGHXZ@4HA
+	call	__Init_thread_header
+	add	esp, 4
+	cmp	DWORD PTR ?$TSS3@?BEL@??SK_DrawOSD@@YGHXZ@4HA, -1
+	jne	SHORT $LN1464@SK_DrawOSD
+	mov	eax, -1171354717			; ba2e8ba3H
+	mul	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+3648
+	xor	eax, eax
+	shr	edx, 3
+	cmp	eax, edx
+	push	OFFSET ?$TSS3@?BEL@??SK_DrawOSD@@YGHXZ@4HA
+	sbb	eax, eax
+	neg	eax
+	inc	eax
+	mov	DWORD PTR ?digits@?BEL@??SK_DrawOSD@@YGHXZ@4HB, eax
+	call	__Init_thread_footer
+	add	esp, 4
+$LN1464@SK_DrawOSD:
+
+; 1063 : 
+; 1064 :     for (DWORD i = 1; i < cpu_stats.num_cpus; i++)
 
 	cmp	DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+3648, 1
-	jbe	$LN21@SK_DrawOSD
+	jbe	$LN22@SK_DrawOSD
 	xor	edi, edi
 	mov	esi, OFFSET ?cpu_stats@@3Ucpu_perf_t@@A+144
-$LL22@SK_DrawOSD:
+	npad	6
+$LL23@SK_DrawOSD:
 
-; 1025 :     {
-; 1026 :       if (! config.cpu.simple)
+; 1065 :     {
+; 1066 :       if (! config.cpu.simple)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+104, 0
-	jne	SHORT $LN160@SK_DrawOSD
+	jne	SHORT $LN161@SK_DrawOSD
 
-; 1027 :       {
-; 1028 :         OSD_C_PRINTF "  CPU%lu   : %#3llu%%  -  (Kernel: %#3llu%%   "
+; 1067 :       {
+; 1068 :         OSD_C_PRINTF "  CPU%0*lu%-*s: %#3llu%%  -  (Kernel: %#3llu%%   "
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN20@SK_DrawOSD
+	je	$LN21@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+96, 0
-	je	SHORT $LN20@SK_DrawOSD
+	je	$LN21@SK_DrawOSD
 	push	DWORD PTR [esi+12]
+	mov	ecx, DWORD PTR ?digits@?BEL@??SK_DrawOSD@@YGHXZ@4HB
+	mov	eax, 4
 	push	DWORD PTR [esi+8]
+	sub	eax, ecx
 	push	DWORD PTR [esi+4]
 	push	DWORD PTR [esi]
 	push	DWORD PTR [esi-4]
 	push	DWORD PTR [esi-8]
 	push	DWORD PTR [esi-20]
 	push	DWORD PTR [esi-24]
+	push	OFFSET $SG379558
+	push	eax
 	push	edi
-	push	OFFSET $SG379469
+	push	ecx
+	push	OFFSET $SG379559
 	push	ebx
 	call	_sprintf
-	add	esp, 44					; 0000002cH
+	add	esp, 56					; 00000038H
 
-; 1029 :                      "User: %#3llu%%   Interrupt: %#3llu%%)\n",
-; 1030 :           i-1,
-; 1031 :             cpu_stats.cpus [i].percent_load,
-; 1032 :               cpu_stats.cpus [i].percent_kernel,
-; 1033 :                 cpu_stats.cpus [i].percent_user,
-; 1034 :                   cpu_stats.cpus [i].percent_interrupt
-; 1035 :         OSD_END
-; 1036 :       }
-; 1037 : 
-; 1038 :       else
+; 1069 :                      "User: %#3llu%%   Interrupt: %#3llu%%)\n",
+; 1070 :           digits, i-1, 4-digits, "",
+; 1071 :             cpu_stats.cpus [i].percent_load,
+; 1072 :               cpu_stats.cpus [i].percent_kernel,
+; 1073 :                 cpu_stats.cpus [i].percent_user,
+; 1074 :                   cpu_stats.cpus [i].percent_interrupt
+; 1075 :         OSD_END
+; 1076 :       }
+; 1077 : 
+; 1078 :       else
 
-	jmp	SHORT $LN1484@SK_DrawOSD
-$LN160@SK_DrawOSD:
+	jmp	SHORT $LN1486@SK_DrawOSD
+$LN161@SK_DrawOSD:
 
-; 1039 :       {
-; 1040 :         OSD_C_PRINTF "  CPU%lu   : %#3llu%%\n",
+; 1079 :       {
+; 1080 :         OSD_C_PRINTF "  CPU%0*lu%-*s: %#3llu%%\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN20@SK_DrawOSD
+	je	SHORT $LN21@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+96, 0
-	je	SHORT $LN20@SK_DrawOSD
+	je	SHORT $LN21@SK_DrawOSD
 	push	DWORD PTR [esi-20]
+	mov	ecx, DWORD PTR ?digits@?BEL@??SK_DrawOSD@@YGHXZ@4HB
+	mov	eax, 4
 	push	DWORD PTR [esi-24]
+	sub	eax, ecx
+	push	OFFSET $SG379561
+	push	eax
 	push	edi
-	push	OFFSET $SG379471
+	push	ecx
+	push	OFFSET $SG379562
 	push	ebx
 	call	_sprintf
-	add	esp, 20					; 00000014H
-$LN1484@SK_DrawOSD:
+	add	esp, 32					; 00000020H
+$LN1486@SK_DrawOSD:
 	add	ebx, eax
-$LN20@SK_DrawOSD:
+$LN21@SK_DrawOSD:
 
-; 1017 :                    "User: %#3llu%%   Interrupt: %#3llu%%)\n",
-; 1018 :           cpu_stats.cpus [0].percent_load,
-; 1019 :             cpu_stats.cpus [0].percent_kernel,
-; 1020 :               cpu_stats.cpus [0].percent_user,
-; 1021 :                 cpu_stats.cpus [0].percent_interrupt
-; 1022 :     OSD_END
-; 1023 : 
-; 1024 :     for (DWORD i = 1; i < cpu_stats.num_cpus; i++)
+; 1063 : 
+; 1064 :     for (DWORD i = 1; i < cpu_stats.num_cpus; i++)
 
 	inc	edi
 	add	esi, 56					; 00000038H
 	lea	eax, DWORD PTR [edi+1]
 	cmp	eax, DWORD PTR ?cpu_stats@@3Ucpu_perf_t@@A+3648
-	jb	SHORT $LL22@SK_DrawOSD
-$LN21@SK_DrawOSD:
+	jb	$LL23@SK_DrawOSD
+$LN22@SK_DrawOSD:
 
-; 1041 :           i-1,
-; 1042 :             cpu_stats.cpus [i].percent_load
-; 1043 :         OSD_END
-; 1044 :       }
-; 1045 :     }
-; 1046 :   }
-; 1047 : 
-; 1048 :   // Only do this if the IO data view is active
-; 1049 :   if (config.io.show)
+; 1081 :           digits, i-1, 4-digits, "",
+; 1082 :             cpu_stats.cpus [i].percent_load
+; 1083 :         OSD_END
+; 1084 :       }
+; 1085 :     }
+; 1086 :   }
+; 1087 : 
+; 1088 :   // Only do this if the IO data view is active
+; 1089 :   if (config.io.show)
 
 	mov	al, BYTE PTR ?config@@3Usk_config_t@@A+28
 	test	al, al
-	je	SHORT $LN164@SK_DrawOSD
+	je	SHORT $LN165@SK_DrawOSD
 
-; 1050 :     SK_CountIO (io_counter, config.io.interval / 1.0e-7);
+; 1090 :     SK_CountIO (io_counter, config.io.interval / 1.0e-7);
 
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+32
 	sub	esp, 8
@@ -25364,15 +25914,15 @@ $LN21@SK_DrawOSD:
 	call	?SK_CountIO@@YAXAAUio_perf_t@@N@Z	; SK_CountIO
 	mov	al, BYTE PTR ?config@@3Usk_config_t@@A+28
 	add	esp, 12					; 0000000cH
-$LN164@SK_DrawOSD:
+$LN165@SK_DrawOSD:
 
-; 1051 : 
-; 1052 :   OSD_I_PRINTF "\n  Read   :%#6.02f MiB/s - (%#6.01f IOP/s)"
+; 1091 : 
+; 1092 :   OSD_I_PRINTF "\n  Read   :%#6.02f MiB/s - (%#6.01f IOP/s)"
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN165@SK_DrawOSD
+	je	SHORT $LN166@SK_DrawOSD
 	test	al, al
-	je	SHORT $LN165@SK_DrawOSD
+	je	SHORT $LN166@SK_DrawOSD
 	movsd	xmm0, QWORD PTR ?io_counter@?1??SK_DrawOSD@@YGHXZ@4Uio_perf_t@@A+160
 	sub	esp, 48					; 00000030H
 	movsd	QWORD PTR [esp+40], xmm0
@@ -25386,74 +25936,75 @@ $LN164@SK_DrawOSD:
 	movsd	QWORD PTR [esp+8], xmm0
 	movsd	xmm0, QWORD PTR ?io_counter@?1??SK_DrawOSD@@YGHXZ@4Uio_perf_t@@A+120
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG379474
+	push	OFFSET $SG379565
 	push	ebx
 	call	_sprintf
 	add	esp, 56					; 00000038H
 	add	ebx, eax
-$LN165@SK_DrawOSD:
+$LN166@SK_DrawOSD:
 
-; 1053 :                "\n  Write  :%#6.02f MiB/s - (%#6.01f IOP/s)"
-; 1054 :                "\n  Other  :%#6.02f MiB/s - (%#6.01f IOP/s)\n",
-; 1055 :                io_counter.read_mb_sec,  io_counter.read_iop_sec,
-; 1056 :                io_counter.write_mb_sec, io_counter.write_iop_sec,
-; 1057 :                io_counter.other_mb_sec, io_counter.other_iop_sec
-; 1058 :   OSD_END
-; 1059 : 
-; 1060 :   if (nodes > 0 && nodes < 4)
+; 1093 :                "\n  Write  :%#6.02f MiB/s - (%#6.01f IOP/s)"
+; 1094 :                "\n  Other  :%#6.02f MiB/s - (%#6.01f IOP/s)\n",
+; 1095 :                io_counter.read_mb_sec,  io_counter.read_iop_sec,
+; 1096 :                io_counter.write_mb_sec, io_counter.write_iop_sec,
+; 1097 :                io_counter.other_mb_sec, io_counter.other_iop_sec
+; 1098 :   OSD_END
+; 1099 : 
+; 1100 :   if (nodes > 0 && nodes < 4)
 
-	cmp	DWORD PTR tv6467[ebp], 2
-	ja	$LN1464@SK_DrawOSD
+	cmp	DWORD PTR tv6470[ebp], 2
+	ja	$LN1466@SK_DrawOSD
 
-; 1061 :   {
-; 1062 :     int i = 0;
+; 1101 :   {
+; 1102 :     int i = 0;
 
 	xor	edi, edi
 
-; 1063 : 
-; 1064 :     OSD_M_PRINTF "\n"
+; 1103 : 
+; 1104 :     OSD_M_PRINTF "\n"
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1463@SK_DrawOSD
+	je	SHORT $LN1465@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN1463@SK_DrawOSD
-	push	OFFSET $SG379477
+	je	SHORT $LN1465@SK_DrawOSD
+	push	OFFSET $SG379568
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN1463@SK_DrawOSD:
+$LN1465@SK_DrawOSD:
 
-; 1065 :                    "----- (DXGI 1.4): Local Memory -------"
-; 1066 :                    "--------------------------------------\n"
-; 1067 :     OSD_END
-; 1068 : 
-; 1069 :     while (i < nodes)
+; 1105 :                    "----- (DXGI 1.4): Local Memory -------"
+; 1106 :                    "--------------------------------------\n"
+; 1107 :     OSD_END
+; 1108 : 
+; 1109 :     while (i < nodes)
 
 	mov	eax, DWORD PTR _nodes$1$[ebp]
 	test	eax, eax
-	jle	$LN24@SK_DrawOSD
-	mov	ecx, DWORD PTR tv6487[ebp]
+	jle	$LN25@SK_DrawOSD
+	mov	ecx, DWORD PTR tv6489[ebp]
 	lea	esi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[ecx+8]
-	mov	ecx, OFFSET $SG379480
-$LL23@SK_DrawOSD:
+	mov	ecx, OFFSET $SG379571
+	npad	1
+$LL24@SK_DrawOSD:
 
-; 1070 :     {
-; 1071 :       OSD_M_PRINTF "  %8s %i  (Reserve:  %#5llu / %#5llu MiB  - "
+; 1110 :     {
+; 1111 :       OSD_M_PRINTF "  %8s %i  (Reserve:  %#5llu / %#5llu MiB  - "
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN168@SK_DrawOSD
+	je	$LN169@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN168@SK_DrawOSD
+	je	SHORT $LN169@SK_DrawOSD
 	cmp	eax, 1
-	jle	SHORT $LN202@SK_DrawOSD
+	jle	SHORT $LN203@SK_DrawOSD
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
-	mov	edx, OFFSET $SG379479
+	mov	edx, OFFSET $SG379570
 	cmove	edx, ecx
-	jmp	SHORT $LN203@SK_DrawOSD
-$LN202@SK_DrawOSD:
-	mov	edx, OFFSET $SG379481
+	jmp	SHORT $LN204@SK_DrawOSD
 $LN203@SK_DrawOSD:
+	mov	edx, OFFSET $SG379572
+$LN204@SK_DrawOSD:
 	mov	ecx, DWORD PTR [esi-8]
 	mov	eax, DWORD PTR [esi-4]
 	shrd	ecx, eax, 20
@@ -25480,167 +26031,167 @@ $LN203@SK_DrawOSD:
 	push	ecx
 	push	edi
 	push	edx
-	push	OFFSET $SG379482
+	push	OFFSET $SG379573
 	push	ebx
 	call	_sprintf
 	add	esp, 48					; 00000030H
 	add	ebx, eax
-$LN168@SK_DrawOSD:
+$LN169@SK_DrawOSD:
 
-; 1072 :                    " Budget:  %#5llu / %#5llu MiB)",
-; 1073 :                   nodes > 1 ? (nvapi_init ? "SLI Node" : "CFX Node") : "GPU",
-; 1074 :                   i,
-; 1075 :                   mem_info [buffer].local [i].CurrentReservation      >> 20ULL,
-; 1076 :                   mem_info [buffer].local [i].AvailableForReservation >> 20ULL,
-; 1077 :                   mem_info [buffer].local [i].CurrentUsage            >> 20ULL,
-; 1078 :                   mem_info [buffer].local [i].Budget                  >> 20ULL
-; 1079 :       OSD_END
-; 1080 : 
-; 1081 :       //
-; 1082 :       // SLI Status Indicator
-; 1083 :       //
-; 1084 :       if (afr_last == i)
+; 1112 :                    " Budget:  %#5llu / %#5llu MiB)",
+; 1113 :                   nodes > 1 ? (nvapi_init ? "SLI Node" : "CFX Node") : "GPU",
+; 1114 :                   i,
+; 1115 :                   mem_info [buffer].local [i].CurrentReservation      >> 20ULL,
+; 1116 :                   mem_info [buffer].local [i].AvailableForReservation >> 20ULL,
+; 1117 :                   mem_info [buffer].local [i].CurrentUsage            >> 20ULL,
+; 1118 :                   mem_info [buffer].local [i].Budget                  >> 20ULL
+; 1119 :       OSD_END
+; 1120 : 
+; 1121 :       //
+; 1122 :       // SLI Status Indicator
+; 1123 :       //
+; 1124 :       if (afr_last == i)
 
 	cmp	DWORD PTR _afr_last$1$[ebp], edi
-	jne	SHORT $LN170@SK_DrawOSD
+	jne	SHORT $LN171@SK_DrawOSD
 
-; 1085 :         OSD_S_PRINTF "@" OSD_END
+; 1125 :         OSD_S_PRINTF "@" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN170@SK_DrawOSD
+	je	SHORT $LN171@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN170@SK_DrawOSD
+	je	SHORT $LN171@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+40, 0
-	je	SHORT $LN170@SK_DrawOSD
-	push	OFFSET $SG379485
+	je	SHORT $LN171@SK_DrawOSD
+	push	OFFSET $SG379576
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN170@SK_DrawOSD:
+$LN171@SK_DrawOSD:
 
-; 1086 : 
-; 1087 :       if (afr_idx == i)
+; 1126 : 
+; 1127 :       if (afr_idx == i)
 
 	cmp	DWORD PTR _afr_idx$1$[ebp], edi
-	jne	SHORT $LN172@SK_DrawOSD
+	jne	SHORT $LN173@SK_DrawOSD
 
-; 1088 :         OSD_S_PRINTF "!" OSD_END
+; 1128 :         OSD_S_PRINTF "!" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN172@SK_DrawOSD
+	je	SHORT $LN173@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN172@SK_DrawOSD
+	je	SHORT $LN173@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+40, 0
-	je	SHORT $LN172@SK_DrawOSD
-	push	OFFSET $SG379488
+	je	SHORT $LN173@SK_DrawOSD
+	push	OFFSET $SG379579
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN172@SK_DrawOSD:
+$LN173@SK_DrawOSD:
 
-; 1089 : 
-; 1090 :       if (afr_next == i)
+; 1129 : 
+; 1130 :       if (afr_next == i)
 
 	cmp	DWORD PTR _afr_next$1$[ebp], edi
-	jne	SHORT $LN174@SK_DrawOSD
+	jne	SHORT $LN175@SK_DrawOSD
 
-; 1091 :         OSD_S_PRINTF "#" OSD_END
+; 1131 :         OSD_S_PRINTF "#" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN175@SK_DrawOSD
+	je	SHORT $LN176@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN174@SK_DrawOSD
+	je	SHORT $LN175@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+40, 0
-	je	SHORT $LN174@SK_DrawOSD
-	push	OFFSET $SG379491
-	push	ebx
-	call	_sprintf
-	add	esp, 8
-	add	ebx, eax
-$LN174@SK_DrawOSD:
-
-; 1092 : 
-; 1093 :       OSD_M_PRINTF "\n" OSD_END
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	je	SHORT $LN175@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN175@SK_DrawOSD
-	push	OFFSET $SG379493
+	push	OFFSET $SG379582
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
 $LN175@SK_DrawOSD:
 
-; 1094 : 
-; 1095 :       i++;
+; 1132 : 
+; 1133 :       OSD_M_PRINTF "\n" OSD_END
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
+	je	SHORT $LN176@SK_DrawOSD
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
+	je	SHORT $LN176@SK_DrawOSD
+	push	OFFSET $SG379584
+	push	ebx
+	call	_sprintf
+	add	esp, 8
+	add	ebx, eax
+$LN176@SK_DrawOSD:
+
+; 1134 : 
+; 1135 :       i++;
 
 	mov	eax, DWORD PTR _nodes$1$[ebp]
 	inc	edi
 	add	esi, 32					; 00000020H
-	mov	ecx, OFFSET $SG379480
+	mov	ecx, OFFSET $SG379571
 	cmp	edi, eax
-	jl	$LL23@SK_DrawOSD
-$LN24@SK_DrawOSD:
+	jl	$LL24@SK_DrawOSD
+$LN25@SK_DrawOSD:
 
-; 1096 :     }
-; 1097 : 
-; 1098 :     i = 0;
+; 1136 :     }
+; 1137 : 
+; 1138 :     i = 0;
 
 	xor	eax, eax
 	mov	DWORD PTR _i$2$[ebp], eax
 
-; 1099 : 
-; 1100 :     OSD_M_PRINTF "----- (DXGI 1.4): Non-Local Memory ---"
+; 1139 : 
+; 1140 :     OSD_M_PRINTF "----- (DXGI 1.4): Non-Local Memory ---"
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, al
-	je	SHORT $LN1388@SK_DrawOSD
+	je	SHORT $LN1389@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, al
-	je	SHORT $LN1388@SK_DrawOSD
-	push	OFFSET $SG379495
+	je	SHORT $LN1389@SK_DrawOSD
+	push	OFFSET $SG379586
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
 	xor	eax, eax
-$LN1388@SK_DrawOSD:
+$LN1389@SK_DrawOSD:
 
-; 1101 :                  "--------------------------------------\n"
-; 1102 :     OSD_END
-; 1103 : 
-; 1104 :     while (i < nodes)
+; 1141 :                  "--------------------------------------\n"
+; 1142 :     OSD_END
+; 1143 : 
+; 1144 :     while (i < nodes)
 
 	mov	ecx, DWORD PTR _nodes$1$[ebp]
 	test	ecx, ecx
-	jle	$LN26@SK_DrawOSD
-	mov	edx, DWORD PTR tv6487[ebp]
+	jle	$LN27@SK_DrawOSD
+	mov	edx, DWORD PTR tv6489[ebp]
 	lea	esi, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edx+136]
-	npad	3
-$LL25@SK_DrawOSD:
+	npad	1
+$LL26@SK_DrawOSD:
 
-; 1105 :     {
-; 1106 :       if ((mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL) > 0)
+; 1145 :     {
+; 1146 :       if ((mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL) > 0)
 
 	mov	edi, DWORD PTR [esi]
 	mov	edx, DWORD PTR [esi+4]
 	shrd	edi, edx, 20
 	shr	edx, 20					; 00000014H
 	test	edx, edx
-	jne	SHORT $LN1450@SK_DrawOSD
+	jne	SHORT $LN1451@SK_DrawOSD
 	test	edi, edi
-	je	SHORT $LN178@SK_DrawOSD
-$LN1450@SK_DrawOSD:
+	je	SHORT $LN179@SK_DrawOSD
+$LN1451@SK_DrawOSD:
 
-; 1107 :       {
-; 1108 :         OSD_M_PRINTF "  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  "
+; 1147 :       {
+; 1148 :         OSD_M_PRINTF "  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  "
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN178@SK_DrawOSD
+	je	SHORT $LN179@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN178@SK_DrawOSD
+	je	SHORT $LN179@SK_DrawOSD
 	mov	ecx, DWORD PTR [esi-8]
 	mov	eax, DWORD PTR [esi-4]
 	shrd	ecx, eax, 20
@@ -25663,72 +26214,72 @@ $LN1450@SK_DrawOSD:
 	push	eax
 	push	ecx
 	push	DWORD PTR _i$2$[ebp]
-	mov	ecx, OFFSET $SG379499
-	mov	eax, OFFSET $SG379498
+	mov	ecx, OFFSET $SG379590
+	mov	eax, OFFSET $SG379589
 	cmovle	eax, ecx
 	push	eax
-	push	OFFSET $SG379500
+	push	OFFSET $SG379591
 	push	ebx
 	call	_sprintf
 	mov	ecx, DWORD PTR _nodes$1$[ebp]
 	add	esp, 48					; 00000030H
 	add	ebx, eax
 	mov	eax, DWORD PTR _i$2$[ebp]
-$LN178@SK_DrawOSD:
+$LN179@SK_DrawOSD:
 
-; 1109 :                      "Budget:  %#5llu / %#5llu MiB)\n",
-; 1110 :                          nodes > 1 ? "SLI Node" : "GPU",
-; 1111 :                          i,
-; 1112 :                 mem_info [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
-; 1113 :                 mem_info [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
-; 1114 :                 mem_info [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
-; 1115 :                 mem_info [buffer].nonlocal [i].Budget                  >> 20ULL
-; 1116 :         OSD_END
-; 1117 :       }
-; 1118 : 
-; 1119 :       i++;
+; 1149 :                      "Budget:  %#5llu / %#5llu MiB)\n",
+; 1150 :                          nodes > 1 ? "SLI Node" : "GPU",
+; 1151 :                          i,
+; 1152 :                 mem_info [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
+; 1153 :                 mem_info [buffer].nonlocal [i].AvailableForReservation >> 20ULL,
+; 1154 :                 mem_info [buffer].nonlocal [i].CurrentUsage            >> 20ULL,
+; 1155 :                 mem_info [buffer].nonlocal [i].Budget                  >> 20ULL
+; 1156 :         OSD_END
+; 1157 :       }
+; 1158 : 
+; 1159 :       i++;
 
 	inc	eax
 	add	esi, 32					; 00000020H
 	mov	DWORD PTR _i$2$[ebp], eax
 	cmp	eax, ecx
-	jl	$LL25@SK_DrawOSD
-$LN26@SK_DrawOSD:
+	jl	$LL26@SK_DrawOSD
+$LN27@SK_DrawOSD:
 
-; 1120 :     }
-; 1121 : 
-; 1122 :     OSD_M_PRINTF "----- (DXGI 1.4): Miscellaneous ------"
+; 1160 :     }
+; 1161 : 
+; 1162 :     OSD_M_PRINTF "----- (DXGI 1.4): Miscellaneous ------"
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN179@SK_DrawOSD
+	je	SHORT $LN180@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN179@SK_DrawOSD
-	push	OFFSET $SG379502
+	je	SHORT $LN180@SK_DrawOSD
+	push	OFFSET $SG379593
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-$LN179@SK_DrawOSD:
+$LN180@SK_DrawOSD:
 
-; 1123 :                  "--------------------------------------\n"
-; 1124 :     OSD_END
-; 1125 : 
-; 1126 :     int64_t headroom = mem_info [buffer].local [0].Budget -
+; 1163 :                  "--------------------------------------\n"
+; 1164 :     OSD_END
+; 1165 : 
+; 1166 :     int64_t headroom = mem_info [buffer].local [0].Budget -
 
-	mov	edx, DWORD PTR tv6487[ebp]
+	mov	edx, DWORD PTR tv6489[ebp]
 	mov	ecx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edx]
 	sub	ecx, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edx+8]
 	mov	eax, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edx+4]
 	sbb	eax, DWORD PTR ?mem_info@@3PAUmem_info_t@@A[edx+12]
 
-; 1127 :                        mem_info [buffer].local [0].CurrentUsage;
-; 1128 : 
-; 1129 :     OSD_M_PRINTF "  Max. Resident Set:  %#5llu MiB  -"
+; 1167 :                        mem_info [buffer].local [0].CurrentUsage;
+; 1168 : 
+; 1169 :     OSD_M_PRINTF "  Max. Resident Set:  %#5llu MiB  -"
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN181@SK_DrawOSD
+	je	$LN182@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN1464@SK_DrawOSD
+	je	SHORT $LN1466@SK_DrawOSD
 	push	0
 	push	1048576					; 00100000H
 	push	eax
@@ -25750,265 +26301,265 @@ $LN179@SK_DrawOSD:
 	shr	eax, 20					; 00000014H
 	push	eax
 	push	ecx
-	push	OFFSET $SG379504
+	push	OFFSET $SG379595
 	push	ebx
 	call	_sprintf
 	add	esp, 40					; 00000028H
 	add	ebx, eax
-$LN1464@SK_DrawOSD:
+$LN1466@SK_DrawOSD:
 
-; 1130 :                  "  Max. Over Budget:  %#5llu MiB\n"
-; 1131 :                  "     Budget Changes:  %#5llu      - "
-; 1132 :                   "      Budget Left:  %#5lli MiB\n",
-; 1133 :                                     mem_stats [0].max_usage       >> 20ULL,
-; 1134 :                                     mem_stats [0].max_over_budget >> 20ULL,
-; 1135 :                                     mem_stats [0].budget_changes,
-; 1136 :                                     headroom / 1024 / 1024
-; 1137 :     OSD_END
-; 1138 :   }
-; 1139 : 
-; 1140 :   OSD_M_PRINTF "\n" OSD_END
+; 1170 :                  "  Max. Over Budget:  %#5llu MiB\n"
+; 1171 :                  "     Budget Changes:  %#5llu      - "
+; 1172 :                   "      Budget Left:  %#5lli MiB\n",
+; 1173 :                                     mem_stats [0].max_usage       >> 20ULL,
+; 1174 :                                     mem_stats [0].max_over_budget >> 20ULL,
+; 1175 :                                     mem_stats [0].budget_changes,
+; 1176 :                                     headroom / 1024 / 1024
+; 1177 :     OSD_END
+; 1178 :   }
+; 1179 : 
+; 1180 :   OSD_M_PRINTF "\n" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN181@SK_DrawOSD
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN181@SK_DrawOSD
-	push	OFFSET $SG379506
-	push	ebx
-	call	_sprintf
-	add	esp, 8
-	add	ebx, eax
-$LN181@SK_DrawOSD:
-
-; 1141 : 
-; 1142 :   if (process_stats.booting)
-
-	cmp	BYTE PTR ?process_stats@@3Uprocess_stats_t@@A+24, 0
 	je	SHORT $LN182@SK_DrawOSD
-
-; 1143 :   {
-; 1144 :     OSD_M_PRINTF "  Starting Memory Monitor...\n" OSD_END
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN948@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	$LN948@SK_DrawOSD
-	push	OFFSET $SG379510
+	je	SHORT $LN182@SK_DrawOSD
+	push	OFFSET $SG379597
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
-
-; 1145 :   }
-; 1146 : 
-; 1147 :   else
-
-	jmp	$LN948@SK_DrawOSD
 $LN182@SK_DrawOSD:
 
-; 1148 :   {
-; 1149 :     std::wstring working_set =
-; 1150 :       SK_SizeToString (process_stats.memory.working_set,   MiB);
+; 1181 : 
+; 1182 :   if (process_stats.booting)
+
+	cmp	BYTE PTR ?process_stats@@3Uprocess_stats_t@@A+24, 0
+	je	SHORT $LN183@SK_DrawOSD
+
+; 1183 :   {
+; 1184 :     OSD_M_PRINTF "  Starting Memory Monitor...\n" OSD_END
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
+	je	$LN949@SK_DrawOSD
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
+	je	$LN949@SK_DrawOSD
+	push	OFFSET $SG379601
+	push	ebx
+	call	_sprintf
+	add	esp, 8
+	add	ebx, eax
+
+; 1185 :   }
+; 1186 : 
+; 1187 :   else
+
+	jmp	$LN949@SK_DrawOSD
+$LN183@SK_DrawOSD:
+
+; 1188 :   {
+; 1189 :     std::wstring working_set =
+; 1190 :       SK_SizeToString (process_stats.memory.working_set,   MiB);
 
 	push	4
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+84
-	lea	eax, DWORD PTR _working_set$15[ebp]
+	lea	eax, DWORD PTR _working_set$23[ebp]
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+80
 	push	eax
 	call	?SK_SizeToString@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KW4SK_UNITS@@@Z ; SK_SizeToString
 
-; 1151 :     std::wstring commit =
-; 1152 :       SK_SizeToString (process_stats.memory.private_bytes, MiB);
+; 1191 :     std::wstring commit =
+; 1192 :       SK_SizeToString (process_stats.memory.private_bytes, MiB);
 
 	push	4
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+100
-	lea	eax, DWORD PTR _commit$16[ebp]
+	lea	eax, DWORD PTR _commit$15[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+96
 	push	eax
 	call	?SK_SizeToString@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KW4SK_UNITS@@@Z ; SK_SizeToString
 
-; 1153 :     std::wstring virtual_size =
-; 1154 :       SK_SizeToString (process_stats.memory.virtual_bytes, MiB);
+; 1193 :     std::wstring virtual_size =
+; 1194 :       SK_SizeToString (process_stats.memory.virtual_bytes, MiB);
 
 	push	4
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+68
-	lea	eax, DWORD PTR _virtual_size$17[ebp]
+	lea	eax, DWORD PTR _virtual_size$16[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+64
 	push	eax
 	call	?SK_SizeToString@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KW4SK_UNITS@@@Z ; SK_SizeToString
 	add	esp, 48					; 00000030H
 
-; 1156 :     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
+; 1196 :     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
-	je	SHORT $LN185@SK_DrawOSD
+	je	SHORT $LN186@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN185@SK_DrawOSD
+	je	SHORT $LN186@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _virtual_size$17[ebp+20], 8
+	cmp	DWORD PTR _virtual_size$16[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	edx, DWORD PTR _virtual_size$17[ebp]
-	lea	ecx, DWORD PTR _commit$16[ebp]
-	cmovae	edx, DWORD PTR _virtual_size$17[ebp]
-	lea	eax, DWORD PTR _working_set$15[ebp]
+	lea	edx, DWORD PTR _virtual_size$16[ebp]
+	lea	ecx, DWORD PTR _commit$15[ebp]
+	cmovae	edx, DWORD PTR _virtual_size$16[ebp]
+	lea	eax, DWORD PTR _working_set$23[ebp]
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _commit$16[ebp+20], 8
+	cmp	DWORD PTR _commit$15[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1156 :     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
+; 1196 :     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
 
 	push	edx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	ecx, DWORD PTR _commit$16[ebp]
+	cmovae	ecx, DWORD PTR _commit$15[ebp]
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _working_set$15[ebp+20], 8
+	cmp	DWORD PTR _working_set$23[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1156 :     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
+; 1196 :     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
 
 	push	ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	eax, DWORD PTR _working_set$15[ebp]
+	cmovae	eax, DWORD PTR _working_set$23[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1156 :     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
+; 1196 :     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
 
 	push	eax
-	push	OFFSET $SG379512
+	push	OFFSET $SG379603
 	push	ebx
 	call	_sprintf
 	add	esp, 20					; 00000014H
 	add	ebx, eax
-$LN185@SK_DrawOSD:
+$LN186@SK_DrawOSD:
 
-; 1157 :       working_set.c_str  (),
-; 1158 :       commit.c_str       (),
-; 1159 :       virtual_size.c_str ()
-; 1160 :     OSD_END
-; 1161 : 
-; 1162 :     std::wstring working_set_peak =
-; 1163 :       SK_SizeToString (process_stats.memory.working_set_peak,     MiB);
+; 1197 :       working_set.c_str  (),
+; 1198 :       commit.c_str       (),
+; 1199 :       virtual_size.c_str ()
+; 1200 :     OSD_END
+; 1201 : 
+; 1202 :     std::wstring working_set_peak =
+; 1203 :       SK_SizeToString (process_stats.memory.working_set_peak,     MiB);
 
 	push	4
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+92
-	lea	eax, DWORD PTR _working_set_peak$18[ebp]
+	lea	eax, DWORD PTR _working_set_peak$17[ebp]
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+88
 	push	eax
 	call	?SK_SizeToString@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KW4SK_UNITS@@@Z ; SK_SizeToString
 
-; 1164 :     std::wstring commit_peak =
-; 1165 :       SK_SizeToString (process_stats.memory.page_file_bytes_peak, MiB);
+; 1204 :     std::wstring commit_peak =
+; 1205 :       SK_SizeToString (process_stats.memory.page_file_bytes_peak, MiB);
 
 	push	4
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+116
-	lea	eax, DWORD PTR _commit_peak$19[ebp]
+	lea	eax, DWORD PTR _commit_peak$18[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+112
 	push	eax
 	call	?SK_SizeToString@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KW4SK_UNITS@@@Z ; SK_SizeToString
 
-; 1166 :     std::wstring virtual_peak =
-; 1167 :       SK_SizeToString (process_stats.memory.virtual_bytes_peak,   MiB);
+; 1206 :     std::wstring virtual_peak =
+; 1207 :       SK_SizeToString (process_stats.memory.virtual_bytes_peak,   MiB);
 
 	push	4
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+76
-	lea	eax, DWORD PTR _virtual_peak$20[ebp]
+	lea	eax, DWORD PTR _virtual_peak$19[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	push	DWORD PTR ?process_stats@@3Uprocess_stats_t@@A+72
 	push	eax
 	call	?SK_SizeToString@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KW4SK_UNITS@@@Z ; SK_SizeToString
 	add	esp, 48					; 00000030H
 
-; 1169 :     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
+; 1209 :     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN186@SK_DrawOSD
+	je	SHORT $LN187@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	SHORT $LN186@SK_DrawOSD
+	je	SHORT $LN187@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _virtual_peak$20[ebp+20], 8
+	cmp	DWORD PTR _virtual_peak$19[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	edx, DWORD PTR _virtual_peak$20[ebp]
-	lea	ecx, DWORD PTR _commit_peak$19[ebp]
-	cmovae	edx, DWORD PTR _virtual_peak$20[ebp]
-	lea	eax, DWORD PTR _working_set_peak$18[ebp]
+	lea	edx, DWORD PTR _virtual_peak$19[ebp]
+	lea	ecx, DWORD PTR _commit_peak$18[ebp]
+	cmovae	edx, DWORD PTR _virtual_peak$19[ebp]
+	lea	eax, DWORD PTR _working_set_peak$17[ebp]
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _commit_peak$19[ebp+20], 8
+	cmp	DWORD PTR _commit_peak$18[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1169 :     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
+; 1209 :     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
 
 	push	edx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	ecx, DWORD PTR _commit_peak$19[ebp]
+	cmovae	ecx, DWORD PTR _commit_peak$18[ebp]
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _working_set_peak$18[ebp+20], 8
+	cmp	DWORD PTR _working_set_peak$17[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1169 :     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
+; 1209 :     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
 
 	push	ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	eax, DWORD PTR _working_set_peak$18[ebp]
+	cmovae	eax, DWORD PTR _working_set_peak$17[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1169 :     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
+; 1209 :     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
 
 	push	eax
-	push	OFFSET $SG379514
+	push	OFFSET $SG379605
 	push	ebx
 	call	_sprintf
 	add	esp, 20					; 00000014H
 	add	ebx, eax
-$LN186@SK_DrawOSD:
+$LN187@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _virtual_peak$20[ebp+20]
+	mov	eax, DWORD PTR _virtual_peak$19[ebp+20]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN771@SK_DrawOSD
+	jb	SHORT $LN772@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _virtual_peak$20[ebp]
+	mov	ecx, DWORD PTR _virtual_peak$19[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -26019,10 +26570,10 @@ $LN186@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	jbe	SHORT $LN765@SK_DrawOSD
+	jbe	SHORT $LN766@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1493@SK_DrawOSD:
-$LN765@SK_DrawOSD:
+$LN1495@SK_DrawOSD:
+$LN766@SK_DrawOSD:
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -26031,17 +26582,17 @@ $LN765@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN766@SK_DrawOSD
+	jb	SHORT $LN767@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
-	test	BYTE PTR _virtual_peak$20[ebp], 31	; 0000001fH
-	je	SHORT $LN767@SK_DrawOSD
+	test	BYTE PTR _virtual_peak$19[ebp], 31	; 0000001fH
+	je	SHORT $LN768@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1494@SK_DrawOSD:
-$LN767@SK_DrawOSD:
+$LN1496@SK_DrawOSD:
+$LN768@SK_DrawOSD:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -26063,10 +26614,10 @@ $LN767@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN768@SK_DrawOSD
+	jb	SHORT $LN769@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1495@SK_DrawOSD:
-$LN768@SK_DrawOSD:
+$LN1497@SK_DrawOSD:
+$LN769@SK_DrawOSD:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -26078,10 +26629,10 @@ $LN768@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN769@SK_DrawOSD
+	jae	SHORT $LN770@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1496@SK_DrawOSD:
-$LN769@SK_DrawOSD:
+$LN1498@SK_DrawOSD:
+$LN770@SK_DrawOSD:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -26089,17 +26640,17 @@ $LN769@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN770@SK_DrawOSD
+	jbe	SHORT $LN771@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1497@SK_DrawOSD:
-$LN770@SK_DrawOSD:
+$LN1499@SK_DrawOSD:
+$LN771@SK_DrawOSD:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN766@SK_DrawOSD:
+$LN767@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -26113,7 +26664,7 @@ $LN766@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN771@SK_DrawOSD:
+$LN772@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -26123,24 +26674,24 @@ $LN771@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _virtual_peak$20[ebp+16], 0
+	mov	DWORD PTR _virtual_peak$19[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _virtual_peak$20[ebp], ax
+	mov	WORD PTR _virtual_peak$19[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _commit_peak$19[ebp+20]
+	mov	eax, DWORD PTR _commit_peak$18[ebp+20]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _virtual_peak$20[ebp+20], 7
+	mov	DWORD PTR _virtual_peak$19[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1174 :   }
+; 1214 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -26151,12 +26702,12 @@ $LN771@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN813@SK_DrawOSD
+	jb	SHORT $LN814@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _commit_peak$19[ebp]
+	mov	ecx, DWORD PTR _commit_peak$18[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -26167,10 +26718,10 @@ $LN771@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	jbe	SHORT $LN807@SK_DrawOSD
+	jbe	SHORT $LN808@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1498@SK_DrawOSD:
-$LN807@SK_DrawOSD:
+$LN1500@SK_DrawOSD:
+$LN808@SK_DrawOSD:
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -26179,17 +26730,17 @@ $LN807@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN808@SK_DrawOSD
+	jb	SHORT $LN809@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
-	test	BYTE PTR _commit_peak$19[ebp], 31	; 0000001fH
-	je	SHORT $LN809@SK_DrawOSD
+	test	BYTE PTR _commit_peak$18[ebp], 31	; 0000001fH
+	je	SHORT $LN810@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1499@SK_DrawOSD:
-$LN809@SK_DrawOSD:
+$LN1501@SK_DrawOSD:
+$LN810@SK_DrawOSD:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -26211,10 +26762,10 @@ $LN809@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN810@SK_DrawOSD
+	jb	SHORT $LN811@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1500@SK_DrawOSD:
-$LN810@SK_DrawOSD:
+$LN1502@SK_DrawOSD:
+$LN811@SK_DrawOSD:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -26226,10 +26777,10 @@ $LN810@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN811@SK_DrawOSD
+	jae	SHORT $LN812@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1501@SK_DrawOSD:
-$LN811@SK_DrawOSD:
+$LN1503@SK_DrawOSD:
+$LN812@SK_DrawOSD:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -26237,17 +26788,17 @@ $LN811@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN812@SK_DrawOSD
+	jbe	SHORT $LN813@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1502@SK_DrawOSD:
-$LN812@SK_DrawOSD:
+$LN1504@SK_DrawOSD:
+$LN813@SK_DrawOSD:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN808@SK_DrawOSD:
+$LN809@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -26261,7 +26812,7 @@ $LN808@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN813@SK_DrawOSD:
+$LN814@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -26271,24 +26822,24 @@ $LN813@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _commit_peak$19[ebp+16], 0
+	mov	DWORD PTR _commit_peak$18[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _commit_peak$19[ebp], ax
+	mov	WORD PTR _commit_peak$18[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _working_set_peak$18[ebp+20]
+	mov	eax, DWORD PTR _working_set_peak$17[ebp+20]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _commit_peak$19[ebp+20], 7
+	mov	DWORD PTR _commit_peak$18[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1174 :   }
+; 1214 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -26299,12 +26850,12 @@ $LN813@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN855@SK_DrawOSD
+	jb	SHORT $LN856@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _working_set_peak$18[ebp]
+	mov	ecx, DWORD PTR _working_set_peak$17[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -26315,10 +26866,10 @@ $LN813@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	jbe	SHORT $LN849@SK_DrawOSD
+	jbe	SHORT $LN850@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1503@SK_DrawOSD:
-$LN849@SK_DrawOSD:
+$LN1505@SK_DrawOSD:
+$LN850@SK_DrawOSD:
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -26327,17 +26878,17 @@ $LN849@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN850@SK_DrawOSD
+	jb	SHORT $LN851@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
-	test	BYTE PTR _working_set_peak$18[ebp], 31	; 0000001fH
-	je	SHORT $LN851@SK_DrawOSD
+	test	BYTE PTR _working_set_peak$17[ebp], 31	; 0000001fH
+	je	SHORT $LN852@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1504@SK_DrawOSD:
-$LN851@SK_DrawOSD:
+$LN1506@SK_DrawOSD:
+$LN852@SK_DrawOSD:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -26359,10 +26910,10 @@ $LN851@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN852@SK_DrawOSD
+	jb	SHORT $LN853@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1505@SK_DrawOSD:
-$LN852@SK_DrawOSD:
+$LN1507@SK_DrawOSD:
+$LN853@SK_DrawOSD:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -26374,10 +26925,10 @@ $LN852@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN853@SK_DrawOSD
+	jae	SHORT $LN854@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1506@SK_DrawOSD:
-$LN853@SK_DrawOSD:
+$LN1508@SK_DrawOSD:
+$LN854@SK_DrawOSD:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -26385,17 +26936,17 @@ $LN853@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN854@SK_DrawOSD
+	jbe	SHORT $LN855@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1507@SK_DrawOSD:
-$LN854@SK_DrawOSD:
+$LN1509@SK_DrawOSD:
+$LN855@SK_DrawOSD:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN850@SK_DrawOSD:
+$LN851@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -26409,7 +26960,7 @@ $LN850@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN855@SK_DrawOSD:
+$LN856@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -26419,24 +26970,24 @@ $LN855@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _working_set_peak$18[ebp+16], 0
+	mov	DWORD PTR _working_set_peak$17[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _working_set_peak$18[ebp], ax
+	mov	WORD PTR _working_set_peak$17[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _virtual_size$17[ebp+20]
+	mov	eax, DWORD PTR _virtual_size$16[ebp+20]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _working_set_peak$18[ebp+20], 7
+	mov	DWORD PTR _working_set_peak$17[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1174 :   }
+; 1214 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -26447,12 +26998,12 @@ $LN855@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN897@SK_DrawOSD
+	jb	SHORT $LN898@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _virtual_size$17[ebp]
+	mov	ecx, DWORD PTR _virtual_size$16[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -26463,10 +27014,10 @@ $LN855@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	jbe	SHORT $LN891@SK_DrawOSD
+	jbe	SHORT $LN892@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1508@SK_DrawOSD:
-$LN891@SK_DrawOSD:
+$LN1510@SK_DrawOSD:
+$LN892@SK_DrawOSD:
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -26475,17 +27026,17 @@ $LN891@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN892@SK_DrawOSD
+	jb	SHORT $LN893@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
-	test	BYTE PTR _virtual_size$17[ebp], 31	; 0000001fH
-	je	SHORT $LN893@SK_DrawOSD
+	test	BYTE PTR _virtual_size$16[ebp], 31	; 0000001fH
+	je	SHORT $LN894@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1509@SK_DrawOSD:
-$LN893@SK_DrawOSD:
+$LN1511@SK_DrawOSD:
+$LN894@SK_DrawOSD:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -26507,10 +27058,10 @@ $LN893@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN894@SK_DrawOSD
+	jb	SHORT $LN895@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1510@SK_DrawOSD:
-$LN894@SK_DrawOSD:
+$LN1512@SK_DrawOSD:
+$LN895@SK_DrawOSD:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -26522,10 +27073,10 @@ $LN894@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN895@SK_DrawOSD
+	jae	SHORT $LN896@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1511@SK_DrawOSD:
-$LN895@SK_DrawOSD:
+$LN1513@SK_DrawOSD:
+$LN896@SK_DrawOSD:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -26533,17 +27084,17 @@ $LN895@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN896@SK_DrawOSD
+	jbe	SHORT $LN897@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1512@SK_DrawOSD:
-$LN896@SK_DrawOSD:
+$LN1514@SK_DrawOSD:
+$LN897@SK_DrawOSD:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN892@SK_DrawOSD:
+$LN893@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -26557,7 +27108,7 @@ $LN892@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN897@SK_DrawOSD:
+$LN898@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -26567,26 +27118,26 @@ $LN897@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _virtual_size$17[ebp+16], 0
+	mov	DWORD PTR _virtual_size$16[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _virtual_size$17[ebp], ax
+	mov	WORD PTR _virtual_size$16[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1174 :   }
+; 1214 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], al
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _commit$16[ebp+20]
+	mov	eax, DWORD PTR _commit$15[ebp+20]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _virtual_size$17[ebp+20], 7
+	mov	DWORD PTR _virtual_size$16[ebp+20], 7
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
@@ -26594,12 +27145,12 @@ $LN897@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN939@SK_DrawOSD
+	jb	SHORT $LN940@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _commit$16[ebp]
+	mov	ecx, DWORD PTR _commit$15[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -26610,10 +27161,10 @@ $LN897@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	jbe	SHORT $LN933@SK_DrawOSD
+	jbe	SHORT $LN934@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1513@SK_DrawOSD:
-$LN933@SK_DrawOSD:
+$LN1515@SK_DrawOSD:
+$LN934@SK_DrawOSD:
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -26622,17 +27173,17 @@ $LN933@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN934@SK_DrawOSD
+	jb	SHORT $LN935@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
-	test	BYTE PTR _commit$16[ebp], 31		; 0000001fH
-	je	SHORT $LN935@SK_DrawOSD
+	test	BYTE PTR _commit$15[ebp], 31		; 0000001fH
+	je	SHORT $LN936@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1514@SK_DrawOSD:
-$LN935@SK_DrawOSD:
+$LN1516@SK_DrawOSD:
+$LN936@SK_DrawOSD:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -26654,10 +27205,10 @@ $LN935@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN936@SK_DrawOSD
+	jb	SHORT $LN937@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1515@SK_DrawOSD:
-$LN936@SK_DrawOSD:
+$LN1517@SK_DrawOSD:
+$LN937@SK_DrawOSD:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -26669,10 +27220,10 @@ $LN936@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN937@SK_DrawOSD
+	jae	SHORT $LN938@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1516@SK_DrawOSD:
-$LN937@SK_DrawOSD:
+$LN1518@SK_DrawOSD:
+$LN938@SK_DrawOSD:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -26680,17 +27231,17 @@ $LN937@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN938@SK_DrawOSD
+	jbe	SHORT $LN939@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1517@SK_DrawOSD:
-$LN938@SK_DrawOSD:
+$LN1519@SK_DrawOSD:
+$LN939@SK_DrawOSD:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN934@SK_DrawOSD:
+$LN935@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -26704,7 +27255,7 @@ $LN934@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN939@SK_DrawOSD:
+$LN940@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -26714,24 +27265,24 @@ $LN939@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _commit$16[ebp+16], 0
+	mov	DWORD PTR _commit$15[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _commit$16[ebp], ax
+	mov	WORD PTR _commit$15[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _working_set$15[ebp+20]
+	mov	eax, DWORD PTR _working_set$23[ebp+20]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _commit$16[ebp+20], 7
+	mov	DWORD PTR _commit$15[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1174 :   }
+; 1214 :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -26742,12 +27293,12 @@ $LN939@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN981@SK_DrawOSD
+	jb	SHORT $LN982@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _working_set$15[ebp]
+	mov	ecx, DWORD PTR _working_set$23[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -26758,10 +27309,10 @@ $LN939@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	jbe	SHORT $LN975@SK_DrawOSD
+	jbe	SHORT $LN976@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1518@SK_DrawOSD:
-$LN975@SK_DrawOSD:
+$LN1520@SK_DrawOSD:
+$LN976@SK_DrawOSD:
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -26770,17 +27321,17 @@ $LN975@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN976@SK_DrawOSD
+	jb	SHORT $LN977@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
-	test	BYTE PTR _working_set$15[ebp], 31	; 0000001fH
-	je	SHORT $LN977@SK_DrawOSD
+	test	BYTE PTR _working_set$23[ebp], 31	; 0000001fH
+	je	SHORT $LN978@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1519@SK_DrawOSD:
-$LN977@SK_DrawOSD:
+$LN1521@SK_DrawOSD:
+$LN978@SK_DrawOSD:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -26802,10 +27353,10 @@ $LN977@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN978@SK_DrawOSD
+	jb	SHORT $LN979@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1520@SK_DrawOSD:
-$LN978@SK_DrawOSD:
+$LN1522@SK_DrawOSD:
+$LN979@SK_DrawOSD:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -26817,10 +27368,10 @@ $LN978@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN979@SK_DrawOSD
+	jae	SHORT $LN980@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1521@SK_DrawOSD:
-$LN979@SK_DrawOSD:
+$LN1523@SK_DrawOSD:
+$LN980@SK_DrawOSD:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -26828,17 +27379,17 @@ $LN979@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN980@SK_DrawOSD
+	jbe	SHORT $LN981@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1522@SK_DrawOSD:
-$LN980@SK_DrawOSD:
+$LN1524@SK_DrawOSD:
+$LN981@SK_DrawOSD:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN976@SK_DrawOSD:
+$LN977@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -26852,7 +27403,7 @@ $LN976@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN981@SK_DrawOSD:
+$LN982@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -26862,33 +27413,33 @@ $LN981@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _working_set$15[ebp+16], 0
+	mov	DWORD PTR _working_set$23[ebp+16], 0
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _working_set$15[ebp+20], 7
+	mov	DWORD PTR _working_set$23[ebp+20], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _working_set$15[ebp], ax
-$LN948@SK_DrawOSD:
+	mov	WORD PTR _working_set$23[ebp], ax
+$LN949@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1180 :   if (SK_D3D11_cache_textures && SK_IsD3D11 ())
+; 1220 :   if (SK_D3D11_cache_textures && SK_IsD3D11 ())
 
 	cmp	BYTE PTR ?SK_D3D11_cache_textures@@3_NA, 0 ; SK_D3D11_cache_textures
-	je	$LN1465@SK_DrawOSD
+	je	$LN1467@SK_DrawOSD
 	call	?SK_IsD3D11@@YG_NXZ			; SK_IsD3D11
 	test	al, al
-	je	$LN1465@SK_DrawOSD
+	je	$LN1467@SK_DrawOSD
 
-; 1184 :     OSD_M_PRINTF "\n%s\n",
+; 1224 :     OSD_M_PRINTF "\n%s\n",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN1465@SK_DrawOSD
+	je	$LN1467@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	je	$LN1465@SK_DrawOSD
+	je	$LN1467@SK_DrawOSD
 	lea	eax, DWORD PTR $T11[ebp]
 	push	eax
 	call	?SK_D3D11_SummarizeTexCache@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ ; SK_D3D11_SummarizeTexCache
@@ -26901,19 +27452,19 @@ $LN948@SK_DrawOSD:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN1002@SK_DrawOSD
+	jb	SHORT $LN1003@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN1002@SK_DrawOSD:
+$LN1003@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1184 :     OSD_M_PRINTF "\n%s\n",
+; 1224 :     OSD_M_PRINTF "\n%s\n",
 
 	push	eax
-	push	OFFSET $SG379517
+	push	OFFSET $SG379608
 	push	ebx
 	call	_sprintf
 	add	ebx, eax
@@ -26927,7 +27478,7 @@ $LN1002@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN1042@SK_DrawOSD
+	jb	SHORT $LN1043@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -26943,17 +27494,17 @@ $LN1002@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN1037@SK_DrawOSD
+	jb	SHORT $LN1038@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	je	SHORT $LN1038@SK_DrawOSD
+	je	SHORT $LN1039@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1523@SK_DrawOSD:
-$LN1038@SK_DrawOSD:
+$LN1525@SK_DrawOSD:
+$LN1039@SK_DrawOSD:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -26975,10 +27526,10 @@ $LN1038@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN1039@SK_DrawOSD
+	jb	SHORT $LN1040@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1524@SK_DrawOSD:
-$LN1039@SK_DrawOSD:
+$LN1526@SK_DrawOSD:
+$LN1040@SK_DrawOSD:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -26990,10 +27541,10 @@ $LN1039@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN1040@SK_DrawOSD
+	jae	SHORT $LN1041@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1525@SK_DrawOSD:
-$LN1040@SK_DrawOSD:
+$LN1527@SK_DrawOSD:
+$LN1041@SK_DrawOSD:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -27001,17 +27552,17 @@ $LN1040@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN1041@SK_DrawOSD
+	jbe	SHORT $LN1042@SK_DrawOSD
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN1526@SK_DrawOSD:
-$LN1041@SK_DrawOSD:
+$LN1528@SK_DrawOSD:
+$LN1042@SK_DrawOSD:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN1037@SK_DrawOSD:
+$LN1038@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -27025,7 +27576,7 @@ $LN1037@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN1042@SK_DrawOSD:
+$LN1043@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3616 : 		_My_data._Mysize = 0;
@@ -27040,45 +27591,45 @@ $LN1042@SK_DrawOSD:
 ; 517  : 		_Left = _Right;
 
 	mov	BYTE PTR $T11[ebp], 0
-$LN1465@SK_DrawOSD:
+$LN1467@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1191 :   if (disk_stats.booting)
+; 1231 :   if (disk_stats.booting)
 
 	cmp	BYTE PTR ?disk_stats@@3Udisk_perf_t@@A+36, 0
-	je	SHORT $LN189@SK_DrawOSD
+	je	SHORT $LN190@SK_DrawOSD
 
-; 1192 :   {
-; 1193 :     OSD_D_PRINTF "\n  Starting Disk Monitor...\n" OSD_END
+; 1232 :   {
+; 1233 :     OSD_D_PRINTF "\n  Starting Disk Monitor...\n" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN1448@SK_DrawOSD
+	je	$LN1449@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+132, 0
-	je	$LN1448@SK_DrawOSD
-	push	OFFSET $SG379521
+	je	$LN1449@SK_DrawOSD
+	push	OFFSET $SG379612
 	push	ebx
 	call	_sprintf
 	add	esp, 8
 	add	ebx, eax
 
-; 1194 :   }
-; 1195 : 
-; 1196 :   else
+; 1234 :   }
+; 1235 : 
+; 1236 :   else
 
-	jmp	$LN1448@SK_DrawOSD
-$LN189@SK_DrawOSD:
+	jmp	$LN1449@SK_DrawOSD
+$LN190@SK_DrawOSD:
 
-; 1204 :     for (DWORD i = 0; i < disk_stats.num_disks; i++)
+; 1244 :     for (DWORD i = 0; i < disk_stats.num_disks; i++)
 
 	xor	edi, edi
 	cmp	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A+1480, edi
-	jbe	$LN1448@SK_DrawOSD
-	npad	6
-$LL29@SK_DrawOSD:
+	jbe	$LN1449@SK_DrawOSD
+	npad	4
+$LL30@SK_DrawOSD:
 
-; 1205 :     {
-; 1206 :       std::wstring read_bytes_sec =
-; 1207 :         SK_SizeToStringF (disk_stats.disks [i].read_bytes_sec, 6, 1);
+; 1245 :     {
+; 1246 :       std::wstring read_bytes_sec =
+; 1247 :         SK_SizeToStringF (disk_stats.disks [i].read_bytes_sec, 6, 1);
 
 	imul	esi, edi, 88
 	lea	eax, DWORD PTR _read_bytes_sec$13[ebp]
@@ -27090,51 +27641,51 @@ $LL29@SK_DrawOSD:
 	push	eax
 	call	?SK_SizeToStringF@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KHHW4SK_UNITS@@@Z ; SK_SizeToStringF
 
-; 1208 : 
-; 1209 :       std::wstring write_bytes_sec =
-; 1210 :         SK_SizeToStringF (disk_stats.disks [i].write_bytes_sec, 6, 1);
+; 1248 : 
+; 1249 :       std::wstring write_bytes_sec =
+; 1250 :         SK_SizeToStringF (disk_stats.disks [i].write_bytes_sec, 6, 1);
 
 	push	32					; 00000020H
 	push	1
 	push	6
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A[esi+148]
-	lea	eax, DWORD PTR _write_bytes_sec$25[ebp]
+	lea	eax, DWORD PTR _write_bytes_sec$24[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 5
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A[esi+144]
 	push	eax
 	call	?SK_SizeToStringF@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KHHW4SK_UNITS@@@Z ; SK_SizeToStringF
 	add	esp, 48					; 00000030H
 
-; 1211 : 
-; 1212 :       if (i == 0)
+; 1251 : 
+; 1252 :       if (i == 0)
 
 	test	edi, edi
-	jne	SHORT $LN192@SK_DrawOSD
+	jne	SHORT $LN193@SK_DrawOSD
 
-; 1214 :         OSD_D_PRINTF "\n  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
+; 1254 :         OSD_D_PRINTF "\n  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN195@SK_DrawOSD
+	je	$LN196@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+132, 0
-	je	$LN195@SK_DrawOSD
+	je	$LN196@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _write_bytes_sec$25[ebp+20], 8
+	cmp	DWORD PTR _write_bytes_sec$24[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	ecx, DWORD PTR _write_bytes_sec$25[ebp]
+	lea	ecx, DWORD PTR _write_bytes_sec$24[ebp]
 	lea	eax, DWORD PTR _read_bytes_sec$13[ebp]
-	cmovae	ecx, DWORD PTR _write_bytes_sec$25[ebp]
+	cmovae	ecx, DWORD PTR _write_bytes_sec$24[ebp]
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
 	cmp	DWORD PTR _read_bytes_sec$13[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1214 :         OSD_D_PRINTF "\n  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
+; 1254 :         OSD_D_PRINTF "\n  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
 
 	push	ecx
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A+116
@@ -27145,7 +27696,7 @@ $LL29@SK_DrawOSD:
 	cmovae	eax, DWORD PTR _read_bytes_sec$13[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1214 :         OSD_D_PRINTF "\n  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
+; 1254 :         OSD_D_PRINTF "\n  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
 
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A+112
 	push	eax
@@ -27154,47 +27705,47 @@ $LL29@SK_DrawOSD:
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A+108
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A+104
 	push	OFFSET ?disk_stats@@3Udisk_perf_t@@A+72
-	push	OFFSET $SG379525
+	push	OFFSET $SG379616
 
-; 1215 :                                                  "Write %#3llu%%: %ws/s)\n",
-; 1216 :           disk_stats.disks [i].name,
-; 1217 :             disk_stats.disks [i].percent_load,
-; 1218 :               disk_stats.disks [i].percent_read,
-; 1219 :                 read_bytes_sec.c_str (),
-; 1220 :                   disk_stats.disks [i].percent_write,
-; 1221 :                     write_bytes_sec.c_str ()
-; 1222 :         OSD_END
-; 1223 :       }
-; 1224 : 
-; 1225 :       else
+; 1255 :                                                  "Write %#3llu%%: %ws/s)\n",
+; 1256 :           disk_stats.disks [i].name,
+; 1257 :             disk_stats.disks [i].percent_load,
+; 1258 :               disk_stats.disks [i].percent_read,
+; 1259 :                 read_bytes_sec.c_str (),
+; 1260 :                   disk_stats.disks [i].percent_write,
+; 1261 :                     write_bytes_sec.c_str ()
+; 1262 :         OSD_END
+; 1263 :       }
+; 1264 : 
+; 1265 :       else
 
-	jmp	SHORT $LN1485@SK_DrawOSD
-$LN192@SK_DrawOSD:
+	jmp	SHORT $LN1487@SK_DrawOSD
+$LN193@SK_DrawOSD:
 
-; 1227 :         OSD_D_PRINTF "  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
+; 1267 :         OSD_D_PRINTF "  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN195@SK_DrawOSD
+	je	SHORT $LN196@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+132, 0
-	je	SHORT $LN195@SK_DrawOSD
+	je	SHORT $LN196@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _write_bytes_sec$25[ebp+20], 8
+	cmp	DWORD PTR _write_bytes_sec$24[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	ecx, DWORD PTR _write_bytes_sec$25[ebp]
+	lea	ecx, DWORD PTR _write_bytes_sec$24[ebp]
 	lea	eax, DWORD PTR _read_bytes_sec$13[ebp]
-	cmovae	ecx, DWORD PTR _write_bytes_sec$25[ebp]
+	cmovae	ecx, DWORD PTR _write_bytes_sec$24[ebp]
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
 	cmp	DWORD PTR _read_bytes_sec$13[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1227 :         OSD_D_PRINTF "  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
+; 1267 :         OSD_D_PRINTF "  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
 
 	push	ecx
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A[esi+116]
@@ -27205,7 +27756,7 @@ $LN192@SK_DrawOSD:
 	cmovae	eax, DWORD PTR _read_bytes_sec$13[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1227 :         OSD_D_PRINTF "  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
+; 1267 :         OSD_D_PRINTF "  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
 
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A[esi+112]
 	push	eax
@@ -27215,28 +27766,28 @@ $LN192@SK_DrawOSD:
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A[esi+108]
 	push	DWORD PTR ?disk_stats@@3Udisk_perf_t@@A[esi+104]
 	push	eax
-	push	OFFSET $SG379527
-$LN1485@SK_DrawOSD:
+	push	OFFSET $SG379618
+$LN1487@SK_DrawOSD:
 	push	ebx
 	call	_sprintf
 	add	esp, 44					; 0000002cH
 	add	ebx, eax
-$LN195@SK_DrawOSD:
+$LN196@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _write_bytes_sec$25[ebp+20]
+	mov	eax, DWORD PTR _write_bytes_sec$24[ebp+20]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN1160@SK_DrawOSD
+	jb	SHORT $LN1161@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _write_bytes_sec$25[ebp]
+	mov	ecx, DWORD PTR _write_bytes_sec$24[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -27247,7 +27798,7 @@ $LN195@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -27256,14 +27807,14 @@ $LN195@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN1155@SK_DrawOSD
+	jb	SHORT $LN1156@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	$LN1395@SK_DrawOSD
+	jne	$LN1396@SK_DrawOSD
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -27285,7 +27836,7 @@ $LN195@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	$LN1395@SK_DrawOSD
+	jae	$LN1396@SK_DrawOSD
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -27297,7 +27848,7 @@ $LN195@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	$LN1395@SK_DrawOSD
+	jb	$LN1396@SK_DrawOSD
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -27305,14 +27856,14 @@ $LN195@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN1155@SK_DrawOSD:
+$LN1156@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -27326,7 +27877,7 @@ $LN1155@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN1160@SK_DrawOSD:
+$LN1161@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -27336,12 +27887,12 @@ $LN1160@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _write_bytes_sec$25[ebp+16], 0
+	mov	DWORD PTR _write_bytes_sec$24[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _write_bytes_sec$25[ebp], ax
+	mov	WORD PTR _write_bytes_sec$24[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -27350,10 +27901,10 @@ $LN1160@SK_DrawOSD:
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _write_bytes_sec$25[ebp+20], 7
+	mov	DWORD PTR _write_bytes_sec$24[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1237 :     }
+; 1277 :     }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27364,7 +27915,7 @@ $LN1160@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN1202@SK_DrawOSD
+	jb	SHORT $LN1203@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -27380,7 +27931,7 @@ $LN1160@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -27389,14 +27940,14 @@ $LN1160@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN1197@SK_DrawOSD
+	jb	SHORT $LN1198@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	$LN1395@SK_DrawOSD
+	jne	$LN1396@SK_DrawOSD
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -27418,7 +27969,7 @@ $LN1160@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	$LN1395@SK_DrawOSD
+	jae	$LN1396@SK_DrawOSD
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -27430,7 +27981,7 @@ $LN1160@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	$LN1395@SK_DrawOSD
+	jb	$LN1396@SK_DrawOSD
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -27438,14 +27989,14 @@ $LN1160@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN1197@SK_DrawOSD:
+$LN1198@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -27459,70 +28010,70 @@ $LN1197@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN1202@SK_DrawOSD:
+$LN1203@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1204 :     for (DWORD i = 0; i < disk_stats.num_disks; i++)
+; 1244 :     for (DWORD i = 0; i < disk_stats.num_disks; i++)
 
 	inc	edi
 	cmp	edi, DWORD PTR ?disk_stats@@3Udisk_perf_t@@A+1480
-	jb	$LL29@SK_DrawOSD
-$LN1448@SK_DrawOSD:
+	jb	$LL30@SK_DrawOSD
+$LN1449@SK_DrawOSD:
 
-; 1238 :   }
-; 1239 : #if 0
-; 1240 :   }
-; 1241 :   else
-; 1242 :   {
-; 1243 :     for (int i = 0; i < disk_stats.num_disks; i++) {
-; 1244 :       OSD_D_PRINTF "\n  Disk %16s %#3llu%%  -  (Read: %#3llu%%   Write: %#3llu%%) - "
-; 1245 :                                         "(Read: %#5.01f KiB   Write: %#5.01f KiB)",
-; 1246 :         disk_stats.disks[i].name,
-; 1247 :           disk_stats.disks[i].percent_load,
-; 1248 :             disk_stats.disks[i].percent_read,
-; 1249 :               disk_stats.disks[i].percent_write,
-; 1250 :                 (float)disk_stats.disks[i].read_bytes_sec / (1024.0f),
-; 1251 :                 (float)disk_stats.disks[i].write_bytes_sec / (1024.0f)
-; 1252 :       OSD_END
-; 1253 : 
-; 1254 :       if (i == 0)
-; 1255 :         OSD_D_PRINTF "\n" OSD_END
-; 1256 :     }
-; 1257 :   }
-; 1258 : #endif
-; 1259 : 
-; 1260 :   if (pagefile_stats.booting)
+; 1278 :   }
+; 1279 : #if 0
+; 1280 :   }
+; 1281 :   else
+; 1282 :   {
+; 1283 :     for (int i = 0; i < disk_stats.num_disks; i++) {
+; 1284 :       OSD_D_PRINTF "\n  Disk %16s %#3llu%%  -  (Read: %#3llu%%   Write: %#3llu%%) - "
+; 1285 :                                         "(Read: %#5.01f KiB   Write: %#5.01f KiB)",
+; 1286 :         disk_stats.disks[i].name,
+; 1287 :           disk_stats.disks[i].percent_load,
+; 1288 :             disk_stats.disks[i].percent_read,
+; 1289 :               disk_stats.disks[i].percent_write,
+; 1290 :                 (float)disk_stats.disks[i].read_bytes_sec / (1024.0f),
+; 1291 :                 (float)disk_stats.disks[i].write_bytes_sec / (1024.0f)
+; 1292 :       OSD_END
+; 1293 : 
+; 1294 :       if (i == 0)
+; 1295 :         OSD_D_PRINTF "\n" OSD_END
+; 1296 :     }
+; 1297 :   }
+; 1298 : #endif
+; 1299 : 
+; 1300 :   if (pagefile_stats.booting)
 
 	cmp	BYTE PTR ?pagefile_stats@@3Upagefile_perf_t@@A+36, 0
-	je	SHORT $LN196@SK_DrawOSD
+	je	SHORT $LN197@SK_DrawOSD
 
-; 1261 :   {
-; 1262 :     OSD_P_PRINTF "\n  Starting Pagefile Monitor...\n" OSD_END
+; 1301 :   {
+; 1302 :     OSD_P_PRINTF "\n  Starting Pagefile Monitor...\n" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	$LN1486@SK_DrawOSD
+	je	$LN1488@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+148, 0
-	je	$LN200@SK_DrawOSD
-	push	OFFSET $SG379531
+	je	$LN201@SK_DrawOSD
+	push	OFFSET $SG379622
 
-; 1263 :   }
-; 1264 : 
-; 1265 :   else
+; 1303 :   }
+; 1304 : 
+; 1305 :   else
 
-	jmp	$LN1487@SK_DrawOSD
-$LN196@SK_DrawOSD:
+	jmp	$LN1489@SK_DrawOSD
+$LN197@SK_DrawOSD:
 
-; 1267 :     for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++)
+; 1307 :     for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++)
 
 	xor	edi, edi
 	cmp	DWORD PTR ?pagefile_stats@@3Upagefile_perf_t@@A+4344, edi
-	jbe	$LN1467@SK_DrawOSD
+	jbe	$LN1469@SK_DrawOSD
 	mov	esi, OFFSET ?pagefile_stats@@3Upagefile_perf_t@@A+312
-$LL32@SK_DrawOSD:
+$LL33@SK_DrawOSD:
 
-; 1268 :     {
-; 1269 :       std::wstring usage =
-; 1270 :         SK_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
+; 1308 :     {
+; 1309 :       std::wstring usage =
+; 1310 :         SK_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
 
 	push	32					; 00000020H
 	push	2
@@ -27533,72 +28084,72 @@ $LL32@SK_DrawOSD:
 	push	eax
 	call	?SK_SizeToStringF@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KHHW4SK_UNITS@@@Z ; SK_SizeToStringF
 
-; 1271 :       std::wstring size =
-; 1272 :         SK_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
+; 1311 :       std::wstring size =
+; 1312 :         SK_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
 
 	push	32					; 00000020H
 	push	2
 	push	5
 	push	0
 	push	DWORD PTR [esi]
-	lea	eax, DWORD PTR _size$22[ebp]
+	lea	eax, DWORD PTR _size$21[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 6
 	push	eax
 	call	?SK_SizeToStringF@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KHHW4SK_UNITS@@@Z ; SK_SizeToStringF
 
-; 1273 :       std::wstring peak =
-; 1274 :         SK_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
+; 1313 :       std::wstring peak =
+; 1314 :         SK_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
 
 	push	32					; 00000020H
 	push	2
 	push	5
 	push	0
 	push	DWORD PTR [esi+8]
-	lea	eax, DWORD PTR _peak$23[ebp]
+	lea	eax, DWORD PTR _peak$22[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 7
 	push	eax
 	call	?SK_SizeToStringF@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_KHHW4SK_UNITS@@@Z ; SK_SizeToStringF
 	add	esp, 72					; 00000048H
 
-; 1276 :       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
+; 1316 :       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1466@SK_DrawOSD
+	je	SHORT $LN1468@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+148, 0
-	je	SHORT $LN1466@SK_DrawOSD
+	je	SHORT $LN1468@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _peak$23[ebp+20], 8
+	cmp	DWORD PTR _peak$22[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	edx, DWORD PTR _peak$23[ebp]
-	lea	ecx, DWORD PTR _size$22[ebp]
-	cmovae	edx, DWORD PTR _peak$23[ebp]
+	lea	edx, DWORD PTR _peak$22[ebp]
+	lea	ecx, DWORD PTR _size$21[ebp]
+	cmovae	edx, DWORD PTR _peak$22[ebp]
 	lea	eax, DWORD PTR _usage$7[ebp]
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _size$22[ebp+20], 8
+	cmp	DWORD PTR _size$21[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1276 :       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
+; 1316 :       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
 
 	push	edx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	ecx, DWORD PTR _size$22[ebp]
+	cmovae	ecx, DWORD PTR _size$21[ebp]
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
 	cmp	DWORD PTR _usage$7[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1276 :       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
+; 1316 :       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
 
 	push	ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27608,32 +28159,32 @@ $LL32@SK_DrawOSD:
 	cmovae	eax, DWORD PTR _usage$7[ebp]
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1276 :       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
+; 1316 :       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
 
 	push	eax
 	lea	eax, DWORD PTR [esi-256]
 	push	eax
-	push	OFFSET $SG379533
+	push	OFFSET $SG379624
 	push	ebx
 	call	_sprintf
 	add	esp, 24					; 00000018H
 	add	ebx, eax
-$LN1466@SK_DrawOSD:
+$LN1468@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _peak$23[ebp+20]
+	mov	eax, DWORD PTR _peak$22[ebp+20]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN1301@SK_DrawOSD
+	jb	SHORT $LN1302@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _peak$23[ebp]
+	mov	ecx, DWORD PTR _peak$22[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -27644,7 +28195,7 @@ $LN1466@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -27653,14 +28204,14 @@ $LN1466@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN1296@SK_DrawOSD
+	jb	SHORT $LN1297@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	$LN1395@SK_DrawOSD
+	jne	$LN1396@SK_DrawOSD
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -27682,7 +28233,7 @@ $LN1466@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	$LN1395@SK_DrawOSD
+	jae	$LN1396@SK_DrawOSD
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -27694,7 +28245,7 @@ $LN1466@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	$LN1395@SK_DrawOSD
+	jb	$LN1396@SK_DrawOSD
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -27702,14 +28253,14 @@ $LN1466@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN1296@SK_DrawOSD:
+$LN1297@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -27723,7 +28274,7 @@ $LN1296@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN1301@SK_DrawOSD:
+$LN1302@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -27733,24 +28284,24 @@ $LN1301@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _peak$23[ebp+16], 0
+	mov	DWORD PTR _peak$22[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _peak$23[ebp], ax
+	mov	WORD PTR _peak$22[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _size$22[ebp+20]
+	mov	eax, DWORD PTR _size$21[ebp+20]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _peak$23[ebp+20], 7
+	mov	DWORD PTR _peak$22[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1282 :     }
+; 1322 :     }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27761,12 +28312,12 @@ $LN1301@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN1343@SK_DrawOSD
+	jb	SHORT $LN1344@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _size$22[ebp]
+	mov	ecx, DWORD PTR _size$21[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -27777,7 +28328,7 @@ $LN1301@SK_DrawOSD:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -27786,14 +28337,14 @@ $LN1301@SK_DrawOSD:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN1338@SK_DrawOSD
+	jb	SHORT $LN1339@SK_DrawOSD
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	$LN1395@SK_DrawOSD
+	jne	$LN1396@SK_DrawOSD
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -27815,7 +28366,7 @@ $LN1301@SK_DrawOSD:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	$LN1395@SK_DrawOSD
+	jae	$LN1396@SK_DrawOSD
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -27827,7 +28378,7 @@ $LN1301@SK_DrawOSD:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	$LN1395@SK_DrawOSD
+	jb	$LN1396@SK_DrawOSD
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -27835,14 +28386,14 @@ $LN1301@SK_DrawOSD:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	$LN1395@SK_DrawOSD
+	ja	$LN1396@SK_DrawOSD
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN1338@SK_DrawOSD:
+$LN1339@SK_DrawOSD:
 
 ; 133  : 		}
 ; 134  : 
@@ -27856,7 +28407,7 @@ $LN1338@SK_DrawOSD:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN1343@SK_DrawOSD:
+$LN1344@SK_DrawOSD:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -27866,12 +28417,12 @@ $LN1343@SK_DrawOSD:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _size$22[ebp+16], 0
+	mov	DWORD PTR _size$21[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _size$22[ebp], ax
+	mov	WORD PTR _size$21[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -27880,10 +28431,10 @@ $LN1343@SK_DrawOSD:
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _size$22[ebp+20], 7
+	mov	DWORD PTR _size$21[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1282 :     }
+; 1322 :     }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27894,7 +28445,7 @@ $LN1343@SK_DrawOSD:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN1355@SK_DrawOSD
+	jb	SHORT $LN1356@SK_DrawOSD
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -27913,41 +28464,41 @@ $LN1343@SK_DrawOSD:
 	push	DWORD PTR _usage$7[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN1355@SK_DrawOSD:
+$LN1356@SK_DrawOSD:
 ; File c:\users\andon\source\repos\specialk\src\osd\text.cpp
 
-; 1267 :     for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++)
+; 1307 :     for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++)
 
 	inc	edi
 	add	esi, 268				; 0000010cH
 	cmp	edi, DWORD PTR ?pagefile_stats@@3Upagefile_perf_t@@A+4344
-	jb	$LL32@SK_DrawOSD
-$LN1467@SK_DrawOSD:
+	jb	$LL33@SK_DrawOSD
+$LN1469@SK_DrawOSD:
 
-; 1283 : 
-; 1284 :     OSD_P_PRINTF "\n" OSD_END
+; 1323 : 
+; 1324 :     OSD_P_PRINTF "\n" OSD_END
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	je	SHORT $LN1486@SK_DrawOSD
+	je	SHORT $LN1488@SK_DrawOSD
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+148, 0
-	je	SHORT $LN200@SK_DrawOSD
-	push	OFFSET $SG379535
-$LN1487@SK_DrawOSD:
+	je	SHORT $LN201@SK_DrawOSD
+	push	OFFSET $SG379626
+$LN1489@SK_DrawOSD:
 	push	ebx
 	call	_sprintf
 	add	esp, 8
-$LN200@SK_DrawOSD:
+$LN201@SK_DrawOSD:
 
-; 1285 :   }
-; 1286 : 
-; 1287 :   // Avoid unnecessary MMIO when the user has the OSD turned off
-; 1288 :   cleared = (! config.osd.show);
+; 1325 :   }
+; 1326 : 
+; 1327 :   // Avoid unnecessary MMIO when the user has the OSD turned off
+; 1328 :   cleared = (! config.osd.show);
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-$LN1486@SK_DrawOSD:
+$LN1488@SK_DrawOSD:
 
-; 1289 : 
-; 1290 :   BOOL ret = SK_UpdateOSD (szOSD);
+; 1329 : 
+; 1330 :   BOOL ret = SK_UpdateOSD (szOSD);
 
 	push	0
 	push	0
@@ -27955,11 +28506,11 @@ $LN1486@SK_DrawOSD:
 	sete	BYTE PTR ?cleared@?1??SK_DrawOSD@@YGHXZ@4_NA
 	call	?SK_UpdateOSD@@YGHPBDPAX0@Z		; SK_UpdateOSD
 
-; 1291 : 
-; 1292 :   //game_debug.Log (L"%hs", szOSD);
-; 1293 : 
-; 1294 :   return ret;
-; 1295 : }
+; 1331 : 
+; 1332 :   //game_debug.Log (L"%hs", szOSD);
+; 1333 : 
+; 1334 :   return ret;
+; 1335 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -27969,23 +28520,23 @@ $LN1486@SK_DrawOSD:
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN1472@SK_DrawOSD:
+$LN1474@SK_DrawOSD:
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_DrawOSD@@YGHXZ$9:
-	lea	ecx, DWORD PTR _working_set$15[ebp]
+	lea	ecx, DWORD PTR _working_set$23[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_DrawOSD@@YGHXZ$10:
-	lea	ecx, DWORD PTR _commit$16[ebp]
+	lea	ecx, DWORD PTR _commit$15[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_DrawOSD@@YGHXZ$11:
-	lea	ecx, DWORD PTR _virtual_size$17[ebp]
+	lea	ecx, DWORD PTR _virtual_size$16[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_DrawOSD@@YGHXZ$12:
-	lea	ecx, DWORD PTR _working_set_peak$18[ebp]
+	lea	ecx, DWORD PTR _working_set_peak$17[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_DrawOSD@@YGHXZ$13:
-	lea	ecx, DWORD PTR _commit_peak$19[ebp]
+	lea	ecx, DWORD PTR _commit_peak$18[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_DrawOSD@@YGHXZ$16:
 	lea	ecx, DWORD PTR _read_bytes_sec$13[ebp]
@@ -27994,7 +28545,7 @@ __unwindfunclet$?SK_DrawOSD@@YGHXZ$18:
 	lea	ecx, DWORD PTR _usage$7[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_DrawOSD@@YGHXZ$19:
-	lea	ecx, DWORD PTR _size$22[ebp]
+	lea	ecx, DWORD PTR _size$21[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$?SK_DrawOSD@@YGHXZ:
 	mov	eax, OFFSET __ehfuncinfo$?SK_DrawOSD@@YGHXZ
@@ -28006,16 +28557,16 @@ text$x	ENDS
 _TEXT	SEGMENT
 ?SK_InstallOSD@@YGXXZ PROC				; SK_InstallOSD
 
-; 455  :   SK_CEGUI_QueueResetD3D9  ();
+; 493  :   SK_CEGUI_QueueResetD3D9  ();
 
 	call	?SK_CEGUI_QueueResetD3D9@@YAXXZ		; SK_CEGUI_QueueResetD3D9
 
-; 456  :   SK_CEGUI_QueueResetD3D11 ();
+; 494  :   SK_CEGUI_QueueResetD3D11 ();
 
 	call	?SK_CEGUI_QueueResetD3D11@@YAXXZ	; SK_CEGUI_QueueResetD3D11
 
-; 457  : 
-; 458  :   if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE))
+; 495  : 
+; 496  :   if (! InterlockedCompareExchange (&osd_init, TRUE, FALSE))
 
 	mov	ecx, 1
 	mov	edx, OFFSET ?osd_init@@3JC		; osd_init
@@ -28024,16 +28575,16 @@ _TEXT	SEGMENT
 	test	eax, eax
 	jne	SHORT $LN2@SK_Install
 
-; 459  :   {
-; 460  :     SK_TextOverlayManager::getInstance ()->createTextOverlay ("Special K");
+; 497  :   {
+; 498  :     SK_TextOverlayManager::getInstance ()->createTextOverlay ("Special K");
 
-	push	OFFSET $SG379095
+	push	OFFSET $SG379179
 	call	?getInstance@SK_TextOverlayManager@@SAPAV1@XZ ; SK_TextOverlayManager::getInstance
 	mov	ecx, eax
 	call	?createTextOverlay@SK_TextOverlayManager@@QAEPAVSK_TextOverlay@@PBD@Z ; SK_TextOverlayManager::createTextOverlay
 
-; 461  : 
-; 462  :     SK_SetOSDScale (config.osd.scale);
+; 499  : 
+; 500  :     SK_SetOSDScale (config.osd.scale);
 
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+68
 	push	0
@@ -28042,7 +28593,7 @@ _TEXT	SEGMENT
 	movss	DWORD PTR [esp], xmm0
 	call	?SK_SetOSDScale@@YGXM_NPBD@Z		; SK_SetOSDScale
 
-; 463  :     SK_SetOSDPos   (config.osd.pos_x, config.osd.pos_y);
+; 501  :     SK_SetOSDPos   (config.osd.pos_x, config.osd.pos_y);
 
 	push	0
 	push	DWORD PTR ?config@@3Usk_config_t@@A+76
@@ -28050,9 +28601,9 @@ _TEXT	SEGMENT
 	call	?SK_SetOSDPos@@YGXHHPBD@Z		; SK_SetOSDPos
 $LN2@SK_Install:
 
-; 464  :     SK_SetOSDColor (config.osd.red,   config.osd.green, config.osd.blue);
-; 465  :   }
-; 466  : }
+; 502  :     SK_SetOSDColor (config.osd.red,   config.osd.green, config.osd.blue);
+; 503  :   }
+; 504  : }
 
 	ret	0
 ?SK_InstallOSD@@YGXXZ ENDP				; SK_InstallOSD
@@ -28063,13 +28614,13 @@ _TEXT	SEGMENT
 _lpMemory$ = 8						; size = 4
 ?SK_ReleaseSharedMemory@@YGHPAX@Z PROC			; SK_ReleaseSharedMemory
 
-; 235  :   UNREFERENCED_PARAMETER (lpMemory);
-; 236  : 
-; 237  :   return FALSE;
+; 273  :   UNREFERENCED_PARAMETER (lpMemory);
+; 274  : 
+; 275  :   return FALSE;
 
 	xor	eax, eax
 
-; 238  : }
+; 276  : }
 
 	ret	4
 ?SK_ReleaseSharedMemory@@YGHPAX@Z ENDP			; SK_ReleaseSharedMemory
@@ -28079,13 +28630,13 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_GetSharedMemory@@YGPAXXZ PROC			; SK_GetSharedMemory
 
-; 253  :   return SK_GetSharedMemory (GetCurrentProcessId ());
+; 291  :   return SK_GetSharedMemory (GetCurrentProcessId ());
 
 	call	DWORD PTR __imp__GetCurrentProcessId@0
 	push	eax
 	call	?SK_GetSharedMemory@@YGPAXK@Z		; SK_GetSharedMemory
 
-; 254  : }
+; 292  : }
 
 	ret	0
 ?SK_GetSharedMemory@@YGPAXXZ ENDP			; SK_GetSharedMemory
@@ -34978,7 +35529,7 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 1958 : }
+; 2049 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
@@ -34990,7 +35541,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 1958 : }
+; 2049 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

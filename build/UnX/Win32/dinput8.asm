@@ -34,11 +34,11 @@ PUBLIC	?IDirectInputDevice8_SetCooperativeLevel_Original@@3P6GJPAUIDirectInputDe
 PUBLIC	?__di8_ready@@3JC				; __di8_ready
 PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
 PUBLIC	_IID_IAxWinHostWindow
-PUBLIC	_IID_IAxWinHostWindowLic
 PUBLIC	?di8_to_xi@@3U_XINPUT_STATE@@A			; di8_to_xi
 PUBLIC	?joy_to_xi@@3U_XINPUT_STATE@@A			; joy_to_xi
-PUBLIC	_IID_IAxWinAmbientDispatch
+PUBLIC	_IID_IAxWinHostWindowLic
 PUBLIC	?SK_DI8_Backend@@3Usk_input_api_context_s@@A	; SK_DI8_Backend
+PUBLIC	_IID_IAxWinAmbientDispatch
 PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
 PUBLIC	_LIBID_ATLLib
 PUBLIC	_IID_IAxWinAmbientDispatchEx
@@ -195,35 +195,35 @@ _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG253061			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG253123			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG253059		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG253121		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG253057		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG253119		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG253055		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG253117		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG253053		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG253115		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG253051		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG253113		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG253049		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG253111		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG253047		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG253109		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -259,294 +259,6 @@ _IID_IRegistrar DD 044ec053bH
 	DB	091H
 	DB	0d3H
 CONST	ENDS
-CONST	SEGMENT
-$SG241705 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
-	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG241752 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-	ORG $+1
-$SG253047 DB	'S', 00H, 00H, 00H
-$SG253049 DB	'M', 00H, 00H, 00H
-$SG253051 DB	'D', 00H, 00H, 00H
-$SG253053 DB	'B', 00H, 00H, 00H
-$SG253055 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG253057 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
-	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG253059 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
-	DB	'v', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG253061 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG241799 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
-	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG241846 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG241893 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG241940 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
-	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG258356 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, '8', 00H, 'C'
-	DB	00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG258357 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
-	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, '(', 00H, '%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' '
-	DB	00H, '%', 00H, 'l', 00H, 'u', 00H, ',', 00H, ' ', 00H, '{', 00H
-	DB	'.', 00H, '.', 00H, '.', 00H, '}', 00H, ',', 00H, ' ', 00H, 'p'
-	DB	00H, 'p', 00H, 'v', 00H, 'O', 00H, 'u', 00H, 't', 00H, '=', 00H
-	DB	'%', 00H, 'p', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, ')'
-	DB	00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG258361 DB	'I', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
-	DB	't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, '8'
-	DB	00H, ':', 00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
-	DB	't', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
-	DB	00H, 'e', 00H, 00H, 00H
-$SG241987 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
-	DB	00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG242034 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG242039 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG258461 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG258462 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
-	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H
-	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r'
-	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p', 00H
-	DB	'u', 00H, 't', 00H, '8', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
-	DB	00H, 't', 00H, 'e', 00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H
-	DB	00H, 00H
-$SG258468 DB	'DirectInput8Create', 00H
-	ORG $+1
-$SG258463 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
-	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
-	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
-	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
-	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
-	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
-	DB	00H, 00H
-$SG258467 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG242086 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
-	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG258469 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
-	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
-	DB	'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't'
-	DB	00H, '8', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H
-	DB	'e', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p'
-	DB	00H, 'h', 00H, 00H, 00H
-	ORG $+2
-$SG258471 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG258473 DB	'DirectInput8Create', 00H
-	ORG $+1
-$SG258474 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG258476 DB	'DirectInput8Create', 00H
-	ORG $+1
-$SG258492 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, 00H, 00H
-$SG242133 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG258477 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
-	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
-	DB	'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't'
-	DB	00H, '8', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H
-	DB	'e', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p'
-	DB	00H, ' ', 00H, ' ', 00H, '{', 00H, ' ', 00H, 'H', 00H, 'o', 00H
-	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H
-	DB	00H
-$SG258496 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, 00H, 00H
-$SG242180 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG241164 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG241235 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG241282 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
-	ORG $+2
-$SG241329 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG241376 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
-	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG241423 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
-	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG253737 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG253738 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG253739 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
-	ORG $+2
-$SG253740 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG253741 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG253742 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG253743 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG253744 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG253745 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
-	ORG $+2
-$SG253746 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG253747 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG253748 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
-	DB	'b', 00H, 00H, 00H
-$SG258875 DB	'IDirectInputDevice8_GetDeviceState_Detour', 00H
-	ORG $+2
-$SG258876 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG241470 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
-	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG258878 DB	'[', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
-	DB	't', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'p', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
-	DB	't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, ' '
-	DB	00H, '8', 00H, ' ', 00H, '-', 00H, ' ', 00H, 'G', 00H, 'e', 00H
-	DB	't', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e'
-	DB	00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H, 'e', 00H, ':', 00H
-	DB	' ', 00H, 'c', 00H, 'b', 00H, 'D', 00H, 'a', 00H, 't', 00H, 'a'
-	DB	00H, ' ', 00H, '=', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG241517 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
-	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG258969 DB	'D', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
-	DB	't', 00H, ' ', 00H, 'S', 00H, 'y', 00H, 's', 00H, 't', 00H, 'e'
-	DB	00H, 'm', 00H, ' ', 00H, 'K', 00H, 'e', 00H, 'y', 00H, 'b', 00H
-	DB	'o', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 00H, 00H
-$SG258970 DB	'D', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
-	DB	't', 00H, ' ', 00H, 'S', 00H, 'y', 00H, 's', 00H, 't', 00H, 'e'
-	DB	00H, 'm', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'u', 00H, 's', 00H
-	DB	'e', 00H, 00H, 00H
-	ORG $+2
-$SG258971 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'p', 00H, 'a', 00H
-	DB	'd', 00H, ' ', 00H, '/', 00H, ' ', 00H, 'J', 00H, 'o', 00H, 'y'
-	DB	00H, 's', 00H, 't', 00H, 'i', 00H, 'c', 00H, 'k', 00H, 00H, 00H
-	ORG $+2
-$SG258972 DB	'O', 00H, 't', 00H, 'h', 00H, 'e', 00H, 'r', 00H, ' ', 00H
-	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG241564 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
-	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG258978 DB	'(', 00H, 'r', 00H, 'e', 00H, 't', 00H, '=', 00H, 'S', 00H
-	DB	'_', 00H, 'O', 00H, 'K', 00H, ')', 00H, 0aH, 00H, 00H, 00H
-$SG258998 DB	'DirectInput8Create', 00H
-	ORG $+1
-$SG258973 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
-	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, '['
-	DB	00H, '!', 00H, ']', 00H, ' ', 00H, 'I', 00H, 'D', 00H, 'i', 00H
-	DB	'r', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p'
-	DB	00H, 'u', 00H, 't', 00H, '8', 00H, ':', 00H, ':', 00H, 'C', 00H
-	DB	'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'D', 00H, 'e'
-	DB	00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, ' ', 00H, '(', 00H
-	DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 's'
-	DB	00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ',', 00H
-	DB	' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ')', 00H, 00H, 00H
-$SG258974 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
-	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H
-	DB	'n', 00H, 'g', 00H, ' ', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'g'
-	DB	00H, 'i', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'f', 00H
-	DB	'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
-	DB	00H, ':', 00H, ' ', 00H, 00H, 00H
-$SG258977 DB	'(', 00H, 'r', 00H, 'e', 00H, 't', 00H, '=', 00H, '0', 00H
-	DB	'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'x', 00H, ' ', 00H, '-'
-	DB	00H, ' ', 00H, '%', 00H, 's', 00H, ')', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG258997 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG259005 DB	'dinput.dll', 00H
-	ORG $+1
-$SG258981 DB	'I', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
-	DB	't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, 'D'
-	DB	00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, '8', 00H
-	DB	':', 00H, ':', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'e'
-	DB	00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'S', 00H, 't', 00H
-	DB	'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
-$SG258983 DB	'I', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
-	DB	't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, 'D'
-	DB	00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, '8', 00H
-	DB	':', 00H, ':', 00H, 'S', 00H, 'e', 00H, 't', 00H, 'C', 00H, 'o'
-	DB	00H, 'o', 00H, 'p', 00H, 'e', 00H, 'r', 00H, 'a', 00H, 't', 00H
-	DB	'i', 00H, 'v', 00H, 'e', 00H, 'L', 00H, 'e', 00H, 'v', 00H, 'e'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG259006 DB	'dinput8.dll', 00H
-$SG258996 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
-	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'u', 00H
-	DB	's', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r'
-	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p', 00H
-	DB	'u', 00H, 't', 00H, ',', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 's'
-	DB	00H, 't', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't'
-	DB	00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 's', 00H
-	DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG258999 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, '8', 00H, 'C'
-	DB	00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG259011 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG241611 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
-	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG241658 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
-	DB	00H, 'n', 00H, 00H, 00H
-CONST	ENDS
 ;	COMDAT _CLSID_Registrar
 CONST	SEGMENT
 _CLSID_Registrar DD 044ec053aH
@@ -560,6 +272,306 @@ _CLSID_Registrar DD 044ec053aH
 	DB	03H
 	DB	091H
 	DB	0d3H
+CONST	ENDS
+CONST	SEGMENT
+$SG241673 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
+	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+	ORG $+1
+$SG241720 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
+	DB	00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG241767 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
+	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
+$SG241814 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG253109 DB	'S', 00H, 00H, 00H
+$SG253111 DB	'M', 00H, 00H, 00H
+$SG253113 DB	'D', 00H, 00H, 00H
+$SG253115 DB	'B', 00H, 00H, 00H
+$SG253117 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG253119 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
+$SG253121 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+	DB	'v', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG253123 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG241861 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
+	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+$SG241908 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG241955 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG242002 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
+$SG258418 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, '8', 00H, 'C'
+	DB	00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG258419 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
+	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, '(', 00H, '%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' '
+	DB	00H, '%', 00H, 'l', 00H, 'u', 00H, ',', 00H, ' ', 00H, '{', 00H
+	DB	'.', 00H, '.', 00H, '.', 00H, '}', 00H, ',', 00H, ' ', 00H, 'p'
+	DB	00H, 'p', 00H, 'v', 00H, 'O', 00H, 'u', 00H, 't', 00H, '=', 00H
+	DB	'%', 00H, 'p', 00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, ')'
+	DB	00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG258423 DB	'I', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
+	DB	't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, '8'
+	DB	00H, ':', 00H, ':', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H
+	DB	't', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
+	DB	00H, 'e', 00H, 00H, 00H
+$SG242049 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG258456 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG258463 DB	'DirectInput8Create', 00H
+	ORG $+1
+$SG258457 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
+	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H
+	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r'
+	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p', 00H
+	DB	'u', 00H, 't', 00H, '8', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a'
+	DB	00H, 't', 00H, 'e', 00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H
+	DB	00H, 00H
+$SG258468 DB	'DirectInput8Create', 00H
+	ORG $+1
+$SG258458 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
+	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
+	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
+	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
+	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
+	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
+	DB	00H, 00H
+$SG258462 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG258471 DB	'DirectInput8Create', 00H
+	ORG $+1
+$SG258464 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
+	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
+	DB	'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't'
+	DB	00H, '8', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H
+	DB	'e', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p'
+	DB	00H, 'h', 00H, 00H, 00H
+	ORG $+2
+$SG258466 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG258469 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG258474 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG258472 DB	'[', 00H, ' ', 00H, 'D', 00H, 'I', 00H, 'n', 00H, 'p', 00H
+	DB	'u', 00H, 't', 00H, ' ', 00H, '8', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
+	DB	'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't'
+	DB	00H, '8', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H
+	DB	'e', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'p'
+	DB	00H, ' ', 00H, ' ', 00H, '{', 00H, ' ', 00H, 'H', 00H, 'o', 00H
+	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '}', 00H, 00H
+	DB	00H
+$SG258476 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG258480 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG242096 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG258483 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG242101 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG258498 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, 00H, 00H
+$SG258502 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, 00H, 00H
+$SG242148 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG242195 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG242242 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG241226 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG241297 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG241344 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+	ORG $+2
+$SG241391 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG241438 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG258881 DB	'IDirectInputDevice8_GetDeviceState_Detour', 00H
+	ORG $+2
+$SG258882 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG241485 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
+	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG258884 DB	'[', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
+	DB	't', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'p', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
+	DB	't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, ' '
+	DB	00H, '8', 00H, ' ', 00H, '-', 00H, ' ', 00H, 'G', 00H, 'e', 00H
+	DB	't', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e'
+	DB	00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H, 'e', 00H, ':', 00H
+	DB	' ', 00H, 'c', 00H, 'b', 00H, 'D', 00H, 'a', 00H, 't', 00H, 'a'
+	DB	00H, ' ', 00H, '=', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG253799 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG253800 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG253801 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG253802 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG253803 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG253804 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG253805 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG253806 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG253807 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG253808 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG253809 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG253810 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+	DB	'b', 00H, 00H, 00H
+$SG241532 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
+	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG258975 DB	'D', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
+	DB	't', 00H, ' ', 00H, 'S', 00H, 'y', 00H, 's', 00H, 't', 00H, 'e'
+	DB	00H, 'm', 00H, ' ', 00H, 'K', 00H, 'e', 00H, 'y', 00H, 'b', 00H
+	DB	'o', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 00H, 00H
+$SG258976 DB	'D', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
+	DB	't', 00H, ' ', 00H, 'S', 00H, 'y', 00H, 's', 00H, 't', 00H, 'e'
+	DB	00H, 'm', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'u', 00H, 's', 00H
+	DB	'e', 00H, 00H, 00H
+	ORG $+2
+$SG258977 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'p', 00H, 'a', 00H
+	DB	'd', 00H, ' ', 00H, '/', 00H, ' ', 00H, 'J', 00H, 'o', 00H, 'y'
+	DB	00H, 's', 00H, 't', 00H, 'i', 00H, 'c', 00H, 'k', 00H, 00H, 00H
+	ORG $+2
+$SG258978 DB	'O', 00H, 't', 00H, 'h', 00H, 'e', 00H, 'r', 00H, ' ', 00H
+	DB	'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG258979 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, '['
+	DB	00H, '!', 00H, ']', 00H, ' ', 00H, 'I', 00H, 'D', 00H, 'i', 00H
+	DB	'r', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p'
+	DB	00H, 'u', 00H, 't', 00H, '8', 00H, ':', 00H, ':', 00H, 'C', 00H
+	DB	'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'D', 00H, 'e'
+	DB	00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, ' ', 00H, '(', 00H
+	DB	'%', 00H, 'p', 00H, 'h', 00H, ',', 00H, ' ', 00H, '%', 00H, 's'
+	DB	00H, ',', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ',', 00H
+	DB	' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, ')', 00H, 00H, 00H
+$SG258980 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H
+	DB	'n', 00H, 'g', 00H, ' ', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'g'
+	DB	00H, 'i', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'f', 00H
+	DB	'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
+	DB	00H, ':', 00H, ' ', 00H, 00H, 00H
+$SG258983 DB	'(', 00H, 'r', 00H, 'e', 00H, 't', 00H, '=', 00H, '0', 00H
+	DB	'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'x', 00H, ' ', 00H, '-'
+	DB	00H, ' ', 00H, '%', 00H, 's', 00H, ')', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG258984 DB	'(', 00H, 'r', 00H, 'e', 00H, 't', 00H, '=', 00H, 'S', 00H
+	DB	'_', 00H, 'O', 00H, 'K', 00H, ')', 00H, 0aH, 00H, 00H, 00H
+$SG259004 DB	'DirectInput8Create', 00H
+	ORG $+1
+$SG258987 DB	'I', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
+	DB	't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, 'D'
+	DB	00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, '8', 00H
+	DB	':', 00H, ':', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H, 'e'
+	DB	00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, 'S', 00H, 't', 00H
+	DB	'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
+$SG241579 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
+	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG258989 DB	'I', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H
+	DB	't', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, 'D'
+	DB	00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, '8', 00H
+	DB	':', 00H, ':', 00H, 'S', 00H, 'e', 00H, 't', 00H, 'C', 00H, 'o'
+	DB	00H, 'o', 00H, 'p', 00H, 'e', 00H, 'r', 00H, 'a', 00H, 't', 00H
+	DB	'i', 00H, 'v', 00H, 'e', 00H, 'L', 00H, 'e', 00H, 'v', 00H, 'e'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG259003 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG259011 DB	'dinput.dll', 00H
+	ORG $+1
+$SG259002 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'u', 00H
+	DB	's', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r'
+	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'I', 00H, 'n', 00H, 'p', 00H
+	DB	'u', 00H, 't', 00H, ',', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 's'
+	DB	00H, 't', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't'
+	DB	00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 's', 00H
+	DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
+$SG259005 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, '8', 00H, 'C'
+	DB	00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG259012 DB	'dinput8.dll', 00H
+$SG259017 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG241626 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
+	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
@@ -711,10 +723,6 @@ PUBLIC	?_AtlWinModule@ATL@@3VCAtlWinModule@1@A		; ATL::_AtlWinModule
 PUBLIC	??_7_com_error@@6B@				; _com_error::`vftable'
 PUBLIC	??_C@_1CI@KPMALOMG@?$AAI?$AAD?$AAi?$AAs?$AAp?$AAa?$AAt?$AAc?$AAh?$AA?5?$AAe?$AAr?$AAr?$AAo?$AAr?$AA?5?$AA?$CD?$AA?$CF?$AAd?$AA?$AA@ ; `string'
 PUBLIC	??_C@_1CK@DOIMBAJG@?$AAU?$AAn?$AAk?$AAn?$AAo?$AAw?$AAn?$AA?5?$AAe?$AAr?$AAr?$AAo?$AAr?$AA?5?$AA0?$AAx?$AA?$CF?$AA0?$AAl?$AAX?$AA?$AA@ ; `string'
-PUBLIC	??_C@_1BK@HHEPHKEC@?$AAO?$AAp?$AAe?$AAn?$AAG?$AAL?$AA3?$AA2?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@ ; `string'
-PUBLIC	??_C@_1BC@LLFFMIOK@?$AAd?$AA3?$AAd?$AA9?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@ ; `string'
-PUBLIC	??_C@_1BE@FHHGECGN@?$AAd?$AA3?$AAd?$AA1?$AA1?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@ ; `string'
-PUBLIC	??_C@_1BC@IPOKGKHK@?$AAd?$AAx?$AAg?$AAi?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@ ; `string'
 PUBLIC	?_dik@@3USK_DI8_Keyboard@@A			; _dik
 PUBLIC	?_dim@@3USK_DI8_Mouse@@A			; _dim
 PUBLIC	??_R4_com_error@@6B@				; _com_error::`RTTI Complete Object Locator'
@@ -735,14 +743,11 @@ EXTRN	___std_terminate:PROC
 EXTRN	__imp___invalid_parameter_noinfo_noreturn:PROC
 EXTRN	__imp___wcsicmp:PROC
 EXTRN	__imp__DecodePointer@4:PROC
-EXTRN	__imp__CloseHandle@4:PROC
 EXTRN	__imp__RaiseException@16:PROC
 EXTRN	__imp__GetLastError@0:PROC
 EXTRN	__imp__InitializeCriticalSectionEx@12:PROC
 EXTRN	__imp__DeleteCriticalSection@4:PROC
 EXTRN	__imp__SleepEx@8:PROC
-EXTRN	__imp__CreateThread@24:PROC
-EXTRN	__imp__GetCurrentThread@0:PROC
 EXTRN	__imp__GetModuleHandleW@4:PROC
 EXTRN	__imp__GetProcAddress@8:PROC
 EXTRN	__imp__LocalAlloc@8:PROC
@@ -1023,37 +1028,13 @@ rdata$r	SEGMENT
 rdata$r	ENDS
 ;	COMDAT ?tests@?6??SK_Input_PreHookDI8@@YAXXZ@4PAUsk_import_test_s@@A
 _DATA	SEGMENT
-?tests@?6??SK_Input_PreHookDI8@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG259005 ; `SK_Input_PreHookDI8'::`7'::tests
+?tests@?6??SK_Input_PreHookDI8@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG259011 ; `SK_Input_PreHookDI8'::`7'::tests
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG259006
+	DD	FLAT:$SG259012
 	DB	00H
 	ORG $+3
 _DATA	ENDS
-;	COMDAT ??_C@_1BC@IPOKGKHK@?$AAd?$AAx?$AAg?$AAi?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@
-CONST	SEGMENT
-??_C@_1BC@IPOKGKHK@?$AAd?$AAx?$AAg?$AAi?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@ DB 'd'
-	DB	00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H
-	DB	'l', 00H, 00H, 00H				; `string'
-CONST	ENDS
-;	COMDAT ??_C@_1BE@FHHGECGN@?$AAd?$AA3?$AAd?$AA1?$AA1?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@
-CONST	SEGMENT
-??_C@_1BE@FHHGECGN@?$AAd?$AA3?$AAd?$AA1?$AA1?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@ DB 'd'
-	DB	00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H			; `string'
-CONST	ENDS
-;	COMDAT ??_C@_1BC@LLFFMIOK@?$AAd?$AA3?$AAd?$AA9?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@
-CONST	SEGMENT
-??_C@_1BC@LLFFMIOK@?$AAd?$AA3?$AAd?$AA9?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@ DB 'd'
-	DB	00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H, 'l', 00H
-	DB	'l', 00H, 00H, 00H				; `string'
-CONST	ENDS
-;	COMDAT ??_C@_1BK@HHEPHKEC@?$AAO?$AAp?$AAe?$AAn?$AAG?$AAL?$AA3?$AA2?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@
-CONST	SEGMENT
-??_C@_1BK@HHEPHKEC@?$AAO?$AAp?$AAe?$AAn?$AAG?$AAL?$AA3?$AA2?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@ DB 'O'
-	DB	00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H
-	DB	'2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H ; `string'
-CONST	ENDS
 ;	COMDAT ??_C@_1CK@DOIMBAJG@?$AAU?$AAn?$AAk?$AAn?$AAo?$AAw?$AAn?$AA?5?$AAe?$AAr?$AAr?$AAo?$AAr?$AA?5?$AA0?$AAx?$AA?$CF?$AA0?$AAl?$AAX?$AA?$AA@
 CONST	SEGMENT
 ??_C@_1CK@DOIMBAJG@?$AAU?$AAn?$AAk?$AAn?$AAo?$AAw?$AAn?$AA?5?$AAe?$AAr?$AAr?$AAo?$AAr?$AA?5?$AA0?$AAx?$AA?$CF?$AA0?$AAl?$AAX?$AA?$AA@ DB 'U'
@@ -1261,7 +1242,7 @@ _dwFlags$ = 16						; size = 4
 
 ; 902  :   if (config.input.keyboard.block_windows_key)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+724, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+728, 0
 	push	ebx
 	push	esi
 
@@ -1646,10 +1627,10 @@ _lpvData$ = 16						; size = 4
 
 	cmp	BYTE PTR ?called@?2??IDirectInputDevice8_GetDeviceState_Detour@@YGJPAUIDirectInputDeviceW@@KPAX@Z@4_NA, 0
 	jne	SHORT $LN92@IDirectInp
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+824, 0
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN5@IDirectInp
-	push	OFFSET $SG258875
-	push	OFFSET $SG258876
+	push	OFFSET $SG258881
+	push	OFFSET $SG258882
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -1660,13 +1641,13 @@ $LN92@IDirectInp:
 ; 690  : 
 ; 691  :   SK_LOG4 ( ( L" DirectInput 8 - GetDeviceState: cbData = %lu",
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+824, 4
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
 	push	esi
 	push	edi
 	mov	edi, DWORD PTR _cbData$[ebp]
 	jl	SHORT $LN6@IDirectInp
 	push	edi
-	push	OFFSET $SG258878
+	push	OFFSET $SG258884
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2614,148 +2595,6 @@ $LN5@SK_HookDI8:
 ?SK_HookDI8@@YGIPAX@Z ENDP				; SK_HookDI8
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\users\andon\source\repos\specialk\src\input\dinput8.cpp
-;	COMDAT ??B<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@QBEP6GKPAX@ZXZ
-_TEXT	SEGMENT
-??B<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@QBEP6GKPAX@ZXZ PROC ; <lambda_79af748b3932cd1bb65dc9c9a5b90f4e>::operator unsigned long (__stdcall*)(void *), COMDAT
-; _this$ = ecx
-
-; 291  : }, nullptr, 0x00, nullptr);
-
-	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@CGKPAX@Z ; <lambda_79af748b3932cd1bb65dc9c9a5b90f4e>::<lambda_invoker_stdcall>
-	ret	0
-??B<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@QBEP6GKPAX@ZXZ ENDP ; <lambda_79af748b3932cd1bb65dc9c9a5b90f4e>::operator unsigned long (__stdcall*)(void *)
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\users\andon\source\repos\specialk\src\input\dinput8.cpp
-;	COMDAT ?<lambda_invoker_stdcall>@<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@CGKPAX@Z
-_TEXT	SEGMENT
-_user$ = 8						; size = 4
-?<lambda_invoker_stdcall>@<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@CGKPAX@Z PROC ; <lambda_79af748b3932cd1bb65dc9c9a5b90f4e>::<lambda_invoker_stdcall>, COMDAT
-
-; 291  : }, nullptr, 0x00, nullptr);
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-	xor	ecx, ecx
-	pop	ebp
-	jmp	??R<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@QBEKPAX@Z ; <lambda_79af748b3932cd1bb65dc9c9a5b90f4e>::operator()
-?<lambda_invoker_stdcall>@<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@CGKPAX@Z ENDP ; <lambda_79af748b3932cd1bb65dc9c9a5b90f4e>::<lambda_invoker_stdcall>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\users\andon\source\repos\specialk\src\input\dinput8.cpp
-;	COMDAT ??R<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@QBEKPAX@Z
-_TEXT	SEGMENT
-_user$ = 8						; size = 4
-??R<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@QBEKPAX@Z PROC ; <lambda_79af748b3932cd1bb65dc9c9a5b90f4e>::operator(), COMDAT
-; _this$ = ecx
-
-; 251  :   UNREFERENCED_PARAMETER (user);
-; 252  : 
-; 253  :   // OpenGL
-; 254  :   //
-; 255  :   if (gl && GetModuleHandle (L"OpenGL32.dll"))
-
-	cmp	BYTE PTR ?gl@?1??SK_BootDI8@@YGXXZ@4_NA, 0
-	push	esi
-	mov	esi, DWORD PTR __imp__GetModuleHandleW@4
-	je	SHORT $LN2@operator
-	push	OFFSET ??_C@_1BK@HHEPHKEC@?$AAO?$AAp?$AAe?$AAn?$AAG?$AAL?$AA3?$AA2?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@
-	call	esi
-	test	eax, eax
-	je	SHORT $LN2@operator
-
-; 256  :     SK_BootOpenGL ();
-
-	call	?SK_BootOpenGL@@YAXXZ			; SK_BootOpenGL
-$LN2@operator:
-
-; 257  : 
-; 258  : 
-; 259  :   // Vulkan
-; 260  :   //
-; 261  :   //if (vulkan && GetModuleHandle (L"Vulkan-1.dll"))
-; 262  :   //  SK_BootVulkan ();
-; 263  : 
-; 264  : 
-; 265  :   // D3D9
-; 266  :   //
-; 267  :   if (d3d9 && GetModuleHandle (L"d3d9.dll"))
-
-	cmp	BYTE PTR ?d3d9@?1??SK_BootDI8@@YGXXZ@4_NA, 0
-	je	SHORT $LN3@operator
-	push	OFFSET ??_C@_1BC@LLFFMIOK@?$AAd?$AA3?$AAd?$AA9?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@
-	call	esi
-	test	eax, eax
-	je	SHORT $LN3@operator
-
-; 268  :     SK_BootD3D9 ();
-
-	call	?SK_BootD3D9@@YAXXZ			; SK_BootD3D9
-$LN3@operator:
-
-; 269  : 
-; 270  : 
-; 271  :   // D3D11
-; 272  :   //
-; 273  :   if (d3d11 || GetModuleHandle (L"d3d11.dll"))
-
-	cmp	BYTE PTR ?d3d11@?1??SK_BootDI8@@YGXXZ@4_NA, 0
-	jne	SHORT $LN6@operator
-	push	OFFSET ??_C@_1BE@FHHGECGN@?$AAd?$AA3?$AAd?$AA1?$AA1?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@
-	call	esi
-	test	eax, eax
-	jne	SHORT $LN6@operator
-
-; 275  : 
-; 276  :   // Alternate form (or D3D12, but we don't care about that right now)
-; 277  :   else if (dxgi || GetModuleHandle (L"dxgi.dll"))
-
-	cmp	BYTE PTR ?dxgi@?1??SK_BootDI8@@YGXXZ@4_NA, al
-	jne	SHORT $LN6@operator
-	push	OFFSET ??_C@_1BC@IPOKGKHK@?$AAd?$AAx?$AAg?$AAi?$AA?4?$AAd?$AAl?$AAl?$AA?$AA@
-	call	esi
-	test	eax, eax
-	je	SHORT $LN7@operator
-$LN6@operator:
-
-; 274  :     SK_BootDXGI ();
-
-	call	?SK_BootDXGI@@YAXXZ			; SK_BootDXGI
-$LN7@operator:
-
-; 278  :     SK_BootDXGI ();
-; 279  : 
-; 280  : 
-; 281  : // Load user-defined DLLs (Plug-In)
-; 282  : #ifdef _WIN64
-; 283  :   SK_LoadPlugIns64 ();
-; 284  : #else
-; 285  :   SK_LoadPlugIns32 ();
-
-	call	?SK_LoadPlugIns32@@YAXXZ		; SK_LoadPlugIns32
-
-; 286  : #endif
-; 287  : 
-; 288  :   CloseHandle (GetCurrentThread ());
-
-	call	DWORD PTR __imp__GetCurrentThread@0
-	push	eax
-	call	DWORD PTR __imp__CloseHandle@4
-
-; 289  : 
-; 290  :   return 0;
-
-	xor	eax, eax
-	pop	esi
-
-; 291  : }, nullptr, 0x00, nullptr);
-
-	ret	4
-??R<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@QBEKPAX@Z ENDP ; <lambda_79af748b3932cd1bb65dc9c9a5b90f4e>::operator()
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 ;	COMDAT ??$static_cast_p2p@X$$A6GJPAUHINSTANCE__@@KABU_GUID@@PAPAXPAUIUnknown@@@Z@@YAPAPAXPAP6GJPAUHINSTANCE__@@KABU_GUID@@PAPAXPAUIUnknown@@@Z@Z
 _TEXT	SEGMENT
@@ -2796,7 +2635,7 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\src\input\dinput8.cpp
 _TEXT	SEGMENT
 $T1 = -28						; size = 24
-tv354 = -1						; size = 1
+tv364 = -1						; size = 1
 _bProxy$1$ = -1						; size = 1
 ?SK_BootDI8@@YGXXZ PROC					; SK_BootDI8
 
@@ -2812,9 +2651,9 @@ _bProxy$1$ = -1						; size = 1
 
 	mov	edx, OFFSET ?hooked@?1??SK_BootDI8@@YGXXZ@4KC
 	xor	eax, eax
-	push	edi
-	mov	edi, 1
-	mov	ecx, edi
+	push	ebx
+	mov	ebx, 1
+	mov	ecx, ebx
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\input\dinput8.cpp
 
@@ -2830,31 +2669,31 @@ _bProxy$1$ = -1						; size = 1
 ; 175  :   HMODULE hBackend = 
 ; 176  :     (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
 
-	push	ebx
 	push	esi
+	push	edi
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
-	mov	ebx, DWORD PTR __imp__GetModuleHandleW@4
+	mov	esi, DWORD PTR __imp__GetModuleHandleW@4
 	test	eax, 256				; 00000100H
-	je	SHORT $LN9@SK_BootDI8
-	mov	esi, DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A ; backend_dll
-	jmp	SHORT $LN10@SK_BootDI8
-$LN9@SK_BootDI8:
-	push	OFFSET $SG258461
-	call	ebx
-	mov	esi, eax
-$LN10@SK_BootDI8:
+	je	SHORT $LN16@SK_BootDI8
+	mov	edi, DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A ; backend_dll
+	jmp	SHORT $LN17@SK_BootDI8
+$LN16@SK_BootDI8:
+	push	OFFSET $SG258456
+	call	esi
+	mov	edi, eax
+$LN17@SK_BootDI8:
 
 ; 177  :                                     GetModuleHandle (L"dinput8.dll");
 ; 178  : 
 ; 179  :   dll_log.Log (L"[ DInput 8 ] Importing DirectInput8Create....");
 
-	push	OFFSET $SG258462
+	push	OFFSET $SG258457
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
 ; 180  :   dll_log.Log (L"[ DInput 8 ] ================================");
 
-	push	OFFSET $SG258463
+	push	OFFSET $SG258458
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -2875,18 +2714,18 @@ $LN10@SK_BootDI8:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN27@SK_BootDI8
+	jb	SHORT $LN34@SK_BootDI8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN27@SK_BootDI8:
+$LN34@SK_BootDI8:
 ; File c:\users\andon\source\repos\specialk\src\input\dinput8.cpp
 
 ; 182  :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))
 
-	push	OFFSET $SG258467
+	push	OFFSET $SG258462
 	push	eax
 	call	DWORD PTR __imp___wcsicmp
 	add	esp, 8
@@ -2900,7 +2739,7 @@ $LN27@SK_BootDI8:
 
 ; 182  :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))
 
-	sete	BYTE PTR tv354[ebp]
+	sete	BYTE PTR tv364[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -2909,7 +2748,7 @@ $LN27@SK_BootDI8:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN37@SK_BootDI8
+	jb	SHORT $LN44@SK_BootDI8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -2928,24 +2767,24 @@ $LN27@SK_BootDI8:
 	push	DWORD PTR $T1[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN37@SK_BootDI8:
+$LN44@SK_BootDI8:
 ; File c:\users\andon\source\repos\specialk\src\input\dinput8.cpp
 
 ; 182  :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))
 
-	cmp	BYTE PTR tv354[ebp], 0
+	cmp	BYTE PTR tv364[ebp], 0
 	je	SHORT $LN3@SK_BootDI8
 
 ; 183  :   {
 ; 184  :     dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %ph",
 
-	push	OFFSET $SG258468
-	push	esi
+	push	OFFSET $SG258463
+	push	edi
 	call	DWORD PTR __imp__GetProcAddress@8
 	push	eax
 	mov	DWORD PTR ?DirectInput8Create_Import@@3P6GJPAUHINSTANCE__@@KABU_GUID@@PAPAXPAUIUnknown@@@ZA, eax ; DirectInput8Create_Import
-	push	OFFSET $SG258469
-	jmp	SHORT $LN69@SK_BootDI8
+	push	OFFSET $SG258464
+	jmp	SHORT $LN73@SK_BootDI8
 $LN3@SK_BootDI8:
 
 ; 185  :       (DirectInput8Create_Import) =  \
@@ -2957,15 +2796,15 @@ $LN3@SK_BootDI8:
 ; 191  : 
 ; 192  :   else if (hBackend != nullptr)
 
-	test	esi, esi
+	test	edi, edi
 	je	SHORT $LN6@SK_BootDI8
 
 ; 193  :   {
 ; 194  :     const bool bProxy =
 ; 195  :       ( GetModuleHandle (L"dinput8.dll") != hBackend );
 
-	push	OFFSET $SG258471
-	call	ebx
+	push	OFFSET $SG258466
+	call	esi
 
 ; 196  : 
 ; 197  : 
@@ -2974,9 +2813,9 @@ $LN3@SK_BootDI8:
 	push	0
 	push	OFFSET ?DirectInput8Create_Import@@3P6GJPAUHINSTANCE__@@KABU_GUID@@PAPAXPAUIUnknown@@@ZA ; DirectInput8Create_Import
 	push	OFFSET ?DirectInput8Create@@YAJPAUHINSTANCE__@@KABU_GUID@@PAPAXPAUIUnknown@@@Z ; DirectInput8Create
-	cmp	eax, esi
-	push	OFFSET $SG258473
-	push	OFFSET $SG258474
+	cmp	eax, edi
+	push	OFFSET $SG258468
+	push	OFFSET $SG258469
 	setne	BYTE PTR _bProxy$1$[ebp]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -2991,17 +2830,17 @@ $LN3@SK_BootDI8:
 ; 205  :       if (bProxy)
 
 	cmp	BYTE PTR _bProxy$1$[ebp], al
-	je	SHORT $LN68@SK_BootDI8
+	je	SHORT $LN72@SK_BootDI8
 
 ; 206  :       {
 ; 207  :         (DirectInput8Create_Import) =  \
 
-	push	OFFSET $SG258476
-	push	esi
+	push	OFFSET $SG258471
+	push	edi
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?DirectInput8Create_Import@@3P6GJPAUHINSTANCE__@@KABU_GUID@@PAPAXPAUIUnknown@@@ZA, eax ; DirectInput8Create_Import
 	jmp	SHORT $LN7@SK_BootDI8
-$LN68@SK_BootDI8:
+$LN72@SK_BootDI8:
 	mov	eax, DWORD PTR ?DirectInput8Create_Import@@3P6GJPAUHINSTANCE__@@KABU_GUID@@PAPAXPAUIUnknown@@@ZA ; DirectInput8Create_Import
 $LN7@SK_BootDI8:
 
@@ -3013,8 +2852,8 @@ $LN7@SK_BootDI8:
 ; 213  :       dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %p  { Hooked }",
 
 	push	eax
-	push	OFFSET $SG258477
-$LN69@SK_BootDI8:
+	push	OFFSET $SG258472
+$LN73@SK_BootDI8:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3046,7 +2885,7 @@ $LN6@SK_BootDI8:
 	push	OFFSET ?vulkan@?1??SK_BootDI8@@YGXXZ@4_NA
 	push	OFFSET ?gl@?1??SK_BootDI8@@YGXXZ@4_NA
 	push	0
-	call	ebx
+	call	esi
 	push	eax
 	call	?SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z ; SK_TestRenderImports
 	add	esp, 36					; 00000024H
@@ -3073,31 +2912,30 @@ $LN6@SK_BootDI8:
 ; 246  :   InterlockedExchange (&__di8_ready, TRUE);
 
 	mov	eax, OFFSET ?__di8_ready@@3JC		; __di8_ready
-	xchg	DWORD PTR [eax], edi
+	xchg	DWORD PTR [eax], ebx
 
 ; 247  : 
 ; 248  : 
-; 249  : CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD
-
-	push	0
-	push	0
-	push	0
-	push	OFFSET ?<lambda_invoker_stdcall>@<lambda_79af748b3932cd1bb65dc9c9a5b90f4e>@@CGKPAX@Z ; <lambda_79af748b3932cd1bb65dc9c9a5b90f4e>::<lambda_invoker_stdcall>
-	push	0
-	push	0
-	call	DWORD PTR __imp__CreateThread@24
-	pop	esi
-	pop	ebx
-$LN1@SK_BootDI8:
-	pop	edi
-
-; 250  : {
-; 251  :   UNREFERENCED_PARAMETER (user);
+; 249  : //CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD
+; 250  : //{
+; 251  :   //UNREFERENCED_PARAMETER (user);
 ; 252  : 
 ; 253  :   // OpenGL
 ; 254  :   //
 ; 255  :   if (gl && GetModuleHandle (L"OpenGL32.dll"))
+
+	cmp	BYTE PTR ?gl@?1??SK_BootDI8@@YGXXZ@4_NA, 0
+	je	SHORT $LN8@SK_BootDI8
+	push	OFFSET $SG258474
+	call	esi
+	test	eax, eax
+	je	SHORT $LN8@SK_BootDI8
+
 ; 256  :     SK_BootOpenGL ();
+
+	call	?SK_BootOpenGL@@YAXXZ			; SK_BootOpenGL
+$LN8@SK_BootDI8:
+
 ; 257  : 
 ; 258  : 
 ; 259  :   // Vulkan
@@ -3109,16 +2947,49 @@ $LN1@SK_BootDI8:
 ; 265  :   // D3D9
 ; 266  :   //
 ; 267  :   if (d3d9 && GetModuleHandle (L"d3d9.dll"))
+
+	cmp	BYTE PTR ?d3d9@?1??SK_BootDI8@@YGXXZ@4_NA, 0
+	je	SHORT $LN9@SK_BootDI8
+	push	OFFSET $SG258476
+	call	esi
+	test	eax, eax
+	je	SHORT $LN9@SK_BootDI8
+
 ; 268  :     SK_BootD3D9 ();
+
+	call	?SK_BootD3D9@@YAXXZ			; SK_BootD3D9
+$LN9@SK_BootDI8:
+
 ; 269  : 
 ; 270  : 
 ; 271  :   // D3D11
 ; 272  :   //
 ; 273  :   if (d3d11 || GetModuleHandle (L"d3d11.dll"))
-; 274  :     SK_BootDXGI ();
+
+	cmp	BYTE PTR ?d3d11@?1??SK_BootDI8@@YGXXZ@4_NA, 0
+	jne	SHORT $LN12@SK_BootDI8
+	push	OFFSET $SG258480
+	call	esi
+	test	eax, eax
+	jne	SHORT $LN12@SK_BootDI8
+
 ; 275  : 
 ; 276  :   // Alternate form (or D3D12, but we don't care about that right now)
 ; 277  :   else if (dxgi || GetModuleHandle (L"dxgi.dll"))
+
+	cmp	BYTE PTR ?dxgi@?1??SK_BootDI8@@YGXXZ@4_NA, al
+	jne	SHORT $LN12@SK_BootDI8
+	push	OFFSET $SG258483
+	call	esi
+	test	eax, eax
+	je	SHORT $LN13@SK_BootDI8
+$LN12@SK_BootDI8:
+
+; 274  :     SK_BootDXGI ();
+
+	call	?SK_BootDXGI@@YAXXZ			; SK_BootDXGI
+$LN13@SK_BootDI8:
+
 ; 278  :     SK_BootDXGI ();
 ; 279  : 
 ; 280  : 
@@ -3127,12 +2998,19 @@ $LN1@SK_BootDI8:
 ; 283  :   SK_LoadPlugIns64 ();
 ; 284  : #else
 ; 285  :   SK_LoadPlugIns32 ();
+
+	call	?SK_LoadPlugIns32@@YAXXZ		; SK_LoadPlugIns32
+	pop	edi
+	pop	esi
+$LN1@SK_BootDI8:
+	pop	ebx
+
 ; 286  : #endif
 ; 287  : 
-; 288  :   CloseHandle (GetCurrentThread ());
-; 289  : 
-; 290  :   return 0;
-; 291  : }, nullptr, 0x00, nullptr);
+; 288  : //  CloseHandle (GetCurrentThread ());
+; 289  : //
+; 290  : //  return 0;
+; 291  : //}, nullptr, 0x00, nullptr);
 ; 292  : }
 
 	mov	esp, ebp
@@ -3241,8 +3119,8 @@ $LN21@DirectInpu:
 	push	esi
 	push	DWORD PTR _dwVersion$[ebp]
 	push	DWORD PTR _hinst$[ebp]
-	push	OFFSET $SG258356
-	push	OFFSET $SG258357
+	push	OFFSET $SG258418
+	push	OFFSET $SG258419
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -3325,7 +3203,7 @@ $LN31@DirectInpu:
 	push	OFFSET ?IDirectInput8_CreateDevice_Detour@@YGJPAUIDirectInput8W@@ABU_GUID@@PAPAUIDirectInputDeviceW@@PAUIUnknown@@@Z ; IDirectInput8_CreateDevice_Detour
 	mov	esi, DWORD PTR [ecx]
 	push	DWORD PTR [esi+12]
-	push	OFFSET $SG258361
+	push	OFFSET $SG258423
 	call	?SK_CreateFuncHook@@YG?AW4MH_STATUS@@PB_WPAX1PAPAX@Z ; SK_CreateFuncHook
 
 ; 151  :                                    vftable [3],
@@ -3398,7 +3276,7 @@ $LL2@WaitForIni:
 ; 113  :     SleepEx (config.system.init_delay, TRUE);
 
 	push	1
-	push	DWORD PTR ?config@@3Usk_config_t@@A+816
+	push	DWORD PTR ?config@@3Usk_config_t@@A+828
 	call	esi
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
@@ -3475,7 +3353,7 @@ $LL54@IDirectInp:
 
 ; 938  :   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
 
-	mov	eax, OFFSET $SG258969
+	mov	eax, OFFSET $SG258975
 	jmp	SHORT $LN60@IDirectInp
 $LN13@IDirectInp:
 ; File c:\program files (x86)\windows kits\8.1\include\shared\guiddef.h
@@ -3497,7 +3375,7 @@ $LL56@IDirectInp:
 
 ; 938  :   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
 
-	mov	eax, OFFSET $SG258970
+	mov	eax, OFFSET $SG258976
 	jmp	SHORT $LN60@IDirectInp
 $LN11@IDirectInp:
 ; File c:\program files (x86)\windows kits\8.1\include\shared\guiddef.h
@@ -3515,10 +3393,10 @@ $LL59@IDirectInp:
 	add	edx, 4
 	sub	esi, 4
 	jae	SHORT $LL59@IDirectInp
-	mov	eax, OFFSET $SG258971
+	mov	eax, OFFSET $SG258977
 	jmp	SHORT $LN60@IDirectInp
 $LN58@IDirectInp:
-	mov	eax, OFFSET $SG258972
+	mov	eax, OFFSET $SG258978
 $LN60@IDirectInp:
 ; File c:\users\andon\source\repos\specialk\src\input\dinput8.cpp
 
@@ -3531,13 +3409,13 @@ $LN60@IDirectInp:
 	push	ecx
 	push	eax
 	push	esi
-	push	OFFSET $SG258973
+	push	OFFSET $SG258979
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
 ; 950  :   DINPUT8_CALL ( hr,
 
-	push	OFFSET $SG258974
+	push	OFFSET $SG258980
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -3588,7 +3466,7 @@ $LN36@IDirectInp:
 	push	eax
 	movzx	eax, di
 	push	eax
-	push	OFFSET $SG258977
+	push	OFFSET $SG258983
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -3596,7 +3474,7 @@ $LN36@IDirectInp:
 	add	esp, 20					; 00000014H
 	jmp	SHORT $LN3@IDirectInp
 $LN2@IDirectInp:
-	push	OFFSET $SG258978
+	push	OFFSET $SG258984
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -3680,7 +3558,7 @@ $LN39@IDirectInp:
 	push	OFFSET ?IDirectInputDevice8_GetDeviceState_GAMEPAD_Original@@3P6GJPAUIDirectInputDeviceW@@KPAX@ZA ; IDirectInputDevice8_GetDeviceState_GAMEPAD_Original
 	push	OFFSET ?IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour@@YGJPAUIDirectInputDeviceW@@KPAX@Z ; IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour
 	push	DWORD PTR [edi+36]
-	push	OFFSET $SG258981
+	push	OFFSET $SG258987
 	call	?SK_CreateFuncHook@@YG?AW4MH_STATUS@@PB_WPAX1PAPAX@Z ; SK_CreateFuncHook
 
 ; 990  :                                  vftable [9],
@@ -3706,7 +3584,7 @@ $LN5@IDirectInp:
 	push	OFFSET ?IDirectInputDevice8_SetCooperativeLevel_Original@@3P6GJPAUIDirectInputDeviceW@@PAUHWND__@@K@ZA ; IDirectInputDevice8_SetCooperativeLevel_Original
 	push	OFFSET ?IDirectInputDevice8_SetCooperativeLevel_Detour@@YGJPAUIDirectInputDeviceW@@PAUHWND__@@K@Z ; IDirectInputDevice8_SetCooperativeLevel_Detour
 	push	DWORD PTR [edi+52]
-	push	OFFSET $SG258983
+	push	OFFSET $SG258989
 	call	?SK_CreateFuncHook@@YG?AW4MH_STATUS@@PB_WPAX1PAPAX@Z ; SK_CreateFuncHook
 
 ; 1000 :                                  vftable [13],
@@ -6761,7 +6639,7 @@ _pCaps$ = 16						; size = 4
 ; 466  :   
 ; 467  :   switch (config.input.gamepad.predefined_layout)
 
-	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+692
+	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+696
 	xorps	xmm0, xmm0
 	movq	QWORD PTR ?joy_to_xi@@3U_XINPUT_STATE@@A+4, xmm0
 	mov	DWORD PTR ?joy_to_xi@@3U_XINPUT_STATE@@A+12, 0
@@ -7433,7 +7311,7 @@ _TEXT	SEGMENT
 
 ; 1057 :   if (! config.input.gamepad.hook_dinput8)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+687, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+691, 0
 	je	SHORT $LN6@SK_Input_P
 
 ; 1058 :     return;
@@ -7463,7 +7341,7 @@ _TEXT	SEGMENT
 	jne	SHORT $LN5@SK_Input_P
 	cmp	BYTE PTR ?tests@?6??SK_Input_PreHookDI8@@YAXXZ@4PAUsk_import_test_s@@A+12, 0
 	jne	SHORT $LN5@SK_Input_P
-	push	OFFSET $SG259011
+	push	OFFSET $SG259017
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	test	eax, eax
 	je	SHORT $LN6@SK_Input_P
@@ -7492,7 +7370,7 @@ _TEXT	SEGMENT
 
 ; 1032 :   if (! config.input.gamepad.hook_dinput8)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+687, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+691, 0
 	je	SHORT $LN3@SK_Input_H
 
 ; 1033 :     return;
@@ -7510,9 +7388,9 @@ _TEXT	SEGMENT
 ; 1038 :   {
 ; 1039 :     SK_LOG0 ( ( L"Game uses DirectInput, installing input hooks..." ),
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+824, eax
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG258996
+	push	OFFSET $SG259002
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -7529,7 +7407,7 @@ $LN4@SK_Input_H:
 	mov	eax, DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A ; backend_dll
 	jmp	SHORT $LN7@SK_Input_H
 $LN6@SK_Input_H:
-	push	OFFSET $SG258997
+	push	OFFSET $SG259003
 	call	DWORD PTR __imp__GetModuleHandleW@4
 $LN7@SK_Input_H:
 
@@ -7539,11 +7417,11 @@ $LN7@SK_Input_H:
 
 	push	OFFSET ?DirectInput8Create_Import@@3P6GJPAUHINSTANCE__@@KABU_GUID@@PAPAXPAUIUnknown@@@ZA ; DirectInput8Create_Import
 	push	OFFSET ?DirectInput8Create@@YAJPAUHINSTANCE__@@KABU_GUID@@PAPAXPAUIUnknown@@@Z ; DirectInput8Create
-	push	OFFSET $SG258998
+	push	OFFSET $SG259004
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 	push	eax
-	push	OFFSET $SG258999
+	push	OFFSET $SG259005
 	call	?SK_CreateFuncHook@@YG?AW4MH_STATUS@@PB_WPAX1PAPAX@Z ; SK_CreateFuncHook
 $LN3@SK_Input_H:
 
@@ -7564,7 +7442,7 @@ _TEXT	SEGMENT
 
 ; 346  :   return SK_ShutdownCore (L"dinput8");
 
-	push	OFFSET $SG258496
+	push	OFFSET $SG258502
 	call	?SK_ShutdownCore@@YG_NPB_W@Z		; SK_ShutdownCore
 
 ; 347  : }
@@ -7580,7 +7458,7 @@ _TEXT	SEGMENT
 ; 340  :   return SK_StartupCore (L"dinput8", di8_init_callback);
 
 	push	OFFSET ?di8_init_callback@@YGXP6GXXZ@Z	; di8_init_callback
-	push	OFFSET $SG258492
+	push	OFFSET $SG258498
 	call	?SK_StartupCore@@YG_NPB_WPAX@Z		; SK_StartupCore
 
 ; 341  : }
@@ -7772,6 +7650,8 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
+
+; 1076 : sk_input_api_context_s SK_DI8_Backend;
 
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete

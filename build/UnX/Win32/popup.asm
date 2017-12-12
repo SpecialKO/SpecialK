@@ -16,7 +16,7 @@ _BSS	SEGMENT
 ?cs@SK_PopupManager@@0U_RTL_CRITICAL_SECTION@@A DB 018H DUP (?) ; SK_PopupManager::cs
 _BSS	ENDS
 CONST	SEGMENT
-$SG222938 DB	'DestructStart', 00H
+$SG222960 DB	'DestructStart', 00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 CONST	ENDS
 PUBLIC	??2@YAPAXIPAX@Z					; operator new
@@ -1272,6 +1272,8 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\osd\popup.cpp
 
+; 264  : }
+
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -1445,8 +1447,6 @@ _<_Args_2>$ = 20					; size = 4
 	test	ecx, ecx
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\osd\popup.cpp
-
-; 264  : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -17191,7 +17191,7 @@ $LN7@createPopu:
 ; 1520 : 		return assign(cstr, strlen(cstr));
 
 	push	13					; 0000000dH
-	push	OFFSET $SG222938
+	push	OFFSET $SG222960
 	lea	ecx, DWORD PTR $T2[ebp]
 	call	DWORD PTR __imp_?assign@String@CEGUI@@QAEAAV12@PBDI@Z
 ; File c:\users\andon\source\repos\specialk\depends\include\cegui\subscriberslot.h

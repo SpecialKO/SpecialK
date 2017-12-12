@@ -9,35 +9,414 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
+PUBLIC	___pobjMapEntryFirst
+PUBLIC	___pobjMapEntryLast
+PUBLIC	?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA	; ATL::_pPerfRegFunc
+PUBLIC	?_pPerfUnRegFunc@ATL@@3P6AJXZA			; ATL::_pPerfUnRegFunc
+PUBLIC	?_AtlRegisterPerUser@ATL@@3_NA			; ATL::_AtlRegisterPerUser
+PUBLIC	?_pModule@ATL@@3PAVCComModule@1@A		; ATL::_pModule
+PUBLIC	_CLSID_Registrar
+PUBLIC	_IID_IRegistrar
+PUBLIC	?chDirSep@ATL@@3_WB				; ATL::chDirSep
+PUBLIC	?chRightBracket@ATL@@3_WB			; ATL::chRightBracket
+PUBLIC	?chLeftBracket@ATL@@3_WB			; ATL::chLeftBracket
+PUBLIC	?chQuote@ATL@@3_WB				; ATL::chQuote
+PUBLIC	?chEquals@ATL@@3_WB				; ATL::chEquals
+PUBLIC	?szStringVal@ATL@@3QB_WB			; ATL::szStringVal
+PUBLIC	?multiszStringVal@ATL@@3QB_WB			; ATL::multiszStringVal
+PUBLIC	?szDwordVal@ATL@@3QB_WB				; ATL::szDwordVal
+PUBLIC	?szBinaryVal@ATL@@3QB_WB			; ATL::szBinaryVal
+PUBLIC	?szValToken@ATL@@3QB_WB				; ATL::szValToken
+PUBLIC	?szForceRemove@ATL@@3QB_WB			; ATL::szForceRemove
+PUBLIC	?szNoRemove@ATL@@3QB_WB				; ATL::szNoRemove
+PUBLIC	?szDelete@ATL@@3QB_WB				; ATL::szDelete
+PUBLIC	_IID_IDocHostUIHandlerDispatch
+PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
+PUBLIC	_IID_IAxWinHostWindow
+PUBLIC	_IID_IAxWinHostWindowLic
+PUBLIC	_IID_IAxWinAmbientDispatch
 PUBLIC	?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
+PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
+PUBLIC	_LIBID_ATLLib
+PUBLIC	_IID_IAxWinAmbientDispatchEx
+PUBLIC	_IID_IInternalConnection
+;	COMDAT ?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA
+_BSS	SEGMENT
+?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA DD 01H DUP (?) ; ATL::_pPerfRegFunc
+_BSS	ENDS
+;	COMDAT ?_pPerfUnRegFunc@ATL@@3P6AJXZA
+_BSS	SEGMENT
+?_pPerfUnRegFunc@ATL@@3P6AJXZA DD 01H DUP (?)		; ATL::_pPerfUnRegFunc
+_BSS	ENDS
+;	COMDAT ?_AtlRegisterPerUser@ATL@@3_NA
+_BSS	SEGMENT
+?_AtlRegisterPerUser@ATL@@3_NA DB 01H DUP (?)		; ATL::_AtlRegisterPerUser
+_BSS	ENDS
+;	COMDAT ?_pModule@ATL@@3PAVCComModule@1@A
+_BSS	SEGMENT
+?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
+_BSS	ENDS
+;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
+_BSS	SEGMENT
+?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A DD 01H DUP (?) ; ATL::_pAtlAutoThreadModule
+_BSS	ENDS
 _BSS	SEGMENT
 ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A DD 01H DUP (?) ; SK_Inject_AddressManager
 _BSS	ENDS
+;	COMDAT ?_pAtlModule@ATL@@3PAVCAtlModule@1@A
+_BSS	SEGMENT
+?_pAtlModule@ATL@@3PAVCAtlModule@1@A DD 01H DUP (?)	; ATL::_pAtlModule
+_BSS	ENDS
+;	COMDAT _IID_IInternalConnection
 CONST	SEGMENT
-$SG149776 DB	00H, 00H
+_IID_IInternalConnection DD 072ad0770H
+	DW	06a9fH
+	DW	011d1H
+	DB	0bcH
+	DB	0ecH
+	DB	00H
+	DB	060H
+	DB	08H
+	DB	08fH
+	DB	044H
+	DB	04eH
+CONST	ENDS
+;	COMDAT _IID_IAxWinAmbientDispatchEx
+CONST	SEGMENT
+_IID_IAxWinAmbientDispatchEx DD 0b2d0778bH
+	DW	0ac99H
+	DW	04c58H
+	DB	0a5H
+	DB	0c8H
+	DB	0e7H
+	DB	072H
+	DB	04eH
+	DB	053H
+	DB	016H
+	DB	0b5H
+CONST	ENDS
+;	COMDAT _LIBID_ATLLib
+CONST	SEGMENT
+_LIBID_ATLLib DD 044ec0535H
+	DW	0400fH
+	DW	011d0H
+	DB	09dH
+	DB	0cdH
+	DB	00H
+	DB	0a0H
+	DB	0c9H
+	DB	03H
+	DB	091H
+	DB	0d3H
+CONST	ENDS
+;	COMDAT _IID_IAxWinAmbientDispatch
+CONST	SEGMENT
+_IID_IAxWinAmbientDispatch DD 0b6ea2051H
+	DW	048aH
+	DW	011d1H
+	DB	082H
+	DB	0b9H
+	DB	00H
+	DB	0c0H
+	DB	04fH
+	DB	0b9H
+	DB	094H
+	DB	02eH
+CONST	ENDS
+;	COMDAT _IID_IAxWinHostWindowLic
+CONST	SEGMENT
+_IID_IAxWinHostWindowLic DD 03935bda8H
+	DW	04ed9H
+	DW	0495cH
+	DB	086H
+	DB	050H
+	DB	0e0H
+	DB	01fH
+	DB	0c1H
+	DB	0e3H
+	DB	08aH
+	DB	04bH
+CONST	ENDS
+;	COMDAT _IID_IAxWinHostWindow
+CONST	SEGMENT
+_IID_IAxWinHostWindow DD 0b6ea2050H
+	DW	048aH
+	DW	011d1H
+	DB	082H
+	DB	0b9H
+	DB	00H
+	DB	0c0H
+	DB	04fH
+	DB	0b9H
+	DB	094H
+	DB	02eH
+CONST	ENDS
+;	COMDAT _IID_IDocHostUIHandlerDispatch
+CONST	SEGMENT
+_IID_IDocHostUIHandlerDispatch DD 0425b5af0H
+	DW	065f1H
+	DW	011d1H
+	DB	096H
+	DB	011H
+	DB	00H
+	DB	00H
+	DB	0f8H
+	DB	01eH
+	DB	0dH
+	DB	0dH
+CONST	ENDS
+;	COMDAT ?szDelete@ATL@@3QB_WB
+CONST	SEGMENT
+?szDelete@ATL@@3QB_WB DD FLAT:$SG165173			; ATL::szDelete
+CONST	ENDS
+;	COMDAT ?szNoRemove@ATL@@3QB_WB
+CONST	SEGMENT
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG165171		; ATL::szNoRemove
+CONST	ENDS
+;	COMDAT ?szForceRemove@ATL@@3QB_WB
+CONST	SEGMENT
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG165169		; ATL::szForceRemove
+CONST	ENDS
+;	COMDAT ?szValToken@ATL@@3QB_WB
+CONST	SEGMENT
+?szValToken@ATL@@3QB_WB DD FLAT:$SG165167		; ATL::szValToken
+CONST	ENDS
+;	COMDAT ?szBinaryVal@ATL@@3QB_WB
+CONST	SEGMENT
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG165165		; ATL::szBinaryVal
+CONST	ENDS
+;	COMDAT ?szDwordVal@ATL@@3QB_WB
+CONST	SEGMENT
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG165163		; ATL::szDwordVal
+CONST	ENDS
+;	COMDAT ?multiszStringVal@ATL@@3QB_WB
+CONST	SEGMENT
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG165161		; ATL::multiszStringVal
+CONST	ENDS
+;	COMDAT ?szStringVal@ATL@@3QB_WB
+CONST	SEGMENT
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG165159		; ATL::szStringVal
+CONST	ENDS
+;	COMDAT ?chEquals@ATL@@3_WB
+CONST	SEGMENT
+?chEquals@ATL@@3_WB DW 03dH				; ATL::chEquals
+CONST	ENDS
+;	COMDAT ?chQuote@ATL@@3_WB
+CONST	SEGMENT
+?chQuote@ATL@@3_WB DW 027H				; ATL::chQuote
+CONST	ENDS
+;	COMDAT ?chLeftBracket@ATL@@3_WB
+CONST	SEGMENT
+?chLeftBracket@ATL@@3_WB DW 07bH			; ATL::chLeftBracket
+CONST	ENDS
+;	COMDAT ?chRightBracket@ATL@@3_WB
+CONST	SEGMENT
+?chRightBracket@ATL@@3_WB DW 07dH			; ATL::chRightBracket
+CONST	ENDS
+;	COMDAT ?chDirSep@ATL@@3_WB
+CONST	SEGMENT
+?chDirSep@ATL@@3_WB DW 05cH				; ATL::chDirSep
+CONST	ENDS
+;	COMDAT _IID_IRegistrar
+CONST	SEGMENT
+_IID_IRegistrar DD 044ec053bH
+	DW	0400fH
+	DW	011d0H
+	DB	09dH
+	DB	0cdH
+	DB	00H
+	DB	0a0H
+	DB	0c9H
+	DB	03H
+	DB	091H
+	DB	0d3H
+CONST	ENDS
+;	COMDAT _CLSID_Registrar
+CONST	SEGMENT
+_CLSID_Registrar DD 044ec053aH
+	DW	0400fH
+	DW	011d0H
+	DB	09dH
+	DB	0cdH
+	DB	00H
+	DB	0a0H
+	DB	0c9H
+	DB	03H
+	DB	091H
+	DB	0d3H
+CONST	ENDS
+;	COMDAT ___pobjMapEntryLast
+ATL$__z	SEGMENT
+___pobjMapEntryLast DD 00H
+ATL$__z	ENDS
+;	COMDAT ___pobjMapEntryFirst
+ATL$__a	SEGMENT
+___pobjMapEntryFirst DD 00H
+ATL$__a	ENDS
+CONST	SEGMENT
+$SG167937 DB	'Locked', 00H
+	ORG $+1
+$SG151568 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG151615 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG149777 DB	']', 00H, 0aH, 00H, 00H, 00H
+$SG151662 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
+	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG151709 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
+	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG149778 DB	'[', 00H, 00H, 00H
-$SG149779 DB	'=', 00H, 00H, 00H
-$SG149780 DB	0aH, 00H, 00H, 00H
-$SG149781 DB	0aH, 00H, 00H, 00H
-$SG149934 DB	'%', 00H, 'p', 00H, 00H, 00H
+$SG151756 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
+	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG151803 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
+	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG149953 DB	'%', 00H, 'p', 00H, 00H, 00H
+$SG165159 DB	'S', 00H, 00H, 00H
+$SG165161 DB	'M', 00H, 00H, 00H
+$SG151850 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
+	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG149954 DB	'%', 00H, 'p', 00H, 00H, 00H
+$SG165163 DB	'D', 00H, 00H, 00H
+$SG165165 DB	'B', 00H, 00H, 00H
+$SG165167 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG165169 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
+$SG165171 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG149984 DB	'%', 00H, 'p', 00H, 00H, 00H
-	ORG $+6
-$SG149406 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG165173 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG151897 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
+	DB	00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG168310 DB	00H, 00H
+	ORG $+2
+$SG168311 DB	']', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG168312 DB	'[', 00H, 00H, 00H
+$SG168313 DB	'=', 00H, 00H, 00H
+$SG168314 DB	0aH, 00H, 00H, 00H
+$SG168315 DB	0aH, 00H, 00H, 00H
+$SG152038 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
+	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+$SG168317 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
+	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 'G', 00H
+	DB	'l', 00H, 'o', 00H, 'b', 00H, 'a', 00H, 'l', 00H, '\', 00H, 'i'
+	DB	00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'i', 00H
+	DB	'o', 00H, 'n', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, '.'
+	DB	00H, 'l', 00H, 'o', 00H, 'c', 00H, 'k', 00H, 00H, 00H
+$SG151944 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
+	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
+$SG151991 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG168445 DB	'%', 00H, 'p', 00H, 00H, 00H
+	ORG $+2
+$SG168464 DB	'%', 00H, 'p', 00H, 00H, 00H
+	ORG $+2
+$SG168465 DB	'%', 00H, 'p', 00H, 00H, 00H
+	ORG $+2
+$SG152085 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG168495 DB	'%', 00H, 'p', 00H, 00H, 00H
+	ORG $+2
+$SG152132 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG152179 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
+$SG152226 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG152273 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG152278 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG152325 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG152372 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG152419 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG151403 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG151474 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG165849 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG165850 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG165851 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG165852 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG165853 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG165854 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG165855 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG165856 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG165857 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG151521 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+	ORG $+2
+$SG165858 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG165859 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG165860 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+	DB	'b', 00H, 00H, 00H
+	ORG $+4
+$SG167931 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 'G', 00H
 	DB	'l', 00H, 'o', 00H, 'b', 00H, 'a', 00H, 'l', 00H, '\', 00H, 'i'
 	DB	00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H
 	DB	00H
+	ORG $+2
+$SG167932 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
+	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 'G', 00H
+	DB	'l', 00H, 'o', 00H, 'b', 00H, 'a', 00H, 'l', 00H, '\', 00H, 'i'
+	DB	00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'i', 00H
+	DB	'o', 00H, 'n', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, '.'
+	DB	00H, 'l', 00H, 'o', 00H, 'c', 00H, 'k', 00H, 00H, 00H
 CONST	ENDS
+PUBLIC	_HRESULT_FROM_WIN32
 PUBLIC	_wmemcpy
 PUBLIC	_wmemmove
 PUBLIC	??2@YAPAXIPAX@Z					; operator new
@@ -208,6 +587,7 @@ PUBLIC	?_Get@?$_Ptr_base@UiSK_INI@@@std@@QBEPAUiSK_INI@@XZ ; std::_Ptr_base<iSK_
 PUBLIC	?_Decref@?$_Ptr_base@UiSK_INI@@@std@@QAEXXZ	; std::_Ptr_base<iSK_INI>::_Decref
 PUBLIC	?_Reset0@?$_Ptr_base@UiSK_INI@@@std@@QAEXPAUiSK_INI@@PAV_Ref_count_base@2@@Z ; std::_Ptr_base<iSK_INI>::_Reset0
 PUBLIC	??0?$shared_ptr@UiSK_INI@@@std@@QAE@XZ		; std::shared_ptr<iSK_INI>::shared_ptr<iSK_INI>
+PUBLIC	??0?$shared_ptr@UiSK_INI@@@std@@QAE@$$T@Z	; std::shared_ptr<iSK_INI>::shared_ptr<iSK_INI>
 PUBLIC	??0?$shared_ptr@UiSK_INI@@@std@@QAE@$$QAV01@@Z	; std::shared_ptr<iSK_INI>::shared_ptr<iSK_INI>
 PUBLIC	??4?$shared_ptr@UiSK_INI@@@std@@QAEAAV01@$$QAV01@@Z ; std::shared_ptr<iSK_INI>::operator=
 PUBLIC	??1?$shared_ptr@UiSK_INI@@@std@@QAE@XZ		; std::shared_ptr<iSK_INI>::~shared_ptr<iSK_INI>
@@ -231,6 +611,58 @@ PUBLIC	?end@?$list@U?$pair@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$alloc
 PUBLIC	?begin@?$_Hash@V?$_Umap_traits@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@V?$_Uhash_compare@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@2@V?$allocator@U?$pair@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@@std@@@2@$0A@@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@@std@@@std@@@std@@@2@XZ ; std::_Hash<std::_Umap_traits<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,iSK_INISection,std::_Uhash_compare<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,std::hash<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >,std::equal_to<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::allocator<std::pair<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const ,iSK_INISection> >,0> >::begin
 PUBLIC	?end@?$_Hash@V?$_Umap_traits@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@V?$_Uhash_compare@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@2@V?$allocator@U?$pair@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@@std@@@2@$0A@@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@@std@@@std@@@std@@@2@XZ ; std::_Hash<std::_Umap_traits<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,iSK_INISection,std::_Uhash_compare<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,std::hash<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >,std::equal_to<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::allocator<std::pair<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const ,iSK_INISection> >,0> >::end
 PUBLIC	??_GiSK_INI@@QAEPAXI@Z				; iSK_INI::`scalar deleting destructor'
+PUBLIC	??0?$CTraceCategoryEx@$0IAAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<524288,0>::CTraceCategoryEx<524288,0>
+PUBLIC	??0?$CTraceCategoryEx@$00$0A@@ATL@@QAE@PB_W@Z	; ATL::CTraceCategoryEx<1,0>::CTraceCategoryEx<1,0>
+PUBLIC	??0?$CTraceCategoryEx@$01$0A@@ATL@@QAE@PB_W@Z	; ATL::CTraceCategoryEx<2,0>::CTraceCategoryEx<2,0>
+PUBLIC	??0?$CTraceCategoryEx@$03$0A@@ATL@@QAE@PB_W@Z	; ATL::CTraceCategoryEx<4,0>::CTraceCategoryEx<4,0>
+PUBLIC	??0?$CTraceCategoryEx@$07$0A@@ATL@@QAE@PB_W@Z	; ATL::CTraceCategoryEx<8,0>::CTraceCategoryEx<8,0>
+PUBLIC	??0?$CTraceCategoryEx@$0BA@$0A@@ATL@@QAE@PB_W@Z	; ATL::CTraceCategoryEx<16,0>::CTraceCategoryEx<16,0>
+PUBLIC	??0?$CTraceCategoryEx@$0CA@$0A@@ATL@@QAE@PB_W@Z	; ATL::CTraceCategoryEx<32,0>::CTraceCategoryEx<32,0>
+PUBLIC	??0?$CTraceCategoryEx@$0EA@$0A@@ATL@@QAE@PB_W@Z	; ATL::CTraceCategoryEx<64,0>::CTraceCategoryEx<64,0>
+PUBLIC	??0?$CTraceCategoryEx@$0IA@$0A@@ATL@@QAE@PB_W@Z	; ATL::CTraceCategoryEx<128,0>::CTraceCategoryEx<128,0>
+PUBLIC	??0?$CTraceCategoryEx@$0BAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<256,0>::CTraceCategoryEx<256,0>
+PUBLIC	??0?$CTraceCategoryEx@$0CAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<512,0>::CTraceCategoryEx<512,0>
+PUBLIC	??0?$CTraceCategoryEx@$0EAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<1024,0>::CTraceCategoryEx<1024,0>
+PUBLIC	??0?$CTraceCategoryEx@$0IAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<2048,0>::CTraceCategoryEx<2048,0>
+PUBLIC	??0?$CTraceCategoryEx@$0BAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<4096,0>::CTraceCategoryEx<4096,0>
+PUBLIC	??0?$CTraceCategoryEx@$0CAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<8192,0>::CTraceCategoryEx<8192,0>
+PUBLIC	??0?$CTraceCategoryEx@$0EAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<16384,0>::CTraceCategoryEx<16384,0>
+PUBLIC	??0?$CTraceCategoryEx@$0IAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<32768,0>::CTraceCategoryEx<32768,0>
+PUBLIC	??0?$CTraceCategoryEx@$0BAAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<65536,0>::CTraceCategoryEx<65536,0>
+PUBLIC	??0?$CTraceCategoryEx@$0CAAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<131072,0>::CTraceCategoryEx<131072,0>
+PUBLIC	??0?$CTraceCategoryEx@$0EAAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<262144,0>::CTraceCategoryEx<262144,0>
+PUBLIC	??0?$CTraceCategoryEx@$0BAAAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<1048576,0>::CTraceCategoryEx<1048576,0>
+PUBLIC	??0?$CTraceCategoryEx@$0CAAAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<2097152,0>::CTraceCategoryEx<2097152,0>
+PUBLIC	??0?$CTraceCategoryEx@$0EAAAAA@$0A@@ATL@@QAE@PB_W@Z ; ATL::CTraceCategoryEx<4194304,0>::CTraceCategoryEx<4194304,0>
+PUBLIC	?_AtlRaiseException@ATL@@YAXKK@Z		; ATL::_AtlRaiseException
+PUBLIC	?_AtlInitializeCriticalSectionEx@ATL@@YAHPAU_RTL_CRITICAL_SECTION@@KK@Z ; ATL::_AtlInitializeCriticalSectionEx
+PUBLIC	??0CComCriticalSection@ATL@@QAE@XZ		; ATL::CComCriticalSection::CComCriticalSection
+PUBLIC	??1CComCriticalSection@ATL@@QAE@XZ		; ATL::CComCriticalSection::~CComCriticalSection
+PUBLIC	?Init@CComCriticalSection@ATL@@QAEJXZ		; ATL::CComCriticalSection::Init
+PUBLIC	?Term@CComCriticalSection@ATL@@QAEJXZ		; ATL::CComCriticalSection::Term
+PUBLIC	?GetModuleInstance@CAtlBaseModule@ATL@@QAEPAUHINSTANCE__@@XZ ; ATL::CAtlBaseModule::GetModuleInstance
+PUBLIC	??0_ATL_COM_MODULE70@ATL@@QAE@XZ		; ATL::_ATL_COM_MODULE70::_ATL_COM_MODULE70
+PUBLIC	??1_ATL_COM_MODULE70@ATL@@QAE@XZ		; ATL::_ATL_COM_MODULE70::~_ATL_COM_MODULE70
+PUBLIC	??0?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAE@XZ ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >
+PUBLIC	??1?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAE@XZ ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::~CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >
+PUBLIC	?GetSize@?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QBEHXZ ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::GetSize
+PUBLIC	?RemoveAll@?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAEXXZ ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::RemoveAll
+PUBLIC	??A?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAEAAGH@Z ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::operator[]
+PUBLIC	??0_ATL_WIN_MODULE70@ATL@@QAE@XZ		; ATL::_ATL_WIN_MODULE70::_ATL_WIN_MODULE70
+PUBLIC	??1_ATL_WIN_MODULE70@ATL@@QAE@XZ		; ATL::_ATL_WIN_MODULE70::~_ATL_WIN_MODULE70
+PUBLIC	?AtlWinModuleInit@ATL@@YGJPAU_ATL_WIN_MODULE70@1@@Z ; ATL::AtlWinModuleInit
+PUBLIC	?AtlWinModuleTerm@ATL@@YGJPAU_ATL_WIN_MODULE70@1@PAUHINSTANCE__@@@Z ; ATL::AtlWinModuleTerm
+PUBLIC	??0CHandle@ATL@@QAE@PAX@Z			; ATL::CHandle::CHandle
+PUBLIC	??1CHandle@ATL@@QAE@XZ				; ATL::CHandle::~CHandle
+PUBLIC	??BCHandle@ATL@@QBEPAXXZ			; ATL::CHandle::operator void *
+PUBLIC	?Close@CHandle@ATL@@QAEXXZ			; ATL::CHandle::Close
+PUBLIC	??0CAtlComModule@ATL@@QAE@XZ			; ATL::CAtlComModule::CAtlComModule
+PUBLIC	??1CAtlComModule@ATL@@QAE@XZ			; ATL::CAtlComModule::~CAtlComModule
+PUBLIC	?Term@CAtlComModule@ATL@@QAEXXZ			; ATL::CAtlComModule::Term
+PUBLIC	??0CAtlWinModule@ATL@@QAE@XZ			; ATL::CAtlWinModule::CAtlWinModule
+PUBLIC	??1CAtlWinModule@ATL@@QAE@XZ			; ATL::CAtlWinModule::~CAtlWinModule
+PUBLIC	?Term@CAtlWinModule@ATL@@QAEXXZ			; ATL::CAtlWinModule::Term
+PUBLIC	?SK_Win32_FILETIME_to_time_t@@YA_JABU_FILETIME@@@Z ; SK_Win32_FILETIME_to_time_t
 PUBLIC	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??$?0UiSK_INI@@@?$shared_ptr@UiSK_INI@@@std@@QAE@PAUiSK_INI@@@Z ; std::shared_ptr<iSK_INI>::shared_ptr<iSK_INI><iSK_INI>
@@ -300,10 +732,36 @@ PUBLIC	??$destroy@PAD@?$allocator@D@std@@QAEXPAPAD@Z	; std::allocator<char>::des
 PUBLIC	??$construct@PA_WAAPA_W@?$allocator@_W@std@@QAEXPAPA_WAAPA_W@Z ; std::allocator<wchar_t>::construct<wchar_t *,wchar_t * &>
 PUBLIC	??$construct@PADAAPAD@?$allocator@D@std@@QAEXPAPADAAPAD@Z ; std::allocator<char>::construct<char *,char * &>
 PUBLIC	??_7_Ref_count_base@std@@6B@			; std::_Ref_count_base::`vftable'
+PUBLIC	?atlTraceGeneral@ATL@@3V?$CTraceCategoryEx@$00$0A@@1@A ; ATL::atlTraceGeneral
+PUBLIC	?atlTraceCOM@ATL@@3V?$CTraceCategoryEx@$01$0A@@1@A ; ATL::atlTraceCOM
+PUBLIC	?atlTraceQI@ATL@@3V?$CTraceCategoryEx@$03$0A@@1@A ; ATL::atlTraceQI
+PUBLIC	?atlTraceRegistrar@ATL@@3V?$CTraceCategoryEx@$07$0A@@1@A ; ATL::atlTraceRegistrar
+PUBLIC	?atlTraceRefcount@ATL@@3V?$CTraceCategoryEx@$0BA@$0A@@1@A ; ATL::atlTraceRefcount
+PUBLIC	?atlTraceWindowing@ATL@@3V?$CTraceCategoryEx@$0CA@$0A@@1@A ; ATL::atlTraceWindowing
+PUBLIC	?atlTraceControls@ATL@@3V?$CTraceCategoryEx@$0EA@$0A@@1@A ; ATL::atlTraceControls
+PUBLIC	?atlTraceHosting@ATL@@3V?$CTraceCategoryEx@$0IA@$0A@@1@A ; ATL::atlTraceHosting
+PUBLIC	?atlTraceDBClient@ATL@@3V?$CTraceCategoryEx@$0BAA@$0A@@1@A ; ATL::atlTraceDBClient
+PUBLIC	?atlTraceDBProvider@ATL@@3V?$CTraceCategoryEx@$0CAA@$0A@@1@A ; ATL::atlTraceDBProvider
+PUBLIC	?atlTraceSnapin@ATL@@3V?$CTraceCategoryEx@$0EAA@$0A@@1@A ; ATL::atlTraceSnapin
+PUBLIC	?atlTraceNotImpl@ATL@@3V?$CTraceCategoryEx@$0IAA@$0A@@1@A ; ATL::atlTraceNotImpl
+PUBLIC	?atlTraceAllocation@ATL@@3V?$CTraceCategoryEx@$0BAAA@$0A@@1@A ; ATL::atlTraceAllocation
+PUBLIC	?atlTraceException@ATL@@3V?$CTraceCategoryEx@$0CAAA@$0A@@1@A ; ATL::atlTraceException
+PUBLIC	?atlTraceTime@ATL@@3V?$CTraceCategoryEx@$0EAAA@$0A@@1@A ; ATL::atlTraceTime
+PUBLIC	?atlTraceCache@ATL@@3V?$CTraceCategoryEx@$0IAAA@$0A@@1@A ; ATL::atlTraceCache
+PUBLIC	?atlTraceStencil@ATL@@3V?$CTraceCategoryEx@$0BAAAA@$0A@@1@A ; ATL::atlTraceStencil
+PUBLIC	?atlTraceString@ATL@@3V?$CTraceCategoryEx@$0CAAAA@$0A@@1@A ; ATL::atlTraceString
+PUBLIC	?atlTraceMap@ATL@@3V?$CTraceCategoryEx@$0EAAAA@$0A@@1@A ; ATL::atlTraceMap
+PUBLIC	?atlTraceUtil@ATL@@3V?$CTraceCategoryEx@$0IAAAA@$0A@@1@A ; ATL::atlTraceUtil
+PUBLIC	?atlTraceSecurity@ATL@@3V?$CTraceCategoryEx@$0BAAAAA@$0A@@1@A ; ATL::atlTraceSecurity
+PUBLIC	?atlTraceSync@ATL@@3V?$CTraceCategoryEx@$0CAAAAA@$0A@@1@A ; ATL::atlTraceSync
+PUBLIC	?atlTraceISAPI@ATL@@3V?$CTraceCategoryEx@$0EAAAAA@$0A@@1@A ; ATL::atlTraceISAPI
+PUBLIC	?m_bInitFailed@CAtlBaseModule@ATL@@2_NA		; ATL::CAtlBaseModule::m_bInitFailed
+PUBLIC	?_AtlComModule@ATL@@3VCAtlComModule@1@A		; ATL::_AtlComModule
+PUBLIC	?_AtlWinModule@ATL@@3VCAtlWinModule@1@A		; ATL::_AtlWinModule
+PUBLIC	??_C@_11LOCGONAA@?$AA?$AA@			; `string'
 PUBLIC	?SecName@@3V<lambda>@@A				; SecName
 PUBLIC	??_C@_19JPDOKFIJ@?$AA?4?$AAx?$AA6?$AA4?$AA?$AA@	; `string'
 PUBLIC	??_C@_19PDNAMHC@?$AA?4?$AAx?$AA8?$AA6?$AA?$AA@	; `string'
-PUBLIC	??_C@_11LOCGONAA@?$AA?$AA@			; `string'
 PUBLIC	??_C@_0BA@JFNIOLAK@string?5too?5long?$AA@	; `string'
 PUBLIC	??_C@_0BI@CFPLBAOH@invalid?5string?5position?$AA@ ; `string'
 PUBLIC	??_7?$_Ref_count@UiSK_INI@@@std@@6B@		; std::_Ref_count<iSK_INI>::`vftable'
@@ -321,8 +779,24 @@ EXTRN	__purecall:PROC
 EXTRN	??2@YAPAXI@Z:PROC				; operator new
 EXTRN	??3@YAXPAX@Z:PROC				; operator delete
 EXTRN	??3@YAXPAXI@Z:PROC				; operator delete
+EXTRN	_atexit:PROC
+EXTRN	___std_terminate:PROC
 EXTRN	__imp___invalid_parameter_noinfo_noreturn:PROC
 EXTRN	__imp__memmove:PROC
+EXTRN	__imp__CreateFileW@28:PROC
+EXTRN	__imp__DeleteFileW@4:PROC
+EXTRN	__imp__GetFileAttributesW@4:PROC
+EXTRN	__imp__GetFileTime@16:PROC
+EXTRN	__imp__WriteFile@20:PROC
+EXTRN	__imp__DecodePointer@4:PROC
+EXTRN	__imp__CloseHandle@4:PROC
+EXTRN	__imp__RaiseException@16:PROC
+EXTRN	__imp__GetLastError@0:PROC
+EXTRN	__imp__InitializeCriticalSectionEx@12:PROC
+EXTRN	__imp__DeleteCriticalSection@4:PROC
+EXTRN	__imp__SleepEx@8:PROC
+EXTRN	__imp__UnregisterClassW@8:PROC
+EXTRN	__imp__free:PROC
 EXTRN	_swscanf:PROC
 EXTRN	__imp_?_Xbad_alloc@std@@YAXXZ:PROC
 EXTRN	__imp_?_Xlength_error@std@@YAXPBD@Z:PROC
@@ -330,6 +804,7 @@ EXTRN	__imp_?_Xout_of_range@std@@YAXPBD@Z:PROC
 EXTRN	??_E_Ref_count_base@std@@UAEPAXI@Z:PROC		; std::_Ref_count_base::`vector deleting destructor'
 EXTRN	??1iSK_INI@@QAE@XZ:PROC				; iSK_INI::~iSK_INI
 EXTRN	?SK_CreateINI@@YGPAUiSK_INI@@QB_W@Z:PROC	; SK_CreateINI
+EXTRN	__imp___time64:PROC
 EXTRN	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK_GetDocumentsDir
 EXTRN	?SK_WideCharToUTF8@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@@Z:PROC ; SK_WideCharToUTF8
 EXTRN	?SK_UTF8ToWideChar@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z:PROC ; SK_UTF8ToWideChar
@@ -337,11 +812,119 @@ EXTRN	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocat
 EXTRN	??_E?$_Ref_count@UiSK_INI@@@std@@UAEPAXI@Z:PROC	; std::_Ref_count<iSK_INI>::`vector deleting destructor'
 EXTRN	__CxxThrowException@8:PROC
 EXTRN	___CxxFrameHandler3:PROC
+EXTRN	__aulldiv:PROC
 EXTRN	_memcpy:PROC
 EXTRN	??_7type_info@@6B@:QWORD			; type_info::`vftable'
+EXTRN	?_AtlBaseModule@ATL@@3VCAtlBaseModule@1@A:BYTE	; ATL::_AtlBaseModule
+EXTRN	___ImageBase:BYTE
+EXTRN	?__SK_RunDLL_Bypass@@3_NA:BYTE			; __SK_RunDLL_Bypass
+;	COMDAT ?atlTraceGeneral@ATL@@3V?$CTraceCategoryEx@$00$0A@@1@A
+_BSS	SEGMENT
+?atlTraceGeneral@ATL@@3V?$CTraceCategoryEx@$00$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceGeneral
+_BSS	ENDS
+;	COMDAT ?atlTraceCOM@ATL@@3V?$CTraceCategoryEx@$01$0A@@1@A
+_BSS	SEGMENT
+?atlTraceCOM@ATL@@3V?$CTraceCategoryEx@$01$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceCOM
+_BSS	ENDS
+;	COMDAT ?atlTraceQI@ATL@@3V?$CTraceCategoryEx@$03$0A@@1@A
+_BSS	SEGMENT
+?atlTraceQI@ATL@@3V?$CTraceCategoryEx@$03$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceQI
+_BSS	ENDS
+;	COMDAT ?atlTraceRegistrar@ATL@@3V?$CTraceCategoryEx@$07$0A@@1@A
+_BSS	SEGMENT
+?atlTraceRegistrar@ATL@@3V?$CTraceCategoryEx@$07$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceRegistrar
+_BSS	ENDS
+;	COMDAT ?atlTraceRefcount@ATL@@3V?$CTraceCategoryEx@$0BA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceRefcount@ATL@@3V?$CTraceCategoryEx@$0BA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceRefcount
+_BSS	ENDS
+;	COMDAT ?atlTraceWindowing@ATL@@3V?$CTraceCategoryEx@$0CA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceWindowing@ATL@@3V?$CTraceCategoryEx@$0CA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceWindowing
+_BSS	ENDS
+;	COMDAT ?atlTraceControls@ATL@@3V?$CTraceCategoryEx@$0EA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceControls@ATL@@3V?$CTraceCategoryEx@$0EA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceControls
+_BSS	ENDS
+;	COMDAT ?atlTraceHosting@ATL@@3V?$CTraceCategoryEx@$0IA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceHosting@ATL@@3V?$CTraceCategoryEx@$0IA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceHosting
+_BSS	ENDS
+;	COMDAT ?atlTraceDBClient@ATL@@3V?$CTraceCategoryEx@$0BAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceDBClient@ATL@@3V?$CTraceCategoryEx@$0BAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceDBClient
+_BSS	ENDS
+;	COMDAT ?atlTraceDBProvider@ATL@@3V?$CTraceCategoryEx@$0CAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceDBProvider@ATL@@3V?$CTraceCategoryEx@$0CAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceDBProvider
+_BSS	ENDS
+;	COMDAT ?atlTraceSnapin@ATL@@3V?$CTraceCategoryEx@$0EAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceSnapin@ATL@@3V?$CTraceCategoryEx@$0EAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceSnapin
+_BSS	ENDS
+;	COMDAT ?atlTraceNotImpl@ATL@@3V?$CTraceCategoryEx@$0IAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceNotImpl@ATL@@3V?$CTraceCategoryEx@$0IAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceNotImpl
+_BSS	ENDS
+;	COMDAT ?atlTraceAllocation@ATL@@3V?$CTraceCategoryEx@$0BAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceAllocation@ATL@@3V?$CTraceCategoryEx@$0BAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceAllocation
+_BSS	ENDS
+;	COMDAT ?atlTraceException@ATL@@3V?$CTraceCategoryEx@$0CAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceException@ATL@@3V?$CTraceCategoryEx@$0CAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceException
+_BSS	ENDS
+;	COMDAT ?atlTraceTime@ATL@@3V?$CTraceCategoryEx@$0EAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceTime@ATL@@3V?$CTraceCategoryEx@$0EAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceTime
+_BSS	ENDS
+;	COMDAT ?atlTraceCache@ATL@@3V?$CTraceCategoryEx@$0IAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceCache@ATL@@3V?$CTraceCategoryEx@$0IAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceCache
+_BSS	ENDS
+;	COMDAT ?atlTraceStencil@ATL@@3V?$CTraceCategoryEx@$0BAAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceStencil@ATL@@3V?$CTraceCategoryEx@$0BAAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceStencil
+_BSS	ENDS
+;	COMDAT ?atlTraceString@ATL@@3V?$CTraceCategoryEx@$0CAAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceString@ATL@@3V?$CTraceCategoryEx@$0CAAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceString
+_BSS	ENDS
+;	COMDAT ?atlTraceMap@ATL@@3V?$CTraceCategoryEx@$0EAAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceMap@ATL@@3V?$CTraceCategoryEx@$0EAAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceMap
+_BSS	ENDS
+;	COMDAT ?atlTraceUtil@ATL@@3V?$CTraceCategoryEx@$0IAAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceUtil@ATL@@3V?$CTraceCategoryEx@$0IAAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceUtil
+_BSS	ENDS
+;	COMDAT ?atlTraceSecurity@ATL@@3V?$CTraceCategoryEx@$0BAAAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceSecurity@ATL@@3V?$CTraceCategoryEx@$0BAAAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceSecurity
+_BSS	ENDS
+;	COMDAT ?atlTraceSync@ATL@@3V?$CTraceCategoryEx@$0CAAAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceSync@ATL@@3V?$CTraceCategoryEx@$0CAAAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceSync
+_BSS	ENDS
+;	COMDAT ?atlTraceISAPI@ATL@@3V?$CTraceCategoryEx@$0EAAAAA@$0A@@1@A
+_BSS	SEGMENT
+?atlTraceISAPI@ATL@@3V?$CTraceCategoryEx@$0EAAAAA@$0A@@1@A DD 01H DUP (?) ; ATL::atlTraceISAPI
+_BSS	ENDS
+;	COMDAT ?m_bInitFailed@CAtlBaseModule@ATL@@2_NA
+_BSS	SEGMENT
+?m_bInitFailed@CAtlBaseModule@ATL@@2_NA DB 01H DUP (?)	; ATL::CAtlBaseModule::m_bInitFailed
+_BSS	ENDS
+;	COMDAT ?_AtlWinModule@ATL@@3VCAtlWinModule@1@A
+_BSS	SEGMENT
+?_AtlWinModule@ATL@@3VCAtlWinModule@1@A DB 02cH DUP (?)	; ATL::_AtlWinModule
+_BSS	ENDS
 _BSS	SEGMENT
 ?SecName@@3V<lambda>@@A DB 01H DUP (?)			; SecName
 _BSS	ENDS
+;	COMDAT CRT$XCU
+CRT$XCU	SEGMENT
+?_AtlComModule$initializer$@ATL@@3P6AXXZA DD FLAT:??__E_AtlComModule@ATL@@YAXXZ ; ATL::_AtlComModule$initializer$
+CRT$XCU	ENDS
 ;	COMDAT ??_R1A@?0A@EA@?$_Ref_count@UiSK_INI@@@std@@8
 rdata$r	SEGMENT
 ??_R1A@?0A@EA@?$_Ref_count@UiSK_INI@@@std@@8 DD FLAT:??_R0?AV?$_Ref_count@UiSK_INI@@@std@@@8 ; std::_Ref_count<iSK_INI>::`RTTI Base Class Descriptor at (0,-1,0,64)'
@@ -430,10 +1013,6 @@ CONST	ENDS
 CONST	SEGMENT
 ??_C@_0BA@JFNIOLAK@string?5too?5long?$AA@ DB 'string too long', 00H ; `string'
 CONST	ENDS
-;	COMDAT ??_C@_11LOCGONAA@?$AA?$AA@
-CONST	SEGMENT
-??_C@_11LOCGONAA@?$AA?$AA@ DB 00H, 00H			; `string'
-CONST	ENDS
 ;	COMDAT ??_C@_19PDNAMHC@?$AA?4?$AAx?$AA8?$AA6?$AA?$AA@
 CONST	SEGMENT
 ??_C@_19PDNAMHC@?$AA?4?$AAx?$AA8?$AA6?$AA?$AA@ DB '.', 00H, 'x', 00H, '8', 00H
@@ -444,6 +1023,17 @@ CONST	SEGMENT
 ??_C@_19JPDOKFIJ@?$AA?4?$AAx?$AA6?$AA4?$AA?$AA@ DB '.', 00H, 'x', 00H, '6'
 	DB	00H, '4', 00H, 00H, 00H			; `string'
 CONST	ENDS
+;	COMDAT ??_C@_11LOCGONAA@?$AA?$AA@
+CONST	SEGMENT
+??_C@_11LOCGONAA@?$AA?$AA@ DB 00H, 00H			; `string'
+CONST	ENDS
+;	COMDAT ?_AtlComModule@ATL@@3VCAtlComModule@1@A
+_DATA	SEGMENT
+?_AtlComModule@ATL@@3VCAtlComModule@1@A DB 04H DUP (?)
+	DD	FLAT:___ImageBase			; ATL::_AtlComModule
+	DD	FLAT:___pobjMapEntryFirst+4
+	DD	FLAT:___pobjMapEntryLast
+_DATA	ENDS
 ;	COMDAT ??_7_Ref_count_base@std@@6B@
 CONST	SEGMENT
 ??_7_Ref_count_base@std@@6B@ DD FLAT:??_R4_Ref_count_base@std@@6B@ ; std::_Ref_count_base::`vftable'
@@ -518,6 +1108,28 @@ __ehfuncinfo$??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_
 	DD	00H
 	DD	01H
 xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
+__unwindtable$??__F_AtlComModule@ATL@@YAXXZ DD 0ffffffffH
+	DD	FLAT:___std_terminate
+__ehfuncinfo$??__F_AtlComModule@ATL@@YAXXZ DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$??__F_AtlComModule@ATL@@YAXXZ
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
+__ehfuncinfo$??1CAtlComModule@ATL@@QAE@XZ DD 019930522H
+	DD	00H
+	DD	00H
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	05H
+xdata$x	ENDS
 xdata$x	SEGMENT
 __unwindtable$?removeAddress@SK_Inject_AddressCacheRegistry@@QAE_NAAVSK_Inject_Address@@@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?removeAddress@SK_Inject_AddressCacheRegistry@@QAE_NAAVSK_Inject_Address@@@Z$1
@@ -545,14 +1157,6 @@ __unwindtable$?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4S
 	DD	FLAT:__unwindfunclet$?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z$3
 	DD	01H
 	DD	FLAT:__unwindfunclet$?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z$4
-__unwindtable$??0SK_Inject_AddressCacheRegistry@@QAE@XZ DD 0ffffffffH
-	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$0
-	DD	00H
-	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$1
-	DD	01H
-	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$2
-	DD	00H
-	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$2
 __ehfuncinfo$?removeAddress@SK_Inject_AddressCacheRegistry@@QAE_NAAVSK_Inject_Address@@@Z DD 019930522H
 	DD	01H
 	DD	FLAT:__unwindtable$?removeAddress@SK_Inject_AddressCacheRegistry@@QAE_NAAVSK_Inject_Address@@@Z
@@ -603,12 +1207,26 @@ __ehfuncinfo$??1SK_Inject_AddressCacheRegistry@@QAE@XZ DD 019930522H
 	DD	00H
 	DD	05H
 __ehfuncinfo$??0SK_Inject_AddressCacheRegistry@@QAE@XZ DD 019930522H
-	DD	04H
+	DD	07H
 	DD	FLAT:__unwindtable$??0SK_Inject_AddressCacheRegistry@@QAE@XZ
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
 	DD	00H
 	DD	01H
+__unwindtable$??0SK_Inject_AddressCacheRegistry@@QAE@XZ DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$0
+	DD	00H
+	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$2
+	DD	01H
+	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$3
+	DD	00H
+	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$3
+	DD	03H
+	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$4
+	DD	04H
+	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$5
+	DD	03H
+	DD	FLAT:__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$5
 xdata$x	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
@@ -676,6 +1294,10 @@ __ehfuncinfo$?_Copy@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@
 	DD	00H
 	DD	01H
 xdata$x	ENDS
+;	COMDAT CRT$XCU
+CRT$XCU	SEGMENT
+?_AtlWinModule$initializer$@ATL@@3P6AXXZA DD FLAT:??__E_AtlWinModule@ATL@@YAXXZ ; ATL::_AtlWinModule$initializer$
+CRT$XCU	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@PADAAPAD@?$allocator@D@std@@QAEXPAPADAAPAD@Z
@@ -2338,7 +2960,7 @@ _arch_type$ = 16					; size = 4
 ??$?RPB_WW4SK_SYS_CPUArch@@@<lambda_b1c2bec0c87a69761631aa193aa78af6>@@QBE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_WW4SK_SYS_CPUArch@@@Z PROC ; <lambda_b1c2bec0c87a69761631aa193aa78af6>::operator()<wchar_t const *,enum SK_SYS_CPUArch>, COMDAT
 ; _this$ = ecx
 
-; 73   : {
+; 161  : {
 
 	npad	2
 	push	ebp
@@ -2350,7 +2972,7 @@ _arch_type$ = 16					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 100				; 00000064H
 
-; 74   :   switch (arch_type)
+; 162  :   switch (arch_type)
 
 	mov	eax, DWORD PTR _arch_type$[ebp]
 	mov	DWORD PTR $T6[ebp], 0
@@ -2396,12 +3018,12 @@ _arch_type$ = 16					; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 83   :       return std::wstring (mod_name) + std::wstring (L".x86");
+; 171  :       return std::wstring (mod_name) + std::wstring (L".x86");
 
 	mov	eax, esi
 	pop	esi
 
-; 88   : };
+; 176  : };
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -2458,7 +3080,7 @@ $LN4@operator:
 	mov	ecx, edx
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 78   :       return std::wstring (mod_name) + std::wstring (L".x64");
+; 166  :       return std::wstring (mod_name) + std::wstring (L".x64");
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2496,7 +3118,7 @@ $LL253@operator:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 78   :       return std::wstring (mod_name) + std::wstring (L".x64");
+; 166  :       return std::wstring (mod_name) + std::wstring (L".x64");
 
 	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
 	lea	eax, DWORD PTR $T3[ebp]
@@ -2513,7 +3135,7 @@ $LL253@operator:
 	mov	eax, DWORD PTR $T5[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 78   :       return std::wstring (mod_name) + std::wstring (L".x64");
+; 166  :       return std::wstring (mod_name) + std::wstring (L".x64");
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2595,7 +3217,7 @@ $LN65@operator:
 	push	DWORD PTR $T3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 78   :       return std::wstring (mod_name) + std::wstring (L".x64");
+; 166  :       return std::wstring (mod_name) + std::wstring (L".x64");
 
 	jmp	$LN256@operator
 $LN5@operator:
@@ -2648,7 +3270,7 @@ $LN5@operator:
 	mov	ecx, edx
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 83   :       return std::wstring (mod_name) + std::wstring (L".x86");
+; 171  :       return std::wstring (mod_name) + std::wstring (L".x86");
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2687,7 +3309,7 @@ $LL254@operator:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 83   :       return std::wstring (mod_name) + std::wstring (L".x86");
+; 171  :       return std::wstring (mod_name) + std::wstring (L".x86");
 
 	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
 	lea	eax, DWORD PTR $T2[ebp]
@@ -2704,7 +3326,7 @@ $LL254@operator:
 	mov	eax, DWORD PTR $T4[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 83   :       return std::wstring (mod_name) + std::wstring (L".x86");
+; 171  :       return std::wstring (mod_name) + std::wstring (L".x86");
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2790,7 +3412,7 @@ $LN256@operator:
 $LN203@operator:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 88   : };
+; 176  : };
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -3855,6 +4477,1911 @@ __ehhandler$??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_s
 text$x	ENDS
 ??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@QB_W@Z ENDP ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 ; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+_TEXT	SEGMENT
+_ft$ = 8						; size = 4
+?SK_Win32_FILETIME_to_time_t@@YA_JABU_FILETIME@@@Z PROC	; SK_Win32_FILETIME_to_time_t
+
+; 30   : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 31   :   ULARGE_INTEGER ull;
+; 32   : 
+; 33   :   ull.LowPart  = ft.dwLowDateTime;
+
+	mov	eax, DWORD PTR _ft$[ebp]
+
+; 34   :   ull.HighPart = ft.dwHighDateTime;
+; 35   : 
+; 36   :   return ull.QuadPart / 10000000ULL - 11644473600ULL;
+
+	push	0
+	push	10000000				; 00989680H
+	push	DWORD PTR [eax+4]
+	push	DWORD PTR [eax]
+	call	__aulldiv
+	add	eax, 1240428288				; 49ef6f00H
+	adc	edx, -3					; fffffffdH
+
+; 37   : }
+
+	pop	ebp
+	ret	0
+?SK_Win32_FILETIME_to_time_t@@YA_JABU_FILETIME@@@Z ENDP	; SK_Win32_FILETIME_to_time_t
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+;	COMDAT ??__F_AtlWinModule@ATL@@YAXXZ
+text$yd	SEGMENT
+??__F_AtlWinModule@ATL@@YAXXZ PROC			; ATL::`dynamic atexit destructor for '_AtlWinModule'', COMDAT
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 2964 : 		AtlWinModuleTerm(this, _AtlBaseModule.GetModuleInstance());
+
+	push	DWORD PTR ?_AtlBaseModule@ATL@@3VCAtlBaseModule@1@A+4
+	push	OFFSET ?_AtlWinModule@ATL@@3VCAtlWinModule@1@A ; ATL::_AtlWinModule
+	call	?AtlWinModuleTerm@ATL@@YGJPAU_ATL_WIN_MODULE70@1@PAUHINSTANCE__@@@Z ; ATL::AtlWinModuleTerm
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+
+; 216  : 		if(m_aT != NULL)
+
+	mov	eax, DWORD PTR ?_AtlWinModule@ATL@@3VCAtlWinModule@1@A+32
+	test	eax, eax
+	je	SHORT $LN29@dynamic
+
+; 217  : 		{
+; 218  : 			for(int i = 0; i < m_nSize; i++)
+; 219  : 				m_aT[i].~T();
+; 220  : 			free(m_aT);
+
+	push	eax
+	call	DWORD PTR __imp__free
+	add	esp, 4
+
+; 221  : 			m_aT = NULL;
+
+	mov	DWORD PTR ?_AtlWinModule@ATL@@3VCAtlWinModule@1@A+32, 0
+$LN29@dynamic:
+
+; 222  : 		}
+; 223  : 		m_nSize = 0;
+; 224  : 		m_nAllocSize = 0;
+
+	mov	DWORD PTR ?_AtlWinModule@ATL@@3VCAtlWinModule@1@A+40, 0
+	mov	DWORD PTR ?_AtlWinModule@ATL@@3VCAtlWinModule@1@A+36, 0
+	ret	0
+??__F_AtlWinModule@ATL@@YAXXZ ENDP			; ATL::`dynamic atexit destructor for '_AtlWinModule''
+text$yd	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??__E_AtlWinModule@ATL@@YAXXZ
+text$di	SEGMENT
+??__E_AtlWinModule@ATL@@YAXXZ PROC			; ATL::`dynamic initializer for '_AtlWinModule'', COMDAT
+
+; 2979 : __declspec(selectany) CAtlWinModule _AtlWinModule;
+
+	mov	ecx, OFFSET ?_AtlWinModule@ATL@@3VCAtlWinModule@1@A ; ATL::_AtlWinModule
+	call	??0CAtlWinModule@ATL@@QAE@XZ		; ATL::CAtlWinModule::CAtlWinModule
+	push	OFFSET ??__F_AtlWinModule@ATL@@YAXXZ	; ATL::`dynamic atexit destructor for '_AtlWinModule''
+	call	_atexit
+	pop	ecx
+	ret	0
+??__E_AtlWinModule@ATL@@YAXXZ ENDP			; ATL::`dynamic initializer for '_AtlWinModule''
+text$di	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ?Term@CAtlWinModule@ATL@@QAEXXZ
+_TEXT	SEGMENT
+?Term@CAtlWinModule@ATL@@QAEXXZ PROC			; ATL::CAtlWinModule::Term, COMDAT
+; _this$ = ecx
+
+; 2964 : 		AtlWinModuleTerm(this, _AtlBaseModule.GetModuleInstance());
+
+	push	DWORD PTR ?_AtlBaseModule@ATL@@3VCAtlBaseModule@1@A+4
+	push	ecx
+	call	?AtlWinModuleTerm@ATL@@YGJPAU_ATL_WIN_MODULE70@1@PAUHINSTANCE__@@@Z ; ATL::AtlWinModuleTerm
+
+; 2965 : 	}
+
+	ret	0
+?Term@CAtlWinModule@ATL@@QAEXXZ ENDP			; ATL::CAtlWinModule::Term
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??1CAtlWinModule@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??1CAtlWinModule@ATL@@QAE@XZ PROC			; ATL::CAtlWinModule::~CAtlWinModule, COMDAT
+; _this$ = ecx
+
+; 2958 : 	{
+
+	npad	2
+	push	esi
+
+; 2964 : 		AtlWinModuleTerm(this, _AtlBaseModule.GetModuleInstance());
+
+	push	DWORD PTR ?_AtlBaseModule@ATL@@3VCAtlBaseModule@1@A+4
+
+; 2958 : 	{
+
+	mov	esi, ecx
+
+; 2964 : 		AtlWinModuleTerm(this, _AtlBaseModule.GetModuleInstance());
+
+	push	esi
+	call	?AtlWinModuleTerm@ATL@@YGJPAU_ATL_WIN_MODULE70@1@PAUHINSTANCE__@@@Z ; ATL::AtlWinModuleTerm
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+
+; 216  : 		if(m_aT != NULL)
+
+	mov	eax, DWORD PTR [esi+32]
+	test	eax, eax
+	je	SHORT $LN26@CAtlWinMod
+
+; 217  : 		{
+; 218  : 			for(int i = 0; i < m_nSize; i++)
+; 219  : 				m_aT[i].~T();
+; 220  : 			free(m_aT);
+
+	push	eax
+	call	DWORD PTR __imp__free
+	add	esp, 4
+
+; 221  : 			m_aT = NULL;
+
+	mov	DWORD PTR [esi+32], 0
+$LN26@CAtlWinMod:
+
+; 222  : 		}
+; 223  : 		m_nSize = 0;
+; 224  : 		m_nAllocSize = 0;
+
+	mov	DWORD PTR [esi+40], 0
+	mov	DWORD PTR [esi+36], 0
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 2960 : 	}
+
+	ret	0
+??1CAtlWinModule@ATL@@QAE@XZ ENDP			; ATL::CAtlWinModule::~CAtlWinModule
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??0CAtlWinModule@ATL@@QAE@XZ
+_TEXT	SEGMENT
+_this$ = -4						; size = 4
+??0CAtlWinModule@ATL@@QAE@XZ PROC			; ATL::CAtlWinModule::CAtlWinModule, COMDAT
+; _this$ = ecx
+
+; 2944 : 	CAtlWinModule()
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+	xorps	xmm0, xmm0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 151  : 		memset(&m_sec, 0, sizeof(CRITICAL_SECTION));
+
+	movups	XMMWORD PTR [esi+4], xmm0
+	lea	eax, DWORD PTR [esi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 2944 : 	CAtlWinModule()
+
+	mov	DWORD PTR _this$[ebp], esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 151  : 		memset(&m_sec, 0, sizeof(CRITICAL_SECTION));
+
+	movq	QWORD PTR [eax+16], xmm0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	push	0
+	push	0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+
+; 119  : 		m_aT(NULL), m_nSize(0), m_nAllocSize(0)
+
+	mov	DWORD PTR [esi+32], 0
+	mov	DWORD PTR [esi+36], 0
+	mov	DWORD PTR [esi+40], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 2946 : 		cbSize = sizeof(_ATL_WIN_MODULE);
+
+	mov	DWORD PTR [esi], 44			; 0000002cH
+
+; 8412 : 	pWinModule->m_pCreateWndList = NULL;
+
+	mov	DWORD PTR [esi+28], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	call	DWORD PTR __imp__InitializeCriticalSectionEx@12
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 171  : 		if (!_AtlInitializeCriticalSectionEx(&m_sec, 0, 0))
+
+	test	eax, eax
+	jne	SHORT $LN26@CAtlWinMod
+
+; 172  : 		{
+; 173  : 			hRes = HRESULT_FROM_WIN32(GetLastError());
+
+	call	DWORD PTR __imp__GetLastError@0
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+
+; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
+
+	test	eax, eax
+	jle	SHORT $LN27@CAtlWinMod
+	movzx	eax, ax
+	or	eax, -2147024896			; 80070000H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 2948 : 		if (FAILED(hr))
+
+	test	eax, eax
+$LN27@CAtlWinMod:
+
+; 2953 : 			return;
+; 2954 : 		}
+; 2955 : 	}
+
+	mov	eax, esi
+
+; 2948 : 		if (FAILED(hr))
+
+	jns	SHORT $LN2@CAtlWinMod
+
+; 2949 : 		{
+; 2950 : 			ATLASSERT(0);
+; 2951 : 			CAtlBaseModule::m_bInitFailed = true;
+
+	mov	BYTE PTR ?m_bInitFailed@CAtlBaseModule@ATL@@2_NA, 1 ; ATL::CAtlBaseModule::m_bInitFailed
+
+; 2952 : 			cbSize = 0;
+
+	mov	DWORD PTR [esi], 0
+	pop	esi
+
+; 2953 : 			return;
+; 2954 : 		}
+; 2955 : 	}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+$LN26@CAtlWinMod:
+	mov	eax, esi
+$LN2@CAtlWinMod:
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+??0CAtlWinModule@ATL@@QAE@XZ ENDP			; ATL::CAtlWinModule::CAtlWinModule
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??__F_AtlComModule@ATL@@YAXXZ
+text$yd	SEGMENT
+__$EHRec$ = -12						; size = 12
+??__F_AtlComModule@ATL@@YAXXZ PROC			; ATL::`dynamic atexit destructor for '_AtlComModule'', COMDAT
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR fs:0
+	push	-1
+	push	__ehhandler$??__F_AtlComModule@ATL@@YAXXZ
+	push	eax
+	mov	DWORD PTR fs:0, esp
+
+; 2615 : 		Term();
+
+	mov	ecx, OFFSET ?_AtlComModule@ATL@@3VCAtlComModule@1@A ; ATL::_AtlComModule
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	call	?Term@CAtlComModule@ATL@@QAEXXZ		; ATL::CAtlComModule::Term
+
+; 2616 : 	}
+
+	mov	ecx, OFFSET ?_AtlComModule@ATL@@3VCAtlComModule@1@A ; ATL::_AtlComModule
+	call	??1_ATL_COM_MODULE70@ATL@@QAE@XZ
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+text$yd	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__ehhandler$??__F_AtlComModule@ATL@@YAXXZ:
+	mov	eax, OFFSET __ehfuncinfo$??__F_AtlComModule@ATL@@YAXXZ
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??__F_AtlComModule@ATL@@YAXXZ ENDP			; ATL::`dynamic atexit destructor for '_AtlComModule''
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??__E_AtlComModule@ATL@@YAXXZ
+text$di	SEGMENT
+??__E_AtlComModule@ATL@@YAXXZ PROC			; ATL::`dynamic initializer for '_AtlComModule'', COMDAT
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	push	0
+	push	0
+	push	OFFSET ?_AtlComModule@ATL@@3VCAtlComModule@1@A+16
+	call	DWORD PTR __imp__InitializeCriticalSectionEx@12
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 171  : 		if (!_AtlInitializeCriticalSectionEx(&m_sec, 0, 0))
+
+	test	eax, eax
+	jne	SHORT $LN4@dynamic
+
+; 172  : 		{
+; 173  : 			hRes = HRESULT_FROM_WIN32(GetLastError());
+
+	call	DWORD PTR __imp__GetLastError@0
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+
+; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
+
+	test	eax, eax
+	jle	SHORT $LN20@dynamic
+	movzx	eax, ax
+	or	eax, -2147024896			; 80070000H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 2602 : 		if (FAILED(m_csObjMap.Init()))
+
+	test	eax, eax
+$LN20@dynamic:
+	jns	SHORT $LN4@dynamic
+
+; 2723 : __declspec(selectany) CAtlComModule _AtlComModule;
+
+	push	OFFSET ??__F_AtlComModule@ATL@@YAXXZ	; ATL::`dynamic atexit destructor for '_AtlComModule''
+
+; 2606 : 			CAtlBaseModule::m_bInitFailed = true;
+
+	mov	BYTE PTR ?m_bInitFailed@CAtlBaseModule@ATL@@2_NA, 1 ; ATL::CAtlBaseModule::m_bInitFailed
+
+; 2723 : __declspec(selectany) CAtlComModule _AtlComModule;
+
+	call	_atexit
+	pop	ecx
+	ret	0
+$LN4@dynamic:
+	push	OFFSET ??__F_AtlComModule@ATL@@YAXXZ	; ATL::`dynamic atexit destructor for '_AtlComModule''
+
+; 2610 : 		cbSize = sizeof(_ATL_COM_MODULE);
+
+	mov	DWORD PTR ?_AtlComModule@ATL@@3VCAtlComModule@1@A, 40 ; 00000028H
+
+; 2723 : __declspec(selectany) CAtlComModule _AtlComModule;
+
+	call	_atexit
+	pop	ecx
+	ret	0
+??__E_AtlComModule@ATL@@YAXXZ ENDP			; ATL::`dynamic initializer for '_AtlComModule''
+text$di	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ?Term@CAtlComModule@ATL@@QAEXXZ
+_TEXT	SEGMENT
+?Term@CAtlComModule@ATL@@QAEXXZ PROC			; ATL::CAtlComModule::Term, COMDAT
+; _this$ = ecx
+
+; 2620 : 	{
+
+	npad	2
+	push	edi
+	mov	edi, ecx
+
+; 2621 : 		if (cbSize == 0)
+
+	cmp	DWORD PTR [edi], 0
+	je	SHORT $LN1@Term
+
+; 2622 : 			return;
+; 2623 : 
+; 2624 : 		for (_ATL_OBJMAP_ENTRY_EX** ppEntry = m_ppAutoObjMapFirst; ppEntry < m_ppAutoObjMapLast; ppEntry++)
+
+	push	esi
+	mov	esi, DWORD PTR [edi+8]
+	cmp	esi, DWORD PTR [edi+12]
+	jae	SHORT $LN3@Term
+	push	ebx
+$LL4@Term:
+
+; 2625 : 		{
+; 2626 : 			if (*ppEntry != NULL)
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN2@Term
+
+; 2627 : 			{
+; 2628 : 				_ATL_OBJMAP_CACHE* pCache = (**ppEntry).pCache;
+
+	mov	ebx, DWORD PTR [eax+16]
+
+; 2629 : 
+; 2630 : 				if (pCache->pCF != NULL)
+
+	mov	eax, DWORD PTR [ebx]
+	test	eax, eax
+	je	SHORT $LN2@Term
+
+; 2631 : 				{
+; 2632 : 					// Decode factory pointer if it's not null
+; 2633 : 					IUnknown *factory = reinterpret_cast<IUnknown*>(::DecodePointer(pCache->pCF));
+
+	push	eax
+	call	DWORD PTR __imp__DecodePointer@4
+
+; 2634 : 					_Analysis_assume_(factory != nullptr);
+; 2635 : 					factory->Release();
+
+	push	eax
+	mov	ecx, DWORD PTR [eax]
+	call	DWORD PTR [ecx+8]
+
+; 2636 : 					pCache->pCF = NULL;
+
+	mov	DWORD PTR [ebx], 0
+$LN2@Term:
+
+; 2622 : 			return;
+; 2623 : 
+; 2624 : 		for (_ATL_OBJMAP_ENTRY_EX** ppEntry = m_ppAutoObjMapFirst; ppEntry < m_ppAutoObjMapLast; ppEntry++)
+
+	add	esi, 4
+	cmp	esi, DWORD PTR [edi+12]
+	jb	SHORT $LL4@Term
+	pop	ebx
+$LN3@Term:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 181  : 		DeleteCriticalSection(&m_sec);
+
+	lea	eax, DWORD PTR [edi+16]
+	push	eax
+	call	DWORD PTR __imp__DeleteCriticalSection@4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 2644 : 		cbSize = 0;
+
+	mov	DWORD PTR [edi], 0
+	pop	esi
+$LN1@Term:
+	pop	edi
+
+; 2645 : 	}
+
+	ret	0
+?Term@CAtlComModule@ATL@@QAEXXZ ENDP			; ATL::CAtlComModule::Term
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??1CAtlComModule@ATL@@QAE@XZ
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+??1CAtlComModule@ATL@@QAE@XZ PROC			; ATL::CAtlComModule::~CAtlComModule, COMDAT
+; _this$ = ecx
+
+; 2614 : 	{
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR fs:0
+	push	-1
+	push	__ehhandler$??1CAtlComModule@ATL@@QAE@XZ
+	push	eax
+	mov	DWORD PTR fs:0, esp
+
+; 2615 : 		Term();
+
+	call	?Term@CAtlComModule@ATL@@QAEXXZ		; ATL::CAtlComModule::Term
+
+; 2616 : 	}
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__ehhandler$??1CAtlComModule@ATL@@QAE@XZ:
+	mov	eax, OFFSET __ehfuncinfo$??1CAtlComModule@ATL@@QAE@XZ
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??1CAtlComModule@ATL@@QAE@XZ ENDP			; ATL::CAtlComModule::~CAtlComModule
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??0CAtlComModule@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??0CAtlComModule@ATL@@QAE@XZ PROC			; ATL::CAtlComModule::CAtlComModule, COMDAT
+; _this$ = ecx
+
+; 2593 : 	CAtlComModule() throw()
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+	xorps	xmm0, xmm0
+	lea	eax, DWORD PTR [esi+16]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 151  : 		memset(&m_sec, 0, sizeof(CRITICAL_SECTION));
+
+	movups	XMMWORD PTR [eax], xmm0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	push	0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 151  : 		memset(&m_sec, 0, sizeof(CRITICAL_SECTION));
+
+	movq	QWORD PTR [eax+16], xmm0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	push	0
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 2595 : 		cbSize = 0;
+
+	mov	DWORD PTR [esi], 0
+
+; 2596 : 
+; 2597 : 		m_hInstTypeLib = reinterpret_cast<HINSTANCE>(&__ImageBase);
+
+	mov	DWORD PTR [esi+4], OFFSET ___ImageBase
+
+; 2598 : 
+; 2599 : 		m_ppAutoObjMapFirst = &__pobjMapEntryFirst + 1;
+
+	mov	DWORD PTR [esi+8], OFFSET ___pobjMapEntryFirst+4
+
+; 2600 : 		m_ppAutoObjMapLast = &__pobjMapEntryLast;
+
+	mov	DWORD PTR [esi+12], OFFSET ___pobjMapEntryLast
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	call	DWORD PTR __imp__InitializeCriticalSectionEx@12
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 171  : 		if (!_AtlInitializeCriticalSectionEx(&m_sec, 0, 0))
+
+	test	eax, eax
+	jne	SHORT $LN2@CAtlComMod
+
+; 172  : 		{
+; 173  : 			hRes = HRESULT_FROM_WIN32(GetLastError());
+
+	call	DWORD PTR __imp__GetLastError@0
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+
+; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
+
+	test	eax, eax
+	jle	SHORT $LN18@CAtlComMod
+	movzx	eax, ax
+	or	eax, -2147024896			; 80070000H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 2602 : 		if (FAILED(m_csObjMap.Init()))
+
+	test	eax, eax
+$LN18@CAtlComMod:
+	jns	SHORT $LN2@CAtlComMod
+
+; 2611 : 	}
+
+	mov	eax, esi
+	mov	BYTE PTR ?m_bInitFailed@CAtlBaseModule@ATL@@2_NA, 1 ; ATL::CAtlBaseModule::m_bInitFailed
+	pop	esi
+	ret	0
+$LN2@CAtlComMod:
+
+; 2603 : 		{
+; 2604 : 			ATLTRACE(atlTraceCOM, 0, _T("ERROR : Unable to initialize critical section in CAtlComModule\n"));
+; 2605 : 			ATLASSERT(0);
+; 2606 : 			CAtlBaseModule::m_bInitFailed = true;
+; 2607 : 			return;
+; 2608 : 		}
+; 2609 : 		// Set cbSize on success.
+; 2610 : 		cbSize = sizeof(_ATL_COM_MODULE);
+
+	mov	DWORD PTR [esi], 40			; 00000028H
+
+; 2611 : 	}
+
+	mov	eax, esi
+	pop	esi
+	ret	0
+??0CAtlComModule@ATL@@QAE@XZ ENDP			; ATL::CAtlComModule::CAtlComModule
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ?Close@CHandle@ATL@@QAEXXZ
+_TEXT	SEGMENT
+?Close@CHandle@ATL@@QAEXXZ PROC				; ATL::CHandle::Close, COMDAT
+; _this$ = ecx
+
+; 1255 : {
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1256 : 	if( m_h != NULL )
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN2@Close
+
+; 1257 : 	{
+; 1258 : 		::CloseHandle( m_h );
+
+	push	eax
+	call	DWORD PTR __imp__CloseHandle@4
+
+; 1259 : 		m_h = NULL;
+
+	mov	DWORD PTR [esi], 0
+$LN2@Close:
+	pop	esi
+
+; 1260 : 	}
+; 1261 : }
+
+	ret	0
+?Close@CHandle@ATL@@QAEXXZ ENDP				; ATL::CHandle::Close
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??BCHandle@ATL@@QBEPAXXZ
+_TEXT	SEGMENT
+??BCHandle@ATL@@QBEPAXXZ PROC				; ATL::CHandle::operator void *, COMDAT
+; _this$ = ecx
+
+; 1235 : 	return( m_h );
+
+	mov	eax, DWORD PTR [ecx]
+
+; 1236 : }
+
+	ret	0
+??BCHandle@ATL@@QBEPAXXZ ENDP				; ATL::CHandle::operator void *
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??1CHandle@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??1CHandle@ATL@@QAE@XZ PROC				; ATL::CHandle::~CHandle, COMDAT
+; _this$ = ecx
+
+; 1212 : {
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1213 : 	if( m_h != NULL )
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN5@CHandle
+
+; 1258 : 		::CloseHandle( m_h );
+
+	push	eax
+	call	DWORD PTR __imp__CloseHandle@4
+
+; 1259 : 		m_h = NULL;
+
+	mov	DWORD PTR [esi], 0
+$LN5@CHandle:
+	pop	esi
+
+; 1214 : 	{
+; 1215 : 		Close();
+; 1216 : 	}
+; 1217 : }
+
+	ret	0
+??1CHandle@ATL@@QAE@XZ ENDP				; ATL::CHandle::~CHandle
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ??0CHandle@ATL@@QAE@PAX@Z
+_TEXT	SEGMENT
+_h$ = 8							; size = 4
+??0CHandle@ATL@@QAE@PAX@Z PROC				; ATL::CHandle::CHandle, COMDAT
+; _this$ = ecx
+
+; 1208 : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1207 : 	m_h( h )
+
+	mov	eax, DWORD PTR _h$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 1209 : }
+
+	mov	eax, ecx
+	pop	ebp
+	ret	4
+??0CHandle@ATL@@QAE@PAX@Z ENDP				; ATL::CHandle::CHandle
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ?AtlWinModuleTerm@ATL@@YGJPAU_ATL_WIN_MODULE70@1@PAUHINSTANCE__@@@Z
+_TEXT	SEGMENT
+_pWinModule$ = 8					; size = 4
+_hInst$ = 12						; size = 4
+?AtlWinModuleTerm@ATL@@YGJPAU_ATL_WIN_MODULE70@1@PAUHINSTANCE__@@@Z PROC ; ATL::AtlWinModuleTerm, COMDAT
+
+; 7660 : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+
+; 7661 : 	if (pWinModule == NULL)
+
+	mov	esi, DWORD PTR _pWinModule$[ebp]
+	test	esi, esi
+	jne	SHORT $LN5@AtlWinModu
+$LN35@AtlWinModu:
+
+; 7662 : 		return E_INVALIDARG;
+
+	mov	eax, -2147024809			; 80070057H
+	pop	esi
+
+; 7674 : }
+
+	pop	ebp
+	ret	8
+$LN5@AtlWinModu:
+
+; 7663 : 	if (pWinModule->cbSize == 0)
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN34@AtlWinModu
+
+; 7664 : 		return S_OK;
+; 7665 : 	if (pWinModule->cbSize != sizeof(_ATL_WIN_MODULE))
+
+	cmp	eax, 44					; 0000002cH
+	jne	SHORT $LN35@AtlWinModu
+
+; 7666 : 		return E_INVALIDARG;
+; 7667 : 
+; 7668 : 	for (int i = 0; i < pWinModule->m_rgWindowClassAtoms.GetSize(); i++)
+
+	push	edi
+	xor	edi, edi
+	cmp	DWORD PTR [esi+36], edi
+	jle	SHORT $LN3@AtlWinModu
+
+; 7669 : 		UnregisterClass((LPCTSTR)pWinModule->m_rgWindowClassAtoms[i], hInst);
+
+	push	ebx
+	mov	ebx, DWORD PTR _hInst$[ebp]
+	npad	2
+$LL4@AtlWinModu:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+
+; 238  : 		if(nIndex < 0 || nIndex >= m_nSize)
+
+	test	edi, edi
+	js	SHORT $LN36@AtlWinModu
+	cmp	edi, DWORD PTR [esi+36]
+	jge	SHORT $LN36@AtlWinModu
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 7669 : 		UnregisterClass((LPCTSTR)pWinModule->m_rgWindowClassAtoms[i], hInst);
+
+	mov	eax, DWORD PTR [esi+32]
+	push	ebx
+	movzx	eax, WORD PTR [eax+edi*2]
+	push	eax
+	call	DWORD PTR __imp__UnregisterClassW@8
+	inc	edi
+	cmp	edi, DWORD PTR [esi+36]
+	jl	SHORT $LL4@AtlWinModu
+	pop	ebx
+$LN3@AtlWinModu:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+
+; 216  : 		if(m_aT != NULL)
+
+	mov	eax, DWORD PTR [esi+32]
+	pop	edi
+	test	eax, eax
+	je	SHORT $LN20@AtlWinModu
+
+; 217  : 		{
+; 218  : 			for(int i = 0; i < m_nSize; i++)
+; 219  : 				m_aT[i].~T();
+; 220  : 			free(m_aT);
+
+	push	eax
+	call	DWORD PTR __imp__free
+	add	esp, 4
+
+; 221  : 			m_aT = NULL;
+
+	mov	DWORD PTR [esi+32], 0
+$LN20@AtlWinModu:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 181  : 		DeleteCriticalSection(&m_sec);
+
+	lea	eax, DWORD PTR [esi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+
+; 223  : 		m_nSize = 0;
+
+	mov	DWORD PTR [esi+36], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 181  : 		DeleteCriticalSection(&m_sec);
+
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+
+; 224  : 		m_nAllocSize = 0;
+
+	mov	DWORD PTR [esi+40], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 181  : 		DeleteCriticalSection(&m_sec);
+
+	call	DWORD PTR __imp__DeleteCriticalSection@4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 7672 : 	pWinModule->cbSize = 0;
+
+	mov	DWORD PTR [esi], 0
+$LN34@AtlWinModu:
+
+; 7673 : 	return S_OK;
+
+	xor	eax, eax
+	pop	esi
+
+; 7674 : }
+
+	pop	ebp
+	ret	8
+$LN36@AtlWinModu:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+
+; 240  : 			_AtlRaiseException((DWORD)EXCEPTION_ARRAY_BOUNDS_EXCEEDED);
+
+	push	1
+	push	-1073741684				; c000008cH
+	call	?_AtlRaiseException@ATL@@YAXKK@Z	; ATL::_AtlRaiseException
+$LN37@AtlWinModu:
+$LN33@AtlWinModu:
+	int	3
+?AtlWinModuleTerm@ATL@@YGJPAU_ATL_WIN_MODULE70@1@PAUHINSTANCE__@@@Z ENDP ; ATL::AtlWinModuleTerm
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+;	COMDAT ?AtlWinModuleInit@ATL@@YGJPAU_ATL_WIN_MODULE70@1@@Z
+_TEXT	SEGMENT
+_pWinModule$ = 8					; size = 4
+?AtlWinModuleInit@ATL@@YGJPAU_ATL_WIN_MODULE70@1@@Z PROC ; ATL::AtlWinModuleInit, COMDAT
+
+; 8404 : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 8405 : 	if (pWinModule == NULL)
+
+	mov	eax, DWORD PTR _pWinModule$[ebp]
+	test	eax, eax
+	jne	SHORT $LN2@AtlWinModu
+$LN15@AtlWinModu:
+
+; 8406 : 		return E_INVALIDARG;
+
+	mov	eax, -2147024809			; 80070057H
+
+; 8421 : }
+
+	pop	ebp
+	ret	4
+$LN2@AtlWinModu:
+
+; 8407 : 
+; 8408 : 	// check only in the DLL
+; 8409 : 	if (pWinModule->cbSize != sizeof(_ATL_WIN_MODULE))
+
+	cmp	DWORD PTR [eax], 44			; 0000002cH
+	jne	SHORT $LN15@AtlWinModu
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 170  : 		HRESULT hRes = S_OK;
+
+	xor	esi, esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 8412 : 	pWinModule->m_pCreateWndList = NULL;
+
+	mov	DWORD PTR [eax+28], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	push	esi
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 171  : 		if (!_AtlInitializeCriticalSectionEx(&m_sec, 0, 0))
+
+	add	eax, 4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	push	eax
+	call	DWORD PTR __imp__InitializeCriticalSectionEx@12
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 171  : 		if (!_AtlInitializeCriticalSectionEx(&m_sec, 0, 0))
+
+	test	eax, eax
+	jne	SHORT $LN14@AtlWinModu
+
+; 172  : 		{
+; 173  : 			hRes = HRESULT_FROM_WIN32(GetLastError());
+
+	call	DWORD PTR __imp__GetLastError@0
+	mov	esi, eax
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+
+; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
+
+	test	esi, esi
+	jle	SHORT $LN14@AtlWinModu
+	movzx	esi, si
+	or	esi, -2147024896			; 80070000H
+$LN14@AtlWinModu:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 8420 : 	return hr;
+
+	mov	eax, esi
+	pop	esi
+
+; 8421 : }
+
+	pop	ebp
+	ret	4
+?AtlWinModuleInit@ATL@@YGJPAU_ATL_WIN_MODULE70@1@@Z ENDP ; ATL::AtlWinModuleInit
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+;	COMDAT ??1_ATL_WIN_MODULE70@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??1_ATL_WIN_MODULE70@ATL@@QAE@XZ PROC			; ATL::_ATL_WIN_MODULE70::~_ATL_WIN_MODULE70, COMDAT
+; _this$ = ecx
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 216  : 		if(m_aT != NULL)
+
+	mov	eax, DWORD PTR [esi+32]
+	test	eax, eax
+	je	SHORT $LN19@ATL_WIN_MO
+
+; 217  : 		{
+; 218  : 			for(int i = 0; i < m_nSize; i++)
+; 219  : 				m_aT[i].~T();
+; 220  : 			free(m_aT);
+
+	push	eax
+	call	DWORD PTR __imp__free
+	add	esp, 4
+
+; 221  : 			m_aT = NULL;
+
+	mov	DWORD PTR [esi+32], 0
+$LN19@ATL_WIN_MO:
+
+; 222  : 		}
+; 223  : 		m_nSize = 0;
+; 224  : 		m_nAllocSize = 0;
+
+	mov	DWORD PTR [esi+40], 0
+	mov	DWORD PTR [esi+36], 0
+	pop	esi
+	ret	0
+??1_ATL_WIN_MODULE70@ATL@@QAE@XZ ENDP			; ATL::_ATL_WIN_MODULE70::~_ATL_WIN_MODULE70
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+;	COMDAT ??0_ATL_WIN_MODULE70@ATL@@QAE@XZ
+_TEXT	SEGMENT
+_this$ = -4						; size = 4
+??0_ATL_WIN_MODULE70@ATL@@QAE@XZ PROC			; ATL::_ATL_WIN_MODULE70::_ATL_WIN_MODULE70, COMDAT
+; _this$ = ecx
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+	xorps	xmm0, xmm0
+	mov	DWORD PTR _this$[ebp], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 151  : 		memset(&m_sec, 0, sizeof(CRITICAL_SECTION));
+
+	movups	XMMWORD PTR [ecx+4], xmm0
+	mov	eax, ecx
+	movq	QWORD PTR [ecx+20], xmm0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+
+; 119  : 		m_aT(NULL), m_nSize(0), m_nAllocSize(0)
+
+	mov	DWORD PTR [ecx+32], 0
+	mov	DWORD PTR [ecx+36], 0
+	mov	DWORD PTR [ecx+40], 0
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+??0_ATL_WIN_MODULE70@ATL@@QAE@XZ ENDP			; ATL::_ATL_WIN_MODULE70::_ATL_WIN_MODULE70
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+;	COMDAT ??A?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAEAAGH@Z
+_TEXT	SEGMENT
+_nIndex$ = 8						; size = 4
+??A?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAEAAGH@Z PROC ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::operator[], COMDAT
+; _this$ = ecx
+
+; 236  : 	{
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 237  : 		ATLASSERT(nIndex >= 0 && nIndex < m_nSize);
+; 238  : 		if(nIndex < 0 || nIndex >= m_nSize)
+
+	mov	edx, DWORD PTR _nIndex$[ebp]
+	test	edx, edx
+	js	SHORT $LN6@operator
+	cmp	edx, DWORD PTR [ecx+4]
+	jge	SHORT $LN6@operator
+
+; 241  : 		}
+; 242  : 		return m_aT[nIndex];
+
+	mov	eax, DWORD PTR [ecx]
+	lea	eax, DWORD PTR [eax+edx*2]
+
+; 243  : 	}
+
+	pop	ebp
+	ret	4
+$LN6@operator:
+
+; 239  : 		{
+; 240  : 			_AtlRaiseException((DWORD)EXCEPTION_ARRAY_BOUNDS_EXCEEDED);
+
+	push	1
+	push	-1073741684				; c000008cH
+	call	?_AtlRaiseException@ATL@@YAXKK@Z	; ATL::_AtlRaiseException
+$LN7@operator:
+$LN5@operator:
+	int	3
+??A?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAEAAGH@Z ENDP ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::operator[]
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+;	COMDAT ?RemoveAll@?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAEXXZ
+_TEXT	SEGMENT
+?RemoveAll@?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAEXXZ PROC ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::RemoveAll, COMDAT
+; _this$ = ecx
+
+; 215  : 	{
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 216  : 		if(m_aT != NULL)
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN11@RemoveAll
+
+; 217  : 		{
+; 218  : 			for(int i = 0; i < m_nSize; i++)
+; 219  : 				m_aT[i].~T();
+; 220  : 			free(m_aT);
+
+	push	eax
+	call	DWORD PTR __imp__free
+	add	esp, 4
+
+; 221  : 			m_aT = NULL;
+
+	mov	DWORD PTR [esi], 0
+$LN11@RemoveAll:
+
+; 222  : 		}
+; 223  : 		m_nSize = 0;
+; 224  : 		m_nAllocSize = 0;
+
+	mov	DWORD PTR [esi+8], 0
+	mov	DWORD PTR [esi+4], 0
+	pop	esi
+
+; 225  :     }
+
+	ret	0
+?RemoveAll@?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAEXXZ ENDP ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::RemoveAll
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+;	COMDAT ?GetSize@?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QBEHXZ
+_TEXT	SEGMENT
+?GetSize@?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QBEHXZ PROC ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::GetSize, COMDAT
+; _this$ = ecx
+
+; 161  : 		return m_nSize;
+
+	mov	eax, DWORD PTR [ecx+4]
+
+; 162  : 	}
+
+	ret	0
+?GetSize@?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QBEHXZ ENDP ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::GetSize
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+;	COMDAT ??1?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??1?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAE@XZ PROC ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::~CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >, COMDAT
+; _this$ = ecx
+
+; 310  : {
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 216  : 		if(m_aT != NULL)
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN13@CSimpleArr
+
+; 217  : 		{
+; 218  : 			for(int i = 0; i < m_nSize; i++)
+; 219  : 				m_aT[i].~T();
+; 220  : 			free(m_aT);
+
+	push	eax
+	call	DWORD PTR __imp__free
+	add	esp, 4
+
+; 221  : 			m_aT = NULL;
+
+	mov	DWORD PTR [esi], 0
+$LN13@CSimpleArr:
+
+; 222  : 		}
+; 223  : 		m_nSize = 0;
+; 224  : 		m_nAllocSize = 0;
+
+	mov	DWORD PTR [esi+8], 0
+	mov	DWORD PTR [esi+4], 0
+	pop	esi
+
+; 311  : 	RemoveAll();
+; 312  : }
+
+	ret	0
+??1?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAE@XZ ENDP ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::~CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlsimpcoll.h
+;	COMDAT ??0?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??0?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAE@XZ PROC ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >, COMDAT
+; _this$ = ecx
+
+; 119  : 		m_aT(NULL), m_nSize(0), m_nAllocSize(0)
+
+	mov	DWORD PTR [ecx], 0
+
+; 121  : 	}
+
+	mov	eax, ecx
+	mov	DWORD PTR [ecx+4], 0
+	mov	DWORD PTR [ecx+8], 0
+	ret	0
+??0?$CSimpleArray@GV?$CSimpleArrayEqualHelper@G@ATL@@@ATL@@QAE@XZ ENDP ; ATL::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >::CSimpleArray<unsigned short,ATL::CSimpleArrayEqualHelper<unsigned short> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+;	COMDAT ??1_ATL_COM_MODULE70@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??1_ATL_COM_MODULE70@ATL@@QAE@XZ PROC			; ATL::_ATL_COM_MODULE70::~_ATL_COM_MODULE70, COMDAT
+; _this$ = ecx
+	ret	0
+??1_ATL_COM_MODULE70@ATL@@QAE@XZ ENDP			; ATL::_ATL_COM_MODULE70::~_ATL_COM_MODULE70
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+;	COMDAT ??0_ATL_COM_MODULE70@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??0_ATL_COM_MODULE70@ATL@@QAE@XZ PROC			; ATL::_ATL_COM_MODULE70::_ATL_COM_MODULE70, COMDAT
+; _this$ = ecx
+	xorps	xmm0, xmm0
+	mov	eax, ecx
+
+; 151  : 		memset(&m_sec, 0, sizeof(CRITICAL_SECTION));
+
+	movups	XMMWORD PTR [ecx+16], xmm0
+	movq	QWORD PTR [ecx+32], xmm0
+	ret	0
+??0_ATL_COM_MODULE70@ATL@@QAE@XZ ENDP			; ATL::_ATL_COM_MODULE70::_ATL_COM_MODULE70
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+;	COMDAT ?GetModuleInstance@CAtlBaseModule@ATL@@QAEPAUHINSTANCE__@@XZ
+_TEXT	SEGMENT
+?GetModuleInstance@CAtlBaseModule@ATL@@QAEPAUHINSTANCE__@@XZ PROC ; ATL::CAtlBaseModule::GetModuleInstance, COMDAT
+; _this$ = ecx
+
+; 316  : 		return m_hInst;
+
+	mov	eax, DWORD PTR [ecx+4]
+
+; 317  : 	}
+
+	ret	0
+?GetModuleInstance@CAtlBaseModule@ATL@@QAEPAUHINSTANCE__@@XZ ENDP ; ATL::CAtlBaseModule::GetModuleInstance
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+;	COMDAT ?Term@CComCriticalSection@ATL@@QAEJXZ
+_TEXT	SEGMENT
+?Term@CComCriticalSection@ATL@@QAEJXZ PROC		; ATL::CComCriticalSection::Term, COMDAT
+; _this$ = ecx
+
+; 180  : 	{
+
+	npad	2
+
+; 181  : 		DeleteCriticalSection(&m_sec);
+
+	push	ecx
+	call	DWORD PTR __imp__DeleteCriticalSection@4
+
+; 182  : 		return S_OK;
+
+	xor	eax, eax
+
+; 183  : 	}
+
+	ret	0
+?Term@CComCriticalSection@ATL@@QAEJXZ ENDP		; ATL::CComCriticalSection::Term
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+;	COMDAT ?Init@CComCriticalSection@ATL@@QAEJXZ
+_TEXT	SEGMENT
+?Init@CComCriticalSection@ATL@@QAEJXZ PROC		; ATL::CComCriticalSection::Init, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	push	0
+	push	0
+	push	ecx
+	call	DWORD PTR __imp__InitializeCriticalSectionEx@12
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 171  : 		if (!_AtlInitializeCriticalSectionEx(&m_sec, 0, 0))
+
+	test	eax, eax
+	jne	SHORT $LN10@Init
+
+; 172  : 		{
+; 173  : 			hRes = HRESULT_FROM_WIN32(GetLastError());
+
+	call	DWORD PTR __imp__GetLastError@0
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+
+; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
+
+	test	eax, eax
+	jle	SHORT $LN9@Init
+	movzx	eax, ax
+	or	eax, -2147024896			; 80070000H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+
+; 177  : 	}
+
+	ret	0
+$LN10@Init:
+
+; 174  : 		}
+; 175  : 
+; 176  : 		return hRes;
+
+	xor	eax, eax
+$LN9@Init:
+
+; 177  : 	}
+
+	ret	0
+?Init@CComCriticalSection@ATL@@QAEJXZ ENDP		; ATL::CComCriticalSection::Init
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+;	COMDAT ??1CComCriticalSection@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??1CComCriticalSection@ATL@@QAE@XZ PROC			; ATL::CComCriticalSection::~CComCriticalSection, COMDAT
+; _this$ = ecx
+
+; 156  : 	}
+
+	ret	0
+??1CComCriticalSection@ATL@@QAE@XZ ENDP			; ATL::CComCriticalSection::~CComCriticalSection
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcore.h
+;	COMDAT ??0CComCriticalSection@ATL@@QAE@XZ
+_TEXT	SEGMENT
+??0CComCriticalSection@ATL@@QAE@XZ PROC			; ATL::CComCriticalSection::CComCriticalSection, COMDAT
+; _this$ = ecx
+
+; 149  : 	CComCriticalSection() throw()
+
+	xorps	xmm0, xmm0
+
+; 150  : 	{
+; 151  : 		memset(&m_sec, 0, sizeof(CRITICAL_SECTION));
+; 152  : 	}
+
+	mov	eax, ecx
+	movups	XMMWORD PTR [ecx], xmm0
+	movq	QWORD PTR [ecx+16], xmm0
+	ret	0
+??0CComCriticalSection@ATL@@QAE@XZ ENDP			; ATL::CComCriticalSection::CComCriticalSection
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlwinverapi.h
+;	COMDAT ?_AtlInitializeCriticalSectionEx@ATL@@YAHPAU_RTL_CRITICAL_SECTION@@KK@Z
+_TEXT	SEGMENT
+_lpCriticalSection$ = 8					; size = 4
+_dwSpinCount$ = 12					; size = 4
+_Flags$ = 16						; size = 4
+?_AtlInitializeCriticalSectionEx@ATL@@YAHPAU_RTL_CRITICAL_SECTION@@KK@Z PROC ; ATL::_AtlInitializeCriticalSectionEx, COMDAT
+
+; 727  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 728  : #if (NTDDI_VERSION >= NTDDI_VISTA) && !defined(_USING_V110_SDK71_) && !defined(_ATL_XP_TARGETING)
+; 729  : 	// InitializeCriticalSectionEx is available in Vista or later, desktop or store apps
+; 730  : 	return ::InitializeCriticalSectionEx(lpCriticalSection, dwSpinCount, Flags);
+
+	push	DWORD PTR _Flags$[ebp]
+	push	DWORD PTR _dwSpinCount$[ebp]
+	push	DWORD PTR _lpCriticalSection$[ebp]
+	call	DWORD PTR __imp__InitializeCriticalSectionEx@12
+
+; 731  : #else
+; 732  : 	UNREFERENCED_PARAMETER(Flags);
+; 733  : 
+; 734  : 	// ...otherwise fall back to using InitializeCriticalSectionAndSpinCount.
+; 735  : 	return ::InitializeCriticalSectionAndSpinCount(lpCriticalSection, dwSpinCount);
+; 736  : #endif
+; 737  : }
+
+	pop	ebp
+	ret	0
+?_AtlInitializeCriticalSectionEx@ATL@@YAHPAU_RTL_CRITICAL_SECTION@@KK@Z ENDP ; ATL::_AtlInitializeCriticalSectionEx
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlexcept.h
+;	COMDAT ?_AtlRaiseException@ATL@@YAXKK@Z
+_TEXT	SEGMENT
+_dwExceptionCode$ = 8					; size = 4
+_dwExceptionFlags$ = 12					; size = 4
+?_AtlRaiseException@ATL@@YAXKK@Z PROC			; ATL::_AtlRaiseException, COMDAT
+
+; 30   : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 31   : 	RaiseException( dwExceptionCode, dwExceptionFlags, 0, NULL );
+
+	push	0
+	push	0
+	push	DWORD PTR _dwExceptionFlags$[ebp]
+	push	DWORD PTR _dwExceptionCode$[ebp]
+	call	DWORD PTR __imp__RaiseException@16
+
+; 32   : }
+
+	pop	ebp
+	ret	0
+?_AtlRaiseException@ATL@@YAXKK@Z ENDP			; ATL::_AtlRaiseException
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0EAAAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0EAAAAA@$0A@@ATL@@QAE@PB_W@Z PROC ; ATL::CTraceCategoryEx<4194304,0>::CTraceCategoryEx<4194304,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0EAAAAA@$0A@@ATL@@QAE@PB_W@Z ENDP ; ATL::CTraceCategoryEx<4194304,0>::CTraceCategoryEx<4194304,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0CAAAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0CAAAAA@$0A@@ATL@@QAE@PB_W@Z PROC ; ATL::CTraceCategoryEx<2097152,0>::CTraceCategoryEx<2097152,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0CAAAAA@$0A@@ATL@@QAE@PB_W@Z ENDP ; ATL::CTraceCategoryEx<2097152,0>::CTraceCategoryEx<2097152,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0BAAAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0BAAAAA@$0A@@ATL@@QAE@PB_W@Z PROC ; ATL::CTraceCategoryEx<1048576,0>::CTraceCategoryEx<1048576,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0BAAAAA@$0A@@ATL@@QAE@PB_W@Z ENDP ; ATL::CTraceCategoryEx<1048576,0>::CTraceCategoryEx<1048576,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0EAAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0EAAAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<262144,0>::CTraceCategoryEx<262144,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0EAAAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<262144,0>::CTraceCategoryEx<262144,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0CAAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0CAAAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<131072,0>::CTraceCategoryEx<131072,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0CAAAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<131072,0>::CTraceCategoryEx<131072,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0BAAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0BAAAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<65536,0>::CTraceCategoryEx<65536,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0BAAAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<65536,0>::CTraceCategoryEx<65536,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0IAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0IAAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<32768,0>::CTraceCategoryEx<32768,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0IAAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<32768,0>::CTraceCategoryEx<32768,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0EAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0EAAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<16384,0>::CTraceCategoryEx<16384,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0EAAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<16384,0>::CTraceCategoryEx<16384,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0CAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0CAAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<8192,0>::CTraceCategoryEx<8192,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0CAAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<8192,0>::CTraceCategoryEx<8192,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0BAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0BAAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<4096,0>::CTraceCategoryEx<4096,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0BAAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<4096,0>::CTraceCategoryEx<4096,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0IAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0IAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<2048,0>::CTraceCategoryEx<2048,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0IAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<2048,0>::CTraceCategoryEx<2048,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0EAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0EAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<1024,0>::CTraceCategoryEx<1024,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0EAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<1024,0>::CTraceCategoryEx<1024,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0CAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0CAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<512,0>::CTraceCategoryEx<512,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0CAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<512,0>::CTraceCategoryEx<512,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0BAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0BAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<256,0>::CTraceCategoryEx<256,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0BAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<256,0>::CTraceCategoryEx<256,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0IA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0IA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<128,0>::CTraceCategoryEx<128,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0IA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<128,0>::CTraceCategoryEx<128,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0EA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0EA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<64,0>::CTraceCategoryEx<64,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0EA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<64,0>::CTraceCategoryEx<64,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0CA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0CA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<32,0>::CTraceCategoryEx<32,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0CA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<32,0>::CTraceCategoryEx<32,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0BA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0BA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<16,0>::CTraceCategoryEx<16,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0BA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<16,0>::CTraceCategoryEx<16,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$07$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$07$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<8,0>::CTraceCategoryEx<8,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$07$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<8,0>::CTraceCategoryEx<8,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$03$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$03$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<4,0>::CTraceCategoryEx<4,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$03$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<4,0>::CTraceCategoryEx<4,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$01$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$01$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<2,0>::CTraceCategoryEx<2,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$01$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<2,0>::CTraceCategoryEx<2,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$00$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$00$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<1,0>::CTraceCategoryEx<1,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$00$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<1,0>::CTraceCategoryEx<1,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atltrace.h
+;	COMDAT ??0?$CTraceCategoryEx@$0IAAAA@$0A@@ATL@@QAE@PB_W@Z
+_TEXT	SEGMENT
+_pszCategoryName$ = 8					; size = 4
+??0?$CTraceCategoryEx@$0IAAAA@$0A@@ATL@@QAE@PB_W@Z PROC	; ATL::CTraceCategoryEx<524288,0>::CTraceCategoryEx<524288,0>, COMDAT
+; _this$ = ecx
+
+; 496  : 	(void)pszCategoryName;
+; 497  : }
+
+	mov	eax, ecx
+	ret	4
+??0?$CTraceCategoryEx@$0IAAAA@$0A@@ATL@@QAE@PB_W@Z ENDP	; ATL::CTraceCategoryEx<524288,0>::CTraceCategoryEx<524288,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\time.h
+_TEXT	SEGMENT
+__Time$ = 8						; size = 4
+_time	PROC
+
+; 534  :         {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 536  :         }
+
+	pop	ebp
+
+; 535  :             return _time64(_Time);
+
+	jmp	DWORD PTR __imp___time64
+_time	ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ;	COMDAT ??_GiSK_INI@@QAEPAXI@Z
 _TEXT	SEGMENT
 ___flags$ = 8						; size = 4
@@ -4579,6 +7106,33 @@ __Right$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
+;	COMDAT ??0?$shared_ptr@UiSK_INI@@@std@@QAE@$$T@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??0?$shared_ptr@UiSK_INI@@@std@@QAE@$$T@Z PROC		; std::shared_ptr<iSK_INI>::shared_ptr<iSK_INI>, COMDAT
+; _this$ = ecx
+
+; 696  : 		: _Ptr(0), _Rep(0)
+
+	mov	DWORD PTR [ecx], 0
+
+; 891  : 		{	// construct empty shared_ptr
+; 892  : 		}
+
+	mov	eax, ecx
+
+; 696  : 		: _Ptr(0), _Rep(0)
+
+	mov	DWORD PTR [ecx+4], 0
+
+; 891  : 		{	// construct empty shared_ptr
+; 892  : 		}
+
+	ret	4
+??0?$shared_ptr@UiSK_INI@@@std@@QAE@$$T@Z ENDP		; std::shared_ptr<iSK_INI>::shared_ptr<iSK_INI>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 ;	COMDAT ??0?$shared_ptr@UiSK_INI@@@std@@QAE@XZ
 _TEXT	SEGMENT
 ??0?$shared_ptr@UiSK_INI@@@std@@QAE@XZ PROC		; std::shared_ptr<iSK_INI>::shared_ptr<iSK_INI>, COMDAT
@@ -4903,7 +7457,7 @@ _addr$ = 8						; size = 4
 ?removeAddress@SK_Inject_AddressCacheRegistry@@QAE_NAAVSK_Inject_Address@@@Z PROC ; SK_Inject_AddressCacheRegistry::removeAddress
 ; _this$ = ecx
 
-; 166  : {
+; 254  : {
 
 	npad	2
 	push	ebp
@@ -4917,7 +7471,7 @@ _addr$ = 8						; size = 4
 	push	ebx
 	push	esi
 
-; 167  :   return
+; 255  :   return
 
 	mov	esi, DWORD PTR _addr$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -4927,12 +7481,12 @@ _addr$ = 8						; size = 4
 	xor	edx, edx
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 166  : {
+; 254  : {
 
 	push	edi
 	mov	edi, ecx
 
-; 167  :   return
+; 255  :   return
 
 	push	DWORD PTR [esi+48]
 	lea	eax, DWORD PTR [esi+24]
@@ -4968,7 +7522,7 @@ _addr$ = 8						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 167  :   return
+; 255  :   return
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -4981,7 +7535,7 @@ _addr$ = 8						; size = 4
 	cmp	DWORD PTR [eax+20], 16			; 00000010H
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 167  :   return
+; 255  :   return
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5012,7 +7566,7 @@ $LN59@removeAddr:
 $LN78@removeAddr:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 167  :   return
+; 255  :   return
 
 	push	eax
 	push	esi
@@ -5025,7 +7579,7 @@ $LN78@removeAddr:
 	mov	ecx, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 167  :   return
+; 255  :   return
 
 	mov	bl, al
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5058,7 +7612,7 @@ $LN78@removeAddr:
 $LN113@removeAddr:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 172  : }
+; 260  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	al, bl
@@ -5106,7 +7660,7 @@ _addr$ = 8						; size = 4
 ?storeAddress@SK_Inject_AddressCacheRegistry@@QAEXAAVSK_Inject_Address@@@Z PROC ; SK_Inject_AddressCacheRegistry::storeAddress
 ; _this$ = ecx
 
-; 156  : {
+; 244  : {
 
 	npad	2
 	push	ebp
@@ -5119,7 +7673,7 @@ _addr$ = 8						; size = 4
 	sub	esp, 24					; 00000018H
 	push	esi
 
-; 157  :   storeNamedAddress (
+; 245  :   storeNamedAddress (
 
 	mov	esi, DWORD PTR _addr$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -5129,12 +7683,12 @@ _addr$ = 8						; size = 4
 	xor	edx, edx
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 156  : {
+; 244  : {
 
 	push	edi
 	mov	edi, ecx
 
-; 157  :   storeNamedAddress (
+; 245  :   storeNamedAddress (
 
 	push	DWORD PTR [esi+48]
 	lea	eax, DWORD PTR [esi+24]
@@ -5171,7 +7725,7 @@ _addr$ = 8						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 157  :   storeNamedAddress (
+; 245  :   storeNamedAddress (
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -5184,7 +7738,7 @@ _addr$ = 8						; size = 4
 	cmp	DWORD PTR [eax+20], 16			; 00000010H
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 157  :   storeNamedAddress (
+; 245  :   storeNamedAddress (
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5215,7 +7769,7 @@ $LN59@storeAddre:
 $LN78@storeAddre:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 157  :   storeNamedAddress (
+; 245  :   storeNamedAddress (
 
 	push	eax
 	push	esi
@@ -5252,7 +7806,7 @@ $LN78@storeAddre:
 $LN87@storeAddre:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 162  : }
+; 250  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -5345,7 +7899,7 @@ _arch$ = 20						; size = 4
 ?getAddress@SK_Inject_AddressCacheRegistry@@QAE?AVSK_Inject_Address@@PB_WPBDW4SK_SYS_CPUArch@@@Z PROC ; SK_Inject_AddressCacheRegistry::getAddress
 ; _this$ = ecx
 
-; 137  : {
+; 225  : {
 
 	npad	2
 	push	ebp
@@ -5358,7 +7912,7 @@ _arch$ = 20						; size = 4
 	sub	esp, 56					; 00000038H
 	push	ebx
 
-; 138  :   iSK_INISection& ini_sec =
+; 226  :   iSK_INISection& ini_sec =
 
 	mov	ebx, DWORD PTR _arch$[ebp]
 	lea	eax, DWORD PTR $T3[ebp]
@@ -5370,7 +7924,7 @@ _arch$ = 20						; size = 4
 	mov	esi, DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 138  :   iSK_INISection& ini_sec =
+; 226  :   iSK_INISection& ini_sec =
 
 	mov	ecx, OFFSET ?SecName@@3V<lambda>@@A	; SecName
 	push	edi
@@ -5387,7 +7941,7 @@ _arch$ = 20						; size = 4
 	cmp	DWORD PTR [ecx+20], 8
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 138  :   iSK_INISection& ini_sec =
+; 226  :   iSK_INISection& ini_sec =
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5403,7 +7957,7 @@ _arch$ = 20						; size = 4
 $LN31@getAddress:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 138  :   iSK_INISection& ini_sec =
+; 226  :   iSK_INISection& ini_sec =
 
 	mov	eax, DWORD PTR [esi]
 	push	ecx
@@ -5416,7 +7970,7 @@ $LN31@getAddress:
 	mov	ecx, DWORD PTR $T3[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 138  :   iSK_INISection& ini_sec =
+; 226  :   iSK_INISection& ini_sec =
 
 	mov	esi, eax
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
@@ -5458,7 +8012,7 @@ $LN40@getAddress:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 141  :   void* addr = 0;
+; 229  :   void* addr = 0;
 
 	mov	DWORD PTR _addr$[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -5472,11 +8026,11 @@ $LN40@getAddress:
 	mov	WORD PTR $T3[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 143  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 231  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	lea	eax, DWORD PTR _addr$[ebp]
 	push	eax
-	push	OFFSET $SG149984
+	push	OFFSET $SG168495
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -5485,7 +8039,7 @@ $LN40@getAddress:
 	mov	DWORD PTR $T3[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 143  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 231  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5532,7 +8086,7 @@ $LL206@getAddress:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 143  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 231  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -5546,7 +8100,7 @@ $LL206@getAddress:
 	cmp	DWORD PTR [ecx+20], 8
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 143  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 231  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5562,7 +8116,7 @@ $LL206@getAddress:
 $LN104@getAddress:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 143  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 231  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	mov	eax, DWORD PTR [esi]
 	push	ecx
@@ -5585,7 +8139,7 @@ $LN104@getAddress:
 $LN123@getAddress:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 143  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 231  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	push	eax
 	call	_swscanf
@@ -5596,7 +8150,7 @@ $LN123@getAddress:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 143  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 231  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	add	esp, 12					; 0000000cH
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
@@ -5629,7 +8183,7 @@ $LN123@getAddress:
 $LN132@getAddress:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 147  :   return
+; 235  :   return
 
 	push	ebx
 	push	DWORD PTR _addr$[ebp]
@@ -5645,7 +8199,7 @@ $LN132@getAddress:
 	mov	DWORD PTR $T2[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 147  :   return
+; 235  :   return
 
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5655,7 +8209,7 @@ $LN132@getAddress:
 	mov	DWORD PTR $T2[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 147  :   return
+; 235  :   return
 
 	mov	ebx, esp
 	mov	DWORD PTR $T5[ebp], esp
@@ -5667,7 +8221,7 @@ $LN132@getAddress:
 	mov	WORD PTR $T2[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 147  :   return
+; 235  :   return
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -5714,7 +8268,7 @@ $LL207@getAddress:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 147  :   return
+; 235  :   return
 
 	push	ebx
 	call	?SK_UTF8ToWideChar@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z ; SK_UTF8ToWideChar
@@ -5725,7 +8279,7 @@ $LL207@getAddress:
 	mov	edi, DWORD PTR _wszModuleName$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 147  :   return
+; 235  :   return
 
 	add	esp, 4
 	mov	edx, esp
@@ -5777,17 +8331,17 @@ $LL208@getAddress:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 147  :   return
+; 235  :   return
 
 	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	??0SK_Inject_Address@@QAE@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0IW4SK_SYS_CPUArch@@@Z ; SK_Inject_Address::SK_Inject_Address
 
-; 148  :     SK_Inject_Address (             wszModuleName,
-; 149  :                  SK_UTF8ToWideChar (szSymbolName),
-; 150  :       reinterpret_cast <uintptr_t> (addr),
-; 151  :                                     arch          );
-; 152  : }
+; 236  :     SK_Inject_Address (             wszModuleName,
+; 237  :                  SK_UTF8ToWideChar (szSymbolName),
+; 238  :       reinterpret_cast <uintptr_t> (addr),
+; 239  :                                     arch          );
+; 240  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
@@ -5859,7 +8413,7 @@ _arch$ = 16						; size = 4
 ?removeNamedAddress@SK_Inject_AddressCacheRegistry@@QAE_NPB_WPBDW4SK_SYS_CPUArch@@@Z PROC ; SK_Inject_AddressCacheRegistry::removeNamedAddress
 ; _this$ = ecx
 
-; 128  : {
+; 216  : {
 
 	npad	2
 	push	ebp
@@ -5873,7 +8427,7 @@ _arch$ = 16						; size = 4
 	push	ebx
 	push	esi
 
-; 129  :   iSK_INISection& ini_sec =
+; 217  :   iSK_INISection& ini_sec =
 
 	push	DWORD PTR _arch$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
@@ -5883,7 +8437,7 @@ _arch$ = 16						; size = 4
 	mov	esi, DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 129  :   iSK_INISection& ini_sec =
+; 217  :   iSK_INISection& ini_sec =
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	DWORD PTR _wszModuleName$[ebp]
@@ -5898,7 +8452,7 @@ _arch$ = 16						; size = 4
 	cmp	DWORD PTR [ecx+20], 8
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 129  :   iSK_INISection& ini_sec =
+; 217  :   iSK_INISection& ini_sec =
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5914,7 +8468,7 @@ _arch$ = 16						; size = 4
 $LN26@removeName:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 129  :   iSK_INISection& ini_sec =
+; 217  :   iSK_INISection& ini_sec =
 
 	mov	eax, DWORD PTR [esi]
 	push	ecx
@@ -5927,7 +8481,7 @@ $LN26@removeName:
 	mov	ecx, DWORD PTR $T3[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 129  :   iSK_INISection& ini_sec =
+; 217  :   iSK_INISection& ini_sec =
 
 	mov	esi, eax
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
@@ -5965,7 +8519,7 @@ $LN35@removeName:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 132  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
+; 220  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
 
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5975,7 +8529,7 @@ $LN35@removeName:
 	mov	DWORD PTR $T3[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 132  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
+; 220  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6025,7 +8579,7 @@ $LL134@removeName:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 132  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
+; 220  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -6039,7 +8593,7 @@ $LL134@removeName:
 	cmp	DWORD PTR [ecx+20], 8
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 132  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
+; 220  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6055,7 +8609,7 @@ $LL134@removeName:
 $LN99@removeName:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 132  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
+; 220  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
 
 	mov	eax, DWORD PTR [esi]
 	push	ecx
@@ -6068,7 +8622,7 @@ $LN99@removeName:
 	mov	ecx, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 132  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
+; 220  :   return ini_sec.remove_key (SK_UTF8ToWideChar (szSymbolName).c_str ());
 
 	mov	bl, al
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6101,7 +8655,7 @@ $LN99@removeName:
 $LN135@removeName:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 133  : }
+; 221  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	al, bl
@@ -6185,7 +8739,7 @@ _arch$ = 20						; size = 4
 ?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z PROC ; SK_Inject_AddressCacheRegistry::storeNamedAddress
 ; _this$ = ecx
 
-; 108  : {
+; 196  : {
 
 	npad	2
 	push	ebp
@@ -6199,7 +8753,7 @@ _arch$ = 20						; size = 4
 	push	ebx
 	push	esi
 
-; 109  :   iSK_INISection& ini_sec =
+; 197  :   iSK_INISection& ini_sec =
 
 	push	DWORD PTR _arch$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
@@ -6209,7 +8763,7 @@ _arch$ = 20						; size = 4
 	mov	esi, DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 109  :   iSK_INISection& ini_sec =
+; 197  :   iSK_INISection& ini_sec =
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	DWORD PTR _wszModuleName$[ebp]
@@ -6224,7 +8778,7 @@ _arch$ = 20						; size = 4
 	cmp	DWORD PTR [ecx+20], 8
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 109  :   iSK_INISection& ini_sec =
+; 197  :   iSK_INISection& ini_sec =
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6240,7 +8794,7 @@ _arch$ = 20						; size = 4
 $LN30@storeNamed:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 109  :   iSK_INISection& ini_sec =
+; 197  :   iSK_INISection& ini_sec =
 
 	mov	eax, DWORD PTR [esi]
 	push	ecx
@@ -6253,7 +8807,7 @@ $LN30@storeNamed:
 	mov	ecx, DWORD PTR $T4[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 109  :   iSK_INISection& ini_sec =
+; 197  :   iSK_INISection& ini_sec =
 
 	mov	esi, eax
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
@@ -6291,7 +8845,7 @@ $LN39@storeNamed:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 112  :   std::wstring wide_name (SK_UTF8ToWideChar (szSymbolName));
+; 200  :   std::wstring wide_name (SK_UTF8ToWideChar (szSymbolName));
 
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6301,7 +8855,7 @@ $LN39@storeNamed:
 	mov	DWORD PTR $T4[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 112  :   std::wstring wide_name (SK_UTF8ToWideChar (szSymbolName));
+; 200  :   std::wstring wide_name (SK_UTF8ToWideChar (szSymbolName));
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6351,7 +8905,7 @@ $LL255@storeNamed:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 112  :   std::wstring wide_name (SK_UTF8ToWideChar (szSymbolName));
+; 200  :   std::wstring wide_name (SK_UTF8ToWideChar (szSymbolName));
 
 	lea	eax, DWORD PTR _wide_name$[ebp]
 	push	eax
@@ -6368,7 +8922,7 @@ $LL255@storeNamed:
 	lea	ecx, DWORD PTR _wide_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 114  :   if (ini_sec.contains_key (wide_name.c_str ()))
+; 202  :   if (ini_sec.contains_key (wide_name.c_str ()))
 
 	mov	eax, DWORD PTR [esi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6378,20 +8932,20 @@ $LL255@storeNamed:
 	cmovae	ecx, DWORD PTR _wide_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 114  :   if (ini_sec.contains_key (wide_name.c_str ()))
+; 202  :   if (ini_sec.contains_key (wide_name.c_str ()))
 
 	push	ecx
 	push	esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	call	DWORD PTR [eax+20]
 
-; 116  :     ini_sec.get_value (wide_name.c_str ()) =
+; 204  :     ini_sec.get_value (wide_name.c_str ()) =
 
 	push	DWORD PTR _addr$[ebp]
 	test	al, al
 	lea	eax, DWORD PTR $T3[ebp]
 	je	SHORT $LN2@storeNamed
-	push	OFFSET $SG149953
+	push	OFFSET $SG168464
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -6406,7 +8960,7 @@ $LL255@storeNamed:
 	lea	ecx, DWORD PTR _wide_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 116  :     ini_sec.get_value (wide_name.c_str ()) =
+; 204  :     ini_sec.get_value (wide_name.c_str ()) =
 
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6416,7 +8970,7 @@ $LL255@storeNamed:
 	cmovae	ecx, DWORD PTR _wide_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 116  :     ini_sec.get_value (wide_name.c_str ()) =
+; 204  :     ini_sec.get_value (wide_name.c_str ()) =
 
 	mov	eax, DWORD PTR [esi]
 	push	ecx
@@ -6426,17 +8980,17 @@ $LL255@storeNamed:
 	mov	ecx, eax
 	call	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@$$QAV01@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
 
-; 117  :       SK_FormatStringW (L"%p", addr);
-; 118  :   }
-; 119  : 
-; 120  :   else
+; 205  :       SK_FormatStringW (L"%p", addr);
+; 206  :   }
+; 207  : 
+; 208  :   else
 
 	jmp	SHORT $LN258@storeNamed
 $LN2@storeNamed:
 
-; 122  :     ini_sec.add_key_value (wide_name.c_str (), SK_FormatStringW (L"%p", addr).c_str ());
+; 210  :     ini_sec.add_key_value (wide_name.c_str (), SK_FormatStringW (L"%p", addr).c_str ());
 
-	push	OFFSET $SG149954
+	push	OFFSET $SG168465
 	push	eax
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
@@ -6448,7 +9002,7 @@ $LN2@storeNamed:
 	cmp	DWORD PTR [edx+20], 8
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 122  :     ini_sec.add_key_value (wide_name.c_str (), SK_FormatStringW (L"%p", addr).c_str ());
+; 210  :     ini_sec.add_key_value (wide_name.c_str (), SK_FormatStringW (L"%p", addr).c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6473,7 +9027,7 @@ $LN171@storeNamed:
 	lea	ecx, DWORD PTR _wide_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 122  :     ini_sec.add_key_value (wide_name.c_str (), SK_FormatStringW (L"%p", addr).c_str ());
+; 210  :     ini_sec.add_key_value (wide_name.c_str (), SK_FormatStringW (L"%p", addr).c_str ());
 
 	mov	eax, DWORD PTR [esi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6483,7 +9037,7 @@ $LN171@storeNamed:
 	cmovae	ecx, DWORD PTR _wide_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 122  :     ini_sec.add_key_value (wide_name.c_str (), SK_FormatStringW (L"%p", addr).c_str ());
+; 210  :     ini_sec.add_key_value (wide_name.c_str (), SK_FormatStringW (L"%p", addr).c_str ());
 
 	push	edx
 	push	ecx
@@ -6550,7 +9104,7 @@ $LN199@storeNamed:
 $LN229@storeNamed:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 124  : }
+; 212  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	esi
@@ -6629,7 +9183,7 @@ _arch$ = 16						; size = 4
 ?getNamedAddress@SK_Inject_AddressCacheRegistry@@QAEIPB_WPBDW4SK_SYS_CPUArch@@@Z PROC ; SK_Inject_AddressCacheRegistry::getNamedAddress
 ; _this$ = ecx
 
-; 92   : {
+; 180  : {
 
 	npad	2
 	push	ebp
@@ -6643,7 +9197,7 @@ _arch$ = 16						; size = 4
 	push	ebx
 	push	esi
 
-; 93   :   iSK_INISection& ini_sec =
+; 181  :   iSK_INISection& ini_sec =
 
 	push	DWORD PTR _arch$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
@@ -6653,7 +9207,7 @@ _arch$ = 16						; size = 4
 	mov	esi, DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 93   :   iSK_INISection& ini_sec =
+; 181  :   iSK_INISection& ini_sec =
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	DWORD PTR _wszModuleName$[ebp]
@@ -6668,7 +9222,7 @@ _arch$ = 16						; size = 4
 	cmp	DWORD PTR [ecx+20], 8
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 93   :   iSK_INISection& ini_sec =
+; 181  :   iSK_INISection& ini_sec =
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6684,7 +9238,7 @@ _arch$ = 16						; size = 4
 $LN26@getNamedAd:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 93   :   iSK_INISection& ini_sec =
+; 181  :   iSK_INISection& ini_sec =
 
 	mov	eax, DWORD PTR [esi]
 	push	ecx
@@ -6697,7 +9251,7 @@ $LN26@getNamedAd:
 	mov	ecx, DWORD PTR $T3[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 93   :   iSK_INISection& ini_sec =
+; 181  :   iSK_INISection& ini_sec =
 
 	mov	esi, eax
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
@@ -6735,7 +9289,7 @@ $LN35@getNamedAd:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 96   :   void* addr = 0;
+; 184  :   void* addr = 0;
 
 	mov	DWORD PTR _addr$[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -6745,11 +9299,11 @@ $LN35@getNamedAd:
 	mov	WORD PTR $T3[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 98   :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 186  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	lea	eax, DWORD PTR _addr$[ebp]
 	push	eax
-	push	OFFSET $SG149934
+	push	OFFSET $SG168445
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -6758,7 +9312,7 @@ $LN35@getNamedAd:
 	mov	DWORD PTR $T3[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 98   :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 186  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6805,7 +9359,7 @@ $LL153@getNamedAd:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 98   :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 186  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -6819,7 +9373,7 @@ $LL153@getNamedAd:
 	cmp	DWORD PTR [ecx+20], 8
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 98   :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 186  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6835,7 +9389,7 @@ $LL153@getNamedAd:
 $LN99@getNamedAd:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 98   :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 186  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	mov	eax, DWORD PTR [esi]
 	push	ecx
@@ -6858,7 +9412,7 @@ $LN99@getNamedAd:
 $LN118@getNamedAd:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 98   :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 186  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	push	eax
 	call	_swscanf
@@ -6869,7 +9423,7 @@ $LN118@getNamedAd:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 98   :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
+; 186  :   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6902,12 +9456,12 @@ $LN118@getNamedAd:
 $LN154@getNamedAd:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 102  :   return
+; 190  :   return
 
 	mov	eax, DWORD PTR _addr$[ebp]
 
-; 103  :     reinterpret_cast <uintptr_t> (addr);
-; 104  : }
+; 191  :     reinterpret_cast <uintptr_t> (addr);
+; 192  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	esi
@@ -7000,6 +9554,18 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -7013,20 +9579,22 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 _TEXT	SEGMENT
-$T4 = -124						; size = 24
-$T5 = -124						; size = 24
-$T6 = -100						; size = 24
+$T4 = -172						; size = 24
+$T5 = -148						; size = 24
+$T6 = -148						; size = 24
+_injection_lock$7 = -124				; size = 24
+$T8 = -100						; size = 24
 _fname$ = -76						; size = 24
 _export_data$ = -52					; size = 24
-$T7 = -28						; size = 8
-_<end>$L0$1$ = -24					; size = 4
-_this$1$ = -20						; size = 4
-_it$1$ = -16						; size = 4
+_this$1$ = -28						; size = 4
+_it$1$ = -24						; size = 4
+$T9 = -20						; size = 8
+_<end>$L0$1$ = -16					; size = 4
 __$EHRec$ = -12						; size = 12
 ??1SK_Inject_AddressCacheRegistry@@QAE@XZ PROC		; SK_Inject_AddressCacheRegistry::~SK_Inject_AddressCacheRegistry
 ; _this$ = ecx
 
-; 38   : {
+; 118  : {
 
 	npad	2
 	push	ebp
@@ -7036,7 +9604,7 @@ __$EHRec$ = -12						; size = 12
 	mov	eax, DWORD PTR fs:0
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 112				; 00000070H
+	sub	esp, 160				; 000000a0H
 	push	ebx
 	push	esi
 	push	edi
@@ -7052,7 +9620,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _export_data$[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 38   : {
+; 118  : {
 
 	mov	edi, ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7064,11 +9632,11 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG149776
+	push	OFFSET $SG168310
 	lea	ecx, DWORD PTR _export_data$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 38   : {
+; 118  : {
 
 	mov	DWORD PTR _this$1$[ebp], edi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -7088,7 +9656,7 @@ __$EHRec$ = -12						; size = 12
 	mov	eax, DWORD PTR [edi]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 41   :   for ( auto& it : address_ini_->get_sections () )
+; 121  :   for ( auto& it : address_ini_->get_sections () )
 
 	push	eax
 	mov	ecx, DWORD PTR [eax]
@@ -7109,15 +9677,14 @@ __$EHRec$ = -12						; size = 12
 	cmp	ebx, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 41   :   for ( auto& it : address_ini_->get_sections () )
+; 121  :   for ( auto& it : address_ini_->get_sections () )
 
-	je	$LN701@SK_Inject_
-	npad	1
+	je	$LN805@SK_Inject_
 $LL4@SK_Inject_:
 
-; 43   :     export_data += L"[" + it.first + L"]\n";
+; 123  :     export_data += L"[" + it.first + L"]\n";
 
-	push	OFFSET $SG149777
+	push	OFFSET $SG168311
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 
 ; 540  : 		return ((reference)_Pnode->_Myval);
@@ -7125,10 +9692,10 @@ $LL4@SK_Inject_:
 	lea	edi, DWORD PTR [ebx+8]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 43   :     export_data += L"[" + it.first + L"]\n";
+; 123  :     export_data += L"[" + it.first + L"]\n";
 
 	push	edi
-	lea	eax, DWORD PTR $T5[ebp]
+	lea	eax, DWORD PTR $T6[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 
 ; 540  : 		return ((reference)_Pnode->_Myval);
@@ -7136,14 +9703,14 @@ $LL4@SK_Inject_:
 	mov	DWORD PTR _it$1$[ebp], edi
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 43   :     export_data += L"[" + it.first + L"]\n";
+; 123  :     export_data += L"[" + it.first + L"]\n";
 
-	push	OFFSET $SG149778
+	push	OFFSET $SG168312
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@QB_WABV10@@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	add	esp, 12					; 0000000cH
 	push	eax
-	lea	eax, DWORD PTR $T6[ebp]
+	lea	eax, DWORD PTR $T8[ebp]
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	add	esp, 12					; 0000000cH
@@ -7159,12 +9726,139 @@ $LL4@SK_Inject_:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T6[ebp+20]
+	mov	eax, DWORD PTR $T8[ebp+20]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN153@SK_Inject_
+	jb	SHORT $LN154@SK_Inject_
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	mov	ecx, DWORD PTR $T8[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
+
+	cmp	eax, 2147483647				; 7fffffffH
+	ja	$LN793@SK_Inject_
+
+; 99   : 	const size_t _User_size = _Count * _Sz;
+
+	add	eax, eax
+
+; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN149@SK_Inject_
+
+; 101  : 		{	// deallocate large block
+; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
+; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+
+	test	cl, 31					; 0000001fH
+	jne	$LN793@SK_Inject_
+
+; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
+; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
+; 106  : 		const uintptr_t _Ptr_container =
+; 107  : 			*reinterpret_cast<uintptr_t *>(_Ptr_ptr);
+
+	mov	eax, DWORD PTR [ecx-4]
+
+; 108  : 
+; 109  :  #ifdef _DEBUG
+; 110  : 		// If the following asserts, it likely means that we are performing
+; 111  : 		// an aligned delete on memory coming from an unaligned allocation.
+; 112  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+; 113  : 			reinterpret_cast<uintptr_t *>(_Ptr_ptr)[-1] ==
+; 114  : 				_BIG_ALLOCATION_SENTINEL);
+; 115  :  #endif /* _DEBUG */
+; 116  : 
+; 117  : 		// Extra paranoia on aligned allocation/deallocation
+; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
+
+	cmp	eax, ecx
+	jae	$LN793@SK_Inject_
+
+; 119  : 
+; 120  :  #ifdef _DEBUG
+; 121  : 		_SCL_SECURE_ALWAYS_VALIDATE(2 * sizeof(void *)
+; 122  : 			<= _Ptr_user - _Ptr_container);
+; 123  : 
+; 124  :  #else /* _DEBUG */
+; 125  : 		_SCL_SECURE_ALWAYS_VALIDATE(sizeof(void *)
+
+	sub	ecx, eax
+	cmp	ecx, 4
+	jb	$LN793@SK_Inject_
+
+; 126  : 			<= _Ptr_user - _Ptr_container);
+; 127  :  #endif /* _DEBUG */
+; 128  : 
+; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
+
+	cmp	ecx, 35					; 00000023H
+	ja	$LN793@SK_Inject_
+
+; 130  : 			<= _NON_USER_SIZE);
+; 131  : 
+; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
+
+	mov	ecx, eax
+$LN149@SK_Inject_:
+
+; 133  : 		}
+; 134  : 
+; 135  :  #else /* defined(_M_IX86) || defined(_M_X64) */
+; 136  : 	static_cast<void>(_Count);
+; 137  : 	static_cast<void>(_Sz);
+; 138  :  #endif /* defined(_M_IX86) || defined(_M_X64) */
+; 139  : 
+; 140  : 	::operator delete(_Ptr);
+
+	push	ecx
+	call	??3@YAXPAX@Z				; operator delete
+	add	esp, 4
+$LN154@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T8[ebp+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T8[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T6[ebp+20]
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T8[ebp+20], 7
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN197@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -7180,7 +9874,7 @@ $LL4@SK_Inject_:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	ja	$LN689@SK_Inject_
+	ja	$LN793@SK_Inject_
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -7189,14 +9883,14 @@ $LL4@SK_Inject_:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN148@SK_Inject_
+	jb	SHORT $LN192@SK_Inject_
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	cl, 31					; 0000001fH
-	jne	$LN689@SK_Inject_
+	jne	$LN793@SK_Inject_
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -7218,7 +9912,7 @@ $LL4@SK_Inject_:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jae	$LN689@SK_Inject_
+	jae	$LN793@SK_Inject_
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -7230,7 +9924,7 @@ $LL4@SK_Inject_:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jb	$LN689@SK_Inject_
+	jb	$LN793@SK_Inject_
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -7238,14 +9932,14 @@ $LL4@SK_Inject_:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	ja	$LN689@SK_Inject_
+	ja	$LN793@SK_Inject_
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN148@SK_Inject_:
+$LN192@SK_Inject_:
 
 ; 133  : 		}
 ; 134  : 
@@ -7259,134 +9953,7 @@ $LN148@SK_Inject_:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN153@SK_Inject_:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3616 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR $T6[ebp+16], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR $T6[ebp], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR $T5[ebp+20]
-
-; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR $T6[ebp+20], 7
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN196@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	mov	ecx, DWORD PTR $T5[ebp]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
-
-	cmp	eax, 2147483647				; 7fffffffH
-	ja	$LN689@SK_Inject_
-
-; 99   : 	const size_t _User_size = _Count * _Sz;
-
-	add	eax, eax
-
-; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
-
-	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN191@SK_Inject_
-
-; 101  : 		{	// deallocate large block
-; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
-; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
-
-	test	cl, 31					; 0000001fH
-	jne	$LN689@SK_Inject_
-
-; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
-; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
-; 106  : 		const uintptr_t _Ptr_container =
-; 107  : 			*reinterpret_cast<uintptr_t *>(_Ptr_ptr);
-
-	mov	eax, DWORD PTR [ecx-4]
-
-; 108  : 
-; 109  :  #ifdef _DEBUG
-; 110  : 		// If the following asserts, it likely means that we are performing
-; 111  : 		// an aligned delete on memory coming from an unaligned allocation.
-; 112  : 		_SCL_SECURE_ALWAYS_VALIDATE(
-; 113  : 			reinterpret_cast<uintptr_t *>(_Ptr_ptr)[-1] ==
-; 114  : 				_BIG_ALLOCATION_SENTINEL);
-; 115  :  #endif /* _DEBUG */
-; 116  : 
-; 117  : 		// Extra paranoia on aligned allocation/deallocation
-; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
-
-	cmp	eax, ecx
-	jae	$LN689@SK_Inject_
-
-; 119  : 
-; 120  :  #ifdef _DEBUG
-; 121  : 		_SCL_SECURE_ALWAYS_VALIDATE(2 * sizeof(void *)
-; 122  : 			<= _Ptr_user - _Ptr_container);
-; 123  : 
-; 124  :  #else /* _DEBUG */
-; 125  : 		_SCL_SECURE_ALWAYS_VALIDATE(sizeof(void *)
-
-	sub	ecx, eax
-	cmp	ecx, 4
-	jb	$LN689@SK_Inject_
-
-; 126  : 			<= _Ptr_user - _Ptr_container);
-; 127  :  #endif /* _DEBUG */
-; 128  : 
-; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
-
-	cmp	ecx, 35					; 00000023H
-	ja	$LN689@SK_Inject_
-
-; 130  : 			<= _NON_USER_SIZE);
-; 131  : 
-; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
-
-	mov	ecx, eax
-$LN191@SK_Inject_:
-
-; 133  : 		}
-; 134  : 
-; 135  :  #else /* defined(_M_IX86) || defined(_M_X64) */
-; 136  : 	static_cast<void>(_Count);
-; 137  : 	static_cast<void>(_Sz);
-; 138  :  #endif /* defined(_M_IX86) || defined(_M_X64) */
-; 139  : 
-; 140  : 	::operator delete(_Ptr);
-
-	push	ecx
-	call	??3@YAXPAX@Z				; operator delete
-	add	esp, 4
-$LN196@SK_Inject_:
+$LN197@SK_Inject_:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 
 ; 42   : 		: _Ptr(_Parg)
@@ -7399,17 +9966,17 @@ $LN196@SK_Inject_:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 45   :     for ( auto& it2 : it.second.ordered_keys )
+; 125  :     for ( auto& it2 : it.second.ordered_keys )
 
 	je	$LN6@SK_Inject_
-	npad	1
+	npad	9
 $LL7@SK_Inject_:
 
-; 46   :     {
-; 47   :       export_data += it2 + L"=";
+; 126  :     {
+; 127  :       export_data += it2 + L"=";
 
-	push	OFFSET $SG149779
-	lea	eax, DWORD PTR $T4[ebp]
+	push	OFFSET $SG168313
+	lea	eax, DWORD PTR $T5[ebp]
 	push	esi
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
@@ -7426,17 +9993,17 @@ $LL7@SK_Inject_:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	ecx, DWORD PTR $T4[ebp+20]
+	mov	ecx, DWORD PTR $T5[ebp+20]
 	cmp	ecx, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN302@SK_Inject_
+	jb	SHORT $LN303@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	eax, DWORD PTR $T4[ebp]
+	mov	eax, DWORD PTR $T5[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -7447,7 +10014,7 @@ $LL7@SK_Inject_:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	ecx, 2147483647				; 7fffffffH
-	ja	$LN689@SK_Inject_
+	ja	$LN793@SK_Inject_
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -7456,14 +10023,14 @@ $LL7@SK_Inject_:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	ecx, 4096				; 00001000H
-	jb	SHORT $LN297@SK_Inject_
+	jb	SHORT $LN298@SK_Inject_
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	al, 31					; 0000001fH
-	jne	$LN689@SK_Inject_
+	jne	$LN793@SK_Inject_
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -7485,7 +10052,7 @@ $LL7@SK_Inject_:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	ecx, eax
-	jae	$LN689@SK_Inject_
+	jae	$LN793@SK_Inject_
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -7497,7 +10064,7 @@ $LL7@SK_Inject_:
 
 	sub	eax, ecx
 	cmp	eax, 4
-	jb	$LN689@SK_Inject_
+	jb	$LN793@SK_Inject_
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -7505,14 +10072,14 @@ $LL7@SK_Inject_:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	eax, 35					; 00000023H
-	ja	$LN689@SK_Inject_
+	ja	$LN793@SK_Inject_
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	eax, ecx
-$LN297@SK_Inject_:
+$LN298@SK_Inject_:
 
 ; 133  : 		}
 ; 134  : 
@@ -7526,7 +10093,7 @@ $LN297@SK_Inject_:
 	push	eax
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN302@SK_Inject_:
+$LN303@SK_Inject_:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -7535,7 +10102,7 @@ $LN302@SK_Inject_:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN323@SK_Inject_
+	jb	SHORT $LN324@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
@@ -7545,13 +10112,13 @@ $LN302@SK_Inject_:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jmp	SHORT $LN324@SK_Inject_
-$LN323@SK_Inject_:
-	mov	edx, esi
+	jmp	SHORT $LN325@SK_Inject_
 $LN324@SK_Inject_:
+	mov	edx, esi
+$LN325@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 49   :       export_data += ((iSK_INISection &)it.second).get_value (it2.c_str ());
+; 129  :       export_data += ((iSK_INISection &)it.second).get_value (it2.c_str ());
 
 	mov	eax, DWORD PTR _it$1$[ebp]
 	add	eax, 24					; 00000018H
@@ -7572,7 +10139,7 @@ $LN324@SK_Inject_:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG149780
+	push	OFFSET $SG168314
 	lea	ecx, DWORD PTR _export_data$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -7586,7 +10153,7 @@ $LN324@SK_Inject_:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 45   :     for ( auto& it2 : it.second.ordered_keys )
+; 125  :     for ( auto& it2 : it.second.ordered_keys )
 
 	jne	$LL7@SK_Inject_
 $LN6@SK_Inject_:
@@ -7595,13 +10162,13 @@ $LN6@SK_Inject_:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG149781
+	push	OFFSET $SG168315
 	lea	ecx, DWORD PTR _export_data$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	ecx, DWORD PTR _it$1$[ebp]
+	mov	edx, DWORD PTR _it$1$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 
 ; 750  : 		return (_Ptr);
@@ -7611,30 +10178,30 @@ $LN6@SK_Inject_:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR [ecx+20], 8
+	cmp	DWORD PTR [edx+20], 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 
 ; 750  : 		return (_Ptr);
 
-	mov	edx, DWORD PTR [edi]
+	mov	ecx, DWORD PTR [edi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN366@SK_Inject_
+	jb	SHORT $LN367@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
-	mov	ecx, DWORD PTR [ecx]
-$LN366@SK_Inject_:
+	mov	edx, DWORD PTR [edx]
+$LN367@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 55   :     address_ini_->remove_section (it.first.c_str ());
+; 135  :     address_ini_->remove_section (it.first.c_str ());
 
-	mov	eax, DWORD PTR [edx]
-	push	ecx
+	mov	eax, DWORD PTR [ecx]
 	push	edx
+	push	ecx
 	call	DWORD PTR [eax+36]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 
@@ -7647,10 +10214,10 @@ $LN366@SK_Inject_:
 	cmp	ebx, DWORD PTR _<end>$L0$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 41   :   for ( auto& it : address_ini_->get_sections () )
+; 121  :   for ( auto& it : address_ini_->get_sections () )
 
 	jne	$LL4@SK_Inject_
-$LN701@SK_Inject_:
+$LN805@SK_Inject_:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 
 ; 750  : 		return (_Ptr);
@@ -7658,7 +10225,7 @@ $LN701@SK_Inject_:
 	mov	eax, DWORD PTR [edi]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 59   :     address_ini_->get_filename ();
+; 139  :     address_ini_->get_filename ();
 
 	push	eax
 	mov	ecx, DWORD PTR [eax]
@@ -7689,11 +10256,12 @@ $LN701@SK_Inject_:
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	lea	esi, DWORD PTR [ecx+2]
-$LL702@SK_Inject_:
+	npad	3
+$LL806@SK_Inject_:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL702@SK_Inject_
+	jne	SHORT $LL806@SK_Inject_
 	sub	ecx, esi
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7725,13 +10293,13 @@ $LL702@SK_Inject_:
 ; 760  : 		if (_Rep != 0)
 
 	test	esi, esi
-	je	SHORT $LN451@SK_Inject_
+	je	SHORT $LN452@SK_Inject_
 
 ; 535  : 		if (_MT_DECR(_Uses) == 0)
 
 	mov	eax, ebx
 	lock	 xadd	 DWORD PTR [esi+4], eax
-	jne	SHORT $LN451@SK_Inject_
+	jne	SHORT $LN452@SK_Inject_
 
 ; 536  : 			{	// destroy managed resource, decrement weak reference count
 ; 537  : 			_Destroy();
@@ -7744,14 +10312,14 @@ $LL702@SK_Inject_:
 
 	mov	eax, ebx
 	lock	 xadd	 DWORD PTR [esi+8], eax
-	jne	SHORT $LN451@SK_Inject_
+	jne	SHORT $LN452@SK_Inject_
 
 ; 545  : 			_Delete_this();
 
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
 	call	DWORD PTR [eax+4]
-$LN451@SK_Inject_:
+$LN452@SK_Inject_:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -7764,7 +10332,7 @@ $LN451@SK_Inject_:
 	cmovae	eax, DWORD PTR _fname$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 62   :   address_ini_ =
+; 142  :   address_ini_ =
 
 	push	eax
 	call	?SK_CreateINI@@YGPAUiSK_INI@@QB_W@Z	; SK_CreateINI
@@ -7773,12 +10341,12 @@ $LN451@SK_Inject_:
 ; 880  : 		_Resetp(_Px);
 
 	push	eax
-	lea	ecx, DWORD PTR $T7[ebp]
+	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 696  : 		: _Ptr(0), _Rep(0)
 
-	mov	DWORD PTR $T7[ebp], 0
-	mov	DWORD PTR $T7[ebp+4], 0
+	mov	DWORD PTR $T9[ebp], 0
+	mov	DWORD PTR $T9[ebp+4], 0
 
 ; 880  : 		_Resetp(_Px);
 
@@ -7791,22 +10359,22 @@ $LN451@SK_Inject_:
 
 ; 68   : 	_Right = _STD move(_Tmp);
 
-	mov	eax, DWORD PTR $T7[ebp+4]
+	mov	eax, DWORD PTR $T9[ebp+4]
 	mov	DWORD PTR [edi+4], eax
-	mov	eax, DWORD PTR $T7[ebp]
+	mov	eax, DWORD PTR $T9[ebp]
 	mov	DWORD PTR [edi], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 
 ; 760  : 		if (_Rep != 0)
 
 	test	esi, esi
-	je	SHORT $LN543@SK_Inject_
+	je	SHORT $LN544@SK_Inject_
 
 ; 535  : 		if (_MT_DECR(_Uses) == 0)
 
 	mov	eax, ebx
 	lock	 xadd	 DWORD PTR [esi+4], eax
-	jne	SHORT $LN543@SK_Inject_
+	jne	SHORT $LN544@SK_Inject_
 
 ; 536  : 			{	// destroy managed resource, decrement weak reference count
 ; 537  : 			_Destroy();
@@ -7819,14 +10387,14 @@ $LN451@SK_Inject_:
 
 	mov	eax, ebx
 	lock	 xadd	 DWORD PTR [esi+8], eax
-	jne	SHORT $LN543@SK_Inject_
+	jne	SHORT $LN544@SK_Inject_
 
 ; 545  : 			_Delete_this();
 
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
 	call	DWORD PTR [eax+4]
-$LN543@SK_Inject_:
+$LN544@SK_Inject_:
 
 ; 750  : 		return (_Ptr);
 
@@ -7846,7 +10414,7 @@ $LN543@SK_Inject_:
 	cmovae	ecx, DWORD PTR _export_data$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 67   :   address_ini_->import (export_data.c_str ());
+; 147  :   address_ini_->import (export_data.c_str ());
 
 	mov	eax, DWORD PTR [edx]
 	push	ecx
@@ -7859,7 +10427,7 @@ $LN543@SK_Inject_:
 	mov	esi, DWORD PTR [edi]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 68   :   address_ini_->write  (address_ini_->get_filename ());
+; 148  :   address_ini_->write  (address_ini_->get_filename ());
 
 	push	esi
 	mov	edi, DWORD PTR [esi]
@@ -7867,21 +10435,48 @@ $LN543@SK_Inject_:
 	push	eax
 	push	esi
 	call	DWORD PTR [edi+20]
+
+; 149  : 
+; 150  :   if (__SK_RunDLL_Bypass)
+
+	cmp	BYTE PTR ?__SK_RunDLL_Bypass@@3_NA, 0	; __SK_RunDLL_Bypass
+	je	$LN678@SK_Inject_
+
+; 153  :       SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini.lock";
+
+	lea	eax, DWORD PTR $T4[ebp]
+	push	OFFSET $SG168317
+	push	eax
+	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
+	add	esp, 4
+	push	eax
+	lea	eax, DWORD PTR _injection_lock$7[ebp]
+	push	eax
+	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _fname$[ebp+20]
+	mov	eax, DWORD PTR $T4[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 153  :       SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini.lock";
+
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN616@SK_Inject_
+	jb	SHORT $LN617@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	mov	ecx, DWORD PTR _fname$[ebp]
+	mov	ecx, DWORD PTR $T4[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -7892,11 +10487,11 @@ $LN543@SK_Inject_:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	jbe	SHORT $LN610@SK_Inject_
-$LN689@SK_Inject_:
+	jbe	SHORT $LN611@SK_Inject_
+$LN793@SK_Inject_:
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN705@SK_Inject_:
-$LN610@SK_Inject_:
+$LN809@SK_Inject_:
+$LN611@SK_Inject_:
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -7905,17 +10500,17 @@ $LN610@SK_Inject_:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN611@SK_Inject_
+	jb	SHORT $LN612@SK_Inject_
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
-	test	BYTE PTR _fname$[ebp], 31		; 0000001fH
-	je	SHORT $LN612@SK_Inject_
+	test	cl, 31					; 0000001fH
+	je	SHORT $LN613@SK_Inject_
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN706@SK_Inject_:
-$LN612@SK_Inject_:
+$LN810@SK_Inject_:
+$LN613@SK_Inject_:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -7937,10 +10532,10 @@ $LN612@SK_Inject_:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN613@SK_Inject_
+	jb	SHORT $LN614@SK_Inject_
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN707@SK_Inject_:
-$LN613@SK_Inject_:
+$LN811@SK_Inject_:
+$LN614@SK_Inject_:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -7952,10 +10547,10 @@ $LN613@SK_Inject_:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN614@SK_Inject_
+	jae	SHORT $LN615@SK_Inject_
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN708@SK_Inject_:
-$LN614@SK_Inject_:
+$LN812@SK_Inject_:
+$LN615@SK_Inject_:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -7963,17 +10558,17 @@ $LN614@SK_Inject_:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN615@SK_Inject_
+	jbe	SHORT $LN616@SK_Inject_
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN709@SK_Inject_:
-$LN615@SK_Inject_:
+$LN813@SK_Inject_:
+$LN616@SK_Inject_:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN611@SK_Inject_:
+$LN612@SK_Inject_:
 
 ; 133  : 		}
 ; 134  : 
@@ -7987,7 +10582,263 @@ $LN611@SK_Inject_:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN616@SK_Inject_:
+$LN617@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _injection_lock$7[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _injection_lock$7[ebp]
+	cmovae	eax, DWORD PTR _injection_lock$7[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 155  :     DeleteFileW (injection_lock.c_str ());
+
+	push	eax
+	call	DWORD PTR __imp__DeleteFileW@4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _injection_lock$7[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN678@SK_Inject_
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	mov	ecx, DWORD PTR _injection_lock$7[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
+
+	cmp	eax, 2147483647				; 7fffffffH
+	jbe	SHORT $LN672@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN814@SK_Inject_:
+$LN672@SK_Inject_:
+
+; 99   : 	const size_t _User_size = _Count * _Sz;
+
+	add	eax, eax
+
+; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN673@SK_Inject_
+
+; 101  : 		{	// deallocate large block
+; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
+; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+
+	test	cl, 31					; 0000001fH
+	je	SHORT $LN674@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN815@SK_Inject_:
+$LN674@SK_Inject_:
+
+; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
+; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
+; 106  : 		const uintptr_t _Ptr_container =
+; 107  : 			*reinterpret_cast<uintptr_t *>(_Ptr_ptr);
+
+	mov	eax, DWORD PTR [ecx-4]
+
+; 108  : 
+; 109  :  #ifdef _DEBUG
+; 110  : 		// If the following asserts, it likely means that we are performing
+; 111  : 		// an aligned delete on memory coming from an unaligned allocation.
+; 112  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+; 113  : 			reinterpret_cast<uintptr_t *>(_Ptr_ptr)[-1] ==
+; 114  : 				_BIG_ALLOCATION_SENTINEL);
+; 115  :  #endif /* _DEBUG */
+; 116  : 
+; 117  : 		// Extra paranoia on aligned allocation/deallocation
+; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
+
+	cmp	eax, ecx
+	jb	SHORT $LN675@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN816@SK_Inject_:
+$LN675@SK_Inject_:
+
+; 119  : 
+; 120  :  #ifdef _DEBUG
+; 121  : 		_SCL_SECURE_ALWAYS_VALIDATE(2 * sizeof(void *)
+; 122  : 			<= _Ptr_user - _Ptr_container);
+; 123  : 
+; 124  :  #else /* _DEBUG */
+; 125  : 		_SCL_SECURE_ALWAYS_VALIDATE(sizeof(void *)
+
+	sub	ecx, eax
+	cmp	ecx, 4
+	jae	SHORT $LN676@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN817@SK_Inject_:
+$LN676@SK_Inject_:
+
+; 126  : 			<= _Ptr_user - _Ptr_container);
+; 127  :  #endif /* _DEBUG */
+; 128  : 
+; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
+
+	cmp	ecx, 35					; 00000023H
+	jbe	SHORT $LN677@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN818@SK_Inject_:
+$LN677@SK_Inject_:
+
+; 130  : 			<= _NON_USER_SIZE);
+; 131  : 
+; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
+
+	mov	ecx, eax
+$LN673@SK_Inject_:
+
+; 133  : 		}
+; 134  : 
+; 135  :  #else /* defined(_M_IX86) || defined(_M_X64) */
+; 136  : 	static_cast<void>(_Count);
+; 137  : 	static_cast<void>(_Sz);
+; 138  :  #endif /* defined(_M_IX86) || defined(_M_X64) */
+; 139  : 
+; 140  : 	::operator delete(_Ptr);
+
+	push	ecx
+	call	??3@YAXPAX@Z				; operator delete
+	add	esp, 4
+$LN678@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _fname$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN720@SK_Inject_
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	mov	ecx, DWORD PTR _fname$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
+
+	cmp	eax, 2147483647				; 7fffffffH
+	jbe	SHORT $LN714@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN819@SK_Inject_:
+$LN714@SK_Inject_:
+
+; 99   : 	const size_t _User_size = _Count * _Sz;
+
+	add	eax, eax
+
+; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN715@SK_Inject_
+
+; 101  : 		{	// deallocate large block
+; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
+; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+
+	test	BYTE PTR _fname$[ebp], 31		; 0000001fH
+	je	SHORT $LN716@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN820@SK_Inject_:
+$LN716@SK_Inject_:
+
+; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
+; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
+; 106  : 		const uintptr_t _Ptr_container =
+; 107  : 			*reinterpret_cast<uintptr_t *>(_Ptr_ptr);
+
+	mov	eax, DWORD PTR [ecx-4]
+
+; 108  : 
+; 109  :  #ifdef _DEBUG
+; 110  : 		// If the following asserts, it likely means that we are performing
+; 111  : 		// an aligned delete on memory coming from an unaligned allocation.
+; 112  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+; 113  : 			reinterpret_cast<uintptr_t *>(_Ptr_ptr)[-1] ==
+; 114  : 				_BIG_ALLOCATION_SENTINEL);
+; 115  :  #endif /* _DEBUG */
+; 116  : 
+; 117  : 		// Extra paranoia on aligned allocation/deallocation
+; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
+
+	cmp	eax, ecx
+	jb	SHORT $LN717@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN821@SK_Inject_:
+$LN717@SK_Inject_:
+
+; 119  : 
+; 120  :  #ifdef _DEBUG
+; 121  : 		_SCL_SECURE_ALWAYS_VALIDATE(2 * sizeof(void *)
+; 122  : 			<= _Ptr_user - _Ptr_container);
+; 123  : 
+; 124  :  #else /* _DEBUG */
+; 125  : 		_SCL_SECURE_ALWAYS_VALIDATE(sizeof(void *)
+
+	sub	ecx, eax
+	cmp	ecx, 4
+	jae	SHORT $LN718@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN822@SK_Inject_:
+$LN718@SK_Inject_:
+
+; 126  : 			<= _Ptr_user - _Ptr_container);
+; 127  :  #endif /* _DEBUG */
+; 128  : 
+; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
+
+	cmp	ecx, 35					; 00000023H
+	jbe	SHORT $LN719@SK_Inject_
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN823@SK_Inject_:
+$LN719@SK_Inject_:
+
+; 130  : 			<= _NON_USER_SIZE);
+; 131  : 
+; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
+
+	mov	ecx, eax
+$LN715@SK_Inject_:
+
+; 133  : 		}
+; 134  : 
+; 135  :  #else /* defined(_M_IX86) || defined(_M_X64) */
+; 136  : 	static_cast<void>(_Count);
+; 137  : 	static_cast<void>(_Sz);
+; 138  :  #endif /* defined(_M_IX86) || defined(_M_X64) */
+; 139  : 
+; 140  : 	::operator delete(_Ptr);
+
+	push	ecx
+	call	??3@YAXPAX@Z				; operator delete
+	add	esp, 4
+$LN720@SK_Inject_:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -8019,7 +10870,7 @@ $LN616@SK_Inject_:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN658@SK_Inject_
+	jb	SHORT $LN762@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -8035,10 +10886,10 @@ $LN616@SK_Inject_:
 ; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
 
 	cmp	eax, 2147483647				; 7fffffffH
-	jbe	SHORT $LN652@SK_Inject_
+	jbe	SHORT $LN756@SK_Inject_
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN710@SK_Inject_:
-$LN652@SK_Inject_:
+$LN824@SK_Inject_:
+$LN756@SK_Inject_:
 
 ; 99   : 	const size_t _User_size = _Count * _Sz;
 
@@ -8047,17 +10898,17 @@ $LN652@SK_Inject_:
 ; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
 
 	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN653@SK_Inject_
+	jb	SHORT $LN757@SK_Inject_
 
 ; 101  : 		{	// deallocate large block
 ; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
 ; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
 
 	test	BYTE PTR _export_data$[ebp], 31		; 0000001fH
-	je	SHORT $LN654@SK_Inject_
+	je	SHORT $LN758@SK_Inject_
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN711@SK_Inject_:
-$LN654@SK_Inject_:
+$LN825@SK_Inject_:
+$LN758@SK_Inject_:
 
 ; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
 ; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
@@ -8079,10 +10930,10 @@ $LN654@SK_Inject_:
 ; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
 
 	cmp	eax, ecx
-	jb	SHORT $LN655@SK_Inject_
+	jb	SHORT $LN759@SK_Inject_
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN712@SK_Inject_:
-$LN655@SK_Inject_:
+$LN826@SK_Inject_:
+$LN759@SK_Inject_:
 
 ; 119  : 
 ; 120  :  #ifdef _DEBUG
@@ -8094,10 +10945,10 @@ $LN655@SK_Inject_:
 
 	sub	ecx, eax
 	cmp	ecx, 4
-	jae	SHORT $LN656@SK_Inject_
+	jae	SHORT $LN760@SK_Inject_
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN713@SK_Inject_:
-$LN656@SK_Inject_:
+$LN827@SK_Inject_:
+$LN760@SK_Inject_:
 
 ; 126  : 			<= _Ptr_user - _Ptr_container);
 ; 127  :  #endif /* _DEBUG */
@@ -8105,17 +10956,17 @@ $LN656@SK_Inject_:
 ; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
 
 	cmp	ecx, 35					; 00000023H
-	jbe	SHORT $LN657@SK_Inject_
+	jbe	SHORT $LN761@SK_Inject_
 	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN714@SK_Inject_:
-$LN657@SK_Inject_:
+$LN828@SK_Inject_:
+$LN761@SK_Inject_:
 
 ; 130  : 			<= _NON_USER_SIZE);
 ; 131  : 
 ; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
 
 	mov	ecx, eax
-$LN653@SK_Inject_:
+$LN757@SK_Inject_:
 
 ; 133  : 		}
 ; 134  : 
@@ -8129,7 +10980,7 @@ $LN653@SK_Inject_:
 	push	ecx
 	call	??3@YAXPAX@Z				; operator delete
 	add	esp, 4
-$LN658@SK_Inject_:
+$LN762@SK_Inject_:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 
 ; 760  : 		if (_Rep != 0)
@@ -8137,13 +10988,13 @@ $LN658@SK_Inject_:
 	mov	esi, DWORD PTR _this$1$[ebp]
 	mov	esi, DWORD PTR [esi+4]
 	test	esi, esi
-	je	SHORT $LN676@SK_Inject_
+	je	SHORT $LN780@SK_Inject_
 
 ; 535  : 		if (_MT_DECR(_Uses) == 0)
 
 	mov	eax, ebx
 	lock	 xadd	 DWORD PTR [esi+4], eax
-	jne	SHORT $LN676@SK_Inject_
+	jne	SHORT $LN780@SK_Inject_
 
 ; 536  : 			{	// destroy managed resource, decrement weak reference count
 ; 537  : 			_Destroy();
@@ -8156,17 +11007,17 @@ $LN658@SK_Inject_:
 
 	lock	 xadd	 DWORD PTR [esi+8], ebx
 	dec	ebx
-	jne	SHORT $LN676@SK_Inject_
+	jne	SHORT $LN780@SK_Inject_
 
 ; 545  : 			_Delete_this();
 
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
 	call	DWORD PTR [eax+4]
-$LN676@SK_Inject_:
+$LN780@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 69   : }
+; 157  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -8176,7 +11027,7 @@ $LN676@SK_Inject_:
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN704@SK_Inject_:
+$LN808@SK_Inject_:
 _TEXT	ENDS
 text$x	SEGMENT
 __ehhandler$??1SK_Inject_AddressCacheRegistry@@QAE@XZ:
@@ -8187,6 +11038,22 @@ text$x	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
@@ -8197,8 +11064,32 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\time.h
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\time.h
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
@@ -8208,17 +11099,32 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 _TEXT	SEGMENT
-_injection_config$ = -72				; size = 24
-$T3 = -48						; size = 24
-$T4 = -24						; size = 8
-_this$ = -16						; size = 4
+_injection_config$ = -156				; size = 24
+$T4 = -132						; size = 24
+$T5 = -108						; size = 24
+_creation$6 = -84					; size = 8
+_access$7 = -76						; size = 8
+_this$ = -68						; size = 4
+_modifiction$8 = -64					; size = 8
+_time_now$9 = -56					; size = 8
+tv1295 = -48						; size = 4
+_injection_lock$ = -44					; size = 24
+$T10 = -20						; size = 8
+_dwWritten$11 = -16					; size = 4
 __$EHRec$ = -12						; size = 12
 ??0SK_Inject_AddressCacheRegistry@@QAE@XZ PROC		; SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry
 ; _this$ = ecx
 
-; 27   : {
+; 42   : {
 
 	npad	2
 	push	ebp
@@ -8228,7 +11134,9 @@ __$EHRec$ = -12						; size = 12
 	mov	eax, DWORD PTR fs:0
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 60					; 0000003cH
+	sub	esp, 144				; 00000090H
+	push	ebx
+	push	esi
 	push	edi
 	mov	edi, ecx
 	mov	DWORD PTR _this$[ebp], edi
@@ -8238,15 +11146,71 @@ __$EHRec$ = -12						; size = 12
 
 	mov	DWORD PTR [edi], 0
 	mov	DWORD PTR [edi+4], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 67   : 	_Left = _STD move(_Right);
+
+	mov	esi, DWORD PTR [edi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
+
+; 760  : 		if (_Rep != 0)
+
+	or	ebx, -1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi+4], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 29   :     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
+; 42   : {
 
-	lea	eax, DWORD PTR $T3[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 68   : 	_Right = _STD move(_Tmp);
+
+	mov	DWORD PTR [edi], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
+
+; 760  : 		if (_Rep != 0)
+
+	test	esi, esi
+	je	SHORT $LN96@SK_Inject_
+
+; 535  : 		if (_MT_DECR(_Uses) == 0)
+
+	mov	eax, ebx
+	lock	 xadd	 DWORD PTR [esi+4], eax
+	jne	SHORT $LN96@SK_Inject_
+
+; 536  : 			{	// destroy managed resource, decrement weak reference count
+; 537  : 			_Destroy();
+
+	mov	eax, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [eax]
+
+; 544  : 		if (_MT_DECR(_Weaks) == 0)
+
+	mov	eax, ebx
+	lock	 xadd	 DWORD PTR [esi+8], eax
+	jne	SHORT $LN96@SK_Inject_
+
+; 545  : 			_Delete_this();
+
+	mov	eax, DWORD PTR [esi]
+	mov	ecx, esi
+	call	DWORD PTR [eax+4]
+$LN96@SK_Inject_:
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 46   :     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
+
+	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG149406
+	push	OFFSET $SG167931
 	push	eax
 	lea	eax, DWORD PTR _injection_config$[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
@@ -8257,10 +11221,10 @@ __$EHRec$ = -12						; size = 12
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T3[ebp+20]
+	mov	eax, DWORD PTR $T5[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 29   :     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
+; 46   :     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -8271,7 +11235,78 @@ __$EHRec$ = -12						; size = 12
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN17@SK_Inject_
+	jb	SHORT $LN102@SK_Inject_
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+	push	eax
+	push	DWORD PTR $T5[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN102@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T5[ebp+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T5[ebp], ax
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 49   :     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini.lock";
+
+	lea	eax, DWORD PTR $T4[ebp]
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T5[ebp+20], 7
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 49   :     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini.lock";
+
+	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
+	push	OFFSET $SG167932
+	push	eax
+	lea	eax, DWORD PTR _injection_lock$[ebp]
+	mov	BYTE PTR __$EHRec$[ebp+8], 4
+	push	eax
+	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+	add	esp, 16					; 00000010H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T4[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 49   :     SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini.lock";
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 6
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN132@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -8287,10 +11322,10 @@ __$EHRec$ = -12						; size = 12
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR $T3[ebp]
+	push	DWORD PTR $T4[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN17@SK_Inject_:
+$LN132@SK_Inject_:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -8300,49 +11335,313 @@ $LN17@SK_Inject_:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T3[ebp+16], 0
+	mov	DWORD PTR $T4[ebp+16], 0
 
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	cmp	DWORD PTR _injection_config$[ebp+20], 8
+	mov	DWORD PTR $T4[ebp+20], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR $T3[ebp], ax
+	mov	WORD PTR $T4[ebp], ax
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 53   :   if (__SK_RunDLL_Bypass)
+
+	cmp	BYTE PTR ?__SK_RunDLL_Bypass@@3_NA, al	; __SK_RunDLL_Bypass
+	je	$LN288@SK_Inject_
+	mov	ebx, DWORD PTR __imp__CloseHandle@4
+	npad	4
+$LL2@SK_Inject_:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _injection_lock$[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _injection_lock$[ebp]
+	cmovae	eax, DWORD PTR _injection_lock$[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 55   :     while (GetFileAttributes (injection_lock.c_str ()) != INVALID_FILE_ATTRIBUTES)
+
+	push	eax
+	call	DWORD PTR __imp__GetFileAttributesW@4
+	cmp	eax, -1
+	je	$LN253@SK_Inject_
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _injection_lock$[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _injection_lock$[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 57   :       CHandle hLockFile (
+
+	push	0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	cmovae	eax, DWORD PTR _injection_lock$[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 57   :       CHandle hLockFile (
+
+	push	134217856				; 08000080H
+	push	3
+	push	0
+	push	5
+	push	1073741824				; 40000000H
+	push	eax
+	call	DWORD PTR __imp__CreateFileW@28
+	xorps	xmm0, xmm0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 1207 : 	m_h( h )
+
+	mov	esi, eax
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 68   :       FILETIME creation    = { };
+
+	movq	QWORD PTR _creation$6[ebp], xmm0
+
+; 69   :       FILETIME modifiction = { };
+
+	movq	QWORD PTR _modifiction$8[ebp], xmm0
+
+; 70   :       FILETIME access      = { };
+
+	movq	QWORD PTR _access$7[ebp], xmm0
+
+; 71   : 
+; 72   :       if (hLockFile != INVALID_HANDLE_VALUE && GetFileTime (hLockFile.m_h, &creation, &modifiction, &access))
+
+	cmp	esi, -1
+	je	SHORT $LN5@SK_Inject_
+	lea	eax, DWORD PTR _access$7[ebp]
+	push	eax
+	lea	eax, DWORD PTR _modifiction$8[ebp]
+	push	eax
+	lea	eax, DWORD PTR _creation$6[ebp]
+	push	eax
+	push	esi
+	call	DWORD PTR __imp__GetFileTime@16
+	test	eax, eax
+	je	SHORT $LN5@SK_Inject_
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\time.h
+
+; 535  :             return _time64(_Time);
+
+	lea	eax, DWORD PTR _time_now$9[ebp]
+	xorps	xmm0, xmm0
+	push	eax
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 74   :         time_t time_now  = 0;
+
+	movlpd	QWORD PTR _time_now$9[ebp], xmm0
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\time.h
+
+; 535  :             return _time64(_Time);
+
+	call	DWORD PTR __imp___time64
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 77   :         time_t time_lock = SK_Win32_FILETIME_to_time_t (modifiction);
+
+	lea	eax, DWORD PTR _modifiction$8[ebp]
+	push	eax
+	call	?SK_Win32_FILETIME_to_time_t@@YA_JABU_FILETIME@@@Z ; SK_Win32_FILETIME_to_time_t
+
+; 78   : 
+; 79   :         if (time_lock < time_now - 15)
+
+	mov	ecx, DWORD PTR _time_now$9[ebp]
+	add	esp, 8
+	sub	ecx, 15					; 0000000fH
+	mov	DWORD PTR tv1295[ebp], ecx
+	mov	ecx, DWORD PTR _time_now$9[ebp+4]
+	sbb	ecx, 0
+	cmp	edx, ecx
+	jl	SHORT $LN443@SK_Inject_
+	jg	SHORT $LN446@SK_Inject_
+	cmp	eax, DWORD PTR tv1295[ebp]
+	jb	SHORT $LN443@SK_Inject_
+$LN446@SK_Inject_:
+
+; 90   :         break;
+; 91   :       }
+; 92   : 
+; 93   :       SleepEx (66UL, FALSE);
+
+	push	0
+	push	66					; 00000042H
+	call	DWORD PTR __imp__SleepEx@8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 1213 : 	if( m_h != NULL )
+
+	test	esi, esi
+	je	$LL2@SK_Inject_
+
+; 1258 : 		::CloseHandle( m_h );
+
+	push	esi
+	call	ebx
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 94   :     }
+
+	jmp	$LL2@SK_Inject_
+$LN443@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 1256 : 	if( m_h != NULL )
+
+	test	esi, esi
+	je	SHORT $LN5@SK_Inject_
+
+; 1257 : 	{
+; 1258 : 		::CloseHandle( m_h );
+
+	push	esi
+	call	ebx
+
+; 1259 : 		m_h = NULL;
+
+	xor	esi, esi
+$LN5@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _injection_lock$[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _injection_lock$[ebp]
+	cmovae	eax, DWORD PTR _injection_lock$[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 89   :         DeleteFileW (injection_lock.c_str ());
+
+	push	eax
+	call	DWORD PTR __imp__DeleteFileW@4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 1213 : 	if( m_h != NULL )
+
+	test	esi, esi
+	je	SHORT $LN253@SK_Inject_
+
+; 1258 : 		::CloseHandle( m_h );
+
+	push	esi
+	call	ebx
+$LN253@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _injection_lock$[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _injection_lock$[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 96   :     CHandle hLockFile (
+
+	push	0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	cmovae	eax, DWORD PTR _injection_lock$[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 96   :     CHandle hLockFile (
+
+	push	134217856				; 08000080H
+	push	1
+	push	0
+	push	5
+	push	1073741824				; 40000000H
+	push	eax
+	call	DWORD PTR __imp__CreateFileW@28
+
+; 108  :     WriteFile (hLockFile, "Locked", strlen ("Locked"), &dwWritten, nullptr);
+
+	push	0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 1207 : 	m_h( h )
+
+	mov	esi, eax
+; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
+
+; 107  :     DWORD dwWritten = 0;
+
+	mov	DWORD PTR _dwWritten$11[ebp], 0
+
+; 108  :     WriteFile (hLockFile, "Locked", strlen ("Locked"), &dwWritten, nullptr);
+
+	lea	eax, DWORD PTR _dwWritten$11[ebp]
+	push	eax
+	push	6
+	push	OFFSET $SG167937
+	push	esi
+	call	DWORD PTR __imp__WriteFile@20
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
+
+; 1213 : 	if( m_h != NULL )
+
+	test	esi, esi
+	je	SHORT $LN448@SK_Inject_
+
+; 1258 : 		::CloseHandle( m_h );
+
+	push	esi
+	call	ebx
+$LN448@SK_Inject_:
+	or	ebx, -1
+$LN288@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _injection_config$[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
 	lea	eax, DWORD PTR _injection_config$[ebp]
 	cmovae	eax, DWORD PTR _injection_config$[ebp]
-	push	esi
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 31   :   address_ini_ =
+; 111  :   address_ini_ =
 
 	push	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR $T3[ebp+20], 7
-; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
-
-; 31   :   address_ini_ =
-
 	call	?SK_CreateINI@@YGPAUiSK_INI@@QB_W@Z	; SK_CreateINI
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 
 ; 880  : 		_Resetp(_Px);
 
 	push	eax
-	lea	ecx, DWORD PTR $T4[ebp]
+	lea	ecx, DWORD PTR $T10[ebp]
 
 ; 696  : 		: _Ptr(0), _Rep(0)
 
-	mov	DWORD PTR $T4[ebp], 0
-	mov	DWORD PTR $T4[ebp+4], 0
+	mov	DWORD PTR $T10[ebp], 0
+	mov	DWORD PTR $T10[ebp+4], 0
 
 ; 880  : 		_Resetp(_Px);
 
@@ -8355,24 +11654,22 @@ $LN17@SK_Inject_:
 
 ; 68   : 	_Right = _STD move(_Tmp);
 
-	mov	eax, DWORD PTR $T4[ebp+4]
+	mov	eax, DWORD PTR $T10[ebp+4]
 	mov	DWORD PTR [edi+4], eax
-	mov	eax, DWORD PTR $T4[ebp]
+	mov	eax, DWORD PTR $T10[ebp]
 	mov	DWORD PTR [edi], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\memory
 
 ; 760  : 		if (_Rep != 0)
 
 	test	esi, esi
-	je	SHORT $LN133@SK_Inject_
-	push	ebx
+	je	SHORT $LN380@SK_Inject_
 
 ; 535  : 		if (_MT_DECR(_Uses) == 0)
 
-	or	ebx, -1
 	mov	eax, ebx
 	lock	 xadd	 DWORD PTR [esi+4], eax
-	jne	SHORT $LN167@SK_Inject_
+	jne	SHORT $LN380@SK_Inject_
 
 ; 536  : 			{	// destroy managed resource, decrement weak reference count
 ; 537  : 			_Destroy();
@@ -8385,27 +11682,75 @@ $LN17@SK_Inject_:
 
 	lock	 xadd	 DWORD PTR [esi+8], ebx
 	dec	ebx
-	jne	SHORT $LN167@SK_Inject_
+	jne	SHORT $LN380@SK_Inject_
 
 ; 545  : 			_Delete_this();
 
 	mov	eax, DWORD PTR [esi]
 	mov	ecx, esi
 	call	DWORD PTR [eax+4]
-$LN167@SK_Inject_:
-	pop	ebx
-$LN133@SK_Inject_:
+$LN380@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _injection_lock$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN386@SK_Inject_
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR _injection_lock$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN386@SK_Inject_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR _injection_lock$[ebp+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR _injection_lock$[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
 	mov	eax, DWORD PTR _injection_config$[ebp+20]
-	pop	esi
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR _injection_lock$[ebp+20], 7
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN165@SK_Inject_
+	jb	SHORT $LN447@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -8424,14 +11769,16 @@ $LN133@SK_Inject_:
 	push	DWORD PTR _injection_config$[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN165@SK_Inject_:
+$LN447@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\address_cache.cpp
 
-; 35   : }
+; 115  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, edi
 	pop	edi
+	pop	esi
+	pop	ebx
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
@@ -8441,11 +11788,17 @@ text$x	SEGMENT
 __unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$0:
 	mov	ecx, DWORD PTR _this$[ebp]
 	jmp	??1?$shared_ptr@UiSK_INI@@@std@@QAE@XZ	; std::shared_ptr<iSK_INI>::~shared_ptr<iSK_INI>
-__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$1:
-	lea	ecx, DWORD PTR $T3[ebp]
-	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$2:
+	lea	ecx, DWORD PTR $T5[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$3:
 	lea	ecx, DWORD PTR _injection_config$[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$4:
+	lea	ecx, DWORD PTR $T4[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__unwindfunclet$??0SK_Inject_AddressCacheRegistry@@QAE@XZ$5:
+	lea	ecx, DWORD PTR _injection_lock$[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$??0SK_Inject_AddressCacheRegistry@@QAE@XZ:
 	mov	eax, OFFSET __ehfuncinfo$??0SK_Inject_AddressCacheRegistry@@QAE@XZ
@@ -17192,5 +20545,27 @@ _wmemcpy PROC						; COMDAT
 
 	jmp	_memcpy
 _wmemcpy ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\windows kits\8.1\include\shared\winerror.h
+;	COMDAT _HRESULT_FROM_WIN32
+_TEXT	SEGMENT
+_x$ = 8							; size = 4
+_HRESULT_FROM_WIN32 PROC				; COMDAT
+
+; 26297: FORCEINLINE HRESULT HRESULT_FROM_WIN32(unsigned long x) { return (HRESULT)(x) <= 0 ? (HRESULT)(x) : (HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);}
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR _x$[ebp]
+	test	eax, eax
+	jle	SHORT $LN4@HRESULT_FR
+	movzx	eax, ax
+	or	eax, -2147024896			; 80070000H
+$LN4@HRESULT_FR:
+	pop	ebp
+	ret	0
+_HRESULT_FROM_WIN32 ENDP
 _TEXT	ENDS
 END

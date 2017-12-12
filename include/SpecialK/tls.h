@@ -26,6 +26,7 @@
 #include <Windows.h>
 
 #define _NO_CVCONST_H
+#define _IMAGEHLP_SOURCE_
 #include <dbghelp.h>
 
 struct ID3D11RasterizerState;

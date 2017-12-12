@@ -2107,10 +2107,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       std::unique_ptr <SK_D3D11_Stateblock_Lite> sb (
         new SK_D3D11_Stateblock_Lite { }
       );
-      
+
       sb->capture (pImmediateContext);
-      //D3DX11_STATE_BLOCK sb = { };
-      //CreateStateblock (pImmediateContext, &sb);
 
       pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
 
@@ -2128,8 +2126,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
       blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
       blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-      //pImmediateContext->SOSetTargets (0, nullptr, nullptr);
 
       if (SUCCEEDED (pDev->CreateBlendState (&blend, &pBlendState)))
         pImmediateContext->OMSetBlendState (pBlendState, nullptr, 0xffffffff);
@@ -2161,7 +2157,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         cegD3D11->endRendering ();
       }
 
-      //ApplyStateblock (pImmediateContext, &sb);
       sb->apply (pImmediateContext);
 
       //

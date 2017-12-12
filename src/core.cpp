@@ -39,8 +39,8 @@
 
 #pragma warning   (push)
 #pragma warning   (disable: 4091)
+#define _IMAGEHLP_SOURCE_
 #  include <DbgHelp.h>
-#  pragma comment (lib, "dbghelp.lib")
 #pragma warning   (pop)
 
 #include <SpecialK/config.h>

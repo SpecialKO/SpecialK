@@ -40,95 +40,95 @@ _DATA	SEGMENT
 ?__SK_TLS_INDEX@@3KC DD 0ffffffffH			; __SK_TLS_INDEX
 _DATA	ENDS
 CONST	SEGMENT
-$SG260239 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '.', 00H
+$SG260280 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '.', 00H
 	DB	'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260240 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
+$SG260281 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
 	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'U', 00H, 'I'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260241 DB	's', 00H, 't', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+$SG260282 DB	's', 00H, 't', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, '_', 00H, 'c', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 	ORG $+1
-$SG260242 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG260283 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'p'
 	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, 'e', 00H, 'r', 00H, '.', 00H
 	DB	'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260243 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG260284 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'p'
 	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, 'e', 00H, 'r', 00H, '6', 00H
 	DB	'4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260244 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 's', 00H
+$SG260285 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 's', 00H
 	DB	'e', 00H, 'r', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260245 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG260286 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'm', 00H, 'o', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260246 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'w', 00H
+$SG260287 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'w', 00H
 	DB	'e', 00H, 'b', 00H, 'h', 00H, 'e', 00H, 'l', 00H, 'p', 00H, 'e'
 	DB	00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260247 DB	'h', 00H, 't', 00H, 'm', 00H, 'l', 00H, '5', 00H, 'a', 00H
+$SG260288 DB	'h', 00H, 't', 00H, 'm', 00H, 'l', 00H, '5', 00H, 'a', 00H
 	DB	'p', 00H, 'p', 00H, '_', 00H, 's', 00H, 't', 00H, 'e', 00H, 'a'
 	DB	00H, 'm', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260248 DB	'w', 00H, 'o', 00H, 'w', 00H, '_', 00H, 'h', 00H, 'e', 00H
+$SG260289 DB	'w', 00H, 'o', 00H, 'w', 00H, '_', 00H, 'h', 00H, 'e', 00H
 	DB	'l', 00H, 'p', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260249 DB	'u', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H
+$SG260290 DB	'u', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	'a', 00H, 'l', 00H, 'l', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260250 DB	'W', 00H, 'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, 'M', 00H
+$SG260291 DB	'W', 00H, 'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, 'M', 00H
 	DB	'i', 00H, 'n', 00H, 'i', 00H, 'D', 00H, 'u', 00H, 'm', 00H, 'p'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260251 DB	'C', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, 'R', 00H
+$SG260292 DB	'C', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, 'R', 00H
 	DB	'e', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, 'e', 00H, 'r'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260252 DB	'S', 00H, 'u', 00H, 'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H
+$SG260293 DB	'S', 00H, 'u', 00H, 'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H
 	DB	't', 00H, 'T', 00H, 'o', 00H, 'o', 00H, 'l', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260253 DB	'C', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, 'S', 00H
+$SG260294 DB	'C', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, 'S', 00H
 	DB	'e', 00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, '1', 00H, '4'
 	DB	00H, '0', 00H, '0', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
-$SG260254 DB	'W', 00H, 'e', 00H, 'r', 00H, 'F', 00H, 'a', 00H, 'u', 00H
+$SG260295 DB	'W', 00H, 'e', 00H, 'r', 00H, 'F', 00H, 'a', 00H, 'u', 00H
 	DB	'l', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260255 DB	'D', 00H, 'X', 00H, 'S', 00H, 'E', 00H, 'T', 00H, 'U', 00H
+$SG260296 DB	'D', 00H, 'X', 00H, 'S', 00H, 'E', 00H, 'T', 00H, 'U', 00H
 	DB	'P', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260256 DB	's', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'p', 00H, '.', 00H
+$SG260297 DB	's', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'p', 00H, '.', 00H
 	DB	'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260257 DB	'v', 00H, 'c', 00H, '_', 00H, 'r', 00H, 'e', 00H, 'd', 00H
+$SG260298 DB	'v', 00H, 'c', 00H, '_', 00H, 'r', 00H, 'e', 00H, 'd', 00H
 	DB	'i', 00H, 's', 00H, 't', 00H, '.', 00H, 'x', 00H, '6', 00H, '4'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260258 DB	'v', 00H, 'c', 00H, '_', 00H, 'r', 00H, 'e', 00H, 'd', 00H
+$SG260299 DB	'v', 00H, 'c', 00H, '_', 00H, 'r', 00H, 'e', 00H, 'd', 00H
 	DB	'i', 00H, 's', 00H, 't', 00H, '.', 00H, 'x', 00H, '8', 00H, '6'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260259 DB	'v', 00H, 'c', 00H, '2', 00H, '0', 00H, '1', 00H, '0', 00H
+$SG260300 DB	'v', 00H, 'c', 00H, '2', 00H, '0', 00H, '1', 00H, '0', 00H
 	DB	'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H, 's', 00H, 't', 00H, '_'
 	DB	00H, 'x', 00H, '6', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260260 DB	'v', 00H, 'c', 00H, '2', 00H, '0', 00H, '1', 00H, '0', 00H
+$SG260301 DB	'v', 00H, 'c', 00H, '2', 00H, '0', 00H, '1', 00H, '0', 00H
 	DB	'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H, 's', 00H, 't', 00H, '_'
 	DB	00H, 'x', 00H, '8', 00H, '6', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260261 DB	'v', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H
+$SG260302 DB	'v', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H
 	DB	's', 00H, 't', 00H, '_', 00H, 'x', 00H, '6', 00H, '4', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260262 DB	'v', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H
+$SG260303 DB	'v', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H
 	DB	's', 00H, 't', 00H, '_', 00H, 'x', 00H, '8', 00H, '6', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+6
-$SG260263 DB	'N', 00H, 'D', 00H, 'P', 00H, '4', 00H, '5', 00H, '1', 00H
+$SG260304 DB	'N', 00H, 'D', 00H, 'P', 00H, '4', 00H, '5', 00H, '1', 00H
 	DB	'-', 00H, 'K', 00H, 'B', 00H, '2', 00H, '8', 00H, '7', 00H, '2'
 	DB	00H, '7', 00H, '7', 00H, '6', 00H, '-', 00H, 'x', 00H, '8', 00H
 	DB	'6', 00H, '-', 00H, 'x', 00H, '6', 00H, '4', 00H, '-', 00H, 'A'
@@ -136,411 +136,342 @@ $SG260263 DB	'N', 00H, 'D', 00H, 'P', 00H, '4', 00H, '5', 00H, '1', 00H
 	DB	'N', 00H, 'U', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260264 DB	'd', 00H, 'o', 00H, 't', 00H, 'n', 00H, 'e', 00H, 't', 00H
+$SG260305 DB	'd', 00H, 'o', 00H, 't', 00H, 'n', 00H, 'e', 00H, 't', 00H
 	DB	'f', 00H, 'x', 00H, '3', 00H, '5', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260265 DB	'D', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
+$SG260306 DB	'D', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
 	DB	'F', 00H, 'x', 00H, '3', 00H, '5', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260266 DB	'd', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
+$SG260307 DB	'd', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
 	DB	'F', 00H, 'x', 00H, '4', 00H, '0', 00H, '_', 00H, 'F', 00H, 'u'
 	DB	00H, 'l', 00H, 'l', 00H, '_', 00H, 'x', 00H, '8', 00H, '6', 00H
 	DB	'_', 00H, 'x', 00H, '6', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
-$SG260267 DB	'd', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
+$SG260308 DB	'd', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
 	DB	'F', 00H, 'x', 00H, '4', 00H, '0', 00H, '_', 00H, 'C', 00H, 'l'
 	DB	00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, '_', 00H, 'x', 00H
 	DB	'8', 00H, '6', 00H, '_', 00H, 'x', 00H, '6', 00H, '4', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260268 DB	'o', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 's', 00H
+$SG260309 DB	'o', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 's', 00H
 	DB	't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260269 DB	'E', 00H, 'a', 00H, 's', 00H, 'y', 00H, 'A', 00H, 'n', 00H
+$SG260310 DB	'E', 00H, 'a', 00H, 's', 00H, 'y', 00H, 'A', 00H, 'n', 00H
 	DB	't', 00H, 'i', 00H, 'C', 00H, 'h', 00H, 'e', 00H, 'a', 00H, 't'
 	DB	00H, '_', 00H, 'S', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'p', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260270 DB	'U', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'I', 00H
+$SG260311 DB	'U', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'I', 00H
 	DB	'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e'
 	DB	00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260271 DB	'x', 00H, '6', 00H, '4', 00H, 'l', 00H, 'a', 00H, 'u', 00H
+$SG260312 DB	'x', 00H, '6', 00H, '4', 00H, 'l', 00H, 'a', 00H, 'u', 00H
 	DB	'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260272 DB	'x', 00H, '8', 00H, '6', 00H, 'l', 00H, 'a', 00H, 'u', 00H
+$SG260313 DB	'x', 00H, '8', 00H, '6', 00H, 'l', 00H, 'a', 00H, 'u', 00H
 	DB	'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260273 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG260314 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260274 DB	'F', 00H, 'F', 00H, 'X', 00H, '&', 00H, 'X', 00H, '-', 00H
+$SG260315 DB	'F', 00H, 'F', 00H, 'X', 00H, '&', 00H, 'X', 00H, '-', 00H
 	DB	'2', 00H, '_', 00H, 'L', 00H, 'A', 00H, 'U', 00H, 'N', 00H, 'C'
 	DB	00H, 'H', 00H, 'E', 00H, 'R', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260275 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
+$SG260316 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
 	DB	't', 00H, '4', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c'
 	DB	00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260276 DB	'S', 00H, 'k', 00H, 'y', 00H, 'r', 00H, 'i', 00H, 'm', 00H
+$SG260317 DB	'S', 00H, 'k', 00H, 'y', 00H, 'r', 00H, 'i', 00H, 'm', 00H
 	DB	'S', 00H, 'E', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c'
 	DB	00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260277 DB	'M', 00H, 'o', 00H, 'd', 00H, 'L', 00H, 'a', 00H, 'u', 00H
+$SG260318 DB	'M', 00H, 'o', 00H, 'd', 00H, 'L', 00H, 'a', 00H, 'u', 00H
 	DB	'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260278 DB	'A', 00H, 'k', 00H, 'i', 00H, 'b', 00H, 'a', 00H, 'U', 00H
+$SG260319 DB	'A', 00H, 'k', 00H, 'i', 00H, 'b', 00H, 'a', 00H, 'U', 00H
 	DB	'U', 00H, '_', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i'
 	DB	00H, 'g', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260279 DB	'O', 00H, 'b', 00H, 'd', 00H, 'u', 00H, 'c', 00H, 't', 00H
+$SG260320 DB	'O', 00H, 'b', 00H, 'd', 00H, 'u', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260280 DB	'G', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'd', 00H, 'i', 00H
+$SG260321 DB	'G', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'd', 00H, 'i', 00H
 	DB	'a', 00H, '2', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c'
 	DB	00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260281 DB	'F', 00H, 'F', 00H, 'X', 00H, 'i', 00H, 'i', 00H, 'i', 00H
+$SG260322 DB	'F', 00H, 'F', 00H, 'X', 00H, 'i', 00H, 'i', 00H, 'i', 00H
 	DB	'2', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h'
 	DB	00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
-$SG260282 DB	'B', 00H, 'e', 00H, 't', 00H, 'h', 00H, 'e', 00H, 's', 00H
+$SG260323 DB	'B', 00H, 'e', 00H, 't', 00H, 'h', 00H, 'e', 00H, 's', 00H
 	DB	'd', 00H, 'a', 00H, '.', 00H, 'n', 00H, 'e', 00H, 't', 00H, '_'
 	DB	00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
-$SG260283 DB	'U', 00H, 'b', 00H, 'i', 00H, 's', 00H, 'o', 00H, 'f', 00H
+$SG260324 DB	'U', 00H, 'b', 00H, 'i', 00H, 's', 00H, 'o', 00H, 'f', 00H
 	DB	't', 00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'L', 00H, 'a'
 	DB	00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260284 DB	'U', 00H, 'b', 00H, 'i', 00H, 's', 00H, 'o', 00H, 'f', 00H
+$SG260325 DB	'U', 00H, 'b', 00H, 'i', 00H, 's', 00H, 'o', 00H, 'f', 00H
 	DB	't', 00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'L', 00H, 'a'
 	DB	00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H
 	DB	'6', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
-$SG260285 DB	'S', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 's', 00H, 'h', 00H
+$SG260326 DB	'S', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 's', 00H, 'h', 00H
 	DB	'S', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+6
-$SG260286 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'L', 00H, 'a', 00H
+$SG260327 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'L', 00H, 'a', 00H
 	DB	'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, 'C'
 	DB	00H, 'e', 00H, 'f', 00H, 'C', 00H, 'h', 00H, 'i', 00H, 'l', 00H
 	DB	'd', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'c', 00H, 'e', 00H, 's'
 	DB	00H, 's', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260287 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG260328 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	'P', 00H, 'a', 00H, 'd', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260288 DB	'C', 00H, 'N', 00H, 'N', 00H, 'L', 00H, 'a', 00H, 'u', 00H
+$SG260329 DB	'C', 00H, 'N', 00H, 'N', 00H, 'L', 00H, 'a', 00H, 'u', 00H
 	DB	'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260289 DB	'F', 00H, 'F', 00H, '9', 00H, '_', 00H, 'L', 00H, 'a', 00H
+$SG260330 DB	'F', 00H, 'F', 00H, '9', 00H, '_', 00H, 'L', 00H, 'a', 00H
 	DB	'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260290 DB	'A', 00H, '1', 00H, '7', 00H, 'C', 00H, 'o', 00H, 'n', 00H
+$SG260331 DB	'A', 00H, '1', 00H, '7', 00H, 'C', 00H, 'o', 00H, 'n', 00H
 	DB	'f', 00H, 'i', 00H, 'g', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260291 DB	'A', 00H, '1', 00H, '8', 00H, 'C', 00H, 'o', 00H, 'n', 00H
+$SG260332 DB	'A', 00H, '1', 00H, '8', 00H, 'C', 00H, 'o', 00H, 'n', 00H
 	DB	'f', 00H, 'i', 00H, 'g', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260292 DB	'D', 00H, 'P', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H
+$SG260333 DB	'D', 00H, 'P', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H
 	DB	'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260293 DB	'Z', 00H, 'e', 00H, 'r', 00H, 'o', 00H, 'E', 00H, 's', 00H
+$SG260334 DB	'Z', 00H, 'e', 00H, 'r', 00H, 'o', 00H, 'E', 00H, 's', 00H
 	DB	'c', 00H, 'a', 00H, 'p', 00H, 'e', 00H, '-', 00H, 'L', 00H, 'a'
 	DB	00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260294 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
+$SG260335 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
 	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 'U', 00H, 'I', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260295 DB	'z', 00H, 'o', 00H, 's', 00H, 'S', 00H, 't', 00H, 'e', 00H
+$SG260336 DB	'z', 00H, 'o', 00H, 's', 00H, 'S', 00H, 't', 00H, 'e', 00H
 	DB	'a', 00H, 'm', 00H, 'S', 00H, 't', 00H, 'a', 00H, 'r', 00H, 't'
 	DB	00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
-$SG260296 DB	'n', 00H, 'o', 00H, 't', 00H, 'e', 00H, 'p', 00H, 'a', 00H
+$SG260337 DB	'n', 00H, 'o', 00H, 't', 00H, 'e', 00H, 'p', 00H, 'a', 00H
 	DB	'd', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260297 DB	'm', 00H, 's', 00H, 'p', 00H, 'a', 00H, 'i', 00H, 'n', 00H
+$SG260338 DB	'm', 00H, 's', 00H, 'p', 00H, 'a', 00H, 'i', 00H, 'n', 00H
 	DB	't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260298 DB	'7', 00H, 'z', 00H, 'F', 00H, 'M', 00H, '.', 00H, 'e', 00H
+$SG260339 DB	'7', 00H, 'z', 00H, 'F', 00H, 'M', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260299 DB	'W', 00H, 'i', 00H, 'n', 00H, 'R', 00H, 'a', 00H, 'r', 00H
+$SG260340 DB	'W', 00H, 'i', 00H, 'n', 00H, 'R', 00H, 'a', 00H, 'r', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260300 DB	'E', 00H, 'A', 00H, 'C', 00H, '.', 00H, 'e', 00H, 'x', 00H
+$SG260341 DB	'E', 00H, 'A', 00H, 'C', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
-$SG260301 DB	'v', 00H, 'c', 00H, 'p', 00H, 'k', 00H, 'g', 00H, 's', 00H
+$SG260342 DB	'v', 00H, 'c', 00H, 'p', 00H, 'k', 00H, 'g', 00H, 's', 00H
 	DB	'r', 00H, 'v', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260302 DB	'd', 00H, 'l', 00H, 'l', 00H, 'h', 00H, 'o', 00H, 's', 00H
+$SG260343 DB	'd', 00H, 'l', 00H, 'l', 00H, 'h', 00H, 'o', 00H, 's', 00H
 	DB	't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260303 DB	'g', 00H, 'i', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H
+$SG260344 DB	'g', 00H, 'i', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
-$SG260304 DB	'l', 00H, 'i', 00H, 'n', 00H, 'k', 00H, '.', 00H, 'e', 00H
+$SG260345 DB	'l', 00H, 'i', 00H, 'n', 00H, 'k', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260305 DB	'c', 00H, 'l', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
+$SG260346 DB	'c', 00H, 'l', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG260306 DB	'r', 00H, 'c', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
+$SG260347 DB	'r', 00H, 'c', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG260307 DB	'c', 00H, 'o', 00H, 'n', 00H, 'h', 00H, 'o', 00H, 's', 00H
+$SG260348 DB	'c', 00H, 'o', 00H, 'n', 00H, 'h', 00H, 'o', 00H, 's', 00H
 	DB	't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260308 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'B', 00H, 'a', 00H
+$SG260349 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'B', 00H, 'a', 00H
 	DB	'r', 00H, 'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n'
 	DB	00H, 'c', 00H, 'e', 00H, 'W', 00H, 'r', 00H, 'i', 00H, 't', 00H
 	DB	'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
-$SG260309 DB	'O', 00H, 'A', 00H, 'W', 00H, 'r', 00H, 'a', 00H, 'p', 00H
+$SG260350 DB	'O', 00H, 'A', 00H, 'W', 00H, 'r', 00H, 'a', 00H, 'p', 00H
 	DB	'p', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260310 DB	'N', 00H, 'v', 00H, 'O', 00H, 'A', 00H, 'W', 00H, 'r', 00H
+$SG260351 DB	'N', 00H, 'v', 00H, 'O', 00H, 'A', 00H, 'W', 00H, 'r', 00H
 	DB	'a', 00H, 'p', 00H, 'p', 00H, 'e', 00H, 'r', 00H, 'C', 00H, 'a'
 	DB	00H, 'c', 00H, 'h', 00H, 'e', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260311 DB	'w', 00H, 'a', 00H, 'i', 00H, 'f', 00H, 'u', 00H, '2', 00H
+$SG260352 DB	'w', 00H, 'a', 00H, 'i', 00H, 'f', 00H, 'u', 00H, '2', 00H
 	DB	'x', 00H, '-', 00H, 'c', 00H, 'a', 00H, 'f', 00H, 'f', 00H, 'e'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260312 DB	'w', 00H, 'a', 00H, 'i', 00H, 'f', 00H, 'u', 00H, '2', 00H
+$SG260353 DB	'w', 00H, 'a', 00H, 'i', 00H, 'f', 00H, 'u', 00H, '2', 00H
 	DB	'x', 00H, '-', 00H, 'c', 00H, 'a', 00H, 'f', 00H, 'f', 00H, 'e'
 	DB	00H, '-', 00H, 'c', 00H, 'u', 00H, 'i', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
-$SG260313 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'S', 00H, 'e', 00H
+$SG260354 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'S', 00H, 'e', 00H
 	DB	'r', 00H, 'v', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260314 DB	's', 00H, '2', 00H, 'g', 00H, 's', 00H, '.', 00H, 'e', 00H
+$SG260355 DB	's', 00H, '2', 00H, 'g', 00H, 's', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260315 DB	's', 00H, 'i', 00H, 'h', 00H, 'o', 00H, 's', 00H, 't', 00H
+$SG260356 DB	's', 00H, 'i', 00H, 'h', 00H, 'o', 00H, 's', 00H, 't', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260316 DB	'C', 00H, 'h', 00H, 'r', 00H, 'o', 00H, 'm', 00H, 'e', 00H
+$SG260357 DB	'C', 00H, 'h', 00H, 'r', 00H, 'o', 00H, 'm', 00H, 'e', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260317 DB	'e', 00H, 'x', 00H, 'p', 00H, 'l', 00H, 'o', 00H, 'r', 00H
+$SG260358 DB	'e', 00H, 'x', 00H, 'p', 00H, 'l', 00H, 'o', 00H, 'r', 00H
 	DB	'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260318 DB	'b', 00H, 'r', 00H, 'o', 00H, 'w', 00H, 's', 00H, 'e', 00H
+$SG260359 DB	'b', 00H, 'r', 00H, 'o', 00H, 'w', 00H, 's', 00H, 'e', 00H
 	DB	'r', 00H, '_', 00H, 'b', 00H, 'r', 00H, 'o', 00H, 'k', 00H, 'e'
 	DB	00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260319 DB	'd', 00H, 'w', 00H, 'm', 00H, '.', 00H, 'e', 00H, 'x', 00H
+$SG260360 DB	'd', 00H, 'w', 00H, 'm', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
-$SG260320 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG260361 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	'T', 00H, 'M', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260321 DB	'S', 00H, 'l', 00H, 'e', 00H, 'e', 00H, 'p', 00H, 'O', 00H
+$SG260362 DB	'S', 00H, 'l', 00H, 'e', 00H, 'e', 00H, 'p', 00H, 'O', 00H
 	DB	'n', 00H, 'L', 00H, 'a', 00H, 'n', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260324 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG260365 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, 00H, 00H
-$SG260325 DB	'%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll', 00H
+$SG260366 DB	'%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll', 00H
 	ORG $+1
-$SG260329 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG260370 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260332 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG260373 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260335 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG260376 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260338 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG260379 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260341 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG260382 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260344 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG260385 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260346 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG260387 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG260349 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG260390 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260350 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG260391 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260351 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG260392 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260352 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG260393 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260353 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG260394 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260354 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG260395 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260355 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+$SG260396 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
 	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, '3', 00H, 'd'
 	DB	00H, '9', 00H, 00H, 00H
 	ORG $+2
-$SG260356 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+$SG260397 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
 	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, '3', 00H, 'd'
 	DB	00H, '8', 00H, 00H, 00H
 	ORG $+2
-$SG260357 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+$SG260398 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
 	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, 'd', 00H, 'r'
 	DB	00H, 'a', 00H, 'w', 00H, 00H, 00H
-$SG260358 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+$SG260399 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
 	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, 'x', 00H, 'g'
 	DB	00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG260359 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+$SG260400 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
 	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'O', 00H, 'p', 00H, 'e'
 	DB	00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG260360 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+$SG260401 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
 	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'D', 00H, 'I', 00H, 'n'
 	DB	00H, 'p', 00H, 'u', 00H, 't', 00H, '8', 00H, 00H, 00H
-$SG260373 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG260414 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG260374 DB	'steam_api.dll', 00H
+$SG260415 DB	'steam_api.dll', 00H
 	ORG $+2
-$SG260375 DB	'steamnative.dll', 00H
-$SG260376 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'a', 00H
+$SG260416 DB	'steamnative.dll', 00H
+$SG260417 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'a', 00H
 	DB	'p', 00H, 'p', 00H, 's', 00H, 00H, 00H
-$SG260379 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG260420 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260380 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG260421 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260381 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
+$SG260422 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260382 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '1', 00H, '1', 00H
+$SG260423 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '1', 00H, '1', 00H
 	DB	'_', 00H, '4', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG260383 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG260424 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260384 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG260425 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260388 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG260429 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260393 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG260434 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260397 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG260438 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260401 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG260442 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260405 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG260446 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260417 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG260458 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG260507 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG260544 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260509 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+4
-$SG260510 DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'l', 00H, 'i', 00H
-	DB	'c', 00H, 't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'l'
-	DB	00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'D', 00H
-	DB	'L', 00H, 'L', 00H, 's', 00H, ' ', 00H, 'd', 00H, 'e', 00H, 't'
-	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H
-	DB	'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e'
-	DB	00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'K', 00H
-	DB	00H, 00H
-	ORG $+4
-$SG260511 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
-	DB	' ', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e'
-	DB	00H, ' ', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'o', 00H, 'r', 00H, ' '
-	DB	00H, 'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'a'
-	DB	00H, 'n', 00H, 'd', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 's', 00H
-	DB	't', 00H, 'a', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'y', 00H, 'o'
-	DB	00H, 'u', 00H, 'r', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H
-	DB	'e', 00H, ',', 00H, ' ', 00H, 'i', 00H, 't', 00H, ' ', 00H, 'i'
-	DB	00H, 's', 00H, ' ', 00H, 'n', 00H, 'o', 00H, 't', 00H, ' ', 00H
-	DB	'p', 00H, 'o', 00H, 's', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l'
-	DB	00H, 'e', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'p', 00H
-	DB	'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 't', 00H, 'h', 00H, 'i'
-	DB	00H, 's', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
-	DB	' ', 00H, 'w', 00H, 'i', 00H, 't', 00H, 'h', 00H, ' ', 00H, 't'
-	DB	00H, 'w', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'p', 00H
-	DB	'i', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' '
-	DB	00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 'j'
-	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H
-	DB	':', 00H, ')', 00H, 00H, 00H
-	ORG $+2
-$SG260514 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+$SG260547 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260517 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG260550 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260520 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+$SG260553 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260523 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG260556 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260527 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG260560 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260529 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+6
-$SG260530 DB	'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'l', 00H, 'i', 00H
-	DB	'c', 00H, 't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'l'
-	DB	00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'D', 00H
-	DB	'L', 00H, 'L', 00H, 's', 00H, ' ', 00H, 'd', 00H, 'e', 00H, 't'
-	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H
-	DB	'f', 00H, 'o', 00H, 'r', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e'
-	DB	00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'K', 00H
-	DB	00H, 00H
 	ORG $+4
-$SG260531 DB	'P', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H, 'e', 00H
-	DB	' ', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e'
-	DB	00H, ' ', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'o', 00H, 'r', 00H, ' '
-	DB	00H, 'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, ' ', 00H, 'a'
-	DB	00H, 'n', 00H, 'd', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 's', 00H
-	DB	't', 00H, 'a', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'y', 00H, 'o'
-	DB	00H, 'u', 00H, 'r', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H
-	DB	'e', 00H, ',', 00H, ' ', 00H, 'i', 00H, 't', 00H, ' ', 00H, 'i'
-	DB	00H, 's', 00H, ' ', 00H, 'n', 00H, 'o', 00H, 't', 00H, ' ', 00H
-	DB	'p', 00H, 'o', 00H, 's', 00H, 's', 00H, 'i', 00H, 'b', 00H, 'l'
-	DB	00H, 'e', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'p', 00H
-	DB	'l', 00H, 'a', 00H, 'y', 00H, ' ', 00H, 't', 00H, 'h', 00H, 'i'
-	DB	00H, 's', 00H, ' ', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
-	DB	' ', 00H, 'w', 00H, 'i', 00H, 't', 00H, 'h', 00H, ' ', 00H, 't'
-	DB	00H, 'w', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'o', 00H, 'p', 00H
-	DB	'i', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' '
-	DB	00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'i', 00H, 'n', 00H, 'j'
-	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H
-	DB	':', 00H, ')', 00H, 00H, 00H
-	ORG $+2
-$SG260557 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG260586 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'U', 00H, 'N', 00H
 	DB	'C', 00H, 'L', 00H, 'E', 00H, 'A', 00H, 'N', 00H, ' ', 00H, 'D'
@@ -548,16 +479,16 @@ $SG260557 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'c', 00H, 'e', 00H, 's', 00H, 's', 00H, ' ', 00H, 'D', 00H, 'e'
 	DB	00H, 't', 00H, 'a', 00H, 'c', 00H, 'h', 00H, ' ', 00H, '!', 00H
 	DB	'!', 00H, ' ', 00H, '*', 00H, '*', 00H, 00H, 00H
-$SG260601 DB	'QueryPerformanceCounter', 00H
-$SG260602 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG260630 DB	'QueryPerformanceCounter', 00H
+$SG260631 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260610 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG260639 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '6', 00H, '4', 00H, '.', 00H, 'p', 00H, 'i'
 	DB	00H, 'd', 00H, 00H, 00H
 	ORG $+2
-$SG260611 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG260640 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p', 00H, 'i'
 	DB	00H, 'd', 00H, 00H, 00H
 CONST	ENDS
@@ -955,7 +886,6 @@ PUBLIC	?end@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUH
 PUBLIC	?end@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::end
 PUBLIC	?_Unchecked_begin@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Unchecked_begin
 PUBLIC	?_Unchecked_end@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Unchecked_end
-PUBLIC	?_Unchecked_end@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Unchecked_end
 PUBLIC	?_Make_iter@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@@Z ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Make_iter
 PUBLIC	?_Make_iter@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Make_iter
 PUBLIC	?size@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QBEIXZ ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::size
@@ -973,27 +903,21 @@ PUBLIC	?end@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$h
 PUBLIC	?end@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::end
 PUBLIC	?_Unchecked_begin@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Unchecked_begin
 PUBLIC	?_Unchecked_end@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Unchecked_end
-PUBLIC	?_Unchecked_end@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Unchecked_end
 PUBLIC	?_Make_iter@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Make_iter
 PUBLIC	?_Make_iter@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Make_iter
+PUBLIC	?cend@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::cend
 PUBLIC	?size@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBEIXZ ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::size
 PUBLIC	?bucket_count@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBEIXZ ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::bucket_count
 PUBLIC	?load_factor@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBEMXZ ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::load_factor
 PUBLIC	?max_load_factor@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBEMXZ ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::max_load_factor
 PUBLIC	?erase@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::erase
 PUBLIC	?find@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@ABQAX@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::find
-PUBLIC	?count@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBEIABQAX@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::count
 PUBLIC	?lower_bound@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@ABQAX@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::lower_bound
-PUBLIC	?equal_range@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@2@ABQAX@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::equal_range
 PUBLIC	?_Destroy_if_not_nil@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAEXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Destroy_if_not_nil
 PUBLIC	?_Vec_lo@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Vec_lo
-PUBLIC	?_Vec_lo@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Vec_lo
 PUBLIC	?_Vec_hi@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Vec_hi
-PUBLIC	?_Vec_hi@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Vec_hi
 PUBLIC	?_Begin@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Begin
-PUBLIC	?_Begin@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Begin
 PUBLIC	?_End@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_End
-PUBLIC	?_End@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_End
 PUBLIC	?_Erase_bucket@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAEXV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Erase_bucket
 PUBLIC	?_Insert_bucket@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAEXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@0I@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Insert_bucket
 PUBLIC	?_Hashval@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBEIABQAX@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Hashval
@@ -1040,7 +964,6 @@ PUBLIC	?size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_t
 PUBLIC	?max_size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::max_size
 PUBLIC	?capacity@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::capacity
 PUBLIC	??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@I@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::operator[]
-PUBLIC	??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@I@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::operator[]
 PUBLIC	?_Ufill@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@PAV32@IABV32@@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::_Ufill
 PUBLIC	?_Umove_if_noexcept1@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@00U?$integral_constant@_N$00@2@@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::_Umove_if_noexcept1
 PUBLIC	?_Umove_if_noexcept@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@00@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::_Umove_if_noexcept
@@ -1066,18 +989,20 @@ PUBLIC	??E?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXP
 PUBLIC	??E?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE?AV01@H@Z ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator++
 PUBLIC	??8?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator==
 PUBLIC	??9?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator!=
-PUBLIC	??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@0@Z ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
-PUBLIC	??$try_emplace@$$V@?$unordered_map@PAXPAUHINSTANCE__@@U?$hash@PAX@std@@U?$equal_to@PAX@3@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@_N@1@ABQAX@Z ; std::unordered_map<void *,HINSTANCE__ *,std::hash<void *>,std::equal_to<void *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::try_emplace<>
 PUBLIC	??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
 PUBLIC	?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_Unchecked
 PUBLIC	??D?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*
 PUBLIC	??C?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEPAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator->
+PUBLIC	??$try_emplace@$$V@?$unordered_map@PAXPAUHINSTANCE__@@U?$hash@PAX@std@@U?$equal_to@PAX@3@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@_N@1@ABQAX@Z ; std::unordered_map<void *,HINSTANCE__ *,std::hash<void *>,std::equal_to<void *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::try_emplace<>
 PUBLIC	??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@0@0@Z ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > > > >
 PUBLIC	??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
 PUBLIC	?pointer_to@?$pointer_traits@PAU?$pair@QAXPAUHINSTANCE__@@@std@@@std@@SAPAU?$pair@QAXPAUHINSTANCE__@@@2@AAU32@@Z ; std::pointer_traits<std::pair<void * const,HINSTANCE__ *> *>::pointer_to
+PUBLIC	??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
+PUBLIC	??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
+PUBLIC	??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*
+PUBLIC	??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator++
+PUBLIC	??F?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator--
 PUBLIC	??$_Kfn@QAXPAUHINSTANCE__@@@?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@SAABQAXABU?$pair@QAXPAUHINSTANCE__@@@1@@Z ; std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0>::_Kfn<void * const,HINSTANCE__ *>
-PUBLIC	??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@0@Z ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > ><std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,void,0>
-PUBLIC	??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@0@Z ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > ><std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,void,0>
 PUBLIC	??$?0ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > >::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > ><std::allocator<std::pair<void * const,HINSTANCE__ *> > const &>
 PUBLIC	??$?0AAU?$hash@PAX@std@@U_One_then_variadic_args_t@1@AAU?$equal_to@PAX@1@M@?$_Compressed_pair@U?$hash@PAX@std@@V?$_Compressed_pair@U?$equal_to@PAX@std@@M$00@2@$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$hash@PAX@1@$$QAU21@AAU?$equal_to@PAX@1@$$QAM@Z ; std::_Compressed_pair<std::hash<void *>,std::_Compressed_pair<std::equal_to<void *>,float,1>,1>::_Compressed_pair<std::hash<void *>,std::_Compressed_pair<std::equal_to<void *>,float,1>,1><std::hash<void *> &,std::_One_then_variadic_args_t,std::equal_to<void *> &,float>
 PUBLIC	??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@1@0@Z ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > > > ><std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > > >,void,0>
@@ -1091,12 +1016,8 @@ PUBLIC	??$addressof@PAD@std@@YAPAPADAAPAD@Z		; std::addressof<char *>
 PUBLIC	??$destroy@PAD@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAEXPAPAD@Z ; std::_Wrap_alloc<std::allocator<char> >::destroy<char *>
 PUBLIC	??$addressof@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@YAPAU?$pair@QAXPAUHINSTANCE__@@@0@AAU10@@Z ; std::addressof<std::pair<void * const,HINSTANCE__ *> >
 PUBLIC	??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@std@@X@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@1@@Z ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > > >::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > const &,void>
+PUBLIC	??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@ABV10@@Z ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > const >
 PUBLIC	??$?0ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@X@?$_List_buy@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ; std::_List_buy<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_List_buy<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > ><std::allocator<std::pair<void * const,HINSTANCE__ *> > const &,void>
-PUBLIC	??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
-PUBLIC	??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
-PUBLIC	??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*
-PUBLIC	??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator++
-PUBLIC	??F?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator--
 PUBLIC	??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@X@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@2@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@@Z ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0>,std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> > > > >::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0>,std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> > > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> > > const &,void>
 PUBLIC	??$?0ABV?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@X@?$_List_buy@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@QAE@ABV?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@1@@Z ; std::_List_buy<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,std::allocator<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >::_List_buy<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,std::allocator<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > ><std::allocator<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > const &,void>
 PUBLIC	??$_Insert@ABV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@2@@?$_Hash@V?$_Uset_traits@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$_Uhash_compare@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@$0A@@std@@@std@@IAE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@std@@_N@1@ABV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@1@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@1@@Z ; std::_Hash<std::_Uset_traits<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,std::_Uhash_compare<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,std::hash<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >,std::equal_to<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::allocator<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >,0> >::_Insert<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const &,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> >
@@ -1107,7 +1028,7 @@ PUBLIC	??$_Unfancy@D@std@@YAPADPAD@Z			; std::_Unfancy<char>
 PUBLIC	??$addressof@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 PUBLIC	??$_Min_value@I@std@@YAABIABI0@Z		; std::_Min_value<unsigned int>
 PUBLIC	??$_Fill_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@0ABV10@@Z ; std::_Fill_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
-PUBLIC	??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@ABV10@@Z ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > const >
+PUBLIC	??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
 PUBLIC	??$_Destroy_range@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@2@@std@@YAXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@@Z ; std::_Destroy_range<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> > >,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> *>
 PUBLIC	??$_Fill_unchecked@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@V12@@std@@YAXPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@0@0ABV10@@Z ; std::_Fill_unchecked<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> *,std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> >
 PUBLIC	??$addressof@PAU?$_List_node@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@std@@@std@@YAPAPAU?$_List_node@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@0@AAPAU10@@Z ; std::addressof<std::_List_node<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,void *> *>
@@ -1120,7 +1041,6 @@ PUBLIC	??$_Destroy_range@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator
 PUBLIC	??$_Uninitialized_fill_n@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z ; std::_Uninitialized_fill_n<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >
 PUBLIC	??$addressof@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@std@@@std@@YAPAPAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@0@AAPAU10@@Z ; std::addressof<std::_List_node<std::pair<void * const,HINSTANCE__ *>,void *> *>
 PUBLIC	??$destroy@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<void * const,HINSTANCE__ *>,void *> > >::destroy<std::_List_node<std::pair<void * const,HINSTANCE__ *>,void *> *>
-PUBLIC	??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
 PUBLIC	??$_Fn@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@_Alloc_max_size@std@@SAIHABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@@Z ; std::_Alloc_max_size::_Fn<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> > > >
 PUBLIC	??$_Uninitialized_fill_n@PAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@0@@Z ; std::_Uninitialized_fill_n<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> > > >
 PUBLIC	??$destroy@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@std@@@std@@@std@@QAEXPAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,void *> > >::destroy<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
@@ -1181,11 +1101,8 @@ PUBLIC	??$forward@AAY0BG@$$CB_W@std@@YAAAY0BG@$$CB_WAAY0BG@$$CB_W@Z ; std::forwa
 PUBLIC	??$emplace_front@AAY0BG@$$CB_W@?$list@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@QAEXAAY0BG@$$CB_W@Z ; std::list<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,std::allocator<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >::emplace_front<wchar_t const (&)[22]>
 PUBLIC	??$forward@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YA$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z ; std::forward<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 PUBLIC	??$emplace_front@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@?$list@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@QAEX$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@1@@Z ; std::list<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,std::allocator<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >::emplace_front<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
-PUBLIC	??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z ; std::_Distance1<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
 PUBLIC	??$_Try_emplace@ABQAX$$V@?$unordered_map@PAXPAUHINSTANCE__@@U?$hash@PAX@std@@U?$equal_to@PAX@3@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@_N@1@ABQAX@Z ; std::unordered_map<void *,HINSTANCE__ *,std::hash<void *>,std::equal_to<void *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Try_emplace<void * const &>
 PUBLIC	??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z ; std::_Distance1<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > > > >
-PUBLIC	??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z ; std::forward<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
-PUBLIC	??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z ; std::forward<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
 PUBLIC	??$forward@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@YAABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@0@ABV10@@Z ; std::forward<std::allocator<std::pair<void * const,HINSTANCE__ *> > const &>
 PUBLIC	??$?0U?$pair@QAXPAUHINSTANCE__@@@std@@@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > ><std::pair<void * const,HINSTANCE__ *> >
 PUBLIC	??$forward@AAU?$hash@PAX@std@@@std@@YAAAU?$hash@PAX@0@AAU10@@Z ; std::forward<std::hash<void *> &>
@@ -1411,6 +1328,7 @@ PUBLIC	??$construct@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@
 PUBLIC	??$?0U_Exact_args_t@std@@$0A@@?$tuple@$$V@std@@QAE@U_Exact_args_t@1@@Z ; std::tuple<>::tuple<><std::_Exact_args_t,0>
 PUBLIC	??$?0ABQAX@?$_Tuple_val@ABQAX@std@@QAE@ABQAX@Z	; std::_Tuple_val<void * const &>::_Tuple_val<void * const &><void * const &>
 PUBLIC	??$_Buynode@ABUpiecewise_construct_t@std@@V?$tuple@ABQAX@2@V?$tuple@$$V@2@@?$_List_buy@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QAEPAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PAU21@0ABUpiecewise_construct_t@1@$$QAV?$tuple@ABQAX@1@$$QAV?$tuple@$$V@1@@Z ; std::_List_buy<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Buynode<std::piecewise_construct_t const &,std::tuple<void * const &>,std::tuple<> >
+PUBLIC	??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z ; std::forward<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
 PUBLIC	??$construct@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@AAY09$$CB_W@?$allocator@U?$_List_node@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@std@@@std@@QAEXPAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@1@AAY09$$CB_W@Z ; std::allocator<std::_List_node<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,void *> >::construct<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,wchar_t const (&)[10]>
 PUBLIC	??$construct@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@AAY0BC@$$CB_W@?$allocator@U?$_List_node@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@std@@@std@@QAEXPAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@1@AAY0BC@$$CB_W@Z ; std::allocator<std::_List_node<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,void *> >::construct<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,wchar_t const (&)[18]>
 PUBLIC	??$construct@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@AAY0BF@$$CB_W@?$allocator@U?$_List_node@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@std@@@std@@QAEXPAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@1@AAY0BF@$$CB_W@Z ; std::allocator<std::_List_node<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,void *> >::construct<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,wchar_t const (&)[21]>
@@ -1493,7 +1411,6 @@ EXTRN	?SK_GetFullyQualifiedApp@@YAPB_WXZ:PROC		; SK_GetFullyQualifiedApp
 EXTRN	?SK_GetHostApp@@YAPB_WXZ:PROC			; SK_GetHostApp
 EXTRN	?SK_GetHostPath@@YAPB_WXZ:PROC			; SK_GetHostPath
 EXTRN	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK_GetDocumentsDir
-EXTRN	?SK_MessageBox@@YAHV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0I@Z:PROC ; SK_MessageBox
 EXTRN	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ:PROC ; SK_FormatString
 EXTRN	?SK_IsRunDLLInvocation@@YA_NXZ:PROC		; SK_IsRunDLLInvocation
 EXTRN	?SK_IsDLLSpecialK@@YG_NPB_W@Z:PROC		; SK_IsDLLSpecialK
@@ -3288,7 +3205,7 @@ __ehfuncinfo$_DllMain@12 DD 019930522H
 	DD	00H
 	DD	01H
 __ehfuncinfo$?SK_Attach@@YGHW4DLL_ROLE@@@Z DD 019930522H
-	DD	07H
+	DD	05H
 	DD	FLAT:__unwindtable$?SK_Attach@@YGHW4DLL_ROLE@@@Z
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
@@ -3332,10 +3249,6 @@ __unwindtable$?SK_Attach@@YGHW4DLL_ROLE@@@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$3
 	DD	0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$4
-	DD	0ffffffffH
-	DD	FLAT:__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$5
-	DD	0ffffffffH
-	DD	FLAT:__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$7
 xdata$x	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -3808,7 +3721,7 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1104 : }
+; 1093 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -3858,7 +3771,7 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1104 : }
+; 1093 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -6499,6 +6412,29 @@ __ehhandler$??$construct@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_
 text$x	ENDS
 ??$construct@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@AAY09$$CB_W@?$allocator@U?$_List_node@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@std@@@std@@QAEXPAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@1@AAY09$$CB_W@Z ENDP ; std::allocator<std::_List_node<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,void *> >::construct<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >,wchar_t const (&)[10]>
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z PROC ; std::forward<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z ENDP ; std::forward<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
@@ -6537,7 +6473,7 @@ _<_Val_2>$ = 24						; size = 4
 	je	SHORT $LN54@Buynode
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1104 : }
+; 1093 : }
 
 	mov	ecx, DWORD PTR _<_Val_1>$[ebp]
 	mov	ecx, DWORD PTR [ecx]
@@ -18305,7 +18241,7 @@ ___that$ = 8						; size = 4
 ??0?$tuple@ABQAX@std@@QAE@$$QAV01@@Z PROC		; std::tuple<void * const &>::tuple<void * const &>, COMDAT
 ; _this$ = ecx
 
-; 1104 : }
+; 1093 : }
 
 	npad	2
 	push	ebp
@@ -22030,52 +21966,6 @@ __Arg$ = 8						; size = 4
 ??$forward@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@YAABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@0@ABV10@@Z ENDP ; std::forward<std::allocator<std::pair<void * const,HINSTANCE__ *> > const &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
-;	COMDAT ??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z
-_TEXT	SEGMENT
-__Arg$ = 8						; size = 4
-??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z PROC ; std::forward<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >, COMDAT
-
-; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1335 : 	return (static_cast<_Ty&&>(_Arg));
-
-	mov	eax, DWORD PTR __Arg$[ebp]
-
-; 1336 : 	}
-
-	pop	ebp
-	ret	0
-??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z ENDP ; std::forward<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
-;	COMDAT ??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z
-_TEXT	SEGMENT
-__Arg$ = 8						; size = 4
-??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z PROC ; std::forward<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >, COMDAT
-
-; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1335 : 	return (static_cast<_Ty&&>(_Arg));
-
-	mov	eax, DWORD PTR __Arg$[ebp]
-
-; 1336 : 	}
-
-	pop	ebp
-	ret	0
-??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@AAV10@@Z ENDP ; std::forward<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -22270,84 +22160,6 @@ $LN2@Try_emplac:
 	pop	ebp
 	ret	8
 ??$_Try_emplace@ABQAX$$V@?$unordered_map@PAXPAUHINSTANCE__@@U?$hash@PAX@std@@U?$equal_to@PAX@3@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@_N@1@ABQAX@Z ENDP ; std::unordered_map<void *,HINSTANCE__ *,std::hash<void *>,std::equal_to<void *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Try_emplace<void * const &>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-;	COMDAT ??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z
-_TEXT	SEGMENT
-__First$ = 8						; size = 4
-__Last$ = 12						; size = 4
-___formal$ = 16						; size = 1
-??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z PROC ; std::_Distance1<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >, COMDAT
-
-; 1094 : 	{	// return distance between iterators; input
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	mov	ecx, DWORD PTR __First$[ebp]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
-
-	xor	eax, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	mov	edx, DWORD PTR __Last$[ebp]
-	cmp	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	je	SHORT $LN3@Distance1
-$LL4@Distance1:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
-
-	mov	ecx, DWORD PTR [ecx]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1097 : 		++_Off;
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
-
-	mov	DWORD PTR __First$[ebp], ecx
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	cmp	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	jne	SHORT $LL4@Distance1
-$LN3@Distance1:
-
-; 1098 : 
-; 1099 : 	return (_Off);
-; 1100 : 	}
-
-	pop	ebp
-	ret	0
-??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z ENDP ; std::_Distance1<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -26003,29 +25815,6 @@ __Al$ = 12						; size = 4
 ??$_Fn@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@std@@@_Alloc_max_size@std@@SAIHABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@U_Iterator_base0@2@@std@@@std@@@1@@Z ENDP ; std::_Alloc_max_size::_Fn<std::_Wrap_alloc<std::allocator<std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > >,std::_Iterator_base0> > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-;	COMDAT ??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z
-_TEXT	SEGMENT
-__Val$ = 8						; size = 4
-??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z PROC ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >, COMDAT
-
-; 629  : 	{	// return address of _Val
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 630  : 	return (__builtin_addressof(_Val));
-
-	mov	eax, DWORD PTR __Val$[ebp]
-
-; 631  : 	}
-
-	pop	ebp
-	ret	0
-??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z ENDP ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$destroy@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@@Z
 _TEXT	SEGMENT
@@ -26324,10 +26113,10 @@ __Al$ = 16						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-;	COMDAT ??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@ABV10@@Z
+;	COMDAT ??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z
 _TEXT	SEGMENT
 __Val$ = 8						; size = 4
-??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@ABV10@@Z PROC ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > const >, COMDAT
+??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z PROC ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >, COMDAT
 
 ; 629  : 	{	// return address of _Val
 
@@ -26343,7 +26132,7 @@ __Val$ = 8						; size = 4
 
 	pop	ebp
 	ret	0
-??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@ABV10@@Z ENDP ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > const >
+??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@AAV10@@Z ENDP ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -27434,118 +27223,6 @@ __Al$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ??F?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ
-_TEXT	SEGMENT
-??F?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator--, COMDAT
-; _this$ = ecx
-
-; 73   : 		_Ptr = _Mylist::_Prevnode(_Ptr);
-
-	mov	eax, DWORD PTR [ecx]
-	mov	eax, DWORD PTR [eax+4]
-	mov	DWORD PTR [ecx], eax
-
-; 152  : 		--(*(_Mybase *)this);
-; 153  : 		return (*this);
-
-	mov	eax, ecx
-
-; 154  : 		}
-
-	ret	0
-??F?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator--
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ
-_TEXT	SEGMENT
-??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator++, COMDAT
-; _this$ = ecx
-
-; 530  : 		return ((_Nodepref)_Pnode->_Next);
-
-	mov	eax, DWORD PTR [ecx]
-
-; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-	mov	DWORD PTR [ecx], eax
-
-; 139  : 		++(*(_Mybase *)this);
-; 140  : 		return (*this);
-
-	mov	eax, ecx
-
-; 141  : 		}
-
-	ret	0
-??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator++
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ
-_TEXT	SEGMENT
-??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*, COMDAT
-; _this$ = ecx
-
-; 540  : 		return ((reference)_Pnode->_Myval);
-
-	mov	eax, DWORD PTR [ecx]
-	add	eax, 8
-
-; 129  : 		return ((reference)**(_Mybase *)this);
-; 130  : 		}
-
-	ret	0
-??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z
-_TEXT	SEGMENT
-__Pnode$ = 8						; size = 4
-__Plist$ = 12						; size = 4
-??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >, COMDAT
-; _this$ = ecx
-
-; 124  : 		{	// construct with node pointer _Pnode
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 43   : 		: _Ptr(_Pnode)
-
-	mov	eax, DWORD PTR __Pnode$[ebp]
-	mov	DWORD PTR [ecx], eax
-
-; 125  : 		}
-
-	mov	eax, ecx
-	pop	ebp
-	ret	8
-??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@XZ
-_TEXT	SEGMENT
-??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >, COMDAT
-; _this$ = ecx
-
-; 38   : 		: _Ptr()
-
-	mov	DWORD PTR [ecx], 0
-
-; 119  : 		{	// construct with null node
-; 120  : 		}
-
-	mov	eax, ecx
-	ret	0
-??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 ;	COMDAT ??$?0ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@X@?$_List_buy@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z
 _TEXT	SEGMENT
 _this$ = -4						; size = 4
@@ -27595,6 +27272,29 @@ __Al$ = 8						; size = 4
 	pop	ebp
 	ret	4
 ??$?0ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@X@?$_List_buy@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ENDP ; std::_List_buy<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_List_buy<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > ><std::allocator<std::pair<void * const,HINSTANCE__ *> > const &,void>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@ABV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@ABV10@@Z PROC ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > const >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@0@ABV10@@Z ENDP ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > const >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -27903,74 +27603,6 @@ __Right$ = 8						; size = 4
 ??$?0ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > >::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > ><std::allocator<std::pair<void * const,HINSTANCE__ *> > const &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
-;	COMDAT ??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@0@Z
-_TEXT	SEGMENT
-__Val1$ = 8						; size = 4
-__Val2$ = 12						; size = 4
-??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@0@Z PROC ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > ><std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,void,0>, COMDAT
-; _this$ = ecx
-
-; 189  : 		{	// construct from moved values
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 187  : 		: first(_STD forward<_Other1>(_Val1)),
-
-	mov	eax, DWORD PTR __Val1$[ebp]
-	mov	eax, DWORD PTR [eax]
-	mov	DWORD PTR [ecx], eax
-
-; 188  : 				second(_STD forward<_Other2>(_Val2))
-
-	mov	eax, DWORD PTR __Val2$[ebp]
-	mov	eax, DWORD PTR [eax]
-	mov	DWORD PTR [ecx+4], eax
-
-; 190  : 		}
-
-	mov	eax, ecx
-	pop	ebp
-	ret	8
-??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@0@Z ENDP ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > ><std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,void,0>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
-;	COMDAT ??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@0@Z
-_TEXT	SEGMENT
-__Val1$ = 8						; size = 4
-__Val2$ = 12						; size = 4
-??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@0@Z PROC ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > ><std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,void,0>, COMDAT
-; _this$ = ecx
-
-; 189  : 		{	// construct from moved values
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 187  : 		: first(_STD forward<_Other1>(_Val1)),
-
-	mov	eax, DWORD PTR __Val1$[ebp]
-	mov	eax, DWORD PTR [eax]
-	mov	DWORD PTR [ecx], eax
-
-; 188  : 				second(_STD forward<_Other2>(_Val2))
-
-	mov	eax, DWORD PTR __Val2$[ebp]
-	mov	eax, DWORD PTR [eax]
-	mov	DWORD PTR [ecx+4], eax
-
-; 190  : 		}
-
-	mov	eax, ecx
-	pop	ebp
-	ret	8
-??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@0@Z ENDP ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > ><std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,void,0>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
 ;	COMDAT ??$_Kfn@QAXPAUHINSTANCE__@@@?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@SAABQAXABU?$pair@QAXPAUHINSTANCE__@@@1@@Z
 _TEXT	SEGMENT
@@ -27992,6 +27624,118 @@ __Val$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$_Kfn@QAXPAUHINSTANCE__@@@?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@SAABQAXABU?$pair@QAXPAUHINSTANCE__@@@1@@Z ENDP ; std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0>::_Kfn<void * const,HINSTANCE__ *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??F?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ
+_TEXT	SEGMENT
+??F?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator--, COMDAT
+; _this$ = ecx
+
+; 73   : 		_Ptr = _Mylist::_Prevnode(_Ptr);
+
+	mov	eax, DWORD PTR [ecx]
+	mov	eax, DWORD PTR [eax+4]
+	mov	DWORD PTR [ecx], eax
+
+; 152  : 		--(*(_Mybase *)this);
+; 153  : 		return (*this);
+
+	mov	eax, ecx
+
+; 154  : 		}
+
+	ret	0
+??F?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator--
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ
+_TEXT	SEGMENT
+??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator++, COMDAT
+; _this$ = ecx
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	eax, DWORD PTR [ecx]
+
+; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 139  : 		++(*(_Mybase *)this);
+; 140  : 		return (*this);
+
+	mov	eax, ecx
+
+; 141  : 		}
+
+	ret	0
+??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator++
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ
+_TEXT	SEGMENT
+??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*, COMDAT
+; _this$ = ecx
+
+; 540  : 		return ((reference)_Pnode->_Myval);
+
+	mov	eax, DWORD PTR [ecx]
+	add	eax, 8
+
+; 129  : 		return ((reference)**(_Mybase *)this);
+; 130  : 		}
+
+	ret	0
+??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+__Plist$ = 12						; size = 4
+??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >, COMDAT
+; _this$ = ecx
+
+; 124  : 		{	// construct with node pointer _Pnode
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 125  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >, COMDAT
+; _this$ = ecx
+
+; 38   : 		: _Ptr()
+
+	mov	DWORD PTR [ecx], 0
+
+; 119  : 		{	// construct with null node
+; 120  : 		}
+
+	mov	eax, ecx
+	ret	0
+??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -28105,96 +27849,6 @@ $LN5@distance:
 	pop	ebp
 	ret	0
 ??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@@std@@@0@0@Z ENDP ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > > > > >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ??C?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEPAU?$pair@QAXPAUHINSTANCE__@@@1@XZ
-_TEXT	SEGMENT
-??C?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEPAU?$pair@QAXPAUHINSTANCE__@@@1@XZ PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator->, COMDAT
-; _this$ = ecx
-
-; 540  : 		return ((reference)_Pnode->_Myval);
-
-	mov	eax, DWORD PTR [ecx]
-	add	eax, 8
-
-; 367  : 		return (pointer_traits<pointer>::pointer_to(**this));
-; 368  : 		}
-
-	ret	0
-??C?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEPAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator->
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ??D?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ
-_TEXT	SEGMENT
-??D?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*, COMDAT
-; _this$ = ecx
-
-; 540  : 		return ((reference)_Pnode->_Myval);
-
-	mov	eax, DWORD PTR [ecx]
-	add	eax, 8
-
-; 362  : 		return ((reference)**(_Mybase *)this);
-; 363  : 		}
-
-	ret	0
-??D?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_Unchecked, COMDAT
-; _this$ = ecx
-
-; 356  : 		{	// make an unchecked iterator
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 43   : 		: _Ptr(_Pnode)
-
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-	mov	ecx, DWORD PTR [ecx]
-	mov	DWORD PTR [eax], ecx
-
-; 357  : 		return (_Unchecked_type(this->_Ptr, (_Mylist *)this->_Getcont()));
-; 358  : 		}
-
-	pop	ebp
-	ret	4
-?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_Unchecked
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z
-_TEXT	SEGMENT
-__Pnode$ = 8						; size = 4
-__Plist$ = 12						; size = 4
-??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >, COMDAT
-; _this$ = ecx
-
-; 344  : 		{	// construct with node pointer _Pnode
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 43   : 		: _Ptr(_Pnode)
-
-	mov	eax, DWORD PTR __Pnode$[ebp]
-	mov	DWORD PTR [ecx], eax
-
-; 345  : 		}
-
-	mov	eax, ecx
-	pop	ebp
-	ret	8
-??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
@@ -28318,71 +27972,94 @@ $LN4@try_emplac:
 ??$try_emplace@$$V@?$unordered_map@PAXPAUHINSTANCE__@@U?$hash@PAX@std@@U?$equal_to@PAX@3@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@_N@1@ABQAX@Z ENDP ; std::unordered_map<void *,HINSTANCE__ *,std::hash<void *>,std::equal_to<void *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::try_emplace<>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-;	COMDAT ??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@0@Z
+;	COMDAT ??C?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEPAU?$pair@QAXPAUHINSTANCE__@@@1@XZ
 _TEXT	SEGMENT
-__First$ = 8						; size = 4
-__Last$ = 12						; size = 4
-??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@0@Z PROC ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >, COMDAT
+??C?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEPAU?$pair@QAXPAUHINSTANCE__@@@1@XZ PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator->, COMDAT
+; _this$ = ecx
 
-; 1112 : 	{	// return distance between iterators
+; 540  : 		return ((reference)_Pnode->_Myval);
+
+	mov	eax, DWORD PTR [ecx]
+	add	eax, 8
+
+; 367  : 		return (pointer_traits<pointer>::pointer_to(**this));
+; 368  : 		}
+
+	ret	0
+??C?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEPAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator->
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??D?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ
+_TEXT	SEGMENT
+??D?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*, COMDAT
+; _this$ = ecx
+
+; 540  : 		return ((reference)_Pnode->_Myval);
+
+	mov	eax, DWORD PTR [ecx]
+	add	eax, 8
+
+; 362  : 		return ((reference)**(_Mybase *)this);
+; 363  : 		}
+
+	ret	0
+??D?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBEAAU?$pair@QAXPAUHINSTANCE__@@@1@XZ ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::operator*
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_Unchecked, COMDAT
+; _this$ = ecx
+
+; 356  : 		{	// make an unchecked iterator
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1113 : 	return (_Distance1(_First, _Last, _Iter_cat_t<_InIt>()));
+; 43   : 		: _Ptr(_Pnode)
 
-	mov	ecx, DWORD PTR __First$[ebp]
-
-; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
-
-	xor	eax, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	mov	edx, DWORD PTR __Last$[ebp]
-	cmp	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	je	SHORT $LN5@distance
-$LL6@distance:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
-
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	mov	ecx, DWORD PTR [ecx]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+	mov	DWORD PTR [eax], ecx
 
-; 1097 : 		++_Off;
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	cmp	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	jne	SHORT $LL6@distance
-$LN5@distance:
-
-; 1114 : 	}
+; 357  : 		return (_Unchecked_type(this->_Ptr, (_Mylist *)this->_Getcont()));
+; 358  : 		}
 
 	pop	ebp
-	ret	0
-??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@0@0@Z ENDP ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > >
+	ret	4
+?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_Unchecked
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+__Plist$ = 12						; size = 4
+??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >, COMDAT
+; _this$ = ecx
+
+; 344  : 		{	// construct with node pointer _Pnode
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 345  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@QAXPAUHINSTANCE__@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@1@@Z ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -29375,41 +29052,6 @@ __Val$ = 16						; size = 4
 	pop	ebp
 	ret	12					; 0000000cH
 ?_Ufill@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@PAV32@IABV32@@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::_Ufill
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-;	COMDAT ??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@I@Z
-_TEXT	SEGMENT
-__Pos$ = 8						; size = 4
-??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@I@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::operator[], COMDAT
-; _this$ = ecx
-
-; 1750 : 		{	// subscript nonmutable sequence
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1751 :  #if _ITERATOR_DEBUG_LEVEL == 2
-; 1752 : 		if (size() <= _Pos)
-; 1753 : 			{	// report error
-; 1754 : 			_DEBUG_ERROR("vector subscript out of range");
-; 1755 : 			}
-; 1756 :  #elif _ITERATOR_DEBUG_LEVEL == 1
-; 1757 : 		_SCL_SECURE_VALIDATE_RANGE(_Pos < size());
-; 1758 :  #endif /* _ITERATOR_DEBUG_LEVEL */
-; 1759 : 
-; 1760 : 		return (this->_Myfirst()[_Pos]);
-
-	mov	ecx, DWORD PTR [ecx]
-	mov	eax, DWORD PTR __Pos$[ebp]
-	lea	eax, DWORD PTR [ecx+eax*4]
-
-; 1761 : 		}
-
-	pop	ebp
-	ret	4
-??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@1@I@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<void * const,HINSTANCE__ *> > > > > > >::operator[]
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -31506,59 +31148,6 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-;	COMDAT ?_End@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-__Bucket$ = 12						; size = 4
-?_End@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_End, COMDAT
-; _this$ = ecx
-
-; 855  : 		{	// return end iterator for bucket _Bucket
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 86   : 		return (_Ptr == _Right._Ptr);
-
-	mov	edx, DWORD PTR [ecx+12]
-	mov	eax, DWORD PTR __Bucket$[ebp]
-	mov	ecx, DWORD PTR [ecx+4]
-	lea	eax, DWORD PTR [edx+eax*8]
-	cmp	DWORD PTR [eax], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 856  : 		if (_Vec_lo(_Bucket) == _Unchecked_end())
-
-	je	SHORT $LN89@End
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 530  : 		return ((_Nodepref)_Pnode->_Next);
-
-	mov	eax, DWORD PTR [eax+4]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 861  : 			return (++_Ans);
-
-	mov	ecx, DWORD PTR [eax]
-$LN89@End:
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-	mov	DWORD PTR [eax], ecx
-
-; 862  : 			}
-; 863  : 		}
-
-	pop	ebp
-	ret	8
-?_End@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_End
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 ;	COMDAT ?_End@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@I@Z
 _TEXT	SEGMENT
 ___$ReturnUdt$ = 8					; size = 4
@@ -31608,35 +31197,6 @@ $LN95@End:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-;	COMDAT ?_Begin@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-__Bucket$ = 12						; size = 4
-?_Begin@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Begin, COMDAT
-; _this$ = ecx
-
-; 840  : 		{	// return begin iterator for bucket _Bucket
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 841  : 		return (_Vec_lo(_Bucket));
-
-	mov	eax, DWORD PTR __Bucket$[ebp]
-	mov	ecx, DWORD PTR [ecx+12]
-	mov	ecx, DWORD PTR [ecx+eax*8]
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-	mov	DWORD PTR [eax], ecx
-
-; 842  : 		}
-
-	pop	ebp
-	ret	8
-?_Begin@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Begin
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 ;	COMDAT ?_Begin@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@I@Z
 _TEXT	SEGMENT
 ___$ReturnUdt$ = 8					; size = 4
@@ -31668,37 +31228,6 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-;	COMDAT ?_Vec_hi@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z
-_TEXT	SEGMENT
-__Bucket$ = 8						; size = 4
-?_Vec_hi@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Vec_hi, COMDAT
-; _this$ = ecx
-
-; 830  : 		{	// return reference to end()-1 for _Bucket
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-
-; 1760 : 		return (this->_Myfirst()[_Pos]);
-
-	mov	eax, DWORD PTR __Bucket$[ebp]
-	mov	ecx, DWORD PTR [ecx+12]
-	lea	eax, DWORD PTR [eax*8+4]
-	add	eax, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 832  : 		}
-
-	pop	ebp
-	ret	4
-?_Vec_hi@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Vec_hi
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 ;	COMDAT ?_Vec_hi@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@I@Z
 _TEXT	SEGMENT
 __Bucket$ = 8						; size = 4
@@ -31725,36 +31254,6 @@ __Bucket$ = 8						; size = 4
 	pop	ebp
 	ret	4
 ?_Vec_hi@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Vec_hi
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-;	COMDAT ?_Vec_lo@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z
-_TEXT	SEGMENT
-__Bucket$ = 8						; size = 4
-?_Vec_lo@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Vec_lo, COMDAT
-; _this$ = ecx
-
-; 820  : 		{	// return reference to begin() for _Bucket
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-
-; 1760 : 		return (this->_Myfirst()[_Pos]);
-
-	mov	ecx, DWORD PTR [ecx+12]
-	mov	eax, DWORD PTR __Bucket$[ebp]
-	lea	eax, DWORD PTR [ecx+eax*8]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 822  : 		}
-
-	pop	ebp
-	ret	4
-?_Vec_lo@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Vec_lo
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -31854,304 +31353,6 @@ __Plist$ = 8						; size = 4
 	pop	ebp
 	ret	4
 ?_Destroy_if_not_nil@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@IAEXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Destroy_if_not_nil
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-;	COMDAT ?equal_range@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@2@ABQAX@Z
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-tv929 = 12						; size = 4
-__Keyval$ = 12						; size = 4
-?equal_range@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@2@ABQAX@Z PROC ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::equal_range, COMDAT
-; _this$ = ecx
-
-; 703  : 		{	// find range equivalent to _Keyval in nonmutable hash table
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-	push	ebx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 346  : 		_Val ^= (size_t)_First[_Next];
-
-	mov	ebx, DWORD PTR __Keyval$[ebp]
-	push	esi
-	push	edi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 703  : 		{	// find range equivalent to _Keyval in nonmutable hash table
-
-	mov	edi, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 346  : 		_Val ^= (size_t)_First[_Next];
-
-	movzx	eax, BYTE PTR [ebx]
-	xor	eax, -2128831035			; 811c9dc5H
-
-; 347  : 		_Val *= _FNV_prime;
-
-	imul	edx, eax, 16777619
-	movzx	eax, BYTE PTR [ebx+1]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-
-; 1760 : 		return (this->_Myfirst()[_Pos]);
-
-	mov	esi, DWORD PTR [edi+12]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 346  : 		_Val ^= (size_t)_First[_Next];
-
-	xor	edx, eax
-	movzx	eax, BYTE PTR [ebx+2]
-
-; 347  : 		_Val *= _FNV_prime;
-
-	imul	edx, edx, 16777619
-	xor	edx, eax
-	movzx	eax, BYTE PTR [ebx+3]
-	imul	ecx, edx, 16777619
-	xor	ecx, eax
-	imul	eax, ecx, 16777619
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 912  : 		return (_Traitsobj(_Keyval) & _Mask);
-
-	mov	ecx, DWORD PTR [edi+24]
-	and	ecx, eax
-
-; 841  : 		return (_Vec_lo(_Bucket));
-
-	mov	eax, DWORD PTR [esi+ecx*8]
-
-; 821  : 		return ((_Unchecked_const_iterator&)_Vec[2 * _Bucket]);
-
-	lea	edx, DWORD PTR [ecx+ecx]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 1183 : 		return (_Unchecked_const_iterator(this->_Myhead(),
-
-	mov	ecx, DWORD PTR [edi+4]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
-
-; 1760 : 		return (this->_Myfirst()[_Pos]);
-
-	lea	edi, DWORD PTR [esi+edx*4]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 86   : 		return (_Ptr == _Right._Ptr);
-
-	mov	ebx, DWORD PTR [esi+edx*4]
-	mov	esi, DWORD PTR __Keyval$[ebp]
-	npad	7
-$LL4@equal_rang:
-	cmp	ebx, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 856  : 		if (_Vec_lo(_Bucket) == _Unchecked_end())
-
-	jne	SHORT $LN49@equal_rang
-
-; 857  : 			return (_Unchecked_end());
-
-	mov	edx, ecx
-	jmp	SHORT $LN50@equal_rang
-$LN49@equal_rang:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 530  : 		return ((_Nodepref)_Pnode->_Next);
-
-	mov	edx, DWORD PTR [edi+4]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 861  : 			return (++_Ans);
-
-	mov	edx, DWORD PTR [edx]
-$LN50@equal_rang:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 86   : 		return (_Ptr == _Right._Ptr);
-
-	cmp	eax, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 706  : 			_Where != _End(_Bucket); ++_Where)
-
-	je	SHORT $LN3@equal_rang
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 220  : 		return (_Left == _Right);
-
-	mov	edx, DWORD PTR [eax+8]
-	cmp	edx, DWORD PTR [esi]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 707  : 			if (!_Traitsobj(_Traits::_Kfn(*_Where), _Keyval))
-
-	je	SHORT $LN399@equal_rang
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-	jmp	SHORT $LL4@equal_rang
-$LN399@equal_rang:
-	mov	esi, DWORD PTR [esi]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 709  : 				_Unchecked_const_iterator _First = _Where;
-
-	mov	edx, eax
-	mov	DWORD PTR tv929[ebp], esi
-$LL7@equal_rang:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 86   : 		return (_Ptr == _Right._Ptr);
-
-	cmp	ebx, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 856  : 		if (_Vec_lo(_Bucket) == _Unchecked_end())
-
-	jne	SHORT $LN164@equal_rang
-
-; 857  : 			return (_Unchecked_end());
-
-	mov	esi, ecx
-	jmp	SHORT $LN165@equal_rang
-$LN164@equal_rang:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 530  : 		return ((_Nodepref)_Pnode->_Next);
-
-	mov	esi, DWORD PTR [edi+4]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 861  : 			return (++_Ans);
-
-	mov	esi, DWORD PTR [esi]
-$LN165@equal_rang:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 86   : 		return (_Ptr == _Right._Ptr);
-
-	cmp	eax, esi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 710  : 				for (; _Where != _End(_Bucket); ++_Where)
-
-	je	SHORT $LN400@equal_rang
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 220  : 		return (_Left == _Right);
-
-	mov	esi, DWORD PTR tv929[ebp]
-	cmp	esi, DWORD PTR [eax+8]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 711  : 					if (_Traitsobj(_Keyval, _Traits::_Kfn(*_Where)))
-
-	jne	SHORT $LN400@equal_rang
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-	jmp	SHORT $LL7@equal_rang
-$LN400@equal_rang:
-
-; 86   : 		return (_Ptr == _Right._Ptr);
-
-	cmp	edx, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 713  : 				if (_First == _Where)
-
-	je	SHORT $LN3@equal_rang
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
-
-; 187  : 		: first(_STD forward<_Other1>(_Val1)),
-
-	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
-	pop	edi
-	pop	esi
-	pop	ebx
-
-; 188  : 				second(_STD forward<_Other2>(_Val2))
-
-	mov	DWORD PTR [ecx+4], eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 715  : 				return (_Paircc(_Make_iter(_First),
-
-	mov	eax, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
-
-; 187  : 		: first(_STD forward<_Other1>(_Val1)),
-
-	mov	DWORD PTR [ecx], edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 719  : 		}
-
-	pop	ebp
-	ret	8
-$LN3@equal_rang:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
-
-; 187  : 		: first(_STD forward<_Other1>(_Val1)),
-
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-	pop	edi
-	pop	esi
-	pop	ebx
-	mov	DWORD PTR [eax], ecx
-
-; 188  : 				second(_STD forward<_Other2>(_Val2))
-
-	mov	DWORD PTR [eax+4], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 719  : 		}
-
-	pop	ebp
-	ret	8
-?equal_range@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@2@ABQAX@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::equal_range
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -32362,87 +31563,6 @@ $LN3@lower_boun:
 	pop	ebp
 	ret	8
 ?lower_bound@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@ABQAX@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::lower_bound
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-;	COMDAT ?count@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBEIABQAX@Z
-_TEXT	SEGMENT
-__Ans$ = -8						; size = 8
-__Keyval$ = 8						; size = 4
-?count@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBEIABQAX@Z PROC ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::count, COMDAT
-; _this$ = ecx
-
-; 634  : 		{	// count all elements that match _Keyval
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-	sub	esp, 8
-
-; 635  : 		_Paircc _Ans = equal_range(_Keyval);
-
-	push	DWORD PTR __Keyval$[ebp]
-	lea	eax, DWORD PTR __Ans$[ebp]
-	push	eax
-	call	?equal_range@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@2@ABQAX@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::equal_range
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1113 : 	return (_Distance1(_First, _Last, _Iter_cat_t<_InIt>()));
-
-	mov	ecx, DWORD PTR __Ans$[ebp]
-
-; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
-
-	xor	eax, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	mov	edx, DWORD PTR __Ans$[ebp+4]
-	cmp	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	je	SHORT $LN7@count
-$LL8@count:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
-
-	mov	ecx, DWORD PTR [ecx]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1097 : 		++_Off;
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	cmp	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	jne	SHORT $LL8@count
-$LN7@count:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 637  : 		}
-
-	mov	esp, ebp
-	pop	ebp
-	ret	4
-?count@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBEIABQAX@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::count
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -32780,6 +31900,36 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?cend@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?cend@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ PROC ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::cend, COMDAT
+; _this$ = ecx
+
+; 381  : 		{	// return iterator for end of nonmutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx+4]
+	mov	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 383  : 		}
+
+	pop	ebp
+	ret	4
+?cend@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::cend
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 ;	COMDAT ?_Make_iter@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@@Z
 _TEXT	SEGMENT
 ___$ReturnUdt$ = 8					; size = 4
@@ -32837,36 +31987,6 @@ __Where$ = 12						; size = 4
 	pop	ebp
 	ret	8
 ?_Make_iter@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Make_iter
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-;	COMDAT ?_Unchecked_end@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-?_Unchecked_end@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ PROC ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Unchecked_end, COMDAT
-; _this$ = ecx
-
-; 361  : 		{	// return iterator for end of nonmutable sequence
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 43   : 		: _Ptr(_Pnode)
-
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-	mov	ecx, DWORD PTR [ecx+4]
-	mov	DWORD PTR [eax], ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 363  : 		}
-
-	pop	ebp
-	ret	4
-?_Unchecked_end@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ ENDP ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Unchecked_end
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -33905,34 +33025,6 @@ __Where$ = 12						; size = 4
 	pop	ebp
 	ret	8
 ?_Make_iter@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@@Z ENDP ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Make_iter
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-;	COMDAT ?_Unchecked_end@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-?_Unchecked_end@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ PROC ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Unchecked_end, COMDAT
-; _this$ = ecx
-
-; 1182 : 		{	// return unchecked iterator for end of nonmutable sequence
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 43   : 		: _Ptr(_Pnode)
-
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-	mov	ecx, DWORD PTR [ecx]
-	mov	DWORD PTR [eax], ecx
-
-; 1183 : 		return (_Unchecked_const_iterator(this->_Myhead(),
-; 1184 : 			_STD addressof(this->_Get_data())));
-; 1185 : 		}
-
-	pop	ebp
-	ret	4
-?_Unchecked_end@?$list@U?$pair@QAXPAUHINSTANCE__@@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@2@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ ENDP ; std::list<std::pair<void * const,HINSTANCE__ *>,std::allocator<std::pair<void * const,HINSTANCE__ *> > >::_Unchecked_end
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -35551,7 +34643,7 @@ _ul_reason_for_call$ = 12				; size = 4
 _lpReserved$ = 16					; size = 4
 _DllMain@12 PROC
 
-; 855  : {
+; 841  : {
 
 	npad	2
 	push	ebp
@@ -35563,9 +34655,9 @@ _DllMain@12 PROC
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 588				; 0000024cH
 
-; 856  :   UNREFERENCED_PARAMETER (lpReserved);
-; 857  : 
-; 858  :   switch (ul_reason_for_call)
+; 842  :   UNREFERENCED_PARAMETER (lpReserved);
+; 843  : 
+; 844  :   switch (ul_reason_for_call)
 
 	mov	eax, DWORD PTR _ul_reason_for_call$[ebp]
 	push	esi
@@ -35584,7 +34676,7 @@ $LN6@DllMain:
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 874  :       if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, nullptr))
+; 860  :       if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, nullptr))
 
 	test	eax, eax
 	jne	$LN74@DllMain
@@ -35608,7 +34700,7 @@ $LN8@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Attached@@3JC	; __SK_DLL_Attached
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 888  :       if ( ReadAcquire (&__SK_DLL_Attached) ||
+; 874  :       if ( ReadAcquire (&__SK_DLL_Attached) ||
 
 	test	eax, eax
 	jne	$LN10@DllMain
@@ -35619,7 +34711,7 @@ $LN8@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Ending@@3JC	; __SK_DLL_Ending
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 888  :       if ( ReadAcquire (&__SK_DLL_Attached) ||
+; 874  :       if ( ReadAcquire (&__SK_DLL_Attached) ||
 
 	test	eax, eax
 	jne	$LN10@DllMain
@@ -35630,15 +34722,15 @@ $LN8@DllMain:
 	lock	 inc	 DWORD PTR ?__SK_DLL_Refs@@3KC
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 901  :       SK_PreInitLoadLibrary ();
+; 887  :       SK_PreInitLoadLibrary ( );
 
 	call	?SK_PreInitLoadLibrary@@YGXXZ		; SK_PreInitLoadLibrary
 
-; 902  : 
-; 903  : 
-; 904  : 
-; 905  :       DWORD   dwProcessSize = MAX_PATH;
-; 906  :       wchar_t wszProcessName [MAX_PATH + 2] = { };
+; 888  : 
+; 889  : 
+; 890  : 
+; 891  :       DWORD   dwProcessSize = MAX_PATH;
+; 892  :       wchar_t wszProcessName [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszProcessName$2[ebp]
@@ -35648,13 +34740,13 @@ $LN8@DllMain:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 907  : 
-; 908  :       HANDLE hProc = GetCurrentProcess ();
+; 893  : 
+; 894  :       HANDLE hProc = GetCurrentProcess ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 
-; 909  : 
-; 910  :       QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+; 895  : 
+; 896  :       QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
 
 	lea	ecx, DWORD PTR _dwProcessSize$7[ebp]
 	push	ecx
@@ -35664,8 +34756,8 @@ $LN8@DllMain:
 	push	eax
 	call	DWORD PTR __imp__QueryFullProcessImageNameW@16
 
-; 911  : 
-; 912  :       wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
+; 897  : 
+; 898  :       wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
 
 	lea	eax, DWORD PTR _wszProcessName$2[ebp]
 	push	eax
@@ -35673,8 +34765,8 @@ $LN8@DllMain:
 	lea	ecx, DWORD PTR _wszProcessName$2[ebp]
 	lea	eax, DWORD PTR [ecx+eax*2]
 
-; 913  : 
-; 914  :       while (  pwszShortName      >  wszProcessName &&
+; 899  : 
+; 900  :       while (  pwszShortName      >  wszProcessName &&
 
 	cmp	eax, ecx
 	jbe	SHORT $LN72@DllMain
@@ -35687,22 +34779,22 @@ $LL4@DllMain:
 	ja	SHORT $LL4@DllMain
 $LN72@DllMain:
 
-; 915  :              *(pwszShortName - 1) != L'\\')
-; 916  :              --pwszShortName;
-; 917  : 
-; 918  : 
-; 919  : 
-; 920  :       // We reserve the right to deny attaching the DLL, this will generally
-; 921  :       //   happen if a game does not opt-in to system wide injection.
-; 922  :       if (! SK_EstablishDllRole (hModule))
+; 901  :              *(pwszShortName - 1) != L'\\')
+; 902  :              --pwszShortName;
+; 903  : 
+; 904  : 
+; 905  : 
+; 906  :       // We reserve the right to deny attaching the DLL, this will generally
+; 907  :       //   happen if a game does not opt-in to system wide injection.
+; 908  :       if (! SK_EstablishDllRole (hModule))
 
 	push	esi
 	call	?SK_EstablishDllRole@@YG_NPAUHINSTANCE__@@@Z ; SK_EstablishDllRole
 	test	al, al
 	jne	SHORT $LN11@DllMain
 
-; 923  :       {
-; 924  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
+; 909  :       {
+; 910  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -35718,19 +34810,19 @@ $LN72@DllMain:
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 $LN74@DllMain:
 
-; 925  : 
-; 926  :         return FALSE;
+; 911  : 
+; 912  :         return FALSE;
 
 	xor	eax, eax
 	pop	esi
 
-; 1057 :         }
-; 1058 :       }
-; 1059 :     } break;
-; 1060 :   }
-; 1061 : 
-; 1062 :   return TRUE;
-; 1063 : }
+; 1043 :         }
+; 1044 :       }
+; 1045 :     } break;
+; 1046 :   }
+; 1047 : 
+; 1048 :   return TRUE;
+; 1049 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -35739,60 +34831,60 @@ $LN74@DllMain:
 	ret	12					; 0000000cH
 $LN11@DllMain:
 
-; 927  :       }
-; 928  : 
-; 929  :       // We don't want to initialize the DLL, but we also don't want it to
-; 930  :       //   re-inject itself constantly; just return TRUE here.
-; 931  :       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+; 913  :       }
+; 914  : 
+; 915  :       // We don't want to initialize the DLL, but we also don't want it to
+; 916  :       //   re-inject itself constantly; just return TRUE here.
+; 917  :       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	eax, eax
 	je	$LN31@DllMain
 
-; 932  :       {
-; 933  :         return TRUE;
-; 934  :       }
-; 935  : 
-; 936  : 
-; 937  :       QueryPerformanceCounter_Original =
+; 918  :       {
+; 919  :         return TRUE;
+; 920  :       }
+; 921  : 
+; 922  : 
+; 923  :       QueryPerformanceCounter_Original =
 
-	push	OFFSET $SG260601
-	push	OFFSET $SG260602
+	push	OFFSET $SG260630
+	push	OFFSET $SG260631
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA, eax ; QueryPerformanceCounter_Original
 
-; 938  :         reinterpret_cast <QueryPerformanceCounter_pfn> (
-; 939  :           GetProcAddress (
-; 940  :             GetModuleHandle ( L"kernel32.dll"),
-; 941  :                                 "QueryPerformanceCounter" )
-; 942  :         );
-; 943  : 
-; 944  :       SK_Init_MinHook        ();
+; 924  :         reinterpret_cast <QueryPerformanceCounter_pfn> (
+; 925  :           GetProcAddress (
+; 926  :             GetModuleHandle ( L"kernel32.dll"),
+; 927  :                                 "QueryPerformanceCounter" )
+; 928  :         );
+; 929  : 
+; 930  :       SK_Init_MinHook        ();
 
 	call	?SK_Init_MinHook@@YG?AW4MH_STATUS@@XZ	; SK_Init_MinHook
 
-; 945  :       SK_InitCompatBlacklist ();
+; 931  :       SK_InitCompatBlacklist ();
 
 	call	?SK_InitCompatBlacklist@@YGXXZ		; SK_InitCompatBlacklist
 
-; 946  : 
-; 947  :       BOOL bRet = SK_Attach (SK_GetDLLRole ());
+; 932  : 
+; 933  :       BOOL bRet = SK_Attach (SK_GetDLLRole ());
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	push	eax
 	call	?SK_Attach@@YGHW4DLL_ROLE@@@Z		; SK_Attach
 	mov	esi, eax
 
-; 948  : 
-; 949  :       if (! bRet)
+; 934  : 
+; 935  :       if (! bRet)
 
 	test	esi, esi
 	jne	SHORT $LN14@DllMain
 
-; 950  :       {
-; 951  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
+; 936  :       {
+; 937  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -35809,50 +34901,50 @@ $LN11@DllMain:
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 $LN14@DllMain:
 
-; 952  :       }
-; 953  : 
-; 954  :       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+; 938  :       }
+; 939  : 
+; 940  :       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	eax, eax
 	je	$LN31@DllMain
 
-; 955  :       {
-; 956  :         return TRUE;
-; 957  :       }
-; 958  : 
-; 959  : 
-; 960  :       // If we got this far, it's because this is an injection target
-; 961  :       //
-; 962  :       //   Must hold a reference to this DLL so that removing the CBT hook does
-; 963  :       //     not crash the game.
-; 964  :       if (SK_IsInjected ())
+; 941  :       {
+; 942  :         return TRUE;
+; 943  :       }
+; 944  : 
+; 945  : 
+; 946  :       // If we got this far, it's because this is an injection target
+; 947  :       //
+; 948  :       //   Must hold a reference to this DLL so that removing the CBT hook does
+; 949  :       //     not crash the game.
+; 950  :       if (SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN16@DllMain
 
-; 965  :       {
-; 966  :         SK_Inject_AcquireProcess ();
+; 951  :       {
+; 952  :         SK_Inject_AcquireProcess ();
 
 	call	?SK_Inject_AcquireProcess@@YAXXZ	; SK_Inject_AcquireProcess
 $LN16@DllMain:
 
-; 967  :       }
-; 968  : 
-; 969  :       return bRet;
+; 953  :       }
+; 954  : 
+; 955  :       return bRet;
 
 	mov	eax, esi
 	pop	esi
 
-; 1057 :         }
-; 1058 :       }
-; 1059 :     } break;
-; 1060 :   }
-; 1061 : 
-; 1062 :   return TRUE;
-; 1063 : }
+; 1043 :         }
+; 1044 :       }
+; 1045 :     } break;
+; 1046 :   }
+; 1047 : 
+; 1048 :   return TRUE;
+; 1049 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -35861,28 +34953,28 @@ $LN16@DllMain:
 	ret	12					; 0000000cH
 $LN10@DllMain:
 
-; 889  :            ReadAcquire (&__SK_DLL_Ending)      )
-; 890  :       {
-; 891  :         SK_EstablishRootPath ();
+; 875  :            ReadAcquire (&__SK_DLL_Ending)      )
+; 876  :       {
+; 877  :         SK_EstablishRootPath ();
 
 	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
 
-; 892  :         return TRUE;
+; 878  :         return TRUE;
 
 	jmp	$LN31@DllMain
 $LN17@DllMain:
 
-; 970  :     } break;
-; 971  : 
-; 972  : 
-; 973  :     case DLL_PROCESS_DETACH:
-; 974  :     {
-; 975  :       SK_Inject_ReleaseProcess ();
+; 956  :     } break;
+; 957  : 
+; 958  : 
+; 959  :     case DLL_PROCESS_DETACH:
+; 960  :     {
+; 961  :       SK_Inject_ReleaseProcess ();
 
 	call	?SK_Inject_ReleaseProcess@@YAXXZ	; SK_Inject_ReleaseProcess
 
-; 976  : 
-; 977  :       if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
+; 962  : 
+; 963  :       if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
 
 	mov	ecx, 1
 	mov	esi, OFFSET ?__SK_DLL_Ending@@3JC	; __SK_DLL_Ending
@@ -35897,13 +34989,13 @@ $LN17@DllMain:
 	mov	eax, DWORD PTR ?__SK_HookContextOwner@@3JC ; __SK_HookContextOwner
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 981  :         if (ReadAcquire (&__SK_HookContextOwner))
+; 967  :         if (ReadAcquire (&__SK_HookContextOwner))
 
 	test	eax, eax
 	je	SHORT $LN36@DllMain
 
-; 982  :         {
-; 983  :           SKX_RemoveCBTHook ();
+; 968  :         {
+; 969  :           SKX_RemoveCBTHook ();
 
 	call	?SKX_RemoveCBTHook@@YGXXZ		; SKX_RemoveCBTHook
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -35913,16 +35005,16 @@ $LN17@DllMain:
 	mov	eax, DWORD PTR ?__SK_HookContextOwner@@3JC ; __SK_HookContextOwner
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 986  :           if (! ReadAcquire (&__SK_HookContextOwner))
+; 972  :           if (! ReadAcquire (&__SK_HookContextOwner))
 
 	test	eax, eax
 	jne	SHORT $LN36@DllMain
 
-; 987  :           {
-; 988  :             SK_RunIf64Bit (DeleteFileW (L"SpecialK64.pid"));
-; 989  :             SK_RunIf32Bit (DeleteFileW (L"SpecialK32.pid"));
+; 973  :           {
+; 974  :             SK_RunIf64Bit (DeleteFileW (L"SpecialK64.pid"));
+; 975  :             SK_RunIf32Bit (DeleteFileW (L"SpecialK32.pid"));
 
-	push	OFFSET $SG260611
+	push	OFFSET $SG260640
 	call	DWORD PTR __imp__DeleteFileW@4
 $LN36@DllMain:
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -35932,13 +35024,13 @@ $LN36@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Attached@@3JC	; __SK_DLL_Attached
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 993  :         if (ReadAcquire (&__SK_DLL_Attached))
+; 979  :         if (ReadAcquire (&__SK_DLL_Attached))
 
 	test	eax, eax
 	je	SHORT $LN21@DllMain
 
-; 994  :         {
-; 995  :           InterlockedExchange (&__SK_DLL_Ending, TRUE);
+; 980  :         {
+; 981  :           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
 	mov	eax, 1
 	xchg	DWORD PTR [esi], eax
@@ -35950,37 +35042,37 @@ $LN21@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Attached@@3JC	; __SK_DLL_Attached
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 999  :       if (ReadAcquire (&__SK_DLL_Attached))
+; 985  :       if (ReadAcquire (&__SK_DLL_Attached))
 
 	test	eax, eax
 	je	SHORT $LN22@DllMain
 
-; 1000 :         SK_Detach (SK_GetDLLRole ());
+; 986  :         SK_Detach (SK_GetDLLRole ());
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	push	eax
 	call	?SK_Detach@@YGHW4DLL_ROLE@@@Z		; SK_Detach
 $LN22@DllMain:
 
-; 1001 : 
-; 1002 :       if (__SK_TLS_INDEX != MAXDWORD)
+; 987  : 
+; 988  :       if (__SK_TLS_INDEX != MAXDWORD)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
 	je	$LN31@DllMain
 
-; 1003 :         TlsFree (__SK_TLS_INDEX);
+; 989  :         TlsFree (__SK_TLS_INDEX);
 
 	mov	ecx, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	ecx
 	call	DWORD PTR __imp__TlsFree@4
 
-; 1004 : 
-; 1005 :       //else {
-; 1006 :         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
-; 1007 :         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
-; 1008 :       //}
-; 1009 : 
-; 1010 :       return TRUE;
+; 990  : 
+; 991  :       //else {
+; 992  :         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
+; 993  :         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
+; 994  :       //}
+; 995  : 
+; 996  :       return TRUE;
 
 	jmp	$LN31@DllMain
 $LN24@DllMain:
@@ -35991,30 +35083,30 @@ $LN24@DllMain:
 	lock	 inc	 DWORD PTR ?__SK_Threads_Attached@@3KC
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1019 :       if (__SK_TLS_INDEX != MAXDWORD)
+; 1005 :       if (__SK_TLS_INDEX != MAXDWORD)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
 	je	$LN31@DllMain
 
-; 1020 :       {
-; 1021 :         auto lpvData =
-; 1022 :           static_cast <LPVOID> (
-; 1023 :             LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
+; 1006 :       {
+; 1007 :         auto lpvData =
+; 1008 :           static_cast <LPVOID> (
+; 1009 :             LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
 
 	push	1720					; 000006b8H
 	push	64					; 00000040H
 	call	DWORD PTR __imp__LocalAlloc@8
 	mov	esi, eax
 
-; 1024 :           );
-; 1025 : 
-; 1026 :         if (lpvData != nullptr)
+; 1010 :           );
+; 1011 : 
+; 1012 :         if (lpvData != nullptr)
 
 	test	esi, esi
 	je	$LN31@DllMain
 
-; 1027 :         {
-; 1028 :           if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+; 1013 :         {
+; 1014 :           if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
 
 	mov	ecx, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	esi
@@ -36023,63 +35115,63 @@ $LN24@DllMain:
 	test	eax, eax
 	jne	SHORT $LN27@DllMain
 
-; 1029 :           {
-; 1030 :             LocalFree (lpvData);
+; 1015 :           {
+; 1016 :             LocalFree (lpvData);
 
 	push	esi
 	call	DWORD PTR __imp__LocalFree@4
 
-; 1031 :           }
-; 1032 : 
-; 1033 :           else
+; 1017 :           }
+; 1018 : 
+; 1019 :           else
 
 	jmp	SHORT $LN31@DllMain
 $LN27@DllMain:
 
-; 1034 :             (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
+; 1020 :             (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
 
 	mov	DWORD PTR [esi+856], 0
 
-; 1035 :         }
-; 1036 :       }
-; 1037 :     } break;
+; 1021 :         }
+; 1022 :       }
+; 1023 :     } break;
 
 	jmp	SHORT $LN31@DllMain
 $LN29@DllMain:
 
-; 1038 : 
-; 1039 : 
-; 1040 :     case DLL_THREAD_DETACH:
-; 1041 :     {
-; 1042 :       if (__SK_TLS_INDEX != MAXDWORD)
+; 1024 : 
+; 1025 : 
+; 1026 :     case DLL_THREAD_DETACH:
+; 1027 :     {
+; 1028 :       if (__SK_TLS_INDEX != MAXDWORD)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
 	je	SHORT $LN31@DllMain
 
-; 1043 :       {
-; 1044 :         auto lpvData =
-; 1045 :           static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
+; 1029 :       {
+; 1030 :         auto lpvData =
+; 1031 :           static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
 
 	mov	eax, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	eax
 	call	DWORD PTR __imp__TlsGetValue@4
 	mov	esi, eax
 
-; 1046 : 
-; 1047 :         if (lpvData != nullptr)
+; 1032 : 
+; 1033 :         if (lpvData != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN31@DllMain
 
-; 1048 :         {
-; 1049 :           if (SK_TLS_Bottom ()->known_modules.pResolved != nullptr)
+; 1034 :         {
+; 1035 :           if (SK_TLS_Bottom ()->known_modules.pResolved != nullptr)
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	cmp	DWORD PTR [eax], 0
 	je	SHORT $LN32@DllMain
 
-; 1050 :           {
-; 1051 :             delete SK_TLS_Bottom ()->known_modules.pResolved;
+; 1036 :           {
+; 1037 :             delete SK_TLS_Bottom ()->known_modules.pResolved;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	push	0
@@ -36087,20 +35179,20 @@ $LN29@DllMain:
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
 
-; 1052 :                    SK_TLS_Bottom ()->known_modules.pResolved = nullptr;
+; 1038 :                    SK_TLS_Bottom ()->known_modules.pResolved = nullptr;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax], 0
 $LN32@DllMain:
 
-; 1053 :           }
-; 1054 : 
-; 1055 :           LocalFree   (lpvData);
+; 1039 :           }
+; 1040 : 
+; 1041 :           LocalFree   (lpvData);
 
 	push	esi
 	call	DWORD PTR __imp__LocalFree@4
 
-; 1056 :           TlsSetValue (__SK_TLS_INDEX, nullptr);
+; 1042 :           TlsSetValue (__SK_TLS_INDEX, nullptr);
 
 	mov	eax, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	0
@@ -36108,13 +35200,13 @@ $LN32@DllMain:
 	call	DWORD PTR __imp__TlsSetValue@8
 $LN31@DllMain:
 
-; 1057 :         }
-; 1058 :       }
-; 1059 :     } break;
-; 1060 :   }
-; 1061 : 
-; 1062 :   return TRUE;
-; 1063 : }
+; 1043 :         }
+; 1044 :       }
+; 1045 :     } break;
+; 1046 :   }
+; 1047 : 
+; 1048 :   return TRUE;
+; 1049 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, 1
@@ -36160,7 +35252,7 @@ _TEXT	SEGMENT
 _role$ = 8						; size = 4
 ?SK_Detach@@YGHW4DLL_ROLE@@@Z PROC			; SK_Detach
 
-; 791  : {
+; 777  : {
 
 	npad	2
 	push	ebp
@@ -36168,7 +35260,7 @@ _role$ = 8						; size = 4
 	push	ecx
 	push	esi
 
-; 792  :   BOOL  ret        = FALSE;
+; 778  :   BOOL  ret        = FALSE;
 
 	xor	esi, esi
 ; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
@@ -36180,7 +35272,7 @@ _role$ = 8						; size = 4
 	dec	eax
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 795  :   if ( local_refs == 0 &&
+; 781  :   if ( local_refs == 0 &&
 
 	jne	$LN4@SK_Detach
 	xor	ecx, ecx
@@ -36190,14 +35282,14 @@ _role$ = 8						; size = 4
 	test	eax, eax
 	je	$LN4@SK_Detach
 
-; 796  :          InterlockedCompareExchangeRelease (
-; 797  :                     &__SK_DLL_Attached,
-; 798  :                       FALSE,
-; 799  :                         TRUE
-; 800  :          )
-; 801  :      )
-; 802  :   {
-; 803  :     switch (role)
+; 782  :          InterlockedCompareExchangeRelease (
+; 783  :                     &__SK_DLL_Attached,
+; 784  :                       FALSE,
+; 785  :                         TRUE
+; 786  :          )
+; 787  :      )
+; 788  :   {
+; 789  :     switch (role)
 
 	mov	eax, DWORD PTR _role$[ebp]
 	cmp	eax, 2
@@ -36210,79 +35302,79 @@ _role$ = 8						; size = 4
 	cmp	eax, 1
 	jne	SHORT $LN2@SK_Detach
 
-; 804  :     {
-; 805  :       case DLL_ROLE::DXGI:
-; 806  :         ret = SK::DXGI::Shutdown ();
+; 790  :     {
+; 791  :       case DLL_ROLE::DXGI:
+; 792  :         ret = SK::DXGI::Shutdown ();
 
 	call	?Shutdown@DXGI@SK@@YA_NXZ		; SK::DXGI::Shutdown
 
-; 807  :         break;
+; 793  :         break;
 
 	jmp	SHORT $LN64@SK_Detach
 $LN9@SK_Detach:
 
-; 817  : 
-; 818  :       case DLL_ROLE::DDraw:
-; 819  :         ret = SK::DDraw::Shutdown ();
+; 803  : 
+; 804  :       case DLL_ROLE::DDraw:
+; 805  :         ret = SK::DDraw::Shutdown ();
 
 	call	?Shutdown@DDraw@SK@@YA_NXZ		; SK::DDraw::Shutdown
 
-; 820  :         break;
+; 806  :         break;
 
 	jmp	SHORT $LN64@SK_Detach
 $LN8@SK_Detach:
 
-; 812  : 
-; 813  : #ifndef _WIN64
-; 814  :       case DLL_ROLE::D3D8:
-; 815  :         ret = SK::D3D8::Shutdown ();
+; 798  : 
+; 799  : #ifndef _WIN64
+; 800  :       case DLL_ROLE::D3D8:
+; 801  :         ret = SK::D3D8::Shutdown ();
 
 	call	?Shutdown@D3D8@SK@@YA_NXZ		; SK::D3D8::Shutdown
 
-; 816  :         break;
+; 802  :         break;
 
 	jmp	SHORT $LN64@SK_Detach
 $LN7@SK_Detach:
 
-; 808  : 
-; 809  :       case DLL_ROLE::D3D9:
-; 810  :         ret = SK::D3D9::Shutdown ();
+; 794  : 
+; 795  :       case DLL_ROLE::D3D9:
+; 796  :         ret = SK::D3D9::Shutdown ();
 
 	call	?Shutdown@D3D9@SK@@YA_NXZ		; SK::D3D9::Shutdown
 
-; 811  :         break;
+; 797  :         break;
 
 	jmp	SHORT $LN64@SK_Detach
 $LN13@SK_Detach:
 
-; 796  :          InterlockedCompareExchangeRelease (
-; 797  :                     &__SK_DLL_Attached,
-; 798  :                       FALSE,
-; 799  :                         TRUE
-; 800  :          )
-; 801  :      )
-; 802  :   {
-; 803  :     switch (role)
+; 782  :          InterlockedCompareExchangeRelease (
+; 783  :                     &__SK_DLL_Attached,
+; 784  :                       FALSE,
+; 785  :                         TRUE
+; 786  :          )
+; 787  :      )
+; 788  :   {
+; 789  :     switch (role)
 
 	cmp	eax, 4
 	je	SHORT $LN10@SK_Detach
 	cmp	eax, 256				; 00000100H
 	jne	SHORT $LN2@SK_Detach
 
-; 826  :         break;
-; 827  : 
-; 828  :       case DLL_ROLE::DInput8:
-; 829  :         ret = SK::DI8::Shutdown ();
+; 812  :         break;
+; 813  : 
+; 814  :       case DLL_ROLE::DInput8:
+; 815  :         ret = SK::DI8::Shutdown ();
 
 	call	?Shutdown@DI8@SK@@YA_NXZ		; SK::DI8::Shutdown
 	jmp	SHORT $LN64@SK_Detach
 $LN10@SK_Detach:
 
-; 821  : #else
-; 822  : #endif
-; 823  : 
-; 824  :       case DLL_ROLE::OpenGL:
-; 825  :         ret = SK::OpenGL::Shutdown ();
+; 807  : #else
+; 808  : #endif
+; 809  : 
+; 810  :       case DLL_ROLE::OpenGL:
+; 811  :         ret = SK::OpenGL::Shutdown ();
 
 	call	?Shutdown@OpenGL@SK@@YA_NXZ		; SK::OpenGL::Shutdown
 $LN64@SK_Detach:
@@ -36290,10 +35382,10 @@ $LN64@SK_Detach:
 $LN2@SK_Detach:
 	push	ebx
 
-; 830  :         break;
-; 831  :     }
-; 832  : 
-; 833  :     delete budget_mutex;
+; 816  :         break;
+; 817  :     }
+; 818  : 
+; 819  :     delete budget_mutex;
 
 	mov	ebx, DWORD PTR __imp__DeleteCriticalSection@4
 	push	edi
@@ -36302,12 +35394,12 @@ $LN2@SK_Detach:
 	je	SHORT $LN27@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 284  :     DeleteCriticalSection (cs_);
+; 287  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 285  :     delete cs_;
+; 288  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -36319,19 +35411,19 @@ $LN2@SK_Detach:
 $LN27@SK_Detach:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 834  :     delete loader_lock;
+; 820  :     delete loader_lock;
 
 	mov	edi, DWORD PTR ?loader_lock@@3PAVSK_Thread_HybridSpinlock@@A ; loader_lock
 	test	edi, edi
 	je	SHORT $LN34@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 284  :     DeleteCriticalSection (cs_);
+; 287  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 285  :     delete cs_;
+; 288  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -36343,19 +35435,19 @@ $LN27@SK_Detach:
 $LN34@SK_Detach:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 835  :     delete init_mutex;
+; 821  :     delete init_mutex;
 
 	mov	edi, DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A ; init_mutex
 	test	edi, edi
 	je	SHORT $LN41@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 284  :     DeleteCriticalSection (cs_);
+; 287  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 285  :     delete cs_;
+; 288  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -36367,19 +35459,19 @@ $LN34@SK_Detach:
 $LN41@SK_Detach:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 836  :     delete cs_dbghelp;
+; 822  :     delete cs_dbghelp;
 
 	mov	edi, DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A ; cs_dbghelp
 	test	edi, edi
 	je	SHORT $LN48@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 284  :     DeleteCriticalSection (cs_);
+; 287  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 285  :     delete cs_;
+; 288  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -36391,19 +35483,19 @@ $LN41@SK_Detach:
 $LN48@SK_Detach:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 837  :     delete wmi_cs;
+; 823  :     delete wmi_cs;
 
 	mov	edi, DWORD PTR ?wmi_cs@@3PAVSK_Thread_HybridSpinlock@@A ; wmi_cs
 	test	edi, edi
 	je	SHORT $LN61@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 284  :     DeleteCriticalSection (cs_);
+; 287  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 285  :     delete cs_;
+; 288  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -36417,34 +35509,34 @@ $LN61@SK_Detach:
 	pop	ebx
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 844  :   return ret;
+; 830  :   return ret;
 
 	mov	eax, esi
 	pop	esi
 
-; 845  : }
+; 831  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN4@SK_Detach:
 
-; 838  :   }
-; 839  : 
-; 840  :   else {
-; 841  :     dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
+; 824  :   }
+; 825  : 
+; 826  :   else {
+; 827  :     dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
 
-	push	OFFSET $SG260557
+	push	OFFSET $SG260586
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 844  :   return ret;
+; 830  :   return ret;
 
 	mov	eax, esi
 	pop	esi
 
-; 845  : }
+; 831  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -36500,8 +35592,6 @@ $T6 = -20						; size = 4
 $T7 = -14						; size = 1
 _DontInject$ = -13					; size = 1
 __$EHRec$ = -12						; size = 12
-$T8 = 8							; size = 4
-$T9 = 8							; size = 4
 _role$ = 8						; size = 4
 ?SK_Attach@@YGHW4DLL_ROLE@@@Z PROC			; SK_Attach
 
@@ -36517,8 +35607,6 @@ _role$ = 8						; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 8
 	push	ebx
-	push	esi
-	push	edi
 
 ; 622  :   auto DontInject = [] (void) ->
 
@@ -36539,6 +35627,8 @@ _role$ = 8						; size = 4
 
 ; 633  :     budget_mutex = new SK_Thread_HybridSpinlock ( 400);
 
+	push	esi
+	push	edi
 	push	4
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
@@ -36547,20 +35637,20 @@ _role$ = 8						; size = 4
 	mov	edi, DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	test	esi, esi
-	je	SHORT $LN23@SK_Attach
+	je	SHORT $LN21@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 255  :     cs_ = pCS;
+; 258  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 279  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	400					; 00000190H
 	push	eax
@@ -36569,10 +35659,10 @@ _role$ = 8						; size = 4
 
 ; 633  :     budget_mutex = new SK_Thread_HybridSpinlock ( 400);
 
-	jmp	SHORT $LN24@SK_Attach
-$LN23@SK_Attach:
+	jmp	SHORT $LN22@SK_Attach
+$LN21@SK_Attach:
 	xor	esi, esi
-$LN24@SK_Attach:
+$LN22@SK_Attach:
 
 ; 634  :     init_mutex   = new SK_Thread_HybridSpinlock (5000);
 
@@ -36585,20 +35675,20 @@ $LN24@SK_Attach:
 	mov	DWORD PTR $T5[ebp], esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	esi, esi
-	je	SHORT $LN25@SK_Attach
+	je	SHORT $LN23@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 255  :     cs_ = pCS;
+; 258  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 279  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	5000					; 00001388H
 	push	eax
@@ -36607,10 +35697,10 @@ $LN24@SK_Attach:
 
 ; 634  :     init_mutex   = new SK_Thread_HybridSpinlock (5000);
 
-	jmp	SHORT $LN26@SK_Attach
-$LN25@SK_Attach:
+	jmp	SHORT $LN24@SK_Attach
+$LN23@SK_Attach:
 	xor	esi, esi
-$LN26@SK_Attach:
+$LN24@SK_Attach:
 
 ; 635  :     loader_lock  = new SK_Thread_HybridSpinlock (6536);
 
@@ -36623,20 +35713,20 @@ $LN26@SK_Attach:
 	mov	DWORD PTR $T4[ebp], esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
 	test	esi, esi
-	je	SHORT $LN27@SK_Attach
+	je	SHORT $LN25@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 255  :     cs_ = pCS;
+; 258  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 279  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	6536					; 00001988H
 	push	eax
@@ -36645,10 +35735,10 @@ $LN26@SK_Attach:
 
 ; 635  :     loader_lock  = new SK_Thread_HybridSpinlock (6536);
 
-	jmp	SHORT $LN28@SK_Attach
-$LN27@SK_Attach:
+	jmp	SHORT $LN26@SK_Attach
+$LN25@SK_Attach:
 	xor	esi, esi
-$LN28@SK_Attach:
+$LN26@SK_Attach:
 
 ; 636  :     wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
 
@@ -36661,20 +35751,20 @@ $LN28@SK_Attach:
 	mov	DWORD PTR $T3[ebp], esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 3
 	test	esi, esi
-	je	SHORT $LN29@SK_Attach
+	je	SHORT $LN27@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 255  :     cs_ = pCS;
+; 258  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 279  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	128					; 00000080H
 	push	eax
@@ -36683,10 +35773,10 @@ $LN28@SK_Attach:
 
 ; 636  :     wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
 
-	jmp	SHORT $LN30@SK_Attach
-$LN29@SK_Attach:
+	jmp	SHORT $LN28@SK_Attach
+$LN27@SK_Attach:
 	xor	esi, esi
-$LN30@SK_Attach:
+$LN28@SK_Attach:
 
 ; 637  :     cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
 
@@ -36699,20 +35789,20 @@ $LN30@SK_Attach:
 	mov	DWORD PTR $T2[ebp], esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 4
 	test	esi, esi
-	je	SHORT $LN31@SK_Attach
+	je	SHORT $LN29@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 255  :     cs_ = pCS;
+; 258  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 279  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	104857					; 00019999H
 	push	eax
@@ -36721,10 +35811,10 @@ $LN30@SK_Attach:
 
 ; 637  :     cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
 
-	jmp	SHORT $LN32@SK_Attach
-$LN31@SK_Attach:
+	jmp	SHORT $LN30@SK_Attach
+$LN29@SK_Attach:
 	xor	esi, esi
-$LN32@SK_Attach:
+$LN30@SK_Attach:
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	mov	DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A, esi ; cs_dbghelp
 
@@ -36738,6 +35828,8 @@ $LN32@SK_Attach:
 ; 641  :     if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
+	pop	edi
+	pop	esi
 	je	$LN6@SK_Attach
 
 ; 642  :     {
@@ -36763,12 +35855,12 @@ $LN32@SK_Attach:
 	mov	eax, DWORD PTR _role$[ebp]
 	add	esp, 4
 	cmp	eax, 2
-	jg	$LN33@SK_Attach
-	je	$LN10@SK_Attach
+	jg	$LN31@SK_Attach
+	je	$LN9@SK_Attach
 	cmp	eax, -1073741808			; c0000010H
-	je	$LN12@SK_Attach
+	je	SHORT $LN11@SK_Attach
 	cmp	eax, -1073741792			; c0000020H
-	je	$LN14@SK_Attach
+	je	SHORT $LN13@SK_Attach
 	cmp	eax, 1
 	jne	$LN2@SK_Attach
 
@@ -36783,346 +35875,258 @@ $LN32@SK_Attach:
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN8@SK_Attach
-	push	OFFSET $SG260507
+	push	OFFSET $SG260544
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	SHORT $LN69@SK_Attach
-$LN8@SK_Attach:
+	je	SHORT $LN8@SK_Attach
+$LN63@SK_Attach:
 
 ; 663  :           {
 ; 664  :             return DontInject ();
-; 665  :           }
-; 666  : 
-; 667  :           if (SK_IsDLLSpecialK (L"dinput8.dll"))
-
-	push	OFFSET $SG260509
-	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
-	test	al, al
-	je	SHORT $LN9@SK_Attach
-
-; 668  :           {
-; 669  :             SK_MessageBox ( L"Please delete dxgi.dll or dinput8.dll and restart your game, it is not possible to play this game with two copies of Special K injected :)",
-
-	push	64					; 00000040H
-	sub	esp, 24					; 00000018H
-	mov	ecx, esp
-	mov	DWORD PTR $T9[ebp], esp
-	push	OFFSET $SG260510
-	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-	sub	esp, 24					; 00000018H
-	mov	DWORD PTR __$EHRec$[ebp+8], 5
-	mov	ecx, esp
-	push	OFFSET $SG260511
-	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-	mov	DWORD PTR __$EHRec$[ebp+8], -1
-	call	?SK_MessageBox@@YAHV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0I@Z ; SK_MessageBox
-	add	esp, 52					; 00000034H
-$LN69@SK_Attach:
-
-; 670  :                             L"Conflicting local DLLs detected for Special K", MB_ICONASTERISK | MB_OK);
-; 671  :             return DontInject ();
 
 	lea	ecx, DWORD PTR _DontInject$[ebp]
 	call	??R<lambda_c61068de2d98b561348eb1175917bf09>@@QBEHXZ ; <lambda_c61068de2d98b561348eb1175917bf09>::operator()
+	pop	ebx
 
-; 777  :       //return
-; 778  :       //  InterlockedExchangeAddRelease (
-; 779  :       //    &__SK_DLL_Attached,
-; 780  :       //      1
-; 781  :       //  );
-; 782  :     }
-; 783  :   }
-; 784  : 
-; 785  :   return DontInject ();
-; 786  : }
+; 763  :       //return
+; 764  :       //  InterlockedExchangeAddRelease (
+; 765  :       //    &__SK_DLL_Attached,
+; 766  :       //      1
+; 767  :       //  );
+; 768  :     }
+; 769  :   }
+; 770  : 
+; 771  :   return DontInject ();
+; 772  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
-	pop	edi
-	pop	esi
-	pop	ebx
 	mov	esp, ebp
 	pop	ebp
 	ret	4
-$LN9@SK_Attach:
+$LN8@SK_Attach:
 
-; 672  :           }
-; 673  : 
-; 674  :           InterlockedCompareExchange (
+; 665  :           }
+; 666  : 
+; 667  :           InterlockedCompareExchange (
 
 	call	?Startup@DXGI@SK@@YA_NXZ		; SK::DXGI::Startup
 
-; 675  :             &__SK_DLL_Attached,
-; 676  :               SK::DXGI::Startup (),
-; 677  :                 1
-; 678  :           );
-; 679  :         } break;
+; 668  :             &__SK_DLL_Attached,
+; 669  :               SK::DXGI::Startup (),
+; 670  :                 1
+; 671  :           );
+; 672  :         } break;
 
-	jmp	$LN68@SK_Attach
-$LN14@SK_Attach:
+	jmp	$LN62@SK_Attach
+$LN13@SK_Attach:
 
-; 713  : 
-; 714  :         case DLL_ROLE::DDraw:
-; 715  :         {
-; 716  :           // If this is the global injector and there is a wrapper version
-; 717  :           //   of Special K in the DLL search path, then bail-out!
-; 718  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll"))
+; 706  : 
+; 707  :         case DLL_ROLE::DDraw:
+; 708  :         {
+; 709  :           // If this is the global injector and there is a wrapper version
+; 710  :           //   of Special K in the DLL search path, then bail-out!
+; 711  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll"))
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	je	SHORT $LN15@SK_Attach
-	push	OFFSET $SG260520
+	je	SHORT $LN14@SK_Attach
+	push	OFFSET $SG260553
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	SHORT $LN69@SK_Attach
-$LN15@SK_Attach:
+	jne	SHORT $LN63@SK_Attach
+$LN14@SK_Attach:
 
-; 719  :           {
-; 720  :             return DontInject ();
-; 721  :           }
-; 722  : 
-; 723  :           InterlockedCompareExchange (
+; 712  :           {
+; 713  :             return DontInject ();
+; 714  :           }
+; 715  : 
+; 716  :           InterlockedCompareExchange (
 
 	call	?Startup@DDraw@SK@@YA_NXZ		; SK::DDraw::Startup
 
-; 724  :             &__SK_DLL_Attached,
-; 725  :               SK::DDraw::Startup (),
-; 726  :                 1
-; 727  :           );
-; 728  :         } break;
+; 717  :             &__SK_DLL_Attached,
+; 718  :               SK::DDraw::Startup (),
+; 719  :                 1
+; 720  :           );
+; 721  :         } break;
 
-	jmp	$LN68@SK_Attach
-$LN12@SK_Attach:
+	jmp	$LN62@SK_Attach
+$LN11@SK_Attach:
 
-; 696  : 
-; 697  : #ifndef _WIN64
-; 698  :         case DLL_ROLE::D3D8:
-; 699  :         {
-; 700  :           // If this is the global injector and there is a wrapper version
-; 701  :           //   of Special K in the DLL search path, then bail-out!
-; 702  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll"))
+; 689  : 
+; 690  : #ifndef _WIN64
+; 691  :         case DLL_ROLE::D3D8:
+; 692  :         {
+; 693  :           // If this is the global injector and there is a wrapper version
+; 694  :           //   of Special K in the DLL search path, then bail-out!
+; 695  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll"))
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	je	SHORT $LN13@SK_Attach
-	push	OFFSET $SG260517
+	je	SHORT $LN12@SK_Attach
+	push	OFFSET $SG260550
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	SHORT $LN69@SK_Attach
-$LN13@SK_Attach:
+	jne	SHORT $LN63@SK_Attach
+$LN12@SK_Attach:
 
-; 703  :           {
-; 704  :             return DontInject ();
-; 705  :           }
-; 706  : 
-; 707  :           InterlockedCompareExchange (
+; 696  :           {
+; 697  :             return DontInject ();
+; 698  :           }
+; 699  : 
+; 700  :           InterlockedCompareExchange (
 
 	call	?Startup@D3D8@SK@@YA_NXZ		; SK::D3D8::Startup
 
-; 708  :             &__SK_DLL_Attached,
-; 709  :               SK::D3D8::Startup (),
-; 710  :                 1
-; 711  :           );
-; 712  :         } break;
+; 701  :             &__SK_DLL_Attached,
+; 702  :               SK::D3D8::Startup (),
+; 703  :                 1
+; 704  :           );
+; 705  :         } break;
 
-	jmp	$LN68@SK_Attach
-$LN10@SK_Attach:
+	jmp	SHORT $LN62@SK_Attach
+$LN9@SK_Attach:
 
-; 680  : 
-; 681  :         case DLL_ROLE::D3D9:
-; 682  :         {
-; 683  :           // If this is the global injector and there is a wrapper version
-; 684  :           //   of Special K in the DLL search path, then bail-out!
-; 685  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
+; 673  : 
+; 674  :         case DLL_ROLE::D3D9:
+; 675  :         {
+; 676  :           // If this is the global injector and there is a wrapper version
+; 677  :           //   of Special K in the DLL search path, then bail-out!
+; 678  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	je	SHORT $LN11@SK_Attach
-	push	OFFSET $SG260514
+	je	SHORT $LN10@SK_Attach
+	push	OFFSET $SG260547
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	$LN69@SK_Attach
-$LN11@SK_Attach:
+	jne	SHORT $LN63@SK_Attach
+$LN10@SK_Attach:
 
-; 686  :           {
-; 687  :             return DontInject ();
-; 688  :           }
-; 689  : 
-; 690  :           InterlockedCompareExchange (
+; 679  :           {
+; 680  :             return DontInject ();
+; 681  :           }
+; 682  : 
+; 683  :           InterlockedCompareExchange (
 
 	call	?Startup@D3D9@SK@@YA_NXZ		; SK::D3D9::Startup
 
-; 691  :             &__SK_DLL_Attached,
-; 692  :               SK::D3D9::Startup (),
-; 693  :                 1
-; 694  :           );
-; 695  :         } break;
+; 684  :             &__SK_DLL_Attached,
+; 685  :               SK::D3D9::Startup (),
+; 686  :                 1
+; 687  :           );
+; 688  :         } break;
 
-	jmp	$LN68@SK_Attach
-$LN33@SK_Attach:
+	jmp	SHORT $LN62@SK_Attach
+$LN31@SK_Attach:
 
 ; 655  : 
 ; 656  :       switch (role)
 
 	cmp	eax, 4
-	je	$LN16@SK_Attach
+	je	SHORT $LN15@SK_Attach
 	cmp	eax, 8
-	je	$LN6@SK_Attach
+	je	SHORT $LN6@SK_Attach
 	cmp	eax, 256				; 00000100H
-	jne	$LN2@SK_Attach
+	jne	SHORT $LN2@SK_Attach
 
-; 741  :             &__SK_DLL_Attached,
-; 742  :               SK::OpenGL::Startup (),
-; 743  :                 1
-; 744  :           );
-; 745  :         } break;
-; 746  : 
-; 747  :         case DLL_ROLE::Vulkan:
-; 748  :         {
-; 749  :           return DontInject ();
-; 750  :         } break;
-; 751  : 
-; 752  :         case DLL_ROLE::DInput8:
-; 753  :         {
-; 754  :           // If this is the global injector and there is a wrapper version
-; 755  :           //   of Special K in the DLL search path, then bail-out!
-; 756  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll"))
+; 734  :             &__SK_DLL_Attached,
+; 735  :               SK::OpenGL::Startup (),
+; 736  :                 1
+; 737  :           );
+; 738  :         } break;
+; 739  : 
+; 740  :         case DLL_ROLE::Vulkan:
+; 741  :         {
+; 742  :           return DontInject ();
+; 743  :         } break;
+; 744  : 
+; 745  :         case DLL_ROLE::DInput8:
+; 746  :         {
+; 747  :           // If this is the global injector and there is a wrapper version
+; 748  :           //   of Special K in the DLL search path, then bail-out!
+; 749  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll"))
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	je	SHORT $LN20@SK_Attach
-	push	OFFSET $SG260527
+	je	SHORT $LN19@SK_Attach
+	push	OFFSET $SG260560
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	$LN69@SK_Attach
-$LN20@SK_Attach:
+	jne	$LN63@SK_Attach
+$LN19@SK_Attach:
 
-; 757  :           {
-; 758  :             return DontInject ();
-; 759  :           }
-; 760  : 
-; 761  :           if (SK_IsDLLSpecialK (L"dxgi.dll"))
-
-	push	OFFSET $SG260529
-	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
-	test	al, al
-	je	SHORT $LN21@SK_Attach
-
-; 762  :           {
-; 763  :             SK_MessageBox ( L"Please delete dxgi.dll or dinput8.dll and restart your game, it is not possible to play this game with two copies of Special K injected :)",
-
-	push	64					; 00000040H
-	sub	esp, 24					; 00000018H
-	mov	ecx, esp
-	mov	DWORD PTR $T8[ebp], esp
-	push	OFFSET $SG260530
-	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-	sub	esp, 24					; 00000018H
-	mov	DWORD PTR __$EHRec$[ebp+8], 6
-	mov	ecx, esp
-	push	OFFSET $SG260531
-	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-	mov	DWORD PTR __$EHRec$[ebp+8], -1
-	call	?SK_MessageBox@@YAHV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0I@Z ; SK_MessageBox
-	add	esp, 52					; 00000034H
-
-; 764  :                             L"Conflicting local DLLs detected for Special K", MB_ICONASTERISK | MB_OK);
-; 765  :             return DontInject ();
-
-	lea	ecx, DWORD PTR _DontInject$[ebp]
-	call	??R<lambda_c61068de2d98b561348eb1175917bf09>@@QBEHXZ ; <lambda_c61068de2d98b561348eb1175917bf09>::operator()
-
-; 777  :       //return
-; 778  :       //  InterlockedExchangeAddRelease (
-; 779  :       //    &__SK_DLL_Attached,
-; 780  :       //      1
-; 781  :       //  );
-; 782  :     }
-; 783  :   }
-; 784  : 
-; 785  :   return DontInject ();
-; 786  : }
-
-	mov	ecx, DWORD PTR __$EHRec$[ebp]
-	mov	DWORD PTR fs:0, ecx
-	pop	edi
-	pop	esi
-	pop	ebx
-	mov	esp, ebp
-	pop	ebp
-	ret	4
-$LN21@SK_Attach:
-
-; 766  :           }
-; 767  : 
-; 768  :           InterlockedCompareExchange (
+; 750  :           {
+; 751  :             return DontInject ();
+; 752  :           }
+; 753  : 
+; 754  :           InterlockedCompareExchange (
 
 	call	?Startup@DI8@SK@@YA_NXZ			; SK::DI8::Startup
-	jmp	SHORT $LN68@SK_Attach
-$LN16@SK_Attach:
+	jmp	SHORT $LN62@SK_Attach
+$LN15@SK_Attach:
 
-; 729  : #endif
-; 730  : 
-; 731  :         case DLL_ROLE::OpenGL:
-; 732  :         {
-; 733  :           // If this is the global injector and there is a wrapper version
-; 734  :           //   of Special K in the DLL search path, then bail-out!
-; 735  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
+; 722  : #endif
+; 723  : 
+; 724  :         case DLL_ROLE::OpenGL:
+; 725  :         {
+; 726  :           // If this is the global injector and there is a wrapper version
+; 727  :           //   of Special K in the DLL search path, then bail-out!
+; 728  :           if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	je	SHORT $LN17@SK_Attach
-	push	OFFSET $SG260523
+	je	SHORT $LN16@SK_Attach
+	push	OFFSET $SG260556
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
-	jne	$LN69@SK_Attach
-$LN17@SK_Attach:
+	jne	$LN63@SK_Attach
+$LN16@SK_Attach:
 
-; 736  :           {
-; 737  :             return DontInject ();
-; 738  :           }
-; 739  : 
-; 740  :           InterlockedCompareExchange (
+; 729  :           {
+; 730  :             return DontInject ();
+; 731  :           }
+; 732  : 
+; 733  :           InterlockedCompareExchange (
 
 	call	?Startup@OpenGL@SK@@YA_NXZ		; SK::OpenGL::Startup
-$LN68@SK_Attach:
+$LN62@SK_Attach:
 	movzx	ecx, al
 	mov	eax, 1
 	lock	 cmpxchg DWORD PTR [ebx], ecx
 $LN2@SK_Attach:
 
-; 769  :             &__SK_DLL_Attached,
-; 770  :               SK::DI8::Startup (),
-; 771  :                 1
-; 772  :           );
-; 773  :         } break;
-; 774  :       }
-; 775  : 
-; 776  :       return true;
+; 755  :             &__SK_DLL_Attached,
+; 756  :               SK::DI8::Startup (),
+; 757  :                 1
+; 758  :           );
+; 759  :         } break;
+; 760  :       }
+; 761  : 
+; 762  :       return true;
 
 	mov	eax, 1
+	pop	ebx
 
-; 777  :       //return
-; 778  :       //  InterlockedExchangeAddRelease (
-; 779  :       //    &__SK_DLL_Attached,
-; 780  :       //      1
-; 781  :       //  );
-; 782  :     }
-; 783  :   }
-; 784  : 
-; 785  :   return DontInject ();
-; 786  : }
+; 763  :       //return
+; 764  :       //  InterlockedExchangeAddRelease (
+; 765  :       //    &__SK_DLL_Attached,
+; 766  :       //      1
+; 767  :       //  );
+; 768  :     }
+; 769  :   }
+; 770  : 
+; 771  :   return DontInject ();
+; 772  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
-	pop	edi
-	pop	esi
-	pop	ebx
 	mov	esp, ebp
 	pop	ebp
 	ret	4
@@ -37139,23 +36143,21 @@ $LN6@SK_Attach:
 	add	esp, 4
 	xchg	DWORD PTR [ebx], eax
 
-; 777  :       //return
-; 778  :       //  InterlockedExchangeAddRelease (
-; 779  :       //    &__SK_DLL_Attached,
-; 780  :       //      1
-; 781  :       //  );
-; 782  :     }
-; 783  :   }
-; 784  : 
-; 785  :   return DontInject ();
-; 786  : }
+; 763  :       //return
+; 764  :       //  InterlockedExchangeAddRelease (
+; 765  :       //    &__SK_DLL_Attached,
+; 766  :       //      1
+; 767  :       //  );
+; 768  :     }
+; 769  :   }
+; 770  : 
+; 771  :   return DontInject ();
+; 772  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	xor	eax, eax
-	pop	edi
-	pop	esi
-	mov	DWORD PTR fs:0, ecx
 	pop	ebx
+	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	4
@@ -37196,12 +36198,6 @@ __unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$4:
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
 	ret	0
-__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$5:
-	mov	ecx, DWORD PTR $T9[ebp]
-	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-__unwindfunclet$?SK_Attach@@YGHW4DLL_ROLE@@@Z$7:
-	mov	ecx, DWORD PTR $T8[ebp]
-	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$?SK_Attach@@YGHW4DLL_ROLE@@@Z:
 	mov	eax, OFFSET __ehfuncinfo$?SK_Attach@@YGHW4DLL_ROLE@@@Z
 	jmp	___CxxFrameHandler3
@@ -41064,7 +40060,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 224  :     blacklist.emplace (L"steam.exe");
 
-	push	OFFSET $SG260239
+	push	OFFSET $SG260280
 	lea	eax, DWORD PTR $T105[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41072,7 +40068,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 225  :     blacklist.emplace (L"GameOverlayUI.exe");
 
-	push	OFFSET $SG260240
+	push	OFFSET $SG260281
 	lea	eax, DWORD PTR $T104[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41080,7 +40076,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 226  :     blacklist.emplace (L"streaming_client.exe");
 
-	push	OFFSET $SG260241
+	push	OFFSET $SG260282
 	lea	eax, DWORD PTR $T103[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41088,7 +40084,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 227  :     blacklist.emplace (L"steamerrorreporter.exe");
 
-	push	OFFSET $SG260242
+	push	OFFSET $SG260283
 	lea	eax, DWORD PTR $T102[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41096,7 +40092,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 228  :     blacklist.emplace (L"steamerrorreporter64.exe");
 
-	push	OFFSET $SG260243
+	push	OFFSET $SG260284
 	lea	eax, DWORD PTR $T101[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41104,7 +40100,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 229  :     blacklist.emplace (L"steamservice.exe");
 
-	push	OFFSET $SG260244
+	push	OFFSET $SG260285
 	lea	eax, DWORD PTR $T100[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41112,7 +40108,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 230  :     blacklist.emplace (L"steam_monitor.exe");
 
-	push	OFFSET $SG260245
+	push	OFFSET $SG260286
 	lea	eax, DWORD PTR $T99[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41120,7 +40116,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 231  :     blacklist.emplace (L"steamwebhelper.exe");
 
-	push	OFFSET $SG260246
+	push	OFFSET $SG260287
 	lea	eax, DWORD PTR $T98[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41128,7 +40124,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 232  :     blacklist.emplace (L"html5app_steam.exe");
 
-	push	OFFSET $SG260247
+	push	OFFSET $SG260288
 	lea	eax, DWORD PTR $T97[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41136,7 +40132,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 233  :     blacklist.emplace (L"wow_helper.exe");
 
-	push	OFFSET $SG260248
+	push	OFFSET $SG260289
 	lea	eax, DWORD PTR $T96[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41144,7 +40140,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 234  :     blacklist.emplace (L"uninstall.exe");
 
-	push	OFFSET $SG260249
+	push	OFFSET $SG260290
 	lea	eax, DWORD PTR $T95[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41154,7 +40150,7 @@ _d3d11$106 = 11						; size = 1
 ; 236  :     // Crash Helpers
 ; 237  :     blacklist.emplace (L"WriteMiniDump.exe");
 
-	push	OFFSET $SG260250
+	push	OFFSET $SG260291
 	lea	eax, DWORD PTR $T94[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41162,7 +40158,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 238  :     blacklist.emplace (L"CrashReporter.exe");
 
-	push	OFFSET $SG260251
+	push	OFFSET $SG260292
 	lea	eax, DWORD PTR $T93[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41170,7 +40166,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 239  :     blacklist.emplace (L"SupportTool.exe");
 
-	push	OFFSET $SG260252
+	push	OFFSET $SG260293
 	lea	eax, DWORD PTR $T92[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41178,7 +40174,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 240  :     blacklist.emplace (L"CrashSender1400.exe");
 
-	push	OFFSET $SG260253
+	push	OFFSET $SG260294
 	lea	eax, DWORD PTR $T91[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41186,7 +40182,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 241  :     blacklist.emplace (L"WerFault.exe");
 
-	push	OFFSET $SG260254
+	push	OFFSET $SG260295
 	lea	eax, DWORD PTR $T90[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41196,7 +40192,7 @@ _d3d11$106 = 11						; size = 1
 ; 243  :     // Runtime Installers
 ; 244  :     blacklist.emplace (L"DXSETUP.exe");
 
-	push	OFFSET $SG260255
+	push	OFFSET $SG260296
 	lea	eax, DWORD PTR $T89[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41204,7 +40200,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 245  :     blacklist.emplace (L"setup.exe");
 
-	push	OFFSET $SG260256
+	push	OFFSET $SG260297
 	lea	eax, DWORD PTR $T88[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41212,7 +40208,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 246  :     blacklist.emplace (L"vc_redist.x64.exe");
 
-	push	OFFSET $SG260257
+	push	OFFSET $SG260298
 	lea	eax, DWORD PTR $T87[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41220,7 +40216,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 247  :     blacklist.emplace (L"vc_redist.x86.exe");
 
-	push	OFFSET $SG260258
+	push	OFFSET $SG260299
 	lea	eax, DWORD PTR $T86[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41228,7 +40224,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 248  :     blacklist.emplace (L"vc2010redist_x64.exe");
 
-	push	OFFSET $SG260259
+	push	OFFSET $SG260300
 	lea	eax, DWORD PTR $T85[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41236,7 +40232,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 249  :     blacklist.emplace (L"vc2010redist_x86.exe");
 
-	push	OFFSET $SG260260
+	push	OFFSET $SG260301
 	lea	eax, DWORD PTR $T84[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41244,7 +40240,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 250  :     blacklist.emplace (L"vcredist_x64.exe");
 
-	push	OFFSET $SG260261
+	push	OFFSET $SG260302
 	lea	eax, DWORD PTR $T83[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41252,7 +40248,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 251  :     blacklist.emplace (L"vcredist_x86.exe");
 
-	push	OFFSET $SG260262
+	push	OFFSET $SG260303
 	lea	eax, DWORD PTR $T82[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41260,7 +40256,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 252  :     blacklist.emplace (L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe");
 
-	push	OFFSET $SG260263
+	push	OFFSET $SG260304
 	lea	eax, DWORD PTR $T81[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41268,7 +40264,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 253  :     blacklist.emplace (L"dotnetfx35.exe");
 
-	push	OFFSET $SG260264
+	push	OFFSET $SG260305
 	lea	eax, DWORD PTR $T80[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41276,7 +40272,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 254  :     blacklist.emplace (L"DotNetFx35Client.exe");
 
-	push	OFFSET $SG260265
+	push	OFFSET $SG260306
 	lea	eax, DWORD PTR $T79[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41284,7 +40280,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 255  :     blacklist.emplace (L"dotNetFx40_Full_x86_x64.exe");
 
-	push	OFFSET $SG260266
+	push	OFFSET $SG260307
 	lea	eax, DWORD PTR $T78[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41292,7 +40288,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 256  :     blacklist.emplace (L"dotNetFx40_Client_x86_x64.exe");
 
-	push	OFFSET $SG260267
+	push	OFFSET $SG260308
 	lea	eax, DWORD PTR $T77[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41300,7 +40296,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 257  :     blacklist.emplace (L"oalinst.exe");
 
-	push	OFFSET $SG260268
+	push	OFFSET $SG260309
 	lea	eax, DWORD PTR $T76[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41308,7 +40304,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 258  :     blacklist.emplace (L"EasyAntiCheat_Setup.exe");
 
-	push	OFFSET $SG260269
+	push	OFFSET $SG260310
 	lea	eax, DWORD PTR $T75[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41316,7 +40312,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 259  :     blacklist.emplace (L"UplayInstaller.exe");
 
-	push	OFFSET $SG260270
+	push	OFFSET $SG260311
 	lea	eax, DWORD PTR $T74[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41326,7 +40322,7 @@ _d3d11$106 = 11						; size = 1
 ; 261  :     // Launchers
 ; 262  :     blacklist.emplace (L"x64launcher.exe");
 
-	push	OFFSET $SG260271
+	push	OFFSET $SG260312
 	lea	eax, DWORD PTR $T73[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41334,7 +40330,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 263  :     blacklist.emplace (L"x86launcher.exe");
 
-	push	OFFSET $SG260272
+	push	OFFSET $SG260313
 	lea	eax, DWORD PTR $T72[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41342,7 +40338,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 264  :     blacklist.emplace (L"Launcher.exe");
 
-	push	OFFSET $SG260273
+	push	OFFSET $SG260314
 	lea	eax, DWORD PTR $T71[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41350,7 +40346,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 265  :     blacklist.emplace (L"FFX&X-2_LAUNCHER.exe");
 
-	push	OFFSET $SG260274
+	push	OFFSET $SG260315
 	lea	eax, DWORD PTR $T70[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41358,7 +40354,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 266  :     blacklist.emplace (L"Fallout4Launcher.exe");
 
-	push	OFFSET $SG260275
+	push	OFFSET $SG260316
 	lea	eax, DWORD PTR $T69[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41366,7 +40362,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 267  :     blacklist.emplace (L"SkyrimSELauncher.exe");
 
-	push	OFFSET $SG260276
+	push	OFFSET $SG260317
 	lea	eax, DWORD PTR $T68[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41374,7 +40370,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 268  :     blacklist.emplace (L"ModLauncher.exe");
 
-	push	OFFSET $SG260277
+	push	OFFSET $SG260318
 	lea	eax, DWORD PTR $T67[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41382,7 +40378,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 269  :     blacklist.emplace (L"AkibaUU_Config.exe");
 
-	push	OFFSET $SG260278
+	push	OFFSET $SG260319
 	lea	eax, DWORD PTR $T66[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41390,7 +40386,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 270  :     blacklist.emplace (L"Obduction.exe");
 
-	push	OFFSET $SG260279
+	push	OFFSET $SG260320
 	lea	eax, DWORD PTR $T65[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41398,7 +40394,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 271  :     blacklist.emplace (L"Grandia2Launcher.exe");
 
-	push	OFFSET $SG260280
+	push	OFFSET $SG260321
 	lea	eax, DWORD PTR $T64[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41406,7 +40402,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 272  :     blacklist.emplace (L"FFXiii2Launcher.exe");
 
-	push	OFFSET $SG260281
+	push	OFFSET $SG260322
 	lea	eax, DWORD PTR $T63[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41414,7 +40410,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 273  :     blacklist.emplace (L"Bethesda.net_Launcher.exe");
 
-	push	OFFSET $SG260282
+	push	OFFSET $SG260323
 	lea	eax, DWORD PTR $T62[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41422,7 +40418,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 274  :     blacklist.emplace (L"UbisoftGameLauncher.exe");
 
-	push	OFFSET $SG260283
+	push	OFFSET $SG260324
 	lea	eax, DWORD PTR $T61[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41430,7 +40426,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 275  :     blacklist.emplace (L"UbisoftGameLauncher64.exe");
 
-	push	OFFSET $SG260284
+	push	OFFSET $SG260325
 	lea	eax, DWORD PTR $T60[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41438,7 +40434,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 276  :     blacklist.emplace (L"SplashScreen.exe");
 
-	push	OFFSET $SG260285
+	push	OFFSET $SG260326
 	lea	eax, DWORD PTR $T59[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41446,7 +40442,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 277  :     blacklist.emplace (L"GameLauncherCefChildProcess.exe");
 
-	push	OFFSET $SG260286
+	push	OFFSET $SG260327
 	lea	eax, DWORD PTR $T58[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41454,7 +40450,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 278  :     blacklist.emplace (L"LaunchPad.exe");
 
-	push	OFFSET $SG260287
+	push	OFFSET $SG260328
 	lea	eax, DWORD PTR $T57[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41462,7 +40458,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 279  :     blacklist.emplace (L"CNNLauncher.exe");
 
-	push	OFFSET $SG260288
+	push	OFFSET $SG260329
 	lea	eax, DWORD PTR $T56[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41470,7 +40466,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 280  :     blacklist.emplace (L"FF9_Launcher.exe");
 
-	push	OFFSET $SG260289
+	push	OFFSET $SG260330
 	lea	eax, DWORD PTR $T55[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41478,7 +40474,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 281  :     blacklist.emplace (L"A17Config.exe");
 
-	push	OFFSET $SG260290
+	push	OFFSET $SG260331
 	lea	eax, DWORD PTR $T54[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41486,7 +40482,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 282  :     blacklist.emplace (L"A18Config.exe"); // Atelier Firis
 
-	push	OFFSET $SG260291
+	push	OFFSET $SG260332
 	lea	eax, DWORD PTR $T53[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41494,7 +40490,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 283  :     blacklist.emplace (L"DPLauncher.exe");
 
-	push	OFFSET $SG260292
+	push	OFFSET $SG260333
 	lea	eax, DWORD PTR $T52[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41502,7 +40498,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 284  :     blacklist.emplace (L"ZeroEscape-Launcher.exe");
 
-	push	OFFSET $SG260293
+	push	OFFSET $SG260334
 	lea	eax, DWORD PTR $T51[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41512,7 +40508,7 @@ _d3d11$106 = 11						; size = 1
 ; 286  :     // Other Stuff
 ; 287  :     blacklist.emplace (L"ActivationUI.exe");
 
-	push	OFFSET $SG260294
+	push	OFFSET $SG260335
 	lea	eax, DWORD PTR $T50[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41520,7 +40516,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 288  :     blacklist.emplace (L"zosSteamStarter.exe");
 
-	push	OFFSET $SG260295
+	push	OFFSET $SG260336
 	lea	eax, DWORD PTR $T49[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41528,7 +40524,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 289  :     blacklist.emplace (L"notepad.exe");
 
-	push	OFFSET $SG260296
+	push	OFFSET $SG260337
 	lea	eax, DWORD PTR $T48[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41536,7 +40532,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 290  :     blacklist.emplace (L"mspaint.exe");
 
-	push	OFFSET $SG260297
+	push	OFFSET $SG260338
 	lea	eax, DWORD PTR $T47[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41544,7 +40540,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 291  :     blacklist.emplace (L"7zFM.exe");
 
-	push	OFFSET $SG260298
+	push	OFFSET $SG260339
 	lea	eax, DWORD PTR $T46[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41552,7 +40548,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 292  :     blacklist.emplace (L"WinRar.exe");
 
-	push	OFFSET $SG260299
+	push	OFFSET $SG260340
 	lea	eax, DWORD PTR $T45[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41560,7 +40556,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 293  :     blacklist.emplace (L"EAC.exe");
 
-	push	OFFSET $SG260300
+	push	OFFSET $SG260341
 	lea	eax, DWORD PTR $T44[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41568,7 +40564,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 294  :     blacklist.emplace (L"vcpkgsrv.exe");
 
-	push	OFFSET $SG260301
+	push	OFFSET $SG260342
 	lea	eax, DWORD PTR $T43[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41576,7 +40572,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 295  :     blacklist.emplace (L"dllhost.exe");
 
-	push	OFFSET $SG260302
+	push	OFFSET $SG260343
 	lea	eax, DWORD PTR $T42[ebp]
 	push	eax
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
@@ -41584,7 +40580,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 296  :     blacklist.emplace (L"git.exe");
 
-	push	OFFSET $SG260303
+	push	OFFSET $SG260344
 	lea	eax, DWORD PTR $T41[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41592,7 +40588,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 297  :     blacklist.emplace (L"link.exe");
 
-	push	OFFSET $SG260304
+	push	OFFSET $SG260345
 	lea	eax, DWORD PTR $T40[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41600,7 +40596,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 298  :     blacklist.emplace (L"cl.exe");
 
-	push	OFFSET $SG260305
+	push	OFFSET $SG260346
 	lea	eax, DWORD PTR $T39[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41608,7 +40604,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 299  :     blacklist.emplace (L"rc.exe");
 
-	push	OFFSET $SG260306
+	push	OFFSET $SG260347
 	lea	eax, DWORD PTR $T38[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41616,7 +40612,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 300  :     blacklist.emplace (L"conhost.exe");
 
-	push	OFFSET $SG260307
+	push	OFFSET $SG260348
 	lea	eax, DWORD PTR $T37[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41624,7 +40620,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 301  :     blacklist.emplace (L"GameBarPresenceWriter.exe");
 
-	push	OFFSET $SG260308
+	push	OFFSET $SG260349
 	lea	eax, DWORD PTR $T36[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41632,7 +40628,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 302  :     blacklist.emplace (L"OAWrapper.exe");
 
-	push	OFFSET $SG260309
+	push	OFFSET $SG260350
 	lea	eax, DWORD PTR $T35[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41640,7 +40636,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 303  :     blacklist.emplace (L"NvOAWrapperCache.exe");
 
-	push	OFFSET $SG260310
+	push	OFFSET $SG260351
 	lea	eax, DWORD PTR $T34[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41648,7 +40644,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 304  :     blacklist.emplace (L"waifu2x-caffe.exe");
 
-	push	OFFSET $SG260311
+	push	OFFSET $SG260352
 	lea	eax, DWORD PTR $T33[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41656,7 +40652,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 305  :     blacklist.emplace (L"waifu2x-caffe-cui.exe");
 
-	push	OFFSET $SG260312
+	push	OFFSET $SG260353
 	lea	eax, DWORD PTR $T32[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41665,7 +40661,7 @@ _d3d11$106 = 11						; size = 1
 ; 306  : 
 ; 307  :     blacklist.emplace (L"GameServer.exe");// Sacred   Game Server
 
-	push	OFFSET $SG260313
+	push	OFFSET $SG260354
 	lea	eax, DWORD PTR $T31[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41673,7 +40669,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 308  :     blacklist.emplace (L"s2gs.exe");      // Sacred 2 Game Server
 
-	push	OFFSET $SG260314
+	push	OFFSET $SG260355
 	lea	eax, DWORD PTR $T30[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41682,7 +40678,7 @@ _d3d11$106 = 11						; size = 1
 ; 309  : 
 ; 310  :     blacklist.emplace (L"sihost.exe");
 
-	push	OFFSET $SG260315
+	push	OFFSET $SG260356
 	lea	eax, DWORD PTR $T29[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41690,7 +40686,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 311  :     blacklist.emplace (L"Chrome.exe");
 
-	push	OFFSET $SG260316
+	push	OFFSET $SG260357
 	lea	eax, DWORD PTR $T28[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41698,7 +40694,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 312  :     blacklist.emplace (L"explorer.exe");
 
-	push	OFFSET $SG260317
+	push	OFFSET $SG260358
 	lea	eax, DWORD PTR $T27[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41706,7 +40702,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 313  :     blacklist.emplace (L"browser_broker.exe");
 
-	push	OFFSET $SG260318
+	push	OFFSET $SG260359
 	lea	eax, DWORD PTR $T26[ebp]
 	push	eax
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
@@ -41714,7 +40710,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 314  :     blacklist.emplace (L"dwm.exe");
 
-	push	OFFSET $SG260319
+	push	OFFSET $SG260360
 	lea	eax, DWORD PTR $T25[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41722,7 +40718,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 315  :     blacklist.emplace (L"LaunchTM.exe");
 
-	push	OFFSET $SG260320
+	push	OFFSET $SG260361
 	lea	eax, DWORD PTR $T24[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41732,7 +40728,7 @@ _d3d11$106 = 11						; size = 1
 ; 317  :     // Misc. Tools
 ; 318  :     blacklist.emplace (L"SleepOnLan.exe");
 
-	push	OFFSET $SG260321
+	push	OFFSET $SG260362
 	lea	eax, DWORD PTR $T23[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -41928,7 +40924,7 @@ $LN4@SK_Establi:
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG260324
+	push	OFFSET $SG260365
 	push	eax
 	lea	eax, DWORD PTR $T13[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
@@ -41962,7 +40958,7 @@ $LN189@SK_Establi:
 
 	push	eax
 	lea	eax, DWORD PTR $T11[ebp]
-	push	OFFSET $SG260325
+	push	OFFSET $SG260366
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
 	add	esp, 12					; 0000000cH
@@ -42170,7 +41166,7 @@ $LN2@SK_Establi:
 ; 350  : 
 ; 351  :   if (! SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
 
-	push	OFFSET $SG260329
+	push	OFFSET $SG260370
 	cmovne	esi, eax
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
@@ -42218,7 +41214,7 @@ $LN6@SK_Establi:
 ; 354  : #ifndef _WIN64
 ; 355  :   else if (! SK_Path_wcsicmp (wszShort, L"d3d8.dll")  && has_dgvoodoo)
 
-	push	OFFSET $SG260332
+	push	OFFSET $SG260373
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -42237,7 +41233,7 @@ $LN8@SK_Establi:
 ; 357  : 
 ; 358  :   else if (! SK_Path_wcsicmp (wszShort, L"ddraw.dll") && has_dgvoodoo)
 
-	push	OFFSET $SG260335
+	push	OFFSET $SG260376
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -42257,7 +41253,7 @@ $LN10@SK_Establi:
 ; 361  : 
 ; 362  :   else if (! SK_Path_wcsicmp (wszShort, L"d3d9.dll"))
 
-	push	OFFSET $SG260338
+	push	OFFSET $SG260379
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -42274,7 +41270,7 @@ $LN12@SK_Establi:
 ; 364  : 
 ; 365  :   else if (! SK_Path_wcsicmp (wszShort, L"OpenGL32.dll"))
 
-	push	OFFSET $SG260341
+	push	OFFSET $SG260382
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -42291,7 +41287,7 @@ $LN14@SK_Establi:
 ; 367  : 
 ; 368  :   else if (! SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
 
-	push	OFFSET $SG260344
+	push	OFFSET $SG260385
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -42312,7 +41308,7 @@ $LN16@SK_Establi:
 ; 374  :   //
 ; 375  :   else if ( SK_Path_wcsstr (wszShort, L"SpecialK") )
 
-	push	OFFSET $SG260346
+	push	OFFSET $SG260387
 	push	esi
 	call	?SK_Path_wcsstr@@YAPB_WPB_W0@Z		; SK_Path_wcsstr
 	add	esp, 8
@@ -42327,27 +41323,27 @@ $LN16@SK_Establi:
 ; 381  :          ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
 ; 382  :          ( SK_IsDLLSpecialK (L"ddraw.dll") )    ||
 
-	push	OFFSET $SG260349
+	push	OFFSET $SG260390
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260350
+	push	OFFSET $SG260391
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260351
+	push	OFFSET $SG260392
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260352
+	push	OFFSET $SG260393
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260353
+	push	OFFSET $SG260394
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260354
+	push	OFFSET $SG260395
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
@@ -42370,7 +41366,7 @@ $LN16@SK_Establi:
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszD3D9$8[ebp]
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+832, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+844, 1
 	push	0
 	push	eax
 	call	_memset
@@ -42428,7 +41424,7 @@ $LN16@SK_Establi:
 
 ; 404  :     lstrcatW (wszD3D9, L"\\SpecialK.d3d9");
 
-	push	OFFSET $SG260355
+	push	OFFSET $SG260396
 	lea	eax, DWORD PTR _wszD3D9$8[ebp]
 	push	eax
 	call	esi
@@ -42445,7 +41441,7 @@ $LN16@SK_Establi:
 
 ; 408  :     lstrcatW (wszD3D8, L"\\SpecialK.d3d8");
 
-	push	OFFSET $SG260356
+	push	OFFSET $SG260397
 	lea	eax, DWORD PTR _wszD3D8$7[ebp]
 	push	eax
 	call	esi
@@ -42461,7 +41457,7 @@ $LN16@SK_Establi:
 
 ; 411  :     lstrcatW (wszDDraw, L"\\SpecialK.ddraw");
 
-	push	OFFSET $SG260357
+	push	OFFSET $SG260398
 	lea	eax, DWORD PTR _wszDDraw$6[ebp]
 	push	eax
 	call	esi
@@ -42478,7 +41474,7 @@ $LN16@SK_Establi:
 
 ; 415  :     lstrcatW (wszDXGI, L"\\SpecialK.dxgi");
 
-	push	OFFSET $SG260358
+	push	OFFSET $SG260399
 	lea	eax, DWORD PTR _wszDXGI$5[ebp]
 	push	eax
 	call	esi
@@ -42494,7 +41490,7 @@ $LN16@SK_Establi:
 
 ; 418  :     lstrcatW (wszGL,   L"\\SpecialK.OpenGL32");
 
-	push	OFFSET $SG260359
+	push	OFFSET $SG260400
 	lea	eax, DWORD PTR _wszGL$4[ebp]
 	push	eax
 	call	esi
@@ -42510,7 +41506,7 @@ $LN16@SK_Establi:
 
 ; 421  :     lstrcatW (wszDI8,  L"\\SpecialK.DInput8");
 
-	push	OFFSET $SG260360
+	push	OFFSET $SG260401
 	lea	eax, DWORD PTR _wszDI8$3[ebp]
 	push	eax
 	call	esi
@@ -42614,7 +41610,7 @@ $LN25@SK_Establi:
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG260373
+	push	OFFSET $SG260414
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	call	?SK_LoadConfigEx@@YA_NV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_LoadConfigEx
 
@@ -42634,9 +41630,9 @@ $LN25@SK_Establi:
 	mov	esi, DWORD PTR __imp__GetModuleHandleW@4
 	lea	eax, DWORD PTR _steam_tests$14[ebp]
 	add	esp, 28					; 0000001cH
-	mov	DWORD PTR _steam_tests$14[ebp], OFFSET $SG260374
+	mov	DWORD PTR _steam_tests$14[ebp], OFFSET $SG260415
 	mov	BYTE PTR _steam_tests$14[ebp+4], 0
-	mov	DWORD PTR _steam_tests$14[ebp+8], OFFSET $SG260375
+	mov	DWORD PTR _steam_tests$14[ebp+8], OFFSET $SG260416
 	mov	BYTE PTR _steam_tests$14[ebp+12], 0
 	push	2
 	push	eax
@@ -42683,7 +41679,7 @@ $LN25@SK_Establi:
 	or	al, BYTE PTR _steam_tests$14[ebp+4]
 	jne	SHORT $LN34@SK_Establi
 	lea	eax, DWORD PTR _wszProcessName$2[ebp]
-	push	OFFSET $SG260376
+	push	OFFSET $SG260417
 	push	eax
 	call	?SK_Path_wcsstr@@YAPB_WPB_W0@Z		; SK_Path_wcsstr
 	add	esp, 8
@@ -42752,13 +41748,13 @@ $LN34@SK_Establi:
 ; 508  : 
 ; 509  :         gl     |= (GetModuleHandle (L"OpenGL32.dll") != nullptr);
 
-	push	OFFSET $SG260379
+	push	OFFSET $SG260420
 	call	esi
 	test	eax, eax
 
 ; 510  :         d3d9   |= (GetModuleHandle (L"d3d9.dll")     != nullptr);
 
-	push	OFFSET $SG260380
+	push	OFFSET $SG260421
 	setne	al
 	or	BYTE PTR _gl$19[ebp], al
 	call	esi
@@ -42773,7 +41769,7 @@ $LN34@SK_Establi:
 ; 517  : 
 ; 518  :         d3d11  |= (GetModuleHandle (L"d3d11.dll")     != nullptr);
 
-	push	OFFSET $SG260381
+	push	OFFSET $SG260422
 	setne	al
 	or	BYTE PTR _d3d9$20[ebp], al
 	call	esi
@@ -42781,7 +41777,7 @@ $LN34@SK_Establi:
 
 ; 519  :         d3d11  |= (GetModuleHandle (L"d3dx11_43.dll") != nullptr);
 
-	push	OFFSET $SG260382
+	push	OFFSET $SG260423
 	setne	al
 	or	BYTE PTR _d3d11$106[ebp], al
 	call	esi
@@ -42791,7 +41787,7 @@ $LN34@SK_Establi:
 ; 521  : #ifndef _WIN64
 ; 522  :         d3d8   |= (GetModuleHandle (L"d3d8.dll")     != nullptr);
 
-	push	OFFSET $SG260383
+	push	OFFSET $SG260424
 	setne	al
 	or	BYTE PTR _d3d11$106[ebp], al
 	call	esi
@@ -42799,7 +41795,7 @@ $LN34@SK_Establi:
 
 ; 523  :         ddraw  |= (GetModuleHandle (L"ddraw.dll")    != nullptr);
 
-	push	OFFSET $SG260384
+	push	OFFSET $SG260425
 	setne	al
 	or	BYTE PTR _d3d8$21[ebp], al
 	call	esi
@@ -42809,7 +41805,7 @@ $LN34@SK_Establi:
 ; 524  : 
 ; 525  :         if (config.apis.d3d8.hook && d3d8 && has_dgvoodoo)
 
-	mov	dh, BYTE PTR ?config@@3Usk_config_t@@A+801
+	mov	dh, BYTE PTR ?config@@3Usk_config_t@@A+813
 	setne	al
 	or	cl, al
 	mov	al, BYTE PTR ?has_dgvoodoo@?1??SK_EstablishDllRole@@YG_NPAUHINSTANCE__@@@Z@4_NA
@@ -42831,7 +41827,7 @@ $LN34@SK_Establi:
 ; 528  : 
 ; 529  :           if (SK_IsDLLSpecialK (L"d3d8.dll"))
 
-	push	OFFSET $SG260388
+	push	OFFSET $SG260429
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	$LN60@SK_Establi
@@ -42861,7 +41857,7 @@ $LN35@SK_Establi:
 ; 535  : 
 ; 536  :         if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11)) 
 
-	mov	dl, BYTE PTR ?config@@3Usk_config_t@@A+805
+	mov	dl, BYTE PTR ?config@@3Usk_config_t@@A+817
 	test	dl, dl
 	je	SHORT $LN38@SK_Establi
 	cmp	BYTE PTR _dxgi$17[ebp], 0
@@ -42880,7 +41876,7 @@ $LN40@SK_Establi:
 ; 539  : 
 ; 540  :           if (SK_IsDLLSpecialK (L"dxgi.dll"))
 
-	push	OFFSET $SG260393
+	push	OFFSET $SG260434
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	$LN60@SK_Establi
@@ -42907,7 +41903,7 @@ $LN38@SK_Establi:
 ; 543  : 
 ; 544  :         else if (config.apis.d3d9.hook && d3d9)
 
-	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+803
+	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+815
 	test	bl, bl
 	je	SHORT $LN42@SK_Establi
 	cmp	BYTE PTR _d3d9$20[ebp], 0
@@ -42923,7 +41919,7 @@ $LN38@SK_Establi:
 ; 547  : 
 ; 548  :           if (SK_IsDLLSpecialK (L"d3d9.dll"))
 
-	push	OFFSET $SG260397
+	push	OFFSET $SG260438
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	$LN60@SK_Establi
@@ -42950,7 +41946,7 @@ $LN42@SK_Establi:
 ; 551  : 
 ; 552  :         else if (config.apis.OpenGL.hook && gl)
 
-	mov	ch, BYTE PTR ?config@@3Usk_config_t@@A+806
+	mov	ch, BYTE PTR ?config@@3Usk_config_t@@A+818
 	test	ch, ch
 	je	SHORT $LN45@SK_Establi
 	cmp	BYTE PTR _gl$19[ebp], 0
@@ -42966,7 +41962,7 @@ $LN42@SK_Establi:
 ; 555  : 
 ; 556  :           if (SK_IsDLLSpecialK (L"OpenGL32.dll"))
 
-	push	OFFSET $SG260401
+	push	OFFSET $SG260442
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	$LN60@SK_Establi
@@ -42999,7 +41995,7 @@ $LN45@SK_Establi:
 ; 565  : 
 ; 566  :         else if (config.apis.ddraw.hook && ddraw && has_dgvoodoo)
 
-	mov	ah, BYTE PTR ?config@@3Usk_config_t@@A+802
+	mov	ah, BYTE PTR ?config@@3Usk_config_t@@A+814
 	test	ah, ah
 	je	SHORT $LN48@SK_Establi
 	test	cl, cl
@@ -43017,7 +42013,7 @@ $LN45@SK_Establi:
 ; 569  :         
 ; 570  :           if (SK_IsDLLSpecialK (L"ddraw.dll"))
 
-	push	OFFSET $SG260405
+	push	OFFSET $SG260446
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	SHORT $LN60@SK_Establi
@@ -43067,7 +42063,7 @@ $LN51@SK_Establi:
 
 	test	bl, bl
 	jne	SHORT $LN55@SK_Establi
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+804, bl
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+816, bl
 	jne	SHORT $LN55@SK_Establi
 
 ; 588  :           else if (config.apis.OpenGL.hook)
@@ -43141,7 +42137,7 @@ $LN61@SK_Establi:
 
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG260417
+	push	OFFSET $SG260458
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	call	?SK_LoadConfig@@YA_NV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; SK_LoadConfig
 	add	esp, 24					; 00000018H
@@ -50890,7 +49886,7 @@ _hMod$ = 12						; size = 4
 ?insert@SK_ModuleAddrMap@@QAEXPAXPAUHINSTANCE__@@@Z PROC ; SK_ModuleAddrMap::insert
 ; _this$ = ecx
 
-; 1095 : {
+; 1084 : {
 
 	npad	2
 	push	ebp
@@ -50905,12 +49901,12 @@ _hMod$ = 12						; size = 4
 	push	edi
 	mov	edi, ecx
 
-; 1096 :   if (pResolved == nullptr)
+; 1085 :   if (pResolved == nullptr)
 
 	cmp	DWORD PTR [edi], 0
 	jne	SHORT $LN2@insert
 
-; 1097 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
+; 1086 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
 
 	push	32					; 00000020H
 	call	??2@YAPAXI@Z				; operator new
@@ -50941,7 +49937,7 @@ _hMod$ = 12						; size = 4
 	call	??0?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE@ABV?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@1@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1097 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
+; 1086 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
 
 	jmp	SHORT $LN5@insert
 $LN4@insert:
@@ -50951,9 +49947,9 @@ $LN5@insert:
 	mov	DWORD PTR [edi], esi
 $LN2@insert:
 
-; 1098 : 
-; 1099 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ = 
-; 1100 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+; 1087 : 
+; 1088 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ = 
+; 1089 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
 
 	mov	esi, DWORD PTR [edi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -51006,14 +50002,14 @@ $LN2@insert:
 	call	??$emplace@ABUpiecewise_construct_t@std@@V?$tuple@ABQAX@2@V?$tuple@$$V@2@@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@_N@1@ABUpiecewise_construct_t@1@$$QAV?$tuple@ABQAX@1@$$QAV?$tuple@$$V@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::emplace<std::piecewise_construct_t const &,std::tuple<void * const &>,std::tuple<> >
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1102 :   (*pResolved_) [pAddr] = hMod;
+; 1091 :   (*pResolved_) [pAddr] = hMod;
 
 	mov	eax, DWORD PTR $T2[ebp]
 $LN42@insert:
 	mov	ecx, DWORD PTR _hMod$[ebp]
 	mov	DWORD PTR [eax+12], ecx
 
-; 1103 : }
+; 1092 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -51043,13 +50039,7 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -51061,20 +50051,20 @@ text$x	ENDS
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 _TEXT	SEGMENT
 $T2 = -28						; size = 8
-__Ans$3 = -28						; size = 8
-$T4 = -24						; size = 4
-$T5 = -20						; size = 4
-__Where$6 = -20						; size = 4
-$T7 = -20						; size = 4
+$T3 = -24						; size = 4
+$T4 = -20						; size = 4
+__Where$5 = -20						; size = 4
+$T6 = -20						; size = 4
+_$S1$ = -20						; size = 4
+$T7 = -13						; size = 1
 $T8 = -13						; size = 1
-$T9 = -13						; size = 1
 __$EHRec$ = -12						; size = 12
 _pAddr$ = 8						; size = 4
 _phMod$ = 12						; size = 4
 ?contains@SK_ModuleAddrMap@@QAE_NPAXPAPAUHINSTANCE__@@@Z PROC ; SK_ModuleAddrMap::contains
 ; _this$ = ecx
 
-; 1077 : {
+; 1063 : {
 
 	npad	2
 	push	ebp
@@ -51089,18 +50079,18 @@ _phMod$ = 12						; size = 4
 	push	edi
 	mov	edi, ecx
 
-; 1078 :   if (pResolved == nullptr)
+; 1064 :   if (pResolved == nullptr)
 
 	cmp	DWORD PTR [edi], 0
 	jne	SHORT $LN2@contains
 
-; 1079 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
+; 1065 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
 
 	push	32					; 00000020H
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
 	add	esp, 4
-	mov	DWORD PTR $T4[ebp], esi
+	mov	DWORD PTR $T3[ebp], esi
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	test	esi, esi
 	je	SHORT $LN5@contains
@@ -51108,24 +50098,24 @@ _phMod$ = 12						; size = 4
 
 ; 118  : 		: _Mybase(key_compare(), allocator_type())
 
-	lea	eax, DWORD PTR $T9[ebp]
+	lea	eax, DWORD PTR $T8[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 
 ; 311  : 			_Myval2(_STD forward<_Other2>(_Val2)...)
 
-	mov	DWORD PTR $T7[ebp], 0
+	mov	DWORD PTR $T6[ebp], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
 
 ; 118  : 		: _Mybase(key_compare(), allocator_type())
 
 	push	eax
-	lea	eax, DWORD PTR $T7[ebp]
+	lea	eax, DWORD PTR $T6[ebp]
 	mov	ecx, esi
 	push	eax
 	call	??0?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE@ABV?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@1@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1079 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
+; 1065 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
 
 	jmp	SHORT $LN6@contains
 $LN5@contains:
@@ -51135,89 +50125,56 @@ $LN6@contains:
 	mov	DWORD PTR [edi], esi
 $LN2@contains:
 
-; 1080 : 
-; 1081 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ =
-; 1082 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+; 1066 : 
+; 1067 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ =
+; 1068 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
 
-	mov	esi, DWORD PTR [edi]
+	mov	edi, DWORD PTR [edi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 
-; 635  : 		_Paircc _Ans = equal_range(_Keyval);
+; 625  : 		return (lower_bound(_Keyval));
 
 	lea	eax, DWORD PTR _pAddr$[ebp]
 	push	eax
-	lea	eax, DWORD PTR __Ans$3[ebp]
-	mov	ecx, esi
+	lea	eax, DWORD PTR _$S1$[ebp]
+	mov	ecx, edi
 	push	eax
-	call	?equal_range@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@V12@@2@ABQAX@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::equal_range
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1113 : 	return (_Distance1(_First, _Last, _Iter_cat_t<_InIt>()));
-
-	mov	eax, DWORD PTR __Ans$3[ebp]
-
-; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
-
-	xor	edx, edx
+	call	?lower_bound@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@ABQAX@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::lower_bound
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	esi, DWORD PTR [edi+4]
 
 ; 297  : 		return (this->_Ptr == _Right._Ptr);
 
-	mov	ecx, DWORD PTR __Ans$3[ebp+4]
-	cmp	eax, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	je	SHORT $LN3@contains
-$LL45@contains:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1097 : 		++_Off;
-
-	inc	edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	cmp	eax, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	jne	SHORT $LL45@contains
+	cmp	DWORD PTR _$S1$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1084 :   if (pResolved_->count (pAddr))
+; 1073 :   if (it != pResolved_->cend ())
 
-	test	edx, edx
 	je	SHORT $LN3@contains
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 
 ; 625  : 		return (lower_bound(_Keyval));
 
 	lea	eax, DWORD PTR _pAddr$[ebp]
-	mov	ecx, esi
+	mov	ecx, edi
 	push	eax
-	lea	eax, DWORD PTR __Where$6[ebp]
+	lea	eax, DWORD PTR __Where$5[ebp]
 	push	eax
 	call	?lower_bound@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@2@ABQAX@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::lower_bound
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
 
 ; 297  : 		return (this->_Ptr == _Right._Ptr);
 
-	mov	eax, DWORD PTR __Where$6[ebp]
-	cmp	eax, DWORD PTR [esi+4]
+	mov	eax, DWORD PTR __Where$5[ebp]
+	cmp	eax, esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
 
 ; 308  : 		if (_Where == _Mybase::end())
 
-	jne	SHORT $LN60@contains
+	jne	SHORT $LN82@contains
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
 
 ; 164  : 		: _Val(_STD forward<_Other>(_Arg))
@@ -51227,29 +50184,29 @@ $LL45@contains:
 
 ; 309  : 			return (_Mybase::emplace(
 
-	mov	ecx, esi
+	mov	ecx, edi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
 
 ; 164  : 		: _Val(_STD forward<_Other>(_Arg))
 
-	mov	DWORD PTR $T5[ebp], eax
+	mov	DWORD PTR $T4[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
 
 ; 309  : 			return (_Mybase::emplace(
 
-	lea	eax, DWORD PTR $T8[ebp]
+	lea	eax, DWORD PTR $T7[ebp]
 	push	eax
-	lea	eax, DWORD PTR $T5[ebp]
+	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
 	push	OFFSET ?piecewise_construct@std@@3Upiecewise_construct_t@1@B
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
 	call	??$emplace@ABUpiecewise_construct_t@std@@V?$tuple@ABQAX@2@V?$tuple@$$V@2@@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@_N@1@ABUpiecewise_construct_t@1@$$QAV?$tuple@ABQAX@1@$$QAV?$tuple@$$V@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::emplace<std::piecewise_construct_t const &,std::tuple<void * const &>,std::tuple<> >
 	mov	eax, DWORD PTR $T2[ebp]
-$LN60@contains:
+$LN82@contains:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1086 :     *phMod = (*pResolved_) [pAddr];
+; 1075 :     *phMod = (*pResolved_) [pAddr];
 
 	mov	ecx, DWORD PTR [eax+12]
 	mov	eax, DWORD PTR _phMod$[ebp]
@@ -51257,14 +50214,14 @@ $LN60@contains:
 	pop	esi
 	mov	DWORD PTR [eax], ecx
 
-; 1087 :     return true;
+; 1076 :     return true;
 
 	mov	al, 1
 
-; 1088 :   }
-; 1089 : 
-; 1090 :   return false;
-; 1091 : }
+; 1077 :   }
+; 1078 : 
+; 1079 :   return false;
+; 1080 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -51284,7 +50241,7 @@ _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?contains@SK_ModuleAddrMap@@QAE_NPAXPAPAUHINSTANCE__@@@Z$0:
 	push	32					; 00000020H
-	mov	eax, DWORD PTR $T4[ebp]
+	mov	eax, DWORD PTR $T3[ebp]
 	push	eax
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
@@ -51308,7 +50265,7 @@ _TEXT	SEGMENT
 	mov	DWORD PTR [ecx], 0
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1073 : SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
+; 1059 : SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
 
 	mov	eax, ecx
 	ret	0
@@ -51327,12 +50284,12 @@ ___flags$ = 8						; size = 4
 	push	esi
 	mov	esi, ecx
 
-; 284  :     DeleteCriticalSection (cs_);
+; 287  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 285  :     delete cs_;
+; 288  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [esi]
@@ -51358,18 +50315,18 @@ _TEXT	SEGMENT
 ??1SK_Thread_HybridSpinlock@@QAE@XZ PROC		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 283  :   {
+; 286  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 284  :     DeleteCriticalSection (cs_);
+; 287  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 285  :     delete cs_;
+; 288  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [esi]
@@ -51377,7 +50334,7 @@ _TEXT	SEGMENT
 	add	esp, 8
 	pop	esi
 
-; 286  :   }
+; 289  :   }
 
 	ret	0
 ??1SK_Thread_HybridSpinlock@@QAE@XZ ENDP		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock
@@ -51390,55 +50347,55 @@ _spin_count$ = 8					; size = 4
 ??0SK_Thread_HybridSpinlock@@QAE@H@Z PROC		; SK_Thread_HybridSpinlock::SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 278  :   {
+; 281  :   {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 256  :   };
-; 257  : 
-; 258  :   ~SK_Thread_CriticalSection (void) = default;
-; 259  : 
-; 260  :   void lock (void) {
-; 261  :     EnterCriticalSection (cs_);
-; 262  :   }
-; 263  : 
-; 264  :   void unlock (void)
-; 265  :   {
-; 266  :     LeaveCriticalSection (cs_);
-; 267  :   }
-; 268  : 
-; 269  : protected:
-; 270  :   CRITICAL_SECTION* cs_;
-; 271  : };
-; 272  : 
-; 273  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
-; 274  : {
-; 275  : public:
-; 276  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
-; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 259  :   };
+; 260  : 
+; 261  :   ~SK_Thread_CriticalSection (void) = default;
+; 262  : 
+; 263  :   void lock (void) {
+; 264  :     EnterCriticalSection (cs_);
+; 265  :   }
+; 266  : 
+; 267  :   void unlock (void)
+; 268  :   {
+; 269  :     LeaveCriticalSection (cs_);
+; 270  :   }
+; 271  : 
+; 272  : protected:
+; 273  :   CRITICAL_SECTION* cs_;
+; 274  : };
+; 275  : 
+; 276  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
+; 277  : {
+; 278  : public:
+; 279  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 
-; 278  :   {
+; 281  :   {
 
 	mov	esi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 255  :     cs_ = pCS;
+; 258  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 279  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	DWORD PTR _spin_count$[ebp]
 	push	eax
 	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 
-; 280  :   }
+; 283  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -51454,19 +50411,19 @@ _pCS$ = 8						; size = 4
 ??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z PROC ; SK_Thread_CriticalSection::SK_Thread_CriticalSection, COMDAT
 ; _this$ = ecx
 
-; 253  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+; 256  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 254  :   {
-; 255  :     cs_ = pCS;
+; 257  :   {
+; 258  :     cs_ = pCS;
 
 	mov	eax, DWORD PTR _pCS$[ebp]
 	mov	DWORD PTR [ecx], eax
 
-; 256  :   };
+; 259  :   };
 
 	mov	eax, ecx
 	pop	ebp
@@ -57554,7 +56511,7 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 1104 : }
+; 1093 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
@@ -57566,7 +56523,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 1104 : }
+; 1093 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

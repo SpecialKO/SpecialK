@@ -9,42 +9,55 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
-PUBLIC	?pConsole@SK_Console@@2PAV1@A			; SK_Console::pConsole
 PUBLIC	?bNoConsole@@3_NA				; bNoConsole
+PUBLIC	?pConsole@SK_Console@@2PAV1@A			; SK_Console::pConsole
 _BSS	SEGMENT
-?pConsole@SK_Console@@2PAV1@A DD 01H DUP (?)		; SK_Console::pConsole
 ?bNoConsole@@3_NA DB 01H DUP (?)			; bNoConsole
+	ALIGN	4
+
+?pConsole@SK_Console@@2PAV1@A DD 01H DUP (?)		; SK_Console::pConsole
 _BSS	ENDS
 CONST	SEGMENT
-$SG184323 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
+$SG184340 DB	00H
+$SG184341 DB	00H
+$SG184375 DB	00H
+$SG184383 DB	00H
+$SG184380 DB	'-', 00H
+	ORG $+2
+$SG184382 DB	0aH, 00H
+	ORG $+2
+$SG184384 DB	'SpecialK Console', 00H
+	ORG $+3
+$SG184394 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
 	DB	'P', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'n', 00H, 'y', 00H, '.'
 	DB	00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG184269 DB	00H
-$SG184270 DB	00H
-$SG184334 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
+	ORG $+2
+$SG184405 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
 	DB	'P', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'n', 00H, 'y', 00H, '.'
 	DB	00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG184304 DB	00H
-$SG184312 DB	00H
-$SG184554 DB	' ', 00H
 	ORG $+2
-$SG184559 DB	':  ', 00H
-$SG184560 DB	' ', 00H
+$SG187975 DB	' ', 00H
 	ORG $+2
-$SG184309 DB	'-', 00H
-	ORG $+2
-$SG184311 DB	0aH, 00H
-	ORG $+2
-$SG184313 DB	'SpecialK Console', 00H
+$SG187980 DB	':  ', 00H
+$SG187981 DB	' ', 00H
 CONST	ENDS
+PUBLIC	?_Hash_seq@std@@YAIPBEI@Z			; std::_Hash_seq
+PUBLIC	??R?$_Bitwise_hash@I@std@@QBEIABI@Z		; std::_Bitwise_hash<unsigned int>::operator()
+PUBLIC	_wmemcpy
+PUBLIC	_wmemmove
 PUBLIC	??2@YAPAXIPAX@Z					; operator new
 PUBLIC	??3@YAXPAX0@Z					; operator delete
+PUBLIC	?copy@?$char_traits@_W@std@@SAPA_WQA_WQB_WI@Z	; std::char_traits<wchar_t>::copy
+PUBLIC	?move@?$char_traits@_W@std@@SAPA_WQA_WQB_WI@Z	; std::char_traits<wchar_t>::move
+PUBLIC	?assign@?$char_traits@_W@std@@SAXAA_WAB_W@Z	; std::char_traits<wchar_t>::assign
 PUBLIC	?compare@?$char_traits@D@std@@SAHQBD0I@Z	; std::char_traits<char>::compare
 PUBLIC	?length@?$char_traits@D@std@@SAIQBD@Z		; std::char_traits<char>::length
 PUBLIC	?copy@?$char_traits@D@std@@SAPADQADQBDI@Z	; std::char_traits<char>::copy
 PUBLIC	?move@?$char_traits@D@std@@SAPADQADQBDI@Z	; std::char_traits<char>::move
 PUBLIC	?assign@?$char_traits@D@std@@SAXAADABD@Z	; std::char_traits<char>::assign
 PUBLIC	?_Orphan_all@_Container_base0@std@@QAEXXZ	; std::_Container_base0::_Orphan_all
+PUBLIC	?_Adopt@_Iterator_base0@std@@QAEXPBX@Z		; std::_Iterator_base0::_Adopt
+PUBLIC	?_Getcont@_Iterator_base0@std@@QBEPBU_Container_base0@2@XZ ; std::_Iterator_base0::_Getcont
 PUBLIC	?_Allocate@std@@YAPAXII_N@Z			; std::_Allocate
 PUBLIC	?_Deallocate@std@@YAXPAXII@Z			; std::_Deallocate
 PUBLIC	??0?$allocator@D@std@@QAE@XZ			; std::allocator<char>::allocator<char>
@@ -127,6 +140,56 @@ PUBLIC	?_Xlen@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@SAXXZ
 PUBLIC	?_Check_offset@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBEXI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::_Check_offset
 PUBLIC	?_Xran@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@SAXXZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::_Xran
 PUBLIC	??_G?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEPAXI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::`scalar deleting destructor'
+PUBLIC	??0?$allocator@_W@std@@QAE@ABV01@@Z		; std::allocator<wchar_t>::allocator<wchar_t>
+PUBLIC	?deallocate@?$allocator@_W@std@@QAEXPA_WI@Z	; std::allocator<wchar_t>::deallocate
+PUBLIC	?allocate@?$allocator@_W@std@@QAEPA_WI@Z	; std::allocator<wchar_t>::allocate
+PUBLIC	?max_size@?$allocator@_W@std@@QBEIXZ		; std::allocator<wchar_t>::max_size
+PUBLIC	?max_size@?$allocator_traits@V?$allocator@_W@std@@@std@@SAIABV?$allocator@_W@2@@Z ; std::allocator_traits<std::allocator<wchar_t> >::max_size
+PUBLIC	?select_on_container_copy_construction@?$allocator_traits@V?$allocator@_W@std@@@std@@SA?AV?$allocator@_W@2@ABV32@@Z ; std::allocator_traits<std::allocator<wchar_t> >::select_on_container_copy_construction
+PUBLIC	?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBE?AU12@U_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::select_on_container_copy_construction
+PUBLIC	??0?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAU01@@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> >
+PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEPA_WI@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::allocate
+PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPA_WI@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::deallocate
+PUBLIC	?max_size@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBEIU_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::max_size
+PUBLIC	??0?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ ; std::_String_val<std::_Simple_types<wchar_t> >::_String_val<std::_Simple_types<wchar_t> >
+PUBLIC	?_Myptr@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAEPA_WXZ ; std::_String_val<std::_Simple_types<wchar_t> >::_Myptr
+PUBLIC	?_Myptr@?$_String_val@U?$_Simple_types@_W@std@@@std@@QBEPB_WXZ ; std::_String_val<std::_Simple_types<wchar_t> >::_Myptr
+PUBLIC	?_Large_string_engaged@?$_String_val@U?$_Simple_types@_W@std@@@std@@QBE_NXZ ; std::_String_val<std::_Simple_types<wchar_t> >::_Large_string_engaged
+PUBLIC	??0_Bxty@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ ; std::_String_val<std::_Simple_types<wchar_t> >::_Bxty::_Bxty
+PUBLIC	??1_Bxty@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ ; std::_String_val<std::_Simple_types<wchar_t> >::_Bxty::~_Bxty
+PUBLIC	??1?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ ; std::_String_val<std::_Simple_types<wchar_t> >::~_String_val<std::_Simple_types<wchar_t> >
+PUBLIC	?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEPA_WXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myptr
+PUBLIC	?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEPB_WXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myptr
+PUBLIC	?_Orphan_all@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Orphan_all
+PUBLIC	?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Getal
+PUBLIC	?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Getal
+PUBLIC	?_Get_data@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Get_data
+PUBLIC	?_Get_data@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Get_data
+PUBLIC	?_Mysize@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAIXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Mysize
+PUBLIC	?_Mysize@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABIXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Mysize
+PUBLIC	?_Myres@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAIXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myres
+PUBLIC	?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_first
+PUBLIC	?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_first
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAEAAV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_second
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QBEABV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_second
+PUBLIC	??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::~_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>
+PUBLIC	??1?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@XZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::~_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >
+PUBLIC	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@ABV01@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+PUBLIC	?_Assign_lv_contents@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Assign_lv_contents
+PUBLIC	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+PUBLIC	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+PUBLIC	?erase@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@I@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::erase
+PUBLIC	?erase@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::erase
+PUBLIC	?max_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::max_size
+PUBLIC	?_Clamp_suffix_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIII@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Clamp_suffix_size
+PUBLIC	?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Copy
+PUBLIC	?_Eos@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Eos
+PUBLIC	?_Grow@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE_NI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Grow
+PUBLIC	?_Tidy_init@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Tidy_init
+PUBLIC	?_Tidy_deallocate@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Tidy_deallocate
+PUBLIC	?_Xlen@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xlen
+PUBLIC	?_Check_offset@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEXI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Check_offset
+PUBLIC	?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xran
 PUBLIC	??0?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@QAE@XZ ; std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
 PUBLIC	?deallocate@?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@QAEXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@I@Z ; std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >::deallocate
 PUBLIC	?allocate@?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@QAEPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@I@Z ; std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >::allocate
@@ -187,7 +250,142 @@ PUBLIC	?getArgs@SK_ICommandResult@@QBEPBDXZ		; SK_ICommandResult::getArgs
 PUBLIC	?getResult@SK_ICommandResult@@QBEPBDXZ		; SK_ICommandResult::getResult
 PUBLIC	?getStatus@SK_ICommandResult@@QBEHXZ		; SK_ICommandResult::getStatus
 PUBLIC	??1SK_ICommandResult@@QAE@XZ			; SK_ICommandResult::~SK_ICommandResult
+PUBLIC	??1SK_Keybind@@QAE@XZ				; SK_Keybind::~SK_Keybind
+PUBLIC	??1SK_KeyCommand@@QAE@XZ			; SK_KeyCommand::~SK_KeyCommand
+PUBLIC	??0?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QAE@U?$hash@I@1@U?$equal_to@I@1@@Z ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >
+PUBLIC	??R?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEIABI@Z ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::operator()
+PUBLIC	??R?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBE_NABI0@Z ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::operator()
+PUBLIC	?_Gethash@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEABU?$hash@I@2@XZ ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Gethash
+PUBLIC	?_Getkeyeq@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEABU?$equal_to@I@2@XZ ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Getkeyeq
+PUBLIC	?_Get_max_bucket_size@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QAEAAMXZ ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Get_max_bucket_size
+PUBLIC	??R?$equal_to@I@std@@QBE_NABI0@Z		; std::equal_to<unsigned int>::operator()
+PUBLIC	?_Get_first@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QBEABU?$equal_to@I@2@XZ ; std::_Compressed_pair<std::equal_to<unsigned int>,float,1>::_Get_first
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QAEAAMXZ ; std::_Compressed_pair<std::equal_to<unsigned int>,float,1>::_Get_second
+PUBLIC	?_Get_first@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QBEABU?$hash@I@2@XZ ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Get_first
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QAEAAV?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@XZ ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Get_second
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QBEABV?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@XZ ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Get_second
+PUBLIC	??0?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@@Z ; std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1>::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1>
+PUBLIC	??0?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@QAE@XZ ; std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >::allocator<std::pair<unsigned int const ,SK_KeyCommand> >
+PUBLIC	?deallocate@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::deallocate
+PUBLIC	?allocate@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::allocate
+PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::allocate
+PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::deallocate
+PUBLIC	?_Nextnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Nextnode
+PUBLIC	?_Prevnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Prevnode
+PUBLIC	?_Myval@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAU?$pair@$$CBIUSK_KeyCommand@@@2@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Myval
+PUBLIC	??1?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAE@XZ ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::~_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >
+PUBLIC	?_Buyheadnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buyheadnode
+PUBLIC	?_Freeheadnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Freeheadnode
+PUBLIC	?_Buynode0@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@0@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buynode0
+PUBLIC	?_Getal@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@2@XZ ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Getal
+PUBLIC	?_Get_data@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Get_data
+PUBLIC	?_Get_data@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QBEABV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Get_data
+PUBLIC	?_Myhead@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Myhead
+PUBLIC	?_Myhead@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QBEABQAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Myhead
+PUBLIC	?_Mysize@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAIXZ ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Mysize
+PUBLIC	??0?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@QAE@XZ ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >
+PUBLIC	?_Nextnode@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_Nextnode
+PUBLIC	?_Prevnode@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_Prevnode
+PUBLIC	?_Myval@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAU?$pair@$$CBIUSK_KeyCommand@@@2@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_Myval
+PUBLIC	?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Get_first
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAEAAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Get_second
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QBEABV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Get_second
+PUBLIC	?_Freenode@?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z ; std::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Freenode
+PUBLIC	??1?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@XZ ; std::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+PUBLIC	??0?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+PUBLIC	??1?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@XZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+PUBLIC	?end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::end
+PUBLIC	?end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::end
+PUBLIC	?_Unchecked_end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Unchecked_end
+PUBLIC	?_Unchecked_end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Unchecked_end
+PUBLIC	?_Make_iter@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Make_iter
+PUBLIC	?clear@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::clear
+PUBLIC	?_Tidy@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Tidy
+PUBLIC	??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >
+PUBLIC	??1?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@XZ ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::~_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >
+PUBLIC	?end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::end
+PUBLIC	?end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::end
+PUBLIC	?_Unchecked_end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Unchecked_end
+PUBLIC	?_Unchecked_end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Unchecked_end
+PUBLIC	?_Make_iter@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Make_iter
+PUBLIC	?count@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBEIABI@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::count
+PUBLIC	?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::equal_range
+PUBLIC	?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::equal_range
+PUBLIC	?_Vec_lo@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_lo
+PUBLIC	?_Vec_lo@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_lo
+PUBLIC	?_Vec_hi@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_hi
+PUBLIC	?_Vec_hi@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_hi
+PUBLIC	?_Begin@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Begin
+PUBLIC	?_Begin@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Begin
+PUBLIC	?_End@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_End
+PUBLIC	?_End@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_End
+PUBLIC	?_Hashval@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEIABI@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Hashval
+PUBLIC	?_Init@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEXI@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Init
+PUBLIC	?_Max_bucket_size@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAMXZ ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Max_bucket_size
+PUBLIC	??0?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAE@ABV01@@Z ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	?deallocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::deallocate
+PUBLIC	?allocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocate
+PUBLIC	?max_size@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QBEIXZ ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::max_size
+PUBLIC	?max_size@?$allocator_traits@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@SAIABV?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@2@@Z ; std::allocator_traits<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::max_size
+PUBLIC	??0?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABU01@@Z ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >
+PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::allocate
+PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::deallocate
+PUBLIC	?max_size@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QBEIU_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::max_size
+PUBLIC	?max_size@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAIABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::max_size
+PUBLIC	?allocate@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::allocate
+PUBLIC	?deallocate@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::deallocate
+PUBLIC	?max_size@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QBEIU_Nil@2@@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::max_size
+PUBLIC	?_Orphan_all@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEXXZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Orphan_all
+PUBLIC	?_Getal@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Getal
+PUBLIC	?_Getal@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Getal
+PUBLIC	?_Get_data@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Get_data
+PUBLIC	?_Get_data@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Get_data
+PUBLIC	?_Myfirst@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myfirst
+PUBLIC	?_Myfirst@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myfirst
+PUBLIC	?_Mylast@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Mylast
+PUBLIC	?_Mylast@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Mylast
+PUBLIC	?_Myend@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myend
+PUBLIC	?_Myend@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myend
+PUBLIC	??0?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@XZ ; std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >
+PUBLIC	?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_first
+PUBLIC	?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_first
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAEAAV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_second
+PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QBEABV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_second
+PUBLIC	??0?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+PUBLIC	??1?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAE@XZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::~vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+PUBLIC	?assign@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXIABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::assign
+PUBLIC	?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Reallocate_exactly
+PUBLIC	?reserve@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXI@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::reserve
+PUBLIC	?size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::size
+PUBLIC	?max_size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::max_size
+PUBLIC	?capacity@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::capacity
+PUBLIC	??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@I@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::operator[]
+PUBLIC	??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@I@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::operator[]
+PUBLIC	?_Ufill@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@PAV32@IABV32@@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Ufill
+PUBLIC	?_Umove_if_noexcept1@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@00U?$integral_constant@_N$00@2@@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Umove_if_noexcept1
+PUBLIC	?_Umove_if_noexcept@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@00@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Umove_if_noexcept
+PUBLIC	?_Destroy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@0@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Destroy
+PUBLIC	?_Calculate_growth@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@ABEII@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Calculate_growth
+PUBLIC	?_Buy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAE_NI@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Buy
+PUBLIC	?_Change_array@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@II@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Change_array
+PUBLIC	?_Tidy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Tidy
+PUBLIC	?_Xlength@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@CAXXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Xlength
+PUBLIC	??0?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@QAE@XZ ; std::unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+PUBLIC	??1?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@QAE@XZ ; std::unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
 PUBLIC	?SK_PluginKeyPress@@YGXHHHE@Z			; SK_PluginKeyPress
+PUBLIC	??0?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>
+PUBLIC	??D?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBEABU?$pair@$$CBIUSK_KeyCommand@@@1@XZ ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator*
+PUBLIC	??E?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAEAAV01@XZ ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator++
+PUBLIC	??8?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBE_NABV01@@Z ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator==
+PUBLIC	??9?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBE_NABV01@@Z ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator!=
+PUBLIC	??0?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
+PUBLIC	??E?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator++
+PUBLIC	??8?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator==
+PUBLIC	??9?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator!=
+PUBLIC	??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
+PUBLIC	?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Unchecked
+PUBLIC	??1?$pair@$$CBIUSK_KeyCommand@@@std@@QAE@XZ	; std::pair<unsigned int const ,SK_KeyCommand>::~pair<unsigned int const ,SK_KeyCommand>
+PUBLIC	??_G?$pair@$$CBIUSK_KeyCommand@@@std@@QAEPAXI@Z	; std::pair<unsigned int const ,SK_KeyCommand>::`scalar deleting destructor'
 PUBLIC	?SK_ImGui_KeyPress@@YAHHHHE@Z			; SK_ImGui_KeyPress
 PUBLIC	?SK_HandleConsoleKey@@YAH_NEJ@Z			; SK_HandleConsoleKey
 PUBLIC	??$?9DU?$char_traits@D@std@@V?$allocator@D@1@@std@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@QBD@Z ; std::operator!=<char,std::char_traits<char>,std::allocator<char> >
@@ -196,59 +394,148 @@ PUBLIC	??$?HDU?$char_traits@D@std@@V?$allocator@D@1@@std@@YA?AV?$basic_string@DU
 PUBLIC	??$?HDU?$char_traits@D@std@@V?$allocator@D@1@@std@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@$$QAV10@QBD@Z ; std::operator+<char,std::char_traits<char>,std::allocator<char> >
 PUBLIC	??$?HDU?$char_traits@D@std@@V?$allocator@D@1@@std@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@$$QAV10@0@Z ; std::operator+<char,std::char_traits<char>,std::allocator<char> >
 PUBLIC	?SK_IsConsoleVisible@@YGHXZ			; SK_IsConsoleVisible
+PUBLIC	??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
+PUBLIC	??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBEAAU?$pair@$$CBIUSK_KeyCommand@@@1@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator*
+PUBLIC	??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator++
+PUBLIC	??$_Kfn@$$CBIUSK_KeyCommand@@@?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@SAABIABU?$pair@$$CBIUSK_KeyCommand@@@1@@Z ; std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1>::_Kfn<unsigned int const ,SK_KeyCommand>
+PUBLIC	??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z ; std::pair<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::pair<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,void,0>
+PUBLIC	??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0@Z ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
+PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > ><std::_Wrap_alloc<std::allocator<wchar_t> >,void>
 PUBLIC	??$addressof@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YAPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AAV10@@Z ; std::addressof<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
 PUBLIC	??$move@AAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YA$$QAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AAV10@@Z ; std::move<std::basic_string<char,std::char_traits<char>,std::allocator<char> > &>
 PUBLIC	??$move@AAU?$_Wrap_alloc@V?$allocator@D@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@0@AAU10@@Z ; std::move<std::_Wrap_alloc<std::allocator<char> > &>
 PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@D@std@@@std@@X@?$_String_alloc@U?$_String_base_types@DV?$allocator@D@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@1@@Z ; std::_String_alloc<std::_String_base_types<char,std::allocator<char> > >::_String_alloc<std::_String_base_types<char,std::allocator<char> > ><std::_Wrap_alloc<std::allocator<char> >,void>
+PUBLIC	??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,void,0>
+PUBLIC	??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,void,0>
+PUBLIC	??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>
+PUBLIC	??$?0AAU?$hash@I@std@@U_One_then_variadic_args_t@1@AAU?$equal_to@I@1@M@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$hash@I@1@$$QAU21@AAU?$equal_to@I@1@$$QAM@Z ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1><std::hash<unsigned int> &,std::_One_then_variadic_args_t,std::equal_to<unsigned int> &,float>
 PUBLIC	??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >,std::_Vector_val<std::_Simple_types<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >,std::_Vector_val<std::_Simple_types<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >,1><>
+PUBLIC	??$?0V?$allocator@_W@std@@@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAV?$allocator@_W@1@@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> ><std::allocator<wchar_t> >
 PUBLIC	??$?0V?$allocator@D@std@@@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAE@$$QAV?$allocator@D@1@@Z ; std::_Wrap_alloc<std::allocator<char> >::_Wrap_alloc<std::allocator<char> ><std::allocator<char> >
 PUBLIC	??$_Pocma@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@D@std@@@0@0@Z ; std::_Pocma<std::_Wrap_alloc<std::allocator<char> > >
 PUBLIC	??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@V?$_String_val@U?$_Simple_types@D@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1><>
+PUBLIC	??$addressof@PA_W@std@@YAPAPA_WAAPA_W@Z		; std::addressof<wchar_t *>
+PUBLIC	??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::destroy<wchar_t *>
+PUBLIC	??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ; std::move<std::_Wrap_alloc<std::allocator<wchar_t> > &>
 PUBLIC	??$addressof@PAD@std@@YAPAPADAAPAD@Z		; std::addressof<char *>
 PUBLIC	??$destroy@PAD@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAEXPAPAD@Z ; std::_Wrap_alloc<std::allocator<char> >::destroy<char *>
 PUBLIC	??$addressof@V?$_String_val@U?$_Simple_types@D@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@D@std@@@0@AAV10@@Z ; std::addressof<std::_String_val<std::_Simple_types<char> > >
+PUBLIC	??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@X@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &,void>
+PUBLIC	??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@0@ABV10@@Z ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > const >
+PUBLIC	??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@0@AAV10@@Z ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
+PUBLIC	??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@X@?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &,void>
 PUBLIC	??$_Destroy_range@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@std@@YAXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@0AAU?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@0@@Z ; std::_Destroy_range<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::basic_string<char,std::char_traits<char>,std::allocator<char> > *>
+PUBLIC	??$_Unfancy@_W@std@@YAPA_WPA_W@Z		; std::_Unfancy<wchar_t>
 PUBLIC	??$_Unfancy@D@std@@YAPADPAD@Z			; std::_Unfancy<char>
 PUBLIC	??$_Min_value@I@std@@YAABIABI0@Z		; std::_Min_value<unsigned int>
 PUBLIC	??$addressof@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YAPBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@ABV10@@Z ; std::addressof<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const >
+PUBLIC	??$_Destroy_range@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z ; std::_Destroy_range<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>
+PUBLIC	??$_Fill_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@@Z ; std::_Fill_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$addressof@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@YAPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@0@AAPAU10@@Z ; std::addressof<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+PUBLIC	??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+PUBLIC	??$construct@PA_WAAPA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_WAAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
 PUBLIC	??$construct@PADAAPAD@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAEXPAPADAAPAD@Z ; std::_Wrap_alloc<std::allocator<char> >::construct<char *,char * &>
+PUBLIC	??$_Uninitialized_fill_n@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z ; std::_Uninitialized_fill_n<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+PUBLIC	??$addressof@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@YAPAU?$pair@$$CBIUSK_KeyCommand@@@0@AAU10@@Z ; std::addressof<std::pair<unsigned int const ,SK_KeyCommand> >
+PUBLIC	??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::pair<unsigned int const ,SK_KeyCommand> >
+PUBLIC	??$_Fn@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@_Alloc_max_size@std@@SAIHABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ; std::_Alloc_max_size::_Fn<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+PUBLIC	??$_Uninitialized_move@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z ; std::_Uninitialized_move<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+PUBLIC	??$_Unchecked@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YA?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@@Z ; std::_Unchecked<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
 PUBLIC	??$?8DU?$char_traits@D@std@@V?$allocator@D@1@@std@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@QBD@Z ; std::operator==<char,std::char_traits<char>,std::allocator<char> >
 PUBLIC	??$forward@PAD@std@@YA$$QAPADAAPAD@Z		; std::forward<char *>
 PUBLIC	??$_Emplace_back_with_unused_capacity@PAD@?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@AAEX$$QAPAD@Z ; std::vector<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >::_Emplace_back_with_unused_capacity<char *>
 PUBLIC	??$_Unfancy@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YAPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@PAV10@@Z ; std::_Unfancy<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
 PUBLIC	??$construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAD@?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@std@@QAEXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QAPAD@Z ; std::_Wrap_alloc<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >::construct<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,char *>
 PUBLIC	??$destroy@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@std@@QAEXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@@Z ; std::_Wrap_alloc<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >::destroy<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
+PUBLIC	??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z ; std::forward<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z ; std::_Distance1<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >
+PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >
 PUBLIC	??$forward@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<char> > >
 PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@D@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@V?$_String_val@U?$_Simple_types@D@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1><std::_Wrap_alloc<std::allocator<char> > >
+PUBLIC	??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z ; std::forward<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$forward@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@YAABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@0@ABV10@@Z ; std::forward<std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>
+PUBLIC	??$?0U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::pair<unsigned int const ,SK_KeyCommand> >
+PUBLIC	??$forward@AAU?$hash@I@std@@@std@@YAAAU?$hash@I@0@AAU10@@Z ; std::forward<std::hash<unsigned int> &>
+PUBLIC	??$forward@U_One_then_variadic_args_t@std@@@std@@YA$$QAU_One_then_variadic_args_t@0@AAU10@@Z ; std::forward<std::_One_then_variadic_args_t>
+PUBLIC	??$forward@AAU?$equal_to@I@std@@@std@@YAAAU?$equal_to@I@0@AAU10@@Z ; std::forward<std::equal_to<unsigned int> &>
+PUBLIC	??$forward@M@std@@YA$$QAMAAM@Z			; std::forward<float>
+PUBLIC	??$?0AAU?$equal_to@I@std@@M@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$equal_to@I@1@$$QAM@Z ; std::_Compressed_pair<std::equal_to<unsigned int>,float,1>::_Compressed_pair<std::equal_to<unsigned int>,float,1><std::equal_to<unsigned int> &,float>
+PUBLIC	??$forward@V?$allocator@_W@std@@@std@@YA$$QAV?$allocator@_W@0@AAV10@@Z ; std::forward<std::allocator<wchar_t> >
 PUBLIC	??$forward@V?$allocator@D@std@@@std@@YA$$QAV?$allocator@D@0@AAV10@@Z ; std::forward<std::allocator<char> >
 PUBLIC	??$_Pocma@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@D@std@@@0@0U?$integral_constant@_N$00@0@@Z ; std::_Pocma<std::_Wrap_alloc<std::allocator<char> > >
+PUBLIC	??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z ; std::allocator_traits<std::allocator<wchar_t> >::destroy<wchar_t *>
 PUBLIC	??$destroy@PAD@?$allocator_traits@V?$allocator@D@std@@@std@@SAXAAV?$allocator@D@1@PAPAD@Z ; std::allocator_traits<std::allocator<char> >::destroy<char *>
+PUBLIC	??$forward@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@YAABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@0@ABU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &>
+PUBLIC	??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &>
+PUBLIC	??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@X@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &,void>
 PUBLIC	??$_Destroy_range1@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@std@@YAXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@0AAU?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ; std::_Destroy_range1<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::basic_string<char,std::char_traits<char>,std::allocator<char> > *>
+PUBLIC	??$_Destroy_range1@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ; std::_Destroy_range1<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>
+PUBLIC	??$_Fill_memset_is_safe@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YA?AU?$integral_constant@_N$0A@@0@ABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@ABV20@@Z ; std::_Fill_memset_is_safe<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$_Fill_unchecked1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@U?$integral_constant@_N$0A@@0@@Z ; std::_Fill_unchecked1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z ; std::allocator_traits<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+PUBLIC	??$forward@AAPA_W@std@@YAAAPA_WAAPA_W@Z		; std::forward<wchar_t * &>
+PUBLIC	??$construct@PA_WAAPA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_WAAPA_W@Z ; std::allocator_traits<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
 PUBLIC	??$forward@AAPAD@std@@YAAAPADAAPAD@Z		; std::forward<char * &>
 PUBLIC	??$construct@PADAAPAD@?$allocator_traits@V?$allocator@D@std@@@std@@SAXAAV?$allocator@D@1@PAPADAAPAD@Z ; std::allocator_traits<std::allocator<char> >::construct<char *,char * &>
+PUBLIC	??$_Unfancy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@@Z ; std::_Unfancy<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$_Uninit_alloc_fill_n1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ; std::_Uninit_alloc_fill_n1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+PUBLIC	??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z ; std::allocator_traits<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::pair<unsigned int const ,SK_KeyCommand> >
+PUBLIC	??$_Unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@@Z ; std::_Unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>
+PUBLIC	??$_Ptr_move_cat@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YA?AU_Trivially_copyable_ptr_iterator_tag@0@ABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0@Z ; std::_Ptr_move_cat<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$move@AAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z ; std::move<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > &>
+PUBLIC	??$_Uninitialized_move_al_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z ; std::_Uninitialized_move_al_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+PUBLIC	??$?0U?$integral_constant@_N$0A@@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$0A@@1@@Z ; std::_Any_tag::_Any_tag<std::integral_constant<bool,0> >
+PUBLIC	??$_Rechecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@@std@@YAAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAPAV10@PAV10@@Z ; std::_Rechecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>
 PUBLIC	??$_Uninitialized_move@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAV12@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@YAPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@PAV10@00AAU?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@0@@Z ; std::_Uninitialized_move<std::basic_string<char,std::char_traits<char>,std::allocator<char> > *,std::basic_string<char,std::char_traits<char>,std::allocator<char> > *,std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >
 PUBLIC	??$construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAD@?$allocator_traits@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@std@@SAXAAV?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@1@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QAPAD@Z ; std::allocator_traits<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >::construct<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,char *>
 PUBLIC	??$destroy@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@?$allocator_traits@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@std@@SAXAAV?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@1@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@@Z ; std::allocator_traits<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >::destroy<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
+PUBLIC	??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z ; std::allocator<wchar_t>::destroy<wchar_t *>
 PUBLIC	??$destroy@PAD@?$allocator@D@std@@QAEXPAPAD@Z	; std::allocator<char>::destroy<char *>
+PUBLIC	??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &>
+PUBLIC	??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>
+PUBLIC	??$destroy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::destroy<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+PUBLIC	??$construct@PA_WAAPA_W@?$allocator@_W@std@@QAEXPAPA_WAAPA_W@Z ; std::allocator<wchar_t>::construct<wchar_t *,wchar_t * &>
 PUBLIC	??$construct@PADAAPAD@?$allocator@D@std@@QAEXPAPADAAPAD@Z ; std::allocator<char>::construct<char *,char * &>
+PUBLIC	??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV21@@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>
+PUBLIC	??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::destroy<std::pair<unsigned int const ,SK_KeyCommand> >
+PUBLIC	??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV21@@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
 PUBLIC	??$_Unchecked@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YAPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@PAV10@@Z ; std::_Unchecked<std::basic_string<char,std::char_traits<char>,std::allocator<char> > *>
 PUBLIC	??$_Ptr_move_cat@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V12@@std@@YA?AU_General_ptr_iterator_tag@0@ABQAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@0@Z ; std::_Ptr_move_cat<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
 PUBLIC	??$_Uninitialized_move_al_unchecked@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAV12@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@YAPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@PAV10@00AAU?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z ; std::_Uninitialized_move_al_unchecked<std::basic_string<char,std::char_traits<char>,std::allocator<char> > *,std::basic_string<char,std::char_traits<char>,std::allocator<char> > *,std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >
 PUBLIC	??$?0U?$integral_constant@_N$00@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$00@1@@Z ; std::_Any_tag::_Any_tag<std::integral_constant<bool,1> >
 PUBLIC	??$_Rechecked@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAV12@@std@@YAAAPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AAPAV10@PAV10@@Z ; std::_Rechecked<std::basic_string<char,std::char_traits<char>,std::allocator<char> > *,std::basic_string<char,std::char_traits<char>,std::allocator<char> > *>
 PUBLIC	??$_Traits_equal@U?$char_traits@D@std@@@std@@YA_NQBDI0I@Z ; std::_Traits_equal<std::char_traits<char> >
+PUBLIC	??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU21@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::construct<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *,std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>
 PUBLIC	??$construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAD@?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@QAEXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QAPAD@Z ; std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >::construct<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,char *>
 PUBLIC	??$destroy@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@QAEXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@@Z ; std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >::destroy<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
+PUBLIC	??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>
+PUBLIC	??$destroy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::destroy<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$forward@ABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@ABV10@@Z ; std::forward<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>
+PUBLIC	??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV31@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>
+PUBLIC	??$forward@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z ; std::forward<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV31@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
 PUBLIC	??$construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V12@@?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@std@@QAEXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QAV21@@Z ; std::_Wrap_alloc<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >::construct<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
+PUBLIC	??$forward@AAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@YAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@0@AAPAU10@@Z ; std::forward<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>
+PUBLIC	??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU31@@Z ; std::allocator_traits<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::construct<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *,std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>
+PUBLIC	??$?0U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> ><std::pair<unsigned int const ,SK_KeyCommand> >
+PUBLIC	??$_Destroy1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@U?$integral_constant@_N$00@1@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Destroy1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+PUBLIC	??$_Construct1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV41@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Construct1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>
+PUBLIC	??$_Construct1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV41@@Z ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Construct1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
 PUBLIC	??$forward@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YA$$QAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AAV10@@Z ; std::forward<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
 PUBLIC	??$construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V12@@?$allocator_traits@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@std@@SAXAAV?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@1@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QAV31@@Z ; std::allocator_traits<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >::construct<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
+PUBLIC	??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU21@@Z ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::construct<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *,std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>
 PUBLIC	??$construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V12@@?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@QAEXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QAV21@@Z ; std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >::construct<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
+PUBLIC	?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A ; SK_KeyboardMacros
 PUBLIC	??_C@_0BA@JFNIOLAK@string?5too?5long?$AA@	; `string'
 PUBLIC	??_C@_0BI@CFPLBAOH@invalid?5string?5position?$AA@ ; `string'
 PUBLIC	??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ ; `string'
 EXTRN	??2@YAPAXI@Z:PROC				; operator new
 EXTRN	??3@YAXPAX@Z:PROC				; operator delete
 EXTRN	??3@YAXPAXI@Z:PROC				; operator delete
+EXTRN	_atexit:PROC
 EXTRN	__Init_thread_header:PROC
 EXTRN	__Init_thread_footer:PROC
 EXTRN	__imp___invalid_parameter_noinfo_noreturn:PROC
@@ -266,6 +553,7 @@ EXTRN	__imp_?_Xout_of_range@std@@YAXPBD@Z:PROC
 EXTRN	?SetOverlayState@SteamAPI@SK@@YGX_N@Z:PROC	; SK::SteamAPI::SetOverlayState
 EXTRN	?SK_IsSteamOverlayActive@@YG_NXZ:PROC		; SK_IsSteamOverlayActive
 EXTRN	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ:PROC ; SK_GetCommandProcessor
+EXTRN	?SK_WideCharToUTF8@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@@Z:PROC ; SK_WideCharToUTF8
 EXTRN	?SK_DrawExternalOSD@@YGHV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z:PROC ; SK_DrawExternalOSD
 EXTRN	?DispatchKeybinds@SK_ImGui_WidgetRegistry@@QAEHHHHE@Z:PROC ; SK_ImGui_WidgetRegistry::DispatchKeybinds
 EXTRN	?SK_QueryPerf@@YA?AT_LARGE_INTEGER@@XZ:PROC	; SK_QueryPerf
@@ -280,6 +568,7 @@ EXTRN	?GetKeyState_Original@@3P6GFH@ZA:DWORD		; GetKeyState_Original
 EXTRN	?SK_ImGui_Visible@@3_NA:BYTE			; SK_ImGui_Visible
 EXTRN	?SK_ReShade_Visible@@3_NA:BYTE			; SK_ReShade_Visible
 EXTRN	?SK_ImGui_Widgets@@3USK_ImGui_WidgetRegistry@@A:BYTE ; SK_ImGui_Widgets
+EXTRN	__fltused:DWORD
 EXTRN	__tls_array:DWORD
 EXTRN	__tls_index:DWORD
 ;	COMDAT ?carret@?1??Draw@SK_Console@@QAEXXZ@4_NA
@@ -306,6 +595,12 @@ _BSS	ENDS
 _BSS	SEGMENT
 ?$TSS0@?1??End@SK_Console@@QAEXXZ@4HA DD 01H DUP (?)	; TSS0<`template-parameter-2',SK_Console::d,unsigned char * const,void,void,int, ?? &>
 _BSS	ENDS
+_BSS	SEGMENT
+?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A DB 020H DUP (?) ; SK_KeyboardMacros
+_BSS	ENDS
+CRT$XCU	SEGMENT
+?SK_KeyboardMacros$initializer$@@3P6AXXZA DD FLAT:??__ESK_KeyboardMacros@@YAXXZ ; SK_KeyboardMacros$initializer$
+CRT$XCU	ENDS
 ;	COMDAT ??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@
 CONST	SEGMENT
 ??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ DB 'vector<T> too long'
@@ -370,6 +665,18 @@ __ehfuncinfo$??$_Emplace_back_with_unused_capacity@PAD@?$vector@V?$basic_string@
 xdata$x	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
+__unwindtable$??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z$1
+__ehfuncinfo$??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
 __catchsym$??$emplace_back@PAD@?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@QAEX$$QAPAD@Z$73 DD 040H
 	DD	00H
 	DD	00H
@@ -390,6 +697,56 @@ __ehfuncinfo$??$emplace_back@PAD@?$vector@V?$basic_string@DU?$char_traits@D@std@
 	DD	FLAT:__unwindtable$??$emplace_back@PAD@?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@QAEX$$QAPAD@Z
 	DD	01H
 	DD	FLAT:__tryblocktable$??$emplace_back@PAD@?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@QAEX$$QAPAD@Z
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
+__unwindtable$??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z$1
+__ehfuncinfo$??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
+__catchsym$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z$49 DD 040H
+	DD	00H
+	DD	00H
+	DD	FLAT:__catch$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z$0
+__unwindtable$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z DD 0ffffffffH
+	DD	00H
+	DD	0ffffffffH
+	DD	00H
+__tryblocktable$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z DD 00H
+	DD	00H
+	DD	01H
+	DD	01H
+	DD	FLAT:__catchsym$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z$49
+__ehfuncinfo$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z DD 019930522H
+	DD	02H
+	DD	FLAT:__unwindtable$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z
+	DD	01H
+	DD	FLAT:__tryblocktable$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
+__unwindtable$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z$0
+	DD	00H
+	DD	FLAT:__unwindfunclet$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z$1
+__ehfuncinfo$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z DD 019930522H
+	DD	02H
+	DD	FLAT:__unwindtable$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+	DD	2 DUP(00H)
 	DD	2 DUP(00H)
 	DD	00H
 	DD	01H
@@ -445,6 +802,30 @@ __unwindtable$?SK_HandleConsoleKey@@YAH_NEJ@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_HandleConsoleKey@@YAH_NEJ@Z$4
 	DD	04H
 	DD	FLAT:__unwindfunclet$?SK_HandleConsoleKey@@YAH_NEJ@Z$5
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
+__catchsym$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z$18 DD 040H
+	DD	00H
+	DD	00H
+	DD	FLAT:__catch$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z$0
+__unwindtable$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z DD 0ffffffffH
+	DD	00H
+	DD	0ffffffffH
+	DD	00H
+__tryblocktable$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z DD 00H
+	DD	00H
+	DD	01H
+	DD	01H
+	DD	FLAT:__catchsym$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z$18
+__ehfuncinfo$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z DD 019930522H
+	DD	02H
+	DD	FLAT:__unwindtable$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z
+	DD	01H
+	DD	FLAT:__tryblocktable$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
 xdata$x	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
@@ -537,6 +918,37 @@ $LN3@construct:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU21@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU21@@Z PROC ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::construct<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *,std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>, COMDAT
+; _this$ = ecx
+
+; 839  : 		{	// construct _Objty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN3@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN3@construct:
+
+; 841  : 		}
+
+	pop	ebp
+	ret	8
+??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU21@@Z ENDP ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::construct<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *,std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -625,6 +1037,156 @@ __Arg$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Construct1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV41@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+___formal$ = 12						; size = 4
+__Ptr$ = 16						; size = 4
+_<_Args_0>$ = 20					; size = 4
+??$_Construct1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV41@@Z PROC ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Construct1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 709  : 		{	// construct _Ty(_Types...) at _Ptr, default version
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 710  : 		::new (static_cast<void *>(_Ptr))
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN3@Construct1
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN3@Construct1:
+
+; 711  : 			_Ty(_STD forward<_Types>(_Args)...);
+; 712  : 		}
+
+	pop	ebp
+	ret	0
+??$_Construct1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV41@@Z ENDP ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Construct1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Construct1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV41@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+___formal$ = 12						; size = 4
+__Ptr$ = 16						; size = 4
+_<_Args_0>$ = 20					; size = 4
+??$_Construct1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV41@@Z PROC ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Construct1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>, COMDAT
+
+; 709  : 		{	// construct _Ty(_Types...) at _Ptr, default version
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 710  : 		::new (static_cast<void *>(_Ptr))
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN3@Construct1
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN3@Construct1:
+
+; 711  : 			_Ty(_STD forward<_Types>(_Args)...);
+; 712  : 		}
+
+	pop	ebp
+	ret	0
+??$_Construct1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXU?$integral_constant@_N$00@1@AAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV41@@Z ENDP ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Construct1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Destroy1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@U?$integral_constant@_N$00@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+___formal$ = 16						; size = 1
+??$_Destroy1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@U?$integral_constant@_N$00@1@@Z PROC ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Destroy1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 734  : 		_Ptr->~_Ty();
+; 735  : 		}
+
+	ret	0
+??$_Destroy1@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@U?$integral_constant@_N$00@1@@Z ENDP ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Destroy1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??$?0U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z PROC ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> ><std::pair<unsigned int const ,SK_KeyCommand> >, COMDAT
+; _this$ = ecx
+
+; 813  : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ENDP ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> ><std::pair<unsigned int const ,SK_KeyCommand> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU31@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+_<_Args_0>$ = 16					; size = 4
+??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU31@@Z PROC ; std::allocator_traits<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::construct<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *,std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>, COMDAT
+
+; 958  : 		{	// construct _Objty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN8@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN8@construct:
+
+; 959  : 		_Al.construct(_Ptr, _STD forward<_Types>(_Args)...);
+; 960  : 		}
+
+	pop	ebp
+	ret	0
+??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU31@@Z ENDP ; std::allocator_traits<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::construct<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *,std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@AAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@YAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@0@AAPAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@AAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@YAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@0@AAPAU10@@Z PROC ; std::forward<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@AAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@YAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@0@AAPAU10@@Z ENDP ; std::forward<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -687,6 +1249,146 @@ $LN13@construct:
 	pop	ebp
 	ret	8
 ??$construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V12@@?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@std@@QAEXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QAV21@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >::construct<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV31@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+_<_Args_0>$ = 16					; size = 4
+??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV31@@Z PROC ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 726  : 		{	// construct _Ty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 710  : 		::new (static_cast<void *>(_Ptr))
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN8@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN8@construct:
+
+; 727  : 		_Construct1(_Uses_default_construct_t<_Unwrap_alloc_t<_Alloc>, _Ty *, _Types...>(),
+; 728  : 			_Al, _Ptr, _STD forward<_Types>(_Args)...);
+; 729  : 		}
+
+	pop	ebp
+	ret	0
+??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV31@@Z ENDP ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z PROC ; std::forward<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z ENDP ; std::forward<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV31@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+_<_Args_0>$ = 16					; size = 4
+??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV31@@Z PROC ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>, COMDAT
+
+; 726  : 		{	// construct _Ty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 710  : 		::new (static_cast<void *>(_Ptr))
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN8@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN8@construct:
+
+; 727  : 		_Construct1(_Uses_default_construct_t<_Unwrap_alloc_t<_Alloc>, _Ty *, _Types...>(),
+; 728  : 			_Al, _Ptr, _STD forward<_Types>(_Args)...);
+; 729  : 		}
+
+	pop	ebp
+	ret	0
+??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV31@@Z ENDP ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@ABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@ABV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@ABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@ABV10@@Z PROC ; std::forward<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@ABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@ABV10@@Z ENDP ; std::forward<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+??$destroy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@@Z PROC ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::destroy<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 746  : 		_Destroy1(_Al, _Ptr, _Uses_default_destroy_t<_Unwrap_alloc_t<_Alloc>, _Ty *>());
+; 747  : 		}
+
+	ret	0
+??$destroy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAXAAU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@@Z ENDP ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::destroy<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>, COMDAT
+; _this$ = ecx
+
+; 1054 : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -866,6 +1568,39 @@ __ehhandler$??$construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2
 	jmp	___CxxFrameHandler3
 text$x	ENDS
 ??$construct@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAD@?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@QAEXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@1@$$QAPAD@Z ENDP ; std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >::construct<std::basic_string<char,std::char_traits<char>,std::allocator<char> >,char *>
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU21@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU21@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::construct<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *,std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>, COMDAT
+; _this$ = ecx
+
+; 1095 : 		{	// construct _Ty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN13@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN13@construct:
+
+; 1096 : 		_Mytraits::construct(*this, _Ptr,
+; 1097 : 			_STD forward<_Types>(_Args)...);
+; 1098 : 		}
+
+	pop	ebp
+	ret	8
+??$construct@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@AAPAU12@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@AAPAU21@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::construct<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *,std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> * &>
+_TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -1136,6 +1871,96 @@ __Src$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV21@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV21@@Z PROC ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+; _this$ = ecx
+
+; 1095 : 		{	// construct _Ty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 710  : 		::new (static_cast<void *>(_Ptr))
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN13@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN13@construct:
+
+; 1096 : 		_Mytraits::construct(*this, _Ptr,
+; 1097 : 			_STD forward<_Types>(_Args)...);
+; 1098 : 		}
+
+	pop	ebp
+	ret	8
+??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@$$QAV21@@Z ENDP ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z PROC ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::destroy<std::pair<unsigned int const ,SK_KeyCommand> >, COMDAT
+; _this$ = ecx
+
+; 845  : 		{	// destroy object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	lea	ecx, DWORD PTR [ecx+4]
+	call	??1SK_KeyCommand@@QAE@XZ
+
+; 846  : 		_Ptr->~_Uty();
+; 847  : 		}
+
+	pop	ebp
+	ret	4
+??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z ENDP ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::destroy<std::pair<unsigned int const ,SK_KeyCommand> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV21@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV21@@Z PROC ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>, COMDAT
+; _this$ = ecx
+
+; 1095 : 		{	// construct _Ty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 710  : 		::new (static_cast<void *>(_Ptr))
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN13@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN13@construct:
+
+; 1096 : 		_Mytraits::construct(*this, _Ptr,
+; 1097 : 			_STD forward<_Types>(_Args)...);
+; 1098 : 		}
+
+	pop	ebp
+	ret	8
+??$construct@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@ABV12@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@ABV21@@Z ENDP ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::construct<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@PADAAPAD@?$allocator@D@std@@QAEXPAPADAAPAD@Z
 _TEXT	SEGMENT
 __Ptr$ = 8						; size = 4
@@ -1167,6 +1992,113 @@ $LN3@construct:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@PA_WAAPA_W@?$allocator@_W@std@@QAEXPAPA_WAAPA_W@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@PA_WAAPA_W@?$allocator@_W@std@@QAEXPAPA_WAAPA_W@Z PROC ; std::allocator<wchar_t>::construct<wchar_t *,wchar_t * &>, COMDAT
+; _this$ = ecx
+
+; 839  : 		{	// construct _Objty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN3@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN3@construct:
+
+; 841  : 		}
+
+	pop	ebp
+	ret	8
+??$construct@PA_WAAPA_W@?$allocator@_W@std@@QAEXPAPA_WAAPA_W@Z ENDP ; std::allocator<wchar_t>::construct<wchar_t *,wchar_t * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z PROC ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>, COMDAT
+; _this$ = ecx
+
+; 846  : 		_Ptr->~_Uty();
+; 847  : 		}
+
+	ret	4
+??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z ENDP ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@@Z PROC ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::destroy<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+; _this$ = ecx
+
+; 1103 : 		_Mytraits::destroy(*this, _Ptr);
+; 1104 : 		}
+
+	ret	4
+??$destroy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@@Z ENDP ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::destroy<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+__Val1$ = 12						; size = 4
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 523  : 		: _Myhead(),
+
+	mov	DWORD PTR [ecx], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 313  : 		}
+
+	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 524  : 		_Mysize(0)
+
+	mov	DWORD PTR [ecx+4], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 313  : 		}
+
+	ret	8
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z PROC ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &>, COMDAT
+; _this$ = ecx
+
+; 1054 : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ENDP ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$destroy@PAD@?$allocator@D@std@@QAEXPAPAD@Z
 _TEXT	SEGMENT
 __Ptr$ = 8						; size = 4
@@ -1178,6 +2110,20 @@ __Ptr$ = 8						; size = 4
 
 	ret	4
 ??$destroy@PAD@?$allocator@D@std@@QAEXPAPAD@Z ENDP	; std::allocator<char>::destroy<char *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z PROC	; std::allocator<wchar_t>::destroy<wchar_t *>, COMDAT
+; _this$ = ecx
+
+; 846  : 		_Ptr->~_Uty();
+; 847  : 		}
+
+	ret	4
+??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z ENDP	; std::allocator<wchar_t>::destroy<wchar_t *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -1408,6 +2354,302 @@ __Al$ = 20						; size = 4
 ??$_Uninitialized_move@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PAV12@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@YAPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@PAV10@00AAU?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@0@@Z ENDP ; std::_Uninitialized_move<std::basic_string<char,std::char_traits<char>,std::allocator<char> > *,std::basic_string<char,std::char_traits<char>,std::allocator<char> > *,std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Rechecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@@std@@YAAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAPAV10@PAV10@@Z
+_TEXT	SEGMENT
+__Dest$ = 8						; size = 4
+__Src$ = 12						; size = 4
+??$_Rechecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@@std@@YAAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAPAV10@PAV10@@Z PROC ; std::_Rechecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>, COMDAT
+
+; 480  : 	{	// reset checked from unchecked, generic
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 481  : 	_Dest = _Src;
+
+	mov	eax, DWORD PTR __Dest$[ebp]
+	mov	ecx, DWORD PTR __Src$[ebp]
+	mov	DWORD PTR [eax], ecx
+
+; 482  : 	return (_Dest);
+; 483  : 	}
+
+	pop	ebp
+	ret	0
+??$_Rechecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@@std@@YAAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAPAV10@PAV10@@Z ENDP ; std::_Rechecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$?0U?$integral_constant@_N$0A@@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$0A@@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??$?0U?$integral_constant@_N$0A@@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$0A@@1@@Z PROC ; std::_Any_tag::_Any_tag<std::integral_constant<bool,0> >, COMDAT
+; _this$ = ecx
+
+; 556  : 		constexpr _Any_tag(_Ty&&) _NOEXCEPT {}
+
+	mov	eax, ecx
+	ret	4
+??$?0U?$integral_constant@_N$0A@@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$0A@@1@@Z ENDP ; std::_Any_tag::_Any_tag<std::integral_constant<bool,0> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+;	COMDAT ??$_Uninitialized_move_al_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+__Dest$ = 16						; size = 4
+__Al$ = 20						; size = 4
+___formal$ = 24						; size = 1
+___formal$ = 28						; size = 1
+??$_Uninitialized_move_al_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z PROC ; std::_Uninitialized_move_al_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >, COMDAT
+
+; 135  : 	{	// move [_First, _Last) to raw _Dest, using _Al, no special optimization
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 139  : 	for (; _First != _Last; ++_Dest, (void)++_First)
+
+	mov	eax, DWORD PTR __Dest$[ebp]
+	xor	ecx, ecx
+	push	esi
+	mov	esi, DWORD PTR __Last$[ebp]
+	xor	edx, edx
+	push	edi
+	mov	edi, DWORD PTR __First$[ebp]
+	sub	esi, edi
+	add	esi, 3
+	shr	esi, 2
+	cmp	edi, DWORD PTR __Last$[ebp]
+	cmova	esi, ecx
+	test	esi, esi
+	je	SHORT $LN3@Uninitiali
+	sub	edi, eax
+$LL4@Uninitiali:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 710  : 		::new (static_cast<void *>(_Ptr))
+
+	test	eax, eax
+	je	SHORT $LN2@Uninitiali
+	mov	ecx, DWORD PTR [edi+eax]
+	mov	DWORD PTR [eax], ecx
+$LN2@Uninitiali:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 139  : 	for (; _First != _Last; ++_Dest, (void)++_First)
+
+	inc	edx
+	add	eax, 4
+	cmp	edx, esi
+	jne	SHORT $LL4@Uninitiali
+$LN3@Uninitiali:
+	pop	edi
+	pop	esi
+
+; 140  : 		{
+; 141  : 		_Al.construct(_Unfancy(_Dest), _STD move(*_First));
+; 142  : 		}
+; 143  : 
+; 144  : 	_CATCH_ALL
+; 145  : 	_Destroy_range(_Next, _Dest, _Al);
+; 146  : 	_RERAISE;
+; 147  : 	_CATCH_END
+; 148  : 
+; 149  : 	return (_Dest);
+; 150  : 	}
+
+	pop	ebp
+	ret	0
+??$_Uninitialized_move_al_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z ENDP ; std::_Uninitialized_move_al_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$move@AAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$move@AAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z PROC ; std::move<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > &>, COMDAT
+
+; 1350 : 	{	// forward _Arg as movable
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1352 : 	}
+
+	pop	ebp
+	ret	0
+??$move@AAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z ENDP ; std::move<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Ptr_move_cat@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YA?AU_Trivially_copyable_ptr_iterator_tag@0@ABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+___formal$ = 12						; size = 4
+___formal$ = 16						; size = 4
+??$_Ptr_move_cat@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YA?AU_Trivially_copyable_ptr_iterator_tag@0@ABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0@Z PROC ; std::_Ptr_move_cat<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 892  : 	{	// return pointer move optimization category for pointers
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 893  : 	return {};
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 894  : 	}
+
+	pop	ebp
+	ret	0
+??$_Ptr_move_cat@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YA?AU_Trivially_copyable_ptr_iterator_tag@0@ABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0@Z ENDP ; std::_Ptr_move_cat<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@@Z
+_TEXT	SEGMENT
+__Src$ = 8						; size = 4
+??$_Unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@@Z PROC ; std::_Unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>, COMDAT
+
+; 450  : 	{	// construct unchecked from checked, generic
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 451  : 	return (_Src);
+
+	mov	eax, DWORD PTR __Src$[ebp]
+
+; 452  : 	}
+
+	pop	ebp
+	ret	0
+??$_Unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@@Z ENDP ; std::_Unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z PROC ; std::allocator_traits<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::pair<unsigned int const ,SK_KeyCommand> >, COMDAT
+
+; 964  : 		{	// destroy object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	lea	ecx, DWORD PTR [ecx+4]
+
+; 965  : 		_Al.destroy(_Ptr);
+; 966  : 		}
+
+	pop	ebp
+	jmp	??1SK_KeyCommand@@QAE@XZ
+??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z ENDP ; std::allocator_traits<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::pair<unsigned int const ,SK_KeyCommand> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+;	COMDAT ??$_Uninit_alloc_fill_n1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Count$ = 12						; size = 4
+__Val$ = 16						; size = 4
+__Al$ = 20						; size = 4
+___formal$ = 24						; size = 1
+??$_Uninit_alloc_fill_n1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z PROC ; std::_Uninit_alloc_fill_n1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >, COMDAT
+
+; 184  : 	{	// copy _Count copies of _Val to raw _First, using _Al, no special optimization
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 188  : 	for (; 0 < _Count; --_Count, (void)++_First)
+
+	mov	edx, DWORD PTR __Count$[ebp]
+	mov	eax, DWORD PTR __First$[ebp]
+	test	edx, edx
+	je	SHORT $LN3@Uninit_all
+	push	esi
+	mov	esi, DWORD PTR __Val$[ebp]
+$LL4@Uninit_all:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 710  : 		::new (static_cast<void *>(_Ptr))
+
+	test	eax, eax
+	je	SHORT $LN2@Uninit_all
+	mov	ecx, DWORD PTR [esi]
+	mov	DWORD PTR [eax], ecx
+$LN2@Uninit_all:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 188  : 	for (; 0 < _Count; --_Count, (void)++_First)
+
+	add	eax, 4
+	sub	edx, 1
+	jne	SHORT $LL4@Uninit_all
+	pop	esi
+$LN3@Uninit_all:
+
+; 189  : 		{
+; 190  : 		_Al.construct(_Unfancy(_First), _Val);
+; 191  : 		}
+; 192  : 
+; 193  : 	_CATCH_ALL
+; 194  : 	_Destroy_range(_Next, _First, _Al);
+; 195  : 	_RERAISE;
+; 196  : 	_CATCH_END
+; 197  : 
+; 198  : 	return (_First);
+; 199  : 	}
+
+	pop	ebp
+	ret	0
+??$_Uninit_alloc_fill_n1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ENDP ; std::_Uninit_alloc_fill_n1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$_Unfancy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$_Unfancy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@@Z PROC ; std::_Unfancy<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 642  : 	{	// do nothing for plain pointers
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR __Ptr$[ebp]
+
+; 644  : 	}
+
+	pop	ebp
+	ret	0
+??$_Unfancy@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@@Z ENDP ; std::_Unfancy<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@PADAAPAD@?$allocator_traits@V?$allocator@D@std@@@std@@SAXAAV?$allocator@D@1@PAPADAAPAD@Z
 _TEXT	SEGMENT
@@ -1461,6 +2703,207 @@ __Arg$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$forward@AAPAD@std@@YAAAPADAAPAD@Z ENDP		; std::forward<char * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@PA_WAAPA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_WAAPA_W@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+_<_Args_0>$ = 16					; size = 4
+??$construct@PA_WAAPA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_WAAPA_W@Z PROC ; std::allocator_traits<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>, COMDAT
+
+; 958  : 		{	// construct _Objty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN8@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN8@construct:
+
+; 959  : 		_Al.construct(_Ptr, _STD forward<_Types>(_Args)...);
+; 960  : 		}
+
+	pop	ebp
+	ret	0
+??$construct@PA_WAAPA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_WAAPA_W@Z ENDP ; std::allocator_traits<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@AAPA_W@std@@YAAAPA_WAAPA_W@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@AAPA_W@std@@YAAAPA_WAAPA_W@Z PROC		; std::forward<wchar_t * &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@AAPA_W@std@@YAAAPA_WAAPA_W@Z ENDP		; std::forward<wchar_t * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z PROC ; std::allocator_traits<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>, COMDAT
+
+; 965  : 		_Al.destroy(_Ptr);
+; 966  : 		}
+
+	ret	0
+??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$allocator_traits@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@1@PAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z ENDP ; std::allocator_traits<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Fill_unchecked1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@U?$integral_constant@_N$0A@@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+tv278 = 12						; size = 4
+__Last$ = 12						; size = 4
+__Val$ = 16						; size = 4
+___formal$ = 20						; size = 1
+??$_Fill_unchecked1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@U?$integral_constant@_N$0A@@0@@Z PROC ; std::_Fill_unchecked1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 2688 : 	{	// copy _Val through [_First, _Last), no special optimization
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	ecx, DWORD PTR __Last$[ebp]
+	xor	edx, edx
+	push	ebx
+	mov	ebx, DWORD PTR __First$[ebp]
+	sub	ecx, ebx
+	add	ecx, 3
+	shr	ecx, 2
+	push	esi
+	xor	esi, esi
+	cmp	ebx, DWORD PTR __Last$[ebp]
+	cmova	ecx, esi
+	mov	DWORD PTR tv278[ebp], ecx
+
+; 2689 : 	for (; _First != _Last; ++_First)
+
+	test	ecx, ecx
+	je	SHORT $LN3@Fill_unche
+
+; 2690 : 		*_First = _Val;
+
+	mov	esi, DWORD PTR __Val$[ebp]
+	push	edi
+	cmp	ecx, 4
+	jb	SHORT $LN9@Fill_unche
+	mov	edi, DWORD PTR [esi]
+	cmp	ebx, esi
+	ja	SHORT $LN10@Fill_unche
+	lea	eax, DWORD PTR [ebx-4]
+	lea	eax, DWORD PTR [eax+ecx*4]
+	cmp	eax, esi
+	jae	SHORT $LN9@Fill_unche
+$LN10@Fill_unche:
+	and	ecx, -4					; fffffffcH
+$LL4@Fill_unche:
+
+; 2689 : 	for (; _First != _Last; ++_First)
+
+	add	edx, 4
+	cmp	edx, ecx
+	jne	SHORT $LL4@Fill_unche
+
+; 2690 : 		*_First = _Val;
+
+	lea	esi, DWORD PTR [ecx+3]
+	mov	eax, edi
+	and	esi, -4					; fffffffcH
+	mov	edi, ebx
+	shl	esi, 2
+	mov	ecx, esi
+	shr	ecx, 2
+	add	ebx, esi
+	mov	esi, DWORD PTR __Val$[ebp]
+	rep stosd
+	mov	ecx, DWORD PTR tv278[ebp]
+$LN9@Fill_unche:
+
+; 2689 : 	for (; _First != _Last; ++_First)
+
+	pop	edi
+	cmp	edx, ecx
+	je	SHORT $LN3@Fill_unche
+	npad	6
+$LL8@Fill_unche:
+
+; 2690 : 		*_First = _Val;
+
+	mov	eax, DWORD PTR [esi]
+	lea	ebx, DWORD PTR [ebx+4]
+	inc	edx
+	mov	DWORD PTR [ebx-4], eax
+	cmp	edx, ecx
+	jne	SHORT $LL8@Fill_unche
+$LN3@Fill_unche:
+	pop	esi
+	pop	ebx
+
+; 2691 : 	}
+
+	pop	ebp
+	ret	0
+??$_Fill_unchecked1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@U?$integral_constant@_N$0A@@0@@Z ENDP ; std::_Fill_unchecked1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Fill_memset_is_safe@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YA?AU?$integral_constant@_N$0A@@0@ABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@ABV20@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+___formal$ = 12						; size = 4
+??$_Fill_memset_is_safe@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YA?AU?$integral_constant@_N$0A@@0@ABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@ABV20@@Z PROC ; std::_Fill_memset_is_safe<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 2682 : 	return {};
+
+	xor	al, al
+
+; 2683 : 	}
+
+	ret	0
+??$_Fill_memset_is_safe@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YA?AU?$integral_constant@_N$0A@@0@ABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@ABV20@@Z ENDP ; std::_Fill_memset_is_safe<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Destroy_range1@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+__Al$ = 16						; size = 4
+___formal$ = 20						; size = 1
+??$_Destroy_range1@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z PROC ; std::_Destroy_range1<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>, COMDAT
+
+; 1200 : 	for (; _First != _Last; ++_First)
+; 1201 : 		_Al.destroy(_Unfancy(_First));
+; 1202 : 	}
+
+	ret	0
+??$_Destroy_range1@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ENDP ; std::_Destroy_range1<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -1633,6 +3076,109 @@ $LN76@Destroy_ra:
 ??$_Destroy_range1@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@std@@YAXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@0AAU?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ENDP ; std::_Destroy_range1<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::basic_string<char,std::char_traits<char>,std::allocator<char> > *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@X@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@X@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &,void>, COMDAT
+; _this$ = ecx
+
+; 605  : 		{	// construct head node, allocator from _Al
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 731  : 		return (_Buynode0(_Nodeptr(), _Nodeptr()));
+
+	push	0
+	push	0
+
+; 523  : 		: _Myhead(),
+
+	mov	DWORD PTR [esi], 0
+
+; 524  : 		_Mysize(0)
+
+	mov	DWORD PTR [esi+4], 0
+
+; 731  : 		return (_Buynode0(_Nodeptr(), _Nodeptr()));
+
+	call	?_Buynode0@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@0@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buynode0
+
+; 606  : 		_Myhead() = _Buyheadnode();
+
+	mov	DWORD PTR [esi], eax
+
+; 607  : 		}
+
+	mov	eax, esi
+	pop	esi
+	ret	4
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@X@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &,void>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+__Val1$ = 12						; size = 4
+??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &>, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 476  : 		: _Myfirst(),
+
+	mov	DWORD PTR [ecx], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 313  : 		}
+
+	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 477  : 		_Mylast(),
+
+	mov	DWORD PTR [ecx+4], 0
+
+; 478  : 		_Myend()
+
+	mov	DWORD PTR [ecx+8], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 313  : 		}
+
+	ret	8
+??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@YAABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@0@ABU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@YAABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@0@ABU10@@Z PROC ; std::forward<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@YAABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@0@ABU10@@Z ENDP ; std::forward<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$destroy@PAD@?$allocator_traits@V?$allocator@D@std@@@std@@SAXAAV?$allocator@D@1@PAPAD@Z
 _TEXT	SEGMENT
@@ -1645,6 +3191,20 @@ __Ptr$ = 12						; size = 4
 
 	ret	0
 ??$destroy@PAD@?$allocator_traits@V?$allocator@D@std@@@std@@SAXAAV?$allocator@D@1@PAPAD@Z ENDP ; std::allocator_traits<std::allocator<char> >::destroy<char *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z PROC ; std::allocator_traits<std::allocator<wchar_t> >::destroy<wchar_t *>, COMDAT
+
+; 965  : 		_Al.destroy(_Ptr);
+; 966  : 		}
+
+	ret	0
+??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z ENDP ; std::allocator_traits<std::allocator<wchar_t> >::destroy<wchar_t *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -1683,6 +3243,210 @@ __Arg$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$forward@V?$allocator@D@std@@@std@@YA$$QAV?$allocator@D@0@AAV10@@Z ENDP ; std::forward<std::allocator<char> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@V?$allocator@_W@std@@@std@@YA$$QAV?$allocator@_W@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@V?$allocator@_W@std@@@std@@YA$$QAV?$allocator@_W@0@AAV10@@Z PROC ; std::forward<std::allocator<wchar_t> >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@V?$allocator@_W@std@@@std@@YA$$QAV?$allocator@_W@0@AAV10@@Z ENDP ; std::forward<std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$?0AAU?$equal_to@I@std@@M@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$equal_to@I@1@$$QAM@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+__Val1$ = 12						; size = 4
+_<_Val2_0>$ = 16					; size = 4
+??$?0AAU?$equal_to@I@std@@M@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$equal_to@I@1@$$QAM@Z PROC ; std::_Compressed_pair<std::equal_to<unsigned int>,float,1>::_Compressed_pair<std::equal_to<unsigned int>,float,1><std::equal_to<unsigned int> &,float>, COMDAT
+; _this$ = ecx
+
+; 312  : 		{	// construct from forwarded values
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 311  : 			_Myval2(_STD forward<_Other2>(_Val2)...)
+
+	mov	eax, DWORD PTR _<_Val2_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 313  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	12					; 0000000cH
+??$?0AAU?$equal_to@I@std@@M@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$equal_to@I@1@$$QAM@Z ENDP ; std::_Compressed_pair<std::equal_to<unsigned int>,float,1>::_Compressed_pair<std::equal_to<unsigned int>,float,1><std::equal_to<unsigned int> &,float>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@M@std@@YA$$QAMAAM@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@M@std@@YA$$QAMAAM@Z PROC			; std::forward<float>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@M@std@@YA$$QAMAAM@Z ENDP			; std::forward<float>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@AAU?$equal_to@I@std@@@std@@YAAAU?$equal_to@I@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@AAU?$equal_to@I@std@@@std@@YAAAU?$equal_to@I@0@AAU10@@Z PROC ; std::forward<std::equal_to<unsigned int> &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@AAU?$equal_to@I@std@@@std@@YAAAU?$equal_to@I@0@AAU10@@Z ENDP ; std::forward<std::equal_to<unsigned int> &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@U_One_then_variadic_args_t@std@@@std@@YA$$QAU_One_then_variadic_args_t@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@U_One_then_variadic_args_t@std@@@std@@YA$$QAU_One_then_variadic_args_t@0@AAU10@@Z PROC ; std::forward<std::_One_then_variadic_args_t>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@U_One_then_variadic_args_t@std@@@std@@YA$$QAU_One_then_variadic_args_t@0@AAU10@@Z ENDP ; std::forward<std::_One_then_variadic_args_t>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@AAU?$hash@I@std@@@std@@YAAAU?$hash@I@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@AAU?$hash@I@std@@@std@@YAAAU?$hash@I@0@AAU10@@Z PROC ; std::forward<std::hash<unsigned int> &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@AAU?$hash@I@std@@@std@@YAAAU?$hash@I@0@AAU10@@Z ENDP ; std::forward<std::hash<unsigned int> &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??$?0U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z PROC ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::pair<unsigned int const ,SK_KeyCommand> >, COMDAT
+; _this$ = ecx
+
+; 813  : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ENDP ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::pair<unsigned int const ,SK_KeyCommand> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@YAABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@0@ABV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@YAABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@0@ABV10@@Z PROC ; std::forward<std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@YAABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@0@ABV10@@Z ENDP ; std::forward<std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z PROC ; std::forward<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z ENDP ; std::forward<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -1740,6 +3504,164 @@ __Arg$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$forward@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@0@AAU10@@Z ENDP ; std::forward<std::_Wrap_alloc<std::allocator<char> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+__Val1$ = 12						; size = 4
+??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1595 : 		_Mysize(0),
+
+	mov	DWORD PTR [ecx+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 313  : 		}
+
+	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1596 : 		_Myres(0)
+
+	mov	DWORD PTR [ecx+20], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 313  : 		}
+
+	ret	8
+??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z PROC ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ENDP ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+___formal$ = 16						; size = 1
+??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z PROC ; std::_Distance1<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 1094 : 	{	// return distance between iterators; input
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	mov	ecx, DWORD PTR __First$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	mov	edx, DWORD PTR __Last$[ebp]
+	cmp	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	je	SHORT $LN3@Distance1
+$LL4@Distance1:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
+
+	mov	ecx, DWORD PTR [ecx]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1097 : 		++_Off;
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
+
+	mov	DWORD PTR __First$[ebp], ecx
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	cmp	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	jne	SHORT $LL4@Distance1
+$LN3@Distance1:
+
+; 1098 : 
+; 1099 : 	return (_Off);
+; 1100 : 	}
+
+	pop	ebp
+	ret	0
+??$_Distance1@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0Uinput_iterator_tag@0@@Z ENDP ; std::_Distance1<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z PROC ; std::forward<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YA$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@AAV10@@Z ENDP ; std::forward<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -2165,6 +4087,487 @@ $LN28@operator:
 ??$?8DU?$char_traits@D@std@@V?$allocator@D@1@@std@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@QBD@Z ENDP ; std::operator==<char,std::char_traits<char>,std::allocator<char> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+;	COMDAT ??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z
+_TEXT	SEGMENT
+$T2 = -124						; size = 84
+$T3 = -40						; size = 24
+__$EHRec$ = -12						; size = 12
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+__Func$ = 16						; size = 4
+??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z PROC ; std::_For_each_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,<lambda_a31a32673789eb8f15124766d9ca7404> >, COMDAT
+
+; 146  : 	{	// perform function for each element
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR fs:0
+	push	-1
+	push	__ehhandler$??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 112				; 00000070H
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	mov	esi, DWORD PTR __First$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+
+; 146  : 	{	// perform function for each element
+
+	push	edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	esi, DWORD PTR __Last$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+
+; 147  : 	for (; _First != _Last; ++_First)
+
+	je	$LN139@For_each_u
+	npad	5
+$LL4@For_each_u:
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
+	sub	esp, 24					; 00000018H
+	mov	edi, eax
+	mov	ecx, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	add	esi, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+	push	eax
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+20], 7
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	lea	eax, DWORD PTR $T3[ebp]
+	push	eax
+	call	?SK_WideCharToUTF8@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@@Z ; SK_WideCharToUTF8
+	add	esp, 28					; 0000001cH
+	mov	ecx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ecx+20], 16			; 00000010H
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN81@For_each_u
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	ecx, DWORD PTR [ecx]
+$LN81@For_each_u:
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	mov	eax, DWORD PTR [edi]
+	push	ecx
+	lea	ecx, DWORD PTR $T2[ebp]
+	push	ecx
+	mov	ecx, edi
+	call	DWORD PTR [eax+28]
+	lea	ecx, DWORD PTR $T2[ebp]
+	call	??1SK_ICommandResult@@QAE@XZ
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	ecx, DWORD PTR $T3[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	ecx, 16					; 00000010H
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN120@For_each_u
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	mov	eax, DWORD PTR $T3[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	ecx, 4096				; 00001000H
+	jb	SHORT $LN115@For_each_u
+
+; 101  : 		{	// deallocate large block
+; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
+; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+
+	test	al, 31					; 0000001fH
+	jne	SHORT $LN135@For_each_u
+
+; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
+; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
+; 106  : 		const uintptr_t _Ptr_container =
+; 107  : 			*reinterpret_cast<uintptr_t *>(_Ptr_ptr);
+
+	mov	ecx, DWORD PTR [eax-4]
+
+; 108  : 
+; 109  :  #ifdef _DEBUG
+; 110  : 		// If the following asserts, it likely means that we are performing
+; 111  : 		// an aligned delete on memory coming from an unaligned allocation.
+; 112  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+; 113  : 			reinterpret_cast<uintptr_t *>(_Ptr_ptr)[-1] ==
+; 114  : 				_BIG_ALLOCATION_SENTINEL);
+; 115  :  #endif /* _DEBUG */
+; 116  : 
+; 117  : 		// Extra paranoia on aligned allocation/deallocation
+; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
+
+	cmp	ecx, eax
+	jae	SHORT $LN135@For_each_u
+
+; 119  : 
+; 120  :  #ifdef _DEBUG
+; 121  : 		_SCL_SECURE_ALWAYS_VALIDATE(2 * sizeof(void *)
+; 122  : 			<= _Ptr_user - _Ptr_container);
+; 123  : 
+; 124  :  #else /* _DEBUG */
+; 125  : 		_SCL_SECURE_ALWAYS_VALIDATE(sizeof(void *)
+
+	sub	eax, ecx
+	cmp	eax, 4
+	jb	SHORT $LN135@For_each_u
+
+; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
+
+	cmp	eax, 35					; 00000023H
+	ja	SHORT $LN135@For_each_u
+
+; 130  : 			<= _NON_USER_SIZE);
+; 131  : 
+; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
+
+	mov	eax, ecx
+$LN115@For_each_u:
+
+; 133  : 		}
+; 134  : 
+; 135  :  #else /* defined(_M_IX86) || defined(_M_X64) */
+; 136  : 	static_cast<void>(_Count);
+; 137  : 	static_cast<void>(_Sz);
+; 138  :  #endif /* defined(_M_IX86) || defined(_M_X64) */
+; 139  : 
+; 140  : 	::operator delete(_Ptr);
+
+	push	eax
+	call	??3@YAXPAX@Z				; operator delete
+	add	esp, 4
+$LN120@For_each_u:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
+
+	mov	esi, DWORD PTR __First$[ebp]
+	mov	esi, DWORD PTR [esi]
+	mov	DWORD PTR __First$[ebp], esi
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	esi, DWORD PTR __Last$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+
+; 147  : 	for (; _First != _Last; ++_First)
+
+	jne	$LL4@For_each_u
+$LN139@For_each_u:
+
+; 149  : 	}
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	pop	edi
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+$LN135@For_each_u:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
+
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN142@For_each_u:
+$LN141@For_each_u:
+	int	3
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__unwindfunclet$??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z$1:
+	lea	ecx, DWORD PTR $T3[ebp]
+	jmp	??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::~basic_string<char,std::char_traits<char>,std::allocator<char> >
+__ehhandler$??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z ENDP ; std::_For_each_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,<lambda_a31a32673789eb8f15124766d9ca7404> >
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??$_Unchecked@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YA?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Iter$ = 12						; size = 4
+??$_Unchecked@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YA?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@@Z PROC ; std::_Unchecked<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >, COMDAT
+
+; 400  : 	{	// convert to unchecked
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR __Iter$[ebp]
+	mov	DWORD PTR [eax], ecx
+
+; 401  : 	return (_Iter._Unchecked());
+; 402  : 	}
+
+	pop	ebp
+	ret	0
+??$_Unchecked@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YA?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@@Z ENDP ; std::_Unchecked<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+;	COMDAT ??$_Uninitialized_move@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+$T1 = 16						; size = 1
+__Dest$ = 16						; size = 4
+__Al$ = 20						; size = 4
+??$_Uninitialized_move@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z PROC ; std::_Uninitialized_move<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >, COMDAT
+
+; 166  : 	{	// move [_First, _Last) to raw _Dest, using _Al
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+
+; 167  : 		// note: only called internally from elsewhere in the STL, debug checks
+; 168  : 		// and deprecation warnings omitted
+; 169  : 	const auto _UFirst = _Unchecked(_First);
+; 170  : 	const auto _ULast = _Unchecked(_Last);
+; 171  : 	const auto _UDest = _Unchecked(_Dest);
+; 172  : 	return (_Rechecked(_Dest,
+
+	push	ecx
+	push	DWORD PTR $T1[ebp]
+	push	DWORD PTR __Al$[ebp]
+	push	DWORD PTR __Dest$[ebp]
+	push	DWORD PTR __Last$[ebp]
+	push	DWORD PTR __First$[ebp]
+	call	??$_Uninitialized_move_al_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z ; std::_Uninitialized_move_al_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+	add	esp, 24					; 00000018H
+
+; 173  : 		_Uninitialized_move_al_unchecked(_UFirst, _ULast, _UDest, _Al,
+; 174  : 			_Ptr_move_cat(_UFirst, _UDest),
+; 175  : 			_Uses_default_construct_t<_Alloc, decltype(_Unfancy(_UDest)), decltype(_STD move(*_UFirst))>())));
+; 176  : 	}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+??$_Uninitialized_move@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z ENDP ; std::_Uninitialized_move<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Fn@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@_Alloc_max_size@std@@SAIHABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+__Al$ = 12						; size = 4
+??$_Fn@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@_Alloc_max_size@std@@SAIHABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z PROC ; std::_Alloc_max_size::_Fn<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >, COMDAT
+
+; 622  : 		return (_Al.max_size());
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 623  : 		}
+
+	ret	0
+??$_Fn@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@_Alloc_max_size@std@@SAIHABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ENDP ; std::_Alloc_max_size::_Fn<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::pair<unsigned int const ,SK_KeyCommand> >, COMDAT
+; _this$ = ecx
+
+; 1102 : 		{	// destroy object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	lea	ecx, DWORD PTR [ecx+4]
+	call	??1SK_KeyCommand@@QAE@XZ
+
+; 1103 : 		_Mytraits::destroy(*this, _Ptr);
+; 1104 : 		}
+
+	pop	ebp
+	ret	4
+??$destroy@U?$pair@$$CBIUSK_KeyCommand@@@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAU?$pair@$$CBIUSK_KeyCommand@@@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::pair<unsigned int const ,SK_KeyCommand> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@YAPAU?$pair@$$CBIUSK_KeyCommand@@@0@AAU10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@YAPAU?$pair@$$CBIUSK_KeyCommand@@@0@AAU10@@Z PROC ; std::addressof<std::pair<unsigned int const ,SK_KeyCommand> >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@YAPAU?$pair@$$CBIUSK_KeyCommand@@@0@AAU10@@Z ENDP ; std::addressof<std::pair<unsigned int const ,SK_KeyCommand> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+;	COMDAT ??$_Uninitialized_fill_n@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z
+_TEXT	SEGMENT
+$T1 = -4						; size = 1
+__First$ = 8						; size = 4
+__Count$ = 12						; size = 4
+__Val$ = 16						; size = 4
+__Al$ = 20						; size = 4
+??$_Uninitialized_fill_n@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z PROC ; std::_Uninitialized_fill_n<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >, COMDAT
+
+; 216  : 	{	// copy _Count copies of _Val to raw _First, using _Al
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+
+; 217  : 	return (_Uninit_alloc_fill_n1(_First, _Count, _Val, _Al,
+
+	push	DWORD PTR $T1[ebp]
+	push	DWORD PTR __Al$[ebp]
+	push	DWORD PTR __Val$[ebp]
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __First$[ebp]
+	call	??$_Uninit_alloc_fill_n1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ; std::_Uninit_alloc_fill_n1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+	add	esp, 20					; 00000014H
+
+; 218  : 		_Conjunction_t<decltype(_Fill_memset_is_safe(_First, _Val)),
+; 219  : 			_Uses_default_construct<_Alloc, decltype(_Unfancy(_First)), decltype(_Val)>>()));
+; 220  : 	}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+??$_Uninitialized_fill_n@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z ENDP ; std::_Uninitialized_fill_n<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@PADAAPAD@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAEXPAPADAAPAD@Z
 _TEXT	SEGMENT
@@ -2196,6 +4599,133 @@ $LN13@construct:
 	pop	ebp
 	ret	8
 ??$construct@PADAAPAD@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAEXPAPADAAPAD@Z ENDP ; std::_Wrap_alloc<std::allocator<char> >::construct<char *,char * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@PA_WAAPA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_WAAPA_W@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@PA_WAAPA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_WAAPA_W@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>, COMDAT
+; _this$ = ecx
+
+; 1095 : 		{	// construct _Ty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+	test	ecx, ecx
+	je	SHORT $LN13@construct
+	mov	eax, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+$LN13@construct:
+
+; 1096 : 		_Mytraits::construct(*this, _Ptr,
+; 1097 : 			_STD forward<_Types>(_Args)...);
+; 1098 : 		}
+
+	pop	ebp
+	ret	8
+??$construct@PA_WAAPA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_WAAPA_W@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>, COMDAT
+; _this$ = ecx
+
+; 1103 : 		_Mytraits::destroy(*this, _Ptr);
+; 1104 : 		}
+
+	ret	4
+??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@YAPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@0@AAPAU10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@YAPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@0@AAPAU10@@Z PROC ; std::addressof<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@YAPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@0@AAPAU10@@Z ENDP ; std::addressof<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$_Fill_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@@Z
+_TEXT	SEGMENT
+$T1 = -4						; size = 1
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+__Val$ = 16						; size = 4
+??$_Fill_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@@Z PROC ; std::_Fill_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 2703 : 	{	// copy _Val through [_First, _Last), choose optimization
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+
+; 2682 : 	return {};
+
+	mov	BYTE PTR $T1[ebp], 0
+
+; 2704 : 	_Fill_unchecked1(_First, _Last, _Val, _Fill_memset_is_safe(_First, _Val));
+
+	push	DWORD PTR $T1[ebp]
+	push	DWORD PTR __Val$[ebp]
+	push	DWORD PTR __Last$[ebp]
+	push	DWORD PTR __First$[ebp]
+	call	??$_Fill_unchecked1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@U?$integral_constant@_N$0A@@0@@Z ; std::_Fill_unchecked1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+	add	esp, 16					; 00000010H
+
+; 2705 : 	}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+??$_Fill_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@@Z ENDP ; std::_Fill_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Destroy_range@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+__Al$ = 16						; size = 4
+??$_Destroy_range@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z PROC ; std::_Destroy_range<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>, COMDAT
+
+; 1215 : 		// note that this is an optimization for debug mode codegen;
+; 1216 : 		// in release mode the BE removes all of this
+; 1217 : 	typedef typename _Alloc::value_type _Val;
+; 1218 : 	_Destroy_range1(_First, _Last, _Al, _Conjunction_t<
+; 1219 : 		is_trivially_destructible<_Val>,
+; 1220 : 		_Uses_default_destroy<_Alloc, _Val *>>());
+; 1221 : 	}
+
+	ret	0
+??$_Destroy_range@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@@Z ENDP ; std::_Destroy_range<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
@@ -2272,6 +4802,29 @@ __Ptr$ = 8						; size = 4
 ??$_Unfancy@D@std@@YAPADPAD@Z ENDP			; std::_Unfancy<char>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$_Unfancy@_W@std@@YAPA_WPA_W@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$_Unfancy@_W@std@@YAPA_WPA_W@Z PROC			; std::_Unfancy<wchar_t>, COMDAT
+
+; 642  : 	{	// do nothing for plain pointers
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR __Ptr$[ebp]
+
+; 644  : 	}
+
+	pop	ebp
+	ret	0
+??$_Unfancy@_W@std@@YAPA_WPA_W@Z ENDP			; std::_Unfancy<wchar_t>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$_Destroy_range@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@std@@YAXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@0AAU?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@0@@Z
 _TEXT	SEGMENT
@@ -2308,6 +4861,133 @@ __Al$ = 16						; size = 4
 	pop	ebp
 	ret	0
 ??$_Destroy_range@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@PAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@std@@YAXPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@0AAU?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@0@@Z ENDP ; std::_Destroy_range<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >,std::basic_string<char,std::char_traits<char>,std::allocator<char> > *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@X@?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+_TEXT	SEGMENT
+_this$ = -4						; size = 4
+__Al$ = 8						; size = 4
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@X@?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z PROC ; std::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &,void>, COMDAT
+; _this$ = ecx
+
+; 841  : 		{	// construct from allocator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+
+; 731  : 		return (_Buynode0(_Nodeptr(), _Nodeptr()));
+
+	push	0
+	push	0
+
+; 841  : 		{	// construct from allocator
+
+	mov	DWORD PTR _this$[ebp], esi
+
+; 523  : 		: _Myhead(),
+
+	mov	DWORD PTR [esi], 0
+
+; 524  : 		_Mysize(0)
+
+	mov	DWORD PTR [esi+4], 0
+
+; 731  : 		return (_Buynode0(_Nodeptr(), _Nodeptr()));
+
+	call	?_Buynode0@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@0@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buynode0
+
+; 606  : 		_Myhead() = _Buyheadnode();
+
+	mov	DWORD PTR [esi], eax
+
+; 842  : 		}
+
+	mov	eax, esi
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@X@?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ENDP ; std::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &,void>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@0@AAV10@@Z PROC ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YAPAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@0@AAV10@@Z ENDP ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@0@ABV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@0@ABV10@@Z PROC ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > const >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@$$CBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@YAPBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@0@ABV10@@Z ENDP ; std::addressof<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > const >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@X@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@X@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &,void>, COMDAT
+; _this$ = ecx
+
+; 476  : 		: _Myfirst(),
+
+	mov	DWORD PTR [ecx], 0
+
+; 517  : 		}
+
+	mov	eax, ecx
+
+; 477  : 		_Mylast(),
+
+	mov	DWORD PTR [ecx+4], 0
+
+; 478  : 		_Myend()
+
+	mov	DWORD PTR [ecx+8], 0
+
+; 517  : 		}
+
+	ret	4
+??$?0ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@X@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > ><std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > const &,void>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
@@ -2368,6 +5048,66 @@ __Val$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$addressof@PAD@std@@YAPAPADAAPAD@Z ENDP		; std::addressof<char *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z PROC ; std::move<std::_Wrap_alloc<std::allocator<wchar_t> > &>, COMDAT
+
+; 1350 : 	{	// forward _Arg as movable
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1352 : 	}
+
+	pop	ebp
+	ret	0
+??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ENDP ; std::move<std::_Wrap_alloc<std::allocator<wchar_t> > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::destroy<wchar_t *>, COMDAT
+; _this$ = ecx
+
+; 1103 : 		_Mytraits::destroy(*this, _Ptr);
+; 1104 : 		}
+
+	ret	4
+??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::destroy<wchar_t *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@PA_W@std@@YAPAPA_WAAPA_W@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@PA_W@std@@YAPAPA_WAAPA_W@Z PROC		; std::addressof<wchar_t *>, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@PA_W@std@@YAPAPA_WAAPA_W@Z ENDP		; std::addressof<wchar_t *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -2432,6 +5172,20 @@ __Right$ = 8						; size = 4
 ??$?0V?$allocator@D@std@@@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAE@$$QAV?$allocator@D@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<char> >::_Wrap_alloc<std::allocator<char> ><std::allocator<char> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0V?$allocator@_W@std@@@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAV?$allocator@_W@1@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??$?0V?$allocator@_W@std@@@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAV?$allocator@_W@1@@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> ><std::allocator<wchar_t> >, COMDAT
+; _this$ = ecx
+
+; 1054 : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0V?$allocator@_W@std@@@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAV?$allocator@_W@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> ><std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -2467,6 +5221,119 @@ ___formal$ = 8						; size = 1
 
 	ret	4
 ??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >,std::_Vector_val<std::_Simple_types<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >,std::_Vector_val<std::_Simple_types<std::basic_string<char,std::char_traits<char>,std::allocator<char> > > >,1><>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$?0AAU?$hash@I@std@@U_One_then_variadic_args_t@1@AAU?$equal_to@I@1@M@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$hash@I@1@$$QAU21@AAU?$equal_to@I@1@$$QAM@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+__Val1$ = 12						; size = 4
+_<_Val2_0>$ = 16					; size = 4
+_<_Val2_1>$ = 20					; size = 4
+_<_Val2_2>$ = 24					; size = 4
+??$?0AAU?$hash@I@std@@U_One_then_variadic_args_t@1@AAU?$equal_to@I@1@M@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$hash@I@1@$$QAU21@AAU?$equal_to@I@1@$$QAM@Z PROC ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1><std::hash<unsigned int> &,std::_One_then_variadic_args_t,std::equal_to<unsigned int> &,float>, COMDAT
+; _this$ = ecx
+
+; 312  : 		{	// construct from forwarded values
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 311  : 			_Myval2(_STD forward<_Other2>(_Val2)...)
+
+	mov	eax, DWORD PTR _<_Val2_2>$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 313  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	20					; 00000014H
+??$?0AAU?$hash@I@std@@U_One_then_variadic_args_t@1@AAU?$equal_to@I@1@M@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QAE@U_One_then_variadic_args_t@1@AAU?$hash@I@1@$$QAU21@AAU?$equal_to@I@1@$$QAM@Z ENDP ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1><std::hash<unsigned int> &,std::_One_then_variadic_args_t,std::equal_to<unsigned int> &,float>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>, COMDAT
+; _this$ = ecx
+
+; 1054 : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > ><std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > const &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+;	COMDAT ??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z
+_TEXT	SEGMENT
+__Val1$ = 8						; size = 4
+__Val2$ = 12						; size = 4
+??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z PROC ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,void,0>, COMDAT
+; _this$ = ecx
+
+; 189  : 		{	// construct from moved values
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 187  : 		: first(_STD forward<_Other1>(_Val1)),
+
+	mov	eax, DWORD PTR __Val1$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 188  : 				second(_STD forward<_Other2>(_Val2))
+
+	mov	eax, DWORD PTR __Val2$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx+4], eax
+
+; 190  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??$?0V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z ENDP ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,void,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+;	COMDAT ??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z
+_TEXT	SEGMENT
+__Val1$ = 8						; size = 4
+__Val2$ = 12						; size = 4
+??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z PROC ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,void,0>, COMDAT
+; _this$ = ecx
+
+; 189  : 		{	// construct from moved values
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 187  : 		: first(_STD forward<_Other1>(_Val1)),
+
+	mov	eax, DWORD PTR __Val1$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 188  : 				second(_STD forward<_Other2>(_Val2))
+
+	mov	eax, DWORD PTR __Val2$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx+4], eax
+
+; 190  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z ENDP ; std::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::pair<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,void,0>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2563,17 +5430,260 @@ __Val$ = 8						; size = 4
 ??$addressof@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YAPAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AAV10@@Z ENDP ; std::addressof<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > ><std::_Wrap_alloc<std::allocator<wchar_t> >,void>, COMDAT
+; _this$ = ecx
+
+; 1595 : 		_Mysize(0),
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 1705 : 		}
+
+	mov	eax, ecx
+
+; 1596 : 		_Myres(0)
+
+	mov	DWORD PTR [ecx+20], 0
+
+; 1705 : 		}
+
+	ret	4
+??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > ><std::_Wrap_alloc<std::allocator<wchar_t> >,void>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z PROC ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ENDP ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0@Z PROC ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+
+; 1112 : 	{	// return distance between iterators
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1113 : 	return (_Distance1(_First, _Last, _Iter_cat_t<_InIt>()));
+
+	mov	ecx, DWORD PTR __First$[ebp]
+
+; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	mov	edx, DWORD PTR __Last$[ebp]
+	cmp	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	je	SHORT $LN5@distance
+$LL6@distance:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
+
+	mov	ecx, DWORD PTR [ecx]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1097 : 		++_Off;
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	cmp	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	jne	SHORT $LL6@distance
+$LN5@distance:
+
+; 1114 : 	}
+
+	pop	ebp
+	ret	0
+??$distance@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@YAHV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0@Z ENDP ; std::distance<std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+;	COMDAT ??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z
+_TEXT	SEGMENT
+__Val1$ = 8						; size = 4
+__Val2$ = 12						; size = 4
+??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z PROC ; std::pair<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::pair<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,void,0>, COMDAT
+; _this$ = ecx
+
+; 189  : 		{	// construct from moved values
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 187  : 		: first(_STD forward<_Other1>(_Val1)),
+
+	mov	eax, DWORD PTR __Val1$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 188  : 				second(_STD forward<_Other2>(_Val2))
+
+	mov	eax, DWORD PTR __Val2$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx+4], eax
+
+; 190  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??$?0V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V01@X$0A@@?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@QAE@$$QAV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@0@Z ENDP ; std::pair<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::pair<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > ><std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,void,0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+;	COMDAT ??$_Kfn@$$CBIUSK_KeyCommand@@@?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@SAABIABU?$pair@$$CBIUSK_KeyCommand@@@1@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$_Kfn@$$CBIUSK_KeyCommand@@@?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@SAABIABU?$pair@$$CBIUSK_KeyCommand@@@1@@Z PROC ; std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1>::_Kfn<unsigned int const ,SK_KeyCommand>, COMDAT
+
+; 66   : 		{	// extract key from element value
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 67   : 		return (_Val.first);
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 68   : 		}
+
+	pop	ebp
+	ret	0
+??$_Kfn@$$CBIUSK_KeyCommand@@@?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@SAABIABU?$pair@$$CBIUSK_KeyCommand@@@1@@Z ENDP ; std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1>::_Kfn<unsigned int const ,SK_KeyCommand>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAEAAV01@XZ
+_TEXT	SEGMENT
+??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAEAAV01@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator++, COMDAT
+; _this$ = ecx
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	eax, DWORD PTR [ecx]
+
+; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 139  : 		++(*(_Mybase *)this);
+; 140  : 		return (*this);
+
+	mov	eax, ecx
+
+; 141  : 		}
+
+	ret	0
+??E?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator++
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBEAAU?$pair@$$CBIUSK_KeyCommand@@@1@XZ
+_TEXT	SEGMENT
+??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBEAAU?$pair@$$CBIUSK_KeyCommand@@@1@XZ PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator*, COMDAT
+; _this$ = ecx
+
+; 540  : 		return ((reference)_Pnode->_Myval);
+
+	mov	eax, DWORD PTR [ecx]
+	add	eax, 8
+
+; 129  : 		return ((reference)**(_Mybase *)this);
+; 130  : 		}
+
+	ret	0
+??D?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBEAAU?$pair@$$CBIUSK_KeyCommand@@@1@XZ ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator*
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+__Plist$ = 12						; size = 4
+??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z PROC ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >, COMDAT
+; _this$ = ecx
+
+; 124  : 		{	// construct with node pointer _Pnode
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 125  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??0?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z ENDP ; std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 _TEXT	SEGMENT
 ?SK_IsConsoleVisible@@YGHXZ PROC			; SK_IsConsoleVisible
 
-; 447  :   return
+; 476  :   return
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	movzx	eax, BYTE PTR [eax+4356]
 
-; 448  :     SK_Console::getInstance ()->isVisible ();
-; 449  : }
+; 477  :     SK_Console::getInstance ()->isVisible ();
+; 478  : }
 
 	ret	0
 ?SK_IsConsoleVisible@@YGHXZ ENDP			; SK_IsConsoleVisible
@@ -3327,14 +6437,14 @@ $LN30@operator:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
-;	COMDAT ??0<lambda_94e77a76b8594d4da67c6f0019d33e04>@@QAE@AAPAEAA_N@Z
+;	COMDAT ??0<lambda_c33499e55f2ae8f2793b7e66ad10d697>@@QAE@AAPAEAA_N@Z
 _TEXT	SEGMENT
 _<keys_>$ = 8						; size = 4
 _<visible>$ = 12					; size = 4
-??0<lambda_94e77a76b8594d4da67c6f0019d33e04>@@QAE@AAPAEAA_N@Z PROC ; <lambda_94e77a76b8594d4da67c6f0019d33e04>::<lambda_94e77a76b8594d4da67c6f0019d33e04>, COMDAT
+??0<lambda_c33499e55f2ae8f2793b7e66ad10d697>@@QAE@AAPAEAA_N@Z PROC ; <lambda_c33499e55f2ae8f2793b7e66ad10d697>::<lambda_c33499e55f2ae8f2793b7e66ad10d697>, COMDAT
 ; _this$ = ecx
 
-; 249  :   };
+; 278  :   };
 
 	npad	2
 	push	ebp
@@ -3346,51 +6456,51 @@ _<visible>$ = 12					; size = 4
 	mov	eax, ecx
 	pop	ebp
 	ret	8
-??0<lambda_94e77a76b8594d4da67c6f0019d33e04>@@QAE@AAPAEAA_N@Z ENDP ; <lambda_94e77a76b8594d4da67c6f0019d33e04>::<lambda_94e77a76b8594d4da67c6f0019d33e04>
+??0<lambda_c33499e55f2ae8f2793b7e66ad10d697>@@QAE@AAPAEAA_N@Z ENDP ; <lambda_c33499e55f2ae8f2793b7e66ad10d697>::<lambda_c33499e55f2ae8f2793b7e66ad10d697>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
-;	COMDAT ??R<lambda_94e77a76b8594d4da67c6f0019d33e04>@@QBE_NE@Z
+;	COMDAT ??R<lambda_c33499e55f2ae8f2793b7e66ad10d697>@@QBE_NE@Z
 _TEXT	SEGMENT
 _vkCode$ = 8						; size = 1
-??R<lambda_94e77a76b8594d4da67c6f0019d33e04>@@QBE_NE@Z PROC ; <lambda_94e77a76b8594d4da67c6f0019d33e04>::operator(), COMDAT
+??R<lambda_c33499e55f2ae8f2793b7e66ad10d697>@@QBE_NE@Z PROC ; <lambda_c33499e55f2ae8f2793b7e66ad10d697>::operator(), COMDAT
 ; _this$ = ecx
 
-; 218  :   {
+; 246  :   {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ebx
+
+; 247  :     bool new_press =
+; 248  :      keys_ [vkCode] != 0x81;
+
+	mov	ebx, DWORD PTR _vkCode$[ebp]
 	push	esi
 	mov	esi, ecx
-
-; 219  :     bool new_press =
-; 220  :      keys_ [vkCode] != 0x81;
-
-	mov	ecx, DWORD PTR _vkCode$[ebp]
-	movzx	edx, cl
+	push	edi
+	movzx	edi, bl
 	mov	eax, DWORD PTR [esi]
 	mov	eax, DWORD PTR [eax]
-	mov	bl, BYTE PTR [eax+edx]
+	mov	dl, BYTE PTR [eax+edi]
 
-; 221  : 
-; 222  :     keys_ [vkCode] = 0x81;
+; 249  : 
+; 250  :     keys_ [vkCode] = 0x81;
 
-	mov	BYTE PTR [eax+edx], 129			; 00000081H
-	cmp	bl, 129					; 00000081H
+	mov	BYTE PTR [eax+edi], 129			; 00000081H
+	cmp	dl, 129					; 00000081H
 
-; 223  : 
-; 224  :     if (new_press)
+; 251  : 
+; 252  :     if (new_press)
 
-	je	SHORT $LN4@operator
+	je	$LN4@operator
 
-; 225  :     {
-; 226  :       // First give ImGui a chance to process this
-; 227  :       if (SK_ImGui_KeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode))
+; 253  :     {
+; 254  :       // First give ImGui a chance to process this
+; 255  :       if (SK_ImGui_KeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode))
 
 	mov	eax, DWORD PTR [esi]
-	mov	ebx, DWORD PTR _vkCode$[ebp]
 	push	ebx
 	mov	ecx, DWORD PTR [eax]
 	movzx	eax, BYTE PTR [ecx+18]
@@ -3404,9 +6514,9 @@ _vkCode$ = 8						; size = 1
 	test	eax, eax
 	je	SHORT $LN3@operator
 
-; 228  :       {
-; 229  :         // Then give any plug-ins a chance
-; 230  :         SK_PluginKeyPress   (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
+; 256  :       {
+; 257  :         // Then give any plug-ins a chance
+; 258  :         SK_PluginKeyPress   (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
 
 	mov	eax, DWORD PTR [esi]
 	push	ebx
@@ -3419,30 +6529,42 @@ _vkCode$ = 8						; size = 1
 	push	eax
 	call	?SK_PluginKeyPress@@YGXHHHE@Z		; SK_PluginKeyPress
 
-; 231  : 
-; 232  :         // Finally, toggle the command console
-; 233  :         if (keys_ [VK_CONTROL] && keys_ [VK_SHIFT] && vkCode == VK_TAB)
+; 259  : 
+; 260  :         // Finally, toggle the command console
+; 261  :         if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
 
 	mov	eax, DWORD PTR [esi]
-	mov	eax, DWORD PTR [eax]
-	cmp	BYTE PTR [eax+17], 0
-	je	SHORT $LN4@operator
-	cmp	BYTE PTR [eax+16], 0
-	je	SHORT $LN4@operator
-	cmp	bl, 9
+	xor	edx, edx
+	mov	ebx, 1024				; 00000400H
+	mov	ecx, DWORD PTR [eax]
+	mov	eax, 2048				; 00000800H
+	cmp	BYTE PTR [ecx+18], dl
+	cmovne	edx, eax
+	xor	eax, eax
+	cmp	BYTE PTR [ecx+16], al
+	cmovne	eax, ebx
+	mov	ebx, 512				; 00000200H
+	or	edx, eax
+	xor	eax, eax
+	cmp	BYTE PTR [ecx+17], al
+	cmovne	eax, ebx
+	or	edx, eax
+	or	edx, edi
+	cmp	edx, 1545				; 00000609H
 	jne	SHORT $LN4@operator
 
-; 234  :         {
-; 235  :           visible = ! visible;
+; 262  :              SK_MakeKeyMask (VK_TAB, 1, 1, 0) )
+; 263  :         {
+; 264  :           visible = ! visible;
 
 	mov	ecx, DWORD PTR [esi+4]
 	cmp	BYTE PTR [ecx], 0
 	sete	al
 	mov	BYTE PTR [ecx], al
 
-; 236  : 
-; 237  :           // This will pause/unpause the game
-; 238  :           SK::SteamAPI::SetOverlayState (visible);
+; 265  : 
+; 266  :           // This will pause/unpause the game
+; 267  :           SK::SteamAPI::SetOverlayState (visible);
 
 	mov	eax, DWORD PTR [esi+4]
 	movzx	eax, BYTE PTR [eax]
@@ -3450,37 +6572,39 @@ _vkCode$ = 8						; size = 1
 	call	?SetOverlayState@SteamAPI@SK@@YGX_N@Z	; SK::SteamAPI::SetOverlayState
 $LN3@operator:
 
-; 239  : 
-; 240  :           return 1;
+; 268  : 
+; 269  :           return 1;
 
+	pop	edi
 	pop	esi
 	mov	al, 1
 	pop	ebx
 
-; 249  :   };
+; 278  :   };
 
 	pop	ebp
 	ret	4
 $LN4@operator:
+	pop	edi
 	pop	esi
 
-; 241  :         }
-; 242  :       }
-; 243  : 
-; 244  :       else
-; 245  :         return 1;
-; 246  :     }
-; 247  : 
-; 248  :     return 0;
+; 270  :         }
+; 271  :       }
+; 272  : 
+; 273  :       else
+; 274  :         return 1;
+; 275  :     }
+; 276  : 
+; 277  :     return 0;
 
 	xor	al, al
 	pop	ebx
 
-; 249  :   };
+; 278  :   };
 
 	pop	ebp
 	ret	4
-??R<lambda_94e77a76b8594d4da67c6f0019d33e04>@@QBE_NE@Z ENDP ; <lambda_94e77a76b8594d4da67c6f0019d33e04>::operator()
+??R<lambda_c33499e55f2ae8f2793b7e66ad10d697>@@QBE_NE@Z ENDP ; <lambda_c33499e55f2ae8f2793b7e66ad10d697>::operator()
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
@@ -3541,7 +6665,7 @@ _vkCode$ = 12						; size = 1
 _lParam$ = 16						; size = 4
 ?SK_HandleConsoleKey@@YAH_NEJ@Z PROC			; SK_HandleConsoleKey
 
-; 201  : {
+; 229  : {
 
 	npad	2
 	push	ebp
@@ -3556,74 +6680,74 @@ _lParam$ = 16						; size = 4
 	push	esi
 	push	edi
 
-; 202  :   bool&                          visible        = SK_Console::getInstance ()->visible;
+; 230  :   bool&                          visible        = SK_Console::getInstance ()->visible;
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	lea	edi, DWORD PTR [eax+4356]
 	mov	DWORD PTR _visible$1$[ebp], edi
 
-; 203  :   char*                          text           = SK_Console::getInstance ()->text;
+; 231  :   char*                          text           = SK_Console::getInstance ()->text;
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	add	eax, 4
 	mov	DWORD PTR _text$1$[ebp], eax
 
-; 204  :   BYTE*                          keys_          = SK_Console::getInstance ()->keys_;
+; 232  :   BYTE*                          keys_          = SK_Console::getInstance ()->keys_;
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	add	eax, 4100				; 00001004H
 	mov	DWORD PTR _keys_$[ebp], eax
 
-; 205  :   SK_Console::command_history_t& commands       = SK_Console::getInstance ()->commands;
+; 233  :   SK_Console::command_history_t& commands       = SK_Console::getInstance ()->commands;
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	lea	esi, DWORD PTR [eax+4384]
 
-; 206  :   bool&                          command_issued = SK_Console::getInstance ()->command_issued;
+; 234  :   bool&                          command_issued = SK_Console::getInstance ()->command_issued;
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	add	eax, 4357				; 00001105H
 	mov	DWORD PTR _command_issued$1$[ebp], eax
 
-; 207  :   std::string&                   result_str     = SK_Console::getInstance ()->result_str;
+; 235  :   std::string&                   result_str     = SK_Console::getInstance ()->result_str;
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 
-; 208  : 
-; 209  :   // This is technically mouse button 0 (left mouse button on default systems),
-; 210  :   //  but for convenience we allow indexing this array using 0 to have a constant
-; 211  :   //    state, allowing algorithms to use 0 to mean "don't care."
-; 212  :   keys_ [0] = TRUE;
+; 236  : 
+; 237  :   // This is technically mouse button 0 (left mouse button on default systems),
+; 238  :   //  but for convenience we allow indexing this array using 0 to have a constant
+; 239  :   //    state, allowing algorithms to use 0 to mean "don't care."
+; 240  :   keys_ [0] = TRUE;
 
 	mov	ecx, DWORD PTR _keys_$[ebp]
 	add	eax, 4360				; 00001108H
 	mov	DWORD PTR _result_str$1$[ebp], eax
 
-; 249  :   };
+; 278  :   };
 
 	lea	eax, DWORD PTR _keys_$[ebp]
 	mov	DWORD PTR _ProcessKeyPress$[ebp], eax
 	mov	DWORD PTR _ProcessKeyPress$[ebp+4], edi
 
-; 208  : 
-; 209  :   // This is technically mouse button 0 (left mouse button on default systems),
-; 210  :   //  but for convenience we allow indexing this array using 0 to have a constant
-; 211  :   //    state, allowing algorithms to use 0 to mean "don't care."
-; 212  :   keys_ [0] = TRUE;
+; 236  : 
+; 237  :   // This is technically mouse button 0 (left mouse button on default systems),
+; 238  :   //  but for convenience we allow indexing this array using 0 to have a constant
+; 239  :   //    state, allowing algorithms to use 0 to mean "don't care."
+; 240  :   keys_ [0] = TRUE;
 
 	mov	BYTE PTR [ecx], 1
 
-; 250  : 
-; 251  : 
-; 252  :   if (! SK_IsSteamOverlayActive ())
+; 279  : 
+; 280  : 
+; 281  :   if (! SK_IsSteamOverlayActive ())
 
 	call	?SK_IsSteamOverlayActive@@YG_NXZ	; SK_IsSteamOverlayActive
 	test	al, al
 	jne	$LN12@SK_HandleC
 
-; 253  :   {
-; 254  :     // Proprietary HACKJOB:  lParam = MAXDWORD indicates a make/break event, not meant for text input
-; 255  :     if (lParam == MAXDWORD && keyDown)
+; 282  :   {
+; 283  :     // Proprietary HACKJOB:  lParam = MAXDWORD indicates a make/break event, not meant for text input
+; 284  :     if (lParam == MAXDWORD && keyDown)
 
 	mov	edx, DWORD PTR _lParam$[ebp]
 	mov	cl, BYTE PTR _keyDown$[ebp]
@@ -3632,12 +6756,12 @@ _lParam$ = 16						; size = 4
 	test	cl, cl
 	je	SHORT $LN3@SK_HandleC
 
-; 256  :     {
-; 257  :       return (! ProcessKeyPress (vkCode));
+; 285  :     {
+; 286  :       return (! ProcessKeyPress (vkCode));
 
 	push	DWORD PTR _vkCode$[ebp]
 	lea	ecx, DWORD PTR _ProcessKeyPress$[ebp]
-	call	??R<lambda_94e77a76b8594d4da67c6f0019d33e04>@@QBE_NE@Z ; <lambda_94e77a76b8594d4da67c6f0019d33e04>::operator()
+	call	??R<lambda_c33499e55f2ae8f2793b7e66ad10d697>@@QBE_NE@Z ; <lambda_c33499e55f2ae8f2793b7e66ad10d697>::operator()
 	xor	ecx, ecx
 	test	al, al
 	pop	edi
@@ -3646,7 +6770,7 @@ _lParam$ = 16						; size = 4
 	mov	eax, ecx
 	pop	ebx
 
-; 420  : }
+; 449  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -3661,7 +6785,7 @@ $LN3@SK_HandleC:
 	mov	ebx, DWORD PTR _vkCode$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 262  :     BYTE     scanCode = HIWORD (lParam) & 0x7F;
+; 291  :     BYTE     scanCode = HIWORD (lParam) & 0x7F;
 
 	mov	eax, edx
 	shr	eax, 16					; 00000010H
@@ -3673,7 +6797,7 @@ $LN3@SK_HandleC:
 	cmp	BYTE PTR ?SK_ImGui_Visible@@3_NA, 0	; SK_ImGui_Visible
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 262  :     BYTE     scanCode = HIWORD (lParam) & 0x7F;
+; 291  :     BYTE     scanCode = HIWORD (lParam) & 0x7F;
 
 	mov	DWORD PTR tv957[ebp], eax
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -3685,21 +6809,21 @@ $LN3@SK_HandleC:
 	jne	SHORT $LN64@SK_HandleC
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 272  :     if (visible && vkCode == VK_BACK)
+; 301  :     if (visible && vkCode == VK_BACK)
 
 	cmp	BYTE PTR [edi], 0
 	je	SHORT $LN5@SK_HandleC
 	cmp	bl, 8
 	jne	SHORT $LN5@SK_HandleC
 
-; 273  :     {
-; 274  :       if (keyDown)
+; 302  :     {
+; 303  :       if (keyDown)
 
 	test	cl, cl
 	je	$LN12@SK_HandleC
 
-; 275  :       {
-; 276  :         size_t len = strlen (text);
+; 304  :       {
+; 305  :         size_t len = strlen (text);
 
 	mov	edx, DWORD PTR _text$1$[ebp]
 	mov	ecx, edx
@@ -3712,40 +6836,40 @@ $LL282@SK_HandleC:
 	jne	SHORT $LL282@SK_HandleC
 	sub	ecx, esi
 
-; 277  :                len--;
+; 306  :                len--;
 
 	lea	eax, DWORD PTR [ecx-1]
 	mov	ecx, 1
 	cmp	eax, ecx
 	cmovae	ecx, eax
 
-; 278  : 
-; 279  :         if (len < 1)
-; 280  :           len = 1;
-; 281  : 
-; 282  :         text [len] = '\0';
+; 307  : 
+; 308  :         if (len < 1)
+; 309  :           len = 1;
+; 310  : 
+; 311  :         text [len] = '\0';
 
 	mov	BYTE PTR [ecx+edx], 0
 
-; 283  :       }
-; 284  :     }
+; 312  :       }
+; 313  :     }
 
 	jmp	$LN12@SK_HandleC
 $LN64@SK_HandleC:
 
-; 263  :     ///SHORT repeated = LOWORD (lParam);
-; 264  :     //bool   keyDown  = ! (lParam & 0x80000000UL);
-; 265  : 
-; 266  : 
-; 267  :     // Disable the command console if the ImGui overlay is visible
-; 268  :     if (SK_ImGui_Active ())
-; 269  :       visible = false;
+; 292  :     ///SHORT repeated = LOWORD (lParam);
+; 293  :     //bool   keyDown  = ! (lParam & 0x80000000UL);
+; 294  : 
+; 295  : 
+; 296  :     // Disable the command console if the ImGui overlay is visible
+; 297  :     if (SK_ImGui_Active ())
+; 298  :       visible = false;
 
 	mov	BYTE PTR [edi], 0
 $LN5@SK_HandleC:
 
-; 285  : 
-; 286  :     else if (vkCode == VK_SHIFT || vkCode == VK_LSHIFT || vkCode == VK_RSHIFT)
+; 314  : 
+; 315  :     else if (vkCode == VK_SHIFT || vkCode == VK_LSHIFT || vkCode == VK_RSHIFT)
 
 	cmp	bl, 16					; 00000010H
 	je	$LN11@SK_HandleC
@@ -3754,10 +6878,10 @@ $LN5@SK_HandleC:
 	cmp	bl, 161					; 000000a1H
 	je	$LN11@SK_HandleC
 
-; 291  :       else         keys_ [vkCode] = 0x00;
-; 292  :     }
-; 293  : 
-; 294  :     else if (vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU)
+; 320  :       else         keys_ [vkCode] = 0x00;
+; 321  :     }
+; 322  : 
+; 323  :     else if (vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU)
 
 	cmp	bl, 18					; 00000012H
 	je	$LN16@SK_HandleC
@@ -3766,13 +6890,13 @@ $LN5@SK_HandleC:
 	cmp	bl, 165					; 000000a5H
 	je	$LN16@SK_HandleC
 
-; 300  :     }
-; 301  : 
-; 302  :     //else if ((! repeated) && vkCode == VK_CAPITAL) {
-; 303  :       //if (keyDown) if (keys_ [VK_CAPITAL] == 0x00) keys_ [VK_CAPITAL] = 0x81; else keys_ [VK_CAPITAL] = 0x00;
-; 304  :     //}
-; 305  : 
-; 306  :     else if (vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL)
+; 329  :     }
+; 330  : 
+; 331  :     //else if ((! repeated) && vkCode == VK_CAPITAL) {
+; 332  :       //if (keyDown) if (keys_ [VK_CAPITAL] == 0x00) keys_ [VK_CAPITAL] = 0x81; else keys_ [VK_CAPITAL] = 0x00;
+; 333  :     //}
+; 334  : 
+; 335  :     else if (vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL)
 
 	cmp	bl, 17					; 00000011H
 	je	$LN21@SK_HandleC
@@ -3781,9 +6905,9 @@ $LN5@SK_HandleC:
 	cmp	bl, 163					; 000000a3H
 	je	$LN21@SK_HandleC
 
-; 312  :     }
-; 313  : 
-; 314  :     else if (keyDown && visible && ((vkCode == VK_UP) || (vkCode == VK_DOWN)))
+; 341  :     }
+; 342  : 
+; 343  :     else if (keyDown && visible && ((vkCode == VK_UP) || (vkCode == VK_DOWN)))
 
 	test	cl, cl
 	je	SHORT $LN24@SK_HandleC
@@ -3794,16 +6918,16 @@ $LN5@SK_HandleC:
 	cmp	bl, 40					; 00000028H
 	jne	SHORT $LN24@SK_HandleC
 
-; 318  :       else
-; 319  :         commands.idx++;
+; 347  :       else
+; 348  :         commands.idx++;
 
 	inc	DWORD PTR [esi+12]
 	jmp	SHORT $LN28@SK_HandleC
 $LN280@SK_HandleC:
 
-; 315  :     {
-; 316  :       if (vkCode == VK_UP)
-; 317  :         commands.idx--;
+; 344  :     {
+; 345  :       if (vkCode == VK_UP)
+; 346  :         commands.idx--;
 
 	dec	DWORD PTR [esi+12]
 $LN28@SK_HandleC:
@@ -3821,12 +6945,12 @@ $LN28@SK_HandleC:
 	add	eax, edx
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 324  :       else if (commands.idx >= commands.history.size ())
+; 353  :       else if (commands.idx >= commands.history.size ())
 
 	cmp	DWORD PTR [esi+12], eax
 	jb	SHORT $LN31@SK_HandleC
 
-; 325  :         commands.idx = commands.history.size () - 1;
+; 354  :         commands.idx = commands.history.size () - 1;
 
 	dec	eax
 	mov	DWORD PTR [esi+12], eax
@@ -3839,7 +6963,7 @@ $LN31@SK_HandleC:
 	cmp	ecx, DWORD PTR [esi+4]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 327  :       if (! commands.history.empty ())
+; 356  :       if (! commands.history.empty ())
 
 	je	$LN12@SK_HandleC
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -3871,7 +6995,7 @@ $LN31@SK_HandleC:
 $LN153@SK_HandleC:
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 329  :         strcpy (&text [1], commands.history [commands.idx].c_str ());
+; 358  :         strcpy (&text [1], commands.history [commands.idx].c_str ());
 
 	mov	edx, DWORD PTR _text$1$[ebp]
 	inc	edx
@@ -3883,43 +7007,43 @@ $LL52@SK_HandleC:
 	test	al, al
 	jne	SHORT $LL52@SK_HandleC
 
-; 330  :         command_issued = false;
+; 359  :         command_issued = false;
 
 	mov	eax, DWORD PTR _command_issued$1$[ebp]
 	mov	BYTE PTR [eax], 0
 
-; 331  :       }
-; 332  :     }
+; 360  :       }
+; 361  :     }
 
 	jmp	$LN12@SK_HandleC
 $LN24@SK_HandleC:
 
-; 333  : 
-; 334  :     else if (visible && vkCode == VK_RETURN)
+; 362  : 
+; 363  :     else if (visible && vkCode == VK_RETURN)
 
 	cmp	BYTE PTR [edi], 0
 	je	$LN33@SK_HandleC
 	cmp	bl, 13					; 0000000dH
 	jne	$LN33@SK_HandleC
 
-; 335  :     {
-; 336  :       bool new_press = keys_ [vkCode] != 0x81;
+; 364  :     {
+; 365  :       bool new_press = keys_ [vkCode] != 0x81;
 
 	mov	eax, DWORD PTR _keys_$[ebp]
 	mov	bl, BYTE PTR [eax+13]
 
-; 337  : 
-; 338  :       if (keyDown)
+; 366  : 
+; 367  :       if (keyDown)
 
 	test	cl, cl
 	je	$LN35@SK_HandleC
 
-; 339  :         keys_ [vkCode] = 0x81;
+; 368  :         keys_ [vkCode] = 0x81;
 
 	mov	BYTE PTR [eax+13], 129			; 00000081H
 
-; 342  : 
-; 343  :       if (keyDown && ( (lParam & 0x40000000UL) == 0 || new_press ))
+; 371  : 
+; 372  :       if (keyDown && ( (lParam & 0x40000000UL) == 0 || new_press ))
 
 	test	edx, 1073741824				; 40000000H
 	je	SHORT $LN38@SK_HandleC
@@ -3927,8 +7051,8 @@ $LN24@SK_HandleC:
 	je	$LN12@SK_HandleC
 $LN38@SK_HandleC:
 
-; 344  :       {
-; 345  :         size_t len = strlen (text+1);
+; 373  :       {
+; 374  :         size_t len = strlen (text+1);
 
 	mov	ebx, DWORD PTR _text$1$[ebp]
 	inc	ebx
@@ -3942,20 +7066,20 @@ $LL283@SK_HandleC:
 	jne	SHORT $LL283@SK_HandleC
 	sub	edi, ecx
 
-; 346  :         // Don't process empty or pure whitespace command lines
-; 347  :         if (len > 0 && strspn (text+1, " ") != len)
+; 375  :         // Don't process empty or pure whitespace command lines
+; 376  :         if (len > 0 && strspn (text+1, " ") != len)
 
 	je	$LN285@SK_HandleC
-	push	OFFSET $SG184554
+	push	OFFSET $SG187975
 	push	ebx
 	call	DWORD PTR __imp__strspn
 	add	esp, 8
 	cmp	eax, edi
 	je	$LN285@SK_HandleC
 
-; 348  :         {
-; 349  :           SK_ICommandResult result =
-; 350  :             SK_GetCommandProcessor ()->ProcessCommandLine (text+1);
+; 377  :         {
+; 378  :           SK_ICommandResult result =
+; 379  :             SK_GetCommandProcessor ()->ProcessCommandLine (text+1);
 
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	push	ebx
@@ -3965,8 +7089,8 @@ $LL283@SK_HandleC:
 	mov	ecx, eax
 	call	DWORD PTR [edx+28]
 
-; 351  : 
-; 352  :           if (result.getStatus ())
+; 380  : 
+; 381  :           if (result.getStatus ())
 
 	cmp	DWORD PTR _result$8[ebp+80], 0
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -3979,7 +7103,7 @@ $LL283@SK_HandleC:
 	cmp	DWORD PTR [esi], eax
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 355  :             if (commands.history.empty() ||
+; 384  :             if (commands.history.empty() ||
 
 	je	SHORT $LN43@SK_HandleC
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -3989,7 +7113,7 @@ $LL283@SK_HandleC:
 	add	eax, -24				; ffffffe8H
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 355  :             if (commands.history.empty() ||
+; 384  :             if (commands.history.empty() ||
 
 	push	ebx
 	push	eax
@@ -3999,9 +7123,9 @@ $LL283@SK_HandleC:
 	je	SHORT $LN42@SK_HandleC
 $LN43@SK_HandleC:
 
-; 356  :                 commands.history.back () != &text [1])
-; 357  :             {
-; 358  :               commands.history.emplace_back (&text [1]);
+; 385  :                 commands.history.back () != &text [1])
+; 386  :             {
+; 387  :               commands.history.emplace_back (&text [1]);
 
 	lea	eax, DWORD PTR $T9[ebp]
 	mov	DWORD PTR $T9[ebp], ebx
@@ -4023,41 +7147,41 @@ $LN42@SK_HandleC:
 	add	eax, edx
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 361  :             commands.idx =
+; 390  :             commands.idx =
 
 	mov	DWORD PTR [esi+12], eax
 
-; 362  :               commands.history.size ();
-; 363  : 
-; 364  :             text [1] = '\0';
-; 365  : 
-; 366  :             command_issued = true;
+; 391  :               commands.history.size ();
+; 392  : 
+; 393  :             text [1] = '\0';
+; 394  : 
+; 395  :             command_issued = true;
 
 	mov	eax, DWORD PTR _command_issued$1$[ebp]
 	mov	BYTE PTR [ebx], 0
 	mov	BYTE PTR [eax], 1
 
-; 367  :           }
-; 368  : 
-; 369  :           else
+; 396  :           }
+; 397  : 
+; 398  :           else
 
 	jmp	SHORT $LN41@SK_HandleC
 $LN40@SK_HandleC:
 
-; 370  :           {
-; 371  :             command_issued = false;
+; 399  :           {
+; 400  :             command_issued = false;
 
 	mov	eax, DWORD PTR _command_issued$1$[ebp]
 	mov	BYTE PTR [eax], 0
 $LN41@SK_HandleC:
 
-; 374  :           result_str = result.getWord () + std::string (" ")   +
+; 403  :           result_str = result.getWord () + std::string (" ")   +
 
-	push	OFFSET $SG184559
+	push	OFFSET $SG187980
 	lea	ecx, DWORD PTR $T2[ebp]
 	call	??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@QBD@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
 	mov	esi, eax
-	push	OFFSET $SG184560
+	push	OFFSET $SG187981
 	lea	ecx, DWORD PTR $T3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	call	??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@QBD@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
@@ -4072,7 +7196,7 @@ $LN41@SK_HandleC:
 	lea	ecx, DWORD PTR _result$8[ebp+8]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 374  :           result_str = result.getWord () + std::string (" ")   +
+; 403  :           result_str = result.getWord () + std::string (" ")   +
 
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -4082,7 +7206,7 @@ $LN41@SK_HandleC:
 	cmovae	ecx, DWORD PTR _result$8[ebp+8]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 374  :           result_str = result.getWord () + std::string (" ")   +
+; 403  :           result_str = result.getWord () + std::string (" ")   +
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	ecx
@@ -4100,7 +7224,7 @@ $LN41@SK_HandleC:
 	lea	ecx, DWORD PTR _result$8[ebp+32]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 374  :           result_str = result.getWord () + std::string (" ")   +
+; 403  :           result_str = result.getWord () + std::string (" ")   +
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -4110,7 +7234,7 @@ $LN41@SK_HandleC:
 	cmovae	ecx, DWORD PTR _result$8[ebp+32]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 374  :           result_str = result.getWord () + std::string (" ")   +
+; 403  :           result_str = result.getWord () + std::string (" ")   +
 
 	push	ecx
 	push	eax
@@ -4134,7 +7258,7 @@ $LN41@SK_HandleC:
 	lea	edx, DWORD PTR _result$8[ebp+56]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 374  :           result_str = result.getWord () + std::string (" ")   +
+; 403  :           result_str = result.getWord () + std::string (" ")   +
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -4144,7 +7268,7 @@ $LN41@SK_HandleC:
 	cmovae	edx, DWORD PTR _result$8[ebp+56]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 374  :           result_str = result.getWord () + std::string (" ")   +
+; 403  :           result_str = result.getWord () + std::string (" ")   +
 
 	push	edx
 	push	eax
@@ -4168,9 +7292,9 @@ $LN41@SK_HandleC:
 	lea	ecx, DWORD PTR $T2[ebp]
 	call	??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::~basic_string<char,std::char_traits<char>,std::allocator<char> >
 
-; 375  :                        result.getArgs () + std::string (":  ") +
-; 376  :                        result.getResult ();
-; 377  :         }
+; 404  :                        result.getArgs () + std::string (":  ") +
+; 405  :                        result.getResult ();
+; 406  :         }
 
 	lea	ecx, DWORD PTR _result$8[ebp]
 	call	??1SK_ICommandResult@@QAE@XZ
@@ -4178,9 +7302,9 @@ $LN285@SK_HandleC:
 	mov	edi, DWORD PTR _visible$1$[ebp]
 $LN12@SK_HandleC:
 
-; 414  :   }
-; 415  : 
-; 416  :   if (visible)
+; 443  :   }
+; 444  : 
+; 445  :   if (visible)
 
 	cmp	BYTE PTR [edi], 0
 	jne	SHORT $LN287@SK_HandleC
@@ -4188,14 +7312,14 @@ $LN50@SK_HandleC:
 	pop	edi
 	pop	esi
 
-; 417  :     return 0;
-; 418  : 
-; 419  :   return 1;
+; 446  :     return 0;
+; 447  : 
+; 448  :   return 1;
 
 	mov	eax, 1
 	pop	ebx
 
-; 420  : }
+; 449  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -4204,37 +7328,37 @@ $LN50@SK_HandleC:
 	ret	0
 $LN35@SK_HandleC:
 
-; 340  :       else
-; 341  :         keys_ [vkCode] = 0x00;
+; 369  :       else
+; 370  :         keys_ [vkCode] = 0x00;
 
 	mov	BYTE PTR [eax+13], 0
 
-; 342  : 
-; 343  :       if (keyDown && ( (lParam & 0x40000000UL) == 0 || new_press ))
+; 371  : 
+; 372  :       if (keyDown && ( (lParam & 0x40000000UL) == 0 || new_press ))
 
 	jmp	SHORT $LN12@SK_HandleC
 $LN33@SK_HandleC:
 
-; 378  :       }
-; 379  :     }
-; 380  : 
-; 381  :     else if (keyDown)
+; 407  :       }
+; 408  :     }
+; 409  : 
+; 410  :     else if (keyDown)
 
 	test	cl, cl
 	je	$LN44@SK_HandleC
 
-; 382  :     {
-; 383  :       // First trigger an event if this is a make/break
-; 384  :       if (ProcessKeyPress (vkCode))
+; 411  :     {
+; 412  :       // First trigger an event if this is a make/break
+; 413  :       if (ProcessKeyPress (vkCode))
 
 	push	ebx
 	lea	ecx, DWORD PTR _ProcessKeyPress$[ebp]
-	call	??R<lambda_94e77a76b8594d4da67c6f0019d33e04>@@QBE_NE@Z ; <lambda_94e77a76b8594d4da67c6f0019d33e04>::operator()
+	call	??R<lambda_c33499e55f2ae8f2793b7e66ad10d697>@@QBE_NE@Z ; <lambda_c33499e55f2ae8f2793b7e66ad10d697>::operator()
 	test	al, al
 	je	SHORT $LN46@SK_HandleC
 $LN287@SK_HandleC:
 
-; 420  : }
+; 449  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	xor	eax, eax
@@ -4247,36 +7371,36 @@ $LN287@SK_HandleC:
 	ret	0
 $LN46@SK_HandleC:
 
-; 385  :         return 0;
-; 386  : 
-; 387  :       // If not, use the key press for text input
-; 388  :       //
-; 389  : 
-; 390  :       // Don't print the tab character, it's pretty useless.
-; 391  :       if ( visible && vkCode != VK_TAB )
+; 414  :         return 0;
+; 415  : 
+; 416  :       // If not, use the key press for text input
+; 417  :       //
+; 418  : 
+; 419  :       // Don't print the tab character, it's pretty useless.
+; 420  :       if ( visible && vkCode != VK_TAB )
 
 	cmp	BYTE PTR [edi], 0
 	je	SHORT $LN50@SK_HandleC
 	cmp	bl, 9
 	je	SHORT $LN12@SK_HandleC
 
-; 392  :       {
-; 393  :         keys_ [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+; 421  :       {
+; 422  :         keys_ [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
 
 	push	20					; 00000014H
 	call	DWORD PTR ?GetKeyState_Original@@3P6GFH@ZA ; GetKeyState_Original
 	mov	ecx, DWORD PTR _keys_$[ebp]
 
-; 394  : 
-; 395  :         unsigned char key_str [2];
-; 396  :                       key_str [1] = '\0';
-; 397  : 
-; 398  :         if (1 == ToAsciiEx ( vkCode,
-; 399  :                               scanCode,
-; 400  :                               keys_,
-; 401  :    reinterpret_cast <LPWORD> (key_str),
-; 402  :                               0,
-; 403  :                               GetKeyboardLayout (0) ) &&
+; 423  : 
+; 424  :         unsigned char key_str [2];
+; 425  :                       key_str [1] = '\0';
+; 426  : 
+; 427  :         if (1 == ToAsciiEx ( vkCode,
+; 428  :                               scanCode,
+; 429  :                               keys_,
+; 430  :    reinterpret_cast <LPWORD> (key_str),
+; 431  :                               0,
+; 432  :                               GetKeyboardLayout (0) ) &&
 
 	push	0
 	mov	BYTE PTR [ecx+20], al
@@ -4302,9 +7426,9 @@ $LN46@SK_HandleC:
 	test	eax, eax
 	je	$LN12@SK_HandleC
 
-; 404  :              isprint ( *key_str ) )
-; 405  :         {
-; 406  :           strncat (text, reinterpret_cast <char *> (key_str), 1);
+; 433  :              isprint ( *key_str ) )
+; 434  :         {
+; 435  :           strncat (text, reinterpret_cast <char *> (key_str), 1);
 
 	mov	edx, DWORD PTR _text$1$[ebp]
 	lea	eax, DWORD PTR _key_str$10[ebp]
@@ -4313,22 +7437,22 @@ $LN46@SK_HandleC:
 	push	edx
 	call	DWORD PTR __imp__strncat
 
-; 407  :           command_issued = false;
+; 436  :           command_issued = false;
 
 	mov	eax, DWORD PTR _command_issued$1$[ebp]
 	add	esp, 12					; 0000000cH
 	mov	BYTE PTR [eax], 0
 
-; 408  :         }
-; 409  :       }
-; 410  :     }
+; 437  :         }
+; 438  :       }
+; 439  :     }
 
 	jmp	$LN12@SK_HandleC
 $LN44@SK_HandleC:
 
-; 411  : 
-; 412  :     else if ((! keyDown))
-; 413  :       keys_ [vkCode] = 0x00;
+; 440  : 
+; 441  :     else if ((! keyDown))
+; 442  :       keys_ [vkCode] = 0x00;
 
 	mov	eax, DWORD PTR _keys_$[ebp]
 	movzx	ecx, bl
@@ -4336,10 +7460,10 @@ $LN44@SK_HandleC:
 	jmp	$LN12@SK_HandleC
 $LN21@SK_HandleC:
 
-; 307  :     {
-; 308  :       vkCode = VK_CONTROL;
-; 309  : 
-; 310  :       if (keyDown) keys_ [vkCode] = 0x81;
+; 336  :     {
+; 337  :       vkCode = VK_CONTROL;
+; 338  : 
+; 339  :       if (keyDown) keys_ [vkCode] = 0x81;
 
 	mov	eax, DWORD PTR _keys_$[ebp]
 	neg	cl
@@ -4347,15 +7471,15 @@ $LN21@SK_HandleC:
 	and	cl, 129					; 00000081H
 	mov	BYTE PTR [eax+17], cl
 
-; 311  :       else         keys_ [vkCode] = 0x00;
+; 340  :       else         keys_ [vkCode] = 0x00;
 
 	jmp	$LN12@SK_HandleC
 $LN16@SK_HandleC:
 
-; 295  :     {
-; 296  :       vkCode = VK_MENU;
-; 297  : 
-; 298  :       if (keyDown) keys_ [vkCode] = 0x81;
+; 324  :     {
+; 325  :       vkCode = VK_MENU;
+; 326  : 
+; 327  :       if (keyDown) keys_ [vkCode] = 0x81;
 
 	mov	eax, DWORD PTR _keys_$[ebp]
 	neg	cl
@@ -4363,15 +7487,15 @@ $LN16@SK_HandleC:
 	and	cl, 129					; 00000081H
 	mov	BYTE PTR [eax+18], cl
 
-; 299  :       else         keys_ [vkCode] = 0x00;
+; 328  :       else         keys_ [vkCode] = 0x00;
 
 	jmp	$LN12@SK_HandleC
 $LN11@SK_HandleC:
 
-; 287  :     {
-; 288  :       vkCode = VK_SHIFT;
-; 289  : 
-; 290  :       if (keyDown) keys_ [vkCode] = 0x81;
+; 316  :     {
+; 317  :       vkCode = VK_SHIFT;
+; 318  : 
+; 319  :       if (keyDown) keys_ [vkCode] = 0x81;
 
 	mov	eax, DWORD PTR _keys_$[ebp]
 	neg	cl
@@ -4413,24 +7537,24 @@ _Alt$ = 16						; size = 4
 _vkCode$ = 20						; size = 1
 ?SK_ImGui_KeyPress@@YAHHHHE@Z PROC			; SK_ImGui_KeyPress
 
-; 174  : {
+; 202  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 175  :   UNREFERENCED_PARAMETER (Alt);
-; 176  : 
-; 177  : SHORT SK_ImGui_ToggleKeys [4] = {
-; 178  :     VK_BACK,              //Primary button (backspace)
-; 179  :   
-; 180  :     // Modifier Keys
-; 181  :     VK_CONTROL, VK_SHIFT, // Ctrl + Shift
-; 182  :     0
-; 183  :   };
-; 184  : 
-; 185  :   if ( vkCode == SK_ImGui_ToggleKeys [0] &&
-; 186  :        Control && Shift )
+; 203  :   UNREFERENCED_PARAMETER (Alt);
+; 204  : 
+; 205  : SHORT SK_ImGui_ToggleKeys [4] = {
+; 206  :     VK_BACK,              //Primary button (backspace)
+; 207  :   
+; 208  :     // Modifier Keys
+; 209  :     VK_CONTROL, VK_SHIFT, // Ctrl + Shift
+; 210  :     0
+; 211  :   };
+; 212  : 
+; 213  :   if ( vkCode == SK_ImGui_ToggleKeys [0] &&
+; 214  :        Control && Shift )
 
 	cmp	BYTE PTR _vkCode$[ebp], 8
 	jne	SHORT $LN2@SK_ImGui_K
@@ -4439,70 +7563,6120 @@ _vkCode$ = 20						; size = 1
 	cmp	DWORD PTR _Shift$[ebp], 0
 	je	SHORT $LN2@SK_ImGui_K
 
-; 187  :   {
-; 188  :     extern void SK_ImGui_Toggle (void);
-; 189  : 
-; 190  :     SK_ImGui_Toggle ();
+; 215  :   {
+; 216  :     extern void SK_ImGui_Toggle (void);
+; 217  : 
+; 218  :     SK_ImGui_Toggle ();
 
 	call	?SK_ImGui_Toggle@@YAXXZ			; SK_ImGui_Toggle
 
-; 191  :     return FALSE;
+; 219  :     return FALSE;
 
 	xor	eax, eax
 
-; 195  : }
+; 223  : }
 
 	pop	ebp
 	ret	0
 $LN2@SK_ImGui_K:
 
-; 192  :   }
-; 193  : 
-; 194  :   return TRUE;
+; 220  :   }
+; 221  : 
+; 222  :   return TRUE;
 
 	mov	eax, 1
 
-; 195  : }
+; 223  : }
 
 	pop	ebp
 	ret	0
 ?SK_ImGui_KeyPress@@YAHHHHE@Z ENDP			; SK_ImGui_KeyPress
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+;	COMDAT ??$for_each@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YA?AV<lambda_a31a32673789eb8f15124766d9ca7404>@@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0V1@@Z
 _TEXT	SEGMENT
-_Control$ = 8						; size = 4
-_Shift$ = 12						; size = 4
-_Alt$ = 16						; size = 4
-_vkCode$ = 20						; size = 1
-?SK_PluginKeyPress@@YGXHHHE@Z PROC			; SK_PluginKeyPress
+___$ReturnUdt$ = 8					; size = 4
+__First$ = 12						; size = 4
+__Last$ = 16						; size = 4
+__Func$ = 20						; size = 1
+??$for_each@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YA?AV<lambda_a31a32673789eb8f15124766d9ca7404>@@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0V1@@Z PROC ; std::for_each<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,<lambda_a31a32673789eb8f15124766d9ca7404> >, COMDAT
 
-; 164  : {
+; 154  : 	{	// perform function for each element
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 165  :   UNREFERENCED_PARAMETER (Control);
-; 166  :   UNREFERENCED_PARAMETER (Shift);
-; 167  :   UNREFERENCED_PARAMETER (Alt);
-; 168  : 
-; 169  :   SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode);
+; 155  : 	_DEBUG_RANGE(_First, _Last);
+; 156  : 	_For_each_unchecked(_Unchecked(_First), _Unchecked(_Last), _Func);
 
+	lea	eax, DWORD PTR __Func$[ebp]
+	push	eax
+	push	DWORD PTR __Last$[ebp]
+	push	DWORD PTR __First$[ebp]
+	call	??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z ; std::_For_each_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,<lambda_a31a32673789eb8f15124766d9ca7404> >
+
+; 157  : 	return (_Func);
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	add	esp, 12					; 0000000cH
+
+; 158  : 	}
+
+	pop	ebp
+	ret	0
+??$for_each@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YA?AV<lambda_a31a32673789eb8f15124766d9ca7404>@@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0V1@@Z ENDP ; std::for_each<std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,<lambda_a31a32673789eb8f15124766d9ca7404> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+;	COMDAT ??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z
+_TEXT	SEGMENT
+$T2 = -120						; size = 84
+$T3 = -36						; size = 24
+__$EHRec$ = -12						; size = 12
+_cmd_pair$ = 8						; size = 4
+??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z PROC ; <lambda_a31a32673789eb8f15124766d9ca7404>::operator(), COMDAT
+; _this$ = ecx
+
+; 191  :       {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 108				; 0000006cH
+	push	esi
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
+	mov	edx, DWORD PTR _cmd_pair$[ebp]
+	sub	esp, 24					; 00000018H
+	mov	ecx, esp
+	mov	esi, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	add	edx, 4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+	push	eax
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+20], 7
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	lea	eax, DWORD PTR $T3[ebp]
+	push	eax
+	call	?SK_WideCharToUTF8@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@@Z ; SK_WideCharToUTF8
+	add	esp, 28					; 0000001cH
+	mov	ecx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ecx+20], 16			; 00000010H
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN60@operator
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	ecx, DWORD PTR [ecx]
+$LN60@operator:
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 192  :         SK_GetCommandProcessor ()->ProcessCommandLine (
+
+	mov	eax, DWORD PTR [esi]
+	push	ecx
+	lea	ecx, DWORD PTR $T2[ebp]
+	push	ecx
+	mov	ecx, esi
+	call	DWORD PTR [eax+28]
+	lea	ecx, DWORD PTR $T2[ebp]
+	call	??1SK_ICommandResult@@QAE@XZ
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T3[ebp+20]
+	cmp	eax, 16					; 00000010H
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN69@operator
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR $T3[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN69@operator:
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 195  :       }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__unwindfunclet$??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z$1:
+	lea	ecx, DWORD PTR $T3[ebp]
+	jmp	??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::~basic_string<char,std::char_traits<char>,std::allocator<char> >
+__ehhandler$??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??R<lambda_a31a32673789eb8f15124766d9ca7404>@@QBEXAAU?$pair@$$CBIUSK_KeyCommand@@@std@@@Z ENDP ; <lambda_a31a32673789eb8f15124766d9ca7404>::operator()
+; Function compile flags: /Ogtp
+;	COMDAT ??_G?$pair@$$CBIUSK_KeyCommand@@@std@@QAEPAXI@Z
+_TEXT	SEGMENT
+___flags$ = 8						; size = 4
+??_G?$pair@$$CBIUSK_KeyCommand@@@std@@QAEPAXI@Z PROC	; std::pair<unsigned int const ,SK_KeyCommand>::`scalar deleting destructor', COMDAT
+; _this$ = ecx
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+	mov	esi, ecx
+	lea	ecx, DWORD PTR [esi+4]
+	call	??1SK_KeyCommand@@QAE@XZ
+	test	BYTE PTR ___flags$[ebp], 1
+	je	SHORT $LN7@scalar
+	push	76					; 0000004cH
+	push	esi
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+$LN7@scalar:
+	mov	eax, esi
+	pop	esi
+	pop	ebp
+	ret	4
+??_G?$pair@$$CBIUSK_KeyCommand@@@std@@QAEPAXI@Z ENDP	; std::pair<unsigned int const ,SK_KeyCommand>::`scalar deleting destructor'
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+;	COMDAT ??1?$pair@$$CBIUSK_KeyCommand@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$pair@$$CBIUSK_KeyCommand@@@std@@QAE@XZ PROC	; std::pair<unsigned int const ,SK_KeyCommand>::~pair<unsigned int const ,SK_KeyCommand>, COMDAT
+; _this$ = ecx
+	add	ecx, 4
+	jmp	??1SK_KeyCommand@@QAE@XZ
+??1?$pair@$$CBIUSK_KeyCommand@@@std@@QAE@XZ ENDP	; std::pair<unsigned int const ,SK_KeyCommand>::~pair<unsigned int const ,SK_KeyCommand>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Unchecked, COMDAT
+; _this$ = ecx
+
+; 356  : 		{	// make an unchecked iterator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx]
+	mov	DWORD PTR [eax], ecx
+
+; 357  : 		return (_Unchecked_type(this->_Ptr, (_Mylist *)this->_Getcont()));
+; 358  : 		}
+
+	pop	ebp
+	ret	4
+?_Unchecked@?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Unchecked
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+__Plist$ = 12						; size = 4
+??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z PROC ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >, COMDAT
+; _this$ = ecx
+
+; 344  : 		{	// construct with node pointer _Pnode
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 345  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??0?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z ENDP ; std::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??9?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??9?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z PROC ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator!=, COMDAT
+; _this$ = ecx
+
+; 301  : 		{	// test for iterator inequality
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR __Right$[ebp]
+	mov	ecx, DWORD PTR [ecx]
+	cmp	ecx, DWORD PTR [eax]
+	setne	al
+
+; 302  : 		return (!(*this == _Right));
+; 303  : 		}
+
+	pop	ebp
+	ret	4
+??9?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z ENDP ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator!=
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??8?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??8?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z PROC ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator==, COMDAT
+; _this$ = ecx
+
+; 286  : 		{	// test for iterator equality
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR __Right$[ebp]
+	mov	ecx, DWORD PTR [ecx]
+	cmp	ecx, DWORD PTR [eax]
+	sete	al
+
+; 287  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 288  : 		if (this->_Getcont() != _Right._Getcont())
+; 289  : 			{	// report error
+; 290  : 			_DEBUG_ERROR("list iterators incompatible");
+; 291  : 			}
+; 292  : 
+; 293  :  #elif _ITERATOR_DEBUG_LEVEL == 1
+; 294  : 		_SCL_SECURE_VALIDATE(this->_Getcont() == _Right._Getcont());
+; 295  :  #endif /* _ITERATOR_DEBUG_LEVEL */
+; 296  : 
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+; 298  : 		}
+
+	pop	ebp
+	ret	4
+??8?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QBE_NABV01@@Z ENDP ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator==
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??E?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAEAAV01@XZ
+_TEXT	SEGMENT
+??E?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAEAAV01@XZ PROC ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator++, COMDAT
+; _this$ = ecx
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	eax, DWORD PTR [ecx]
+
+; 226  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 227  : 		const auto _Mycont = static_cast<const _Mylist *>(this->_Getcont());
+; 228  : 		if (_Mycont == 0
+; 229  : 			|| this->_Ptr == nullptr_t{}
+; 230  : 			|| this->_Ptr == _Mycont->_Myhead)
+; 231  : 			{	// report error
+; 232  : 			_DEBUG_ERROR("list iterator not incrementable");
+; 233  : 			}
+; 234  : 
+; 235  :  #elif _ITERATOR_DEBUG_LEVEL == 1
+; 236  : 		_SCL_SECURE_VALIDATE(this->_Ptr != nullptr_t{});
+; 237  : 		const auto _Mycont = static_cast<const _Mylist *>(this->_Getcont());
+; 238  : 		_SCL_SECURE_VALIDATE(_Mycont != 0);
+; 239  : 		_SCL_SECURE_VALIDATE_RANGE(this->_Ptr != _Mycont->_Myhead);
+; 240  :  #endif /* _ITERATOR_DEBUG_LEVEL */
+; 241  : 
+; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 243  : 		return (*this);
+
+	mov	eax, ecx
+
+; 244  : 		}
+
+	ret	0
+??E?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAEAAV01@XZ ENDP ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::operator++
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??0?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+__Plist$ = 12						; size = 4
+??0?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z PROC ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >, COMDAT
+; _this$ = ecx
+
+; 187  : 		{	// construct with node pointer _Pnode
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 188  : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??0?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z ENDP ; std::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >::_List_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??9?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBE_NABV01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??9?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBE_NABV01@@Z PROC ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator!=, COMDAT
+; _this$ = ecx
+
+; 90   : 		{	// test for iterator inequality
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR __Right$[ebp]
+	mov	ecx, DWORD PTR [ecx]
+	cmp	ecx, DWORD PTR [eax]
+	setne	al
+
+; 91   : 		return (!(*this == _Right));
+; 92   : 		}
+
+	pop	ebp
+	ret	4
+??9?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBE_NABV01@@Z ENDP ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator!=
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??8?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBE_NABV01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??8?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBE_NABV01@@Z PROC ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator==, COMDAT
+; _this$ = ecx
+
+; 85   : 		{	// test for iterator equality
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR __Right$[ebp]
+	mov	ecx, DWORD PTR [ecx]
+	cmp	ecx, DWORD PTR [eax]
+	sete	al
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+; 87   : 		}
+
+	pop	ebp
+	ret	4
+??8?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBE_NABV01@@Z ENDP ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator==
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??E?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAEAAV01@XZ
+_TEXT	SEGMENT
+??E?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAEAAV01@XZ PROC ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator++, COMDAT
+; _this$ = ecx
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	eax, DWORD PTR [ecx]
+
+; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 61   : 		return (*this);
+
+	mov	eax, ecx
+
+; 62   : 		}
+
+	ret	0
+??E?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAEAAV01@XZ ENDP ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator++
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??D?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBEABU?$pair@$$CBIUSK_KeyCommand@@@1@XZ
+_TEXT	SEGMENT
+??D?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBEABU?$pair@$$CBIUSK_KeyCommand@@@1@XZ PROC ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator*, COMDAT
+; _this$ = ecx
+
+; 540  : 		return ((reference)_Pnode->_Myval);
+
+	mov	eax, DWORD PTR [ecx]
+	add	eax, 8
+
+; 50   : 		return (_Mylist::_Myval(_Ptr));
+; 51   : 		}
+
+	ret	0
+??D?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QBEABU?$pair@$$CBIUSK_KeyCommand@@@1@XZ ENDP ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::operator*
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??0?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+__Plist$ = 12						; size = 4
+??0?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z PROC ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>, COMDAT
+; _this$ = ecx
+
+; 44   : 		{	// construct with node pointer _Pnode
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 45   : 		this->_Adopt(_Plist);
+; 46   : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	8
+??0?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@std@@QAE@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@PBV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@1@@Z ENDP ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,std::_Iterator_base0>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+_TEXT	SEGMENT
+__Ans$1 = -8						; size = 8
+_range$2 = -8						; size = 8
+_Control$ = 8						; size = 4
+_Shift$ = 12						; size = 4
+__Func$ = 16						; size = 1
+_masked$ = 16						; size = 4
+_Alt$ = 16						; size = 4
+_vkCode$ = 20						; size = 1
+?SK_PluginKeyPress@@YGXHHHE@Z PROC			; SK_PluginKeyPress
+
+; 173  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	sub	esp, 8
+	push	ebx
+
+; 174  :   UNREFERENCED_PARAMETER (Control);
+; 175  :   UNREFERENCED_PARAMETER (Shift);
+; 176  :   UNREFERENCED_PARAMETER (Alt);
+; 177  : 
+; 178  :   SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode);
+
+	mov	ebx, DWORD PTR _vkCode$[ebp]
 	mov	ecx, OFFSET ?SK_ImGui_Widgets@@3USK_ImGui_WidgetRegistry@@A ; SK_ImGui_Widgets
+	push	esi
+	mov	esi, DWORD PTR _Shift$[ebp]
+	push	edi
+	mov	edi, DWORD PTR _Control$[ebp]
+	push	ebx
+	push	DWORD PTR _Alt$[ebp]
+	push	esi
+	push	edi
+	call	?DispatchKeybinds@SK_ImGui_WidgetRegistry@@QAEHHHHE@Z ; SK_ImGui_WidgetRegistry::DispatchKeybinds
+	mov	ecx, DWORD PTR _Alt$[ebp]
+	neg	ecx
 
-; 170  : }
+; 182  :     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
+
+	movzx	eax, bl
+	sbb	ecx, ecx
+	and	ecx, 2048				; 00000800H
+	neg	esi
+	sbb	esi, esi
+	and	esi, 1024				; 00000400H
+	or	ecx, esi
+	neg	edi
+	sbb	edi, edi
+	and	edi, 512				; 00000200H
+	or	ecx, edi
+	or	ecx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 635  : 		_Paircc _Ans = equal_range(_Keyval);
+
+	lea	eax, DWORD PTR _masked$[ebp]
+	push	eax
+	lea	eax, DWORD PTR __Ans$1[ebp]
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 182  :     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
+
+	mov	DWORD PTR _masked$[ebp], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 635  : 		_Paircc _Ans = equal_range(_Keyval);
+
+	push	eax
+	mov	ecx, OFFSET ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A ; SK_KeyboardMacros
+	call	?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::equal_range
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1113 : 	return (_Distance1(_First, _Last, _Iter_cat_t<_InIt>()));
+
+	mov	eax, DWORD PTR __Ans$1[ebp]
+
+; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
+
+	xor	edx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	mov	ecx, DWORD PTR __Ans$1[ebp+4]
+	pop	edi
+	pop	esi
+	pop	ebx
+	cmp	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	je	SHORT $LN2@SK_PluginK
+$LL11@SK_PluginK:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1097 : 		++_Off;
+
+	inc	edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	cmp	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	jne	SHORT $LL11@SK_PluginK
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 184  :   if (SK_KeyboardMacros.count (masked))
+
+	test	edx, edx
+	je	SHORT $LN2@SK_PluginK
+
+; 185  :   {
+; 186  :     auto range =
+; 187  :       SK_KeyboardMacros.equal_range (masked);
+
+	lea	eax, DWORD PTR _masked$[ebp]
+	mov	ecx, OFFSET ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A ; SK_KeyboardMacros
+	push	eax
+	lea	eax, DWORD PTR _range$2[ebp]
+	push	eax
+	call	?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::equal_range
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
+
+; 156  : 	_For_each_unchecked(_Unchecked(_First), _Unchecked(_Last), _Func);
+
+	lea	eax, DWORD PTR __Func$[ebp]
+	push	eax
+	push	DWORD PTR _range$2[ebp+4]
+	push	DWORD PTR _range$2[ebp]
+	call	??$_For_each_unchecked@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V<lambda_a31a32673789eb8f15124766d9ca7404>@@@std@@YAXV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0AAV<lambda_a31a32673789eb8f15124766d9ca7404>@@@Z ; std::_For_each_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,<lambda_a31a32673789eb8f15124766d9ca7404> >
+	add	esp, 12					; 0000000cH
+$LN2@SK_PluginK:
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 198  : }
+
+	mov	esp, ebp
+	pop	ebp
+	ret	16					; 00000010H
+?SK_PluginKeyPress@@YGXHHHE@Z ENDP			; SK_PluginKeyPress
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??__FSK_KeyboardMacros@@YAXXZ
+text$yd	SEGMENT
+??__FSK_KeyboardMacros@@YAXXZ PROC			; `dynamic atexit destructor for 'SK_KeyboardMacros'', COMDAT
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1947 : 		this->_Orphan_all();
+
+	mov	ecx, OFFSET ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+12
+	call	?_Orphan_all@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEXXZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Orphan_all
+
+; 1948 : 
+; 1949 : 		if (this->_Myfirst() != pointer())
+
+	mov	eax, DWORD PTR ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+12
+	test	eax, eax
+	je	SHORT $LN13@dynamic
+
+; 1950 : 			{	// destroy and deallocate old array
+; 1951 : 			_Destroy(this->_Myfirst(), this->_Mylast());
+
+	push	DWORD PTR ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+16
+	mov	ecx, OFFSET ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+12
+	push	eax
+	call	?_Destroy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@0@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Destroy
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+20
+	mov	ecx, DWORD PTR ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+12
+	sub	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	sar	eax, 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	ecx
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1954 : 			this->_Myfirst() = pointer();
+
+	mov	DWORD PTR ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+12, 0
+
+; 1955 : 			this->_Mylast() = pointer();
+
+	mov	DWORD PTR ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+16, 0
+
+; 1956 : 			this->_Myend() = pointer();
+
+	mov	DWORD PTR ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+20, 0
+$LN13@dynamic:
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 1927 : 		clear();
+
+	mov	ecx, OFFSET ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+4
+	call	?clear@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::clear
+
+; 611  : 		_Freeheadnode(_Myhead());
+
+	mov	esi, DWORD PTR ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+4
+
+; 736  : 		_Getal().destroy(
+
+	mov	ecx, OFFSET ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+4
+	push	esi
+	call	??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+
+; 535  : 		return ((_Nodepref)_Pnode->_Prev);
+
+	lea	eax, DWORD PTR [esi+4]
+
+; 738  : 		_Getal().destroy(
+
+	mov	ecx, OFFSET ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A+4
+	push	eax
+	call	??$destroy@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@1@@Z ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::destroy<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> *>
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	1
+	push	esi
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+	pop	esi
+	ret	0
+??__FSK_KeyboardMacros@@YAXXZ ENDP			; `dynamic atexit destructor for 'SK_KeyboardMacros''
+text$yd	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+;	COMDAT ??__ESK_KeyboardMacros@@YAXXZ
+text$di	SEGMENT
+$T1 = -8						; size = 4
+$T2 = -1						; size = 1
+??__ESK_KeyboardMacros@@YAXXZ PROC			; `dynamic initializer for 'SK_KeyboardMacros'', COMDAT
+
+; 165  : std::unordered_multimap <uint32_t, SK_KeyCommand> SK_KeyboardMacros;
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	sub	esp, 8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+
+; 573  : 		: _Mybase(key_compare(), allocator_type())
+
+	lea	eax, DWORD PTR $T2[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 311  : 			_Myval2(_STD forward<_Other2>(_Val2)...)
+
+	mov	DWORD PTR $T1[ebp], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+
+; 573  : 		: _Mybase(key_compare(), allocator_type())
+
+	push	eax
+	lea	eax, DWORD PTR $T1[ebp]
+	mov	ecx, OFFSET ?SK_KeyboardMacros@@3V?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@A ; SK_KeyboardMacros
+	push	eax
+	call	??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >
+; File c:\users\andon\source\repos\specialk\src\console.cpp
+
+; 165  : std::unordered_multimap <uint32_t, SK_KeyCommand> SK_KeyboardMacros;
+
+	push	OFFSET ??__FSK_KeyboardMacros@@YAXXZ	; `dynamic atexit destructor for 'SK_KeyboardMacros''
+	call	_atexit
+	add	esp, 4
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+??__ESK_KeyboardMacros@@YAXXZ ENDP			; `dynamic initializer for 'SK_KeyboardMacros''
+text$di	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??1?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@QAE@XZ PROC ; std::unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >, COMDAT
+; _this$ = ecx
+	npad	2
+	push	esi
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1949 : 		if (this->_Myfirst() != pointer())
+
+	mov	ecx, DWORD PTR [esi+12]
+	test	ecx, ecx
+	je	SHORT $LN10@unordered_
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [esi+20]
+	sub	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	sar	eax, 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	ecx
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1954 : 			this->_Myfirst() = pointer();
+
+	mov	DWORD PTR [esi+12], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1955 : 			this->_Mylast() = pointer();
+
+	mov	DWORD PTR [esi+16], 0
+
+; 1956 : 			this->_Myend() = pointer();
+
+	mov	DWORD PTR [esi+20], 0
+$LN10@unordered_:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 1927 : 		clear();
+
+	lea	ecx, DWORD PTR [esi+4]
+	call	?clear@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::clear
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	1
+	push	DWORD PTR [esi+4]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+	pop	esi
+	ret	0
+??1?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@QAE@XZ ENDP ; std::unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+;	COMDAT ??0?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@QAE@XZ
+_TEXT	SEGMENT
+$T1 = -8						; size = 4
+_this$ = -8						; size = 4
+$T2 = -1						; size = 1
+??0?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@QAE@XZ PROC ; std::unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >, COMDAT
+; _this$ = ecx
+
+; 574  : 		{	// construct empty map from defaults
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	sub	esp, 8
+	push	esi
+
+; 573  : 		: _Mybase(key_compare(), allocator_type())
+
+	lea	eax, DWORD PTR $T2[ebp]
+
+; 574  : 		{	// construct empty map from defaults
+
+	mov	esi, ecx
+	push	eax
+	lea	eax, DWORD PTR $T1[ebp]
+	mov	DWORD PTR _this$[ebp], esi
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 311  : 			_Myval2(_STD forward<_Other2>(_Val2)...)
+
+	mov	DWORD PTR $T1[ebp], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+
+; 573  : 		: _Mybase(key_compare(), allocator_type())
+
+	call	??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >
+
+; 575  : 		}
+
+	mov	eax, esi
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+??0?$unordered_multimap@IUSK_KeyCommand@@U?$hash@I@std@@U?$equal_to@I@3@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@@std@@QAE@XZ ENDP ; std::unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::unordered_multimap<unsigned int,SK_KeyCommand,std::hash<unsigned int>,std::equal_to<unsigned int>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Xlength@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@CAXXZ
+_TEXT	SEGMENT
+?_Xlength@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@CAXXZ PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Xlength, COMDAT
+
+; 1962 : 		_Xlength_error("vector<T> too long");
+
+	push	OFFSET ??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@
+	call	DWORD PTR __imp_?_Xlength_error@std@@YAXPBD@Z
+$LN4@Xlength:
+$LN3@Xlength:
+	int	3
+?_Xlength@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@CAXXZ ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Xlength
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Tidy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXXZ
+_TEXT	SEGMENT
+?_Tidy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXXZ PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Tidy, COMDAT
+; _this$ = ecx
+
+; 1946 : 		{	// free all storage
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1947 : 		this->_Orphan_all();
+; 1948 : 
+; 1949 : 		if (this->_Myfirst() != pointer())
+
+	mov	ecx, DWORD PTR [esi]
+	test	ecx, ecx
+	je	SHORT $LN2@Tidy
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [esi+8]
+	sub	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	sar	eax, 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	ecx
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1954 : 			this->_Myfirst() = pointer();
+
+	mov	DWORD PTR [esi], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1955 : 			this->_Mylast() = pointer();
+
+	mov	DWORD PTR [esi+4], 0
+
+; 1956 : 			this->_Myend() = pointer();
+
+	mov	DWORD PTR [esi+8], 0
+$LN2@Tidy:
+	pop	esi
+
+; 1957 : 			}
+; 1958 : 		}
+
+	ret	0
+?_Tidy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXXZ ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Tidy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Change_array@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@II@Z
+_TEXT	SEGMENT
+__Newvec$ = 8						; size = 4
+__Newsize$ = 12						; size = 4
+__Newcapacity$ = 16					; size = 4
+?_Change_array@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@II@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Change_array, COMDAT
+; _this$ = ecx
+
+; 1931 : 		{	// orphan all iterators, discard old array, acquire new array
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+	mov	esi, ecx
+
+; 1932 : 		this->_Orphan_all();
+; 1933 : 
+; 1934 : 		if (this->_Myfirst() != pointer())
+
+	mov	ecx, DWORD PTR [esi]
+	test	ecx, ecx
+	je	SHORT $LN2@Change_arr
+
+; 1937 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [esi+8]
+	sub	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1937 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	sar	eax, 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	ecx
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN2@Change_arr:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1940 : 		this->_Myfirst() = _Newvec;
+
+	mov	ecx, DWORD PTR __Newvec$[ebp]
+
+; 1941 : 		this->_Mylast() = _Newvec + _Newsize;
+
+	mov	eax, DWORD PTR __Newsize$[ebp]
+	mov	DWORD PTR [esi], ecx
+	lea	eax, DWORD PTR [ecx+eax*4]
+	mov	DWORD PTR [esi+4], eax
+
+; 1942 : 		this->_Myend() = _Newvec + _Newcapacity;
+
+	mov	eax, DWORD PTR __Newcapacity$[ebp]
+	lea	eax, DWORD PTR [ecx+eax*4]
+	mov	DWORD PTR [esi+8], eax
+	pop	esi
+
+; 1943 : 		}
+
+	pop	ebp
+	ret	12					; 0000000cH
+?_Change_array@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@II@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Change_array
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Buy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAE_NI@Z
+_TEXT	SEGMENT
+__Newcapacity$ = 8					; size = 4
+?_Buy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAE_NI@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Buy, COMDAT
+; _this$ = ecx
+
+; 1908 : 		{	// allocate array with _Newcapacity elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+	mov	esi, ecx
+	push	edi
+
+; 1909 : 		this->_Myfirst() = pointer();
+; 1910 : 		this->_Mylast() = pointer();
+; 1911 : 		this->_Myend() = pointer();
+; 1912 : 
+; 1913 : 		if (_Newcapacity == 0)
+
+	mov	edi, DWORD PTR __Newcapacity$[ebp]
+	mov	DWORD PTR [esi], 0
+	mov	DWORD PTR [esi+4], 0
+	mov	DWORD PTR [esi+8], 0
+	test	edi, edi
+	jne	SHORT $LN2@Buy
+
+; 1914 : 			{
+; 1915 : 			return (false);
+
+	pop	edi
+	xor	al, al
+	pop	esi
+
+; 1928 : 		}
+
+	pop	ebp
+	ret	4
+$LN2@Buy:
+
+; 1916 : 			}
+; 1917 : 
+; 1918 : 		if (_Newcapacity > max_size())
+
+	cmp	edi, 1073741823				; 3fffffffH
+	ja	SHORT $LN115@Buy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	push	edi
+	call	?allocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocate
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1923 : 		this->_Myfirst() = this->_Getal().allocate(_Newcapacity);
+
+	mov	DWORD PTR [esi], eax
+
+; 1924 : 		this->_Mylast() = this->_Myfirst();
+
+	mov	DWORD PTR [esi+4], eax
+
+; 1925 : 		this->_Myend() = this->_Myfirst() + _Newcapacity;
+
+	mov	eax, DWORD PTR [esi]
+	lea	eax, DWORD PTR [eax+edi*4]
+	mov	DWORD PTR [esi+8], eax
+
+; 1926 : 
+; 1927 : 		return (true);
+
+	mov	al, 1
+	pop	edi
+	pop	esi
+
+; 1928 : 		}
+
+	pop	ebp
+	ret	4
+$LN115@Buy:
+
+; 1919 : 			{
+; 1920 : 			_Xlength();
+
+	call	?_Xlength@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@CAXXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Xlength
+$LN117@Buy:
+$LN114@Buy:
+	int	3
+?_Buy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAE_NI@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Buy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Calculate_growth@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@ABEII@Z
+_TEXT	SEGMENT
+__Newsize$ = 8						; size = 4
+?_Calculate_growth@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@ABEII@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Calculate_growth, COMDAT
+; _this$ = ecx
+
+; 1889 : 		{	// given _Oldcapacity and _Newsize, calculate geometric growth
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	mov	edx, DWORD PTR [ecx+8]
+
+; 1890 : 		const size_type _Oldcapacity = capacity();
+; 1891 : 
+; 1892 : 		if (_Oldcapacity > max_size() - _Oldcapacity / 2)
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	sub	edx, DWORD PTR [ecx]
+	sar	edx, 2
+
+; 1890 : 		const size_type _Oldcapacity = capacity();
+; 1891 : 
+; 1892 : 		if (_Oldcapacity > max_size() - _Oldcapacity / 2)
+
+	mov	ecx, edx
+	shr	ecx, 1
+	sub	eax, ecx
+	cmp	edx, eax
+	jbe	SHORT $LN2@Calculate_
+
+; 1893 : 			{
+; 1894 : 			return (_Newsize);	// geometric growth would overflow
+
+	mov	eax, DWORD PTR __Newsize$[ebp]
+
+; 1900 : 			{
+; 1901 : 			return (_Newsize);	// geometric growth would be insufficient
+; 1902 : 			}
+; 1903 : 
+; 1904 : 		return (_Geometric);	// geometric growth is sufficient
+; 1905 : 		}
+
+	pop	ebp
+	ret	4
+$LN2@Calculate_:
+
+; 1895 : 			}
+; 1896 : 
+; 1897 : 		const size_type _Geometric = _Oldcapacity + _Oldcapacity / 2;
+
+	lea	eax, DWORD PTR [ecx+edx]
+
+; 1898 : 
+; 1899 : 		if (_Geometric < _Newsize)
+
+	cmp	eax, DWORD PTR __Newsize$[ebp]
+	cmovb	eax, DWORD PTR __Newsize$[ebp]
+
+; 1900 : 			{
+; 1901 : 			return (_Newsize);	// geometric growth would be insufficient
+; 1902 : 			}
+; 1903 : 
+; 1904 : 		return (_Geometric);	// geometric growth is sufficient
+; 1905 : 		}
+
+	pop	ebp
+	ret	4
+?_Calculate_growth@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@ABEII@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Calculate_growth
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Destroy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@0@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+?_Destroy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@0@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Destroy, COMDAT
+; _this$ = ecx
+
+; 1885 : 		_Destroy_range(_First, _Last, this->_Getal());
+; 1886 : 		}
+
+	ret	8
+?_Destroy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@0@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Destroy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Umove_if_noexcept@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@00@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+$T1 = 16						; size = 1
+__Dest$ = 16						; size = 4
+?_Umove_if_noexcept@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@00@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Umove_if_noexcept, COMDAT
+; _this$ = ecx
+
+; 1878 : 		{	// move_if_noexcept [_First, _Last) to raw _Dest, using allocator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 172  : 	return (_Rechecked(_Dest,
+
+	push	ecx
+	push	DWORD PTR $T1[ebp]
+	push	ecx
+	push	DWORD PTR __Dest$[ebp]
+	push	DWORD PTR __Last$[ebp]
+	push	DWORD PTR __First$[ebp]
+	call	??$_Uninitialized_move_al_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z ; std::_Uninitialized_move_al_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+	add	esp, 24					; 00000018H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1881 : 		}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	12					; 0000000cH
+?_Umove_if_noexcept@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@00@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Umove_if_noexcept
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Umove_if_noexcept1@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@00U?$integral_constant@_N$00@2@@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Last$ = 12						; size = 4
+$T1 = 16						; size = 1
+__Dest$ = 16						; size = 4
+___formal$ = 20						; size = 1
+?_Umove_if_noexcept1@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@00U?$integral_constant@_N$00@2@@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Umove_if_noexcept1, COMDAT
+; _this$ = ecx
+
+; 1868 : 		{	// move [_First, _Last) to raw _Dest, using allocator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 172  : 	return (_Rechecked(_Dest,
+
+	push	ecx
+	push	DWORD PTR $T1[ebp]
+	push	ecx
+	push	DWORD PTR __Dest$[ebp]
+	push	DWORD PTR __Last$[ebp]
+	push	DWORD PTR __First$[ebp]
+	call	??$_Uninitialized_move_al_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z ; std::_Uninitialized_move_al_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+	add	esp, 24					; 00000018H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1870 : 		}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	16					; 00000010H
+?_Umove_if_noexcept1@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@00U?$integral_constant@_N$00@2@@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Umove_if_noexcept1
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Ufill@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@PAV32@IABV32@@Z
+_TEXT	SEGMENT
+__Dest$ = 8						; size = 4
+__Count$ = 12						; size = 4
+$T1 = 16						; size = 1
+__Val$ = 16						; size = 4
+?_Ufill@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@PAV32@IABV32@@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Ufill, COMDAT
+; _this$ = ecx
+
+; 1852 : 		{	// fill raw _Dest with _Count copies of _Val, using allocator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 217  : 	return (_Uninit_alloc_fill_n1(_First, _Count, _Val, _Al,
+
+	push	DWORD PTR $T1[ebp]
+	push	ecx
+	push	DWORD PTR __Val$[ebp]
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Dest$[ebp]
+	call	??$_Uninit_alloc_fill_n1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ; std::_Uninit_alloc_fill_n1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+	add	esp, 20					; 00000014H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1854 : 		}
+
+	pop	ebp
+	ret	12					; 0000000cH
+?_Ufill@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@PAV32@IABV32@@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Ufill
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@I@Z
+_TEXT	SEGMENT
+__Pos$ = 8						; size = 4
+??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@I@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::operator[], COMDAT
+; _this$ = ecx
+
+; 1750 : 		{	// subscript nonmutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1751 :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 1752 : 		if (size() <= _Pos)
+; 1753 : 			{	// report error
+; 1754 : 			_DEBUG_ERROR("vector subscript out of range");
+; 1755 : 			}
+; 1756 :  #elif _ITERATOR_DEBUG_LEVEL == 1
+; 1757 : 		_SCL_SECURE_VALIDATE_RANGE(_Pos < size());
+; 1758 :  #endif /* _ITERATOR_DEBUG_LEVEL */
+; 1759 : 
+; 1760 : 		return (this->_Myfirst()[_Pos]);
+
+	mov	ecx, DWORD PTR [ecx]
+	mov	eax, DWORD PTR __Pos$[ebp]
+	lea	eax, DWORD PTR [ecx+eax*4]
+
+; 1761 : 		}
+
+	pop	ebp
+	ret	4
+??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@I@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::operator[]
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@I@Z
+_TEXT	SEGMENT
+__Pos$ = 8						; size = 4
+??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@I@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::operator[], COMDAT
+; _this$ = ecx
+
+; 1736 : 		{	// subscript mutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1737 :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 1738 : 		if (size() <= _Pos)
+; 1739 : 			{	// report error
+; 1740 : 			_DEBUG_ERROR("vector subscript out of range");
+; 1741 : 			}
+; 1742 :  #elif _ITERATOR_DEBUG_LEVEL == 1
+; 1743 : 		_SCL_SECURE_VALIDATE_RANGE(_Pos < size());
+; 1744 :  #endif /* _ITERATOR_DEBUG_LEVEL */
+; 1745 : 
+; 1746 : 		return (this->_Myfirst()[_Pos]);
+
+	mov	ecx, DWORD PTR [ecx]
+	mov	eax, DWORD PTR __Pos$[ebp]
+	lea	eax, DWORD PTR [ecx+eax*4]
+
+; 1747 : 		}
+
+	pop	ebp
+	ret	4
+??A?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@1@I@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::operator[]
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?capacity@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ
+_TEXT	SEGMENT
+?capacity@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::capacity, COMDAT
+; _this$ = ecx
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [ecx+8]
+	sub	eax, DWORD PTR [ecx]
+	sar	eax, 2
+
+; 1721 : 		}
+
+	ret	0
+?capacity@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::capacity
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?max_size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ
+_TEXT	SEGMENT
+?max_size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::max_size, COMDAT
+; _this$ = ecx
+
+; 1715 : 		return (this->_Getal().max_size());
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 1716 : 		}
+
+	ret	0
+?max_size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ
+_TEXT	SEGMENT
+?size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::size, COMDAT
+; _this$ = ecx
+
+; 1710 : 		return (this->_Mylast() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [ecx+4]
+	sub	eax, DWORD PTR [ecx]
+	sar	eax, 2
+
+; 1711 : 		}
+
+	ret	0
+?size@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QBEIXZ ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?reserve@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXI@Z
+_TEXT	SEGMENT
+__Newcapacity$ = 8					; size = 4
+?reserve@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXI@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::reserve, COMDAT
+; _this$ = ecx
+
+; 1528 : 		{	// increase capacity to _Newcapacity (without geometric growth), provide strong guarantee
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [ecx+8]
+	sub	eax, DWORD PTR [ecx]
+
+; 1529 : 		if (_Newcapacity > capacity())
+
+	mov	edx, DWORD PTR __Newcapacity$[ebp]
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	sar	eax, 2
+
+; 1529 : 		if (_Newcapacity > capacity())
+
+	cmp	edx, eax
+	jbe	SHORT $LN2@reserve
+
+; 1530 : 			{	// something to do (reserve() never shrinks)
+; 1531 : 			if (_Newcapacity > max_size())
+
+	cmp	edx, 1073741823				; 3fffffffH
+	ja	SHORT $LN55@reserve
+
+; 1534 : 				}
+; 1535 : 
+; 1536 : 			_Reallocate_exactly(_Newcapacity);
+
+	mov	DWORD PTR __Newcapacity$[ebp], edx
+
+; 1537 : 			}
+; 1538 : 		}
 
 	pop	ebp
 
-; 165  :   UNREFERENCED_PARAMETER (Control);
-; 166  :   UNREFERENCED_PARAMETER (Shift);
-; 167  :   UNREFERENCED_PARAMETER (Alt);
-; 168  : 
-; 169  :   SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode);
+; 1534 : 				}
+; 1535 : 
+; 1536 : 			_Reallocate_exactly(_Newcapacity);
 
-	jmp	?DispatchKeybinds@SK_ImGui_WidgetRegistry@@QAEHHHHE@Z ; SK_ImGui_WidgetRegistry::DispatchKeybinds
-?SK_PluginKeyPress@@YGXHHHE@Z ENDP			; SK_PluginKeyPress
+	jmp	?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Reallocate_exactly
+$LN2@reserve:
+
+; 1537 : 			}
+; 1538 : 		}
+
+	pop	ebp
+	ret	4
+$LN55@reserve:
+
+; 1532 : 				{
+; 1533 : 				_Xlength();
+
+	call	?_Xlength@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@CAXXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Xlength
+$LN57@reserve:
+$LN54@reserve:
+	int	3
+?reserve@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXI@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::reserve
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z
+_TEXT	SEGMENT
+_this$ = -24						; size = 4
+__Newvec$ = -20						; size = 4
+__$EHRec$ = -16						; size = 16
+$T2 = 8							; size = 1
+__Newcapacity$ = 8					; size = 4
+?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Reallocate_exactly, COMDAT
+; _this$ = ecx
+
+; 1511 : 		{	// set capacity to _Newcapacity (without geometric growth), provide strong guarantee
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 16					; 00000010H
+	push	ebx
+	push	esi
+	mov	esi, ecx
+	push	edi
+	mov	DWORD PTR __$EHRec$[ebp], esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	push	DWORD PTR __Newcapacity$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1710 : 		return (this->_Mylast() - this->_Myfirst());
+
+	mov	ebx, DWORD PTR [esi+4]
+	sub	ebx, DWORD PTR [esi]
+
+; 1511 : 		{	// set capacity to _Newcapacity (without geometric growth), provide strong guarantee
+
+	mov	DWORD PTR _this$[ebp], esi
+
+; 1710 : 		return (this->_Mylast() - this->_Myfirst());
+
+	sar	ebx, 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	call	?allocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocate
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 172  : 	return (_Rechecked(_Dest,
+
+	push	ecx
+	push	DWORD PTR $T2[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1514 : 		const pointer _Newvec = this->_Getal().allocate(_Newcapacity);
+
+	mov	edi, eax
+
+; 1515 : 
+; 1516 : 		_TRY_BEGIN
+
+	mov	DWORD PTR __$EHRec$[ebp+12], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 172  : 	return (_Rechecked(_Dest,
+
+	push	esi
+	push	edi
+	push	DWORD PTR [esi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1514 : 		const pointer _Newvec = this->_Getal().allocate(_Newcapacity);
+
+	mov	DWORD PTR __Newvec$[ebp], edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 172  : 	return (_Rechecked(_Dest,
+
+	push	DWORD PTR [esi]
+	call	??$_Uninitialized_move_al_unchecked@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@PAV12@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@00AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U_General_ptr_iterator_tag@0@U_Any_tag@0@@Z ; std::_Uninitialized_move_al_unchecked<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1934 : 		if (this->_Myfirst() != pointer())
+
+	mov	ecx, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 172  : 	return (_Rechecked(_Dest,
+
+	add	esp, 24					; 00000018H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1934 : 		if (this->_Myfirst() != pointer())
+
+	test	ecx, ecx
+	je	SHORT $LN83@Reallocate
+
+; 1937 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [esi+8]
+	sub	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1937 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	sar	eax, 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	ecx
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN83@Reallocate:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1524 : 		}
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp+4]
+
+; 1941 : 		this->_Mylast() = _Newvec + _Newsize;
+
+	lea	eax, DWORD PTR [edi+ebx*4]
+	mov	DWORD PTR [esi], edi
+	mov	DWORD PTR [esi+4], eax
+
+; 1942 : 		this->_Myend() = _Newvec + _Newcapacity;
+
+	mov	eax, DWORD PTR __Newcapacity$[ebp]
+	lea	eax, DWORD PTR [edi+eax*4]
+
+; 1524 : 		}
+
+	pop	edi
+
+; 1942 : 		this->_Myend() = _Newvec + _Newcapacity;
+
+	mov	DWORD PTR [esi+8], eax
+
+; 1524 : 		}
+
+	pop	esi
+	mov	DWORD PTR fs:0, ecx
+	pop	ebx
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+__catch$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z$0:
+
+; 1517 : 		_Umove_if_noexcept(this->_Myfirst(), this->_Mylast(), _Newvec);
+; 1518 : 		_CATCH_ALL
+; 1519 : 		this->_Getal().deallocate(_Newvec, _Newcapacity);
+
+	push	DWORD PTR __Newcapacity$[ebp]
+	mov	ecx, DWORD PTR _this$[ebp]
+	push	DWORD PTR __Newvec$[ebp]
+	call	?_Getal@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Getal
+	mov	ecx, eax
+	call	?deallocate@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::deallocate
+
+; 1520 : 		_RERAISE;
+
+	push	0
+	push	0
+	call	__CxxThrowException@8
+$LN180@Reallocate:
+$LN179@Reallocate:
+	int	3
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__ehhandler$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z:
+	mov	eax, OFFSET __ehfuncinfo$?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Reallocate_exactly
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?assign@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXIABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@Z
+_TEXT	SEGMENT
+__Oldsize$1$ = -4					; size = 4
+$T1 = 8							; size = 1
+__Newsize$ = 8						; size = 4
+$T2 = 12						; size = 1
+$T3 = 12						; size = 1
+__Val$ = 12						; size = 4
+?assign@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXIABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::assign, COMDAT
+; _this$ = ecx
+
+; 1287 : 		{	// assign _Newsize * _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+	push	ebx
+	mov	ebx, ecx
+	push	esi
+	push	edi
+
+; 1288 : 		this->_Orphan_all();
+; 1289 : 
+; 1290 : 		const size_type _Oldsize = size();
+; 1291 : 		const size_type _Oldcapacity = capacity();
+; 1292 : 
+; 1293 : 		if (_Newsize > _Oldcapacity)
+
+	mov	edi, DWORD PTR __Newsize$[ebp]
+
+; 1710 : 		return (this->_Mylast() - this->_Myfirst());
+
+	mov	edx, DWORD PTR [ebx]
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	mov	ecx, DWORD PTR [ebx+8]
+
+; 1710 : 		return (this->_Mylast() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [ebx+4]
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	sub	ecx, edx
+
+; 1710 : 		return (this->_Mylast() - this->_Myfirst());
+
+	sub	eax, edx
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	sar	ecx, 2
+
+; 1710 : 		return (this->_Mylast() - this->_Myfirst());
+
+	sar	eax, 2
+	mov	DWORD PTR __Oldsize$1$[ebp], eax
+
+; 1288 : 		this->_Orphan_all();
+; 1289 : 
+; 1290 : 		const size_type _Oldsize = size();
+; 1291 : 		const size_type _Oldcapacity = capacity();
+; 1292 : 
+; 1293 : 		if (_Newsize > _Oldcapacity)
+
+	cmp	edi, ecx
+	jbe	SHORT $LN2@assign
+
+; 1294 : 			{	// reallocate
+; 1295 : 			if (_Newsize > max_size())
+
+	cmp	edi, 1073741823				; 3fffffffH
+	ja	$LN297@assign
+
+; 1892 : 		if (_Oldcapacity > max_size() - _Oldcapacity / 2)
+
+	mov	esi, ecx
+	mov	eax, 1073741823				; 3fffffffH
+	shr	esi, 1
+	sub	eax, esi
+	cmp	ecx, eax
+	jbe	SHORT $LN79@assign
+
+; 1893 : 			{
+; 1894 : 			return (_Newsize);	// geometric growth would overflow
+
+	mov	esi, edi
+	jmp	SHORT $LN80@assign
+$LN79@assign:
+
+; 1895 : 			}
+; 1896 : 
+; 1897 : 		const size_type _Geometric = _Oldcapacity + _Oldcapacity / 2;
+
+	add	esi, ecx
+
+; 1898 : 
+; 1899 : 		if (_Geometric < _Newsize)
+
+	cmp	esi, edi
+	cmovb	esi, edi
+$LN80@assign:
+
+; 1298 : 				}
+; 1299 : 
+; 1300 : 			const size_type _Newcapacity = _Calculate_growth(_Newsize);
+; 1301 : 
+; 1302 : 			if (this->_Myfirst() != pointer())
+
+	test	edx, edx
+	je	SHORT $LN5@assign
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	ecx
+	push	edx
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN5@assign:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1308 : 			_Buy(_Newcapacity);
+
+	push	esi
+	mov	ecx, ebx
+	call	?_Buy@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAE_NI@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Buy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 217  : 	return (_Uninit_alloc_fill_n1(_First, _Count, _Val, _Al,
+
+	push	DWORD PTR $T3[ebp]
+	push	ebx
+	push	DWORD PTR __Val$[ebp]
+	push	edi
+	push	DWORD PTR [ebx]
+	call	??$_Uninit_alloc_fill_n1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ; std::_Uninit_alloc_fill_n1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+	add	esp, 20					; 00000014H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1310 : 			this->_Mylast() = _Ufill(this->_Myfirst(), _Newsize, _Val);
+
+	mov	DWORD PTR [ebx+4], eax
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 1323 : 			}
+; 1324 : 		}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	8
+$LN2@assign:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2682 : 	return {};
+
+	mov	BYTE PTR $T1[ebp], 0
+
+; 2704 : 	_Fill_unchecked1(_First, _Last, _Val, _Fill_memset_is_safe(_First, _Val));
+
+	push	DWORD PTR $T1[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1312 : 		else if (_Newsize > _Oldsize)
+
+	cmp	edi, eax
+	jbe	SHORT $LN6@assign
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2704 : 	_Fill_unchecked1(_First, _Last, _Val, _Fill_memset_is_safe(_First, _Val));
+
+	mov	esi, DWORD PTR __Val$[ebp]
+	push	esi
+	push	DWORD PTR [ebx+4]
+	push	edx
+	call	??$_Fill_unchecked1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@U?$integral_constant@_N$0A@@0@@Z ; std::_Fill_unchecked1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 217  : 	return (_Uninit_alloc_fill_n1(_First, _Count, _Val, _Al,
+
+	push	DWORD PTR $T2[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1315 : 			this->_Mylast() = _Ufill(this->_Mylast(), _Newsize - _Oldsize, _Val);
+
+	sub	edi, DWORD PTR __Oldsize$1$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
+
+; 217  : 	return (_Uninit_alloc_fill_n1(_First, _Count, _Val, _Al,
+
+	push	ebx
+	push	esi
+	push	edi
+	push	DWORD PTR [ebx+4]
+	call	??$_Uninit_alloc_fill_n1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@IU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@YAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@PAV10@IABV10@AAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@0@U?$integral_constant@_N$0A@@0@@Z ; std::_Uninit_alloc_fill_n1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,unsigned int,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+	add	esp, 36					; 00000024H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1315 : 			this->_Mylast() = _Ufill(this->_Mylast(), _Newsize - _Oldsize, _Val);
+
+	mov	DWORD PTR [ebx+4], eax
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 1323 : 			}
+; 1324 : 		}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	8
+$LN6@assign:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2704 : 	_Fill_unchecked1(_First, _Last, _Val, _Fill_memset_is_safe(_First, _Val));
+
+	push	DWORD PTR __Val$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1319 : 			const pointer _Newlast = this->_Myfirst() + _Newsize;
+
+	lea	esi, DWORD PTR [edx+edi*4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 2704 : 	_Fill_unchecked1(_First, _Last, _Val, _Fill_memset_is_safe(_First, _Val));
+
+	push	esi
+	push	edx
+	call	??$_Fill_unchecked1@PAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@std@@YAXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@0@0ABV10@U?$integral_constant@_N$0A@@0@@Z ; std::_Fill_unchecked1<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > *,std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+	add	esp, 16					; 00000010H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1322 : 			this->_Mylast() = _Newlast;
+
+	mov	DWORD PTR [ebx+4], esi
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 1323 : 			}
+; 1324 : 		}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	8
+$LN297@assign:
+
+; 1296 : 				{
+; 1297 : 				_Xlength();
+
+	call	?_Xlength@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@CAXXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Xlength
+$LN299@assign:
+$LN296@assign:
+	int	3
+?assign@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXIABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::assign
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ??1?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAE@XZ PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::~vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >, COMDAT
+; _this$ = ecx
+
+; 891  : 		{	// destroy the object
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1949 : 		if (this->_Myfirst() != pointer())
+
+	mov	ecx, DWORD PTR [esi]
+	test	ecx, ecx
+	je	SHORT $LN4@vector
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [esi+8]
+	sub	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	sar	eax, 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	ecx
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1954 : 			this->_Myfirst() = pointer();
+
+	mov	DWORD PTR [esi], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1955 : 			this->_Mylast() = pointer();
+
+	mov	DWORD PTR [esi+4], 0
+
+; 1956 : 			this->_Myend() = pointer();
+
+	mov	DWORD PTR [esi+8], 0
+$LN4@vector:
+	pop	esi
+
+; 892  : 		_Tidy();
+; 893  : 		}
+
+	ret	0
+??1?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAE@XZ ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::~vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ??0?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+??0?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z PROC ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >, COMDAT
+; _this$ = ecx
+
+; 476  : 		: _Myfirst(),
+
+	mov	DWORD PTR [ecx], 0
+
+; 728  : 		}
+
+	mov	eax, ecx
+
+; 477  : 		_Mylast(),
+
+	mov	DWORD PTR [ecx+4], 0
+
+; 478  : 		_Myend()
+
+	mov	DWORD PTR [ecx+8], 0
+
+; 728  : 		}
+
+	ret	4
+??0?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAE@ABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@1@@Z ENDP ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QBEABV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QBEABV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 343  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 344  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QBEABV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAEAAV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAEAAV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 338  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 339  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAEAAV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_first, COMDAT
+; _this$ = ecx
+
+; 323  : 		return (*this);
+
+	mov	eax, ecx
+
+; 324  : 		}
+
+	ret	0
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_first
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_first, COMDAT
+; _this$ = ecx
+
+; 318  : 		return (*this);
+
+	mov	eax, ecx
+
+; 319  : 		}
+
+	ret	0
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@V?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >,std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >,1>::_Get_first
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ??0?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??0?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@XZ PROC ; std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >, COMDAT
+; _this$ = ecx
+
+; 476  : 		: _Myfirst(),
+
+	mov	DWORD PTR [ecx], 0
+
+; 480  : 		}
+
+	mov	eax, ecx
+	mov	DWORD PTR [ecx+4], 0
+	mov	DWORD PTR [ecx+8], 0
+	ret	0
+??0?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@XZ ENDP ; std::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::_Vector_val<std::_Simple_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Myend@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Myend@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myend, COMDAT
+; _this$ = ecx
+
+; 676  : 		return (_Get_data()._Myend);
+
+	lea	eax, DWORD PTR [ecx+8]
+
+; 677  : 		}
+
+	ret	0
+?_Myend@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myend
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Myend@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Myend@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myend, COMDAT
+; _this$ = ecx
+
+; 671  : 		return (_Get_data()._Myend);
+
+	lea	eax, DWORD PTR [ecx+8]
+
+; 672  : 		}
+
+	ret	0
+?_Myend@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myend
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Mylast@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Mylast@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Mylast, COMDAT
+; _this$ = ecx
+
+; 666  : 		return (_Get_data()._Mylast);
+
+	lea	eax, DWORD PTR [ecx+4]
+
+; 667  : 		}
+
+	ret	0
+?_Mylast@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Mylast
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Mylast@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Mylast@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Mylast, COMDAT
+; _this$ = ecx
+
+; 661  : 		return (_Get_data()._Mylast);
+
+	lea	eax, DWORD PTR [ecx+4]
+
+; 662  : 		}
+
+	ret	0
+?_Mylast@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Mylast
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Myfirst@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Myfirst@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myfirst, COMDAT
+; _this$ = ecx
+
+; 656  : 		return (_Get_data()._Myfirst);
+
+	mov	eax, ecx
+
+; 657  : 		}
+
+	ret	0
+?_Myfirst@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABQAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myfirst
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Myfirst@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Myfirst@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myfirst, COMDAT
+; _this$ = ecx
+
+; 651  : 		return (_Get_data()._Myfirst);
+
+	mov	eax, ecx
+
+; 652  : 		}
+
+	ret	0
+?_Myfirst@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Myfirst
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Get_data@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_data@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Get_data, COMDAT
+; _this$ = ecx
+
+; 646  : 		return (_Mypair._Get_second());
+
+	mov	eax, ecx
+
+; 647  : 		}
+
+	ret	0
+?_Get_data@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Get_data
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Get_data@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_data@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Get_data, COMDAT
+; _this$ = ecx
+
+; 641  : 		return (_Mypair._Get_second());
+
+	mov	eax, ecx
+
+; 642  : 		}
+
+	ret	0
+?_Get_data@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAV?$_Vector_val@U?$_Simple_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Get_data
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Getal@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Getal@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Getal, COMDAT
+; _this$ = ecx
+
+; 636  : 		return (_Mypair._Get_first());
+
+	mov	eax, ecx
+
+; 637  : 		}
+
+	ret	0
+?_Getal@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QBEABU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Getal
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Getal@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Getal@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Getal, COMDAT
+; _this$ = ecx
+
+; 631  : 		return (_Mypair._Get_first());
+
+	mov	eax, ecx
+
+; 632  : 		}
+
+	ret	0
+?_Getal@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEAAU?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Getal
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+;	COMDAT ?_Orphan_all@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEXXZ
+_TEXT	SEGMENT
+?_Orphan_all@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEXXZ PROC ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Orphan_all, COMDAT
+; _this$ = ecx
+
+; 621  : 		_Get_data()._Orphan_all();
+; 622  : 		}
+
+	ret	0
+?_Orphan_all@?$_Vector_alloc@U?$_Vec_base_types@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@@std@@QAEXXZ ENDP ; std::_Vector_alloc<std::_Vec_base_types<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > > >::_Orphan_all
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QBEIU_Nil@2@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+?max_size@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QBEIU_Nil@2@@Z PROC ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::max_size, COMDAT
+; _this$ = ecx
+
+; 1108 : 		return (_Mytraits::max_size(*this));
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 1109 : 		}
+
+	ret	4
+?max_size@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QBEIU_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::deallocate, COMDAT
+; _this$ = ecx
+
+; 1087 : 		{	// deallocate object at _Ptr, ignore size
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 1088 : 		_Mybase::deallocate(_Ptr, _Count);
+; 1089 : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::allocate, COMDAT
+; _this$ = ecx
+
+; 1076 : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1078 : 		}
+
+	pop	ebp
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	jmp	?allocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocate
+?allocate@?$_Wrap_alloc@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::_Wrap_alloc<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAIABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+?max_size@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAIABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@Z PROC ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::max_size, COMDAT
+
+; 751  : 		return (_Alloc_max_size::_Fn(0, _Al));
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 752  : 		}
+
+	ret	0
+?max_size@?$allocator_traits@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@@std@@SAIABU?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@Z ENDP ; std::allocator_traits<std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QBEIU_Nil@2@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+?max_size@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QBEIU_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::max_size, COMDAT
+; _this$ = ecx
+
+; 1108 : 		return (_Mytraits::max_size(*this));
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 1109 : 		}
+
+	ret	4
+?max_size@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QBEIU_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::deallocate, COMDAT
+; _this$ = ecx
+
+; 1087 : 		{	// deallocate object at _Ptr, ignore size
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 1088 : 		_Mybase::deallocate(_Ptr, _Count);
+; 1089 : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::allocate, COMDAT
+; _this$ = ecx
+
+; 1076 : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1078 : 		}
+
+	pop	ebp
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	jmp	?allocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocate
+?allocate@?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??0?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABU01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??0?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABU01@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >, COMDAT
+; _this$ = ecx
+
+; 1043 : 		}
+
+	mov	eax, ecx
+	ret	4
+??0?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@QAE@ABU01@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$allocator_traits@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@SAIABV?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@2@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+?max_size@?$allocator_traits@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@SAIABV?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@2@@Z PROC ; std::allocator_traits<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::max_size, COMDAT
+
+; 970  : 		return (_Al.max_size());
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 971  : 		}
+
+	ret	0
+?max_size@?$allocator_traits@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@std@@SAIABV?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@2@@Z ENDP ; std::allocator_traits<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QBEIXZ
+_TEXT	SEGMENT
+?max_size@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QBEIXZ PROC ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::max_size, COMDAT
+; _this$ = ecx
+
+; 851  : 		return ((size_t)(-1) / sizeof (_Ty));
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 852  : 		}
+
+	ret	0
+?max_size@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QBEIXZ ENDP ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocate, COMDAT
+; _this$ = ecx
+
+; 827  : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 53   : 	if (_Count == 0)
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	test	eax, eax
+	jne	SHORT $LN4@allocate
+$LN12@allocate:
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN4@allocate:
+
+; 57   : 	if ((size_t)(-1) / _Sz < _Count)
+
+	cmp	eax, 1073741823				; 3fffffffH
+	jbe	SHORT $LN5@allocate
+
+; 58   : 		_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN15@allocate:
+$LN5@allocate:
+
+; 59   : 	const size_t _User_size = _Count * _Sz;
+
+	shl	eax, 2
+
+; 60   : 
+; 61   :  #if defined(_M_IX86) || defined(_M_X64)
+; 62   : 	if (_Try_aligned_allocation
+; 63   : 		&& _BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN6@allocate
+
+; 64   : 		{	// allocate large block
+; 65   : 		static_assert(sizeof (void *) < _BIG_ALLOCATION_ALIGNMENT,
+; 66   : 			"Big allocations should at least match vector register size");
+; 67   : 		const size_t _Block_size = _NON_USER_SIZE + _User_size;
+
+	lea	ecx, DWORD PTR [eax+35]
+
+; 68   : 		if (_Block_size <= _User_size)
+
+	cmp	ecx, eax
+	ja	SHORT $LN8@allocate
+
+; 69   : 			_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN16@allocate:
+$LN8@allocate:
+
+; 70   : 		const uintptr_t _Ptr_container =
+; 71   : 			reinterpret_cast<uintptr_t>(::operator new(_Block_size));
+
+	push	ecx
+	call	??2@YAPAXI@Z				; operator new
+	mov	ecx, eax
+	add	esp, 4
+
+; 72   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container != 0);
+
+	test	ecx, ecx
+	jne	SHORT $LN9@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN17@allocate:
+$LN9@allocate:
+
+; 73   : 		_Ptr = reinterpret_cast<void *>((_Ptr_container + _NON_USER_SIZE)
+
+	lea	eax, DWORD PTR [ecx+35]
+	and	eax, -32				; ffffffe0H
+
+; 74   : 			& ~(_BIG_ALLOCATION_ALIGNMENT - 1));
+; 75   : 		static_cast<uintptr_t *>(_Ptr)[-1] = _Ptr_container;
+
+	mov	DWORD PTR [eax-4], ecx
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN6@allocate:
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	eax
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN12@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN18@allocate:
+$LN14@allocate:
+	int	3
+?allocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::deallocate, COMDAT
+; _this$ = ecx
+
+; 822  : 		{	// deallocate object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 824  : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAEXPAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??0?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAE@ABV01@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??0?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAE@ABV01@@Z PROC ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >, COMDAT
+; _this$ = ecx
+
+; 807  : 		{	// construct by copying (do nothing)
+; 808  : 		}
+
+	mov	eax, ecx
+	ret	4
+??0?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@QAE@ABV01@@Z ENDP ; std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Max_bucket_size@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAMXZ
+_TEXT	SEGMENT
+?_Max_bucket_size@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAMXZ PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Max_bucket_size, COMDAT
+; _this$ = ecx
+
+; 955  : 		return (_Traitsobj._Get_max_bucket_size());
+
+	mov	eax, ecx
+
+; 956  : 		}
+
+	ret	0
+?_Max_bucket_size@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAMXZ ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Max_bucket_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Init@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEXI@Z
+_TEXT	SEGMENT
+$T1 = -4						; size = 4
+__Buckets$ = 8						; size = 4
+?_Init@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEXI@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Init, COMDAT
+; _this$ = ecx
+
+; 916  : 		{	// initialize hash table with _Buckets buckets, leave list alone
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+	push	ebx
+	mov	ebx, ecx
+	push	esi
+
+; 917  : 		_Vec.reserve(2 * _Buckets);	// avoid curdling _Vec if exception occurs
+
+	mov	esi, DWORD PTR __Buckets$[ebp]
+	add	esi, esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [ebx+20]
+	sub	eax, DWORD PTR [ebx+12]
+	sar	eax, 2
+	push	edi
+
+; 1529 : 		if (_Newcapacity > capacity())
+
+	cmp	esi, eax
+	jbe	SHORT $LN4@Init
+
+; 1530 : 			{	// something to do (reserve() never shrinks)
+; 1531 : 			if (_Newcapacity > max_size())
+
+	cmp	esi, 1073741823				; 3fffffffH
+	ja	SHORT $LN85@Init
+
+; 1534 : 				}
+; 1535 : 
+; 1536 : 			_Reallocate_exactly(_Newcapacity);
+
+	push	esi
+	lea	ecx, DWORD PTR [ebx+12]
+	call	?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Reallocate_exactly
+$LN4@Init:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR [ebx+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 918  : 		_Vec.assign(2 * _Buckets, _Unchecked_end());
+
+	lea	ecx, DWORD PTR [ebx+12]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	DWORD PTR $T1[ebp], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 918  : 		_Vec.assign(2 * _Buckets, _Unchecked_end());
+
+	lea	eax, DWORD PTR $T1[ebp]
+	push	eax
+	push	esi
+	call	?assign@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXIABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::assign
+
+; 919  : 		_Mask = _Buckets - 1;
+
+	mov	ecx, DWORD PTR __Buckets$[ebp]
+	pop	edi
+	pop	esi
+
+; 920  : 		_Maxidx = _Buckets;
+
+	mov	DWORD PTR [ebx+28], ecx
+	lea	eax, DWORD PTR [ecx-1]
+	mov	DWORD PTR [ebx+24], eax
+	pop	ebx
+
+; 921  : 		}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+$LN85@Init:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1533 : 				_Xlength();
+
+	call	?_Xlength@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@CAXXZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Xlength
+$LN87@Init:
+$LN84@Init:
+	int	3
+?_Init@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEXI@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Init
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Hashval@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEIABI@Z
+_TEXT	SEGMENT
+__Keyval$ = 8						; size = 4
+?_Hashval@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEIABI@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Hashval, COMDAT
+; _this$ = ecx
+
+; 911  : 		{	// return hash value, masked to current table size
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	mov	esi, DWORD PTR __Keyval$[ebp]
+	push	edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 911  : 		{	// return hash value, masked to current table size
+
+	mov	edi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	movzx	eax, BYTE PTR [esi]
+	xor	eax, -2128831035			; 811c9dc5H
+
+; 347  : 		_Val *= _FNV_prime;
+
+	imul	edx, eax, 16777619
+	movzx	eax, BYTE PTR [esi+1]
+	xor	edx, eax
+	movzx	eax, BYTE PTR [esi+2]
+	imul	edx, edx, 16777619
+	xor	edx, eax
+	movzx	eax, BYTE PTR [esi+3]
+	imul	ecx, edx, 16777619
+	xor	ecx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 912  : 		return (_Traitsobj(_Keyval) & _Mask);
+
+	mov	eax, DWORD PTR [edi+24]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 347  : 		_Val *= _FNV_prime;
+
+	imul	ecx, ecx, 16777619
+	pop	edi
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 912  : 		return (_Traitsobj(_Keyval) & _Mask);
+
+	and	eax, ecx
+
+; 913  : 		}
+
+	pop	ebp
+	ret	4
+?_Hashval@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEIABI@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Hashval
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_End@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Bucket$ = 12						; size = 4
+?_End@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_End, COMDAT
+; _this$ = ecx
+
+; 855  : 		{	// return end iterator for bucket _Bucket
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	mov	edx, DWORD PTR [ecx+12]
+	mov	eax, DWORD PTR __Bucket$[ebp]
+	mov	ecx, DWORD PTR [ecx+4]
+	lea	eax, DWORD PTR [edx+eax*8]
+	cmp	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 856  : 		if (_Vec_lo(_Bucket) == _Unchecked_end())
+
+	je	SHORT $LN89@End
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	eax, DWORD PTR [eax+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 861  : 			return (++_Ans);
+
+	mov	ecx, DWORD PTR [eax]
+$LN89@End:
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	DWORD PTR [eax], ecx
+
+; 862  : 			}
+; 863  : 		}
+
+	pop	ebp
+	ret	8
+?_End@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_End
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_End@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Bucket$ = 12						; size = 4
+?_End@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_End, COMDAT
+; _this$ = ecx
+
+; 845  : 		{	// return end iterator for bucket _Bucket
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	mov	edx, DWORD PTR [ecx+12]
+	mov	eax, DWORD PTR __Bucket$[ebp]
+	mov	ecx, DWORD PTR [ecx+4]
+	lea	eax, DWORD PTR [edx+eax*8]
+	cmp	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 846  : 		if (_Vec_lo(_Bucket) == _Unchecked_end())
+
+	je	SHORT $LN95@End
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	eax, DWORD PTR [eax+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 851  : 			return (++_Ans);
+
+	mov	ecx, DWORD PTR [eax]
+$LN95@End:
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	DWORD PTR [eax], ecx
+
+; 852  : 			}
+; 853  : 		}
+
+	pop	ebp
+	ret	8
+?_End@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_End
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Begin@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Bucket$ = 12						; size = 4
+?_Begin@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Begin, COMDAT
+; _this$ = ecx
+
+; 840  : 		{	// return begin iterator for bucket _Bucket
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 841  : 		return (_Vec_lo(_Bucket));
+
+	mov	eax, DWORD PTR __Bucket$[ebp]
+	mov	ecx, DWORD PTR [ecx+12]
+	mov	ecx, DWORD PTR [ecx+eax*8]
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	DWORD PTR [eax], ecx
+
+; 842  : 		}
+
+	pop	ebp
+	ret	8
+?_Begin@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Begin
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Begin@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Bucket$ = 12						; size = 4
+?_Begin@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Begin, COMDAT
+; _this$ = ecx
+
+; 835  : 		{	// return begin iterator for bucket _Bucket
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 836  : 		return (_Vec_lo(_Bucket));
+
+	mov	eax, DWORD PTR __Bucket$[ebp]
+	mov	ecx, DWORD PTR [ecx+12]
+	mov	ecx, DWORD PTR [ecx+eax*8]
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	DWORD PTR [eax], ecx
+
+; 837  : 		}
+
+	pop	ebp
+	ret	8
+?_Begin@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Begin
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Vec_hi@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z
+_TEXT	SEGMENT
+__Bucket$ = 8						; size = 4
+?_Vec_hi@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_hi, COMDAT
+; _this$ = ecx
+
+; 830  : 		{	// return reference to end()-1 for _Bucket
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1760 : 		return (this->_Myfirst()[_Pos]);
+
+	mov	eax, DWORD PTR __Bucket$[ebp]
+	mov	ecx, DWORD PTR [ecx+12]
+	lea	eax, DWORD PTR [eax*8+4]
+	add	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 832  : 		}
+
+	pop	ebp
+	ret	4
+?_Vec_hi@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_hi
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Vec_hi@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+__Bucket$ = 8						; size = 4
+?_Vec_hi@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_hi, COMDAT
+; _this$ = ecx
+
+; 825  : 		{	// return reference to end()-1 for _Bucket
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1746 : 		return (this->_Myfirst()[_Pos]);
+
+	mov	eax, DWORD PTR __Bucket$[ebp]
+	mov	ecx, DWORD PTR [ecx+12]
+	lea	eax, DWORD PTR [eax*8+4]
+	add	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 827  : 		}
+
+	pop	ebp
+	ret	4
+?_Vec_hi@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_hi
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Vec_lo@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z
+_TEXT	SEGMENT
+__Bucket$ = 8						; size = 4
+?_Vec_lo@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_lo, COMDAT
+; _this$ = ecx
+
+; 820  : 		{	// return reference to begin() for _Bucket
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1760 : 		return (this->_Myfirst()[_Pos]);
+
+	mov	ecx, DWORD PTR [ecx+12]
+	mov	eax, DWORD PTR __Bucket$[ebp]
+	lea	eax, DWORD PTR [ecx+eax*8]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 822  : 		}
+
+	pop	ebp
+	ret	4
+?_Vec_lo@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IBEAAV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_lo
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Vec_lo@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z
+_TEXT	SEGMENT
+__Bucket$ = 8						; size = 4
+?_Vec_lo@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_lo, COMDAT
+; _this$ = ecx
+
+; 815  : 		{	// return reference to begin() for _Bucket
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1746 : 		return (this->_Myfirst()[_Pos]);
+
+	mov	ecx, DWORD PTR [ecx+12]
+	mov	eax, DWORD PTR __Bucket$[ebp]
+	lea	eax, DWORD PTR [ecx+eax*8]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 817  : 		}
+
+	pop	ebp
+	ret	4
+?_Vec_lo@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@IAEAAV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@I@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Vec_lo
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+tv929 = 12						; size = 4
+__Keyval$ = 12						; size = 4
+?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::equal_range, COMDAT
+; _this$ = ecx
+
+; 703  : 		{	// find range equivalent to _Keyval in nonmutable hash table
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ebx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	mov	ebx, DWORD PTR __Keyval$[ebp]
+	push	esi
+	push	edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 703  : 		{	// find range equivalent to _Keyval in nonmutable hash table
+
+	mov	edi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	movzx	eax, BYTE PTR [ebx]
+	xor	eax, -2128831035			; 811c9dc5H
+
+; 347  : 		_Val *= _FNV_prime;
+
+	imul	edx, eax, 16777619
+	movzx	eax, BYTE PTR [ebx+1]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1760 : 		return (this->_Myfirst()[_Pos]);
+
+	mov	esi, DWORD PTR [edi+12]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	xor	edx, eax
+	movzx	eax, BYTE PTR [ebx+2]
+
+; 347  : 		_Val *= _FNV_prime;
+
+	imul	edx, edx, 16777619
+	xor	edx, eax
+	movzx	eax, BYTE PTR [ebx+3]
+	imul	ecx, edx, 16777619
+	xor	ecx, eax
+	imul	eax, ecx, 16777619
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 912  : 		return (_Traitsobj(_Keyval) & _Mask);
+
+	mov	ecx, DWORD PTR [edi+24]
+	and	ecx, eax
+
+; 841  : 		return (_Vec_lo(_Bucket));
+
+	mov	eax, DWORD PTR [esi+ecx*8]
+
+; 821  : 		return ((_Unchecked_const_iterator&)_Vec[2 * _Bucket]);
+
+	lea	edx, DWORD PTR [ecx+ecx]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 1183 : 		return (_Unchecked_const_iterator(this->_Myhead(),
+
+	mov	ecx, DWORD PTR [edi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1760 : 		return (this->_Myfirst()[_Pos]);
+
+	lea	edi, DWORD PTR [esi+edx*4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	mov	ebx, DWORD PTR [esi+edx*4]
+	mov	esi, DWORD PTR __Keyval$[ebp]
+	npad	7
+$LL4@equal_rang:
+	cmp	ebx, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 856  : 		if (_Vec_lo(_Bucket) == _Unchecked_end())
+
+	jne	SHORT $LN49@equal_rang
+
+; 857  : 			return (_Unchecked_end());
+
+	mov	edx, ecx
+	jmp	SHORT $LN50@equal_rang
+$LN49@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	edx, DWORD PTR [edi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 861  : 			return (++_Ans);
+
+	mov	edx, DWORD PTR [edx]
+$LN50@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	eax, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 706  : 			_Where != _End(_Bucket); ++_Where)
+
+	je	SHORT $LN3@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 220  : 		return (_Left == _Right);
+
+	mov	edx, DWORD PTR [eax+8]
+	cmp	edx, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 707  : 			if (!_Traitsobj(_Traits::_Kfn(*_Where), _Keyval))
+
+	je	SHORT $LN399@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+	jmp	SHORT $LL4@equal_rang
+$LN399@equal_rang:
+	mov	esi, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 709  : 				_Unchecked_const_iterator _First = _Where;
+
+	mov	edx, eax
+	mov	DWORD PTR tv929[ebp], esi
+$LL7@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	ebx, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 856  : 		if (_Vec_lo(_Bucket) == _Unchecked_end())
+
+	jne	SHORT $LN164@equal_rang
+
+; 857  : 			return (_Unchecked_end());
+
+	mov	esi, ecx
+	jmp	SHORT $LN165@equal_rang
+$LN164@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	esi, DWORD PTR [edi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 861  : 			return (++_Ans);
+
+	mov	esi, DWORD PTR [esi]
+$LN165@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	eax, esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 710  : 				for (; _Where != _End(_Bucket); ++_Where)
+
+	je	SHORT $LN400@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 220  : 		return (_Left == _Right);
+
+	mov	esi, DWORD PTR tv929[ebp]
+	cmp	esi, DWORD PTR [eax+8]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 711  : 					if (_Traitsobj(_Keyval, _Traits::_Kfn(*_Where)))
+
+	jne	SHORT $LN400@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+	jmp	SHORT $LL7@equal_rang
+$LN400@equal_rang:
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	edx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 713  : 				if (_First == _Where)
+
+	je	SHORT $LN3@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 187  : 		: first(_STD forward<_Other1>(_Val1)),
+
+	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 188  : 				second(_STD forward<_Other2>(_Val2))
+
+	mov	DWORD PTR [ecx+4], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 715  : 				return (_Paircc(_Make_iter(_First),
+
+	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 187  : 		: first(_STD forward<_Other1>(_Val1)),
+
+	mov	DWORD PTR [ecx], edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 719  : 		}
+
+	pop	ebp
+	ret	8
+$LN3@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 187  : 		: first(_STD forward<_Other1>(_Val1)),
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	pop	edi
+	pop	esi
+	pop	ebx
+	mov	DWORD PTR [eax], ecx
+
+; 188  : 				second(_STD forward<_Other2>(_Val2))
+
+	mov	DWORD PTR [eax+4], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 719  : 		}
+
+	pop	ebp
+	ret	8
+?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::equal_range
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+tv993 = 12						; size = 4
+__Keyval$ = 12						; size = 4
+?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::equal_range, COMDAT
+; _this$ = ecx
+
+; 684  : 		{	// find range equivalent to _Keyval in mutable hash table
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ebx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	mov	ebx, DWORD PTR __Keyval$[ebp]
+	push	esi
+	push	edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 684  : 		{	// find range equivalent to _Keyval in mutable hash table
+
+	mov	edi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	movzx	eax, BYTE PTR [ebx]
+	xor	eax, -2128831035			; 811c9dc5H
+
+; 347  : 		_Val *= _FNV_prime;
+
+	imul	edx, eax, 16777619
+	movzx	eax, BYTE PTR [ebx+1]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1746 : 		return (this->_Myfirst()[_Pos]);
+
+	mov	esi, DWORD PTR [edi+12]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	xor	edx, eax
+	movzx	eax, BYTE PTR [ebx+2]
+
+; 347  : 		_Val *= _FNV_prime;
+
+	imul	edx, edx, 16777619
+	xor	edx, eax
+	movzx	eax, BYTE PTR [ebx+3]
+	imul	ecx, edx, 16777619
+	xor	ecx, eax
+	imul	eax, ecx, 16777619
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 912  : 		return (_Traitsobj(_Keyval) & _Mask);
+
+	mov	ecx, DWORD PTR [edi+24]
+	and	ecx, eax
+
+; 836  : 		return (_Vec_lo(_Bucket));
+
+	mov	eax, DWORD PTR [esi+ecx*8]
+
+; 816  : 		return (_Vec[2 * _Bucket]);
+
+	lea	edx, DWORD PTR [ecx+ecx]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 1178 : 		return (_Unchecked_iterator(this->_Myhead(), _STD addressof(this->_Get_data())));
+
+	mov	ecx, DWORD PTR [edi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1746 : 		return (this->_Myfirst()[_Pos]);
+
+	lea	edi, DWORD PTR [esi+edx*4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	mov	ebx, DWORD PTR [esi+edx*4]
+	mov	esi, DWORD PTR __Keyval$[ebp]
+	npad	7
+$LL4@equal_rang:
+	cmp	ebx, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 846  : 		if (_Vec_lo(_Bucket) == _Unchecked_end())
+
+	jne	SHORT $LN51@equal_rang
+
+; 847  : 			return (_Unchecked_end());
+
+	mov	edx, ecx
+	jmp	SHORT $LN52@equal_rang
+$LN51@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	edx, DWORD PTR [edi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 851  : 			return (++_Ans);
+
+	mov	edx, DWORD PTR [edx]
+$LN52@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	eax, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 687  : 			_Where != _End(_Bucket); ++_Where)
+
+	je	SHORT $LN3@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 220  : 		return (_Left == _Right);
+
+	mov	edx, DWORD PTR [eax+8]
+	cmp	edx, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 688  : 			if (!_Traitsobj(_Traits::_Kfn(*_Where), _Keyval))
+
+	je	SHORT $LN423@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+	jmp	SHORT $LL4@equal_rang
+$LN423@equal_rang:
+	mov	esi, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 690  : 				_Unchecked_iterator _First = _Where;
+
+	mov	edx, eax
+	mov	DWORD PTR tv993[ebp], esi
+$LL7@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	ebx, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 846  : 		if (_Vec_lo(_Bucket) == _Unchecked_end())
+
+	jne	SHORT $LN176@equal_rang
+
+; 847  : 			return (_Unchecked_end());
+
+	mov	esi, ecx
+	jmp	SHORT $LN177@equal_rang
+$LN176@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	esi, DWORD PTR [edi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 851  : 			return (++_Ans);
+
+	mov	esi, DWORD PTR [esi]
+$LN177@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	eax, esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 691  : 				for (; _Where != _End(_Bucket); ++_Where)
+
+	je	SHORT $LN424@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 220  : 		return (_Left == _Right);
+
+	mov	esi, DWORD PTR tv993[ebp]
+	cmp	esi, DWORD PTR [eax+8]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 692  : 					if (_Traitsobj(_Keyval, _Traits::_Kfn(*_Where)))
+
+	jne	SHORT $LN424@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 60   : 		_Ptr = _Mylist::_Nextnode(_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+	jmp	SHORT $LL7@equal_rang
+$LN424@equal_rang:
+
+; 86   : 		return (_Ptr == _Right._Ptr);
+
+	cmp	edx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 694  : 				if (_First == _Where)
+
+	je	SHORT $LN3@equal_rang
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 187  : 		: first(_STD forward<_Other1>(_Val1)),
+
+	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 188  : 				second(_STD forward<_Other2>(_Val2))
+
+	mov	DWORD PTR [ecx+4], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 696  : 				return (_Pairii(_Make_iter(_First),
+
+	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 187  : 		: first(_STD forward<_Other1>(_Val1)),
+
+	mov	DWORD PTR [ecx], edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 700  : 		}
+
+	pop	ebp
+	ret	8
+$LN3@equal_rang:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 187  : 		: first(_STD forward<_Other1>(_Val1)),
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	pop	edi
+	pop	esi
+	pop	ebx
+	mov	DWORD PTR [eax], ecx
+
+; 188  : 				second(_STD forward<_Other2>(_Val2))
+
+	mov	DWORD PTR [eax+4], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 700  : 		}
+
+	pop	ebp
+	ret	8
+?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::equal_range
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?count@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBEIABI@Z
+_TEXT	SEGMENT
+__Ans$ = -8						; size = 8
+__Keyval$ = 8						; size = 4
+?count@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBEIABI@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::count, COMDAT
+; _this$ = ecx
+
+; 634  : 		{	// count all elements that match _Keyval
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	sub	esp, 8
+
+; 635  : 		_Paircc _Ans = equal_range(_Keyval);
+
+	push	DWORD PTR __Keyval$[ebp]
+	lea	eax, DWORD PTR __Ans$[ebp]
+	push	eax
+	call	?equal_range@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@V12@@2@ABI@Z ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::equal_range
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1113 : 	return (_Distance1(_First, _Last, _Iter_cat_t<_InIt>()));
+
+	mov	ecx, DWORD PTR __Ans$[ebp]
+
+; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	mov	edx, DWORD PTR __Ans$[ebp+4]
+	cmp	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	je	SHORT $LN7@count
+$LL8@count:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
+
+	mov	ecx, DWORD PTR [ecx]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1097 : 		++_Off;
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	cmp	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	jne	SHORT $LL8@count
+$LN7@count:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 637  : 		}
+
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+?count@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBEIABI@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::count
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Make_iter@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Where$ = 12						; size = 4
+?_Make_iter@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Make_iter, COMDAT
+; _this$ = ecx
+
+; 366  : 		{	// make iterator from _Unchecked_const_iterator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR __Where$[ebp]
+	mov	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 368  : 		}
+
+	pop	ebp
+	ret	8
+?_Make_iter@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Make_iter
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Unchecked_end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?_Unchecked_end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Unchecked_end, COMDAT
+; _this$ = ecx
+
+; 361  : 		{	// return iterator for end of nonmutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx+4]
+	mov	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 363  : 		}
+
+	pop	ebp
+	ret	4
+?_Unchecked_end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Unchecked_end
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Unchecked_end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?_Unchecked_end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Unchecked_end, COMDAT
+; _this$ = ecx
+
+; 356  : 		{	// return iterator for end of mutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx+4]
+	mov	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 358  : 		}
+
+	pop	ebp
+	ret	4
+?_Unchecked_end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Unchecked_end
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::end, COMDAT
+; _this$ = ecx
+
+; 341  : 		{	// return iterator for end of nonmutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx+4]
+	mov	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 343  : 		}
+
+	pop	ebp
+	ret	4
+?end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::end
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::end, COMDAT
+; _this$ = ecx
+
+; 336  : 		{	// return iterator for end of mutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx+4]
+	mov	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 338  : 		}
+
+	pop	ebp
+	ret	4
+?end@?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::end
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ??1?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@XZ PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::~_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >, COMDAT
+; _this$ = ecx
+
+; 307  : 		{	// destroy hash table
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1949 : 		if (this->_Myfirst() != pointer())
+
+	mov	ecx, DWORD PTR [esi+12]
+	test	ecx, ecx
+	je	SHORT $LN7@Hash
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [esi+20]
+	sub	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1952 : 			this->_Getal().deallocate(this->_Myfirst(), this->_Myend() - this->_Myfirst());
+
+	sar	eax, 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	ecx
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1954 : 			this->_Myfirst() = pointer();
+
+	mov	DWORD PTR [esi+12], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1955 : 			this->_Mylast() = pointer();
+
+	mov	DWORD PTR [esi+16], 0
+
+; 1956 : 			this->_Myend() = pointer();
+
+	mov	DWORD PTR [esi+20], 0
+$LN7@Hash:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 1927 : 		clear();
+
+	lea	ecx, DWORD PTR [esi+4]
+	call	?clear@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::clear
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	1
+	push	DWORD PTR [esi+4]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 309  : 		}
+
+	ret	0
+??1?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@XZ ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::~_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+_TEXT	SEGMENT
+_this$ = -16						; size = 4
+__$EHRec$ = -12						; size = 12
+$T2 = 8							; size = 4
+_this$ = 8						; size = 4
+__Parg$ = 8						; size = 4
+__Al$ = 12						; size = 4
+??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z PROC ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >, COMDAT
+; _this$ = ecx
+
+; 197  : 		{	// construct empty hash table
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	ecx
+	push	ebx
+	push	esi
+	mov	esi, ecx
+	mov	DWORD PTR _this$[ebp], esi
+	lea	ebx, DWORD PTR [esi+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+
+; 38   : 		: _Tr(_Traits)
+
+	mov	eax, DWORD PTR __Parg$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 731  : 		return (_Buynode0(_Nodeptr(), _Nodeptr()));
+
+	mov	ecx, ebx
+	push	edi
+	push	0
+	push	0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+
+; 38   : 		: _Tr(_Traits)
+
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [esi], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 195  : 			_List(_Al),
+
+	mov	DWORD PTR _this$[ebp], ebx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 523  : 		: _Myhead(),
+
+	mov	DWORD PTR [ebx], 0
+
+; 524  : 		_Mysize(0)
+
+	mov	DWORD PTR [ebx+4], 0
+
+; 731  : 		return (_Buynode0(_Nodeptr(), _Nodeptr()));
+
+	call	?_Buynode0@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@0@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buynode0
+
+; 606  : 		_Myhead() = _Buyheadnode();
+
+	mov	DWORD PTR [ebx], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 195  : 			_List(_Al),
+
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 476  : 		: _Myfirst(),
+
+	mov	DWORD PTR [esi+12], 0
+
+; 477  : 		_Mylast(),
+
+	mov	DWORD PTR [esi+16], 0
+
+; 478  : 		_Myend()
+
+	mov	DWORD PTR [esi+20], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 198  : 		_Max_bucket_size() = _Bucket_size;
+
+	mov	DWORD PTR [esi], 1065353216		; 3f800000H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1720 : 		return (this->_Myend() - this->_Myfirst());
+
+	mov	eax, DWORD PTR [esi+20]
+	sub	eax, DWORD PTR [esi+12]
+	sar	eax, 2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 196  : 			_Vec(_Al)
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
+
+; 1529 : 		if (_Newcapacity > capacity())
+
+	cmp	eax, 16					; 00000010H
+	jae	SHORT $LN69@Hash
+
+; 1530 : 			{	// something to do (reserve() never shrinks)
+; 1531 : 			if (_Newcapacity > max_size())
+; 1532 : 				{
+; 1533 : 				_Xlength();
+; 1534 : 				}
+; 1535 : 
+; 1536 : 			_Reallocate_exactly(_Newcapacity);
+
+	push	16					; 00000010H
+	lea	ecx, DWORD PTR [esi+12]
+	call	?_Reallocate_exactly@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@AAEXI@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::_Reallocate_exactly
+$LN69@Hash:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR [ebx]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 918  : 		_Vec.assign(2 * _Buckets, _Unchecked_end());
+
+	lea	ecx, DWORD PTR [esi+12]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	DWORD PTR $T2[ebp], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 918  : 		_Vec.assign(2 * _Buckets, _Unchecked_end());
+
+	lea	eax, DWORD PTR $T2[ebp]
+	push	eax
+	push	16					; 00000010H
+	call	?assign@?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAEXIABV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@@Z ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::assign
+
+; 199  : 		_Init();
+; 200  : 		}
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	eax, esi
+	pop	edi
+
+; 919  : 		_Mask = _Buckets - 1;
+
+	mov	DWORD PTR [esi+24], 7
+
+; 920  : 		_Maxidx = _Buckets;
+
+	mov	DWORD PTR [esi+28], 8
+	pop	esi
+	pop	ebx
+
+; 199  : 		_Init();
+; 200  : 		}
+
+	mov	DWORD PTR fs:0, ecx
+	mov	esp, ebp
+	pop	ebp
+	ret	8
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__unwindfunclet$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z$0:
+	mov	ecx, DWORD PTR _this$[ebp]
+	add	ecx, 4
+	jmp	??1?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@XZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+__unwindfunclet$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z$1:
+	mov	ecx, DWORD PTR _this$[ebp]
+	add	ecx, 12					; 0000000cH
+	jmp	??1?$vector@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@U?$_Wrap_alloc@V?$allocator@V?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@std@@@std@@@2@@std@@QAE@XZ ; std::vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >::~vector<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > >,std::_Wrap_alloc<std::allocator<std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > > > > > >
+__ehhandler$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z:
+	mov	eax, OFFSET __ehfuncinfo$??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??0?$_Hash@V?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ENDP ; std::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >::_Hash<std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1> >
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Tidy@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ
+_TEXT	SEGMENT
+?_Tidy@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ PROC ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Tidy, COMDAT
+; _this$ = ecx
+
+; 1927 : 		clear();
+
+	jmp	?clear@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::clear
+?_Tidy@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ ENDP ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Tidy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?clear@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ
+_TEXT	SEGMENT
+?clear@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ PROC ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::clear, COMDAT
+; _this$ = ecx
+
+; 1534 : 		{	// erase all
+
+	npad	2
+	push	ebx
+	mov	ebx, ecx
+	push	esi
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	eax, DWORD PTR [ebx]
+
+; 1535 :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 1536 : 
+; 1537 : 		this->_Orphan_ptr(nullptr);
+; 1538 :  #endif /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 1539 : 		_Nodeptr _Pnode = this->_Nextnode(this->_Myhead());
+
+	mov	esi, DWORD PTR [eax]
+
+; 1540 : 		this->_Nextnode(this->_Myhead()) = this->_Myhead();
+
+	mov	DWORD PTR [eax], eax
+
+; 535  : 		return ((_Nodepref)_Pnode->_Prev);
+
+	mov	eax, DWORD PTR [ebx]
+
+; 1541 : 		this->_Prevnode(this->_Myhead()) = this->_Myhead();
+
+	mov	DWORD PTR [eax+4], eax
+
+; 1542 : 		this->_Mysize() = 0;
+
+	mov	DWORD PTR [ebx+4], 0
+
+; 1544 : 		for (_Nodeptr _Pnext; _Pnode != this->_Myhead(); _Pnode = _Pnext)
+
+	cmp	esi, DWORD PTR [ebx]
+	je	$LN277@clear
+	push	edi
+$LL4@clear:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR [esi+60]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 1546 : 			_Pnext = this->_Nextnode(_Pnode);
+
+	mov	edi, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN179@clear
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	mov	ecx, DWORD PTR [esi+40]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
+
+	cmp	eax, 2147483647				; 7fffffffH
+	ja	$LN263@clear
+
+; 99   : 	const size_t _User_size = _Count * _Sz;
+
+	add	eax, eax
+
+; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN174@clear
+
+; 101  : 		{	// deallocate large block
+; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
+; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+
+	test	cl, 31					; 0000001fH
+	jne	$LN263@clear
+
+; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
+; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
+; 106  : 		const uintptr_t _Ptr_container =
+; 107  : 			*reinterpret_cast<uintptr_t *>(_Ptr_ptr);
+
+	mov	eax, DWORD PTR [ecx-4]
+
+; 108  : 
+; 109  :  #ifdef _DEBUG
+; 110  : 		// If the following asserts, it likely means that we are performing
+; 111  : 		// an aligned delete on memory coming from an unaligned allocation.
+; 112  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+; 113  : 			reinterpret_cast<uintptr_t *>(_Ptr_ptr)[-1] ==
+; 114  : 				_BIG_ALLOCATION_SENTINEL);
+; 115  :  #endif /* _DEBUG */
+; 116  : 
+; 117  : 		// Extra paranoia on aligned allocation/deallocation
+; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
+
+	cmp	eax, ecx
+	jae	$LN263@clear
+
+; 119  : 
+; 120  :  #ifdef _DEBUG
+; 121  : 		_SCL_SECURE_ALWAYS_VALIDATE(2 * sizeof(void *)
+; 122  : 			<= _Ptr_user - _Ptr_container);
+; 123  : 
+; 124  :  #else /* _DEBUG */
+; 125  : 		_SCL_SECURE_ALWAYS_VALIDATE(sizeof(void *)
+
+	sub	ecx, eax
+	cmp	ecx, 4
+	jb	$LN263@clear
+
+; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
+
+	cmp	ecx, 35					; 00000023H
+	ja	$LN263@clear
+
+; 130  : 			<= _NON_USER_SIZE);
+; 131  : 
+; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
+
+	mov	ecx, eax
+$LN174@clear:
+
+; 140  : 	::operator delete(_Ptr);
+
+	push	ecx
+	call	??3@YAXPAX@Z				; operator delete
+	add	esp, 4
+$LN179@clear:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+56], 0
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+60], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi+40], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR [esi+32]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN223@clear
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	mov	ecx, DWORD PTR [esi+12]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 98   : 	_SCL_SECURE_ALWAYS_VALIDATE(_Count <= (size_t)(-1) / _Sz);
+
+	cmp	eax, 2147483647				; 7fffffffH
+	ja	SHORT $LN263@clear
+
+; 99   : 	const size_t _User_size = _Count * _Sz;
+
+	add	eax, eax
+
+; 100  : 	if (_BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN218@clear
+
+; 101  : 		{	// deallocate large block
+; 102  : 		const uintptr_t _Ptr_user = reinterpret_cast<uintptr_t>(_Ptr);
+; 103  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+
+	test	cl, 31					; 0000001fH
+	jne	SHORT $LN263@clear
+
+; 104  : 			(_Ptr_user & (_BIG_ALLOCATION_ALIGNMENT - 1)) == 0);
+; 105  : 		const uintptr_t _Ptr_ptr = _Ptr_user - sizeof(void *);
+; 106  : 		const uintptr_t _Ptr_container =
+; 107  : 			*reinterpret_cast<uintptr_t *>(_Ptr_ptr);
+
+	mov	eax, DWORD PTR [ecx-4]
+
+; 108  : 
+; 109  :  #ifdef _DEBUG
+; 110  : 		// If the following asserts, it likely means that we are performing
+; 111  : 		// an aligned delete on memory coming from an unaligned allocation.
+; 112  : 		_SCL_SECURE_ALWAYS_VALIDATE(
+; 113  : 			reinterpret_cast<uintptr_t *>(_Ptr_ptr)[-1] ==
+; 114  : 				_BIG_ALLOCATION_SENTINEL);
+; 115  :  #endif /* _DEBUG */
+; 116  : 
+; 117  : 		// Extra paranoia on aligned allocation/deallocation
+; 118  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container < _Ptr_user);
+
+	cmp	eax, ecx
+	jae	SHORT $LN263@clear
+
+; 119  : 
+; 120  :  #ifdef _DEBUG
+; 121  : 		_SCL_SECURE_ALWAYS_VALIDATE(2 * sizeof(void *)
+; 122  : 			<= _Ptr_user - _Ptr_container);
+; 123  : 
+; 124  :  #else /* _DEBUG */
+; 125  : 		_SCL_SECURE_ALWAYS_VALIDATE(sizeof(void *)
+
+	sub	ecx, eax
+	cmp	ecx, 4
+	jb	SHORT $LN263@clear
+
+; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
+
+	cmp	ecx, 35					; 00000023H
+	ja	SHORT $LN263@clear
+
+; 130  : 			<= _NON_USER_SIZE);
+; 131  : 
+; 132  : 		_Ptr = reinterpret_cast<void *>(_Ptr_container);
+
+	mov	ecx, eax
+$LN218@clear:
+
+; 140  : 	::operator delete(_Ptr);
+
+	push	ecx
+	call	??3@YAXPAX@Z				; operator delete
+	add	esp, 4
+$LN223@clear:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+28], 0
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+32], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 140  : 	::operator delete(_Ptr);
+
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi+12], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 140  : 	::operator delete(_Ptr);
+
+	call	??3@YAXPAX@Z				; operator delete
+	add	esp, 4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 1544 : 		for (_Nodeptr _Pnext; _Pnode != this->_Myhead(); _Pnode = _Pnext)
+
+	mov	esi, edi
+	cmp	edi, DWORD PTR [ebx]
+	jne	$LL4@clear
+	pop	edi
+$LN277@clear:
+	pop	esi
+	pop	ebx
+
+; 1549 : 		}
+
+	ret	0
+$LN263@clear:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 129  : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_user - _Ptr_container
+
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN281@clear:
+$LN280@clear:
+	int	3
+?clear@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ ENDP ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::clear
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Make_iter@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Where$ = 12						; size = 4
+?_Make_iter@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z PROC ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Make_iter, COMDAT
+; _this$ = ecx
+
+; 1193 : 		{	// make iterator from _Unchecked_const_iterator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR __Where$[ebp]
+	mov	DWORD PTR [eax], ecx
+
+; 1194 : 		return (iterator(_Where._Ptr, _STD addressof(this->_Get_data())));
+; 1195 : 		}
+
+	pop	ebp
+	ret	8
+?_Make_iter@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@V?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@@Z ENDP ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Make_iter
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Unchecked_end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?_Unchecked_end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ PROC ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Unchecked_end, COMDAT
+; _this$ = ecx
+
+; 1182 : 		{	// return unchecked iterator for end of nonmutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx]
+	mov	DWORD PTR [eax], ecx
+
+; 1183 : 		return (_Unchecked_const_iterator(this->_Myhead(),
+; 1184 : 			_STD addressof(this->_Get_data())));
+; 1185 : 		}
+
+	pop	ebp
+	ret	4
+?_Unchecked_end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@U_Iterator_base0@2@@2@XZ ENDP ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Unchecked_end
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Unchecked_end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?_Unchecked_end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Unchecked_end, COMDAT
+; _this$ = ecx
+
+; 1177 : 		{	// return unchecked iterator for end of mutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx]
+	mov	DWORD PTR [eax], ecx
+
+; 1178 : 		return (_Unchecked_iterator(this->_Myhead(), _STD addressof(this->_Get_data())));
+; 1179 : 		}
+
+	pop	ebp
+	ret	4
+?_Unchecked_end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE?AV?$_List_unchecked_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Unchecked_end
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::end, COMDAT
+; _this$ = ecx
+
+; 1160 : 		{	// return iterator for end of nonmutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx]
+	mov	DWORD PTR [eax], ecx
+
+; 1161 : 		return (const_iterator(this->_Myhead(), _STD addressof(this->_Get_data())));
+; 1162 : 		}
+
+	pop	ebp
+	ret	4
+?end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QBE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::end
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+?end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ PROC ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::end, COMDAT
+; _this$ = ecx
+
+; 1155 : 		{	// return iterator for end of mutable sequence
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 43   : 		: _Ptr(_Pnode)
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, DWORD PTR [ecx]
+	mov	DWORD PTR [eax], ecx
+
+; 1156 : 		return (iterator(this->_Myhead(), _STD addressof(this->_Get_data())));
+; 1157 : 		}
+
+	pop	ebp
+	ret	4
+?end@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@@2@XZ ENDP ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::end
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??1?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@XZ PROC ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >, COMDAT
+; _this$ = ecx
+
+; 1118 : 		{	// destroy the object
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1927 : 		clear();
+
+	call	?clear@?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXXZ ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::clear
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	1
+	push	DWORD PTR [esi]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 1120 : 		}
+
+	ret	0
+??1?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@XZ ENDP ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??0?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z
+_TEXT	SEGMENT
+_this$ = -4						; size = 4
+__Al$ = 8						; size = 4
+??0?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z PROC ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >, COMDAT
+; _this$ = ecx
+
+; 914  : 		{	// construct empty list, allocator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ecx
+	push	esi
+	mov	esi, ecx
+
+; 731  : 		return (_Buynode0(_Nodeptr(), _Nodeptr()));
+
+	push	0
+	push	0
+
+; 914  : 		{	// construct empty list, allocator
+
+	mov	DWORD PTR _this$[ebp], esi
+
+; 523  : 		: _Myhead(),
+
+	mov	DWORD PTR [esi], 0
+
+; 524  : 		_Mysize(0)
+
+	mov	DWORD PTR [esi+4], 0
+
+; 731  : 		return (_Buynode0(_Nodeptr(), _Nodeptr()));
+
+	call	?_Buynode0@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@0@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buynode0
+
+; 606  : 		_Myhead() = _Buyheadnode();
+
+	mov	DWORD PTR [esi], eax
+
+; 915  : 		}
+
+	mov	eax, esi
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+??0?$list@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@ABV?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@1@@Z ENDP ; std::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::list<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??1?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@XZ PROC ; std::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >, COMDAT
+; _this$ = ecx
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	1
+	push	DWORD PTR [ecx]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+	ret	0
+??1?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAE@XZ ENDP ; std::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::~_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Freenode@?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+?_Freenode@?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z PROC ; std::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Freenode, COMDAT
+; _this$ = ecx
+
+; 864  : 		{	// give node back
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+
+; 540  : 		return ((reference)_Pnode->_Myval);
+
+	mov	esi, DWORD PTR __Pnode$[ebp]
+	lea	ecx, DWORD PTR [esi+12]
+	call	??1SK_KeyCommand@@QAE@XZ
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	1
+	push	esi
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 872  : 		}
+
+	pop	ebp
+	ret	4
+?_Freenode@?$_List_buy@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z ENDP ; std::_List_buy<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > >::_Freenode
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QBEABV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QBEABV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 343  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 344  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QBEABV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAEAAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAEAAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 338  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 339  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAEAAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Get_first, COMDAT
+; _this$ = ecx
+
+; 318  : 		return (*this);
+
+	mov	eax, ecx
+
+; 319  : 		}
+
+	ret	0
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@V?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >,std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >,1>::_Get_first
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Myval@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAU?$pair@$$CBIUSK_KeyCommand@@@2@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+?_Myval@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAU?$pair@$$CBIUSK_KeyCommand@@@2@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z PROC ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_Myval, COMDAT
+
+; 539  : 		{	// return reference to value in node
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 540  : 		return ((reference)_Pnode->_Myval);
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	add	eax, 8
+
+; 541  : 		}
+
+	pop	ebp
+	ret	0
+?_Myval@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAU?$pair@$$CBIUSK_KeyCommand@@@2@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z ENDP ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_Myval
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Prevnode@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+?_Prevnode@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z PROC ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_Prevnode, COMDAT
+
+; 534  : 		{	// return reference to predecessor pointer in node
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 535  : 		return ((_Nodepref)_Pnode->_Prev);
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	add	eax, 4
+
+; 536  : 		}
+
+	pop	ebp
+	ret	0
+?_Prevnode@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z ENDP ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_Prevnode
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Nextnode@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+?_Nextnode@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z PROC ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_Nextnode, COMDAT
+
+; 529  : 		{	// return reference to successor pointer in node
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 530  : 		return ((_Nodepref)_Pnode->_Next);
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+
+; 531  : 		}
+
+	pop	ebp
+	ret	0
+?_Nextnode@?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z ENDP ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_Nextnode
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??0?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??0?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@QAE@XZ PROC ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >, COMDAT
+; _this$ = ecx
+
+; 523  : 		: _Myhead(),
+
+	mov	DWORD PTR [ecx], 0
+
+; 526  : 		}
+
+	mov	eax, ecx
+	mov	DWORD PTR [ecx+4], 0
+	ret	0
+??0?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@std@@QAE@XZ ENDP ; std::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >::_List_val<std::_List_simple_types<std::pair<unsigned int const ,SK_KeyCommand> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Mysize@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAIXZ
+_TEXT	SEGMENT
+?_Mysize@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAIXZ PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Mysize, COMDAT
+; _this$ = ecx
+
+; 808  : 		return (_Get_data()._Mysize);
+
+	lea	eax, DWORD PTR [ecx+4]
+
+; 809  : 		}
+
+	ret	0
+?_Mysize@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAIXZ ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Mysize
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Myhead@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QBEABQAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ
+_TEXT	SEGMENT
+?_Myhead@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QBEABQAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Myhead, COMDAT
+; _this$ = ecx
+
+; 803  : 		return (_Get_data()._Myhead);
+
+	mov	eax, ecx
+
+; 804  : 		}
+
+	ret	0
+?_Myhead@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QBEABQAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Myhead
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Myhead@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ
+_TEXT	SEGMENT
+?_Myhead@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Myhead, COMDAT
+; _this$ = ecx
+
+; 798  : 		return (_Get_data()._Myhead);
+
+	mov	eax, ecx
+
+; 799  : 		}
+
+	ret	0
+?_Myhead@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Myhead
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Get_data@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QBEABV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_data@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QBEABV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Get_data, COMDAT
+; _this$ = ecx
+
+; 793  : 		return (_Mypair._Get_second());
+
+	mov	eax, ecx
+
+; 794  : 		}
+
+	ret	0
+?_Get_data@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QBEABV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Get_data
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Get_data@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_data@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Get_data, COMDAT
+; _this$ = ecx
+
+; 788  : 		return (_Mypair._Get_second());
+
+	mov	eax, ecx
+
+; 789  : 		}
+
+	ret	0
+?_Get_data@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAV?$_List_val@U?$_List_simple_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@@2@XZ ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Get_data
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Getal@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@2@XZ
+_TEXT	SEGMENT
+?_Getal@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@2@XZ PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Getal, COMDAT
+; _this$ = ecx
+
+; 778  : 		return (_Mypair._Get_first());
+
+	mov	eax, ecx
+
+; 779  : 		}
+
+	ret	0
+?_Getal@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@2@XZ ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Getal
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Buynode0@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@0@Z
+_TEXT	SEGMENT
+__Next$ = 8						; size = 4
+__Prev$ = 12						; size = 4
+?_Buynode0@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@0@Z PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buynode0, COMDAT
+; _this$ = ecx
+
+; 745  : 		{	// allocate a node and set links
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	84					; 00000054H
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN26@Buynode0
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN98@Buynode0:
+$LN26@Buynode0:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 748  : 		if (_Next == _Nodeptr())
+
+	mov	ecx, DWORD PTR __Next$[ebp]
+	test	ecx, ecx
+	jne	SHORT $LN95@Buynode0
+
+; 749  : 			{	// point at self
+; 750  : 			_Next = _Pnode;
+
+	mov	ecx, eax
+
+; 751  : 			_Prev = _Pnode;
+
+	mov	edx, eax
+	jmp	SHORT $LN2@Buynode0
+$LN95@Buynode0:
+	mov	edx, DWORD PTR __Prev$[ebp]
+$LN2@Buynode0:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	DWORD PTR [eax], ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 535  : 		return ((_Nodepref)_Pnode->_Prev);
+
+	lea	ecx, DWORD PTR [eax+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	test	ecx, ecx
+	je	SHORT $LN4@Buynode0
+	mov	DWORD PTR [ecx], edx
+$LN4@Buynode0:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 764  : 		}
+
+	pop	ebp
+	ret	8
+$LN97@Buynode0:
+?_Buynode0@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@0@Z ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buynode0
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Freeheadnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+?_Freeheadnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Freeheadnode, COMDAT
+; _this$ = ecx
+
+; 735  : 		{	// free head node using current allocator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	1
+	push	DWORD PTR __Pnode$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 741  : 		}
+
+	pop	ebp
+	ret	4
+?_Freeheadnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Freeheadnode
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Buyheadnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ
+_TEXT	SEGMENT
+?_Buyheadnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buyheadnode, COMDAT
+; _this$ = ecx
+
+; 731  : 		return (_Buynode0(_Nodeptr(), _Nodeptr()));
+
+	push	0
+	push	0
+	call	?_Buynode0@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@0@Z ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buynode0
+
+; 732  : 		}
+
+	ret	0
+?_Buyheadnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@XZ ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Buyheadnode
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ??1?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAE@XZ PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::~_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	1
+	push	DWORD PTR [ecx]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 612  : 		}
+
+	ret	0
+??1?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@QAE@XZ ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::~_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Myval@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAU?$pair@$$CBIUSK_KeyCommand@@@2@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+?_Myval@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAU?$pair@$$CBIUSK_KeyCommand@@@2@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Myval, COMDAT
+
+; 589  : 		{	// return reference to value in node
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 540  : 		return ((reference)_Pnode->_Myval);
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	add	eax, 8
+
+; 590  : 		return (_List_val<_Val_types>::_Myval(_Pnode));
+; 591  : 		}
+
+	pop	ebp
+	ret	0
+?_Myval@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAU?$pair@$$CBIUSK_KeyCommand@@@2@PAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@@Z ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Myval
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Prevnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+?_Prevnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Prevnode, COMDAT
+
+; 584  : 		{	// return reference to predecessor pointer in node
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 535  : 		return ((_Nodepref)_Pnode->_Prev);
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+	add	eax, 4
+
+; 585  : 		return (_List_val<_Val_types>::_Prevnode(_Pnode));
+; 586  : 		}
+
+	pop	ebp
+	ret	0
+?_Prevnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Prevnode
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+;	COMDAT ?_Nextnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z
+_TEXT	SEGMENT
+__Pnode$ = 8						; size = 4
+?_Nextnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z PROC ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Nextnode, COMDAT
+
+; 579  : 		{	// return reference to successor pointer in node
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 580  : 		return (_List_val<_Val_types>::_Nextnode(_Pnode));
+
+	mov	eax, DWORD PTR __Pnode$[ebp]
+
+; 581  : 		}
+
+	pop	ebp
+	ret	0
+?_Nextnode@?$_List_alloc@U?$_List_base_types@U?$pair@$$CBIUSK_KeyCommand@@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@2@@std@@@std@@SAAAPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@PAU32@@Z ENDP ; std::_List_alloc<std::_List_base_types<std::pair<unsigned int const ,SK_KeyCommand>,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> > > >::_Nextnode
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::deallocate, COMDAT
+; _this$ = ecx
+
+; 1087 : 		{	// deallocate object at _Ptr, ignore size
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 1088 : 		_Mybase::deallocate(_Ptr, _Count);
+; 1089 : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z PROC ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::allocate, COMDAT
+; _this$ = ecx
+
+; 1076 : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1078 : 		}
+
+	pop	ebp
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	jmp	?allocate@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::allocate
+?allocate@?$_Wrap_alloc@V?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> > >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z PROC ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::allocate, COMDAT
+; _this$ = ecx
+
+; 827  : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 53   : 	if (_Count == 0)
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	test	eax, eax
+	jne	SHORT $LN4@allocate
+$LN12@allocate:
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN4@allocate:
+
+; 57   : 	if ((size_t)(-1) / _Sz < _Count)
+
+	cmp	eax, 51130563				; 030c30c3H
+	jbe	SHORT $LN5@allocate
+
+; 58   : 		_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN15@allocate:
+$LN5@allocate:
+
+; 59   : 	const size_t _User_size = _Count * _Sz;
+
+	imul	eax, eax, 84
+
+; 60   : 
+; 61   :  #if defined(_M_IX86) || defined(_M_X64)
+; 62   : 	if (_Try_aligned_allocation
+; 63   : 		&& _BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN6@allocate
+
+; 64   : 		{	// allocate large block
+; 65   : 		static_assert(sizeof (void *) < _BIG_ALLOCATION_ALIGNMENT,
+; 66   : 			"Big allocations should at least match vector register size");
+; 67   : 		const size_t _Block_size = _NON_USER_SIZE + _User_size;
+
+	lea	ecx, DWORD PTR [eax+35]
+
+; 68   : 		if (_Block_size <= _User_size)
+
+	cmp	ecx, eax
+	ja	SHORT $LN8@allocate
+
+; 69   : 			_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN16@allocate:
+$LN8@allocate:
+
+; 70   : 		const uintptr_t _Ptr_container =
+; 71   : 			reinterpret_cast<uintptr_t>(::operator new(_Block_size));
+
+	push	ecx
+	call	??2@YAPAXI@Z				; operator new
+	mov	ecx, eax
+	add	esp, 4
+
+; 72   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container != 0);
+
+	test	ecx, ecx
+	jne	SHORT $LN9@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN17@allocate:
+$LN9@allocate:
+
+; 73   : 		_Ptr = reinterpret_cast<void *>((_Ptr_container + _NON_USER_SIZE)
+
+	lea	eax, DWORD PTR [ecx+35]
+	and	eax, -32				; ffffffe0H
+
+; 74   : 			& ~(_BIG_ALLOCATION_ALIGNMENT - 1));
+; 75   : 		static_cast<uintptr_t *>(_Ptr)[-1] = _Ptr_container;
+
+	mov	DWORD PTR [eax-4], ecx
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN6@allocate:
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	eax
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN12@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN18@allocate:
+$LN14@allocate:
+	int	3
+?allocate@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z ENDP ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z PROC ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::deallocate, COMDAT
+; _this$ = ecx
+
+; 822  : 		{	// deallocate object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	84					; 00000054H
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 824  : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$allocator@U?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@std@@@std@@QAEXPAU?$_List_node@U?$pair@$$CBIUSK_KeyCommand@@@std@@PAX@2@I@Z ENDP ; std::allocator<std::_List_node<std::pair<unsigned int const ,SK_KeyCommand>,void *> >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??0?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??0?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@QAE@XZ PROC ; std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >::allocator<std::pair<unsigned int const ,SK_KeyCommand> >, COMDAT
+; _this$ = ecx
+
+; 803  : 		{	// construct default allocator (do nothing)
+; 804  : 		}
+
+	mov	eax, ecx
+	ret	0
+??0?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@std@@QAE@XZ ENDP ; std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >::allocator<std::pair<unsigned int const ,SK_KeyCommand> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+;	COMDAT ??0?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@@Z
+_TEXT	SEGMENT
+__Traits$ = 8						; size = 4
+??0?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@@Z PROC ; std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1>::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1>, COMDAT
+; _this$ = ecx
+
+; 39   : 		{	// construct with specified comparator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 38   : 		: _Tr(_Traits)
+
+	mov	eax, DWORD PTR __Traits$[ebp]
+	mov	eax, DWORD PTR [eax]
+	mov	DWORD PTR [ecx], eax
+
+; 40   : 		}
+
+	mov	eax, ecx
+	pop	ebp
+	ret	4
+??0?$_Umap_traits@IUSK_KeyCommand@@V?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@V?$allocator@U?$pair@$$CBIUSK_KeyCommand@@@std@@@3@$00@std@@QAE@ABV?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@1@@Z ENDP ; std::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1>::_Umap_traits<unsigned int,SK_KeyCommand,std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >,std::allocator<std::pair<unsigned int const ,SK_KeyCommand> >,1>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QBEABV?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QBEABV?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@XZ PROC ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 343  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 344  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QBEABV?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@XZ ENDP ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QAEAAV?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QAEAAV?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@XZ PROC ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 338  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 339  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QAEAAV?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@XZ ENDP ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_first@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QBEABU?$hash@I@2@XZ
+_TEXT	SEGMENT
+?_Get_first@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QBEABU?$hash@I@2@XZ PROC ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Get_first, COMDAT
+; _this$ = ecx
+
+; 323  : 		return (*this);
+
+	mov	eax, ecx
+
+; 324  : 		}
+
+	ret	0
+?_Get_first@?$_Compressed_pair@U?$hash@I@std@@V?$_Compressed_pair@U?$equal_to@I@std@@M$00@2@$00@std@@QBEABU?$hash@I@2@XZ ENDP ; std::_Compressed_pair<std::hash<unsigned int>,std::_Compressed_pair<std::equal_to<unsigned int>,float,1>,1>::_Get_first
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QAEAAMXZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QAEAAMXZ PROC ; std::_Compressed_pair<std::equal_to<unsigned int>,float,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 338  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 339  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QAEAAMXZ ENDP ; std::_Compressed_pair<std::equal_to<unsigned int>,float,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_first@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QBEABU?$equal_to@I@2@XZ
+_TEXT	SEGMENT
+?_Get_first@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QBEABU?$equal_to@I@2@XZ PROC ; std::_Compressed_pair<std::equal_to<unsigned int>,float,1>::_Get_first, COMDAT
+; _this$ = ecx
+
+; 323  : 		return (*this);
+
+	mov	eax, ecx
+
+; 324  : 		}
+
+	ret	0
+?_Get_first@?$_Compressed_pair@U?$equal_to@I@std@@M$00@std@@QBEABU?$equal_to@I@2@XZ ENDP ; std::_Compressed_pair<std::equal_to<unsigned int>,float,1>::_Get_first
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??R?$equal_to@I@std@@QBE_NABI0@Z
+_TEXT	SEGMENT
+__Left$ = 8						; size = 4
+__Right$ = 12						; size = 4
+??R?$equal_to@I@std@@QBE_NABI0@Z PROC			; std::equal_to<unsigned int>::operator(), COMDAT
+; _this$ = ecx
+
+; 219  : 		{	// apply operator== to operands
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR __Left$[ebp]
+	mov	ecx, DWORD PTR [eax]
+	mov	eax, DWORD PTR __Right$[ebp]
+	cmp	ecx, DWORD PTR [eax]
+	sete	al
+
+; 220  : 		return (_Left == _Right);
+; 221  : 		}
+
+	pop	ebp
+	ret	8
+??R?$equal_to@I@std@@QBE_NABI0@Z ENDP			; std::equal_to<unsigned int>::operator()
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Get_max_bucket_size@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QAEAAMXZ
+_TEXT	SEGMENT
+?_Get_max_bucket_size@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QAEAAMXZ PROC ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Get_max_bucket_size, COMDAT
+; _this$ = ecx
+
+; 133  : 		return (_Mypair._Get_second()._Get_second());
+
+	mov	eax, ecx
+
+; 134  : 		}
+
+	ret	0
+?_Get_max_bucket_size@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QAEAAMXZ ENDP ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Get_max_bucket_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Getkeyeq@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEABU?$equal_to@I@2@XZ
+_TEXT	SEGMENT
+?_Getkeyeq@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEABU?$equal_to@I@2@XZ PROC ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Getkeyeq, COMDAT
+; _this$ = ecx
+
+; 128  : 		return (_Mypair._Get_second()._Get_first());
+
+	mov	eax, ecx
+
+; 129  : 		}
+
+	ret	0
+?_Getkeyeq@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEABU?$equal_to@I@2@XZ ENDP ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Getkeyeq
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ?_Gethash@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEABU?$hash@I@2@XZ
+_TEXT	SEGMENT
+?_Gethash@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEABU?$hash@I@2@XZ PROC ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Gethash, COMDAT
+; _this$ = ecx
+
+; 123  : 		return (_Mypair._Get_first());
+
+	mov	eax, ecx
+
+; 124  : 		}
+
+	ret	0
+?_Gethash@?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEABU?$hash@I@2@XZ ENDP ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Gethash
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ??R?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBE_NABI0@Z
+_TEXT	SEGMENT
+__Keyval1$ = 8						; size = 4
+__Keyval2$ = 12						; size = 4
+??R?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBE_NABI0@Z PROC ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::operator(), COMDAT
+; _this$ = ecx
+
+; 117  : 		{	// test if _Keyval1 NOT equal to _Keyval2
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR __Keyval1$[ebp]
+	mov	ecx, DWORD PTR [eax]
+	mov	eax, DWORD PTR __Keyval2$[ebp]
+	cmp	ecx, DWORD PTR [eax]
+	setne	al
+
+; 118  : 		return (!_Getkeyeq()(_Keyval1, _Keyval2));
+; 119  : 		}
+
+	pop	ebp
+	ret	8
+??R?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBE_NABI0@Z ENDP ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::operator()
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ??R?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEIABI@Z
+_TEXT	SEGMENT
+__Keyval$ = 8						; size = 4
+??R?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEIABI@Z PROC ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::operator(), COMDAT
+; _this$ = ecx
+
+; 112  : 		{	// hash _Keyval to size_t value
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	mov	edx, DWORD PTR __Keyval$[ebp]
+	movzx	eax, BYTE PTR [edx]
+	xor	eax, -2128831035			; 811c9dc5H
+
+; 347  : 		_Val *= _FNV_prime;
+
+	imul	ecx, eax, 16777619
+	movzx	eax, BYTE PTR [edx+1]
+	xor	ecx, eax
+	movzx	eax, BYTE PTR [edx+2]
+	imul	ecx, ecx, 16777619
+	xor	ecx, eax
+	movzx	eax, BYTE PTR [edx+3]
+	imul	ecx, ecx, 16777619
+	xor	ecx, eax
+	imul	eax, ecx, 16777619
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 114  : 		}
+
+	pop	ebp
+	ret	4
+??R?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QBEIABI@Z ENDP ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::operator()
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+;	COMDAT ??0?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QAE@U?$hash@I@1@U?$equal_to@I@1@@Z
+_TEXT	SEGMENT
+__Hasharg$ = 8						; size = 1
+__Keyeqarg$ = 12					; size = 1
+??0?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QAE@U?$hash@I@1@U?$equal_to@I@1@@Z PROC ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 311  : 			_Myval2(_STD forward<_Other2>(_Val2)...)
+
+	mov	DWORD PTR [ecx], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 109  : 		}
+
+	mov	eax, ecx
+	ret	8
+??0?$_Uhash_compare@IU?$hash@I@std@@U?$equal_to@I@2@@std@@QAE@U?$hash@I@1@U?$equal_to@I@1@@Z ENDP ; std::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >::_Uhash_compare<unsigned int,std::hash<unsigned int>,std::equal_to<unsigned int> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -4521,6 +13695,199 @@ $LN3@SK_ImGui_A:
 	mov	al, 1
 	ret	0
 ?SK_ImGui_Active@@YA_NXZ ENDP				; SK_ImGui_Active
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+;	COMDAT ??1SK_KeyCommand@@QAE@XZ
+_TEXT	SEGMENT
+??1SK_KeyCommand@@QAE@XZ PROC				; SK_KeyCommand::~SK_KeyCommand, COMDAT
+; _this$ = ecx
+	npad	2
+	push	esi
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR [esi+48]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN10@SK_KeyComm
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR [esi+28]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN10@SK_KeyComm:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+44], 0
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+48], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi+28], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR [esi+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN40@SK_KeyComm
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR [esi]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN40@SK_KeyComm:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi], ax
+	pop	esi
+	ret	0
+??1SK_KeyCommand@@QAE@XZ ENDP				; SK_KeyCommand::~SK_KeyCommand
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+;	COMDAT ??1SK_Keybind@@QAE@XZ
+_TEXT	SEGMENT
+??1SK_Keybind@@QAE@XZ PROC				; SK_Keybind::~SK_Keybind, COMDAT
+; _this$ = ecx
+	npad	2
+	push	esi
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR [esi+24]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN7@SK_Keybind
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR [esi+4]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN7@SK_Keybind:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+20], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+24], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi+4], ax
+	pop	esi
+	ret	0
+??1SK_Keybind@@QAE@XZ ENDP				; SK_Keybind::~SK_Keybind
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -4801,21 +14168,21 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_DrawConsole@@YAXXZ PROC				; SK_DrawConsole
 
-; 437  :   if (bNoConsole)
+; 466  :   if (bNoConsole)
 
 	cmp	BYTE PTR ?bNoConsole@@3_NA, 0		; bNoConsole
 	jne	SHORT $LN1@SK_DrawCon
 
-; 438  :     return;
-; 439  : 
-; 440  :   SK_Console::getInstance ()->Draw ();
+; 467  :     return;
+; 468  : 
+; 469  :   SK_Console::getInstance ()->Draw ();
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	mov	ecx, eax
 	jmp	?Draw@SK_Console@@QAEXXZ		; SK_Console::Draw
 $LN1@SK_DrawCon:
 
-; 441  : }
+; 470  : }
 
 	ret	0
 ?SK_DrawConsole@@YAXXZ ENDP				; SK_DrawConsole
@@ -4839,7 +14206,7 @@ _TEXT	SEGMENT
 ?reset@SK_Console@@QAEXXZ PROC				; SK_Console::reset
 ; _this$ = ecx
 
-; 156  :   memset (keys_, 0, 256);
+; 161  :   memset (keys_, 0, 256);
 
 	push	256					; 00000100H
 	lea	eax, DWORD PTR [ecx+4100]
@@ -4848,7 +14215,7 @@ _TEXT	SEGMENT
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 157  : }
+; 162  : }
 
 	ret	0
 ?reset@SK_Console@@QAEXXZ ENDP				; SK_Console::reset
@@ -4861,13 +14228,13 @@ _lParam$ = 12						; size = 4
 ?KeyDown@SK_Console@@QAEHEJ@Z PROC			; SK_Console::KeyDown
 ; _this$ = ecx
 
-; 430  : {
+; 459  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 431  :   return SK_HandleConsoleKey (true, vkCode, lParam);
+; 460  :   return SK_HandleConsoleKey (true, vkCode, lParam);
 
 	push	DWORD PTR _lParam$[ebp]
 	push	DWORD PTR _vkCode$[ebp]
@@ -4875,7 +14242,7 @@ _lParam$ = 12						; size = 4
 	call	?SK_HandleConsoleKey@@YAH_NEJ@Z		; SK_HandleConsoleKey
 	add	esp, 12					; 0000000cH
 
-; 432  : }
+; 461  : }
 
 	pop	ebp
 	ret	8
@@ -4889,13 +14256,13 @@ _lParam$ = 12						; size = 4
 ?KeyUp@SK_Console@@QAEHEJ@Z PROC			; SK_Console::KeyUp
 ; _this$ = ecx
 
-; 424  : {
+; 453  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 425  :   return SK_HandleConsoleKey (false, vkCode, lParam);
+; 454  :   return SK_HandleConsoleKey (false, vkCode, lParam);
 
 	push	DWORD PTR _lParam$[ebp]
 	push	DWORD PTR _vkCode$[ebp]
@@ -4903,7 +14270,7 @@ _lParam$ = 12						; size = 4
 	call	?SK_HandleConsoleKey@@YAH_NEJ@Z		; SK_HandleConsoleKey
 	add	esp, 12					; 0000000cH
 
-; 426  : }
+; 455  : }
 
 	pop	ebp
 	ret	8
@@ -4915,7 +14282,7 @@ _TEXT	SEGMENT
 ?End@SK_Console@@QAEXXZ PROC				; SK_Console::End
 ; _this$ = ecx
 
-; 143  :   static HMODULE hModPPrinny =
+; 148  :   static HMODULE hModPPrinny =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -4925,9 +14292,9 @@ _TEXT	SEGMENT
 	jg	SHORT $LN5@End
 $LN2@End:
 
-; 145  : 
-; 146  :   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TZFIX'S CONSOLE.
-; 147  :   if (hModPPrinny)
+; 150  : 
+; 151  :   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TZFIX'S CONSOLE.
+; 152  :   if (hModPPrinny)
 
 	movzx	eax, BYTE PTR ?bNoConsole@@3_NA		; bNoConsole
 	mov	ecx, 1
@@ -4935,15 +14302,15 @@ $LN2@End:
 	cmovne	eax, ecx
 	mov	BYTE PTR ?bNoConsole@@3_NA, al		; bNoConsole
 
-; 148  :   {
-; 149  :     bNoConsole = true;
-; 150  :   }
-; 151  : }
+; 153  :   {
+; 154  :     bNoConsole = true;
+; 155  :   }
+; 156  : }
 
 	ret	0
 $LN5@End:
 
-; 143  :   static HMODULE hModPPrinny =
+; 148  :   static HMODULE hModPPrinny =
 
 	push	OFFSET ?$TSS0@?1??End@SK_Console@@QAEXXZ@4HA
 	call	__Init_thread_header
@@ -4951,9 +14318,9 @@ $LN5@End:
 	cmp	DWORD PTR ?$TSS0@?1??End@SK_Console@@QAEXXZ@4HA, -1
 	jne	SHORT $LN2@End
 
-; 144  :     GetModuleHandle (L"PrettyPrinny.dll");
+; 149  :     GetModuleHandle (L"PrettyPrinny.dll");
 
-	push	OFFSET $SG184334
+	push	OFFSET $SG184405
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	OFFSET ?$TSS0@?1??End@SK_Console@@QAEXXZ@4HA
 	mov	DWORD PTR ?hModPPrinny@?1??End@SK_Console@@QAEXXZ@4PAUHINSTANCE__@@A, eax
@@ -4968,7 +14335,7 @@ _TEXT	SEGMENT
 ?Start@SK_Console@@QAEXXZ PROC				; SK_Console::Start
 ; _this$ = ecx
 
-; 125  :   static HMODULE hModPPrinny =
+; 130  :   static HMODULE hModPPrinny =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	edx, DWORD PTR __tls_index
@@ -4980,28 +14347,28 @@ _TEXT	SEGMENT
 	jg	SHORT $LN5@Start
 $LN2@Start:
 
-; 127  : 
-; 128  :   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TSFIX'S CONSOLE.
-; 129  :   if (hModPPrinny)
+; 132  : 
+; 133  :   // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TSFIX'S CONSOLE.
+; 134  :   if (hModPPrinny)
 
 	cmp	DWORD PTR ?hModPPrinny@?1??Start@SK_Console@@QAEXXZ@4PAUHINSTANCE__@@A, 0
 	je	SHORT $LN3@Start
 
-; 130  :   {
-; 131  :     bNoConsole = true;
+; 135  :   {
+; 136  :     bNoConsole = true;
 
 	mov	BYTE PTR ?bNoConsole@@3_NA, 1		; bNoConsole
 	pop	esi
 
-; 138  : }
+; 143  : }
 
 	ret	0
 $LN3@Start:
 
-; 132  :     return;
-; 133  :   }
-; 134  : 
-; 135  :   ZeroMemory (text, 4096);
+; 137  :     return;
+; 138  :   }
+; 139  : 
+; 140  :   ZeroMemory (text, 4096);
 
 	push	4096					; 00001000H
 	add	esi, 4
@@ -5010,18 +14377,18 @@ $LN3@Start:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 136  : 
-; 137  :   text [0] = '>';
+; 141  : 
+; 142  :   text [0] = '>';
 
 	mov	BYTE PTR [esi], 62			; 0000003eH
 	pop	esi
 
-; 138  : }
+; 143  : }
 
 	ret	0
 $LN5@Start:
 
-; 125  :   static HMODULE hModPPrinny =
+; 130  :   static HMODULE hModPPrinny =
 
 	push	OFFSET ?$TSS0@?1??Start@SK_Console@@QAEXXZ@4HA
 	call	__Init_thread_header
@@ -5029,9 +14396,9 @@ $LN5@Start:
 	cmp	DWORD PTR ?$TSS0@?1??Start@SK_Console@@QAEXXZ@4HA, -1
 	jne	SHORT $LN2@Start
 
-; 126  :     GetModuleHandle (L"PrettyPrinny.dll");
+; 131  :     GetModuleHandle (L"PrettyPrinny.dll");
 
-	push	OFFSET $SG184323
+	push	OFFSET $SG184394
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	OFFSET ?$TSS0@?1??Start@SK_Console@@QAEXXZ@4HA
 	mov	DWORD PTR ?hModPPrinny@?1??Start@SK_Console@@QAEXXZ@4PAUHINSTANCE__@@A, eax
@@ -5082,7 +14449,7 @@ __$EHRec$ = -12						; size = 12
 ?Draw@SK_Console@@QAEXXZ PROC				; SK_Console::Draw
 ; _this$ = ecx
 
-; 73   : {
+; 78   : {
 
 	npad	2
 	push	ebp
@@ -5094,8 +14461,8 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 40					; 00000028H
 
-; 74   :   // Some plugins have their own...
-; 75   :   if (bNoConsole)
+; 79   :   // Some plugins have their own...
+; 80   :   if (bNoConsole)
 
 	cmp	BYTE PTR ?bNoConsole@@3_NA, 0		; bNoConsole
 	push	ebx
@@ -5109,7 +14476,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG184304
+	push	OFFSET $SG184375
 	lea	ecx, DWORD PTR _output$[ebp]
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -5131,14 +14498,14 @@ __$EHRec$ = -12						; size = 12
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 83   :   if (visible)
+; 88   :   if (visible)
 
 	cmp	BYTE PTR [ebx+4356], 0
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	je	$LN3@Draw
 
-; 84   :   {
-; 85   :     output += text;
+; 89   :   {
+; 90   :     output += text;
 
 	add	ebx, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -5164,21 +14531,21 @@ $LL162@Draw:
 	call	?append@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::append
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 90   :     QueryPerformanceFrequency        (&freq);
+; 95   :     QueryPerformanceFrequency        (&freq);
 
 	lea	eax, DWORD PTR _freq$2[ebp]
 	push	eax
 	call	DWORD PTR __imp__QueryPerformanceFrequency@4
 
-; 91   : 
-; 92   :     extern LARGE_INTEGER SK_QueryPerf (void);
-; 93   :     now = SK_QueryPerf ();
+; 96   : 
+; 97   :     extern LARGE_INTEGER SK_QueryPerf (void);
+; 98   :     now = SK_QueryPerf ();
 
 	call	?SK_QueryPerf@@YA?AT_LARGE_INTEGER@@XZ	; SK_QueryPerf
 
-; 94   : 
-; 95   :     // Blink the Carret
-; 96   :     if ((now.QuadPart - last_time.QuadPart) > (freq.QuadPart / 3))
+; 99   : 
+; 100  :     // Blink the Carret
+; 101  :     if ((now.QuadPart - last_time.QuadPart) > (freq.QuadPart / 3))
 
 	push	0
 	push	3
@@ -5198,13 +14565,13 @@ $LL162@Draw:
 	jbe	SHORT $LN164@Draw
 $LN163@Draw:
 
-; 97   :     {
-; 98   :       carret = ! carret;
+; 102  :     {
+; 103  :       carret = ! carret;
 
 	cmp	BYTE PTR ?carret@?1??Draw@SK_Console@@QAEXXZ@4_NA, 0
 
-; 99   : 
-; 100  :       last_time.QuadPart = now.QuadPart;
+; 104  : 
+; 105  :       last_time.QuadPart = now.QuadPart;
 
 	mov	DWORD PTR ?last_time@?1??Draw@SK_Console@@QAEXXZ@4T_LARGE_INTEGER@@A, esi
 	sete	al
@@ -5215,9 +14582,9 @@ $LN164@Draw:
 	mov	al, BYTE PTR ?carret@?1??Draw@SK_Console@@QAEXXZ@4_NA
 $LN5@Draw:
 
-; 101  :     }
-; 102  : 
-; 103  :     if (carret)
+; 106  :     }
+; 107  : 
+; 108  :     if (carret)
 
 	test	al, al
 	je	SHORT $LN6@Draw
@@ -5226,13 +14593,13 @@ $LN5@Draw:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG184309
+	push	OFFSET $SG184380
 	lea	ecx, DWORD PTR _output$[ebp]
 	call	?append@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::append
 $LN6@Draw:
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 107  :     if (command_issued)
+; 112  :     if (command_issued)
 
 	mov	esi, DWORD PTR _this$1$[ebp]
 	cmp	BYTE PTR [esi+4357], 0
@@ -5242,7 +14609,7 @@ $LN6@Draw:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG184311
+	push	OFFSET $SG184382
 	lea	ecx, DWORD PTR _output$[ebp]
 	call	?append@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::append
 
@@ -5252,7 +14619,7 @@ $LN6@Draw:
 	push	0
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 110  :       output += result_str;
+; 115  :       output += result_str;
 
 	lea	eax, DWORD PTR [esi+4360]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5264,7 +14631,7 @@ $LN6@Draw:
 	call	?append@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::append
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 114  :   else
+; 119  :   else
 
 	jmp	SHORT $LN4@Draw
 $LN3@Draw:
@@ -5273,13 +14640,13 @@ $LN3@Draw:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG184312
+	push	OFFSET $SG184383
 	lea	ecx, DWORD PTR _output$[ebp]
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 $LN4@Draw:
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 119  :   SK_DrawExternalOSD ("SpecialK Console", output);
+; 124  :   SK_DrawExternalOSD ("SpecialK Console", output);
 
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5289,7 +14656,7 @@ $LN4@Draw:
 	lea	eax, DWORD PTR _output$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 119  :   SK_DrawExternalOSD ("SpecialK Console", output);
+; 124  :   SK_DrawExternalOSD ("SpecialK Console", output);
 
 	mov	ecx, esp
 	mov	DWORD PTR $T3[ebp], esp
@@ -5323,7 +14690,7 @@ $LN4@Draw:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 119  :   SK_DrawExternalOSD ("SpecialK Console", output);
+; 124  :   SK_DrawExternalOSD ("SpecialK Console", output);
 
 	sub	esp, 24					; 00000018H
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
@@ -5344,7 +14711,7 @@ $LN4@Draw:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG184313
+	push	OFFSET $SG184384
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 517  : 		_Left = _Right;
@@ -5357,7 +14724,7 @@ $LN4@Draw:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 119  :   SK_DrawExternalOSD ("SpecialK Console", output);
+; 124  :   SK_DrawExternalOSD ("SpecialK Console", output);
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 	call	?SK_DrawExternalOSD@@YGHV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@0@Z ; SK_DrawExternalOSD
@@ -5392,7 +14759,7 @@ $LN4@Draw:
 $LN136@Draw:
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 120  : }
+; 125  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -5422,7 +14789,7 @@ $T2 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ?getInstance@SK_Console@@SAPAV1@XZ PROC			; SK_Console::getInstance
 
-; 61   : {
+; 66   : {
 
 	npad	2
 	push	ebp
@@ -5434,13 +14801,13 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR fs:0, esp
 	push	ecx
 
-; 62   :   if (pConsole == nullptr)
+; 67   :   if (pConsole == nullptr)
 
 	mov	eax, DWORD PTR ?pConsole@SK_Console@@2PAV1@A ; SK_Console::pConsole
 	test	eax, eax
 	jne	SHORT $LN2@getInstanc
 
-; 63   :     pConsole = new SK_Console ();
+; 68   :     pConsole = new SK_Console ();
 
 	push	4400					; 00001130H
 	call	??2@YAPAXI@Z				; operator new
@@ -5453,9 +14820,9 @@ __$EHRec$ = -12						; size = 12
 	call	??0SK_Console@@IAE@XZ			; SK_Console::SK_Console
 	mov	DWORD PTR ?pConsole@SK_Console@@2PAV1@A, eax ; SK_Console::pConsole
 
-; 64   : 
-; 65   :   return pConsole;
-; 66   : }
+; 69   : 
+; 70   :   return pConsole;
+; 71   : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -5464,15 +14831,15 @@ __$EHRec$ = -12						; size = 12
 	ret	0
 $LN4@getInstanc:
 
-; 63   :     pConsole = new SK_Console ();
+; 68   :     pConsole = new SK_Console ();
 
 	xor	eax, eax
 	mov	DWORD PTR ?pConsole@SK_Console@@2PAV1@A, eax ; SK_Console::pConsole
 $LN2@getInstanc:
 
-; 64   : 
-; 65   :   return pConsole;
-; 66   : }
+; 69   : 
+; 70   :   return pConsole;
+; 71   : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -5512,7 +14879,7 @@ __$EHRec$ = -12						; size = 12
 ??0SK_Console@@IAE@XZ PROC				; SK_Console::SK_Console
 ; _this$ = ecx
 
-; 50   : {
+; 55   : {
 
 	npad	2
 	push	ebp
@@ -5575,7 +14942,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG184269
+	push	OFFSET $SG184340
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 
@@ -5606,15 +14973,15 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG184270
+	push	OFFSET $SG184341
 	lea	ecx, DWORD PTR [esi+4360]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 50   : {
+; 55   : {
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 
-; 51   :   visible        = false;
+; 56   :   visible        = false;
 
 	mov	WORD PTR [eax+4356], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5624,21 +14991,21 @@ __$EHRec$ = -12						; size = 12
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 
-; 55   :   ZeroMemory (text, 4096);
+; 60   :   ZeroMemory (text, 4096);
 
 	push	4096					; 00001000H
 	push	0
 	push	ebx
 	call	_memset
 
-; 56   :   ZeroMemory (keys_, 256);
+; 61   :   ZeroMemory (keys_, 256);
 
 	push	256					; 00000100H
 	push	0
 	push	edi
 	call	_memset
 
-; 57   : }
+; 62   : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	add	esp, 24					; 00000018H
@@ -7073,6 +16440,2264 @@ _TEXT	SEGMENT
 	mov	eax, ecx
 	ret	0
 ??0?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@QAE@XZ ENDP ; std::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >::allocator<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ
+_TEXT	SEGMENT
+?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xran, COMDAT
+
+; 3646 : 		_Xout_of_range("invalid string position");
+
+	push	OFFSET ??_C@_0BI@CFPLBAOH@invalid?5string?5position?$AA@
+	call	DWORD PTR __imp_?_Xout_of_range@std@@YAXPBD@Z
+$LN4@Xran:
+$LN3@Xran:
+	int	3
+?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xran
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Check_offset@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEXI@Z
+_TEXT	SEGMENT
+__Off$ = 8						; size = 4
+?_Check_offset@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEXI@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Check_offset, COMDAT
+; _this$ = ecx
+
+; 3629 : 		{	// checks whether _Off is in the bounds of [0, this->size()]
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 3630 : 		if (this->_Mysize() < _Off)
+
+	mov	eax, DWORD PTR [ecx+16]
+	cmp	eax, DWORD PTR __Off$[ebp]
+	jb	SHORT $LN14@Check_offs
+
+; 3633 : 			}
+; 3634 : 		}
+
+	pop	ebp
+	ret	4
+$LN14@Check_offs:
+
+; 3631 : 			{
+; 3632 : 			_Xran();
+
+	call	?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xran
+$LN16@Check_offs:
+$LN13@Check_offs:
+	int	3
+?_Check_offset@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEXI@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Check_offset
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Xlen@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ
+_TEXT	SEGMENT
+?_Xlen@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xlen, COMDAT
+
+; 3625 : 		_Xlength_error("string too long");
+
+	push	OFFSET ??_C@_0BA@JFNIOLAK@string?5too?5long?$AA@
+	call	DWORD PTR __imp_?_Xlength_error@std@@YAXPBD@Z
+$LN4@Xlen:
+$LN3@Xlen:
+	int	3
+?_Xlen@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xlen
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Tidy_deallocate@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXXZ
+_TEXT	SEGMENT
+?_Tidy_deallocate@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXXZ PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Tidy_deallocate, COMDAT
+; _this$ = ecx
+
+; 3605 : 		{	// initialize buffer, deallocating any storage
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR [esi+20]
+	cmp	eax, 8
+
+; 3606 : 		this->_Orphan_all();
+; 3607 : 		auto& _My_data = this->_Get_data();
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN2@Tidy_deall
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR [esi]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN2@Tidy_deall:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi], ax
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3621 : 		}
+
+	ret	0
+?_Tidy_deallocate@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXXZ ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Tidy_deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Tidy_init@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXXZ
+_TEXT	SEGMENT
+?_Tidy_init@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXXZ PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Tidy_init, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [ecx+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3602 : 		}
+
+	ret	0
+?_Tidy_init@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXXZ ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Tidy_init
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Grow@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE_NI@Z
+_TEXT	SEGMENT
+__Newsize$ = 8						; size = 4
+?_Grow@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE_NI@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Grow, COMDAT
+; _this$ = ecx
+
+; 3572 : 		{	// ensure buffer is big enough
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 3573 : 		if (_Newsize == 0)
+
+	mov	eax, DWORD PTR __Newsize$[ebp]
+	test	eax, eax
+	jne	SHORT $LN2@Grow
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ecx+20], 8
+
+; 3568 : 		_Traits::assign(_My_data._Myptr()[_My_data._Mysize = _Newsize], _Elem());
+
+	mov	DWORD PTR [ecx+16], eax
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN16@Grow
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	ecx, DWORD PTR [ecx]
+$LN16@Grow:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+	mov	WORD PTR [ecx], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3576 : 			return (false);
+
+	xor	al, al
+
+; 3585 : 		}
+
+	pop	ebp
+	ret	4
+$LN2@Grow:
+
+; 3577 : 			}
+; 3578 : 
+; 3579 : 		if (this->_Myres() < _Newsize)
+
+	cmp	DWORD PTR [ecx+20], eax
+	jae	SHORT $LN3@Grow
+
+; 3580 : 			{	// reallocate to grow
+; 3581 : 			_Copy(_Newsize);
+
+	push	eax
+	call	?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Copy
+$LN3@Grow:
+
+; 3582 : 			}
+; 3583 : 
+; 3584 : 		return (true);	// return true only if more work to do
+
+	mov	al, 1
+
+; 3585 : 		}
+
+	pop	ebp
+	ret	4
+?_Grow@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE_NI@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Grow
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Eos@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z
+_TEXT	SEGMENT
+__Newsize$ = 8						; size = 4
+?_Eos@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Eos, COMDAT
+; _this$ = ecx
+
+; 3566 : 		{	// set new length and null terminator
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ecx+20], 8
+
+; 3567 : 		auto& _My_data = this->_Get_data();
+; 3568 : 		_Traits::assign(_My_data._Myptr()[_My_data._Mysize = _Newsize], _Elem());
+
+	mov	edx, DWORD PTR __Newsize$[ebp]
+	mov	DWORD PTR [ecx+16], edx
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN11@Eos
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR [ecx]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	ecx, ecx
+	mov	WORD PTR [eax+edx*2], cx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3569 : 		}
+
+	pop	ebp
+	ret	4
+$LN11@Eos:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+	mov	WORD PTR [ecx+edx*2], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3569 : 		}
+
+	pop	ebp
+	ret	4
+?_Eos@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Eos
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z
+_TEXT	SEGMENT
+__Oldres$ = -28						; size = 4
+_this$ = -24						; size = 4
+__Ptr$1$ = -20						; size = 4
+__Ptr$ = -20						; size = 4
+__$EHRec$ = -16						; size = 16
+__Newres$ = 8						; size = 4
+__Newsize$ = 8						; size = 4
+?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Copy, COMDAT
+; _this$ = ecx
+
+; 3514 : 		{	// reallocate to new buffer of at least _Newsize, copying existing elements there
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 16					; 00000010H
+
+; 3515 : 		const auto _Max = max_size();
+; 3516 : 		if (_Newsize > _Max)
+
+	mov	eax, DWORD PTR __Newsize$[ebp]
+	push	ebx
+	push	esi
+	mov	esi, ecx
+	mov	DWORD PTR _this$[ebp], esi
+	push	edi
+	mov	DWORD PTR __$EHRec$[ebp], esp
+	cmp	eax, 2147483646				; 7ffffffeH
+	jbe	SHORT $LN2@Copy
+
+; 3517 : 			{	// too long
+; 3518 : 			_Xlen();
+
+	call	?_Xlen@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xlen
+$LN102@Copy:
+$LN2@Copy:
+
+; 3519 : 			}
+; 3520 : 
+; 3521 : 		auto& _My_data = this->_Get_data();
+; 3522 : 		const size_type _Oldres = _My_data._Myres;
+
+	mov	ebx, DWORD PTR [esi+20]
+
+; 3523 : 		size_type _Newres = _Newsize | this->_ALLOC_MASK;
+
+	mov	edi, eax
+	or	edi, 7
+	mov	DWORD PTR __Oldres$[ebp], ebx
+
+; 3524 : 		if (_Max < _Newres)
+
+	cmp	edi, 2147483646				; 7ffffffeH
+	jbe	SHORT $LN3@Copy
+
+; 3525 : 			{
+; 3526 : 			_Newres = _Newsize;	// undo roundup if too big
+
+	mov	edi, eax
+	jmp	SHORT $LN8@Copy
+$LN3@Copy:
+
+; 3527 : 			}
+; 3528 : 		else if (_Oldres / 2 <= _Newres / 3)
+
+	mov	eax, -1431655765			; aaaaaaabH
+	mov	ecx, ebx
+	mul	edi
+	shr	ecx, 1
+	shr	edx, 1
+	cmp	ecx, edx
+	jbe	SHORT $LN8@Copy
+
+; 3529 : 			;
+; 3530 : 		else if (_Oldres <= _Max - _Oldres / 2)
+
+	mov	eax, 2147483646				; 7ffffffeH
+
+; 3531 : 			{
+; 3532 : 			_Newres = _Oldres + _Oldres / 2;	// grow exponentially if possible
+
+	lea	edi, DWORD PTR [ecx+ebx]
+	sub	eax, ecx
+	cmp	ebx, eax
+	jbe	SHORT $LN8@Copy
+
+; 3533 : 			}
+; 3534 : 		else
+; 3535 : 			{
+; 3536 : 			_Newres = _Max;	// settle for max_size()
+
+	mov	edi, 2147483646				; 7ffffffeH
+$LN8@Copy:
+
+; 3537 : 			}
+; 3538 : 
+; 3539 : 		auto& _Al = this->_Getal();
+; 3540 : 		pointer _Ptr;
+; 3541 : 		_TRY_BEGIN
+; 3542 : 			_Ptr = _Al.allocate(_Newres + 1);
+
+	lea	eax, DWORD PTR [edi+1]
+	mov	DWORD PTR __$EHRec$[ebp+12], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	push	eax
+	mov	ecx, esi
+	call	?allocate@?$allocator@_W@std@@QAEPA_WI@Z ; std::allocator<wchar_t>::allocate
+	mov	ecx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+	jmp	SHORT $LN100@Copy
+__catch$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z$0:
+
+; 3544 : 			_Newres = _Newsize;	// allocation failed, undo roundup and retry
+
+	mov	eax, DWORD PTR __Newsize$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	mov	ecx, DWORD PTR _this$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3544 : 			_Newres = _Newsize;	// allocation failed, undo roundup and retry
+
+	mov	DWORD PTR __Newres$[ebp], eax
+
+; 3545 : 			_Ptr = _Al.allocate(_Newres + 1);	// if throws, *this unmodified
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	push	eax
+	call	?allocate@?$allocator@_W@std@@QAEPA_WI@Z ; std::allocator<wchar_t>::allocate
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3545 : 			_Ptr = _Al.allocate(_Newres + 1);	// if throws, *this unmodified
+
+	mov	DWORD PTR __Ptr$[ebp], eax
+
+; 3546 : 		_CATCH_END
+
+	mov	eax, $LN97@Copy
+	ret	0
+$LN97@Copy:
+	mov	esi, DWORD PTR _this$[ebp]
+	mov	ebx, DWORD PTR __Oldres$[ebp]
+	mov	edi, DWORD PTR __Newres$[ebp]
+	mov	ecx, DWORD PTR __Ptr$[ebp]
+$LN100@Copy:
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [esi+20], 8
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 234  :         return (wchar_t*)memcpy(_S1, _S2, _N*sizeof(wchar_t));
+
+	mov	eax, DWORD PTR [esi+16]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3546 : 		_CATCH_END
+
+	mov	DWORD PTR __Ptr$1$[ebp], ecx
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 234  :         return (wchar_t*)memcpy(_S1, _S2, _N*sizeof(wchar_t));
+
+	lea	eax, DWORD PTR [eax*2+2]
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3550 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN10@Copy
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 234  :         return (wchar_t*)memcpy(_S1, _S2, _N*sizeof(wchar_t));
+
+	push	DWORD PTR [esi]
+	push	ecx
+	call	_memcpy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3553 : 			_Al.deallocate(_My_data._Bx._Ptr, _Oldres + 1);
+
+	lea	eax, DWORD PTR [ebx+1]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR [esi]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 24					; 00000018H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3556 : 		else
+
+	jmp	SHORT $LN101@Copy
+$LN10@Copy:
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 234  :         return (wchar_t*)memcpy(_S1, _S2, _N*sizeof(wchar_t));
+
+	push	esi
+	push	ecx
+	call	_memcpy
+	add	esp, 12					; 0000000cH
+$LN101@Copy:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	eax, DWORD PTR __Ptr$1$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3563 : 		}
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp+4]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	DWORD PTR [esi], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3562 : 		_My_data._Myres = _Newres;
+
+	mov	DWORD PTR [esi+20], edi
+
+; 3563 : 		}
+
+	pop	edi
+	pop	esi
+	mov	DWORD PTR fs:0, ecx
+	pop	ebx
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+$LN99@Copy:
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__ehhandler$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z:
+	mov	eax, OFFSET __ehfuncinfo$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Copy
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Clamp_suffix_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIII@Z
+_TEXT	SEGMENT
+__Off$ = 8						; size = 4
+__Size$ = 12						; size = 4
+?_Clamp_suffix_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIII@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Clamp_suffix_size, COMDAT
+; _this$ = ecx
+
+; 3410 : 		{	// trims _Size to the longest it can be assuming a string at/after _Off
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 3411 : 		return (_Min_value(_Size, this->_Mysize() - _Off));
+
+	mov	ecx, DWORD PTR [ecx+16]
+	sub	ecx, DWORD PTR __Off$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 23   : 	return (_Right < _Left ? _Right : _Left);
+
+	mov	eax, DWORD PTR __Size$[ebp]
+	cmp	ecx, eax
+	cmovb	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3412 : 		}
+
+	pop	ebp
+	ret	8
+?_Clamp_suffix_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIII@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Clamp_suffix_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?max_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIXZ
+_TEXT	SEGMENT
+?max_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIXZ PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::max_size, COMDAT
+; _this$ = ecx
+
+; 3030 : 		const size_type _Num = this->_Getal().max_size();
+; 3031 : 		return (_Num <= 1 ? 1 : _Num - 1);
+
+	mov	eax, 2147483646				; 7ffffffeH
+
+; 3032 : 		}
+
+	ret	0
+?max_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIXZ ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?erase@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@II@Z
+_TEXT	SEGMENT
+__Off$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?erase@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@II@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::erase, COMDAT
+; _this$ = ecx
+
+; 2592 : 		{	// erase elements [_Off, _Off + _Count)
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 3630 : 		if (this->_Mysize() < _Off)
+
+	mov	edx, DWORD PTR __Off$[ebp]
+	push	ebx
+	push	esi
+
+; 2592 : 		{	// erase elements [_Off, _Off + _Count)
+
+	mov	esi, ecx
+	push	edi
+
+; 3630 : 		if (this->_Mysize() < _Off)
+
+	mov	edi, DWORD PTR [esi+16]
+	cmp	edi, edx
+	jb	$LN97@erase
+
+; 2593 : 		_Check_offset(_Off);
+; 2594 : 		if (this->_Mysize() - _Off <= _Count)
+
+	mov	ebx, DWORD PTR __Count$[ebp]
+	mov	eax, edi
+	sub	eax, edx
+	cmp	eax, ebx
+	ja	SHORT $LN2@erase
+
+; 3568 : 		_Traits::assign(_My_data._Myptr()[_My_data._Mysize = _Newsize], _Elem());
+
+	mov	DWORD PTR [esi+16], edx
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [esi+20], 8
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN38@erase
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	ecx, ecx
+	pop	edi
+	mov	WORD PTR [eax+edx*2], cx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2606 : 		return (*this);
+
+	mov	eax, esi
+	pop	esi
+	pop	ebx
+
+; 2607 : 		}
+
+	pop	ebp
+	ret	8
+$LN38@erase:
+
+; 1614 : 		return (_Large_string_engaged()
+
+	mov	eax, esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	ecx, ecx
+	pop	edi
+	pop	esi
+	pop	ebx
+	mov	WORD PTR [eax+edx*2], cx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2607 : 		}
+
+	pop	ebp
+	ret	8
+$LN2@erase:
+
+; 2595 : 			{
+; 2596 : 			_Eos(_Off);	// erase elements [_Off, ...)
+; 2597 : 			}
+; 2598 : 		else if (_Count != 0)
+
+	test	ebx, ebx
+	je	SHORT $LN94@erase
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [esi+20], 8
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN57@erase
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jmp	SHORT $LN58@erase
+$LN57@erase:
+	mov	eax, esi
+$LN58@erase:
+
+; 2599 : 			{	// move elements down
+; 2600 : 			value_type *_Ptr = this->_Myptr() + _Off;
+
+	lea	ecx, DWORD PTR [eax+edx*2]
+
+; 2601 : 			size_type _Newsize = this->_Mysize() - _Count;
+
+	sub	edi, ebx
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 247  :         return (wchar_t*)memmove(_S1, _S2, _N*sizeof(wchar_t));
+
+	mov	eax, edi
+	sub	eax, edx
+	add	eax, eax
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2602 : 			_Traits::move(_Ptr, _Ptr + _Count, _Newsize - _Off);
+
+	lea	eax, DWORD PTR [ecx+ebx*2]
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 247  :         return (wchar_t*)memmove(_S1, _S2, _N*sizeof(wchar_t));
+
+	push	eax
+	push	ecx
+	call	DWORD PTR __imp__memmove
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3568 : 		_Traits::assign(_My_data._Myptr()[_My_data._Mysize = _Newsize], _Elem());
+
+	mov	DWORD PTR [esi+16], edi
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [esi+20], 8
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN87@erase
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	ecx, ecx
+	mov	WORD PTR [eax+edi*2], cx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2606 : 		return (*this);
+
+	mov	eax, esi
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 2607 : 		}
+
+	pop	ebp
+	ret	8
+$LN87@erase:
+
+; 1614 : 		return (_Large_string_engaged()
+
+	mov	eax, esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	ecx, ecx
+	mov	WORD PTR [eax+edi*2], cx
+$LN94@erase:
+	pop	edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2606 : 		return (*this);
+
+	mov	eax, esi
+	pop	esi
+	pop	ebx
+
+; 2607 : 		}
+
+	pop	ebp
+	ret	8
+$LN97@erase:
+
+; 3632 : 			_Xran();
+
+	call	?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xran
+$LN99@erase:
+$LN96@erase:
+	int	3
+?erase@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@II@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::erase
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?erase@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@I@Z
+_TEXT	SEGMENT
+__Off$ = 8						; size = 4
+?erase@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@I@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::erase, COMDAT
+; _this$ = ecx
+
+; 2585 : 		{	// erase elements [_Off, ...)
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 3630 : 		if (this->_Mysize() < _Off)
+
+	mov	eax, DWORD PTR __Off$[ebp]
+	cmp	DWORD PTR [ecx+16], eax
+	jb	SHORT $LN36@erase
+
+; 3568 : 		_Traits::assign(_My_data._Myptr()[_My_data._Mysize = _Newsize], _Elem());
+
+	mov	DWORD PTR [ecx+16], eax
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ecx+20], 8
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN26@erase
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	edx, DWORD PTR [ecx]
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	esi, esi
+	mov	WORD PTR [edx+eax*2], si
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2588 : 		return (*this);
+
+	mov	eax, ecx
+	pop	esi
+
+; 2589 : 		}
+
+	pop	ebp
+	ret	4
+$LN26@erase:
+
+; 1614 : 		return (_Large_string_engaged()
+
+	mov	edx, ecx
+	push	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	esi, esi
+	mov	WORD PTR [edx+eax*2], si
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2588 : 		return (*this);
+
+	mov	eax, ecx
+	pop	esi
+
+; 2589 : 		}
+
+	pop	ebp
+	ret	4
+$LN36@erase:
+
+; 3632 : 			_Xran();
+
+	call	?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xran
+$LN38@erase:
+$LN35@erase:
+	int	3
+?erase@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@I@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::erase
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+__Roff$ = 12						; size = 4
+__Count$ = 16						; size = 4
+?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign, COMDAT
+; _this$ = ecx
+
+; 2378 : 		{	// assign _Right [_Roff, _Roff + _Count)
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	ebx
+
+; 3630 : 		if (this->_Mysize() < _Off)
+
+	mov	ebx, DWORD PTR __Right$[ebp]
+	push	esi
+
+; 2378 : 		{	// assign _Right [_Roff, _Roff + _Count)
+
+	mov	esi, ecx
+
+; 3630 : 		if (this->_Mysize() < _Off)
+
+	mov	ecx, DWORD PTR __Roff$[ebp]
+	push	edi
+	mov	eax, DWORD PTR [ebx+16]
+	cmp	eax, ecx
+	jb	$LN161@assign
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 23   : 	return (_Right < _Left ? _Right : _Left);
+
+	mov	edi, DWORD PTR __Count$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3411 : 		return (_Min_value(_Size, this->_Mysize() - _Off));
+
+	sub	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\utility
+
+; 23   : 	return (_Right < _Left ? _Right : _Left);
+
+	cmp	eax, edi
+	cmovb	edi, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2382 : 		if (this == _STD addressof(_Right))
+
+	cmp	esi, ebx
+	jne	SHORT $LN2@assign
+
+; 2383 : 			{	// substring
+; 2384 : 			erase(_Roff + _Count);
+
+	lea	eax, DWORD PTR [ecx+edi]
+
+; 3630 : 		if (this->_Mysize() < _Off)
+
+	cmp	DWORD PTR [esi+16], eax
+	jb	$LN163@assign
+
+; 3568 : 		_Traits::assign(_My_data._Myptr()[_My_data._Mysize = _Newsize], _Elem());
+
+	mov	DWORD PTR [esi+16], eax
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [esi+20], 8
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN62@assign
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	edx, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jmp	SHORT $LN63@assign
+$LN62@assign:
+	mov	edx, esi
+$LN63@assign:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	edi, edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2385 : 			erase(0, _Roff);
+
+	push	ecx
+	push	edi
+	mov	ecx, esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [edx+eax*2], di
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2385 : 			erase(0, _Roff);
+
+	call	?erase@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::erase
+	pop	edi
+
+; 2393 : 		return (*this);
+
+	mov	eax, esi
+	pop	esi
+	pop	ebx
+
+; 2394 : 		}
+
+	pop	ebp
+	ret	12					; 0000000cH
+$LN2@assign:
+
+; 3573 : 		if (_Newsize == 0)
+
+	test	edi, edi
+	jne	SHORT $LN72@assign
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [esi+20], 8
+
+; 3568 : 		_Traits::assign(_My_data._Myptr()[_My_data._Mysize = _Newsize], _Elem());
+
+	mov	DWORD PTR [esi+16], edi
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN85@assign
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	ecx, ecx
+	pop	edi
+	mov	WORD PTR [eax], cx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2393 : 		return (*this);
+
+	mov	eax, esi
+	pop	esi
+	pop	ebx
+
+; 2394 : 		}
+
+	pop	ebp
+	ret	12					; 0000000cH
+$LN85@assign:
+
+; 1614 : 		return (_Large_string_engaged()
+
+	mov	eax, esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	ecx, ecx
+	pop	edi
+	pop	esi
+	pop	ebx
+	mov	WORD PTR [eax], cx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2394 : 		}
+
+	pop	ebp
+	ret	12					; 0000000cH
+$LN72@assign:
+
+; 3579 : 		if (this->_Myres() < _Newsize)
+
+	cmp	DWORD PTR [esi+20], edi
+	jae	SHORT $LN73@assign
+
+; 3580 : 			{	// reallocate to grow
+; 3581 : 			_Copy(_Newsize);
+
+	push	edi
+	mov	ecx, esi
+	call	?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Copy
+	mov	ecx, DWORD PTR __Roff$[ebp]
+$LN73@assign:
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ebx+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN113@assign
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	ebx, DWORD PTR [ebx]
+$LN113@assign:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [esi+20], 8
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN129@assign
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	edx, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jmp	SHORT $LN130@assign
+$LN129@assign:
+	mov	edx, esi
+$LN130@assign:
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 234  :         return (wchar_t*)memcpy(_S1, _S2, _N*sizeof(wchar_t));
+
+	lea	eax, DWORD PTR [edi+edi]
+	push	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2389 : 			_Traits::copy(this->_Myptr(), _Right._Myptr() + _Roff, _Count);
+
+	lea	eax, DWORD PTR [ebx+ecx*2]
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 234  :         return (wchar_t*)memcpy(_S1, _S2, _N*sizeof(wchar_t));
+
+	push	eax
+	push	edx
+	call	_memcpy
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3568 : 		_Traits::assign(_My_data._Myptr()[_My_data._Mysize = _Newsize], _Elem());
+
+	mov	DWORD PTR [esi+16], edi
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [esi+20], 8
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN150@assign
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR [esi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	ecx, ecx
+	mov	WORD PTR [eax+edi*2], cx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2393 : 		return (*this);
+
+	mov	eax, esi
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 2394 : 		}
+
+	pop	ebp
+	ret	12					; 0000000cH
+$LN150@assign:
+
+; 1614 : 		return (_Large_string_engaged()
+
+	mov	eax, esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	ecx, ecx
+	mov	WORD PTR [eax+edi*2], cx
+	pop	edi
+	pop	esi
+	pop	ebx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2394 : 		}
+
+	pop	ebp
+	ret	12					; 0000000cH
+$LN161@assign:
+
+; 3632 : 			_Xran();
+
+	call	?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xran
+$LN164@assign:
+$LN163@assign:
+	call	?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xran
+$LN165@assign:
+$LN160@assign:
+	int	3
+?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >, COMDAT
+; _this$ = ecx
+
+; 2215 : 		{	// destroy the string
+
+	npad	2
+	push	esi
+	mov	esi, ecx
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR [esi+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN4@basic_stri
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR [esi]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN4@basic_stri:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi], ax
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2217 : 		}
+
+	ret	0
+??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Assign_lv_contents@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXABV12@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+?_Assign_lv_contents@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXABV12@@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Assign_lv_contents, COMDAT
+; _this$ = ecx
+
+; 2172 : 		{	// assign by copying the data stored in _Right
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 2173 : 			// pre: *this is in a valid but unspecified state
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+	push	0
+	push	DWORD PTR __Right$[ebp]
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+
+; 2175 : 		}
+
+	pop	ebp
+	ret	4
+?_Assign_lv_contents@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXABV12@@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Assign_lv_contents
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@ABV01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@ABV01@@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >, COMDAT
+; _this$ = ecx
+
+; 1925 : 		{	// construct by copying _Right
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+	push	eax
+	push	DWORD PTR __Right$[ebp]
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+
+; 1926 : 		_Tidy_init();
+; 1927 : 		_Assign_lv_contents(_Right);
+; 1928 : 		}
+
+	mov	eax, esi
+	pop	esi
+	pop	ebp
+	ret	4
+??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@ABV01@@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+;	COMDAT ??1?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@XZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::~_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >, COMDAT
+; _this$ = ecx
+	ret	0
+??1?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@XZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::~_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+;	COMDAT ??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::~_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>, COMDAT
+; _this$ = ecx
+	ret	0
+??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::~_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QBEABV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QBEABV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 343  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 344  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QBEABV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAEAAV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAEAAV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_second, COMDAT
+; _this$ = ecx
+
+; 338  : 		return (_Myval2);
+
+	mov	eax, ecx
+
+; 339  : 		}
+
+	ret	0
+?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAEAAV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_second
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_first, COMDAT
+; _this$ = ecx
+
+; 323  : 		return (*this);
+
+	mov	eax, ecx
+
+; 324  : 		}
+
+	ret	0
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QBEABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_first
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_first, COMDAT
+; _this$ = ecx
+
+; 318  : 		return (*this);
+
+	mov	eax, ecx
+
+; 319  : 		}
+
+	ret	0
+?_Get_first@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAEAAU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_first
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Myres@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAIXZ
+_TEXT	SEGMENT
+?_Myres@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAIXZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myres, COMDAT
+; _this$ = ecx
+
+; 1849 : 		return (_Get_data()._Myres);
+
+	lea	eax, DWORD PTR [ecx+20]
+
+; 1850 : 		}
+
+	ret	0
+?_Myres@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAIXZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myres
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Mysize@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABIXZ
+_TEXT	SEGMENT
+?_Mysize@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABIXZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Mysize, COMDAT
+; _this$ = ecx
+
+; 1844 : 		return (_Get_data()._Mysize);
+
+	lea	eax, DWORD PTR [ecx+16]
+
+; 1845 : 		}
+
+	ret	0
+?_Mysize@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABIXZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Mysize
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Mysize@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAIXZ
+_TEXT	SEGMENT
+?_Mysize@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAIXZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Mysize, COMDAT
+; _this$ = ecx
+
+; 1839 : 		return (_Get_data()._Mysize);
+
+	lea	eax, DWORD PTR [ecx+16]
+
+; 1840 : 		}
+
+	ret	0
+?_Mysize@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAIXZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Mysize
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Get_data@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_data@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Get_data, COMDAT
+; _this$ = ecx
+
+; 1834 : 		return (_Mypair._Get_second());
+
+	mov	eax, ecx
+
+; 1835 : 		}
+
+	ret	0
+?_Get_data@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Get_data
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Get_data@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ
+_TEXT	SEGMENT
+?_Get_data@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Get_data, COMDAT
+; _this$ = ecx
+
+; 1829 : 		return (_Mypair._Get_second());
+
+	mov	eax, ecx
+
+; 1830 : 		}
+
+	ret	0
+?_Get_data@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Get_data
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ
+_TEXT	SEGMENT
+?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Getal, COMDAT
+; _this$ = ecx
+
+; 1824 : 		return (_Mypair._Get_first());
+
+	mov	eax, ecx
+
+; 1825 : 		}
+
+	ret	0
+?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Getal
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ
+_TEXT	SEGMENT
+?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Getal, COMDAT
+; _this$ = ecx
+
+; 1819 : 		return (_Mypair._Get_first());
+
+	mov	eax, ecx
+
+; 1820 : 		}
+
+	ret	0
+?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Getal
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Orphan_all@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXXZ
+_TEXT	SEGMENT
+?_Orphan_all@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXXZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Orphan_all, COMDAT
+; _this$ = ecx
+
+; 1809 : 		_Get_data()._Orphan_all();
+; 1810 : 		}
+
+	ret	0
+?_Orphan_all@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXXZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Orphan_all
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEPB_WXZ
+_TEXT	SEGMENT
+?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEPB_WXZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myptr, COMDAT
+; _this$ = ecx
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ecx+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN11@Myptr
+
+; 1690 : 		return (_Get_data()._Myptr());
+
+	mov	eax, DWORD PTR [ecx]
+
+; 1691 : 		}
+
+	ret	0
+$LN11@Myptr:
+
+; 1690 : 		return (_Get_data()._Myptr());
+
+	mov	eax, ecx
+
+; 1691 : 		}
+
+	ret	0
+?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEPB_WXZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myptr
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEPA_WXZ
+_TEXT	SEGMENT
+?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEPA_WXZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myptr, COMDAT
+; _this$ = ecx
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ecx+20], 8
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN11@Myptr
+
+; 1685 : 		return (_Get_data()._Myptr());
+
+	mov	eax, DWORD PTR [ecx]
+
+; 1686 : 		}
+
+	ret	0
+$LN11@Myptr:
+
+; 1685 : 		return (_Get_data()._Myptr());
+
+	mov	eax, ecx
+
+; 1686 : 		}
+
+	ret	0
+?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEPA_WXZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myptr
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+;	COMDAT ??1?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ PROC ; std::_String_val<std::_Simple_types<wchar_t> >::~_String_val<std::_Simple_types<wchar_t> >, COMDAT
+; _this$ = ecx
+	ret	0
+??1?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ ENDP ; std::_String_val<std::_Simple_types<wchar_t> >::~_String_val<std::_Simple_types<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ??1_Bxty@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1_Bxty@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ PROC ; std::_String_val<std::_Simple_types<wchar_t> >::_Bxty::~_Bxty, COMDAT
+; _this$ = ecx
+
+; 1639 : 			}
+
+	ret	0
+??1_Bxty@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ ENDP ; std::_String_val<std::_Simple_types<wchar_t> >::_Bxty::~_Bxty
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ??0_Bxty@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??0_Bxty@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ PROC ; std::_String_val<std::_Simple_types<wchar_t> >::_Bxty::_Bxty, COMDAT
+; _this$ = ecx
+
+; 1634 : 			{	// user-provided, for fancy pointers
+; 1635 : 			}
+
+	mov	eax, ecx
+	ret	0
+??0_Bxty@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ ENDP ; std::_String_val<std::_Simple_types<wchar_t> >::_Bxty::_Bxty
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Large_string_engaged@?$_String_val@U?$_Simple_types@_W@std@@@std@@QBE_NXZ
+_TEXT	SEGMENT
+?_Large_string_engaged@?$_String_val@U?$_Simple_types@_W@std@@@std@@QBE_NXZ PROC ; std::_String_val<std::_Simple_types<wchar_t> >::_Large_string_engaged, COMDAT
+; _this$ = ecx
+
+; 1627 : 		{	// returns whether the large string mode (allocated memory) is engaged
+
+	cmp	DWORD PTR [ecx+20], 8
+	setae	al
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+; 1629 : 		}
+
+	ret	0
+?_Large_string_engaged@?$_String_val@U?$_Simple_types@_W@std@@@std@@QBE_NXZ ENDP ; std::_String_val<std::_Simple_types<wchar_t> >::_Large_string_engaged
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Myptr@?$_String_val@U?$_Simple_types@_W@std@@@std@@QBEPB_WXZ
+_TEXT	SEGMENT
+?_Myptr@?$_String_val@U?$_Simple_types@_W@std@@@std@@QBEPB_WXZ PROC ; std::_String_val<std::_Simple_types<wchar_t> >::_Myptr, COMDAT
+; _this$ = ecx
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ecx+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN3@Myptr
+	mov	eax, DWORD PTR [ecx]
+
+; 1622 : 			? _Unfancy(_Bx._Ptr)
+; 1623 : 			: _Bx._Buf);
+; 1624 : 		}
+
+	ret	0
+$LN3@Myptr:
+
+; 1621 : 		return (_Large_string_engaged()
+
+	mov	eax, ecx
+
+; 1622 : 			? _Unfancy(_Bx._Ptr)
+; 1623 : 			: _Bx._Buf);
+; 1624 : 		}
+
+	ret	0
+?_Myptr@?$_String_val@U?$_Simple_types@_W@std@@@std@@QBEPB_WXZ ENDP ; std::_String_val<std::_Simple_types<wchar_t> >::_Myptr
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Myptr@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAEPA_WXZ
+_TEXT	SEGMENT
+?_Myptr@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAEPA_WXZ PROC ; std::_String_val<std::_Simple_types<wchar_t> >::_Myptr, COMDAT
+; _this$ = ecx
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [ecx+20], 8
+
+; 1614 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN3@Myptr
+	mov	eax, DWORD PTR [ecx]
+
+; 1615 : 			? _Unfancy(_Bx._Ptr)
+; 1616 : 			: _Bx._Buf);
+; 1617 : 		}
+
+	ret	0
+$LN3@Myptr:
+
+; 1614 : 		return (_Large_string_engaged()
+
+	mov	eax, ecx
+
+; 1615 : 			? _Unfancy(_Bx._Ptr)
+; 1616 : 			: _Bx._Buf);
+; 1617 : 		}
+
+	ret	0
+?_Myptr@?$_String_val@U?$_Simple_types@_W@std@@@std@@QAEPA_WXZ ENDP ; std::_String_val<std::_Simple_types<wchar_t> >::_Myptr
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ??0?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??0?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ PROC ; std::_String_val<std::_Simple_types<wchar_t> >::_String_val<std::_Simple_types<wchar_t> >, COMDAT
+; _this$ = ecx
+
+; 1595 : 		_Mysize(0),
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 1598 : 		}
+
+	mov	eax, ecx
+	mov	DWORD PTR [ecx+20], 0
+	ret	0
+??0?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ ENDP ; std::_String_val<std::_Simple_types<wchar_t> >::_String_val<std::_Simple_types<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBEIU_Nil@2@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+?max_size@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBEIU_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::max_size, COMDAT
+; _this$ = ecx
+
+; 1108 : 		return (_Mytraits::max_size(*this));
+
+	mov	eax, 2147483647				; 7fffffffH
+
+; 1109 : 		}
+
+	ret	4
+?max_size@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBEIU_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPA_WI@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPA_WI@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::deallocate, COMDAT
+; _this$ = ecx
+
+; 1087 : 		{	// deallocate object at _Ptr, ignore size
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 1088 : 		_Mybase::deallocate(_Ptr, _Count);
+; 1089 : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPA_WI@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEPA_WI@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEPA_WI@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::allocate, COMDAT
+; _this$ = ecx
+
+; 1076 : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1078 : 		}
+
+	pop	ebp
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	jmp	?allocate@?$allocator@_W@std@@QAEPA_WI@Z ; std::allocator<wchar_t>::allocate
+?allocate@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEPA_WI@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??0?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAU01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??0?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAU01@@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> >, COMDAT
+; _this$ = ecx
+
+; 1048 : 		}
+
+	mov	eax, ecx
+	ret	4
+??0?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAU01@@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBE?AU12@U_Nil@2@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+___formal$ = 12						; size = 1
+?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBE?AU12@U_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::select_on_container_copy_construction, COMDAT
+; _this$ = ecx
+
+; 1013 : 		{	// get allocator to use
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1014 : 		return (_Mytraits::select_on_container_copy_construction(*this));
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 1015 : 		}
+
+	pop	ebp
+	ret	8
+?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBE?AU12@U_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::select_on_container_copy_construction
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?select_on_container_copy_construction@?$allocator_traits@V?$allocator@_W@std@@@std@@SA?AV?$allocator@_W@2@ABV32@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Al$ = 12						; size = 4
+?select_on_container_copy_construction@?$allocator_traits@V?$allocator@_W@std@@@std@@SA?AV?$allocator@_W@2@ABV32@@Z PROC ; std::allocator_traits<std::allocator<wchar_t> >::select_on_container_copy_construction, COMDAT
+
+; 975  : 		{	// get allocator to use
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 976  : 		return (_Al);
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 977  : 		}
+
+	pop	ebp
+	ret	0
+?select_on_container_copy_construction@?$allocator_traits@V?$allocator@_W@std@@@std@@SA?AV?$allocator@_W@2@ABV32@@Z ENDP ; std::allocator_traits<std::allocator<wchar_t> >::select_on_container_copy_construction
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$allocator_traits@V?$allocator@_W@std@@@std@@SAIABV?$allocator@_W@2@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+?max_size@?$allocator_traits@V?$allocator@_W@std@@@std@@SAIABV?$allocator@_W@2@@Z PROC ; std::allocator_traits<std::allocator<wchar_t> >::max_size, COMDAT
+
+; 970  : 		return (_Al.max_size());
+
+	mov	eax, 2147483647				; 7fffffffH
+
+; 971  : 		}
+
+	ret	0
+?max_size@?$allocator_traits@V?$allocator@_W@std@@@std@@SAIABV?$allocator@_W@2@@Z ENDP ; std::allocator_traits<std::allocator<wchar_t> >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$allocator@_W@std@@QBEIXZ
+_TEXT	SEGMENT
+?max_size@?$allocator@_W@std@@QBEIXZ PROC		; std::allocator<wchar_t>::max_size, COMDAT
+; _this$ = ecx
+
+; 851  : 		return ((size_t)(-1) / sizeof (_Ty));
+
+	mov	eax, 2147483647				; 7fffffffH
+
+; 852  : 		}
+
+	ret	0
+?max_size@?$allocator@_W@std@@QBEIXZ ENDP		; std::allocator<wchar_t>::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$allocator@_W@std@@QAEPA_WI@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$allocator@_W@std@@QAEPA_WI@Z PROC		; std::allocator<wchar_t>::allocate, COMDAT
+; _this$ = ecx
+
+; 827  : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 53   : 	if (_Count == 0)
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	test	eax, eax
+	jne	SHORT $LN4@allocate
+$LN12@allocate:
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN4@allocate:
+
+; 57   : 	if ((size_t)(-1) / _Sz < _Count)
+
+	cmp	eax, 2147483647				; 7fffffffH
+	jbe	SHORT $LN5@allocate
+
+; 58   : 		_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN15@allocate:
+$LN5@allocate:
+
+; 59   : 	const size_t _User_size = _Count * _Sz;
+
+	add	eax, eax
+
+; 60   : 
+; 61   :  #if defined(_M_IX86) || defined(_M_X64)
+; 62   : 	if (_Try_aligned_allocation
+; 63   : 		&& _BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN6@allocate
+
+; 64   : 		{	// allocate large block
+; 65   : 		static_assert(sizeof (void *) < _BIG_ALLOCATION_ALIGNMENT,
+; 66   : 			"Big allocations should at least match vector register size");
+; 67   : 		const size_t _Block_size = _NON_USER_SIZE + _User_size;
+
+	lea	ecx, DWORD PTR [eax+35]
+
+; 68   : 		if (_Block_size <= _User_size)
+
+	cmp	ecx, eax
+	ja	SHORT $LN8@allocate
+
+; 69   : 			_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN16@allocate:
+$LN8@allocate:
+
+; 70   : 		const uintptr_t _Ptr_container =
+; 71   : 			reinterpret_cast<uintptr_t>(::operator new(_Block_size));
+
+	push	ecx
+	call	??2@YAPAXI@Z				; operator new
+	mov	ecx, eax
+	add	esp, 4
+
+; 72   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container != 0);
+
+	test	ecx, ecx
+	jne	SHORT $LN9@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN17@allocate:
+$LN9@allocate:
+
+; 73   : 		_Ptr = reinterpret_cast<void *>((_Ptr_container + _NON_USER_SIZE)
+
+	lea	eax, DWORD PTR [ecx+35]
+	and	eax, -32				; ffffffe0H
+
+; 74   : 			& ~(_BIG_ALLOCATION_ALIGNMENT - 1));
+; 75   : 		static_cast<uintptr_t *>(_Ptr)[-1] = _Ptr_container;
+
+	mov	DWORD PTR [eax-4], ecx
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN6@allocate:
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	eax
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN12@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN18@allocate:
+$LN14@allocate:
+	int	3
+?allocate@?$allocator@_W@std@@QAEPA_WI@Z ENDP		; std::allocator<wchar_t>::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$allocator@_W@std@@QAEXPA_WI@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$allocator@_W@std@@QAEXPA_WI@Z PROC	; std::allocator<wchar_t>::deallocate, COMDAT
+; _this$ = ecx
+
+; 822  : 		{	// deallocate object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 824  : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$allocator@_W@std@@QAEXPA_WI@Z ENDP	; std::allocator<wchar_t>::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??0?$allocator@_W@std@@QAE@ABV01@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??0?$allocator@_W@std@@QAE@ABV01@@Z PROC		; std::allocator<wchar_t>::allocator<wchar_t>, COMDAT
+; _this$ = ecx
+
+; 807  : 		{	// construct by copying (do nothing)
+; 808  : 		}
+
+	mov	eax, ecx
+	ret	4
+??0?$allocator@_W@std@@QAE@ABV01@@Z ENDP		; std::allocator<wchar_t>::allocator<wchar_t>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -12575,6 +24200,35 @@ $LN4@Allocate:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Getcont@_Iterator_base0@std@@QBEPBU_Container_base0@2@XZ
+_TEXT	SEGMENT
+?_Getcont@_Iterator_base0@std@@QBEPBU_Container_base0@2@XZ PROC ; std::_Iterator_base0::_Getcont, COMDAT
+; _this$ = ecx
+
+; 79   : 		return (0);
+
+	xor	eax, eax
+
+; 80   : 		}
+
+	ret	0
+?_Getcont@_Iterator_base0@std@@QBEPBU_Container_base0@2@XZ ENDP ; std::_Iterator_base0::_Getcont
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Adopt@_Iterator_base0@std@@QAEXPBX@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+?_Adopt@_Iterator_base0@std@@QAEXPBX@Z PROC		; std::_Iterator_base0::_Adopt, COMDAT
+; _this$ = ecx
+
+; 75   : 		}
+
+	ret	4
+?_Adopt@_Iterator_base0@std@@QAEXPBX@Z ENDP		; std::_Iterator_base0::_Adopt
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ;	COMDAT ?_Orphan_all@_Container_base0@std@@QAEXXZ
 _TEXT	SEGMENT
 ?_Orphan_all@_Container_base0@std@@QAEXXZ PROC		; std::_Container_base0::_Orphan_all, COMDAT
@@ -12772,6 +24426,105 @@ $LN3@compare:
 ?compare@?$char_traits@D@std@@SAHQBD0I@Z ENDP		; std::char_traits<char>::compare
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+;	COMDAT ?assign@?$char_traits@_W@std@@SAXAA_WAB_W@Z
+_TEXT	SEGMENT
+__Left$ = 8						; size = 4
+__Right$ = 12						; size = 4
+?assign@?$char_traits@_W@std@@SAXAA_WAB_W@Z PROC	; std::char_traits<wchar_t>::assign, COMDAT
+
+; 325  : 		{	// assign an element
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 326  : 		_Left = _Right;
+
+	mov	eax, DWORD PTR __Right$[ebp]
+	mov	cx, WORD PTR [eax]
+	mov	eax, DWORD PTR __Left$[ebp]
+	mov	WORD PTR [eax], cx
+
+; 327  : 		}
+
+	pop	ebp
+	ret	0
+?assign@?$char_traits@_W@std@@SAXAA_WAB_W@Z ENDP	; std::char_traits<wchar_t>::assign
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+;	COMDAT ?move@?$char_traits@_W@std@@SAPA_WQA_WQB_WI@Z
+_TEXT	SEGMENT
+__First1$ = 8						; size = 4
+__First2$ = 12						; size = 4
+__Count$ = 16						; size = 4
+?move@?$char_traits@_W@std@@SAPA_WQA_WQB_WI@Z PROC	; std::char_traits<wchar_t>::move, COMDAT
+
+; 314  : 		{	// copy [_First2, _First2 + _Count) to [_First1, ...)
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 247  :         return (wchar_t*)memmove(_S1, _S2, _N*sizeof(wchar_t));
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	add	eax, eax
+	mov	DWORD PTR __Count$[ebp], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 316  : 		}
+
+	pop	ebp
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 247  :         return (wchar_t*)memmove(_S1, _S2, _N*sizeof(wchar_t));
+
+	jmp	DWORD PTR __imp__memmove
+?move@?$char_traits@_W@std@@SAPA_WQA_WQB_WI@Z ENDP	; std::char_traits<wchar_t>::move
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+;	COMDAT ?copy@?$char_traits@_W@std@@SAPA_WQA_WQB_WI@Z
+_TEXT	SEGMENT
+__First1$ = 8						; size = 4
+__First2$ = 12						; size = 4
+__Count$ = 16						; size = 4
+?copy@?$char_traits@_W@std@@SAPA_WQA_WQB_WI@Z PROC	; std::char_traits<wchar_t>::copy, COMDAT
+
+; 294  : 		{	// copy [_First2, _First2 + _Count) to [_First1, ...)
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+
+; 234  :         return (wchar_t*)memcpy(_S1, _S2, _N*sizeof(wchar_t));
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	add	eax, eax
+	push	eax
+	push	DWORD PTR __First2$[ebp]
+	push	DWORD PTR __First1$[ebp]
+	call	_memcpy
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 296  : 		}
+
+	pop	ebp
+	ret	0
+?copy@?$char_traits@_W@std@@SAPA_WQA_WQB_WI@Z ENDP	; std::char_traits<wchar_t>::copy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vcruntime_new.h
 ;	COMDAT ??3@YAXPAX0@Z
 _TEXT	SEGMENT
@@ -12809,5 +24562,180 @@ __Where$ = 12						; size = 4
 	pop	ebp
 	ret	0
 ??2@YAPAXIPAX@Z ENDP					; operator new
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+;	COMDAT _wmemmove
+_TEXT	SEGMENT
+__S1$ = 8						; size = 4
+__S2$ = 12						; size = 4
+__N$ = 16						; size = 4
+_wmemmove PROC						; COMDAT
+
+; 244  :     {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 245  :         #pragma warning(push)
+; 246  :         #pragma warning(disable : 4996 6386)
+; 247  :         return (wchar_t*)memmove(_S1, _S2, _N*sizeof(wchar_t));
+
+	mov	eax, DWORD PTR __N$[ebp]
+	add	eax, eax
+	mov	DWORD PTR __N$[ebp], eax
+
+; 248  :         #pragma warning(pop)
+; 249  :     }
+
+	pop	ebp
+
+; 245  :         #pragma warning(push)
+; 246  :         #pragma warning(disable : 4996 6386)
+; 247  :         return (wchar_t*)memmove(_S1, _S2, _N*sizeof(wchar_t));
+
+	jmp	DWORD PTR __imp__memmove
+_wmemmove ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\wchar.h
+;	COMDAT _wmemcpy
+_TEXT	SEGMENT
+__S1$ = 8						; size = 4
+__S2$ = 12						; size = 4
+__N$ = 16						; size = 4
+_wmemcpy PROC						; COMDAT
+
+; 231  :     {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 232  :         #pragma warning(push)
+; 233  :         #pragma warning(disable : 4995 4996 6386)
+; 234  :         return (wchar_t*)memcpy(_S1, _S2, _N*sizeof(wchar_t));
+
+	mov	eax, DWORD PTR __N$[ebp]
+	add	eax, eax
+	mov	DWORD PTR __N$[ebp], eax
+
+; 235  :         #pragma warning(pop)
+; 236  :     }
+
+	pop	ebp
+
+; 232  :         #pragma warning(push)
+; 233  :         #pragma warning(disable : 4995 4996 6386)
+; 234  :         return (wchar_t*)memcpy(_S1, _S2, _N*sizeof(wchar_t));
+
+	jmp	_memcpy
+_wmemcpy ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??R?$_Bitwise_hash@I@std@@QBEIABI@Z
+_TEXT	SEGMENT
+__Keyval$ = 8						; size = 4
+??R?$_Bitwise_hash@I@std@@QBEIABI@Z PROC		; std::_Bitwise_hash<unsigned int>::operator(), COMDAT
+; _this$ = ecx
+
+; 360  : 		{	// hash _Keyval to size_t value by pseudorandomizing transform
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	mov	edx, DWORD PTR __Keyval$[ebp]
+	movzx	eax, BYTE PTR [edx]
+	xor	eax, -2128831035			; 811c9dc5H
+
+; 347  : 		_Val *= _FNV_prime;
+
+	imul	ecx, eax, 16777619
+	movzx	eax, BYTE PTR [edx+1]
+	xor	ecx, eax
+	movzx	eax, BYTE PTR [edx+2]
+	imul	ecx, ecx, 16777619
+	xor	ecx, eax
+	movzx	eax, BYTE PTR [edx+3]
+	imul	ecx, ecx, 16777619
+	xor	ecx, eax
+	imul	eax, ecx, 16777619
+
+; 361  : 		return (_Hash_seq((const unsigned char *)&_Keyval, sizeof (_Kty)));
+; 362  : 		}
+
+	pop	ebp
+	ret	4
+??R?$_Bitwise_hash@I@std@@QBEIABI@Z ENDP		; std::_Bitwise_hash<unsigned int>::operator()
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ?_Hash_seq@std@@YAIPBEI@Z
+_TEXT	SEGMENT
+__First$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?_Hash_seq@std@@YAIPBEI@Z PROC				; std::_Hash_seq, COMDAT
+
+; 331  : 	{	// FNV-1a hash function for bytes in [_First, _First + _Count)
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+
+; 332  :  #if defined(_WIN64)
+; 333  : 	static_assert(sizeof(size_t) == 8, "This code is for 64-bit size_t.");
+; 334  : 	const size_t _FNV_offset_basis = 14695981039346656037ULL;
+; 335  : 	const size_t _FNV_prime = 1099511628211ULL;
+; 336  : 
+; 337  :  #else /* defined(_WIN64) */
+; 338  : 	static_assert(sizeof(size_t) == 4, "This code is for 32-bit size_t.");
+; 339  : 	const size_t _FNV_offset_basis = 2166136261U;
+; 340  : 	const size_t _FNV_prime = 16777619U;
+; 341  :  #endif /* defined(_WIN64) */
+; 342  : 
+; 343  : 	size_t _Val = _FNV_offset_basis;
+; 344  : 	for (size_t _Next = 0; _Next < _Count; ++_Next)
+
+	mov	esi, DWORD PTR __Count$[ebp]
+	xor	ecx, ecx
+	mov	edx, -2128831035			; 811c9dc5H
+	test	esi, esi
+	je	SHORT $LN12@Hash_seq
+	push	edi
+	mov	edi, DWORD PTR __First$[ebp]
+$LL8@Hash_seq:
+
+; 345  : 		{	// fold in another byte
+; 346  : 		_Val ^= (size_t)_First[_Next];
+
+	movzx	eax, BYTE PTR [ecx+edi]
+	inc	ecx
+	xor	eax, edx
+
+; 347  : 		_Val *= _FNV_prime;
+
+	imul	edx, eax, 16777619
+	cmp	ecx, esi
+	jb	SHORT $LL8@Hash_seq
+	pop	edi
+$LN12@Hash_seq:
+
+; 348  : 		}
+; 349  : 	return (_Val);
+
+	mov	eax, edx
+	pop	esi
+
+; 350  : 	}
+
+	pop	ebp
+	ret	0
+?_Hash_seq@std@@YAIPBEI@Z ENDP				; std::_Hash_seq
 _TEXT	ENDS
 END

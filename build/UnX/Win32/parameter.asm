@@ -10,26 +10,26 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG133399 DB	'1', 00H, 00H, 00H
-$SG133400 DB	'0', 00H, 00H, 00H
-$SG133402 DB	'y', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG133403 DB	'n', 00H, 'o', 00H, 00H, 00H
+$SG133401 DB	'1', 00H, 00H, 00H
+$SG133402 DB	'0', 00H, 00H, 00H
+$SG133404 DB	'y', 00H, 'e', 00H, 's', 00H, 00H, 00H
+$SG133405 DB	'n', 00H, 'o', 00H, 00H, 00H
 	ORG $+2
-$SG133405 DB	'o', 00H, 'n', 00H, 00H, 00H
+$SG133407 DB	'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG133406 DB	'o', 00H, 'f', 00H, 'f', 00H, 00H, 00H
-$SG133408 DB	't', 00H, 'r', 00H, 'u', 00H, 'e', 00H, 00H, 00H
+$SG133408 DB	'o', 00H, 'f', 00H, 'f', 00H, 00H, 00H
+$SG133410 DB	't', 00H, 'r', 00H, 'u', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG133409 DB	'f', 00H, 'a', 00H, 'l', 00H, 's', 00H, 'e', 00H, 00H, 00H
-$SG133460 DB	'%', 00H, 'f', 00H, 00H, 00H
+$SG133411 DB	'f', 00H, 'a', 00H, 'l', 00H, 's', 00H, 'e', 00H, 00H, 00H
+$SG133462 DB	'%', 00H, 'f', 00H, 00H, 00H
 	ORG $+2
-$SG133532 DB	'%', 00H, 'f', 00H, 00H, 00H
+$SG133534 DB	'%', 00H, 'f', 00H, 00H, 00H
 	ORG $+2
-$SG133533 DB	'%', 00H, 'f', 00H, 00H, 00H
+$SG133535 DB	'%', 00H, 'f', 00H, 00H, 00H
 	ORG $+2
-$SG133534 DB	'(', 00H, '%', 00H, 's', 00H, ',', 00H, '%', 00H, 's', 00H
+$SG133536 DB	'(', 00H, '%', 00H, 's', 00H, ',', 00H, '%', 00H, 's', 00H
 	DB	')', 00H, 00H, 00H
-$SG133548 DB	'(', 00H, '%', 00H, 'f', 00H, ',', 00H, '%', 00H, 'f', 00H
+$SG133550 DB	'(', 00H, '%', 00H, 'f', 00H, ',', 00H, '%', 00H, 'f', 00H
 	DB	')', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	?swprintf@@YAHQA_WQB_WZZ			; swprintf
@@ -4552,7 +4552,7 @@ _str$ = 8						; size = 24
 
 ; 460  :   swscanf (str.c_str (), L"(%f,%f)", &value.x, &value.y);
 
-	push	OFFSET $SG133548
+	push	OFFSET $SG133550
 	push	edx
 	call	_swscanf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -4689,7 +4689,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	movss	xmm0, DWORD PTR [esi+60]
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG133532
+	push	OFFSET $SG133534
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 	movss	xmm0, DWORD PTR [esi+64]
@@ -4700,7 +4700,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	cvtps2pd xmm0, xmm0
 	add	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG133533
+	push	OFFSET $SG133535
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 
@@ -4727,7 +4727,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	push	eax
 	lea	eax, DWORD PTR _x_str$[ebp]
 	push	eax
-	push	OFFSET $SG133534
+	push	OFFSET $SG133536
 	push	esi
 	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 48					; 00000030H
@@ -6237,7 +6237,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	sub	esp, 8
 	mov	DWORD PTR $T1[ebp], 0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG133460
+	push	OFFSET $SG133462
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 
@@ -7324,8 +7324,8 @@ ___$ReturnUdt$ = 8					; size = 4
 ; 217  :       return value  ?  L"true" : L"false";
 
 	cmp	BYTE PTR [ecx+60], 0
-	mov	eax, OFFSET $SG133409
-	mov	edx, OFFSET $SG133408
+	mov	eax, OFFSET $SG133411
+	mov	edx, OFFSET $SG133410
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -7370,8 +7370,8 @@ $LN4@get_value_:
 ; 210  :       return value  ?  L"1"    : L"0";
 
 	cmp	BYTE PTR [ecx+60], 0
-	mov	eax, OFFSET $SG133400
-	mov	edx, OFFSET $SG133399
+	mov	eax, OFFSET $SG133402
+	mov	edx, OFFSET $SG133401
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -7417,8 +7417,8 @@ $LN5@get_value_:
 ; 212  :       return value  ?  L"yes"  : L"no";
 
 	cmp	BYTE PTR [ecx+60], 0
-	mov	eax, OFFSET $SG133403
-	mov	edx, OFFSET $SG133402
+	mov	eax, OFFSET $SG133405
+	mov	edx, OFFSET $SG133404
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -7463,8 +7463,8 @@ $LN6@get_value_:
 ; 214  :       return value  ?  L"on"   : L"off";
 
 	cmp	BYTE PTR [ecx+60], 0
-	mov	eax, OFFSET $SG133406
-	mov	edx, OFFSET $SG133405
+	mov	eax, OFFSET $SG133408
+	mov	edx, OFFSET $SG133407
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;

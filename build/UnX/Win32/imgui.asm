@@ -23,104 +23,108 @@ _DATA	SEGMENT
 ?STB_TEXTEDIT_NEWLINE@ImGuiStb@@3GA DW 0aH		; ImGuiStb::STB_TEXTEDIT_NEWLINE
 _DATA	ENDS
 CONST	SEGMENT
-$SG118818 DB	'rb', 00H
-$SG119101 DB	00H
-$SG118822 DB	'%.*s', 00H
+$SG118844 DB	'rb', 00H
+$SG119127 DB	00H
+$SG118848 DB	'%.*s', 00H
 $SG16770 DB	00H
-$SG123611 DB	00H
+$SG123637 DB	00H
 $SG17162 DB	00H
-$SG118827 DB	'Pos=%f,%f', 00H
-$SG124721 DB	00H
-$SG124723 DB	00H
-$SG118830 DB	'Size=%f,%f', 00H
+$SG118853 DB	'Pos=%f,%f', 00H
+$SG124747 DB	00H
+$SG124749 DB	00H
+$SG118856 DB	'Size=%f,%f', 00H
 	ORG $+1
-$SG118832 DB	'Collapsed=%d', 00H
+$SG118858 DB	'Collapsed=%d', 00H
 	ORG $+3
-$SG123965 DB	'*Unknown item*', 00H
+$SG123991 DB	'*Unknown item*', 00H
 	ORG $+1
-$SG118857 DB	'wt', 00H
+$SG118883 DB	'wt', 00H
 	ORG $+1
-$SG118861 DB	'###', 00H
-$SG118862 DB	'[%s]', 0aH, 00H
+$SG118887 DB	'###', 00H
+$SG118888 DB	'[%s]', 0aH, 00H
 	ORG $+2
-$SG118863 DB	'Pos=%d,%d', 0aH, 00H
+$SG118889 DB	'Pos=%d,%d', 0aH, 00H
 	ORG $+1
-$SG118864 DB	'Size=%d,%d', 0aH, 00H
-$SG121937 DB	'%.3f', 00H
+$SG118890 DB	'Size=%d,%d', 0aH, 00H
+$SG121963 DB	'%.3f', 00H
 	ORG $+3
-$SG118865 DB	'Collapsed=%li', 0aH, 00H
+$SG118891 DB	'Collapsed=%li', 0aH, 00H
 	ORG $+1
-$SG118866 DB	0aH, 00H
+$SG118892 DB	0aH, 00H
 	ORG $+2
-$SG124016 DB	'##MainMenuBar', 00H
+$SG124042 DB	'##MainMenuBar', 00H
 	ORG $+2
-$SG121979 DB	'%.3f', 00H
+$SG122005 DB	'%.3f', 00H
 	ORG $+3
-$SG124030 DB	'##menubar', 00H
+$SG124056 DB	'##menubar', 00H
 	ORG $+2
-$SG121992 DB	'%.0f deg', 00H
+$SG122018 DB	'%.0f deg', 00H
 	ORG $+3
-$SG122007 DB	'%.0f', 00H
+$SG122033 DB	'%.0f', 00H
 	ORG $+3
-$SG122023 DB	'%.0f', 00H
+$SG122049 DB	'%.0f', 00H
 	ORG $+3
-$SG122041 DB	'##v', 00H
-$SG124095 DB	'##menus', 00H
-$SG122082 DB	'##v', 00H
-$SG124143 DB	'#colorbutton', 00H
+$SG122067 DB	'##v', 00H
+$SG124121 DB	'##menus', 00H
+$SG122108 DB	'##v', 00H
+$SG124169 DB	'#colorbutton', 00H
 	ORG $+3
-$SG124146 DB	'Color:', 0aH, '(%.2f,%.2f,%.2f,%.2f)', 0aH, '#%02X%02X%0'
+$SG124172 DB	'Color:', 0aH, '(%.2f,%.2f,%.2f,%.2f)', 0aH, '#%02X%02X%0'
 	DB	'2X%02X', 00H
 	ORG $+1
-$SG119102 DB	0dH, 0aH, '%*s%.*s', 00H
+$SG119128 DB	0dH, 0aH, '%*s%.*s', 00H
 	ORG $+2
-$SG119103 DB	' %.*s', 00H
+$SG119129 DB	' %.*s', 00H
 	ORG $+2
-$SG124225 DB	'M:999', 00H
+$SG124251 DB	'M:999', 00H
 	ORG $+2
-$SG124226 DB	'##X', 00H
-$SG124227 DB	'##Y', 00H
-$SG124228 DB	'##Z', 00H
-$SG124229 DB	'##W', 00H
-$SG124230 DB	'%3.0f', 00H
+$SG124252 DB	'##X', 00H
+$SG124253 DB	'##Y', 00H
+$SG124254 DB	'##Z', 00H
+$SG124255 DB	'##W', 00H
+$SG124256 DB	'%3.0f', 00H
 	ORG $+2
-$SG124231 DB	'%3.0f', 00H
+$SG124257 DB	'%3.0f', 00H
 	ORG $+2
-$SG124232 DB	'%3.0f', 00H
+$SG124258 DB	'%3.0f', 00H
 	ORG $+2
-$SG122184 DB	'%.3f', 00H
+$SG122210 DB	'%.3f', 00H
 	ORG $+3
-$SG124233 DB	'%3.0f', 00H
+$SG124259 DB	'%3.0f', 00H
 	ORG $+2
-$SG124234 DB	'R:%3.0f', 00H
-$SG124235 DB	'G:%3.0f', 00H
-$SG124236 DB	'B:%3.0f', 00H
-$SG124237 DB	'A:%3.0f', 00H
-$SG124238 DB	'H:%3.0f', 00H
-$SG124239 DB	'S:%3.0f', 00H
-$SG124240 DB	'V:%3.0f', 00H
-$SG124241 DB	'A:%3.0f', 00H
-$SG124247 DB	'#%02X%02X%02X%02X', 00H
+$SG124260 DB	'R:%3.0f', 00H
+$SG124261 DB	'G:%3.0f', 00H
+$SG124262 DB	'B:%3.0f', 00H
+$SG124263 DB	'A:%3.0f', 00H
+$SG124264 DB	'H:%3.0f', 00H
+$SG124265 DB	'S:%3.0f', 00H
+$SG124266 DB	'V:%3.0f', 00H
+$SG124267 DB	'A:%3.0f', 00H
+$SG124273 DB	'#%02X%02X%02X%02X', 00H
 	ORG $+2
-$SG124248 DB	'#%02X%02X%02X', 00H
+$SG124274 DB	'#%02X%02X%02X', 00H
 	ORG $+2
-$SG124250 DB	'##Text', 00H
+$SG124276 DB	'##Text', 00H
 	ORG $+1
-$SG124254 DB	'%02X%02X%02X%02X', 00H
+$SG124280 DB	'%02X%02X%02X%02X', 00H
 	ORG $+3
-$SG124255 DB	'%02X%02X%02X', 00H
+$SG124281 DB	'%02X%02X%02X', 00H
 	ORG $+3
-$SG124258 DB	'Color:', 0aH, '(%.2f,%.2f,%.2f,%.2f)', 0aH, '#%02X%02X%0'
+$SG124284 DB	'Color:', 0aH, '(%.2f,%.2f,%.2f,%.2f)', 0aH, '#%02X%02X%0'
 	DB	'2X%02X', 00H
 	ORG $+1
-$SG122211 DB	'##v', 00H
-$SG124260 DB	'RGB', 00H
-$SG124261 DB	'HSV', 00H
-$SG124262 DB	'HEX', 00H
-$SG120180 DB	'#RESIZE', 00H
-$SG124289 DB	0dH, 0aH, '--------------------------------', 00H
+$SG122237 DB	'##v', 00H
+$SG124286 DB	'RGB', 00H
+$SG124287 DB	'HSV', 00H
+$SG124288 DB	'HEX', 00H
+$SG120206 DB	'#RESIZE', 00H
+$SG124315 DB	0dH, 0aH, '--------------------------------', 00H
 	ORG $+1
-$SG142710 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG122280 DB	'##min', 00H
+	ORG $+2
+$SG122281 DB	'##max', 00H
+	ORG $+2
+$SG142766 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, ' ', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
@@ -128,79 +132,75 @@ $SG142710 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ')', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG142715 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG142771 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, ' ', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
 	DB	00H, 'e', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'c', 00H
 	DB	'o', 00H, 'n', 00H, 'n', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'e'
 	DB	00H, 'd', 00H, ')', 00H, 00H, 00H
-$SG122254 DB	'##min', 00H
+$SG120243 DB	'#COLLAPSE', 00H
 	ORG $+2
-$SG122255 DB	'##max', 00H
-	ORG $+2
-$SG120217 DB	'#COLLAPSE', 00H
-	ORG $+2
-$SG120221 DB	'#CLOSE', 00H
+$SG120247 DB	'#CLOSE', 00H
 	ORG $+1
-$SG122271 DB	'%.0f', 00H
+$SG122297 DB	'%.0f', 00H
 	ORG $+3
-$SG120232 DB	'#CloseColumns', 00H
+$SG120258 DB	'#CloseColumns', 00H
 	ORG $+2
-$SG122289 DB	'##v', 00H
-$SG121269 DB	'#image', 00H
+$SG122315 DB	'##v', 00H
+$SG121295 DB	'#image', 00H
 	ORG $+1
-$SG121289 DB	'ab', 00H
+$SG121315 DB	'ab', 00H
 	ORG $+1
-$SG121303 DB	0dH, 0aH, 00H
+$SG121329 DB	0dH, 0aH, 00H
 	ORG $+1
-$SG122328 DB	'##min', 00H
+$SG122354 DB	'##min', 00H
 	ORG $+2
-$SG122329 DB	'##max', 00H
+$SG122355 DB	'##max', 00H
 	ORG $+2
-$SG120285 DB	'#SCROLLX', 00H
+$SG120311 DB	'#SCROLLX', 00H
 	ORG $+3
-$SG120286 DB	'#SCROLLY', 00H
+$SG120312 DB	'#SCROLLY', 00H
 	ORG $+3
-$SG121317 DB	'LogButtons', 00H
-	ORG $+1
-$SG121318 DB	'Log To TTY', 00H
-	ORG $+1
-$SG121319 DB	'Log To File', 00H
-$SG121320 DB	'Log To Clipboard', 00H
-	ORG $+3
-$SG121321 DB	'Depth', 00H
-	ORG $+2
 $SG16890 DB	'#MOVE', 00H
 	ORG $+2
-$SG123414 DB	'#SCROLLY', 00H
+$SG121343 DB	'LogButtons', 00H
+	ORG $+1
+$SG121344 DB	'Log To TTY', 00H
+	ORG $+1
+$SG121345 DB	'Log To File', 00H
+$SG121346 DB	'Log To Clipboard', 00H
 	ORG $+3
-$SG124463 DB	'columns', 00H
-$SG124480 DB	'#TreePush', 00H
+$SG121347 DB	'Depth', 00H
 	ORG $+2
-$SG124486 DB	'#TreePush', 00H
-	ORG $+2
-$SG121414 DB	0aH, '##', 00H
-$SG121415 DB	'##', 00H
-	ORG $+1
-$SG121422 DB	'>', 00H
-	ORG $+2
-$SG124498 DB	'true', 00H
+$SG123440 DB	'#SCROLLY', 00H
 	ORG $+3
-$SG124499 DB	'false', 00H
+$SG124489 DB	'columns', 00H
+$SG124506 DB	'#TreePush', 00H
 	ORG $+2
-$SG124500 DB	'%s: %s', 00H
+$SG124512 DB	'#TreePush', 00H
+	ORG $+2
+$SG121440 DB	0aH, '##', 00H
+$SG121441 DB	'##', 00H
 	ORG $+1
-$SG124505 DB	'%s: %d', 00H
-	ORG $+1
-$SG124510 DB	'%s: %d', 00H
-	ORG $+1
-$SG124520 DB	'%%s: %s', 00H
-$SG124521 DB	'%s: %.3f', 00H
+$SG121448 DB	'>', 00H
+	ORG $+2
+$SG124524 DB	'true', 00H
 	ORG $+3
-$SG124526 DB	'%s: (%.2f,%.2f,%.2f,%.2f)', 00H
+$SG124525 DB	'false', 00H
 	ORG $+2
-$SG124532 DB	'%s: %08X', 00H
+$SG124526 DB	'%s: %s', 00H
+	ORG $+1
+$SG124531 DB	'%s: %d', 00H
+	ORG $+1
+$SG124536 DB	'%s: %d', 00H
+	ORG $+1
+$SG124546 DB	'%%s: %s', 00H
+$SG124547 DB	'%s: %.3f', 00H
+	ORG $+3
+$SG124552 DB	'%s: (%.2f,%.2f,%.2f,%.2f)', 00H
+	ORG $+2
+$SG124558 DB	'%s: %08X', 00H
 	ORG $+3
 ?GStyleVarInfo@@3QBUImGuiStyleVarInfo@@B DD 01H		; GStyleVarInfo
 	DD	00H
@@ -226,211 +226,211 @@ $SG124532 DB	'%s: %08X', 00H
 	DD	058H
 	DD	02H
 	DD	060H
-$SG123523 DB	'#SCROLLY', 00H
+$SG123549 DB	'#SCROLLY', 00H
 	ORG $+3
-$SG122523 DB	'%.0f%%', 00H
+$SG122549 DB	'%.0f%%', 00H
 	ORG $+1
-$SG120517 DB	'Text', 00H
+$SG120543 DB	'Text', 00H
 	ORG $+3
-$SG120519 DB	'TextDisabled', 00H
+$SG120545 DB	'TextDisabled', 00H
 	ORG $+3
-$SG122569 DB	'[x]', 00H
-$SG120521 DB	'WindowBg', 00H
+$SG122595 DB	'[x]', 00H
+$SG120547 DB	'WindowBg', 00H
 	ORG $+3
-$SG122570 DB	'[ ]', 00H
-$SG120523 DB	'ChildWindowBg', 00H
+$SG122596 DB	'[ ]', 00H
+$SG120549 DB	'ChildWindowBg', 00H
 	ORG $+2
-$SG120525 DB	'PopupBg', 00H
-$SG120527 DB	'Border', 00H
+$SG120551 DB	'PopupBg', 00H
+$SG120553 DB	'Border', 00H
 	ORG $+1
-$SG120529 DB	'BorderShadow', 00H
+$SG120555 DB	'BorderShadow', 00H
 	ORG $+3
-$SG120531 DB	'FrameBg', 00H
-$SG120533 DB	'FrameBgHovered', 00H
+$SG120557 DB	'FrameBg', 00H
+$SG120559 DB	'FrameBgHovered', 00H
 	ORG $+1
-$SG120535 DB	'FrameBgActive', 00H
+$SG120561 DB	'FrameBgActive', 00H
 	ORG $+2
-$SG120537 DB	'TitleBg', 00H
-$SG120539 DB	'TitleBgCollapsed', 00H
+$SG120563 DB	'TitleBg', 00H
+$SG120565 DB	'TitleBgCollapsed', 00H
 	ORG $+3
-$SG120541 DB	'TitleBgActive', 00H
+$SG120567 DB	'TitleBgActive', 00H
 	ORG $+2
-$SG123614 DB	'-', 00H
+$SG123640 DB	'-', 00H
 	ORG $+2
-$SG120543 DB	'MenuBarBg', 00H
+$SG120569 DB	'MenuBarBg', 00H
 	ORG $+2
-$SG123616 DB	'+', 00H
+$SG123642 DB	'+', 00H
 	ORG $+2
-$SG120545 DB	'ScrollbarBg', 00H
-$SG120547 DB	'ScrollbarGrab', 00H
+$SG120571 DB	'ScrollbarBg', 00H
+$SG120573 DB	'ScrollbarGrab', 00H
 	ORG $+2
-$SG120549 DB	'ScrollbarGrabHovered', 00H
+$SG120575 DB	'ScrollbarGrabHovered', 00H
 	ORG $+3
-$SG120551 DB	'ScrollbarGrabActive', 00H
-$SG120553 DB	'ComboBg', 00H
-$SG120555 DB	'CheckMark', 00H
+$SG120577 DB	'ScrollbarGrabActive', 00H
+$SG120579 DB	'ComboBg', 00H
+$SG120581 DB	'CheckMark', 00H
 	ORG $+2
-$SG120557 DB	'SliderGrab', 00H
+$SG120583 DB	'SliderGrab', 00H
 	ORG $+1
-$SG120559 DB	'SliderGrabActive', 00H
+$SG120585 DB	'SliderGrabActive', 00H
 	ORG $+3
-$SG123633 DB	'%f', 00H
+$SG123659 DB	'%f', 00H
 	ORG $+1
-$SG120561 DB	'Button', 00H
+$SG120587 DB	'Button', 00H
 	ORG $+1
-$SG123634 DB	'%%.%df', 00H
+$SG123660 DB	'%%.%df', 00H
 	ORG $+1
-$SG119538 DB	'##Tooltip', 00H
+$SG119564 DB	'##Tooltip', 00H
 	ORG $+2
-$SG120563 DB	'ButtonHovered', 00H
+$SG120589 DB	'ButtonHovered', 00H
 	ORG $+2
-$SG120565 DB	'ButtonActive', 00H
+$SG120591 DB	'ButtonActive', 00H
 	ORG $+3
-$SG120567 DB	'Header', 00H
+$SG120593 DB	'Header', 00H
 	ORG $+1
-$SG120569 DB	'HeaderHovered', 00H
-	ORG $+2
-$SG120571 DB	'HeaderActive', 00H
-	ORG $+3
-$SG120573 DB	'Column', 00H
-	ORG $+1
-$SG123646 DB	'%08X', 00H
-	ORG $+3
-$SG123647 DB	'%d', 00H
-	ORG $+1
-$SG120575 DB	'ColumnHovered', 00H
-	ORG $+2
-$SG120577 DB	'ColumnActive', 00H
-	ORG $+3
-$SG120579 DB	'ResizeGrip', 00H
-	ORG $+1
-$SG122628 DB	'(x)', 00H
-$SG122629 DB	'( )', 00H
-$SG120581 DB	'ResizeGripHovered', 00H
-	ORG $+2
-$SG120583 DB	'ResizeGripActive', 00H
-	ORG $+3
-$SG120585 DB	'CloseButton', 00H
-$SG119562 DB	'##menus', 00H
-$SG120587 DB	'CloseButtonHovered', 00H
-	ORG $+1
-$SG120589 DB	'CloseButtonActive', 00H
-	ORG $+2
-$SG123663 DB	'##v', 00H
-$SG120591 DB	'PlotLines', 00H
-	ORG $+2
-$SG120593 DB	'PlotLinesHovered', 00H
-	ORG $+3
 $SG17169 DB	'1.50 WIP', 00H
 	ORG $+3
-$SG120595 DB	'PlotHistogram', 00H
+$SG120595 DB	'HeaderHovered', 00H
 	ORG $+2
-$SG120597 DB	'PlotHistogramHovered', 00H
+$SG120597 DB	'HeaderActive', 00H
 	ORG $+3
-$SG120599 DB	'TextSelectedBg', 00H
+$SG120599 DB	'Column', 00H
 	ORG $+1
-$SG120601 DB	'ModalWindowDarkening', 00H
+$SG123672 DB	'%08X', 00H
 	ORG $+3
-$SG120603 DB	'NavHighlight', 00H
-	ORG $+3
-$SG120605 DB	'NavWindowingHighlight', 00H
+$SG123673 DB	'%d', 00H
+	ORG $+1
+$SG120601 DB	'ColumnHovered', 00H
 	ORG $+2
-$SG120606 DB	'Unknown', 00H
-$SG124705 DB	'ImGui Metrics', 00H
+$SG120603 DB	'ColumnActive', 00H
+	ORG $+3
+$SG120605 DB	'ResizeGrip', 00H
+	ORG $+1
+$SG122654 DB	'(x)', 00H
+$SG122655 DB	'( )', 00H
+$SG120607 DB	'ResizeGripHovered', 00H
 	ORG $+2
-$SG124706 DB	'ImGui %s', 00H
+$SG120609 DB	'ResizeGripActive', 00H
 	ORG $+3
-$SG124707 DB	'Application average %.3f ms/frame (%.1f FPS)', 00H
-	ORG $+3
-$SG124708 DB	'%d vertices, %d indices (%d triangles)', 00H
+$SG120611 DB	'CloseButton', 00H
+$SG119588 DB	'##menus', 00H
+$SG120613 DB	'CloseButtonHovered', 00H
 	ORG $+1
-$SG124709 DB	'%d allocations', 00H
-	ORG $+1
-$SG124710 DB	'sizeof(ImGuiContext) = %u, sizeof(ImGuiWindow) = %u', 00H
-$SG124711 DB	'Show clipping rectangles when hovering a ImDrawCmd', 00H
-	ORG $+1
-$SG124712 DB	'Windows', 00H
-$SG124714 DB	'Active DrawLists (%d)', 00H
+$SG120615 DB	'CloseButtonActive', 00H
 	ORG $+2
-$SG124715 DB	'DrawList', 00H
-	ORG $+3
-$SG124716 DB	'DrawList', 00H
-	ORG $+3
-$SG124718 DB	'Open Popups Stack (%d)', 00H
-	ORG $+1
-$SG124719 DB	'Popups', 00H
-	ORG $+1
-$SG124720 DB	' ChildMenu', 00H
-	ORG $+1
-$SG123696 DB	'##v', 00H
-$SG124722 DB	' ChildWindow', 00H
-	ORG $+3
-$SG124724 DB	'NULL', 00H
-	ORG $+3
-$SG124725 DB	'PopupID: %08x, Window: ''%s''%s%s', 00H
-$SG124727 DB	'Basic state', 00H
-$SG124728 DB	'None', 00H
-	ORG $+3
-$SG124729 DB	'Mouse', 00H
+$SG123689 DB	'##v', 00H
+$SG120617 DB	'PlotLines', 00H
 	ORG $+2
-$SG124730 DB	'Nav', 00H
-$SG124731 DB	'NULL', 00H
+$SG120619 DB	'PlotLinesHovered', 00H
 	ORG $+3
-$SG124732 DB	'HoveredWindow: ''%s''', 00H
-$SG124733 DB	'NULL', 00H
-	ORG $+3
-$SG124734 DB	'HoveredRootWindow: ''%s''', 00H
-$SG124735 DB	'HoveredId: 0x%08X/0x%08X', 00H
-	ORG $+3
-$SG124736 DB	'ActiveId: 0x%08X/0x%08X, ActiveIdSource: %s', 00H
-$SG124737 DB	'NULL', 00H
-	ORG $+3
-$SG124738 DB	'ActiveIdWindow: ''%s', 00H
-$SG124739 DB	'NULL', 00H
-	ORG $+3
-$SG124740 DB	'NavWindow: ''%s'', NavId: 0x%08X, NavLayer: %d', 00H
-	ORG $+3
-$SG124741 DB	'NavRefRectRel: (%.1f,%.1f)(%.1f,%.1f)', 00H
+$SG120621 DB	'PlotHistogram', 00H
 	ORG $+2
-$SG124742 DB	'NavUsable: %d, NavActive: %d', 00H
+$SG120623 DB	'PlotHistogramHovered', 00H
 	ORG $+3
-$SG124743 DB	'NavDisableHighlight: %d, NavDisableMouseHover: %d', 00H
-	ORG $+2
-$SG121676 DB	'%d', 00H
+$SG120625 DB	'TextSelectedBg', 00H
 	ORG $+1
-$SG121677 DB	'%.*d', 00H
+$SG120627 DB	'ModalWindowDarkening', 00H
 	ORG $+3
-$SG121681 DB	'%f', 00H
-	ORG $+1
-$SG121682 DB	'%.*f', 00H
+$SG120629 DB	'NavHighlight', 00H
 	ORG $+3
-$SG119637 DB	'##menu_%d', 00H
+$SG120631 DB	'NavWindowingHighlight', 00H
 	ORG $+2
-$SG119638 DB	'##popup_%08x', 00H
+$SG120632 DB	'Unknown', 00H
+$SG124731 DB	'ImGui Metrics', 00H
+	ORG $+2
+$SG124732 DB	'ImGui %s', 00H
+	ORG $+3
+$SG124733 DB	'Application average %.3f ms/frame (%.1f FPS)', 00H
+	ORG $+3
+$SG124734 DB	'%d vertices, %d indices (%d triangles)', 00H
+	ORG $+1
+$SG124735 DB	'%d allocations', 00H
+	ORG $+1
+$SG124736 DB	'sizeof(ImGuiContext) = %u, sizeof(ImGuiWindow) = %u', 00H
+$SG124737 DB	'Show clipping rectangles when hovering a ImDrawCmd', 00H
+	ORG $+1
+$SG124738 DB	'Windows', 00H
+$SG124740 DB	'Active DrawLists (%d)', 00H
+	ORG $+2
+$SG124741 DB	'DrawList', 00H
+	ORG $+3
+$SG124742 DB	'DrawList', 00H
+	ORG $+3
+$SG124744 DB	'Open Popups Stack (%d)', 00H
+	ORG $+1
+$SG124745 DB	'Popups', 00H
+	ORG $+1
+$SG124746 DB	' ChildMenu', 00H
+	ORG $+1
+$SG123722 DB	'##v', 00H
+$SG124748 DB	' ChildWindow', 00H
+	ORG $+3
+$SG124750 DB	'NULL', 00H
+	ORG $+3
+$SG124751 DB	'PopupID: %08x, Window: ''%s''%s%s', 00H
+$SG124753 DB	'Basic state', 00H
+$SG124754 DB	'None', 00H
+	ORG $+3
+$SG124755 DB	'Mouse', 00H
+	ORG $+2
+$SG124756 DB	'Nav', 00H
+$SG124757 DB	'NULL', 00H
+	ORG $+3
+$SG124758 DB	'HoveredWindow: ''%s''', 00H
+$SG124759 DB	'NULL', 00H
+	ORG $+3
+$SG124760 DB	'HoveredRootWindow: ''%s''', 00H
+$SG124761 DB	'HoveredId: 0x%08X/0x%08X', 00H
 	ORG $+3
 $SG16217 DB	'imgui.ini', 00H
 	ORG $+2
+$SG124762 DB	'ActiveId: 0x%08X/0x%08X, ActiveIdSource: %s', 00H
 $SG16218 DB	'imgui_log.txt', 00H
 	ORG $+2
-$SG119676 DB	'window_context_menu', 00H
-$SG119685 DB	'void_context_menu', 00H
+$SG124763 DB	'NULL', 00H
+	ORG $+3
+$SG124764 DB	'ActiveIdWindow: ''%s', 00H
+$SG124765 DB	'NULL', 00H
+	ORG $+3
+$SG124766 DB	'NavWindow: ''%s'', NavId: 0x%08X, NavLayer: %d', 00H
+	ORG $+3
+$SG124767 DB	'NavRefRectRel: (%.1f,%.1f)(%.1f,%.1f)', 00H
 	ORG $+2
-$SG121742 DB	'%d', 00H
+$SG124768 DB	'NavUsable: %d, NavActive: %d', 00H
+	ORG $+3
+$SG124769 DB	'NavDisableHighlight: %d, NavDisableMouseHover: %d', 00H
+	ORG $+2
+$SG121702 DB	'%d', 00H
 	ORG $+1
-$SG121747 DB	'%f', 00H
+$SG121703 DB	'%.*d', 00H
+	ORG $+3
+$SG121707 DB	'%f', 00H
 	ORG $+1
-$SG121751 DB	'%f', 00H
+$SG121708 DB	'%.*f', 00H
+	ORG $+3
+$SG119663 DB	'##menu_%d', 00H
+	ORG $+2
+$SG119664 DB	'##popup_%08x', 00H
+	ORG $+3
+$SG119702 DB	'window_context_menu', 00H
+$SG119711 DB	'void_context_menu', 00H
+	ORG $+2
+$SG121768 DB	'%d', 00H
 	ORG $+1
-$SG121755 DB	'%f', 00H
+$SG121773 DB	'%f', 00H
 	ORG $+1
-$SG121758 DB	'%f', 00H
+$SG121777 DB	'%f', 00H
 	ORG $+1
-$SG119711 DB	'%s.%s.%08X', 00H
+$SG121781 DB	'%f', 00H
 	ORG $+1
-$SG119712 DB	'%s.%08X', 00H
-$SG123829 DB	'*Unknown item*', 00H
+$SG121784 DB	'%f', 00H
 	ORG $+1
-$SG118743 DB	'Debug', 00H
+$SG119737 DB	'%s.%s.%08X', 00H
+	ORG $+1
+$SG119738 DB	'%s.%08X', 00H
+$SG123855 DB	'*Unknown item*', 00H
+	ORG $+1
+$SG118769 DB	'Debug', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	??0ImVec2@@QAE@XZ				; ImVec2::ImVec2
@@ -1220,6 +1220,8 @@ PUBLIC	?SK_ImGui_LoadFonts@@YAXXZ			; SK_ImGui_LoadFonts
 PUBLIC	??0?$lock_guard@VSK_Thread_CriticalSection@@@std@@QAE@AAVSK_Thread_CriticalSection@@@Z ; std::lock_guard<SK_Thread_CriticalSection>::lock_guard<SK_Thread_CriticalSection>
 PUBLIC	??1?$lock_guard@VSK_Thread_CriticalSection@@@std@@QAE@XZ ; std::lock_guard<SK_Thread_CriticalSection>::~lock_guard<SK_Thread_CriticalSection>
 PUBLIC	?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z ; SK_ImGui_ProcessRawInput
+PUBLIC	??0?$lock_guard@VSK_Thread_HybridSpinlock@@@std@@QAE@AAVSK_Thread_HybridSpinlock@@@Z ; std::lock_guard<SK_Thread_HybridSpinlock>::lock_guard<SK_Thread_HybridSpinlock>
+PUBLIC	??1?$lock_guard@VSK_Thread_HybridSpinlock@@@std@@QAE@XZ ; std::lock_guard<SK_Thread_HybridSpinlock>::~lock_guard<SK_Thread_HybridSpinlock>
 PUBLIC	?SK_Input_RememberPressedKeys@@YAXXZ		; SK_Input_RememberPressedKeys
 PUBLIC	?SK_ImGui_WantMouseWarpFiltering@@YA_NXZ	; SK_ImGui_WantMouseWarpFiltering
 PUBLIC	?SK_ImGui_DeltaTestMouse@@YAJAAUtagPOINTS@@KF@Z	; SK_ImGui_DeltaTestMouse
@@ -1280,6 +1282,7 @@ PUBLIC	??_C@_0N@BGDHDNPO@ChildWindows?$AA@		; `string'
 PUBLIC	??_C@_0BC@PDGNHIHG@Storage?3?5?$CFd?5bytes?$AA@	; `string'
 PUBLIC	?font_lock@@3VSK_Thread_HybridSpinlock@@A	; font_lock
 PUBLIC	??_C@_06OMAMIPPI@?$CFws?2?$CFs?$AA@		; `string'
+PUBLIC	?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A	; raw_input_lock
 PUBLIC	?window_active@?1???R<lambda_fdb49d2ec66229060331037f3944ccb2>@@QBE_NPAUHWND__@@IIJ@Z@4_NA ; `<lambda_fdb49d2ec66229060331037f3944ccb2>::operator()'::`2'::window_active
 PUBLIC	??_C@_1DK@BLGEDKBM@?$AAW?$AAM?$AA_?$AAA?$AAP?$AAP?$AAC?$AAO?$AAM?$AAM?$AAA?$AAN?$AAD?$AA?5?$AAK?$AAe?$AAy?$AAb?$AAo?$AAa?$AAr?$AAd?$AA?5?$AAE?$AAv?$AAe?$AAn?$AAt?$AA?$AA@ ; `string'
 PUBLIC	??_C@_1EE@HBEADAKP@?$AAR?$AAe?$AAm?$AAo?$AAv?$AAe?$AAd?$AA?5?$AAW?$AAM?$AA_?$AAA?$AAP?$AAP?$AAC?$AAO?$AAM?$AAM?$AAA?$AAN?$AAD?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAE?$AAv?$AAe?$AAn@ ; `string'
@@ -1583,6 +1586,9 @@ _BSS	ENDS
 ;	COMDAT ?init@?1??SK_ImGui_LoadFonts@@YAXXZ@4KC
 _BSS	SEGMENT
 ?init@?1??SK_ImGui_LoadFonts@@YAXXZ@4KC DD 01H DUP (?)	; `SK_ImGui_LoadFonts'::`2'::init
+_BSS	ENDS
+_BSS	SEGMENT
+?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A DD 01H DUP (?) ; raw_input_lock
 _BSS	ENDS
 ;	COMDAT ?last_input@?1??SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z@4PAU2@A
 _BSS	SEGMENT
@@ -2797,6 +2803,8 @@ __ehfuncinfo$??1?$ImVector@UTextRange@ImGuiTextFilter@@@@QAE@XZ DD 019930522H
 	DD	05H
 xdata$x	ENDS
 xdata$x	SEGMENT
+__unwindtable$?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z$0
 __unwindtable$?SK_ImGui_LoadFonts@@YAXXZ DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_ImGui_LoadFonts@@YAXXZ$0
 __unwindtable$?CreateNewWindow@@YAPAUImGuiWindow@@PBDUImVec2@@H@Z DD 0ffffffffH
@@ -2827,6 +2835,13 @@ __unwindtable$??0ImGuiWindow@@QAE@PBD@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$??0ImGuiWindow@@QAE@PBD@Z$2
 	DD	02H
 	DD	FLAT:__unwindfunclet$??0ImGuiWindow@@QAE@PBD@Z$3
+__ehfuncinfo$?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
 __ehfuncinfo$?SK_ImGui_LoadFonts@@YAXXZ DD 019930522H
 	DD	01H
 	DD	FLAT:__unwindtable$?SK_ImGui_LoadFonts@@YAXXZ
@@ -2896,6 +2911,9 @@ CRT$XCU	SEGMENT
 CRT$XCU	ENDS
 CRT$XCU	SEGMENT
 ?font_lock$initializer$@@3P6AXXZA DD FLAT:??__Efont_lock@@YAXXZ ; font_lock$initializer$
+CRT$XCU	ENDS
+CRT$XCU	SEGMENT
+?raw_input_lock$initializer$@@3P6AXXZA DD FLAT:??__Eraw_input_lock@@YAXXZ ; raw_input_lock$initializer$
 CRT$XCU	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -3395,7 +3413,7 @@ _visible$1 = -2						; size = 1
 _nav$2 = -1						; size = 1
 ?SK_ImGui_PollGamepad@@YAXXZ PROC			; SK_ImGui_PollGamepad
 
-; 12259: {
+; 12263: {
 
 	npad	2
 	push	ebx
@@ -3411,32 +3429,32 @@ _nav$2 = -1						; size = 1
 	push	esi
 	push	edi
 
-; 12260:   ImGuiIO& io =
+; 12264:   ImGuiIO& io =
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	esi, eax
 
-; 12261:     ImGui::GetIO ();
-; 12262: 
-; 12263: 
-; 12264:   //extern INT SK_ImGui_ActivationKeys [256];
-; 12265:   //
-; 12266:   //for (int i = 8; i < 256; i++)
-; 12267:   //{
-; 12268:   //  if (SK_ImGui_ActivationKeys [i] > 0)
-; 12269:   //  {
-; 12270:   //    game_window.CallProc (game_window.hWnd, WM_KEYUP,    i, 0);
-; 12271:   //    game_window.CallProc (game_window.hWnd, WM_SYSKEYUP, i, 0);
-; 12272:   //
-; 12273:   //    SK_ImGui_ActivationKeys [i] = 0;
-; 12274:   //  }
-; 12275:   //}
-; 12276: 
-; 12277: 
-; 12278:          XINPUT_STATE state    = {      };
-; 12279:   static XINPUT_STATE last_state { 1, 0 };
+; 12265:     ImGui::GetIO ();
+; 12266: 
+; 12267: 
+; 12268:   //extern INT SK_ImGui_ActivationKeys [256];
+; 12269:   //
+; 12270:   //for (int i = 8; i < 256; i++)
+; 12271:   //{
+; 12272:   //  if (SK_ImGui_ActivationKeys [i] > 0)
+; 12273:   //  {
+; 12274:   //    game_window.CallProc (game_window.hWnd, WM_KEYUP,    i, 0);
+; 12275:   //    game_window.CallProc (game_window.hWnd, WM_SYSKEYUP, i, 0);
+; 12276:   //
+; 12277:   //    SK_ImGui_ActivationKeys [i] = 0;
+; 12278:   //  }
+; 12279:   //}
 ; 12280: 
-; 12281:   for ( float& NavInput : io.NavInputs )
+; 12281: 
+; 12282:          XINPUT_STATE state    = {      };
+; 12283:   static XINPUT_STATE last_state { 1, 0 };
+; 12284: 
+; 12285:   for ( float& NavInput : io.NavInputs )
 
 	lea	edi, DWORD PTR [esi+776]
 	lea	edx, DWORD PTR [edi+64]
@@ -3447,42 +3465,42 @@ _nav$2 = -1						; size = 1
 	cmp	edi, edx
 	ja	SHORT $LN3@SK_ImGui_P
 
-; 12282:     NavInput = 0.0f;
+; 12286:     NavInput = 0.0f;
 
 	xor	eax, eax
 	rep stosd
 	lea	edi, DWORD PTR [esi+776]
 $LN3@SK_ImGui_P:
 
-; 12283: 
-; 12284:   bool api_bridge =
-; 12285:     config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
+; 12287: 
+; 12288:   bool api_bridge =
+; 12289:     config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+694, 0
 	movss	xmm5, DWORD PTR __real@3a83126f
 	jne	SHORT $LN27@SK_ImGui_P
 	cmp	DWORD PTR ?steam_to_xi@@3PAU_XINPUT_STATE@@A, 0 ; steam_to_xi
 	jne	SHORT $LN27@SK_ImGui_P
 
-; 12286: 
-; 12287: #if 1
-; 12288:   state = joy_to_xi;
+; 12290: 
+; 12291: #if 1
+; 12292:   state = joy_to_xi;
 
 	movups	xmm0, XMMWORD PTR ?joy_to_xi@@3U_XINPUT_STATE@@A
 
-; 12289: #else
-; 12290:   state = di8_to_xi;
-; 12291: #endif
-; 12292: 
-; 12293:   if ( ( api_bridge ||
-; 12294:          SK_XInput_PollController ( config.input.gamepad.xinput.ui_slot,
-; 12295:                                       &state
-; 12296:                                   )
-; 12297:         )                                &&
+; 12293: #else
+; 12294:   state = di8_to_xi;
+; 12295: #endif
+; 12296: 
+; 12297:   if ( ( api_bridge ||
+; 12298:          SK_XInput_PollController ( config.input.gamepad.xinput.ui_slot,
+; 12299:                                       &state
+; 12300:                                   )
+; 12301:         )                                &&
 
 	lea	eax, DWORD PTR _state$[ebp]
 	push	eax
-	push	DWORD PTR ?config@@3Usk_config_t@@A+696
+	push	DWORD PTR ?config@@3Usk_config_t@@A+700
 	movups	XMMWORD PTR _state$[ebp], xmm0
 	call	?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z ; SK_XInput_PollController
 	add	esp, 8
@@ -3493,55 +3511,55 @@ $LN3@SK_ImGui_P:
 	jmp	SHORT $LN6@SK_ImGui_P
 $LN27@SK_ImGui_P:
 
-; 12286: 
-; 12287: #if 1
-; 12288:   state = joy_to_xi;
+; 12290: 
+; 12291: #if 1
+; 12292:   state = joy_to_xi;
 
 	movups	xmm0, XMMWORD PTR ?joy_to_xi@@3U_XINPUT_STATE@@A
 	movaps	XMMWORD PTR _state$[ebp], xmm0
 $LN6@SK_ImGui_P:
 
-; 12289: #else
-; 12290:   state = di8_to_xi;
-; 12291: #endif
-; 12292: 
-; 12293:   if ( ( api_bridge ||
-; 12294:          SK_XInput_PollController ( config.input.gamepad.xinput.ui_slot,
-; 12295:                                       &state
-; 12296:                                   )
-; 12297:         )                                &&
+; 12293: #else
+; 12294:   state = di8_to_xi;
+; 12295: #endif
+; 12296: 
+; 12297:   if ( ( api_bridge ||
+; 12298:          SK_XInput_PollController ( config.input.gamepad.xinput.ui_slot,
+; 12299:                                       &state
+; 12300:                                   )
+; 12301:         )                                &&
 
 	movd	eax, xmm0
 	cmp	DWORD PTR ?last_state@?1??SK_ImGui_PollGamepad@@YAXXZ@4U_XINPUT_STATE@@A, eax
 	ja	$LN91@SK_ImGui_P
 
-; 12298:         last_state.dwPacketNumber <= state.dwPacketNumber
-; 12299:      )
-; 12300:   {
-; 12301:     last_state = state;
-; 12302: 
-; 12303:     if (nav_usable)
+; 12302:         last_state.dwPacketNumber <= state.dwPacketNumber
+; 12303:      )
+; 12304:   {
+; 12305:     last_state = state;
+; 12306: 
+; 12307:     if (nav_usable)
 
 	cmp	BYTE PTR ?nav_usable@@3_NA, 0		; nav_usable
 	movups	XMMWORD PTR ?last_state@?1??SK_ImGui_PollGamepad@@YAXXZ@4U_XINPUT_STATE@@A, xmm0
 	je	$LN91@SK_ImGui_P
 
-; 12304:     {
-; 12305:       float LX   = state.Gamepad.sThumbLX;
+; 12308:     {
+; 12309:       float LX   = state.Gamepad.sThumbLX;
 
 	movsx	eax, WORD PTR _state$[ebp+8]
 	xorps	xmm4, xmm4
 	movd	xmm2, eax
 
-; 12306:       float LY   = state.Gamepad.sThumbLY;
+; 12310:       float LY   = state.Gamepad.sThumbLY;
 
 	movsx	eax, WORD PTR _state$[ebp+10]
 	cvtdq2ps xmm2, xmm2
 	movd	xmm3, eax
 	cvtdq2ps xmm3, xmm3
 
-; 12307: 
-; 12308:       float norm = sqrt ( LX*LX + LY*LY );
+; 12311: 
+; 12312:       float norm = sqrt ( LX*LX + LY*LY );
 
 	movaps	xmm0, xmm2
 	movaps	xmm1, xmm3
@@ -3549,7 +3567,7 @@ $LN6@SK_ImGui_P:
 	mulss	xmm1, xmm3
 	addss	xmm1, xmm0
 
-; 12315:       if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+; 12319:       if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
 
 	movss	xmm0, DWORD PTR __real@45f54800
 ; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\math.h
@@ -3560,40 +3578,40 @@ $LN6@SK_ImGui_P:
 	xorps	xmm1, xmm1
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12315:       if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+; 12319:       if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
 
 	comiss	xmm4, xmm0
 	jbe	SHORT $LN8@SK_ImGui_P
 
-; 12316:       {
-; 12317:         norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+; 12320:       {
+; 12321:         norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
 
 	minss	xmm4, DWORD PTR __real@46fffe00
 	subss	xmm4, xmm0
 
-; 12318:         unit =           norm/(32767.0f  - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+; 12322:         unit =           norm/(32767.0f  - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
 
 	mulss	xmm4, DWORD PTR __real@38285303
 
-; 12319:       }
-; 12320: 
-; 12321:       else
+; 12323:       }
+; 12324: 
+; 12325:       else
 
 	jmp	SHORT $LN9@SK_ImGui_P
 $LN8@SK_ImGui_P:
 	xorps	xmm4, xmm4
 $LN9@SK_ImGui_P:
 
-; 12322:       {
-; 12323:         norm = 0.0f;
-; 12324:         unit = 0.0f;
-; 12325:       }
-; 12326: 
-; 12327:       float uLX = (LX / 32767.0f) * unit;
-; 12328:       float uLY = (LY / 32767.0f) * unit;
-; 12329: 
-; 12330:       // Press Button, Tweak Value                    // e.g. Circle button
-; 12331:       io.NavInputs [ImGuiNavInput_PadActivate] +=
+; 12326:       {
+; 12327:         norm = 0.0f;
+; 12328:         unit = 0.0f;
+; 12329:       }
+; 12330: 
+; 12331:       float uLX = (LX / 32767.0f) * unit;
+; 12332:       float uLY = (LY / 32767.0f) * unit;
+; 12333: 
+; 12334:       // Press Button, Tweak Value                    // e.g. Circle button
+; 12335:       io.NavInputs [ImGuiNavInput_PadActivate] +=
 
 	mov	eax, DWORD PTR _state$[ebp+4]
 	shr	eax, 12					; 0000000cH
@@ -3607,10 +3625,10 @@ $LN9@SK_ImGui_P:
 	mulss	xmm2, xmm4
 	movss	DWORD PTR [edi], xmm0
 
-; 12332:         static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0);
-; 12333: 
-; 12334:       // Close Menu/PopUp/Child, Clear Selection      // e.g. Cross button
-; 12335:       io.NavInputs [ImGuiNavInput_PadCancel]   +=
+; 12336:         static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0);
+; 12337: 
+; 12338:       // Close Menu/PopUp/Child, Clear Selection      // e.g. Cross button
+; 12339:       io.NavInputs [ImGuiNavInput_PadCancel]   +=
 
 	mov	eax, DWORD PTR _state$[ebp+4]
 	shr	eax, 13					; 0000000dH
@@ -3620,10 +3638,10 @@ $LN9@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+780]
 	movss	DWORD PTR [esi+780], xmm0
 
-; 12336:         static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0);
-; 12337: 
-; 12338:       // Text Input                                   // e.g. Triangle button
-; 12339:       io.NavInputs [ImGuiNavInput_PadInput]    +=
+; 12340:         static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0);
+; 12341: 
+; 12342:       // Text Input                                   // e.g. Triangle button
+; 12343:       io.NavInputs [ImGuiNavInput_PadInput]    +=
 
 	mov	ax, WORD PTR _state$[ebp+4]
 	shr	ax, 15					; 0000000fH
@@ -3633,10 +3651,10 @@ $LN9@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+784]
 	movss	DWORD PTR [esi+784], xmm0
 
-; 12340:         static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0);
-; 12341: 
-; 12342:       // Access Menu, Focus, Move, Resize             // e.g. Square button
-; 12343:       io.NavInputs [ImGuiNavInput_PadMenu]     +=
+; 12344:         static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0);
+; 12345: 
+; 12346:       // Access Menu, Focus, Move, Resize             // e.g. Square button
+; 12347:       io.NavInputs [ImGuiNavInput_PadMenu]     +=
 
 	mov	eax, DWORD PTR _state$[ebp+4]
 	shr	eax, 14					; 0000000eH
@@ -3646,13 +3664,13 @@ $LN9@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+788]
 	movss	DWORD PTR [esi+788], xmm0
 
-; 12344:         static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0);
-; 12345: 
-; 12346:       //
-; 12347:       // [ANALOG INPUTS]
-; 12348:       //
-; 12349:       // Move Up, Resize Window (with PadMenu held)   // e.g. D-pad up/down/left/right
-; 12350:       io.NavInputs [ImGuiNavInput_PadUp]    +=  0.001f *
+; 12348:         static_cast <float> ((state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0);
+; 12349: 
+; 12350:       //
+; 12351:       // [ANALOG INPUTS]
+; 12352:       //
+; 12353:       // Move Up, Resize Window (with PadMenu held)   // e.g. D-pad up/down/left/right
+; 12354:       io.NavInputs [ImGuiNavInput_PadUp]    +=  0.001f *
 
 	mov	eax, DWORD PTR _state$[ebp+4]
 	and	eax, 1
@@ -3662,12 +3680,12 @@ $LN9@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+792]
 	movss	DWORD PTR [esi+792], xmm0
 
-; 12351:         static_cast <float> (
-; 12352:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0
-; 12353:         );
-; 12354: 
-; 12355:       // Move Down
-; 12356:       io.NavInputs [ImGuiNavInput_PadDown]  +=  0.001f *
+; 12355:         static_cast <float> (
+; 12356:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0
+; 12357:         );
+; 12358: 
+; 12359:       // Move Down
+; 12360:       io.NavInputs [ImGuiNavInput_PadDown]  +=  0.001f *
 
 	mov	eax, DWORD PTR _state$[ebp+4]
 	shr	eax, 1
@@ -3678,12 +3696,12 @@ $LN9@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+796]
 	movss	DWORD PTR [esi+796], xmm0
 
-; 12357:         static_cast <float> (
-; 12358:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0
-; 12359:         );
-; 12360: 
-; 12361:       // Move Left
-; 12362:       io.NavInputs [ImGuiNavInput_PadLeft]  +=  0.001f *
+; 12361:         static_cast <float> (
+; 12362:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0
+; 12363:         );
+; 12364: 
+; 12365:       // Move Left
+; 12366:       io.NavInputs [ImGuiNavInput_PadLeft]  +=  0.001f *
 
 	mov	eax, DWORD PTR _state$[ebp+4]
 	shr	eax, 2
@@ -3694,27 +3712,27 @@ $LN9@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+800]
 	movss	DWORD PTR [esi+800], xmm0
 
-; 12363:         static_cast <float> (
-; 12364:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0
-; 12365:         );
-; 12366: 
-; 12367:       // Move Right
-; 12368:       io.NavInputs [ImGuiNavInput_PadRight] +=  0.001f *
+; 12367:         static_cast <float> (
+; 12368:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0
+; 12369:         );
+; 12370: 
+; 12371:       // Move Right
+; 12372:       io.NavInputs [ImGuiNavInput_PadRight] +=  0.001f *
 
 	mov	eax, DWORD PTR _state$[ebp+4]
 	shr	eax, 3
 	and	eax, 1
 	mov	DWORD PTR [esi+812], 0
 
-; 12369:         static_cast <float> (
-; 12370:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0
-; 12371:         );
-; 12372: 
-; 12373: 
-; 12374:       io.NavInputs [ImGuiNavInput_PadScrollDown]    = 0.0f;
-; 12375:       io.NavInputs [ImGuiNavInput_PadScrollUp]      = 0.0f;
+; 12373:         static_cast <float> (
+; 12374:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0
+; 12375:         );
 ; 12376: 
-; 12377:       if (uLY > 0.0f)
+; 12377: 
+; 12378:       io.NavInputs [ImGuiNavInput_PadScrollDown]    = 0.0f;
+; 12379:       io.NavInputs [ImGuiNavInput_PadScrollUp]      = 0.0f;
+; 12380: 
+; 12381:       if (uLY > 0.0f)
 
 	comiss	xmm3, xmm1
 	mov	DWORD PTR [esi+808], 0
@@ -3726,62 +3744,62 @@ $LN9@SK_ImGui_P:
 	movss	xmm0, DWORD PTR __xmm@80000000800000008000000080000000
 	jbe	SHORT $LN10@SK_ImGui_P
 
-; 12378:         io.NavInputs [ImGuiNavInput_PadScrollUp]   += uLY / analog_sensitivity;
+; 12382:         io.NavInputs [ImGuiNavInput_PadScrollUp]   += uLY / analog_sensitivity;
 
 	divss	xmm3, DWORD PTR ?analog_sensitivity@@3MA
 	movss	DWORD PTR [esi+808], xmm3
 	jmp	SHORT $LN12@SK_ImGui_P
 $LN10@SK_ImGui_P:
 
-; 12379: 
-; 12380:       else if (uLY < 0.0f)
+; 12383: 
+; 12384:       else if (uLY < 0.0f)
 
 	comiss	xmm1, xmm3
 	jbe	SHORT $LN12@SK_ImGui_P
 
-; 12381:         io.NavInputs [ImGuiNavInput_PadScrollDown] -= uLY / analog_sensitivity;
+; 12385:         io.NavInputs [ImGuiNavInput_PadScrollDown] -= uLY / analog_sensitivity;
 
 	divss	xmm3, DWORD PTR ?analog_sensitivity@@3MA
 	xorps	xmm3, xmm0
 	movss	DWORD PTR [esi+812], xmm3
 $LN12@SK_ImGui_P:
 
-; 12382: 
-; 12383: 
-; 12384:       io.NavInputs [ImGuiNavInput_PadScrollLeft]    = 0.0f;
-; 12385:       io.NavInputs [ImGuiNavInput_PadScrollRight]   = 0.0f;
 ; 12386: 
-; 12387:       if (uLX > 0.0f)
+; 12387: 
+; 12388:       io.NavInputs [ImGuiNavInput_PadScrollLeft]    = 0.0f;
+; 12389:       io.NavInputs [ImGuiNavInput_PadScrollRight]   = 0.0f;
+; 12390: 
+; 12391:       if (uLX > 0.0f)
 
 	comiss	xmm2, xmm1
 	mov	DWORD PTR [esi+816], 0
 	mov	DWORD PTR [esi+820], 0
 	jbe	SHORT $LN13@SK_ImGui_P
 
-; 12388:         io.NavInputs [ImGuiNavInput_PadScrollRight] += uLX / analog_sensitivity;
+; 12392:         io.NavInputs [ImGuiNavInput_PadScrollRight] += uLX / analog_sensitivity;
 
 	divss	xmm2, DWORD PTR ?analog_sensitivity@@3MA
 	movss	DWORD PTR [esi+820], xmm2
 	jmp	SHORT $LN15@SK_ImGui_P
 $LN13@SK_ImGui_P:
 
-; 12389: 
-; 12390:       else if (uLX < 0.0f)
+; 12393: 
+; 12394:       else if (uLX < 0.0f)
 
 	comiss	xmm1, xmm2
 	jbe	SHORT $LN15@SK_ImGui_P
 
-; 12391:         io.NavInputs [ImGuiNavInput_PadScrollLeft]  -= uLX / analog_sensitivity;
+; 12395:         io.NavInputs [ImGuiNavInput_PadScrollLeft]  -= uLX / analog_sensitivity;
 
 	divss	xmm2, DWORD PTR ?analog_sensitivity@@3MA
 	xorps	xmm2, xmm0
 	movss	DWORD PTR [esi+816], xmm2
 $LN15@SK_ImGui_P:
 
-; 12392: 
-; 12393: 
-; 12394:       // Next Window (with PadMenu held)              // e.g. L-trigger
-; 12395:       io.NavInputs [ImGuiNavInput_PadFocusPrev]   +=
+; 12396: 
+; 12397: 
+; 12398:       // Next Window (with PadMenu held)              // e.g. L-trigger
+; 12399:       io.NavInputs [ImGuiNavInput_PadFocusPrev]   +=
 
 	mov	eax, DWORD PTR _state$[ebp+4]
 	shr	eax, 8
@@ -3791,12 +3809,12 @@ $LN15@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+824]
 	movss	DWORD PTR [esi+824], xmm0
 
-; 12396:         static_cast <float> (
-; 12397:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0
-; 12398:         );
-; 12399: 
-; 12400:       // Prev Window (with PadMenu held)              // e.g. R-trigger
-; 12401:       io.NavInputs [ImGuiNavInput_PadFocusNext]   += 
+; 12400:         static_cast <float> (
+; 12401:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0
+; 12402:         );
+; 12403: 
+; 12404:       // Prev Window (with PadMenu held)              // e.g. R-trigger
+; 12405:       io.NavInputs [ImGuiNavInput_PadFocusNext]   += 
 
 	mov	eax, DWORD PTR _state$[ebp+4]
 	shr	eax, 9
@@ -3806,11 +3824,11 @@ $LN15@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+828]
 	movss	DWORD PTR [esi+828], xmm0
 
-; 12402:         static_cast <float> (
-; 12403:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0
-; 12404:         );
-; 12405: 
-; 12406:       io.NavInputs [ImGuiNavInput_PadTweakSlow] +=
+; 12406:         static_cast <float> (
+; 12407:           (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0
+; 12408:         );
+; 12409: 
+; 12410:       io.NavInputs [ImGuiNavInput_PadTweakSlow] +=
 
 	mov	al, BYTE PTR _state$[ebp+6]
 	cmp	al, 30					; 0000001eH
@@ -3828,12 +3846,12 @@ $LN30@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+832]
 	movss	DWORD PTR [esi+832], xmm0
 
-; 12407:         static_cast <float> ( 
-; 12408:           SK_Threshold ( state.Gamepad.bLeftTrigger, 
-; 12409:                          XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) /
-; 12410:               ( 255.0f - XINPUT_GAMEPAD_TRIGGER_THRESHOLD     );
-; 12411: 
-; 12412:       io.NavInputs [ImGuiNavInput_PadTweakFast] +=
+; 12411:         static_cast <float> ( 
+; 12412:           SK_Threshold ( state.Gamepad.bLeftTrigger, 
+; 12413:                          XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) /
+; 12414:               ( 255.0f - XINPUT_GAMEPAD_TRIGGER_THRESHOLD     );
+; 12415: 
+; 12416:       io.NavInputs [ImGuiNavInput_PadTweakFast] +=
 
 	mov	al, BYTE PTR _state$[ebp+7]
 	cmp	al, 30					; 0000001eH
@@ -3854,15 +3872,15 @@ $LN91@SK_ImGui_P:
 	xorps	xmm1, xmm1
 $LN88@SK_ImGui_P:
 
-; 12413:         static_cast <float> (
-; 12414:           SK_Threshold ( state.Gamepad.bRightTrigger,
-; 12415:                          XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) /
-; 12416:               ( 255.0f - XINPUT_GAMEPAD_TRIGGER_THRESHOLD     );
-; 12417:     }
-; 12418:   }
-; 12419: 
-; 12420: 
-; 12421:   if ( io.KeysDown         [VK_CAPITAL] &&
+; 12417:         static_cast <float> (
+; 12418:           SK_Threshold ( state.Gamepad.bRightTrigger,
+; 12419:                          XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) /
+; 12420:               ( 255.0f - XINPUT_GAMEPAD_TRIGGER_THRESHOLD     );
+; 12421:     }
+; 12422:   }
+; 12423: 
+; 12424: 
+; 12425:   if ( io.KeysDown         [VK_CAPITAL] &&
 
 	cmp	BYTE PTR [esi+249], 0
 	je	SHORT $LN16@SK_ImGui_P
@@ -3872,12 +3890,12 @@ $LN88@SK_ImGui_P:
 	test	ah, 68					; 00000044H
 	jp	SHORT $LN16@SK_ImGui_P
 
-; 12422:        io.KeysDownDuration [VK_CAPITAL] == 0.0f )
-; 12423:   {
-; 12424:     bool visible = false,
-; 12425:          nav     = true;
-; 12426: 
-; 12427:     SK_ImGui_ToggleEx (visible, nav);
+; 12426:        io.KeysDownDuration [VK_CAPITAL] == 0.0f )
+; 12427:   {
+; 12428:     bool visible = false,
+; 12429:          nav     = true;
+; 12430: 
+; 12431:     SK_ImGui_ToggleEx (visible, nav);
 
 	lea	eax, DWORD PTR _nav$2[ebp]
 	mov	BYTE PTR _visible$1[ebp], 0
@@ -3888,30 +3906,30 @@ $LN88@SK_ImGui_P:
 	call	?SK_ImGui_ToggleEx@@YG_NAA_N0@Z		; SK_ImGui_ToggleEx
 $LN16@SK_ImGui_P:
 
-; 12428:   }
-; 12429: 
-; 12430: 
-; 12431:   if (! nav_usable)
+; 12432:   }
+; 12433: 
+; 12434: 
+; 12435:   if (! nav_usable)
 
 	cmp	BYTE PTR ?nav_usable@@3_NA, 0		; nav_usable
 	jne	SHORT $LN17@SK_ImGui_P
 
-; 12432:     io.NavActive = false;
+; 12436:     io.NavActive = false;
 
 	mov	BYTE PTR [esi+845], 0
 $LN17@SK_ImGui_P:
 
-; 12433: 
-; 12434:   //
-; 12435:   // Same basic idea as above, only for keyboard
-; 12436:   //
-; 12437:   //   The primary difference between gamepad and keyboard is the lack of a left
-; 12438:   //     analog stick to differentiate D-Pad behavior from analog stick movement.
-; 12439:   //
-; 12440:   //   For keyboard, we alias both to the same task and also consider WASD to be
-; 12441:   //     identical to Up/Down/Left/Right.
-; 12442:   //
-; 12443:   if (io.NavUsable && nav_usable)
+; 12437: 
+; 12438:   //
+; 12439:   // Same basic idea as above, only for keyboard
+; 12440:   //
+; 12441:   //   The primary difference between gamepad and keyboard is the lack of a left
+; 12442:   //     analog stick to differentiate D-Pad behavior from analog stick movement.
+; 12443:   //
+; 12444:   //   For keyboard, we alias both to the same task and also consider WASD to be
+; 12445:   //     identical to Up/Down/Left/Right.
+; 12446:   //
+; 12447:   if (io.NavUsable && nav_usable)
 
 	cmp	BYTE PTR [esi+844], 0
 	movss	xmm2, DWORD PTR __real@3f800000
@@ -3919,8 +3937,8 @@ $LN17@SK_ImGui_P:
 	cmp	BYTE PTR ?nav_usable@@3_NA, 0		; nav_usable
 	je	$LN18@SK_ImGui_P
 
-; 12444:   {
-; 12445:     io.NavInputs [ImGuiNavInput_PadMenu] += (io.KeyCtrl) ? 1.0f : 0.0f;
+; 12448:   {
+; 12449:     io.NavInputs [ImGuiNavInput_PadMenu] += (io.KeyCtrl) ? 1.0f : 0.0f;
 
 	cmp	BYTE PTR [esi+225], 0
 	xorps	xmm1, xmm1
@@ -3931,8 +3949,8 @@ $LN33@SK_ImGui_P:
 	xorps	xmm3, xmm3
 $LN34@SK_ImGui_P:
 
-; 12446: 
-; 12447:     if (! io.WantTextInput)
+; 12450: 
+; 12451:     if (! io.WantTextInput)
 
 	cmp	BYTE PTR [esi+842], 0
 	movss	xmm0, DWORD PTR [esi+788]
@@ -3940,8 +3958,8 @@ $LN34@SK_ImGui_P:
 	movss	DWORD PTR [esi+788], xmm0
 	jne	$LN20@SK_ImGui_P
 
-; 12448:     {
-; 12449:       const bool up    = ( io.KeysDown ['W'] || io.KeysDown [VK_UP   ] );
+; 12452:     {
+; 12453:       const bool up    = ( io.KeysDown ['W'] || io.KeysDown [VK_UP   ] );
 
 	cmp	BYTE PTR [esi+316], 0
 	jne	SHORT $LN35@SK_ImGui_P
@@ -3953,7 +3971,7 @@ $LN35@SK_ImGui_P:
 	mov	dl, 1
 $LN36@SK_ImGui_P:
 
-; 12450:       const bool down  = ( io.KeysDown ['S'] || io.KeysDown [VK_DOWN ] );
+; 12454:       const bool down  = ( io.KeysDown ['S'] || io.KeysDown [VK_DOWN ] );
 
 	cmp	BYTE PTR [esi+312], 0
 	jne	SHORT $LN37@SK_ImGui_P
@@ -3965,7 +3983,7 @@ $LN37@SK_ImGui_P:
 	mov	ah, 1
 $LN38@SK_ImGui_P:
 
-; 12451:       const bool left  = ( io.KeysDown ['A'] || io.KeysDown [VK_LEFT ] );
+; 12455:       const bool left  = ( io.KeysDown ['A'] || io.KeysDown [VK_LEFT ] );
 
 	cmp	BYTE PTR [esi+294], 0
 	jne	SHORT $LN39@SK_ImGui_P
@@ -3977,7 +3995,7 @@ $LN39@SK_ImGui_P:
 	mov	cl, 1
 $LN40@SK_ImGui_P:
 
-; 12452:       const bool right = ( io.KeysDown ['D'] || io.KeysDown [VK_RIGHT] );
+; 12456:       const bool right = ( io.KeysDown ['D'] || io.KeysDown [VK_RIGHT] );
 
 	cmp	BYTE PTR [esi+297], 0
 	jne	SHORT $LN41@SK_ImGui_P
@@ -3989,13 +4007,13 @@ $LN41@SK_ImGui_P:
 	mov	al, 1
 $LN42@SK_ImGui_P:
 
-; 12453: 
-; 12454:       const float inv_analog     =
-; 12455:           ( 1.0f / analog_sensitivity );
-; 12456: 
-; 12457:       const float analog_epsilon = 0.001f;
-; 12458: 
-; 12459:       io.NavInputs [ImGuiNavInput_PadScrollUp]    +=
+; 12457: 
+; 12458:       const float inv_analog     =
+; 12459:           ( 1.0f / analog_sensitivity );
+; 12460: 
+; 12461:       const float analog_epsilon = 0.001f;
+; 12462: 
+; 12463:       io.NavInputs [ImGuiNavInput_PadScrollUp]    +=
 
 	cmp	BYTE PTR [esi+262], 0
 	movaps	xmm0, xmm2
@@ -4007,8 +4025,8 @@ $LN43@SK_ImGui_P:
 	xorps	xmm3, xmm3
 $LN44@SK_ImGui_P:
 
-; 12460:         (io.KeysDown [VK_PRIOR] ? inv_analog : 0.0f);
-; 12461:       io.NavInputs [ImGuiNavInput_PadScrollDown]  +=
+; 12464:         (io.KeysDown [VK_PRIOR] ? inv_analog : 0.0f);
+; 12465:       io.NavInputs [ImGuiNavInput_PadScrollDown]  +=
 
 	cmp	BYTE PTR [esi+263], 0
 	movss	xmm6, DWORD PTR [esi+808]
@@ -4021,8 +4039,8 @@ $LN45@SK_ImGui_P:
 	xorps	xmm3, xmm3
 $LN46@SK_ImGui_P:
 
-; 12462:         (io.KeysDown [VK_NEXT ] ? inv_analog : 0.0f);
-; 12463:       io.NavInputs [ImGuiNavInput_PadScrollLeft]  +=
+; 12466:         (io.KeysDown [VK_NEXT ] ? inv_analog : 0.0f);
+; 12467:       io.NavInputs [ImGuiNavInput_PadScrollLeft]  +=
 
 	cmp	BYTE PTR [esi+265], 0
 	addss	xmm3, DWORD PTR [esi+812]
@@ -4034,8 +4052,8 @@ $LN47@SK_ImGui_P:
 	xorps	xmm4, xmm4
 $LN48@SK_ImGui_P:
 
-; 12464:         (io.KeysDown [VK_HOME ] ? inv_analog : 0.0f);
-; 12465:       io.NavInputs [ImGuiNavInput_PadScrollRight] +=
+; 12468:         (io.KeysDown [VK_HOME ] ? inv_analog : 0.0f);
+; 12469:       io.NavInputs [ImGuiNavInput_PadScrollRight] +=
 
 	cmp	BYTE PTR [esi+264], 0
 	movss	xmm7, DWORD PTR [esi+816]
@@ -4050,9 +4068,9 @@ $LN50@SK_ImGui_P:
 	addss	xmm5, DWORD PTR [esi+820]
 	movss	DWORD PTR [esi+820], xmm5
 
-; 12466:         (io.KeysDown [VK_END  ] ? inv_analog : 0.0f);
-; 12467: 
-; 12468:       io.NavInputs [ImGuiNavInput_PadScrollUp]    +=
+; 12470:         (io.KeysDown [VK_END  ] ? inv_analog : 0.0f);
+; 12471: 
+; 12472:       io.NavInputs [ImGuiNavInput_PadScrollUp]    +=
 
 	test	dl, dl
 	je	SHORT $LN51@SK_ImGui_P
@@ -4064,8 +4082,8 @@ $LN52@SK_ImGui_P:
 	addss	xmm4, xmm6
 	movss	DWORD PTR [esi+808], xmm4
 
-; 12469:         (up    ? inv_analog : 0.0f);
-; 12470:       io.NavInputs [ImGuiNavInput_PadScrollDown]  +=
+; 12473:         (up    ? inv_analog : 0.0f);
+; 12474:       io.NavInputs [ImGuiNavInput_PadScrollDown]  +=
 
 	test	ah, ah
 	je	SHORT $LN53@SK_ImGui_P
@@ -4077,8 +4095,8 @@ $LN54@SK_ImGui_P:
 	addss	xmm4, xmm3
 	movss	DWORD PTR [esi+812], xmm4
 
-; 12471:         (down  ? inv_analog : 0.0f);
-; 12472:       io.NavInputs [ImGuiNavInput_PadScrollLeft]  +=
+; 12475:         (down  ? inv_analog : 0.0f);
+; 12476:       io.NavInputs [ImGuiNavInput_PadScrollLeft]  +=
 
 	test	cl, cl
 	je	SHORT $LN55@SK_ImGui_P
@@ -4090,17 +4108,17 @@ $LN56@SK_ImGui_P:
 	addss	xmm3, xmm7
 	movss	DWORD PTR [esi+816], xmm3
 
-; 12473:         (left  ? inv_analog : 0.0f);
-; 12474:       io.NavInputs [ImGuiNavInput_PadScrollRight] +=
+; 12477:         (left  ? inv_analog : 0.0f);
+; 12478:       io.NavInputs [ImGuiNavInput_PadScrollRight] +=
 
 	test	al, al
 	jne	SHORT $LN58@SK_ImGui_P
 	xorps	xmm0, xmm0
 $LN58@SK_ImGui_P:
 
-; 12475:         (right ? inv_analog : 0.0f);
-; 12476: 
-; 12477:       io.NavInputs [ImGuiNavInput_PadUp]          +=
+; 12479:         (right ? inv_analog : 0.0f);
+; 12480: 
+; 12481:       io.NavInputs [ImGuiNavInput_PadUp]          +=
 
 	movss	xmm3, DWORD PTR __real@3a83126f
 	addss	xmm0, xmm5
@@ -4115,8 +4133,8 @@ $LN60@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+792]
 	movss	DWORD PTR [esi+792], xmm0
 
-; 12478:         (up    ? analog_epsilon : 0.0f);
-; 12479:       io.NavInputs [ImGuiNavInput_PadDown]        +=
+; 12482:         (up    ? analog_epsilon : 0.0f);
+; 12483:       io.NavInputs [ImGuiNavInput_PadDown]        +=
 
 	test	ah, ah
 	je	SHORT $LN61@SK_ImGui_P
@@ -4129,8 +4147,8 @@ $LN62@SK_ImGui_P:
 	addss	xmm0, xmm4
 	movss	DWORD PTR [esi+796], xmm0
 
-; 12480:         (down  ? analog_epsilon : 0.0f);
-; 12481:       io.NavInputs [ImGuiNavInput_PadLeft]        +=
+; 12484:         (down  ? analog_epsilon : 0.0f);
+; 12485:       io.NavInputs [ImGuiNavInput_PadLeft]        +=
 
 	test	cl, cl
 	je	SHORT $LN63@SK_ImGui_P
@@ -4142,8 +4160,8 @@ $LN64@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+800]
 	movss	DWORD PTR [esi+800], xmm0
 
-; 12482:         (left  ? analog_epsilon : 0.0f);
-; 12483:       io.NavInputs [ImGuiNavInput_PadRight]       +=
+; 12486:         (left  ? analog_epsilon : 0.0f);
+; 12487:       io.NavInputs [ImGuiNavInput_PadRight]       +=
 
 	test	al, al
 	jne	SHORT $LN66@SK_ImGui_P
@@ -4153,10 +4171,10 @@ $LN66@SK_ImGui_P:
 	movss	DWORD PTR [esi+804], xmm3
 $LN20@SK_ImGui_P:
 
-; 12484:         (right ? analog_epsilon : 0.0f);
-; 12485:     }
-; 12486: 
-; 12487:     io.NavInputs  [ImGuiNavInput_PadActivate]     +=
+; 12488:         (right ? analog_epsilon : 0.0f);
+; 12489:     }
+; 12490: 
+; 12491:     io.NavInputs  [ImGuiNavInput_PadActivate]     +=
 
 	cmp	BYTE PTR [esi+242], 0
 	je	SHORT $LN67@SK_ImGui_P
@@ -4166,8 +4184,8 @@ $LN67@SK_ImGui_P:
 	xorps	xmm0, xmm0
 $LN68@SK_ImGui_P:
 
-; 12488:       io.KeysDown [VK_RETURN]  ?  1.0f : 0.0f;
-; 12489:     io.NavInputs  [ImGuiNavInput_PadCancel]       +=
+; 12492:       io.KeysDown [VK_RETURN]  ?  1.0f : 0.0f;
+; 12493:     io.NavInputs  [ImGuiNavInput_PadCancel]       +=
 
 	cmp	BYTE PTR [esi+256], 0
 	addss	xmm0, DWORD PTR [edi]
@@ -4179,21 +4197,21 @@ $LN69@SK_ImGui_P:
 	addss	xmm0, xmm1
 	movss	DWORD PTR [esi+780], xmm0
 
-; 12490:       io.KeysDown [VK_ESCAPE]  ?  1.0f : 0.0f;
-; 12491:   }
-; 12492: 
-; 12493:   else
+; 12494:       io.KeysDown [VK_ESCAPE]  ?  1.0f : 0.0f;
+; 12495:   }
+; 12496: 
+; 12497:   else
 
 	jmp	SHORT $LN19@SK_ImGui_P
 $LN18@SK_ImGui_P:
 
-; 12494:     io.NavActive = false;
+; 12498:     io.NavActive = false;
 
 	mov	BYTE PTR [esi+845], 0
 $LN19@SK_ImGui_P:
 
-; 12495: 
-; 12496:   io.NavInputs [ImGuiNavInput_PadFocusPrev] +=
+; 12499: 
+; 12500:   io.NavInputs [ImGuiNavInput_PadFocusPrev] +=
 
 	mov	al, BYTE PTR [esi+225]
 	test	al, al
@@ -4218,10 +4236,10 @@ $LN72@SK_ImGui_P:
 	addss	xmm0, DWORD PTR [esi+824]
 	movss	DWORD PTR [esi+824], xmm0
 
-; 12497:     (io.KeyCtrl && io.KeyShift && io.KeysDown [VK_TAB] &&
-; 12498:                           io.KeysDownDuration [VK_TAB] == 0.0f)  ? 1.0f : 0.0f;
-; 12499: 
-; 12500:   io.NavInputs [ImGuiNavInput_PadFocusNext] +=
+; 12501:     (io.KeyCtrl && io.KeyShift && io.KeysDown [VK_TAB] &&
+; 12502:                           io.KeysDownDuration [VK_TAB] == 0.0f)  ? 1.0f : 0.0f;
+; 12503: 
+; 12504:   io.NavInputs [ImGuiNavInput_PadFocusNext] +=
 
 	test	al, al
 	je	SHORT $LN73@SK_ImGui_P
@@ -4236,12 +4254,12 @@ $LN73@SK_ImGui_P:
 	xorps	xmm2, xmm2
 $LN74@SK_ImGui_P:
 
-; 12501:     (io.KeyCtrl                && io.KeysDown [VK_TAB] &&
-; 12502:                           io.KeysDownDuration [VK_TAB] == 0.0f)  ? 1.0f : 0.0f;
-; 12503: 
-; 12504: 
-; 12505: 
-; 12506:   if (io.NavInputs [ImGuiNavInput_PadActivate] != 0.0f)
+; 12505:     (io.KeyCtrl                && io.KeysDown [VK_TAB] &&
+; 12506:                           io.KeysDownDuration [VK_TAB] == 0.0f)  ? 1.0f : 0.0f;
+; 12507: 
+; 12508: 
+; 12509: 
+; 12510:   if (io.NavInputs [ImGuiNavInput_PadActivate] != 0.0f)
 
 	movss	xmm0, DWORD PTR [edi]
 	addss	xmm2, DWORD PTR [esi+828]
@@ -4251,25 +4269,25 @@ $LN74@SK_ImGui_P:
 	test	ah, 68					; 00000044H
 	jnp	SHORT $LN21@SK_ImGui_P
 
-; 12507:     io.MouseDown [4] = true;
+; 12511:     io.MouseDown [4] = true;
 
 	mov	BYTE PTR [esi+216], 1
 
-; 12508:   else
+; 12512:   else
 
 	jmp	SHORT $LN22@SK_ImGui_P
 $LN21@SK_ImGui_P:
 
-; 12509:     io.MouseDown [4] = false;
+; 12513:     io.MouseDown [4] = false;
 
 	mov	BYTE PTR [esi+216], 0
 $LN22@SK_ImGui_P:
 
-; 12510: 
-; 12511:   static DWORD last_toggle = 0UL;
-; 12512: 
-; 12513:   if ( ( io.NavInputs             [ImGuiNavInput_PadTweakSlow] != 0.0f &&
-; 12514:          io.NavInputs             [ImGuiNavInput_PadTweakFast] != 0.0f )   &&
+; 12514: 
+; 12515:   static DWORD last_toggle = 0UL;
+; 12516: 
+; 12517:   if ( ( io.NavInputs             [ImGuiNavInput_PadTweakSlow] != 0.0f &&
+; 12518:          io.NavInputs             [ImGuiNavInput_PadTweakFast] != 0.0f )   &&
 
 	movss	xmm0, DWORD PTR [esi+832]
 	ucomiss	xmm0, xmm1
@@ -4293,31 +4311,31 @@ $LN22@SK_ImGui_P:
 	jp	SHORT $LN25@SK_ImGui_P
 $LN24@SK_ImGui_P:
 
-; 12515:        ( io.NavInputsDownDuration [ImGuiNavInput_PadTweakSlow] == 0.0f ||
-; 12516:          io.NavInputsDownDuration [ImGuiNavInput_PadTweakFast] == 0.0f )      )
-; 12517:   {
-; 12518:     if (last_toggle < SK_GetFramesDrawn () - 1)
+; 12519:        ( io.NavInputsDownDuration [ImGuiNavInput_PadTweakSlow] == 0.0f ||
+; 12520:          io.NavInputsDownDuration [ImGuiNavInput_PadTweakFast] == 0.0f )      )
+; 12521:   {
+; 12522:     if (last_toggle < SK_GetFramesDrawn () - 1)
 
 	call	?SK_GetFramesDrawn@@YGKXZ		; SK_GetFramesDrawn
 	dec	eax
 	cmp	DWORD PTR ?last_toggle@?1??SK_ImGui_PollGamepad@@YAXXZ@4KA, eax
 	jae	SHORT $LN25@SK_ImGui_P
 
-; 12519:     {
-; 12520:       SK_ImGui_Widgets.hide_all = (! SK_ImGui_Widgets.hide_all);
+; 12523:     {
+; 12524:       SK_ImGui_Widgets.hide_all = (! SK_ImGui_Widgets.hide_all);
 
 	cmp	BYTE PTR ?SK_ImGui_Widgets@@3USK_ImGui_WidgetRegistry@@A+32, 0
 	sete	BYTE PTR ?SK_ImGui_Widgets@@3USK_ImGui_WidgetRegistry@@A+32
 
-; 12521:       last_toggle               =    SK_GetFramesDrawn ();
+; 12525:       last_toggle               =    SK_GetFramesDrawn ();
 
 	call	?SK_GetFramesDrawn@@YGKXZ		; SK_GetFramesDrawn
 	mov	DWORD PTR ?last_toggle@?1??SK_ImGui_PollGamepad@@YAXXZ@4KA, eax
 $LN25@SK_ImGui_P:
 
-; 12522:     }
-; 12523:   }
-; 12524: }
+; 12526:     }
+; 12527:   }
+; 12528: }
 
 	pop	edi
 	pop	esi
@@ -4385,7 +4403,7 @@ _toggle_vis$14 = -1					; size = 1
 _nav$15 = -1						; size = 1
 ?SK_ImGui_PollGamepad_EndFrame@@YAXXZ PROC		; SK_ImGui_PollGamepad_EndFrame
 
-; 12089: {
+; 12093: {
 
 	npad	2
 	push	ebx
@@ -4401,29 +4419,29 @@ _nav$15 = -1						; size = 1
 	push	esi
 	push	edi
 
-; 12090:   ImGuiIO& io (ImGui::GetIO ());
+; 12094:   ImGuiIO& io (ImGui::GetIO ());
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	edi, eax
 
-; 12091: 
-; 12092:   // Reset Mouse / Keyboard State so that we can process all state transitions
-; 12093:   //   that occur during the next frame without losing any input events.
-; 12094:   if (GetForegroundWindow () == game_window.hWnd)
+; 12095: 
+; 12096:   // Reset Mouse / Keyboard State so that we can process all state transitions
+; 12097:   //   that occur during the next frame without losing any input events.
+; 12098:   if (GetForegroundWindow () == game_window.hWnd)
 
 	call	DWORD PTR __imp__GetForegroundWindow@0
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN5@SK_ImGui_P
 
-; 12095:   {
-; 12096:     io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
+; 12099:   {
+; 12100:     io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
 
 	push	1
 	call	DWORD PTR ?GetAsyncKeyState_Original@@3P6GFH@ZA ; GetAsyncKeyState_Original
 	shr	eax, 15					; 0000000fH
 	and	al, 1
 
-; 12097:     io.MouseDown [1] = (GetAsyncKeyState_Original (VK_RBUTTON)  & 0x8000) != 0;
+; 12101:     io.MouseDown [1] = (GetAsyncKeyState_Original (VK_RBUTTON)  & 0x8000) != 0;
 
 	push	2
 	mov	BYTE PTR [edi+212], al
@@ -4431,7 +4449,7 @@ _nav$15 = -1						; size = 1
 	shr	eax, 15					; 0000000fH
 	and	al, 1
 
-; 12098:     io.MouseDown [2] = (GetAsyncKeyState_Original (VK_MBUTTON)  & 0x8000) != 0;
+; 12102:     io.MouseDown [2] = (GetAsyncKeyState_Original (VK_MBUTTON)  & 0x8000) != 0;
 
 	push	4
 	mov	BYTE PTR [edi+213], al
@@ -4439,7 +4457,7 @@ _nav$15 = -1						; size = 1
 	shr	eax, 15					; 0000000fH
 	and	al, 1
 
-; 12099:     io.MouseDown [3] = (GetAsyncKeyState_Original (VK_XBUTTON1) & 0x8000) != 0;
+; 12103:     io.MouseDown [3] = (GetAsyncKeyState_Original (VK_XBUTTON1) & 0x8000) != 0;
 
 	push	5
 	mov	BYTE PTR [edi+214], al
@@ -4447,17 +4465,17 @@ _nav$15 = -1						; size = 1
 	shr	eax, 15					; 0000000fH
 	and	al, 1
 
-; 12100:     io.MouseDown [4] = (GetAsyncKeyState_Original (VK_XBUTTON2) & 0x8000) != 0;
+; 12104:     io.MouseDown [4] = (GetAsyncKeyState_Original (VK_XBUTTON2) & 0x8000) != 0;
 
 	push	6
 	mov	BYTE PTR [edi+215], al
 	call	DWORD PTR ?GetAsyncKeyState_Original@@3P6GFH@ZA ; GetAsyncKeyState_Original
 	shr	eax, 15					; 0000000fH
 
-; 12101: 
-; 12102:     // This stupid hack prevents the Steam overlay from making the software
-; 12103:     //   think tab is stuck down.
-; 12104:     for (int i = 8; i < 256; i++)
+; 12105: 
+; 12106:     // This stupid hack prevents the Steam overlay from making the software
+; 12107:     //   think tab is stuck down.
+; 12108:     for (int i = 8; i < 256; i++)
 
 	mov	esi, 8
 	and	al, 1
@@ -4465,7 +4483,7 @@ _nav$15 = -1						; size = 1
 	npad	3
 $LL4@SK_ImGui_P:
 
-; 12105:       io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
+; 12109:       io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
 
 	push	esi
 	call	DWORD PTR ?GetAsyncKeyState_Original@@3P6GFH@ZA ; GetAsyncKeyState_Original
@@ -4476,14 +4494,14 @@ $LL4@SK_ImGui_P:
 	cmp	esi, 256				; 00000100H
 	jl	SHORT $LL4@SK_ImGui_P
 
-; 12106: 
-; 12107:     if (config.input.keyboard.catch_alt_f4)
+; 12110: 
+; 12111:     if (config.input.keyboard.catch_alt_f4)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+725, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+729, 0
 	je	SHORT $LN6@SK_ImGui_P
 
-; 12108:     {
-; 12109:       if ( io.KeyAlt && io.KeysDown [VK_F4] && ( io.KeysDownDuration [VK_MENU] == 0 ||
+; 12112:     {
+; 12113:       if ( io.KeyAlt && io.KeysDown [VK_F4] && ( io.KeysDownDuration [VK_MENU] == 0 ||
 
 	cmp	BYTE PTR [edi+227], 0
 	je	SHORT $LN6@SK_ImGui_P
@@ -4502,24 +4520,24 @@ $LL4@SK_ImGui_P:
 	jp	SHORT $LN6@SK_ImGui_P
 $LN9@SK_ImGui_P:
 
-; 12110:                                                  io.KeysDownDuration [VK_F4]   == 0 ) )
-; 12111:       {
-; 12112:         extern bool SK_ImGui_WantExit;
-; 12113:                     SK_ImGui_WantExit = true;
+; 12114:                                                  io.KeysDownDuration [VK_F4]   == 0 ) )
+; 12115:       {
+; 12116:         extern bool SK_ImGui_WantExit;
+; 12117:                     SK_ImGui_WantExit = true;
 
 	mov	BYTE PTR ?SK_ImGui_WantExit@@3_NA, 1	; SK_ImGui_WantExit
 
-; 12114:       }
-; 12115:     }
-; 12116:   }
-; 12117: 
-; 12118:   else
+; 12118:       }
+; 12119:     }
+; 12120:   }
+; 12121: 
+; 12122:   else
 
 	jmp	SHORT $LN6@SK_ImGui_P
 $LN5@SK_ImGui_P:
 
-; 12119:   {
-; 12120:     ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
+; 12123:   {
+; 12124:     ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
 
 	push	512					; 00000200H
 	lea	eax, DWORD PTR [edi+229]
@@ -4527,22 +4545,22 @@ $LN5@SK_ImGui_P:
 	push	eax
 	call	_memset
 
-; 12121:     ZeroMemory (io.MouseDown, sizeof (bool) * 5);
+; 12125:     ZeroMemory (io.MouseDown, sizeof (bool) * 5);
 
 	mov	DWORD PTR [edi+212], 0
 	add	esp, 12					; 0000000cH
 	mov	BYTE PTR [edi+216], 0
 $LN6@SK_ImGui_P:
 
-; 12122:   }
-; 12123: 
-; 12124:          XINPUT_STATE state      = {      };
-; 12125:   static XINPUT_STATE last_state = { 1, 0 };
-; 12126: 
-; 12127:   bool api_bridge =
-; 12128:     config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
+; 12126:   }
+; 12127: 
+; 12128:          XINPUT_STATE state      = {      };
+; 12129:   static XINPUT_STATE last_state = { 1, 0 };
+; 12130: 
+; 12131:   bool api_bridge =
+; 12132:     config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+694, 0
 	xorps	xmm0, xmm0
 	mov	esi, DWORD PTR __imp__timeGetTime@0
 	movaps	XMMWORD PTR _state$[ebp], xmm0
@@ -4550,33 +4568,33 @@ $LN6@SK_ImGui_P:
 	cmp	DWORD PTR ?steam_to_xi@@3PAU_XINPUT_STATE@@A, 0 ; steam_to_xi
 	jne	SHORT $LN31@SK_ImGui_P
 
-; 12145:   }
-; 12146: 
-; 12147: #if 1
-; 12148:   state = joy_to_xi;
+; 12149:   }
+; 12150: 
+; 12151: #if 1
+; 12152:   state = joy_to_xi;
 
 	movups	xmm0, XMMWORD PTR ?joy_to_xi@@3U_XINPUT_STATE@@A
 
-; 12149: #else
-; 12150:   state = di8_to_xi;
-; 12151: #endif
-; 12152: 
-; 12153:   if ( api_bridge ||
+; 12153: #else
+; 12154:   state = di8_to_xi;
+; 12155: #endif
+; 12156: 
+; 12157:   if ( api_bridge ||
 
 	lea	eax, DWORD PTR _state$[ebp]
 	push	eax
-	push	DWORD PTR ?config@@3Usk_config_t@@A+696
+	push	DWORD PTR ?config@@3Usk_config_t@@A+700
 	movups	XMMWORD PTR _state$[ebp], xmm0
 	call	?SK_XInput_PollController@@YA_NHPAU_XINPUT_STATE@@@Z ; SK_XInput_PollController
 	add	esp, 8
 	test	al, al
 	jne	SHORT $LN103@SK_ImGui_P
 
-; 12200:     }
-; 12201:   }
-; 12202: 
-; 12203:   else
-; 12204:     ZeroMemory (&state.Gamepad, sizeof XINPUT_GAMEPAD);
+; 12204:     }
+; 12205:   }
+; 12206: 
+; 12207:   else
+; 12208:     ZeroMemory (&state.Gamepad, sizeof XINPUT_GAMEPAD);
 
 	xorps	xmm0, xmm0
 	mov	DWORD PTR _state$[ebp+12], 0
@@ -4585,21 +4603,21 @@ $LN6@SK_ImGui_P:
 	jmp	$LN105@SK_ImGui_P
 $LN103@SK_ImGui_P:
 
-; 12145:   }
-; 12146: 
-; 12147: #if 1
-; 12148:   state = joy_to_xi;
+; 12149:   }
+; 12150: 
+; 12151: #if 1
+; 12152:   state = joy_to_xi;
 
 	movaps	xmm1, XMMWORD PTR _state$[ebp]
 	jmp	SHORT $LN13@SK_ImGui_P
 $LN31@SK_ImGui_P:
 
-; 12129: 
-; 12130:   if (api_bridge)
-; 12131:   {
-; 12132:     // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-; 12133:     //   for no good reason.
-; 12134:     JOYINFOEX joy_ex   { };
+; 12133: 
+; 12134:   if (api_bridge)
+; 12135:   {
+; 12136:     // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+; 12137:     //   for no good reason.
+; 12138:     JOYINFOEX joy_ex   { };
 
 	push	52					; 00000034H
 	lea	eax, DWORD PTR _joy_ex$3[ebp]
@@ -4607,7 +4625,7 @@ $LN31@SK_ImGui_P:
 	push	eax
 	call	_memset
 
-; 12135:     JOYCAPSW  joy_caps { };
+; 12139:     JOYCAPSW  joy_caps { };
 
 	push	728					; 000002d8H
 	lea	eax, DWORD PTR _joy_caps$1[ebp]
@@ -4616,15 +4634,15 @@ $LN31@SK_ImGui_P:
 	call	_memset
 	add	esp, 24					; 00000018H
 
-; 12136: 
-; 12137:     joy_ex.dwSize  = sizeof JOYINFOEX;
+; 12140: 
+; 12141:     joy_ex.dwSize  = sizeof JOYINFOEX;
 
 	mov	DWORD PTR _joy_ex$3[ebp], 52		; 00000034H
 
-; 12138:     joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
-; 12139:                      JOY_RETURNCENTERED | JOY_USEDEADZONE;
-; 12140: 
-; 12141:     joyGetPosEx    (JOYSTICKID1, &joy_ex);
+; 12142:     joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
+; 12143:                      JOY_RETURNCENTERED | JOY_USEDEADZONE;
+; 12144: 
+; 12145:     joyGetPosEx    (JOYSTICKID1, &joy_ex);
 
 	lea	eax, DWORD PTR _joy_ex$3[ebp]
 	mov	DWORD PTR _joy_ex$3[ebp+4], 3839	; 00000effH
@@ -4632,7 +4650,7 @@ $LN31@SK_ImGui_P:
 	push	0
 	call	DWORD PTR __imp__joyGetPosEx@8
 
-; 12142:     joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof JOYCAPSW);
+; 12146:     joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof JOYCAPSW);
 
 	push	728					; 000002d8H
 	lea	eax, DWORD PTR _joy_caps$1[ebp]
@@ -4640,8 +4658,8 @@ $LN31@SK_ImGui_P:
 	push	0
 	call	DWORD PTR __imp__joyGetDevCapsW@12
 
-; 12143: 
-; 12144:     SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
+; 12147: 
+; 12148:     SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
 
 	lea	eax, DWORD PTR _joy_caps$1[ebp]
 	push	eax
@@ -4651,20 +4669,20 @@ $LN31@SK_ImGui_P:
 	push	eax
 	call	?SK_JOY_TranslateToXInput@@YA?AU_XINPUT_STATE@@PAUjoyinfoex_tag@@PBUtagJOYCAPSW@@@Z ; SK_JOY_TranslateToXInput
 
-; 12145:   }
-; 12146: 
-; 12147: #if 1
-; 12148:   state = joy_to_xi;
+; 12149:   }
+; 12150: 
+; 12151: #if 1
+; 12152:   state = joy_to_xi;
 
 	movups	xmm1, XMMWORD PTR ?joy_to_xi@@3U_XINPUT_STATE@@A
 	add	esp, 12					; 0000000cH
 	movaps	XMMWORD PTR _state$[ebp], xmm1
 $LN13@SK_ImGui_P:
 
-; 12154:        SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) )
-; 12155:   {
-; 12156:     if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&
-; 12157:          state.Gamepad.wButtons & XINPUT_GAMEPAD_START &&
+; 12158:        SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) )
+; 12159:   {
+; 12160:     if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&
+; 12161:          state.Gamepad.wButtons & XINPUT_GAMEPAD_START &&
 
 	movaps	xmm0, xmm1
 	psrldq	xmm0, 4
@@ -4677,9 +4695,9 @@ $LN13@SK_ImGui_P:
 	cmp	DWORD PTR ?last_state@?1??SK_ImGui_PollGamepad_EndFrame@@YAXXZ@4U_XINPUT_STATE@@A, edx
 	ja	$LN105@SK_ImGui_P
 
-; 12158:          last_state.dwPacketNumber <= state.dwPacketNumber )
-; 12159:     {
-; 12160:       if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK &&
+; 12162:          last_state.dwPacketNumber <= state.dwPacketNumber )
+; 12163:     {
+; 12164:       if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK &&
 
 	mov	cx, WORD PTR ?last_state@?1??SK_ImGui_PollGamepad_EndFrame@@YAXXZ@4U_XINPUT_STATE@@A+4
 	test	cl, 32					; 00000020H
@@ -4688,16 +4706,16 @@ $LN13@SK_ImGui_P:
 	jne	SHORT $LN17@SK_ImGui_P
 $LN16@SK_ImGui_P:
 
-; 12161:               last_state.Gamepad.wButtons & XINPUT_GAMEPAD_START ) )
-; 12162:       {
-; 12163:         bool toggle = true,
-; 12164:              nav    = (! nav_usable);
+; 12165:               last_state.Gamepad.wButtons & XINPUT_GAMEPAD_START ) )
+; 12166:       {
+; 12167:         bool toggle = true,
+; 12168:              nav    = (! nav_usable);
 
 	cmp	BYTE PTR ?nav_usable@@3_NA, 0		; nav_usable
 
-; 12165: 
-; 12166:         // Additional condition for Final Fantasy X so as not to interfere with soft reset
-; 12167:         if (! ( state.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD || 
+; 12169: 
+; 12170:         // Additional condition for Final Fantasy X so as not to interfere with soft reset
+; 12171:         if (! ( state.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD || 
 
 	movaps	xmm0, xmm1
 	psrldq	xmm0, 6
@@ -4712,9 +4730,9 @@ $LN16@SK_ImGui_P:
 	cmp	al, 30					; 0000001eH
 	ja	SHORT $LN17@SK_ImGui_P
 
-; 12168:                 state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) )
-; 12169:         {
-; 12170:           SK_ImGui_ToggleEx (toggle, nav);
+; 12172:                 state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) )
+; 12173:         {
+; 12174:           SK_ImGui_ToggleEx (toggle, nav);
 
 	lea	eax, DWORD PTR _nav$15[ebp]
 	push	eax
@@ -4727,20 +4745,20 @@ $LN104@SK_ImGui_P:
 	mov	edx, DWORD PTR _state$[ebp]
 $LN17@SK_ImGui_P:
 
-; 12171:         }
-; 12172:       }
-; 12173:     }
-; 12174: 
-; 12175:      const DWORD LONG_PRESS  = 400UL;
-; 12176:     static DWORD dwLastPress = MAXDWORD;
-; 12177: 
-; 12178:     if (last_state.dwPacketNumber <= state.dwPacketNumber)
+; 12175:         }
+; 12176:       }
+; 12177:     }
+; 12178: 
+; 12179:      const DWORD LONG_PRESS  = 400UL;
+; 12180:     static DWORD dwLastPress = MAXDWORD;
+; 12181: 
+; 12182:     if (last_state.dwPacketNumber <= state.dwPacketNumber)
 
 	cmp	DWORD PTR ?last_state@?1??SK_ImGui_PollGamepad_EndFrame@@YAXXZ@4U_XINPUT_STATE@@A, edx
 	ja	$LN105@SK_ImGui_P
 
-; 12179:     {
-; 12180:       if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
+; 12183:     {
+; 12184:       if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
 
 	movaps	xmm0, xmm1
 	psrldq	xmm0, 4
@@ -4750,9 +4768,9 @@ $LN17@SK_ImGui_P:
 	test	cl, 32					; 00000020H
 	je	$LN19@SK_ImGui_P
 
-; 12181:            (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )
-; 12182:       {
-; 12183:         if (dwLastPress < timeGetTime () - LONG_PRESS)
+; 12185:            (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )
+; 12186:       {
+; 12187:         if (dwLastPress < timeGetTime () - LONG_PRESS)
 
 	call	esi
 	sub	eax, 400				; 00000190H
@@ -4773,11 +4791,11 @@ $LN35@SK_ImGui_P:
 $LN36@SK_ImGui_P:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12185:           bool toggle_vis = (! SK_ImGui_Active ());
+; 12189:           bool toggle_vis = (! SK_ImGui_Active ());
 
 	test	al, al
 
-; 12186:           bool toggle_nav =    true;
+; 12190:           bool toggle_nav =    true;
 
 	mov	BYTE PTR _toggle_nav$12[ebp], 1
 	sete	BYTE PTR _toggle_vis$14[ebp]
@@ -4792,7 +4810,7 @@ $LN36@SK_ImGui_P:
 $LN39@SK_ImGui_P:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12189:             SK_ImGui_ToggleEx (toggle_vis, toggle_nav);
+; 12193:             SK_ImGui_ToggleEx (toggle_vis, toggle_nav);
 
 	lea	eax, DWORD PTR _toggle_nav$12[ebp]
 	push	eax
@@ -4801,15 +4819,15 @@ $LN39@SK_ImGui_P:
 	call	?SK_ImGui_ToggleEx@@YG_NAA_N0@Z		; SK_ImGui_ToggleEx
 $LN22@SK_ImGui_P:
 
-; 12190: 
-; 12191:           dwLastPress = MAXDWORD;
-; 12192:         }
-; 12193:       }
+; 12194: 
+; 12195:           dwLastPress = MAXDWORD;
+; 12196:         }
+; 12197:       }
 
 	movaps	xmm1, XMMWORD PTR _state$[ebp]
 $LN23@SK_ImGui_P:
 
-; 12199:         dwLastPress = MAXDWORD;
+; 12203:         dwLastPress = MAXDWORD;
 
 	mov	DWORD PTR ?dwLastPress@?BE@??SK_ImGui_PollGamepad_EndFrame@@YAXXZ@4KA, -1
 $LN105@SK_ImGui_P:
@@ -4824,28 +4842,28 @@ $LN105@SK_ImGui_P:
 $LN43@SK_ImGui_P:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12207:   if (SK_ImGui_Active () && config.input.gamepad.haptic_ui)
+; 12211:   if (SK_ImGui_Active () && config.input.gamepad.haptic_ui)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	je	$LN101@SK_ImGui_P
 
-; 12208:   {
-; 12209:     ImGuiContext& g =
+; 12212:   {
+; 12213:     ImGuiContext& g =
 
 	mov	edi, DWORD PTR ?GImGui@@3PAUImGuiContext@@A ; GImGui
 
-; 12210:       *GImGui;
-; 12211: 
-; 12212:     static ImGuiID nav_id = 0;
-; 12213: 
-; 12214:     if (g.NavId != nav_id)
+; 12214:       *GImGui;
+; 12215: 
+; 12216:     static ImGuiID nav_id = 0;
+; 12217: 
+; 12218:     if (g.NavId != nav_id)
 
 	mov	eax, DWORD PTR [edi+6384]
 	cmp	eax, DWORD PTR ?nav_id@?DA@??SK_ImGui_PollGamepad_EndFrame@@YAXXZ@4IA
 	je	$LN28@SK_ImGui_P
 
-; 12215:     {
-; 12216:       if (haptic_events.PulseNav.end > static_cast <float> (timeGetTime ()))
+; 12219:     {
+; 12220:       if (haptic_events.PulseNav.end > static_cast <float> (timeGetTime ()))
 
 	call	esi
 	movss	xmm2, DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+44
@@ -4857,48 +4875,48 @@ $LN43@SK_ImGui_P:
 	comiss	xmm2, xmm0
 	jbe	SHORT $LN27@SK_ImGui_P
 
-; 12217:       {
-; 12218:         haptic_events.PulseNav.end   += haptic_events.PulseNav.duration;
+; 12221:       {
+; 12222:         haptic_events.PulseNav.end   += haptic_events.PulseNav.duration;
 
 	movss	xmm1, DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+32
 	movaps	xmm0, xmm1
 	addss	xmm0, xmm2
 	movss	DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+44, xmm0
 
-; 12219:         haptic_events.PulseNav.start += haptic_events.PulseNav.duration;
+; 12223:         haptic_events.PulseNav.start += haptic_events.PulseNav.duration;
 
 	movss	xmm0, DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+40
 	addss	xmm0, xmm1
 	movss	DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+40, xmm0
 
-; 12220:       }
-; 12221: 
-; 12222:       else
+; 12224:       }
+; 12225: 
+; 12226:       else
 
 	jmp	SHORT $LN28@SK_ImGui_P
 $LN19@SK_ImGui_P:
 
-; 12194: 
-; 12195:       else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
+; 12198: 
+; 12199:       else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
 
 	test	ax, ax
 	je	$LN23@SK_ImGui_P
 
-; 12196:         dwLastPress = timeGetTime ();
+; 12200:         dwLastPress = timeGetTime ();
 
 	call	esi
 	mov	DWORD PTR ?dwLastPress@?BE@??SK_ImGui_PollGamepad_EndFrame@@YAXXZ@4KA, eax
 $LN106@SK_ImGui_P:
 
-; 12197: 
-; 12198:       else
+; 12201: 
+; 12202:       else
 
 	movaps	xmm1, XMMWORD PTR _state$[ebp]
 	jmp	$LN105@SK_ImGui_P
 $LN27@SK_ImGui_P:
 
-; 12223:       {
-; 12224:         haptic_events.PulseNav.start = static_cast <float> (timeGetTime ());
+; 12227:       {
+; 12228:         haptic_events.PulseNav.start = static_cast <float> (timeGetTime ());
 
 	call	esi
 	movd	xmm0, eax
@@ -4908,23 +4926,23 @@ $LN27@SK_ImGui_P:
 	cvtpd2ps xmm0, xmm0
 	movss	DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+40, xmm0
 
-; 12225:         haptic_events.PulseNav.end   = haptic_events.PulseNav.start +
+; 12229:         haptic_events.PulseNav.end   = haptic_events.PulseNav.start +
 
 	addss	xmm0, DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+32
 	movss	DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+44, xmm0
 $LN28@SK_ImGui_P:
 
-; 12226:                                          haptic_events.PulseNav.duration;
-; 12227:       }
-; 12228:     }
-; 12229: 
-; 12230:     if (g.ActiveIdIsJustActivated)
+; 12230:                                          haptic_events.PulseNav.duration;
+; 12231:       }
+; 12232:     }
+; 12233: 
+; 12234:     if (g.ActiveIdIsJustActivated)
 
 	cmp	BYTE PTR [edi+6273], 0
 	je	SHORT $LN29@SK_ImGui_P
 
-; 12231:     {
-; 12232:       haptic_events.PulseButton.start = static_cast <float> (timeGetTime ());
+; 12235:     {
+; 12236:       haptic_events.PulseButton.start = static_cast <float> (timeGetTime ());
 
 	call	esi
 	movd	xmm0, eax
@@ -4933,7 +4951,7 @@ $LN28@SK_ImGui_P:
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm1, xmm0
 
-; 12233:       haptic_events.PulseButton.end   = haptic_events.PulseButton.start +
+; 12237:       haptic_events.PulseButton.end   = haptic_events.PulseButton.start +
 
 	movss	xmm0, DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+16
 	addss	xmm0, xmm1
@@ -4941,17 +4959,17 @@ $LN28@SK_ImGui_P:
 	movss	DWORD PTR ?haptic_events@@3U<unnamed-type-haptic_events>@@A+28, xmm0
 $LN29@SK_ImGui_P:
 
-; 12011:       auto now = static_cast <float> (timeGetTime ());
+; 12015:       auto now = static_cast <float> (timeGetTime ());
 
 	call	esi
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
 	shr	eax, 31					; 0000001fH
 
-; 12012:       
-; 12013:       return config.input.gamepad.haptic_ui ?
+; 12016:       
+; 12017:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN47@SK_ImGui_P
@@ -4972,24 +4990,24 @@ $LN47@SK_ImGui_P:
 	movss	DWORD PTR $T9[ebp], xmm0
 $LN48@SK_ImGui_P:
 
-; 12234:                                           haptic_events.PulseButton.duration;
-; 12235:     }
-; 12236: 
-; 12237:     SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
+; 12238:                                           haptic_events.PulseButton.duration;
+; 12239:     }
+; 12240: 
+; 12241:     SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
 
 	mov	DWORD PTR $T5[ebp], 1053609165		; 3ecccccdH
 
-; 12011:       auto now = static_cast <float> (timeGetTime ());
+; 12015:       auto now = static_cast <float> (timeGetTime ());
 
 	call	esi
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
 	shr	eax, 31					; 0000001fH
 
-; 12012:       
-; 12013:       return config.input.gamepad.haptic_ui ?
+; 12016:       
+; 12017:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN54@SK_ImGui_P
@@ -5008,17 +5026,17 @@ $LN54@SK_ImGui_P:
 	movss	DWORD PTR $T6[ebp], xmm0
 $LN55@SK_ImGui_P:
 
-; 12011:       auto now = static_cast <float> (timeGetTime ());
+; 12015:       auto now = static_cast <float> (timeGetTime ());
 
 	call	esi
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
 	shr	eax, 31					; 0000001fH
 
-; 12012:       
-; 12013:       return config.input.gamepad.haptic_ui ?
+; 12016:       
+; 12017:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN61@SK_ImGui_P
@@ -5037,17 +5055,17 @@ $LN61@SK_ImGui_P:
 	movss	DWORD PTR $T7[ebp], xmm0
 $LN62@SK_ImGui_P:
 
-; 12011:       auto now = static_cast <float> (timeGetTime ());
+; 12015:       auto now = static_cast <float> (timeGetTime ());
 
 	call	esi
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
 	shr	eax, 31					; 0000001fH
 
-; 12012:       
-; 12013:       return config.input.gamepad.haptic_ui ?
+; 12016:       
+; 12017:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN68@SK_ImGui_P
@@ -5077,17 +5095,17 @@ $LN69@SK_ImGui_P:
 	mov	DWORD PTR $T4[ebp], eax
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12011:       auto now = static_cast <float> (timeGetTime ());
+; 12015:       auto now = static_cast <float> (timeGetTime ());
 
 	call	esi
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
 	shr	eax, 31					; 0000001fH
 
-; 12012:       
-; 12013:       return config.input.gamepad.haptic_ui ?
+; 12016:       
+; 12017:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN78@SK_ImGui_P
@@ -5106,17 +5124,17 @@ $LN78@SK_ImGui_P:
 	movss	DWORD PTR $T10[ebp], xmm0
 $LN79@SK_ImGui_P:
 
-; 12011:       auto now = static_cast <float> (timeGetTime ());
+; 12015:       auto now = static_cast <float> (timeGetTime ());
 
 	call	esi
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
 	shr	eax, 31					; 0000001fH
 
-; 12012:       
-; 12013:       return config.input.gamepad.haptic_ui ?
+; 12016:       
+; 12017:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN85@SK_ImGui_P
@@ -5133,10 +5151,10 @@ $LN85@SK_ImGui_P:
 	xorps	xmm1, xmm1
 $LN86@SK_ImGui_P:
 
-; 12234:                                           haptic_events.PulseButton.duration;
-; 12235:     }
-; 12236: 
-; 12237:     SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
+; 12238:                                           haptic_events.PulseButton.duration;
+; 12239:     }
+; 12240: 
+; 12241:     SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
 
 	movss	xmm0, DWORD PTR $T8[ebp]
 	sub	esp, 8
@@ -5149,20 +5167,20 @@ $LN86@SK_ImGui_P:
 	minss	xmm0, DWORD PTR __real@3ecccccd
 	addss	xmm1, xmm0
 	movss	DWORD PTR [esp], xmm1
-	push	DWORD PTR ?config@@3Usk_config_t@@A+696
+	push	DWORD PTR ?config@@3Usk_config_t@@A+700
 	call	?SK_XInput_PulseController@@YA_NHMM@Z	; SK_XInput_PulseController
 
-; 12238:                                   haptic_events.PulseTitle.run  () +
-; 12239:                                   haptic_events.PulseButton.run () +
-; 12240:                   std::min (0.4f, haptic_events.PulseNav.run ()),
-; 12241:                                     haptic_events.PulseTitle.run  () +
-; 12242:                                     haptic_events.PulseButton.run () +
-; 12243:                     std::min (0.4f, haptic_events.PulseNav.run    ()) );
-; 12244: 
-; 12245:     nav_id = g.NavId;
-; 12246:   }
-; 12247: 
-; 12248:   last_state = state;
+; 12242:                                   haptic_events.PulseTitle.run  () +
+; 12243:                                   haptic_events.PulseButton.run () +
+; 12244:                   std::min (0.4f, haptic_events.PulseNav.run ()),
+; 12245:                                     haptic_events.PulseTitle.run  () +
+; 12246:                                     haptic_events.PulseButton.run () +
+; 12247:                     std::min (0.4f, haptic_events.PulseNav.run    ()) );
+; 12248: 
+; 12249:     nav_id = g.NavId;
+; 12250:   }
+; 12251: 
+; 12252:   last_state = state;
 
 	movups	xmm0, XMMWORD PTR _state$[ebp]
 	mov	eax, DWORD PTR [edi+6384]
@@ -5170,7 +5188,7 @@ $LN86@SK_ImGui_P:
 	mov	DWORD PTR ?nav_id@?DA@??SK_ImGui_PollGamepad_EndFrame@@YAXXZ@4IA, eax
 	movups	XMMWORD PTR ?last_state@?1??SK_ImGui_PollGamepad_EndFrame@@YAXXZ@4U_XINPUT_STATE@@A, xmm0
 
-; 12249: }
+; 12253: }
 
 	pop	edi
 	pop	esi
@@ -5207,27 +5225,27 @@ _toggle_ui$ = 8						; size = 4
 _toggle_nav$ = 12					; size = 4
 ?SK_ImGui_ToggleEx@@YG_NAA_N0@Z PROC			; SK_ImGui_ToggleEx
 
-; 12038: {
+; 12042: {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 12039:   if (toggle_ui)
+; 12043:   if (toggle_ui)
 
 	mov	esi, DWORD PTR _toggle_ui$[ebp]
 	push	edi
 	cmp	BYTE PTR [esi], 0
 	je	SHORT $LN2@SK_ImGui_T
 
-; 12040:     SK_ImGui_Toggle ();
+; 12044:     SK_ImGui_Toggle ();
 
 	call	?SK_ImGui_Toggle@@YAXXZ			; SK_ImGui_Toggle
 $LN2@SK_ImGui_T:
 
-; 12041:   
-; 12042:   if (toggle_nav && SK_ImGui_Active ())
+; 12045:   
+; 12046:   if (toggle_nav && SK_ImGui_Active ())
 
 	mov	edi, DWORD PTR _toggle_nav$[ebp]
 	cmp	BYTE PTR [edi], 0
@@ -5243,15 +5261,15 @@ $LN2@SK_ImGui_T:
 $LN9@SK_ImGui_T:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12043:     nav_usable = (! nav_usable);
+; 12047:     nav_usable = (! nav_usable);
 
 	cmp	BYTE PTR ?nav_usable@@3_NA, 0		; nav_usable
 	sete	BYTE PTR ?nav_usable@@3_NA		; nav_usable
 $LN3@SK_ImGui_T:
 
-; 12044:   
-; 12045:   //if (nav_usable)
-; 12046:     ImGui::SetNextWindowFocus ();
+; 12048:   
+; 12049:   //if (nav_usable)
+; 12050:     ImGui::SetNextWindowFocus ();
 
 	call	?SetNextWindowFocus@ImGui@@YAXXZ	; ImGui::SetNextWindowFocus
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -5269,11 +5287,11 @@ $LN13@SK_ImGui_T:
 $LN14@SK_ImGui_T:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12054:   toggle_ui  = SK_ImGui_Active ();
+; 12058:   toggle_ui  = SK_ImGui_Active ();
 
 	mov	BYTE PTR [esi], al
 
-; 12055:   toggle_nav = nav_usable;
+; 12059:   toggle_nav = nav_usable;
 
 	movzx	eax, BYTE PTR ?nav_usable@@3_NA		; nav_usable
 	mov	BYTE PTR [edi], al
@@ -5292,25 +5310,25 @@ $LN14@SK_ImGui_T:
 $LN17@SK_ImGui_T:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12057:   if (SK_ImGui_Active () && nav_usable)
+; 12061:   if (SK_ImGui_Active () && nav_usable)
 
 	cmp	BYTE PTR ?nav_usable@@3_NA, 0		; nav_usable
 	je	SHORT $LN4@SK_ImGui_T
 
-; 12058:   {
-; 12059:     //keybd_event_Original (VK_CAPITAL, 0, KEYEVENTF_EXTENDEDKEY,                   0);
-; 12060:     //keybd_event_Original (VK_CAPITAL, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-; 12061: 
-; 12062:     SK_Input_RememberPressedKeys ();
+; 12062:   {
+; 12063:     //keybd_event_Original (VK_CAPITAL, 0, KEYEVENTF_EXTENDEDKEY,                   0);
+; 12064:     //keybd_event_Original (VK_CAPITAL, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+; 12065: 
+; 12066:     SK_Input_RememberPressedKeys ();
 
 	call	?SK_Input_RememberPressedKeys@@YAXXZ	; SK_Input_RememberPressedKeys
 
-; 12063: 
-; 12064:     haptic_events.PulseTitle.start = static_cast <float> (timeGetTime ());
+; 12067: 
+; 12068:     haptic_events.PulseTitle.start = static_cast <float> (timeGetTime ());
 
 	call	DWORD PTR __imp__timeGetTime@0
 
-; 12065:     haptic_events.PulseTitle.end   = haptic_events.PulseTitle.start +
+; 12069:     haptic_events.PulseTitle.end   = haptic_events.PulseTitle.start +
 
 	mov	cl, BYTE PTR ?SK_ImGui_Visible@@3_NA	; SK_ImGui_Visible
 	movd	xmm0, eax
@@ -5335,9 +5353,9 @@ $LN4@SK_ImGui_T:
 $LN29@SK_ImGui_T:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12073:       SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
+; 12077:       SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
 
-	push	DWORD PTR ?config@@3Usk_config_t@@A+696
+	push	DWORD PTR ?config@@3Usk_config_t@@A+700
 	call	?SK_XInput_ZeroHaptics@@YAXH@Z		; SK_XInput_ZeroHaptics
 	add	esp, 4
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -5350,21 +5368,21 @@ $LN29@SK_ImGui_T:
 	jne	SHORT $LN25@SK_ImGui_T
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12075:   return SK_ImGui_Active ();
+; 12079:   return SK_ImGui_Active ();
 
 	xor	al, al
 
-; 12076: }
+; 12080: }
 
 	pop	ebp
 	ret	8
 $LN25@SK_ImGui_T:
 
-; 12075:   return SK_ImGui_Active ();
+; 12079:   return SK_ImGui_Active ();
 
 	mov	al, 1
 
-; 12076: }
+; 12080: }
 
 	pop	ebp
 	ret	8
@@ -5427,7 +5445,7 @@ tv79 = -4						; size = 4
 ?run@linear_pulse_event_s@<unnamed-type-haptic_events>@@QAEMXZ PROC ; <unnamed-type-haptic_events>::linear_pulse_event_s::run, COMDAT
 ; _this$ = ecx
 
-; 12010:     float run (void) {
+; 12014:     float run (void) {
 
 	npad	2
 	push	ebp
@@ -5436,17 +5454,17 @@ tv79 = -4						; size = 4
 	push	esi
 	mov	esi, ecx
 
-; 12011:       auto now = static_cast <float> (timeGetTime ());
+; 12015:       auto now = static_cast <float> (timeGetTime ());
 
 	call	DWORD PTR __imp__timeGetTime@0
 	movd	xmm0, eax
 	cvtdq2pd xmm0, xmm0
 	shr	eax, 31					; 0000001fH
 
-; 12012:       
-; 12013:       return config.input.gamepad.haptic_ui ?
+; 12016:       
+; 12017:       return config.input.gamepad.haptic_ui ?
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+686, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+690, 0
 	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
 	cvtpd2ps xmm2, xmm0
 	je	SHORT $LN3@run
@@ -5461,25 +5479,25 @@ tv79 = -4						; size = 4
 	movss	DWORD PTR tv79[ebp], xmm1
 	fld	DWORD PTR tv79[ebp]
 
-; 12014:                std::max (0.0f, strength * ((end - now) / (end - start))) :
-; 12015:                          0.0f;
-; 12016:     }
+; 12018:                std::max (0.0f, strength * ((end - now) / (end - start))) :
+; 12019:                          0.0f;
+; 12020:     }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN3@run:
 
-; 12012:       
-; 12013:       return config.input.gamepad.haptic_ui ?
+; 12016:       
+; 12017:       return config.input.gamepad.haptic_ui ?
 
 	mov	DWORD PTR tv79[ebp], 0
 	fld	DWORD PTR tv79[ebp]
 	pop	esi
 
-; 12014:                std::max (0.0f, strength * ((end - now) / (end - start))) :
-; 12015:                          0.0f;
-; 12016:     }
+; 12018:                std::max (0.0f, strength * ((end - now) / (end - start))) :
+; 12019:                          0.0f;
+; 12020:     }
 
 	mov	esp, ebp
 	pop	ebp
@@ -5525,24 +5543,24 @@ _dwUserIndex$ = 8					; size = 4
 _pState$ = 12						; size = 4
 ?SK_ImGui_FilterXInput@@YA_NKPAU_XINPUT_STATE@@@Z PROC	; SK_ImGui_FilterXInput
 
-; 11988: {
+; 11992: {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 11989:   if ( SK_ImGui_WantGamepadCapture () &&
+; 11993:   if ( SK_ImGui_WantGamepadCapture () &&
 
 	call	?SK_ImGui_WantGamepadCapture@@YA_NXZ	; SK_ImGui_WantGamepadCapture
 	test	al, al
 	je	SHORT $LN2@SK_ImGui_F
 	mov	eax, DWORD PTR _dwUserIndex$[ebp]
-	cmp	eax, DWORD PTR ?config@@3Usk_config_t@@A+696
+	cmp	eax, DWORD PTR ?config@@3Usk_config_t@@A+700
 	jne	SHORT $LN2@SK_ImGui_F
 
-; 11990:        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot )
-; 11991:   {
-; 11992:     ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
+; 11994:        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot )
+; 11995:   {
+; 11996:     ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
 	mov	edx, DWORD PTR _pState$[ebp]
 	xorps	xmm0, xmm0
@@ -5553,7 +5571,7 @@ _pState$ = 12						; size = 4
 	mov	ecx, 1
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 11998:     return true;
+; 12002:     return true;
 
 	mov	al, 1
 	movq	QWORD PTR [edx+4], xmm0
@@ -5566,23 +5584,23 @@ _pState$ = 12						; size = 4
 	cmova	ecx, DWORD PTR [edx]
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 11995:     pState->dwPacketNumber =
+; 11999:     pState->dwPacketNumber =
 
 	mov	DWORD PTR [edx], ecx
 
-; 12002: }
+; 12006: }
 
 	pop	ebp
 	ret	0
 $LN2@SK_ImGui_F:
 
-; 11999:   }
-; 12000: 
-; 12001:   return false;
+; 12003:   }
+; 12004: 
+; 12005:   return false;
 
 	xor	al, al
 
-; 12002: }
+; 12006: }
 
 	pop	ebp
 	ret	0
@@ -5596,7 +5614,7 @@ _<io>$ = 8						; size = 4
 ??0<lambda_b0edb89ef95458c17d140870cacf48eb>@@QAE@AAUImGuiIO@@@Z PROC ; <lambda_b0edb89ef95458c17d140870cacf48eb>::<lambda_b0edb89ef95458c17d140870cacf48eb>, COMDAT
 ; _this$ = ecx
 
-; 11560:     };
+; 11564:     };
 
 	npad	2
 	push	ebp
@@ -5616,56 +5634,56 @@ _active$ = 8						; size = 1
 ??R<lambda_b0edb89ef95458c17d140870cacf48eb>@@QBEX_N@Z PROC ; <lambda_b0edb89ef95458c17d140870cacf48eb>::operator(), COMDAT
 ; _this$ = ecx
 
-; 11547:     {
+; 11551:     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ebx
 
-; 11548:       bool changed = (active != window_active);
+; 11552:       bool changed = (active != window_active);
 
 	mov	bl, BYTE PTR _active$[ebp]
 	cmp	bl, BYTE PTR ?window_active@?1???R<lambda_fdb49d2ec66229060331037f3944ccb2>@@QBE_NPAUHWND__@@IIJ@Z@4_NA ; `<lambda_fdb49d2ec66229060331037f3944ccb2>::operator()'::`2'::window_active
 	setne	al
 
-; 11549: 
-; 11550:       if (active && changed)
+; 11553: 
+; 11554:       if (active && changed)
 
 	test	bl, bl
 	je	SHORT $LN5@operator
 	test	al, al
 	je	SHORT $LN6@operator
 
-; 11551:         SK_Input_RememberPressedKeys ();
+; 11555:         SK_Input_RememberPressedKeys ();
 
 	call	?SK_Input_RememberPressedKeys@@YAXXZ	; SK_Input_RememberPressedKeys
 
-; 11557:       }
-; 11558: 
-; 11559:       window_active = active;
+; 11561:       }
+; 11562: 
+; 11563:       window_active = active;
 
 	mov	BYTE PTR ?window_active@?1???R<lambda_fdb49d2ec66229060331037f3944ccb2>@@QBE_NPAUHWND__@@IIJ@Z@4_NA, bl ; `<lambda_fdb49d2ec66229060331037f3944ccb2>::operator()'::`2'::window_active
 	pop	ebx
 
-; 11560:     };
+; 11564:     };
 
 	pop	ebp
 	ret	4
 $LN5@operator:
 
-; 11552: 
-; 11553:       if ((! active) && changed)
+; 11556: 
+; 11557:       if ((! active) && changed)
 
 	test	al, al
 	je	SHORT $LN6@operator
 
-; 11554:       {
-; 11555:         ZeroMemory (io.MouseDown, sizeof (bool) * 5  );
+; 11558:       {
+; 11559:         ZeroMemory (io.MouseDown, sizeof (bool) * 5  );
 
 	mov	eax, DWORD PTR [ecx]
 
-; 11556:         ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
+; 11560:         ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
 
 	push	512					; 00000200H
 	push	0
@@ -5678,14 +5696,14 @@ $LN5@operator:
 	add	esp, 12					; 0000000cH
 $LN6@operator:
 
-; 11557:       }
-; 11558: 
-; 11559:       window_active = active;
+; 11561:       }
+; 11562: 
+; 11563:       window_active = active;
 
 	mov	BYTE PTR ?window_active@?1???R<lambda_fdb49d2ec66229060331037f3944ccb2>@@QBE_NPAUHWND__@@IIJ@Z@4_NA, bl ; `<lambda_fdb49d2ec66229060331037f3944ccb2>::operator()'::`2'::window_active
 	pop	ebx
 
-; 11560:     };
+; 11564:     };
 
 	pop	ebp
 	ret	4
@@ -5707,7 +5725,7 @@ _lParam$ = 20						; size = 4
 ??R<lambda_fdb49d2ec66229060331037f3944ccb2>@@QBE_NPAUHWND__@@IIJ@Z PROC ; <lambda_fdb49d2ec66229060331037f3944ccb2>::operator(), COMDAT
 ; _this$ = ecx
 
-; 11540:   {
+; 11544:   {
 
 	npad	2
 	push	ebp
@@ -5717,24 +5735,24 @@ _lParam$ = 20						; size = 4
 	push	esi
 	push	edi
 
-; 11541:     static bool window_active = true;
-; 11542: 
-; 11543:     ImGuiIO& io =
+; 11545:     static bool window_active = true;
+; 11546: 
+; 11547:     ImGuiIO& io =
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 
-; 11561: 
-; 11562:     switch (msg)
+; 11565: 
+; 11566:     switch (msg)
 
 	mov	ecx, DWORD PTR _msg$[ebp]
 	mov	esi, eax
 
-; 11560:     };
+; 11564:     };
 
 	mov	DWORD PTR _ActivateWindow$[ebp], esi
 
-; 11561: 
-; 11562:     switch (msg)
+; 11565: 
+; 11566:     switch (msg)
 
 	cmp	ecx, 512				; 00000200H
 	ja	$LN80@operator
@@ -5746,53 +5764,53 @@ _lParam$ = 20						; size = 4
 	jne	SHORT $LN16@operator
 $LN22@operator:
 
-; 11620: 
-; 11621: 
-; 11622:       case WM_ACTIVATEAPP:
-; 11623:       case WM_ACTIVATE:
-; 11624:       case WM_NCACTIVATE:
-; 11625:       {
-; 11626:         if (hWnd == game_window.hWnd)
+; 11624: 
+; 11625: 
+; 11626:       case WM_ACTIVATEAPP:
+; 11627:       case WM_ACTIVATE:
+; 11628:       case WM_NCACTIVATE:
+; 11629:       {
+; 11630:         if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	cmp	DWORD PTR _hWnd$[ebp], eax
 	jne	SHORT $LN16@operator
 
-; 11627:         {
-; 11628:           if (msg == WM_NCACTIVATE || msg == WM_ACTIVATEAPP)
+; 11631:         {
+; 11632:           if (msg == WM_NCACTIVATE || msg == WM_ACTIVATEAPP)
 
 	cmp	ecx, 134				; 00000086H
 	je	$LN26@operator
 	cmp	ecx, 28					; 0000001cH
 	je	$LN26@operator
 
-; 11631:           }
-; 11632: 
-; 11633:           else if (msg == WM_ACTIVATE)
+; 11635:           }
+; 11636: 
+; 11637:           else if (msg == WM_ACTIVATE)
 
 	cmp	ecx, 6
 	jne	SHORT $LN16@operator
 
-; 11634:           {
-; 11635:             switch (LOWORD (wParam))
+; 11638:           {
+; 11639:             switch (LOWORD (wParam))
 
 	cmp	WORD PTR _wParam$[ebp], 0
 	je	SHORT $LN29@operator
 
-; 11636:             {
-; 11637:               case WA_ACTIVE:
-; 11638:               case WA_CLICKACTIVE:
-; 11639:               default: // Unknown
-; 11640:               {
-; 11641:                 ActivateWindow ((HWND)lParam != game_window.hWnd);
+; 11640:             {
+; 11641:               case WA_ACTIVE:
+; 11642:               case WA_CLICKACTIVE:
+; 11643:               default: // Unknown
+; 11644:               {
+; 11645:                 ActivateWindow ((HWND)lParam != game_window.hWnd);
 
 	cmp	DWORD PTR _lParam$[ebp], eax
 $LN91@operator:
 	setne	al
 $LN90@operator:
 
-; 11629:           {
-; 11630:             ActivateWindow (wParam != 0x00);
+; 11633:           {
+; 11634:             ActivateWindow (wParam != 0x00);
 
 	movzx	eax, al
 	lea	ecx, DWORD PTR _ActivateWindow$[ebp]
@@ -5800,26 +5818,26 @@ $LN90@operator:
 	call	??R<lambda_b0edb89ef95458c17d140870cacf48eb>@@QBEX_N@Z ; <lambda_b0edb89ef95458c17d140870cacf48eb>::operator()
 $LN16@operator:
 
-; 11896:         }
-; 11897:       } break;
-; 11898:     }
-; 11899: 
-; 11900:     return false;
+; 11900:         }
+; 11901:       } break;
+; 11902:     }
+; 11903: 
+; 11904:     return false;
 
 	pop	edi
 	pop	esi
 	xor	al, al
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN81@operator:
 
-; 11561: 
-; 11562:     switch (msg)
+; 11565: 
+; 11566:     switch (msg)
 
 	lea	eax, DWORD PTR [ecx-33]
 	cmp	eax, 228				; 000000e4H
@@ -5828,38 +5846,38 @@ $LN81@operator:
 	jmp	DWORD PTR $LN93@operator[eax*4]
 $LN20@operator:
 
-; 11606:             }
-; 11607:           } break;
-; 11608:         }
-; 11609:       } break;
-; 11610: 
-; 11611: 
-; 11612: 
-; 11613:       case WM_MOUSEACTIVATE:
-; 11614:       {
-; 11615:         if (hWnd == game_window.hWnd)
+; 11610:             }
+; 11611:           } break;
+; 11612:         }
+; 11613:       } break;
+; 11614: 
+; 11615: 
+; 11616: 
+; 11617:       case WM_MOUSEACTIVATE:
+; 11618:       {
+; 11619:         if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR _hWnd$[ebp]
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN16@operator
 
-; 11616:         {
-; 11617:           ActivateWindow (((HWND)wParam == hWnd));
+; 11620:         {
+; 11621:           ActivateWindow (((HWND)wParam == hWnd));
 
 	cmp	DWORD PTR _wParam$[ebp], eax
 	sete	al
 
-; 11618:         }
-; 11619:       } break;
+; 11622:         }
+; 11623:       } break;
 
 	jmp	SHORT $LN90@operator
 $LN29@operator:
 
-; 11642:               } break;
-; 11643: 
-; 11644:               case WA_INACTIVE:
-; 11645:               {
-; 11646:                 ActivateWindow (lParam == 0 || (HWND)lParam == game_window.hWnd);
+; 11646:               } break;
+; 11647: 
+; 11648:               case WA_INACTIVE:
+; 11649:               {
+; 11650:                 ActivateWindow (lParam == 0 || (HWND)lParam == game_window.hWnd);
 
 	mov	ecx, DWORD PTR _lParam$[ebp]
 	test	ecx, ecx
@@ -5873,27 +5891,27 @@ $LN29@operator:
 	pop	edi
 	pop	esi
 
-; 11896:         }
-; 11897:       } break;
-; 11898:     }
-; 11899: 
-; 11900:     return false;
+; 11900:         }
+; 11901:       } break;
+; 11902:     }
+; 11903: 
+; 11904:     return false;
 
 	xor	al, al
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN74@operator:
 
-; 11642:               } break;
-; 11643: 
-; 11644:               case WA_INACTIVE:
-; 11645:               {
-; 11646:                 ActivateWindow (lParam == 0 || (HWND)lParam == game_window.hWnd);
+; 11646:               } break;
+; 11647: 
+; 11648:               case WA_INACTIVE:
+; 11649:               {
+; 11650:                 ActivateWindow (lParam == 0 || (HWND)lParam == game_window.hWnd);
 
 	mov	eax, 1
 	lea	ecx, DWORD PTR _ActivateWindow$[ebp]
@@ -5902,48 +5920,48 @@ $LN74@operator:
 	pop	edi
 	pop	esi
 
-; 11896:         }
-; 11897:       } break;
-; 11898:     }
-; 11899: 
-; 11900:     return false;
+; 11900:         }
+; 11901:       } break;
+; 11902:     }
+; 11903: 
+; 11904:     return false;
 
 	xor	al, al
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN26@operator:
 
-; 11629:           {
-; 11630:             ActivateWindow (wParam != 0x00);
+; 11633:           {
+; 11634:             ActivateWindow (wParam != 0x00);
 
 	cmp	DWORD PTR _wParam$[ebp], 0
 
-; 11647:               } break;
-; 11648:             }
-; 11649:           }
-; 11650:         }
-; 11651:       } break;
+; 11651:               } break;
+; 11652:             }
+; 11653:           }
+; 11654:         }
+; 11655:       } break;
 
 	jmp	$LN91@operator
 $LN39@operator:
 
-; 11700: 
-; 11701:       case WM_KEYDOWN:
-; 11702:       case WM_SYSKEYDOWN:
-; 11703:       {
-; 11704:         BYTE  vkCode   = LOWORD (wParam) & 0xFF;
-; 11705:         BYTE  scanCode = HIWORD (lParam) & 0x7F;
+; 11704: 
+; 11705:       case WM_KEYDOWN:
+; 11706:       case WM_SYSKEYDOWN:
+; 11707:       {
+; 11708:         BYTE  vkCode   = LOWORD (wParam) & 0xFF;
+; 11709:         BYTE  scanCode = HIWORD (lParam) & 0x7F;
 
 	mov	edi, DWORD PTR _lParam$[ebp]
 	mov	eax, edi
 
-; 11706: 
-; 11707:         if (vkCode & 0xF8) // Valid Keys:  8 - 255
+; 11710: 
+; 11711:         if (vkCode & 0xF8) // Valid Keys:  8 - 255
 
 	mov	ebx, DWORD PTR _wParam$[ebp]
 	shr	eax, 16					; 00000010H
@@ -5952,9 +5970,9 @@ $LN39@operator:
 	test	bl, 248					; 000000f8H
 	je	$LN40@operator
 
-; 11708:         {
-; 11709:           // Don't process Alt+Tab or Alt+Enter
-; 11710:           if (msg == WM_SYSKEYDOWN && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
+; 11712:         {
+; 11713:           // Don't process Alt+Tab or Alt+Enter
+; 11714:           if (msg == WM_SYSKEYDOWN && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
 
 	cmp	ecx, 260				; 00000104H
 	jne	SHORT $LN42@operator
@@ -5964,15 +5982,15 @@ $LN39@operator:
 	je	$LN16@operator
 $LN42@operator:
 
-; 11711:             return false;
-; 11712: 
-; 11713:           // Just the make / break events, repeats are ignored
-; 11714:           if      ((lParam & 0x40000000UL) == 0)
+; 11715:             return false;
+; 11716: 
+; 11717:           // Just the make / break events, repeats are ignored
+; 11718:           if      ((lParam & 0x40000000UL) == 0)
 
 	test	edi, 1073741824				; 40000000H
 	jne	SHORT $LN44@operator
 
-; 11715:             SK_Console::getInstance ()->KeyDown (vkCode, MAXDWORD);
+; 11719:             SK_Console::getInstance ()->KeyDown (vkCode, MAXDWORD);
 
 	push	-1
 	push	ebx
@@ -5981,23 +5999,23 @@ $LN42@operator:
 	call	?KeyDown@SK_Console@@QAEHEJ@Z		; SK_Console::KeyDown
 $LN44@operator:
 
-; 11716: 
-; 11717:           if (vkCode != VK_TAB)
+; 11720: 
+; 11721:           if (vkCode != VK_TAB)
 
 	cmp	bl, 9
 	je	$LN54@operator
 
-; 11718:           {
-; 11719:             wchar_t key_str;
-; 11720: 
-; 11721:             if ( ToUnicodeEx ( vkCode,
-; 11722:                                scanCode,
-; 11723:                                (const BYTE *)io.KeysDown,
-; 11724:                               &key_str,
-; 11725:                                1,
-; 11726:                                0x00,
-; 11727:                                GetKeyboardLayout (0) )
-; 11728:                      &&
+; 11722:           {
+; 11723:             wchar_t key_str;
+; 11724: 
+; 11725:             if ( ToUnicodeEx ( vkCode,
+; 11726:                                scanCode,
+; 11727:                                (const BYTE *)io.KeysDown,
+; 11728:                               &key_str,
+; 11729:                                1,
+; 11730:                                0x00,
+; 11731:                                GetKeyboardLayout (0) )
+; 11732:                      &&
 
 	push	0
 	call	DWORD PTR __imp__GetKeyboardLayout@4
@@ -6022,10 +6040,10 @@ $LN44@operator:
 	test	eax, eax
 	je	$LN54@operator
 
-; 11729:                   iswprint ( key_str )
-; 11730:                )
-; 11731:             {
-; 11732:               ImGui_WndProcHandler ( hWnd, WM_CHAR, key_str, lParam );
+; 11733:                   iswprint ( key_str )
+; 11734:                )
+; 11735:             {
+; 11736:               ImGui_WndProcHandler ( hWnd, WM_CHAR, key_str, lParam );
 
 	movzx	eax, WORD PTR _key_str$2[ebp]
 	push	edi
@@ -6036,37 +6054,37 @@ $LN44@operator:
 	pop	edi
 	pop	esi
 
-; 11774:         }
-; 11775: 
-; 11776:         return true;
+; 11778:         }
+; 11779: 
+; 11780:         return true;
 
 	mov	al, 1
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN40@operator:
 
-; 11733:             }
-; 11734:           }
-; 11735:         }
-; 11736: 
-; 11737:         // Mouse event
-; 11738:         //
-; 11739:         else if (vkCode < 7)
+; 11737:             }
+; 11738:           }
+; 11739:         }
+; 11740: 
+; 11741:         // Mouse event
+; 11742:         //
+; 11743:         else if (vkCode < 7)
 
 	cmp	bl, 7
 	jae	SHORT $LN54@operator
 
-; 11740:         {
-; 11741:           int remap = -1;
-; 11742: 
-; 11743:           // Stupid hack, but these indices are discontinuous
-; 11744:           //
-; 11745:           switch (vkCode)
+; 11744:         {
+; 11745:           int remap = -1;
+; 11746: 
+; 11747:           // Stupid hack, but these indices are discontinuous
+; 11748:           //
+; 11749:           switch (vkCode)
 
 	movzx	eax, bl
 	dec	eax
@@ -6075,192 +6093,192 @@ $LN40@operator:
 	jmp	DWORD PTR $LN94@operator[eax*4]
 $LN48@operator:
 
-; 11746:           {
-; 11747:             case VK_LBUTTON:
-; 11748:               remap = 0;
+; 11750:           {
+; 11751:             case VK_LBUTTON:
+; 11752:               remap = 0;
 
 	xor	eax, eax
 	pop	edi
 
-; 11765:               break;
-; 11766: 
-; 11767:             default:
-; 11768:               assert (false); // WTF?! These keys don't exist
 ; 11769:               break;
-; 11770:           }
-; 11771: 
-; 11772:           if (remap != -1)
-; 11773:             io.MouseDown [remap] = true;
+; 11770: 
+; 11771:             default:
+; 11772:               assert (false); // WTF?! These keys don't exist
+; 11773:               break;
+; 11774:           }
+; 11775: 
+; 11776:           if (remap != -1)
+; 11777:             io.MouseDown [remap] = true;
 
 	mov	BYTE PTR [eax+esi+212], 1
 
-; 11774:         }
-; 11775: 
-; 11776:         return true;
+; 11778:         }
+; 11779: 
+; 11780:         return true;
 
 	mov	al, 1
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN49@operator:
 
-; 11749:               break;
-; 11750: 
-; 11751:             case VK_RBUTTON:
-; 11752:               remap = 1;
+; 11753:               break;
+; 11754: 
+; 11755:             case VK_RBUTTON:
+; 11756:               remap = 1;
 
 	mov	eax, 1
 	pop	edi
 
-; 11765:               break;
-; 11766: 
-; 11767:             default:
-; 11768:               assert (false); // WTF?! These keys don't exist
 ; 11769:               break;
-; 11770:           }
-; 11771: 
-; 11772:           if (remap != -1)
-; 11773:             io.MouseDown [remap] = true;
+; 11770: 
+; 11771:             default:
+; 11772:               assert (false); // WTF?! These keys don't exist
+; 11773:               break;
+; 11774:           }
+; 11775: 
+; 11776:           if (remap != -1)
+; 11777:             io.MouseDown [remap] = true;
 
 	mov	BYTE PTR [eax+esi+212], al
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN50@operator:
 
-; 11753:               break;
-; 11754: 
-; 11755:             case VK_MBUTTON:
-; 11756:               remap = 2;
+; 11757:               break;
+; 11758: 
+; 11759:             case VK_MBUTTON:
+; 11760:               remap = 2;
 
 	mov	eax, 2
 	pop	edi
 
-; 11765:               break;
-; 11766: 
-; 11767:             default:
-; 11768:               assert (false); // WTF?! These keys don't exist
 ; 11769:               break;
-; 11770:           }
-; 11771: 
-; 11772:           if (remap != -1)
-; 11773:             io.MouseDown [remap] = true;
+; 11770: 
+; 11771:             default:
+; 11772:               assert (false); // WTF?! These keys don't exist
+; 11773:               break;
+; 11774:           }
+; 11775: 
+; 11776:           if (remap != -1)
+; 11777:             io.MouseDown [remap] = true;
 
 	mov	BYTE PTR [eax+esi+212], 1
 
-; 11774:         }
-; 11775: 
-; 11776:         return true;
+; 11778:         }
+; 11779: 
+; 11780:         return true;
 
 	mov	al, 1
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN51@operator:
 
-; 11757:               break;
-; 11758: 
-; 11759:             case VK_XBUTTON1:
-; 11760:               remap = 3;
+; 11761:               break;
+; 11762: 
+; 11763:             case VK_XBUTTON1:
+; 11764:               remap = 3;
 
 	mov	eax, 3
 	pop	edi
 
-; 11765:               break;
-; 11766: 
-; 11767:             default:
-; 11768:               assert (false); // WTF?! These keys don't exist
 ; 11769:               break;
-; 11770:           }
-; 11771: 
-; 11772:           if (remap != -1)
-; 11773:             io.MouseDown [remap] = true;
+; 11770: 
+; 11771:             default:
+; 11772:               assert (false); // WTF?! These keys don't exist
+; 11773:               break;
+; 11774:           }
+; 11775: 
+; 11776:           if (remap != -1)
+; 11777:             io.MouseDown [remap] = true;
 
 	mov	BYTE PTR [eax+esi+212], 1
 
-; 11774:         }
-; 11775: 
-; 11776:         return true;
+; 11778:         }
+; 11779: 
+; 11780:         return true;
 
 	mov	al, 1
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN52@operator:
 
-; 11761:               break;
-; 11762: 
-; 11763:             case VK_XBUTTON2:
-; 11764:               remap = 4;
+; 11765:               break;
+; 11766: 
+; 11767:             case VK_XBUTTON2:
+; 11768:               remap = 4;
 
 	mov	eax, 4
 
-; 11765:               break;
-; 11766: 
-; 11767:             default:
-; 11768:               assert (false); // WTF?! These keys don't exist
 ; 11769:               break;
-; 11770:           }
-; 11771: 
-; 11772:           if (remap != -1)
-; 11773:             io.MouseDown [remap] = true;
+; 11770: 
+; 11771:             default:
+; 11772:               assert (false); // WTF?! These keys don't exist
+; 11773:               break;
+; 11774:           }
+; 11775: 
+; 11776:           if (remap != -1)
+; 11777:             io.MouseDown [remap] = true;
 
 	mov	BYTE PTR [eax+esi+212], 1
 $LN54@operator:
 
-; 11774:         }
-; 11775: 
-; 11776:         return true;
+; 11778:         }
+; 11779: 
+; 11780:         return true;
 
 	pop	edi
 	pop	esi
 	mov	al, 1
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN55@operator:
 
-; 11777:       } break;
-; 11778: 
-; 11779: 
-; 11780:       case WM_KEYUP:
-; 11781:       case WM_SYSKEYUP:
-; 11782:       {
-; 11783:         BYTE vkCode = LOWORD (wParam) & 0xFF;
-; 11784: 
-; 11785:         if (vkCode & 0xF8) // Valid Keys:  8 - 255
+; 11781:       } break;
+; 11782: 
+; 11783: 
+; 11784:       case WM_KEYUP:
+; 11785:       case WM_SYSKEYUP:
+; 11786:       {
+; 11787:         BYTE vkCode = LOWORD (wParam) & 0xFF;
+; 11788: 
+; 11789:         if (vkCode & 0xF8) // Valid Keys:  8 - 255
 
 	mov	eax, DWORD PTR _wParam$[ebp]
 	test	al, 248					; 000000f8H
 	je	$LN16@operator
 
-; 11786:         {
-; 11787:           // Don't process Alt+Tab or Alt+Enter
-; 11788:           if (msg == WM_SYSKEYUP && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
+; 11790:         {
+; 11791:           // Don't process Alt+Tab or Alt+Enter
+; 11792:           if (msg == WM_SYSKEYUP && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
 
 	cmp	ecx, 261				; 00000105H
 	jne	SHORT $LN57@operator
@@ -6270,9 +6288,9 @@ $LN55@operator:
 	je	$LN16@operator
 $LN57@operator:
 
-; 11789:             return false;
-; 11790: 
-; 11791:           SK_Console::getInstance ()->KeyUp (vkCode, lParam);
+; 11793:             return false;
+; 11794: 
+; 11795:           SK_Console::getInstance ()->KeyUp (vkCode, lParam);
 
 	push	DWORD PTR _lParam$[ebp]
 	push	eax
@@ -6282,26 +6300,26 @@ $LN57@operator:
 	pop	edi
 	pop	esi
 
-; 11792: 
-; 11793:           return true;
+; 11796: 
+; 11797:           return true;
 
 	mov	al, 1
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN65@operator:
 
-; 11842:       } break;
-; 11843: 
-; 11844: 
-; 11845:       case WM_CHAR:
-; 11846:       {
-; 11847:         // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-; 11848:         if ((wParam & 0xff) > 7 && wParam < 0x10000)
+; 11846:       } break;
+; 11847: 
+; 11848: 
+; 11849:       case WM_CHAR:
+; 11850:       {
+; 11851:         // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
+; 11852:         if ((wParam & 0xff) > 7 && wParam < 0x10000)
 
 	mov	ecx, DWORD PTR _wParam$[ebp]
 	cmp	cl, 7
@@ -6309,8 +6327,8 @@ $LN65@operator:
 	cmp	ecx, 65536				; 00010000H
 	jae	$LN34@operator
 
-; 11849:         {
-; 11850:           io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
+; 11853:         {
+; 11854:           io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
 
 	push	ecx
 	mov	ecx, esi
@@ -6318,30 +6336,30 @@ $LN65@operator:
 	pop	edi
 	pop	esi
 
-; 11851:         }
-; 11852: 
-; 11853:         return true;
+; 11855:         }
+; 11856: 
+; 11857:         return true;
 
 	mov	al, 1
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN67@operator:
 
-; 11854:       } break;
-; 11855: 
-; 11856: 
-; 11857:       case WM_INPUT:
-; 11858:       {
-; 11859:         RAWINPUT data = { };
-; 11860:         UINT     size = sizeof RAWINPUT;
-; 11861: 
-; 11862:         int      ret  =
-; 11863:           GetRawInputData_Original ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
+; 11858:       } break;
+; 11859: 
+; 11860: 
+; 11861:       case WM_INPUT:
+; 11862:       {
+; 11863:         RAWINPUT data = { };
+; 11864:         UINT     size = sizeof RAWINPUT;
+; 11865: 
+; 11866:         int      ret  =
+; 11867:           GetRawInputData_Original ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
 
 	mov	esi, DWORD PTR _lParam$[ebp]
 	lea	eax, DWORD PTR _size$3[ebp]
@@ -6358,39 +6376,39 @@ $LN67@operator:
 	movq	QWORD PTR _data$1[ebp+32], xmm0
 	call	DWORD PTR ?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA ; GetRawInputData_Original
 
-; 11864: 
-; 11865:         if (ret)
+; 11868: 
+; 11869:         if (ret)
 
 	test	eax, eax
 	je	$LN16@operator
 
-; 11866:         {
-; 11867:           auto *pData =
-; 11868:             new uint8_t [size];
+; 11870:         {
+; 11871:           auto *pData =
+; 11872:             new uint8_t [size];
 
 	push	DWORD PTR _size$3[ebp]
 	call	??_U@YAPAXI@Z				; operator new[]
 	mov	edi, eax
 	add	esp, 4
 
-; 11869: 
-; 11870:           if (! pData)
+; 11873: 
+; 11874:           if (! pData)
 
 	test	edi, edi
 	je	$LN16@operator
 
-; 11871:             return 0;
-; 11872: 
-; 11873:           bool cap = false;
-; 11874: 
-; 11875:           switch (data.header.dwType)
+; 11875:             return 0;
+; 11876: 
+; 11877:           bool cap = false;
+; 11878: 
+; 11879:           switch (data.header.dwType)
 
 	mov	eax, DWORD PTR _data$1[ebp]
 
-; 11885:               break;
-; 11886: 
-; 11887:             default:
-; 11888:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
+; 11889:               break;
+; 11890: 
+; 11891:             default:
+; 11892:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
 
 	push	1
 	push	16					; 00000010H
@@ -6408,45 +6426,45 @@ $LN67@operator:
 	test	eax, eax
 	setne	bl
 
-; 11889:               cap &= SK_ImGui_WantGamepadCapture ();
+; 11893:               cap &= SK_ImGui_WantGamepadCapture ();
 
 	call	?SK_ImGui_WantGamepadCapture@@YA_NXZ	; SK_ImGui_WantGamepadCapture
 
-; 11890:               break;
-; 11891:           }
-; 11892: 
-; 11893:           delete [] pData;
+; 11894:               break;
+; 11895:           }
+; 11896: 
+; 11897:           delete [] pData;
 
 	push	edi
 	and	bl, al
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 
-; 11894: 
-; 11895:           return cap;
+; 11898: 
+; 11899:           return cap;
 
 	mov	al, bl
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN71@operator:
 
-; 11880:               break;
-; 11881: 
-; 11882:             case RIM_TYPEKEYBOARD:
-; 11883:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
+; 11884:               break;
+; 11885: 
+; 11886:             case RIM_TYPEKEYBOARD:
+; 11887:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
 
 	call	?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z ; SK_ImGui_ProcessRawInput
 	test	eax, eax
 	setne	bl
 
-; 11884:               cap &= ( SK_Console::getInstance ()->isVisible () || SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantGamepadCapture () );
+; 11888:               cap &= ( SK_Console::getInstance ()->isVisible () || SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantGamepadCapture () );
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	cmp	BYTE PTR [eax+4356], 0
@@ -6459,63 +6477,63 @@ $LN71@operator:
 	jne	SHORT $LN78@operator
 	xor	eax, eax
 
-; 11890:               break;
-; 11891:           }
-; 11892: 
-; 11893:           delete [] pData;
+; 11894:               break;
+; 11895:           }
+; 11896: 
+; 11897:           delete [] pData;
 
 	push	edi
 	and	bl, al
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 
-; 11894: 
-; 11895:           return cap;
+; 11898: 
+; 11899:           return cap;
 
 	mov	al, bl
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN78@operator:
 
-; 11884:               cap &= ( SK_Console::getInstance ()->isVisible () || SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantGamepadCapture () );
+; 11888:               cap &= ( SK_Console::getInstance ()->isVisible () || SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantGamepadCapture () );
 
 	mov	eax, 1
 
-; 11890:               break;
-; 11891:           }
-; 11892: 
-; 11893:           delete [] pData;
+; 11894:               break;
+; 11895:           }
+; 11896: 
+; 11897:           delete [] pData;
 
 	push	edi
 	and	bl, al
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 
-; 11894: 
-; 11895:           return cap;
+; 11898: 
+; 11899:           return cap;
 
 	mov	al, bl
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN70@operator:
 
-; 11876:           {
-; 11877:             case RIM_TYPEMOUSE:
-; 11878:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header),  true) != 0;
+; 11880:           {
+; 11881:             case RIM_TYPEMOUSE:
+; 11882:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header),  true) != 0;
 
 	lea	eax, DWORD PTR _size$3[ebp]
 	push	eax
@@ -6527,43 +6545,43 @@ $LN70@operator:
 	test	eax, eax
 	setne	bl
 
-; 11879:               cap &= SK_ImGui_WantMouseCapture ();
+; 11883:               cap &= SK_ImGui_WantMouseCapture ();
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 
-; 11890:               break;
-; 11891:           }
-; 11892: 
-; 11893:           delete [] pData;
+; 11894:               break;
+; 11895:           }
+; 11896: 
+; 11897:           delete [] pData;
 
 	push	edi
 	and	bl, al
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 
-; 11894: 
-; 11895:           return cap;
+; 11898: 
+; 11899:           return cap;
 
 	mov	al, bl
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN59@operator:
 
-; 11794:         }
-; 11795:       } break;
-; 11796: 
-; 11797: 
-; 11798:       case WM_NCMOUSEMOVE:
-; 11799:       case WM_MOUSEMOVE:
-; 11800:       {
-; 11801:         LONG lDeltaRet = SK_ImGui_DeltaTestMouse (last_pos, (DWORD)lParam);
+; 11798:         }
+; 11799:       } break;
+; 11800: 
+; 11801: 
+; 11802:       case WM_NCMOUSEMOVE:
+; 11803:       case WM_MOUSEMOVE:
+; 11804:       {
+; 11805:         LONG lDeltaRet = SK_ImGui_DeltaTestMouse (last_pos, (DWORD)lParam);
 
 	mov	edi, DWORD PTR _lParam$[ebp]
 	push	1
@@ -6573,33 +6591,33 @@ $LN59@operator:
 	mov	ebx, eax
 	add	esp, 12					; 0000000cH
 
-; 11802: 
-; 11803:         // Return:
-; 11804:         //
-; 11805:         //   -1 if no filtering is desired
-; 11806:         //    0 if the message should be passed onto app, but internal cursor pos unchanged
-; 11807:         //    1 if the message should be completely eradicated
+; 11806: 
+; 11807:         // Return:
 ; 11808:         //
-; 11809:         if (lDeltaRet >= 0)
+; 11809:         //   -1 if no filtering is desired
+; 11810:         //    0 if the message should be passed onto app, but internal cursor pos unchanged
+; 11811:         //    1 if the message should be completely eradicated
+; 11812:         //
+; 11813:         if (lDeltaRet >= 0)
 
 	test	ebx, ebx
 	js	SHORT $LN60@operator
 
-; 11810:         {
-; 11811:           if (SK_ImGui_IsMouseRelevant ())
+; 11814:         {
+; 11815:           if (SK_ImGui_IsMouseRelevant ())
 
 	call	?SK_ImGui_IsMouseRelevant@@YA_NXZ	; SK_ImGui_IsMouseRelevant
 	test	al, al
 	je	SHORT $LN61@operator
 
-; 11812:             SK_ImGui_Cursor.update ();
+; 11816:             SK_ImGui_Cursor.update ();
 
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
 	call	?update@sk_imgui_cursor_s@@QAEXXZ	; sk_imgui_cursor_s::update
 $LN61@operator:
 
-; 11813: 
-; 11814:           return lDeltaRet;
+; 11817: 
+; 11818:           return lDeltaRet;
 
 	pop	edi
 	test	ebx, ebx
@@ -6607,25 +6625,25 @@ $LN61@operator:
 	setne	al
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN60@operator:
 
-; 11815:         }
-; 11816: 
-; 11817:         SHORT xPos = GET_X_LPARAM (lParam);
-; 11818:         SHORT yPos = GET_Y_LPARAM (lParam);
-; 11819: 
-; 11820:         SK_ImGui_Cursor.pos.x = xPos;
+; 11819:         }
+; 11820: 
+; 11821:         SHORT xPos = GET_X_LPARAM (lParam);
+; 11822:         SHORT yPos = GET_Y_LPARAM (lParam);
+; 11823: 
+; 11824:         SK_ImGui_Cursor.pos.x = xPos;
 
 	movsx	eax, di
 
-; 11821:         SK_ImGui_Cursor.pos.y = yPos;
-; 11822: 
-; 11823:         SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
+; 11825:         SK_ImGui_Cursor.pos.y = yPos;
+; 11826: 
+; 11827:         SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
 
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
 	mov	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+20, eax
@@ -6636,40 +6654,40 @@ $LN60@operator:
 	call	?ClientToLocal@sk_imgui_cursor_s@@QAEXPAUtagPOINT@@@Z ; sk_imgui_cursor_s::ClientToLocal
 	movd	xmm0, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+20
 
-; 11824: 
-; 11825:         io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+; 11828: 
+; 11829:         io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
 
 	cvtdq2ps xmm0, xmm0
 	movss	DWORD PTR [esi+204], xmm0
 	movd	xmm0, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+24
 
-; 11826:         io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+; 11830:         io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
 
 	cvtdq2ps xmm0, xmm0
 	movss	DWORD PTR [esi+208], xmm0
 
-; 11827: 
-; 11828:         if (! SK_ImGui_WantMouseCapture ())
+; 11831: 
+; 11832:         if (! SK_ImGui_WantMouseCapture ())
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
 	jne	SHORT $LN62@operator
 
-; 11829:         {
-; 11830:           if (SK_ImGui_IsMouseRelevant ())
+; 11833:         {
+; 11834:           if (SK_ImGui_IsMouseRelevant ())
 
 	call	?SK_ImGui_IsMouseRelevant@@YA_NXZ	; SK_ImGui_IsMouseRelevant
 	test	al, al
 	je	SHORT $LN63@operator
 
-; 11831:             SK_ImGui_Cursor.update ();
+; 11835:             SK_ImGui_Cursor.update ();
 
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
 	call	?update@sk_imgui_cursor_s@@QAEXXZ	; sk_imgui_cursor_s::update
 $LN63@operator:
 
-; 11832: 
-; 11833:           SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
+; 11836: 
+; 11837:           SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
 
 	mov	eax, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+20
 	pop	edi
@@ -6678,54 +6696,54 @@ $LN63@operator:
 	pop	esi
 	mov	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+8, eax
 
-; 11896:         }
-; 11897:       } break;
-; 11898:     }
-; 11899: 
-; 11900:     return false;
+; 11900:         }
+; 11901:       } break;
+; 11902:     }
+; 11903: 
+; 11904:     return false;
 
 	xor	al, al
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN62@operator:
 
-; 11834: 
-; 11835:           return false;
-; 11836:         }
-; 11837: 
-; 11838:         if (SK_ImGui_IsMouseRelevant ())
+; 11838: 
+; 11839:           return false;
+; 11840:         }
+; 11841: 
+; 11842:         if (SK_ImGui_IsMouseRelevant ())
 
 	call	?SK_ImGui_IsMouseRelevant@@YA_NXZ	; SK_ImGui_IsMouseRelevant
 	test	al, al
 	je	$LN34@operator
 
-; 11839:           SK_ImGui_Cursor.update ();
+; 11843:           SK_ImGui_Cursor.update ();
 
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
 	call	?update@sk_imgui_cursor_s@@QAEXXZ	; sk_imgui_cursor_s::update
 	pop	edi
 	pop	esi
 
-; 11840: 
-; 11841:         return true;
+; 11844: 
+; 11845:         return true;
 
 	mov	al, 1
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN80@operator:
 
-; 11561: 
-; 11562:     switch (msg)
+; 11565: 
+; 11566:     switch (msg)
 
 	cmp	ecx, 786				; 00000312H
 	ja	$LN82@operator
@@ -6737,21 +6755,21 @@ $LN80@operator:
 $LN30@operator:
 	pop	edi
 
-; 11652: 
-; 11653: 
-; 11654:       case WM_LBUTTONDOWN:
-; 11655:       case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
-; 11656:         io.MouseDown [0] = true;
+; 11656: 
+; 11657: 
+; 11658:       case WM_LBUTTONDOWN:
+; 11659:       case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
+; 11660:         io.MouseDown [0] = true;
 
 	mov	BYTE PTR [esi+212], 1
 
-; 11657:         return true;
+; 11661:         return true;
 
 	mov	al, 1
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
@@ -6759,20 +6777,20 @@ $LN30@operator:
 $LN31@operator:
 	pop	edi
 
-; 11658: 
-; 11659:       case WM_RBUTTONDOWN:
-; 11660:       case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
-; 11661:         io.MouseDown [1] = true;
+; 11662: 
+; 11663:       case WM_RBUTTONDOWN:
+; 11664:       case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
+; 11665:         io.MouseDown [1] = true;
 
 	mov	BYTE PTR [esi+213], 1
 
-; 11662:         return true;
+; 11666:         return true;
 
 	mov	al, 1
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
@@ -6780,50 +6798,50 @@ $LN31@operator:
 $LN32@operator:
 	pop	edi
 
-; 11663: 
-; 11664:       case WM_MBUTTONDOWN:
-; 11665:       case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
-; 11666:         io.MouseDown [2] = true;
+; 11667: 
+; 11668:       case WM_MBUTTONDOWN:
+; 11669:       case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
+; 11670:         io.MouseDown [2] = true;
 
 	mov	BYTE PTR [esi+214], 1
 
-; 11667:         return true;
+; 11671:         return true;
 
 	mov	al, 1
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN33@operator:
 
-; 11668: 
-; 11669:       case WM_XBUTTONDOWN:
-; 11670:       case WM_XBUTTONDBLCLK: // Sent on receipt of the second click
-; 11671:       {
-; 11672:         WORD Flags =
-; 11673:           GET_XBUTTON_WPARAM (wParam);
+; 11672: 
+; 11673:       case WM_XBUTTONDOWN:
+; 11674:       case WM_XBUTTONDBLCLK: // Sent on receipt of the second click
+; 11675:       {
+; 11676:         WORD Flags =
+; 11677:           GET_XBUTTON_WPARAM (wParam);
 
 	mov	ecx, DWORD PTR _wParam$[ebp]
 	shr	ecx, 16					; 00000010H
 
-; 11674: 
-; 11675:         io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
+; 11678: 
+; 11679:         io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
 
 	mov	al, cl
 
-; 11676:         io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
+; 11680:         io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
 
 	shr	cl, 1
 	and	al, 1
 	and	cl, 1
 	or	BYTE PTR [esi+215], al
 
-; 11677: 
-; 11678:         return true;
+; 11681: 
+; 11682:         return true;
 
 	mov	al, 1
 	or	BYTE PTR [esi+216], cl
@@ -6831,33 +6849,33 @@ $LN33@operator:
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN38@operator:
 
-; 11679:       } break;
-; 11680: 
-; 11681:       // Don't care about these events for anything other than filtering;
-; 11682:       //   we will poll the immediate mouse state when the frame starts.
-; 11683:       //
-; 11684:       //  This effectively gives us buffered mouse input behavior, where
-; 11685:       //    no mouse click is ever lost (only the time that it happened).
-; 11686:       //
-; 11687:       case WM_LBUTTONUP:
-; 11688:         return true;
-; 11689:       case WM_RBUTTONUP:
-; 11690:         return true;
-; 11691:       case WM_MBUTTONUP:
+; 11683:       } break;
+; 11684: 
+; 11685:       // Don't care about these events for anything other than filtering;
+; 11686:       //   we will poll the immediate mouse state when the frame starts.
+; 11687:       //
+; 11688:       //  This effectively gives us buffered mouse input behavior, where
+; 11689:       //    no mouse click is ever lost (only the time that it happened).
+; 11690:       //
+; 11691:       case WM_LBUTTONUP:
 ; 11692:         return true;
-; 11693:       case WM_XBUTTONUP:
+; 11693:       case WM_RBUTTONUP:
 ; 11694:         return true;
-; 11695: 
-; 11696: 
-; 11697:       case WM_MOUSEWHEEL:
-; 11698:         io.MouseWheel += GET_WHEEL_DELTA_WPARAM (wParam) > 0 ? +1.0f : -1.0f;
+; 11695:       case WM_MBUTTONUP:
+; 11696:         return true;
+; 11697:       case WM_XBUTTONUP:
+; 11698:         return true;
+; 11699: 
+; 11700: 
+; 11701:       case WM_MOUSEWHEEL:
+; 11702:         io.MouseWheel += GET_WHEEL_DELTA_WPARAM (wParam) > 0 ? +1.0f : -1.0f;
 
 	mov	eax, DWORD PTR _wParam$[ebp]
 	shr	eax, 16					; 00000010H
@@ -6870,7 +6888,7 @@ $LN76@operator:
 $LN77@operator:
 	movss	xmm0, DWORD PTR [esi+220]
 
-; 11699:         return true;
+; 11703:         return true;
 
 	mov	al, 1
 	addss	xmm0, xmm1
@@ -6879,17 +6897,17 @@ $LN77@operator:
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN12@operator:
 
-; 11563:     {
-; 11564:       case WM_HOTKEY:
-; 11565:       {
-; 11566:         if (SK_ImGui_WantGamepadCapture ())
+; 11567:     {
+; 11568:       case WM_HOTKEY:
+; 11569:       {
+; 11570:         if (SK_ImGui_WantGamepadCapture ())
 
 	call	?SK_ImGui_WantGamepadCapture@@YA_NXZ	; SK_ImGui_WantGamepadCapture
 	test	al, al
@@ -6898,33 +6916,33 @@ $LN34@operator:
 	pop	edi
 	pop	esi
 
-; 11567:         {
-; 11568:           return 1;
+; 11571:         {
+; 11572:           return 1;
 
 	mov	al, 1
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN82@operator:
 
-; 11561: 
-; 11562:     switch (msg)
+; 11565: 
+; 11566:     switch (msg)
 
 	cmp	ecx, 793				; 00000319H
 	jne	$LN16@operator
 
-; 11569:         }
-; 11570:       } break;
-; 11571: 
-; 11572:       // TODO: Take the bazillion different sources of input and translate them all into
-; 11573:       //          a standard window message format for sanity's sake during filter evaluation.
-; 11574:       case WM_APPCOMMAND:
-; 11575:       {
-; 11576:         switch (GET_DEVICE_LPARAM (lParam))
+; 11573:         }
+; 11574:       } break;
+; 11575: 
+; 11576:       // TODO: Take the bazillion different sources of input and translate them all into
+; 11577:       //          a standard window message format for sanity's sake during filter evaluation.
+; 11578:       case WM_APPCOMMAND:
+; 11579:       {
+; 11580:         switch (GET_DEVICE_LPARAM (lParam))
 
 	mov	eax, DWORD PTR _lParam$[ebp]
 	shr	eax, 16					; 00000010H
@@ -6933,54 +6951,54 @@ $LN82@operator:
 	cmp	eax, 32768				; 00008000H
 	jne	$LN16@operator
 
-; 11586:             //}
-; 11587:           } break;
-; 11588: 
-; 11589:           case FAPPCOMMAND_MOUSE:
-; 11590:           {
-; 11591:             if (SK_ImGui_WantMouseCapture ())
+; 11590:             //}
+; 11591:           } break;
+; 11592: 
+; 11593:           case FAPPCOMMAND_MOUSE:
+; 11594:           {
+; 11595:             if (SK_ImGui_WantMouseCapture ())
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
 	je	SHORT $LN18@operator
 
-; 11592:             {
-; 11593:               dll_log.Log (L"Removed WM_APPCOMMAND Mouse Event");
+; 11596:             {
+; 11597:               dll_log.Log (L"Removed WM_APPCOMMAND Mouse Event");
 
 	push	OFFSET ??_C@_1EE@HBEADAKP@?$AAR?$AAe?$AAm?$AAo?$AAv?$AAe?$AAd?$AA?5?$AAW?$AAM?$AA_?$AAA?$AAP?$AAP?$AAC?$AAO?$AAM?$AAM?$AAA?$AAN?$AAD?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAE?$AAv?$AAe?$AAn@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 11594:               return true;
+; 11598:               return true;
 
 	mov	al, 1
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN18@operator:
 
-; 11595:             }
-; 11596: 
-; 11597:             dll_log.Log (L"WM_APPCOMMAND Mouse Event");
+; 11599:             }
+; 11600: 
+; 11601:             dll_log.Log (L"WM_APPCOMMAND Mouse Event");
 
 	push	OFFSET ??_C@_1DE@HMFBBKJG@?$AAW?$AAM?$AA_?$AAA?$AAP?$AAP?$AAC?$AAO?$AAM?$AAM?$AAA?$AAN?$AAD?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAE?$AAv?$AAe?$AAn?$AAt?$AA?$AA@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 11598: 
-; 11599:             DWORD dwPos = GetMessagePos ();
+; 11602: 
+; 11603:             DWORD dwPos = GetMessagePos ();
 
 	call	DWORD PTR __imp__GetMessagePos@0
 
-; 11600:             LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
+; 11604:             LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
 
 	push	1
 	push	eax
@@ -6988,60 +7006,60 @@ $LN18@operator:
 	call	?SK_ImGui_DeltaTestMouse@@YAJAAUtagPOINTS@@KF@Z ; SK_ImGui_DeltaTestMouse
 	add	esp, 12					; 0000000cH
 
-; 11601: 
-; 11602:             if (lRet >= 0)
+; 11605: 
+; 11606:             if (lRet >= 0)
 
 	test	eax, eax
 	js	$LN16@operator
 
-; 11603:             {
-; 11604:               dll_log.Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
+; 11607:             {
+; 11608:               dll_log.Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
 
 	push	OFFSET ??_C@_1FE@DBJNABHE@?$AAR?$AAe?$AAm?$AAo?$AAv?$AAe?$AAd?$AA?5?$AAW?$AAM?$AA_?$AAA?$AAP?$AAP?$AAC?$AAO?$AAM?$AAM?$AAA?$AAN?$AAD?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAD?$AAe?$AAl?$AAt@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 11605:               return true;
+; 11609:               return true;
 
 	mov	al, 1
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN15@operator:
 
-; 11577:         {
-; 11578:           case FAPPCOMMAND_KEY:
-; 11579:           {
-; 11580:             dll_log.Log (L"WM_APPCOMMAND Keyboard Event");
+; 11581:         {
+; 11582:           case FAPPCOMMAND_KEY:
+; 11583:           {
+; 11584:             dll_log.Log (L"WM_APPCOMMAND Keyboard Event");
 
 	push	OFFSET ??_C@_1DK@BLGEDKBM@?$AAW?$AAM?$AA_?$AAA?$AAP?$AAP?$AAC?$AAO?$AAM?$AAM?$AAA?$AAN?$AAD?$AA?5?$AAK?$AAe?$AAy?$AAb?$AAo?$AAa?$AAr?$AAd?$AA?5?$AAE?$AAv?$AAe?$AAn?$AAt?$AA?$AA@
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 11581: 
-; 11582:             //if (SK_ImGui_WantKeyboardCapture ())
-; 11583:             //{
-; 11584:             if (window_active)
+; 11585: 
+; 11586:             //if (SK_ImGui_WantKeyboardCapture ())
+; 11587:             //{
+; 11588:             if (window_active)
 
 	cmp	BYTE PTR ?window_active@?1???R<lambda_fdb49d2ec66229060331037f3944ccb2>@@QBE_NPAUHWND__@@IIJ@Z@4_NA, 0 ; `<lambda_fdb49d2ec66229060331037f3944ccb2>::operator()'::`2'::window_active
 	je	$LN16@operator
 
-; 11585:               return true;
+; 11589:               return true;
 
 	pop	edi
 	pop	esi
 	mov	al, 1
 	pop	ebx
 
-; 11901:   };
+; 11905:   };
 
 	mov	esp, ebp
 	pop	ebp
@@ -7323,7 +7341,7 @@ _lParam$ = 20						; size = 4
 _filter_warps$1$ = 23					; size = 1
 ?ImGui_WndProcHandler@@YGJPAUHWND__@@IIJ@Z PROC		; ImGui_WndProcHandler
 
-; 11488: {
+; 11492: {
 
 	npad	2
 	push	ebp
@@ -7331,9 +7349,9 @@ _filter_warps$1$ = 23					; size = 1
 	push	ecx
 	push	ebx
 
-; 11489:   if (msg == WM_DEVICECHANGE)
-; 11490:   {
-; 11491:     switch (wParam)
+; 11493:   if (msg == WM_DEVICECHANGE)
+; 11494:   {
+; 11495:     switch (wParam)
 
 	mov	ebx, DWORD PTR _wParam$[ebp]
 	push	esi
@@ -7348,106 +7366,106 @@ _filter_warps$1$ = 23					; size = 1
 	jmp	DWORD PTR $LN136@ImGui_WndP[eax*4]
 $LN5@ImGui_WndP:
 
-; 11492:     {
-; 11493:       case DBT_DEVICEARRIVAL:
-; 11494:       {
-; 11495:         auto *pHdr = reinterpret_cast <DEV_BROADCAST_HDR *> (lParam);
-; 11496:   
-; 11497:         if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+; 11496:     {
+; 11497:       case DBT_DEVICEARRIVAL:
+; 11498:       {
+; 11499:         auto *pHdr = reinterpret_cast <DEV_BROADCAST_HDR *> (lParam);
+; 11500:   
+; 11501:         if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
 
 	cmp	DWORD PTR [edi+4], 5
 	jne	SHORT $LN11@ImGui_WndP
 
-; 11498:         {
-; 11499:           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
-; 11500:                config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+; 11502:         {
+; 11503:           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+; 11504:                config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+700, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+704, 0
 	jne	SHORT $LN8@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+701, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+705, 0
 	jne	SHORT $LN8@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+702, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+706, 0
 	jne	SHORT $LN8@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+703, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+707, 0
 	je	SHORT $LN11@ImGui_WndP
 $LN8@ImGui_WndP:
 
-; 11501:           {
-; 11502:             dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
+; 11505:           {
+; 11506:             dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
 
-	push	OFFSET $SG142710
+	push	OFFSET $SG142766
 $LN134@ImGui_WndP:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN22@ImGui_WndP:
 
-; 11503:             return true;
+; 11507:             return true;
 
 	pop	edi
 	pop	esi
 	mov	eax, 1
 	pop	ebx
 
-; 11969: }
+; 11973: }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN9@ImGui_WndP:
 
-; 11504:           }
-; 11505:         }
-; 11506:       } break;
-; 11507:   
-; 11508:       case DBT_DEVICEQUERYREMOVE:
-; 11509:       case DBT_DEVICEREMOVEPENDING:
-; 11510:       case DBT_DEVICEREMOVECOMPLETE:
-; 11511:       {
-; 11512:         auto *pHdr = reinterpret_cast <DEV_BROADCAST_HDR *> (lParam);
-; 11513:   
-; 11514:         if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+; 11508:           }
+; 11509:         }
+; 11510:       } break;
+; 11511:   
+; 11512:       case DBT_DEVICEQUERYREMOVE:
+; 11513:       case DBT_DEVICEREMOVEPENDING:
+; 11514:       case DBT_DEVICEREMOVECOMPLETE:
+; 11515:       {
+; 11516:         auto *pHdr = reinterpret_cast <DEV_BROADCAST_HDR *> (lParam);
+; 11517:   
+; 11518:         if (pHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
 
 	cmp	DWORD PTR [edi+4], 5
 	jne	SHORT $LN11@ImGui_WndP
 
-; 11515:         {
-; 11516:           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
-; 11517:                config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+; 11519:         {
+; 11520:           if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+; 11521:                config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+700, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+704, 0
 	jne	SHORT $LN12@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+701, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+705, 0
 	jne	SHORT $LN12@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+702, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+706, 0
 	jne	SHORT $LN12@ImGui_WndP
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+703, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+707, 0
 	je	SHORT $LN11@ImGui_WndP
 $LN12@ImGui_WndP:
 
-; 11518:           {
-; 11519:             dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
+; 11522:           {
+; 11523:             dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
 
-	push	OFFSET $SG142715
+	push	OFFSET $SG142771
 
-; 11520:             return true;
+; 11524:             return true;
 
 	jmp	SHORT $LN134@ImGui_WndP
 $LN11@ImGui_WndP:
 
-; 11521:           }
-; 11522:         }
-; 11523:       } break;
-; 11524:     }
-; 11525:   }
-; 11526: 
-; 11527: 
-; 11528:   HWND hWndActive = GetActiveWindow ();
+; 11525:           }
+; 11526:         }
+; 11527:       } break;
+; 11528:     }
+; 11529:   }
+; 11530: 
+; 11531: 
+; 11532:   HWND hWndActive = GetActiveWindow ();
 
 	call	DWORD PTR __imp__GetActiveWindow@0
 
-; 11529: 
-; 11530:   if (hWndActive != game_window.hWnd && hWndActive != nullptr)
+; 11533: 
+; 11534:   if (hWndActive != game_window.hWnd && hWndActive != nullptr)
 
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	je	SHORT $LN13@ImGui_WndP
@@ -7455,380 +7473,380 @@ $LN11@ImGui_WndP:
 	jne	$LN20@ImGui_WndP
 $LN13@ImGui_WndP:
 
-; 11531:     return 0;
-; 11532: 
-; 11533: 
-; 11534:   static POINTS last_pos;
-; 11535: 
-; 11536:   UNREFERENCED_PARAMETER (lParam);
+; 11535:     return 0;
+; 11536: 
 ; 11537: 
-; 11538:   auto MessageProc = [&](HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) ->
-; 11539:   bool
-; 11540:   {
-; 11541:     static bool window_active = true;
-; 11542: 
-; 11543:     ImGuiIO& io =
-; 11544:       ImGui::GetIO ();
-; 11545: 
-; 11546:     auto ActivateWindow = [&](bool active = false)
-; 11547:     {
-; 11548:       bool changed = (active != window_active);
+; 11538:   static POINTS last_pos;
+; 11539: 
+; 11540:   UNREFERENCED_PARAMETER (lParam);
+; 11541: 
+; 11542:   auto MessageProc = [&](HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) ->
+; 11543:   bool
+; 11544:   {
+; 11545:     static bool window_active = true;
+; 11546: 
+; 11547:     ImGuiIO& io =
+; 11548:       ImGui::GetIO ();
 ; 11549: 
-; 11550:       if (active && changed)
-; 11551:         SK_Input_RememberPressedKeys ();
-; 11552: 
-; 11553:       if ((! active) && changed)
-; 11554:       {
-; 11555:         ZeroMemory (io.MouseDown, sizeof (bool) * 5  );
-; 11556:         ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
-; 11557:       }
-; 11558: 
-; 11559:       window_active = active;
-; 11560:     };
-; 11561: 
-; 11562:     switch (msg)
-; 11563:     {
-; 11564:       case WM_HOTKEY:
-; 11565:       {
-; 11566:         if (SK_ImGui_WantGamepadCapture ())
-; 11567:         {
-; 11568:           return 1;
-; 11569:         }
-; 11570:       } break;
-; 11571: 
-; 11572:       // TODO: Take the bazillion different sources of input and translate them all into
-; 11573:       //          a standard window message format for sanity's sake during filter evaluation.
-; 11574:       case WM_APPCOMMAND:
-; 11575:       {
-; 11576:         switch (GET_DEVICE_LPARAM (lParam))
-; 11577:         {
-; 11578:           case FAPPCOMMAND_KEY:
-; 11579:           {
-; 11580:             dll_log.Log (L"WM_APPCOMMAND Keyboard Event");
-; 11581: 
-; 11582:             //if (SK_ImGui_WantKeyboardCapture ())
-; 11583:             //{
-; 11584:             if (window_active)
-; 11585:               return true;
-; 11586:             //}
-; 11587:           } break;
-; 11588: 
-; 11589:           case FAPPCOMMAND_MOUSE:
-; 11590:           {
-; 11591:             if (SK_ImGui_WantMouseCapture ())
-; 11592:             {
-; 11593:               dll_log.Log (L"Removed WM_APPCOMMAND Mouse Event");
-; 11594:               return true;
-; 11595:             }
-; 11596: 
-; 11597:             dll_log.Log (L"WM_APPCOMMAND Mouse Event");
-; 11598: 
-; 11599:             DWORD dwPos = GetMessagePos ();
-; 11600:             LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
-; 11601: 
-; 11602:             if (lRet >= 0)
-; 11603:             {
-; 11604:               dll_log.Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
-; 11605:               return true;
-; 11606:             }
-; 11607:           } break;
-; 11608:         }
-; 11609:       } break;
-; 11610: 
-; 11611: 
-; 11612: 
-; 11613:       case WM_MOUSEACTIVATE:
-; 11614:       {
-; 11615:         if (hWnd == game_window.hWnd)
-; 11616:         {
-; 11617:           ActivateWindow (((HWND)wParam == hWnd));
-; 11618:         }
-; 11619:       } break;
-; 11620: 
-; 11621: 
-; 11622:       case WM_ACTIVATEAPP:
-; 11623:       case WM_ACTIVATE:
-; 11624:       case WM_NCACTIVATE:
-; 11625:       {
-; 11626:         if (hWnd == game_window.hWnd)
-; 11627:         {
-; 11628:           if (msg == WM_NCACTIVATE || msg == WM_ACTIVATEAPP)
-; 11629:           {
-; 11630:             ActivateWindow (wParam != 0x00);
-; 11631:           }
-; 11632: 
-; 11633:           else if (msg == WM_ACTIVATE)
-; 11634:           {
-; 11635:             switch (LOWORD (wParam))
-; 11636:             {
-; 11637:               case WA_ACTIVE:
-; 11638:               case WA_CLICKACTIVE:
-; 11639:               default: // Unknown
-; 11640:               {
-; 11641:                 ActivateWindow ((HWND)lParam != game_window.hWnd);
-; 11642:               } break;
-; 11643: 
-; 11644:               case WA_INACTIVE:
-; 11645:               {
-; 11646:                 ActivateWindow (lParam == 0 || (HWND)lParam == game_window.hWnd);
-; 11647:               } break;
-; 11648:             }
-; 11649:           }
-; 11650:         }
-; 11651:       } break;
-; 11652: 
-; 11653: 
-; 11654:       case WM_LBUTTONDOWN:
-; 11655:       case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
-; 11656:         io.MouseDown [0] = true;
-; 11657:         return true;
-; 11658: 
-; 11659:       case WM_RBUTTONDOWN:
-; 11660:       case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
-; 11661:         io.MouseDown [1] = true;
-; 11662:         return true;
-; 11663: 
-; 11664:       case WM_MBUTTONDOWN:
-; 11665:       case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
-; 11666:         io.MouseDown [2] = true;
-; 11667:         return true;
-; 11668: 
-; 11669:       case WM_XBUTTONDOWN:
-; 11670:       case WM_XBUTTONDBLCLK: // Sent on receipt of the second click
-; 11671:       {
-; 11672:         WORD Flags =
-; 11673:           GET_XBUTTON_WPARAM (wParam);
-; 11674: 
-; 11675:         io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
-; 11676:         io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
-; 11677: 
-; 11678:         return true;
-; 11679:       } break;
-; 11680: 
-; 11681:       // Don't care about these events for anything other than filtering;
-; 11682:       //   we will poll the immediate mouse state when the frame starts.
-; 11683:       //
-; 11684:       //  This effectively gives us buffered mouse input behavior, where
-; 11685:       //    no mouse click is ever lost (only the time that it happened).
-; 11686:       //
-; 11687:       case WM_LBUTTONUP:
-; 11688:         return true;
-; 11689:       case WM_RBUTTONUP:
-; 11690:         return true;
-; 11691:       case WM_MBUTTONUP:
+; 11550:     auto ActivateWindow = [&](bool active = false)
+; 11551:     {
+; 11552:       bool changed = (active != window_active);
+; 11553: 
+; 11554:       if (active && changed)
+; 11555:         SK_Input_RememberPressedKeys ();
+; 11556: 
+; 11557:       if ((! active) && changed)
+; 11558:       {
+; 11559:         ZeroMemory (io.MouseDown, sizeof (bool) * 5  );
+; 11560:         ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
+; 11561:       }
+; 11562: 
+; 11563:       window_active = active;
+; 11564:     };
+; 11565: 
+; 11566:     switch (msg)
+; 11567:     {
+; 11568:       case WM_HOTKEY:
+; 11569:       {
+; 11570:         if (SK_ImGui_WantGamepadCapture ())
+; 11571:         {
+; 11572:           return 1;
+; 11573:         }
+; 11574:       } break;
+; 11575: 
+; 11576:       // TODO: Take the bazillion different sources of input and translate them all into
+; 11577:       //          a standard window message format for sanity's sake during filter evaluation.
+; 11578:       case WM_APPCOMMAND:
+; 11579:       {
+; 11580:         switch (GET_DEVICE_LPARAM (lParam))
+; 11581:         {
+; 11582:           case FAPPCOMMAND_KEY:
+; 11583:           {
+; 11584:             dll_log.Log (L"WM_APPCOMMAND Keyboard Event");
+; 11585: 
+; 11586:             //if (SK_ImGui_WantKeyboardCapture ())
+; 11587:             //{
+; 11588:             if (window_active)
+; 11589:               return true;
+; 11590:             //}
+; 11591:           } break;
+; 11592: 
+; 11593:           case FAPPCOMMAND_MOUSE:
+; 11594:           {
+; 11595:             if (SK_ImGui_WantMouseCapture ())
+; 11596:             {
+; 11597:               dll_log.Log (L"Removed WM_APPCOMMAND Mouse Event");
+; 11598:               return true;
+; 11599:             }
+; 11600: 
+; 11601:             dll_log.Log (L"WM_APPCOMMAND Mouse Event");
+; 11602: 
+; 11603:             DWORD dwPos = GetMessagePos ();
+; 11604:             LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
+; 11605: 
+; 11606:             if (lRet >= 0)
+; 11607:             {
+; 11608:               dll_log.Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
+; 11609:               return true;
+; 11610:             }
+; 11611:           } break;
+; 11612:         }
+; 11613:       } break;
+; 11614: 
+; 11615: 
+; 11616: 
+; 11617:       case WM_MOUSEACTIVATE:
+; 11618:       {
+; 11619:         if (hWnd == game_window.hWnd)
+; 11620:         {
+; 11621:           ActivateWindow (((HWND)wParam == hWnd));
+; 11622:         }
+; 11623:       } break;
+; 11624: 
+; 11625: 
+; 11626:       case WM_ACTIVATEAPP:
+; 11627:       case WM_ACTIVATE:
+; 11628:       case WM_NCACTIVATE:
+; 11629:       {
+; 11630:         if (hWnd == game_window.hWnd)
+; 11631:         {
+; 11632:           if (msg == WM_NCACTIVATE || msg == WM_ACTIVATEAPP)
+; 11633:           {
+; 11634:             ActivateWindow (wParam != 0x00);
+; 11635:           }
+; 11636: 
+; 11637:           else if (msg == WM_ACTIVATE)
+; 11638:           {
+; 11639:             switch (LOWORD (wParam))
+; 11640:             {
+; 11641:               case WA_ACTIVE:
+; 11642:               case WA_CLICKACTIVE:
+; 11643:               default: // Unknown
+; 11644:               {
+; 11645:                 ActivateWindow ((HWND)lParam != game_window.hWnd);
+; 11646:               } break;
+; 11647: 
+; 11648:               case WA_INACTIVE:
+; 11649:               {
+; 11650:                 ActivateWindow (lParam == 0 || (HWND)lParam == game_window.hWnd);
+; 11651:               } break;
+; 11652:             }
+; 11653:           }
+; 11654:         }
+; 11655:       } break;
+; 11656: 
+; 11657: 
+; 11658:       case WM_LBUTTONDOWN:
+; 11659:       case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
+; 11660:         io.MouseDown [0] = true;
+; 11661:         return true;
+; 11662: 
+; 11663:       case WM_RBUTTONDOWN:
+; 11664:       case WM_RBUTTONDBLCLK: // Sent on receipt of the second click 
+; 11665:         io.MouseDown [1] = true;
+; 11666:         return true;
+; 11667: 
+; 11668:       case WM_MBUTTONDOWN:
+; 11669:       case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
+; 11670:         io.MouseDown [2] = true;
+; 11671:         return true;
+; 11672: 
+; 11673:       case WM_XBUTTONDOWN:
+; 11674:       case WM_XBUTTONDBLCLK: // Sent on receipt of the second click
+; 11675:       {
+; 11676:         WORD Flags =
+; 11677:           GET_XBUTTON_WPARAM (wParam);
+; 11678: 
+; 11679:         io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
+; 11680:         io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
+; 11681: 
+; 11682:         return true;
+; 11683:       } break;
+; 11684: 
+; 11685:       // Don't care about these events for anything other than filtering;
+; 11686:       //   we will poll the immediate mouse state when the frame starts.
+; 11687:       //
+; 11688:       //  This effectively gives us buffered mouse input behavior, where
+; 11689:       //    no mouse click is ever lost (only the time that it happened).
+; 11690:       //
+; 11691:       case WM_LBUTTONUP:
 ; 11692:         return true;
-; 11693:       case WM_XBUTTONUP:
+; 11693:       case WM_RBUTTONUP:
 ; 11694:         return true;
-; 11695: 
-; 11696: 
-; 11697:       case WM_MOUSEWHEEL:
-; 11698:         io.MouseWheel += GET_WHEEL_DELTA_WPARAM (wParam) > 0 ? +1.0f : -1.0f;
-; 11699:         return true;
+; 11695:       case WM_MBUTTONUP:
+; 11696:         return true;
+; 11697:       case WM_XBUTTONUP:
+; 11698:         return true;
+; 11699: 
 ; 11700: 
-; 11701:       case WM_KEYDOWN:
-; 11702:       case WM_SYSKEYDOWN:
-; 11703:       {
-; 11704:         BYTE  vkCode   = LOWORD (wParam) & 0xFF;
-; 11705:         BYTE  scanCode = HIWORD (lParam) & 0x7F;
-; 11706: 
-; 11707:         if (vkCode & 0xF8) // Valid Keys:  8 - 255
-; 11708:         {
-; 11709:           // Don't process Alt+Tab or Alt+Enter
-; 11710:           if (msg == WM_SYSKEYDOWN && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
-; 11711:             return false;
-; 11712: 
-; 11713:           // Just the make / break events, repeats are ignored
-; 11714:           if      ((lParam & 0x40000000UL) == 0)
-; 11715:             SK_Console::getInstance ()->KeyDown (vkCode, MAXDWORD);
+; 11701:       case WM_MOUSEWHEEL:
+; 11702:         io.MouseWheel += GET_WHEEL_DELTA_WPARAM (wParam) > 0 ? +1.0f : -1.0f;
+; 11703:         return true;
+; 11704: 
+; 11705:       case WM_KEYDOWN:
+; 11706:       case WM_SYSKEYDOWN:
+; 11707:       {
+; 11708:         BYTE  vkCode   = LOWORD (wParam) & 0xFF;
+; 11709:         BYTE  scanCode = HIWORD (lParam) & 0x7F;
+; 11710: 
+; 11711:         if (vkCode & 0xF8) // Valid Keys:  8 - 255
+; 11712:         {
+; 11713:           // Don't process Alt+Tab or Alt+Enter
+; 11714:           if (msg == WM_SYSKEYDOWN && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
+; 11715:             return false;
 ; 11716: 
-; 11717:           if (vkCode != VK_TAB)
-; 11718:           {
-; 11719:             wchar_t key_str;
+; 11717:           // Just the make / break events, repeats are ignored
+; 11718:           if      ((lParam & 0x40000000UL) == 0)
+; 11719:             SK_Console::getInstance ()->KeyDown (vkCode, MAXDWORD);
 ; 11720: 
-; 11721:             if ( ToUnicodeEx ( vkCode,
-; 11722:                                scanCode,
-; 11723:                                (const BYTE *)io.KeysDown,
-; 11724:                               &key_str,
-; 11725:                                1,
-; 11726:                                0x00,
-; 11727:                                GetKeyboardLayout (0) )
-; 11728:                      &&
-; 11729:                   iswprint ( key_str )
-; 11730:                )
-; 11731:             {
-; 11732:               ImGui_WndProcHandler ( hWnd, WM_CHAR, key_str, lParam );
-; 11733:             }
-; 11734:           }
-; 11735:         }
-; 11736: 
-; 11737:         // Mouse event
-; 11738:         //
-; 11739:         else if (vkCode < 7)
-; 11740:         {
-; 11741:           int remap = -1;
-; 11742: 
-; 11743:           // Stupid hack, but these indices are discontinuous
-; 11744:           //
-; 11745:           switch (vkCode)
-; 11746:           {
-; 11747:             case VK_LBUTTON:
-; 11748:               remap = 0;
-; 11749:               break;
-; 11750: 
-; 11751:             case VK_RBUTTON:
-; 11752:               remap = 1;
+; 11721:           if (vkCode != VK_TAB)
+; 11722:           {
+; 11723:             wchar_t key_str;
+; 11724: 
+; 11725:             if ( ToUnicodeEx ( vkCode,
+; 11726:                                scanCode,
+; 11727:                                (const BYTE *)io.KeysDown,
+; 11728:                               &key_str,
+; 11729:                                1,
+; 11730:                                0x00,
+; 11731:                                GetKeyboardLayout (0) )
+; 11732:                      &&
+; 11733:                   iswprint ( key_str )
+; 11734:                )
+; 11735:             {
+; 11736:               ImGui_WndProcHandler ( hWnd, WM_CHAR, key_str, lParam );
+; 11737:             }
+; 11738:           }
+; 11739:         }
+; 11740: 
+; 11741:         // Mouse event
+; 11742:         //
+; 11743:         else if (vkCode < 7)
+; 11744:         {
+; 11745:           int remap = -1;
+; 11746: 
+; 11747:           // Stupid hack, but these indices are discontinuous
+; 11748:           //
+; 11749:           switch (vkCode)
+; 11750:           {
+; 11751:             case VK_LBUTTON:
+; 11752:               remap = 0;
 ; 11753:               break;
 ; 11754: 
-; 11755:             case VK_MBUTTON:
-; 11756:               remap = 2;
+; 11755:             case VK_RBUTTON:
+; 11756:               remap = 1;
 ; 11757:               break;
 ; 11758: 
-; 11759:             case VK_XBUTTON1:
-; 11760:               remap = 3;
+; 11759:             case VK_MBUTTON:
+; 11760:               remap = 2;
 ; 11761:               break;
 ; 11762: 
-; 11763:             case VK_XBUTTON2:
-; 11764:               remap = 4;
+; 11763:             case VK_XBUTTON1:
+; 11764:               remap = 3;
 ; 11765:               break;
 ; 11766: 
-; 11767:             default:
-; 11768:               assert (false); // WTF?! These keys don't exist
+; 11767:             case VK_XBUTTON2:
+; 11768:               remap = 4;
 ; 11769:               break;
-; 11770:           }
-; 11771: 
-; 11772:           if (remap != -1)
-; 11773:             io.MouseDown [remap] = true;
-; 11774:         }
+; 11770: 
+; 11771:             default:
+; 11772:               assert (false); // WTF?! These keys don't exist
+; 11773:               break;
+; 11774:           }
 ; 11775: 
-; 11776:         return true;
-; 11777:       } break;
-; 11778: 
+; 11776:           if (remap != -1)
+; 11777:             io.MouseDown [remap] = true;
+; 11778:         }
 ; 11779: 
-; 11780:       case WM_KEYUP:
-; 11781:       case WM_SYSKEYUP:
-; 11782:       {
-; 11783:         BYTE vkCode = LOWORD (wParam) & 0xFF;
-; 11784: 
-; 11785:         if (vkCode & 0xF8) // Valid Keys:  8 - 255
-; 11786:         {
-; 11787:           // Don't process Alt+Tab or Alt+Enter
-; 11788:           if (msg == WM_SYSKEYUP && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
-; 11789:             return false;
-; 11790: 
-; 11791:           SK_Console::getInstance ()->KeyUp (vkCode, lParam);
-; 11792: 
-; 11793:           return true;
-; 11794:         }
-; 11795:       } break;
+; 11780:         return true;
+; 11781:       } break;
+; 11782: 
+; 11783: 
+; 11784:       case WM_KEYUP:
+; 11785:       case WM_SYSKEYUP:
+; 11786:       {
+; 11787:         BYTE vkCode = LOWORD (wParam) & 0xFF;
+; 11788: 
+; 11789:         if (vkCode & 0xF8) // Valid Keys:  8 - 255
+; 11790:         {
+; 11791:           // Don't process Alt+Tab or Alt+Enter
+; 11792:           if (msg == WM_SYSKEYUP && ( vkCode == VK_TAB || vkCode == VK_RETURN ))
+; 11793:             return false;
+; 11794: 
+; 11795:           SK_Console::getInstance ()->KeyUp (vkCode, lParam);
 ; 11796: 
-; 11797: 
-; 11798:       case WM_NCMOUSEMOVE:
-; 11799:       case WM_MOUSEMOVE:
-; 11800:       {
-; 11801:         LONG lDeltaRet = SK_ImGui_DeltaTestMouse (last_pos, (DWORD)lParam);
-; 11802: 
-; 11803:         // Return:
-; 11804:         //
-; 11805:         //   -1 if no filtering is desired
-; 11806:         //    0 if the message should be passed onto app, but internal cursor pos unchanged
-; 11807:         //    1 if the message should be completely eradicated
+; 11797:           return true;
+; 11798:         }
+; 11799:       } break;
+; 11800: 
+; 11801: 
+; 11802:       case WM_NCMOUSEMOVE:
+; 11803:       case WM_MOUSEMOVE:
+; 11804:       {
+; 11805:         LONG lDeltaRet = SK_ImGui_DeltaTestMouse (last_pos, (DWORD)lParam);
+; 11806: 
+; 11807:         // Return:
 ; 11808:         //
-; 11809:         if (lDeltaRet >= 0)
-; 11810:         {
-; 11811:           if (SK_ImGui_IsMouseRelevant ())
-; 11812:             SK_ImGui_Cursor.update ();
-; 11813: 
-; 11814:           return lDeltaRet;
-; 11815:         }
-; 11816: 
-; 11817:         SHORT xPos = GET_X_LPARAM (lParam);
-; 11818:         SHORT yPos = GET_Y_LPARAM (lParam);
-; 11819: 
-; 11820:         SK_ImGui_Cursor.pos.x = xPos;
-; 11821:         SK_ImGui_Cursor.pos.y = yPos;
-; 11822: 
-; 11823:         SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
-; 11824: 
-; 11825:         io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-; 11826:         io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-; 11827: 
-; 11828:         if (! SK_ImGui_WantMouseCapture ())
-; 11829:         {
-; 11830:           if (SK_ImGui_IsMouseRelevant ())
-; 11831:             SK_ImGui_Cursor.update ();
-; 11832: 
-; 11833:           SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
-; 11834: 
-; 11835:           return false;
-; 11836:         }
-; 11837: 
-; 11838:         if (SK_ImGui_IsMouseRelevant ())
-; 11839:           SK_ImGui_Cursor.update ();
-; 11840: 
-; 11841:         return true;
-; 11842:       } break;
-; 11843: 
+; 11809:         //   -1 if no filtering is desired
+; 11810:         //    0 if the message should be passed onto app, but internal cursor pos unchanged
+; 11811:         //    1 if the message should be completely eradicated
+; 11812:         //
+; 11813:         if (lDeltaRet >= 0)
+; 11814:         {
+; 11815:           if (SK_ImGui_IsMouseRelevant ())
+; 11816:             SK_ImGui_Cursor.update ();
+; 11817: 
+; 11818:           return lDeltaRet;
+; 11819:         }
+; 11820: 
+; 11821:         SHORT xPos = GET_X_LPARAM (lParam);
+; 11822:         SHORT yPos = GET_Y_LPARAM (lParam);
+; 11823: 
+; 11824:         SK_ImGui_Cursor.pos.x = xPos;
+; 11825:         SK_ImGui_Cursor.pos.y = yPos;
+; 11826: 
+; 11827:         SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
+; 11828: 
+; 11829:         io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+; 11830:         io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+; 11831: 
+; 11832:         if (! SK_ImGui_WantMouseCapture ())
+; 11833:         {
+; 11834:           if (SK_ImGui_IsMouseRelevant ())
+; 11835:             SK_ImGui_Cursor.update ();
+; 11836: 
+; 11837:           SK_ImGui_Cursor.orig_pos = SK_ImGui_Cursor.pos;
+; 11838: 
+; 11839:           return false;
+; 11840:         }
+; 11841: 
+; 11842:         if (SK_ImGui_IsMouseRelevant ())
+; 11843:           SK_ImGui_Cursor.update ();
 ; 11844: 
-; 11845:       case WM_CHAR:
-; 11846:       {
-; 11847:         // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
-; 11848:         if ((wParam & 0xff) > 7 && wParam < 0x10000)
-; 11849:         {
-; 11850:           io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
-; 11851:         }
-; 11852: 
-; 11853:         return true;
-; 11854:       } break;
-; 11855: 
+; 11845:         return true;
+; 11846:       } break;
+; 11847: 
+; 11848: 
+; 11849:       case WM_CHAR:
+; 11850:       {
+; 11851:         // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
+; 11852:         if ((wParam & 0xff) > 7 && wParam < 0x10000)
+; 11853:         {
+; 11854:           io.AddInputCharacter ((unsigned short)(wParam & 0xFFFF));
+; 11855:         }
 ; 11856: 
-; 11857:       case WM_INPUT:
-; 11858:       {
-; 11859:         RAWINPUT data = { };
-; 11860:         UINT     size = sizeof RAWINPUT;
-; 11861: 
-; 11862:         int      ret  =
-; 11863:           GetRawInputData_Original ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
-; 11864: 
-; 11865:         if (ret)
-; 11866:         {
-; 11867:           auto *pData =
-; 11868:             new uint8_t [size];
-; 11869: 
-; 11870:           if (! pData)
-; 11871:             return 0;
-; 11872: 
-; 11873:           bool cap = false;
-; 11874: 
-; 11875:           switch (data.header.dwType)
-; 11876:           {
-; 11877:             case RIM_TYPEMOUSE:
-; 11878:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header),  true) != 0;
-; 11879:               cap &= SK_ImGui_WantMouseCapture ();
-; 11880:               break;
-; 11881: 
-; 11882:             case RIM_TYPEKEYBOARD:
-; 11883:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
-; 11884:               cap &= ( SK_Console::getInstance ()->isVisible () || SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantGamepadCapture () );
-; 11885:               break;
-; 11886: 
-; 11887:             default:
-; 11888:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
-; 11889:               cap &= SK_ImGui_WantGamepadCapture ();
-; 11890:               break;
-; 11891:           }
-; 11892: 
-; 11893:           delete [] pData;
-; 11894: 
-; 11895:           return cap;
-; 11896:         }
-; 11897:       } break;
-; 11898:     }
-; 11899: 
-; 11900:     return false;
-; 11901:   };
-; 11902: 
+; 11857:         return true;
+; 11858:       } break;
+; 11859: 
+; 11860: 
+; 11861:       case WM_INPUT:
+; 11862:       {
+; 11863:         RAWINPUT data = { };
+; 11864:         UINT     size = sizeof RAWINPUT;
+; 11865: 
+; 11866:         int      ret  =
+; 11867:           GetRawInputData_Original ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
+; 11868: 
+; 11869:         if (ret)
+; 11870:         {
+; 11871:           auto *pData =
+; 11872:             new uint8_t [size];
+; 11873: 
+; 11874:           if (! pData)
+; 11875:             return 0;
+; 11876: 
+; 11877:           bool cap = false;
+; 11878: 
+; 11879:           switch (data.header.dwType)
+; 11880:           {
+; 11881:             case RIM_TYPEMOUSE:
+; 11882:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header),  true) != 0;
+; 11883:               cap &= SK_ImGui_WantMouseCapture ();
+; 11884:               break;
+; 11885: 
+; 11886:             case RIM_TYPEKEYBOARD:
+; 11887:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
+; 11888:               cap &= ( SK_Console::getInstance ()->isVisible () || SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantGamepadCapture () );
+; 11889:               break;
+; 11890: 
+; 11891:             default:
+; 11892:               cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
+; 11893:               cap &= SK_ImGui_WantGamepadCapture ();
+; 11894:               break;
+; 11895:           }
+; 11896: 
+; 11897:           delete [] pData;
+; 11898: 
+; 11899:           return cap;
+; 11900:         }
+; 11901:       } break;
+; 11902:     }
 ; 11903: 
-; 11904:   bool handled          = MessageProc (hWnd, msg, wParam, lParam);
+; 11904:     return false;
+; 11905:   };
+; 11906: 
+; 11907: 
+; 11908:   bool handled          = MessageProc (hWnd, msg, wParam, lParam);
 
 	push	edi
 	push	ebx
@@ -7838,7 +7856,7 @@ $LN13@ImGui_WndP:
 	call	??R<lambda_fdb49d2ec66229060331037f3944ccb2>@@QBE_NPAUHWND__@@IIJ@Z ; <lambda_fdb49d2ec66229060331037f3944ccb2>::operator()
 	mov	bl, al
 
-; 11905:   bool filter_raw_input = (msg == WM_INPUT && handled);
+; 11909:   bool filter_raw_input = (msg == WM_INPUT && handled);
 
 	cmp	esi, 255				; 000000ffH
 	jne	SHORT $LN25@ImGui_WndP
@@ -7849,26 +7867,26 @@ $LN25@ImGui_WndP:
 	mov	BYTE PTR _filter_raw_input$1$[ebp], 0
 $LN26@ImGui_WndP:
 
-; 11906: 
-; 11907: 
-; 11908:   bool filter_warps = SK_ImGui_WantMouseWarpFiltering ();
+; 11910: 
+; 11911: 
+; 11912:   bool filter_warps = SK_ImGui_WantMouseWarpFiltering ();
 
 	call	?SK_ImGui_WantMouseWarpFiltering@@YA_NXZ ; SK_ImGui_WantMouseWarpFiltering
 	mov	BYTE PTR _filter_warps$1$[ebp], al
 
-; 11909: 
-; 11910:   UINT uMsg = msg;
-; 11911: 
-; 11912:   if (/*SK_ImGui_Visible &&*/ handled)
+; 11913: 
+; 11914:   UINT uMsg = msg;
+; 11915: 
+; 11916:   if (/*SK_ImGui_Visible &&*/ handled)
 
 	test	bl, bl
 	je	$LN20@ImGui_WndP
 
-; 11913:   { 
-; 11914:     bool keyboard_capture =
-; 11915:       ( ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST) ||
-; 11916:            uMsg == WM_HOTKEY     ||
-; 11917:          ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam)  == FAPPCOMMAND_KEY   ) ) &&
+; 11917:   { 
+; 11918:     bool keyboard_capture =
+; 11919:       ( ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST) ||
+; 11920:            uMsg == WM_HOTKEY     ||
+; 11921:          ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam)  == FAPPCOMMAND_KEY   ) ) &&
 
 	cmp	esi, 256				; 00000100H
 	jb	SHORT $LN27@ImGui_WndP
@@ -7893,11 +7911,11 @@ $LN29@ImGui_WndP:
 	xor	bh, bh
 $LN30@ImGui_WndP:
 
-; 11918:           SK_ImGui_WantKeyboardCapture () );
-; 11919: 
-; 11920:     bool mouse_capture =
-; 11921:       ( ( ( uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST ) ||
-; 11922:           ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam) == FAPPCOMMAND_MOUSE ) ) && 
+; 11922:           SK_ImGui_WantKeyboardCapture () );
+; 11923: 
+; 11924:     bool mouse_capture =
+; 11925:       ( ( ( uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST ) ||
+; 11926:           ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam) == FAPPCOMMAND_MOUSE ) ) && 
 
 	cmp	esi, 512				; 00000200H
 	jb	SHORT $LN31@ImGui_WndP
@@ -7926,12 +7944,12 @@ $LN32@ImGui_WndP:
 	xor	bl, bl
 $LN36@ImGui_WndP:
 
-; 11923: 
-; 11924:           ( SK_ImGui_WantMouseCapture () || 
-; 11925:             (filter_warps && uMsg == WM_MOUSEMOVE) )
-; 11926:       );
 ; 11927: 
-; 11928:     if ((wParam & 0xFF) < 7)
+; 11928:           ( SK_ImGui_WantMouseCapture () || 
+; 11929:             (filter_warps && uMsg == WM_MOUSEMOVE) )
+; 11930:       );
+; 11931: 
+; 11932:     if ((wParam & 0xFF) < 7)
 
 	mov	eax, DWORD PTR _wParam$[ebp]
 	movzx	ecx, al
@@ -7939,10 +7957,10 @@ $LN36@ImGui_WndP:
 	cmp	ecx, 7
 	jae	SHORT $LN16@ImGui_WndP
 
-; 11929:     {
-; 11930:       // Some games use Virtual Key Codes 1-6 (mouse button 0-4)
-; 11931:       //   instead of WM_LBUTTONDOWN, etc.
-; 11932:       if ( ( SK_ImGui_WantMouseCapture () && uMsg == WM_KEYDOWN ) ||
+; 11933:     {
+; 11934:       // Some games use Virtual Key Codes 1-6 (mouse button 0-4)
+; 11935:       //   instead of WM_LBUTTONDOWN, etc.
+; 11936:       if ( ( SK_ImGui_WantMouseCapture () && uMsg == WM_KEYDOWN ) ||
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
@@ -7957,39 +7975,39 @@ $LN18@ImGui_WndP:
 	jne	SHORT $LN133@ImGui_WndP
 $LN17@ImGui_WndP:
 
-; 11933:            ( SK_ImGui_WantMouseCapture () && uMsg == WM_KEYUP   ) )
-; 11934:       {
-; 11935:         // Block Mouse Input
-; 11936:         mouse_capture    = true;
+; 11937:            ( SK_ImGui_WantMouseCapture () && uMsg == WM_KEYUP   ) )
+; 11938:       {
+; 11939:         // Block Mouse Input
+; 11940:         mouse_capture    = true;
 
 	mov	bl, 1
 
-; 11937:         keyboard_capture = false;
+; 11941:         keyboard_capture = false;
 
 	xor	bh, bh
 $LN133@ImGui_WndP:
 	mov	ecx, DWORD PTR tv724[ebp]
 $LN16@ImGui_WndP:
 
-; 11938:       }
-; 11939:     }
-; 11940: 
-; 11941:     if (config.input.ui.capture_mouse)
+; 11942:       }
+; 11943:     }
+; 11944: 
+; 11945:     if (config.input.ui.capture_mouse)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+676, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+680, 0
 	je	SHORT $LN37@ImGui_WndP
 
-; 11942:     {
-; 11943:       mouse_capture = (uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST);
+; 11946:     {
+; 11947:       mouse_capture = (uMsg >= WM_MOUSEFIRST  && uMsg <= WM_MOUSELAST);
 
 	lea	eax, DWORD PTR [esi-512]
 	cmp	eax, 14					; 0000000eH
 	setbe	bl
 $LN37@ImGui_WndP:
 
-; 11944:     }
-; 11945: 
-; 11946:     if ( keyboard_capture || mouse_capture || filter_raw_input )
+; 11948:     }
+; 11949: 
+; 11950:     if ( keyboard_capture || mouse_capture || filter_raw_input )
 
 	test	bh, bh
 	jne	SHORT $LN21@ImGui_WndP
@@ -7999,28 +8017,28 @@ $LN37@ImGui_WndP:
 	je	SHORT $LN20@ImGui_WndP
 $LN21@ImGui_WndP:
 
-; 11947:     {
-; 11948:       if (uMsg == WM_INPUT)
+; 11951:     {
+; 11952:       if (uMsg == WM_INPUT)
 
 	cmp	esi, 255				; 000000ffH
 	jne	$LN22@ImGui_WndP
 
-; 11949:       {
-; 11950:         if (GET_RAWINPUT_CODE_WPARAM (wParam) == RIM_INPUT)
+; 11953:       {
+; 11954:         if (GET_RAWINPUT_CODE_WPARAM (wParam) == RIM_INPUT)
 
 	test	ecx, ecx
 	jne	SHORT $LN20@ImGui_WndP
 
-; 11951:         {
-; 11952:           bool bUnicode =
-; 11953:             IsWindowUnicode (hWnd);
+; 11955:         {
+; 11956:           bool bUnicode =
+; 11957:             IsWindowUnicode (hWnd);
 
 	mov	esi, DWORD PTR _hWnd$[ebp]
 	push	esi
 	call	DWORD PTR __imp__IsWindowUnicode@4
 
-; 11954: 
-; 11955:           ( bUnicode ? DefWindowProcW (hWnd, uMsg, lParam, wParam) :
+; 11958: 
+; 11959:           ( bUnicode ? DefWindowProcW (hWnd, uMsg, lParam, wParam) :
 
 	push	DWORD PTR _wParam$[ebp]
 	push	edi
@@ -8034,15 +8052,15 @@ $LN21@ImGui_WndP:
 	mov	eax, 1
 	pop	ebx
 
-; 11969: }
+; 11973: }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN39@ImGui_WndP:
 
-; 11954: 
-; 11955:           ( bUnicode ? DefWindowProcW (hWnd, uMsg, lParam, wParam) :
+; 11958: 
+; 11959:           ( bUnicode ? DefWindowProcW (hWnd, uMsg, lParam, wParam) :
 
 	call	DWORD PTR __imp__DefWindowProcA@16
 	pop	edi
@@ -8050,7 +8068,7 @@ $LN39@ImGui_WndP:
 	mov	eax, 1
 	pop	ebx
 
-; 11969: }
+; 11973: }
 
 	mov	esp, ebp
 	pop	ebp
@@ -8059,24 +8077,24 @@ $LN20@ImGui_WndP:
 	pop	edi
 	pop	esi
 
-; 11956:                        DefWindowProcA (hWnd, uMsg, lParam, wParam) );
-; 11957: 
-; 11958:           return 1;
-; 11959:         }
-; 11960: 
-; 11961:         return 0;
-; 11962:       }
-; 11963: 
-; 11964:       return 1;
-; 11965:     }
-; 11966:   }
+; 11960:                        DefWindowProcA (hWnd, uMsg, lParam, wParam) );
+; 11961: 
+; 11962:           return 1;
+; 11963:         }
+; 11964: 
+; 11965:         return 0;
+; 11966:       }
 ; 11967: 
-; 11968:   return 0;
+; 11968:       return 1;
+; 11969:     }
+; 11970:   }
+; 11971: 
+; 11972:   return 0;
 
 	xor	eax, eax
 	pop	ebx
 
-; 11969: }
+; 11973: }
 
 	mov	esp, ebp
 	pop	ebp
@@ -8106,32 +8124,32 @@ _lParam$ = 12						; size = 4
 _threshold$ = 16					; size = 2
 ?SK_ImGui_DeltaTestMouse@@YAJAAUtagPOINTS@@KF@Z PROC	; SK_ImGui_DeltaTestMouse
 
-; 11432: {
+; 11436: {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 12					; 0000000cH
 
-; 11433:   bool filter_warps = SK_ImGui_WantMouseWarpFiltering ();
+; 11437:   bool filter_warps = SK_ImGui_WantMouseWarpFiltering ();
 
 	call	?SK_ImGui_WantMouseWarpFiltering@@YA_NXZ ; SK_ImGui_WantMouseWarpFiltering
 
-; 11434: 
-; 11435:   if (filter_warps)
+; 11438: 
+; 11439:   if (filter_warps)
 
 	test	al, al
 	je	$LN5@SK_ImGui_D
 
-; 11436:   {
-; 11437:     bool filter = false;
-; 11438: 
-; 11439:     // Filter out small movements / mouselook warps
-; 11440:     //
-; 11441:     //   This does create a weird deadzone in the center of the screen,
-; 11442:     //     but most people will not notice ;)
-; 11443:     //
-; 11444:     if ( abs (last_pos.x - GET_X_LPARAM (lParam)) < threshold &&
+; 11440:   {
+; 11441:     bool filter = false;
+; 11442: 
+; 11443:     // Filter out small movements / mouselook warps
+; 11444:     //
+; 11445:     //   This does create a weird deadzone in the center of the screen,
+; 11446:     //     but most people will not notice ;)
+; 11447:     //
+; 11448:     if ( abs (last_pos.x - GET_X_LPARAM (lParam)) < threshold &&
 
 	push	ebx
 	push	esi
@@ -8164,27 +8182,27 @@ _threshold$ = 16					; size = 2
 	cmovl	ebx, eax
 $LN3@SK_ImGui_D:
 
-; 11445:          abs (last_pos.y - GET_Y_LPARAM (lParam)) < threshold )
-; 11446:     {
-; 11447:       filter = true;
-; 11448:     }
-; 11449: 
-; 11450:     ImGuiIO& io =
+; 11449:          abs (last_pos.y - GET_Y_LPARAM (lParam)) < threshold )
+; 11450:     {
+; 11451:       filter = true;
+; 11452:     }
+; 11453: 
+; 11454:     ImGuiIO& io =
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 
-; 11451:       ImGui::GetIO ();
-; 11452: 
-; 11453:     POINT center { static_cast <LONG> (io.DisplaySize.x / 2.0f),
+; 11455:       ImGui::GetIO ();
+; 11456: 
+; 11457:     POINT center { static_cast <LONG> (io.DisplaySize.x / 2.0f),
 
 	movss	xmm0, DWORD PTR [eax]
 	mulss	xmm0, DWORD PTR __real@3f000000
 	cvttss2si ecx, xmm0
 	mov	DWORD PTR _center$1[ebp], ecx
 
-; 11454:                    static_cast <LONG> (io.DisplaySize.y / 2.0f) };
-; 11455: 
-; 11456:     SK_ImGui_Cursor.LocalToClient (&center);
+; 11458:                    static_cast <LONG> (io.DisplaySize.y / 2.0f) };
+; 11459: 
+; 11460:     SK_ImGui_Cursor.LocalToClient (&center);
 
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
 	movss	xmm0, DWORD PTR [eax+4]
@@ -8195,10 +8213,10 @@ $LN3@SK_ImGui_D:
 	push	eax
 	call	?LocalToClient@sk_imgui_cursor_s@@QAEXPAUtagPOINT@@@Z ; sk_imgui_cursor_s::LocalToClient
 
-; 11459:     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
+; 11463:     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
 
 	movss	xmm0, DWORD PTR __real@42c80000
-	divss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+732
+	divss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+736
 	mov	ecx, DWORD PTR _center$1[ebp]
 	mov	eax, ecx
 	sub	eax, DWORD PTR _local$1$[ebp]
@@ -8211,7 +8229,7 @@ $LN3@SK_ImGui_D:
 	sub	eax, edx
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 11459:     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
+; 11463:     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
 
 	movss	xmm2, DWORD PTR __real@3f800000
 	divss	xmm2, xmm0
@@ -8236,7 +8254,7 @@ $LN3@SK_ImGui_D:
 	cdq
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 11459:     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
+; 11463:     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
 
 	mov	ecx, 1
 ; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdlib.h
@@ -8249,7 +8267,7 @@ $LN3@SK_ImGui_D:
 	sub	eax, edx
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 11459:     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
+; 11463:     if ( abs (center.x - GET_X_LPARAM (lParam)) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
 
 	cvtdq2ps xmm0, xmm0
 	movd	xmm1, eax
@@ -8259,23 +8277,23 @@ $LN3@SK_ImGui_D:
 	cmovae	ebx, ecx
 $LN4@SK_ImGui_D:
 
-; 11460:          abs (center.y - GET_Y_LPARAM (lParam)) <= (static_cast <float> (center.y) / (100.0f / config.input.mouse.antiwarp_deadzone)) )
-; 11461:     {
-; 11462:       filter = true;
-; 11463:     }
-; 11464: 
-; 11465:     POINT local { GET_X_LPARAM (lParam),
-; 11466:                   GET_Y_LPARAM (lParam) };
-; 11467: 
-; 11468:     last_pos.x = static_cast <SHORT> (local.x);
+; 11464:          abs (center.y - GET_Y_LPARAM (lParam)) <= (static_cast <float> (center.y) / (100.0f / config.input.mouse.antiwarp_deadzone)) )
+; 11465:     {
+; 11466:       filter = true;
+; 11467:     }
+; 11468: 
+; 11469:     POINT local { GET_X_LPARAM (lParam),
+; 11470:                   GET_Y_LPARAM (lParam) };
+; 11471: 
+; 11472:     last_pos.x = static_cast <SHORT> (local.x);
 
 	mov	ecx, DWORD PTR _local$1$[ebp]
 	shr	edi, 16					; 00000010H
 
-; 11469:     last_pos.y = static_cast <SHORT> (local.y);
-; 11470: 
-; 11471:     // Dispose Without Processing
-; 11472:     if (filter)
+; 11473:     last_pos.y = static_cast <SHORT> (local.y);
+; 11474: 
+; 11475:     // Dispose Without Processing
+; 11476:     if (filter)
 
 	test	bl, bl
 	movsx	eax, di
@@ -8286,8 +8304,8 @@ $LN4@SK_ImGui_D:
 	pop	ebx
 	je	SHORT $LN5@SK_ImGui_D
 
-; 11473:     {
-; 11474:       return SK_ImGui_IsMouseRelevant () ? 1 : 0;
+; 11477:     {
+; 11478:       return SK_ImGui_IsMouseRelevant () ? 1 : 0;
 
 	call	?SK_ImGui_IsMouseRelevant@@YA_NXZ	; SK_ImGui_IsMouseRelevant
 	xor	ecx, ecx
@@ -8295,21 +8313,21 @@ $LN4@SK_ImGui_D:
 	setne	cl
 	mov	eax, ecx
 
-; 11479: }
+; 11483: }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN5@SK_ImGui_D:
 
-; 11475:     }
-; 11476:   }
-; 11477: 
-; 11478:   return -1;
+; 11479:     }
+; 11480:   }
+; 11481: 
+; 11482:   return -1;
 
 	or	eax, -1
 
-; 11479: }
+; 11483: }
 
 	mov	esp, ebp
 	pop	ebp
@@ -8321,10 +8339,10 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_ImGui_WantMouseWarpFiltering@@YA_NXZ PROC		; SK_ImGui_WantMouseWarpFiltering
 
-; 11418:   extern bool
-; 11419:   SK_InputUtil_IsHWCursorVisible (void);
-; 11420: 
-; 11421:   if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
+; 11422:   extern bool
+; 11423:   SK_InputUtil_IsHWCursorVisible (void);
+; 11424: 
+; 11425:   if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
 
 	cmp	BYTE PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+38, 0
 	je	SHORT $LN4@SK_ImGui_W
@@ -8339,24 +8357,24 @@ $LN4@SK_ImGui_W:
 	je	SHORT $LN2@SK_ImGui_W
 $LN3@SK_ImGui_W:
 
-; 11422:        ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) )
-; 11423:   {
-; 11424:     return true;
+; 11426:        ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) )
+; 11427:   {
+; 11428:     return true;
 
 	mov	al, 1
 
-; 11428: }
+; 11432: }
 
 	ret	0
 $LN2@SK_ImGui_W:
 
-; 11425:   }
-; 11426: 
-; 11427:   return false;
+; 11429:   }
+; 11430: 
+; 11431:   return false;
 
 	xor	al, al
 
-; 11428: }
+; 11432: }
 
 	ret	0
 ?SK_ImGui_WantMouseWarpFiltering@@YA_NXZ ENDP		; SK_ImGui_WantMouseWarpFiltering
@@ -8366,12 +8384,12 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_Input_RememberPressedKeys@@YAXXZ PROC		; SK_Input_RememberPressedKeys
 
-; 11387: {
+; 11391: {
 
 	npad	2
 	push	esi
 
-; 11388:   for (int i = 7; i < 256; i++)
+; 11392:   for (int i = 7; i < 256; i++)
 
 	mov	esi, 7
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
@@ -8379,8 +8397,8 @@ _TEXT	SEGMENT
 	lea	ecx, DWORD PTR [eax+229]
 $LL4@SK_Input_R:
 
-; 11389:   {
-; 11390:     SK_ImGui_ActivationKeys [i] += ImGui::GetIO ().KeysDown [i] ? 6 : 0;
+; 11393:   {
+; 11394:     SK_ImGui_ActivationKeys [i] += ImGui::GetIO ().KeysDown [i] ? 6 : 0;
 
 	xor	eax, eax
 	cmp	BYTE PTR [ecx+esi], al
@@ -8391,8 +8409,8 @@ $LL4@SK_Input_R:
 	jl	SHORT $LL4@SK_Input_R
 	pop	esi
 
-; 11391:   }
-; 11392: }
+; 11395:   }
+; 11396: }
 
 	ret	0
 ?SK_Input_RememberPressedKeys@@YAXXZ ENDP		; SK_Input_RememberPressedKeys
@@ -8407,7 +8425,7 @@ _<foreground>$ = 16					; size = 4
 ??0<lambda_0ae521ef5a0d84f91f4c9393d2278f3e>@@QAE@AAHAA_N1@Z PROC ; <lambda_0ae521ef5a0d84f91f4c9393d2278f3e>::<lambda_0ae521ef5a0d84f91f4c9393d2278f3e>, COMDAT
 ; _this$ = ecx
 
-; 11220:       };
+; 11224:       };
 
 	npad	2
 	push	ebp
@@ -8441,7 +8459,7 @@ _keyboard$ = 20						; size = 4
 ??R<lambda_0ae521ef5a0d84f91f4c9393d2278f3e>@@QBE_NIPAUtagRAWINPUT@@AA_N1@Z PROC ; <lambda_0ae521ef5a0d84f91f4c9393d2278f3e>::operator(), COMDAT
 ; _this$ = ecx
 
-; 11136:       {
+; 11140:       {
 
 	npad	2
 	push	ebp
@@ -8450,12 +8468,12 @@ _keyboard$ = 20						; size = 4
 	push	esi
 	mov	esi, ecx
 
-; 11137:         bool filter = false;
+; 11141:         bool filter = false;
 
 	xor	bl, bl
 
-; 11138: 
-; 11139:         switch (pData->header.dwType)
+; 11142: 
+; 11143:         switch (pData->header.dwType)
 
 	mov	ecx, DWORD PTR _pData$[ebp]
 	push	edi
@@ -8464,12 +8482,12 @@ _keyboard$ = 20						; size = 4
 	je	$LN4@operator
 	sub	eax, 1
 
-; 11205:           } break;
-; 11206: 
-; 11207: 
-; 11208:           default:
-; 11209:           {
-; 11210:             if ((! self) && uiCommand == RID_INPUT && (! already_processed))
+; 11209:           } break;
+; 11210: 
+; 11211: 
+; 11212:           default:
+; 11213:           {
+; 11214:             if ((! self) && uiCommand == RID_INPUT && (! already_processed))
 
 	mov	eax, DWORD PTR [esi]
 	je	SHORT $LN9@operator
@@ -8488,31 +8506,31 @@ _keyboard$ = 20						; size = 4
 $LN22@operator:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 11214:             if (SK_ImGui_WantGamepadCapture ())
+; 11218:             if (SK_ImGui_WantGamepadCapture ())
 
 	call	?SK_ImGui_WantGamepadCapture@@YA_NXZ	; SK_ImGui_WantGamepadCapture
 	test	al, al
 	je	$LN45@operator
 
-; 11215:               filter = true;
+; 11219:               filter = true;
 
 	pop	edi
 	pop	esi
 	mov	al, 1
 	pop	ebx
 
-; 11220:       };
+; 11224:       };
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN9@operator:
 
-; 11157:           } break;
-; 11158: 
-; 11159: 
-; 11160:           case RIM_TYPEKEYBOARD:
-; 11161:           {
-; 11162:             if ((! self) && uiCommand == RID_INPUT && (! already_processed))
+; 11161:           } break;
+; 11162: 
+; 11163: 
+; 11164:           case RIM_TYPEKEYBOARD:
+; 11165:           {
+; 11166:             if ((! self) && uiCommand == RID_INPUT && (! already_processed))
 
 	cmp	DWORD PTR [eax], 0
 	jne	SHORT $LN10@operator
@@ -8529,7 +8547,7 @@ $LN9@operator:
 $LN10@operator:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 11166:               (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
+; 11170:               (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
 
 	mov	ax, WORD PTR [ecx+22]
 	mov	ecx, 255				; 000000ffH
@@ -8537,43 +8555,43 @@ $LN10@operator:
 	movzx	eax, ax
 	mov	DWORD PTR _VKey$1$[ebp], eax
 
-; 11167: 
-; 11168:             if (SK_ImGui_IsMouseRelevant ())
+; 11171: 
+; 11172:             if (SK_ImGui_IsMouseRelevant ())
 
 	call	?SK_ImGui_IsMouseRelevant@@YA_NXZ	; SK_ImGui_IsMouseRelevant
 	mov	edi, 1
 	test	al, al
 	je	SHORT $LN17@operator
 
-; 11169:             {
-; 11170:               // Only filter keydown message, not key releases
-; 11171:               if (SK_ImGui_WantKeyboardCapture ())
+; 11173:             {
+; 11174:               // Only filter keydown message, not key releases
+; 11175:               if (SK_ImGui_WantKeyboardCapture ())
 
 	call	?SK_ImGui_WantKeyboardCapture@@YA_NXZ	; SK_ImGui_WantKeyboardCapture
 	test	al, al
 	je	SHORT $LN13@operator
 
-; 11172:               {
-; 11173:                 if (VKey & 0xF8) // Valid Keys:  8 - 255
+; 11176:               {
+; 11177:                 if (VKey & 0xF8) // Valid Keys:  8 - 255
 
 	test	BYTE PTR _VKey$1$[ebp], 248		; 000000f8H
 	movzx	ebx, bl
 	cmovne	ebx, edi
 $LN13@operator:
 
-; 11174:                   filter = true;
-; 11175:               }
-; 11176: 
-; 11177: 
-; 11178:               if (SK_ImGui_WantMouseCapture ())
+; 11178:                   filter = true;
+; 11179:               }
+; 11180: 
+; 11181: 
+; 11182:               if (SK_ImGui_WantMouseCapture ())
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
 	je	SHORT $LN17@operator
 
-; 11179:               {
-; 11180:                 // That's actually a mouse button...
-; 11181:                 if (foreground && VKey < 7)
+; 11183:               {
+; 11184:                 // That's actually a mouse button...
+; 11185:                 if (foreground && VKey < 7)
 
 	mov	eax, DWORD PTR [esi+8]
 	cmp	BYTE PTR [eax], 0
@@ -8581,8 +8599,8 @@ $LN13@operator:
 	cmp	WORD PTR _VKey$1$[ebp], 7
 	jae	SHORT $LN17@operator
 
-; 11182:                 {
-; 11183:                   if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN)
+; 11186:                 {
+; 11187:                   if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN)
 
 	mov	ecx, DWORD PTR _pData$[ebp]
 	movzx	eax, bl
@@ -8590,23 +8608,23 @@ $LN13@operator:
 	cmp	ecx, 256				; 00000100H
 	cmove	eax, edi
 
-; 11184:                     filter = true;
-; 11185: 
-; 11186:                   if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP)
+; 11188:                     filter = true;
+; 11189: 
+; 11190:                   if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP)
 
 	cmp	ecx, 257				; 00000101H
 	movzx	ebx, al
 	cmove	ebx, edi
 $LN17@operator:
 
-; 11187:                     filter = true;
-; 11188:                 }
-; 11189:               }
-; 11190:             }
-; 11191: 
-; 11192: 
-; 11193:             // Block keyboard input to the game while the console is active
-; 11194:             if (SK_Console::getInstance ()->isVisible () && (VKey & 0xFF) > 7)
+; 11191:                     filter = true;
+; 11192:                 }
+; 11193:               }
+; 11194:             }
+; 11195: 
+; 11196: 
+; 11197:             // Block keyboard input to the game while the console is active
+; 11198:             if (SK_Console::getInstance ()->isVisible () && (VKey & 0xFF) > 7)
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	mov	edx, DWORD PTR _VKey$1$[ebp]
@@ -8617,52 +8635,52 @@ $LN17@operator:
 	cmova	ebx, edi
 $LN18@operator:
 
-; 11195:               filter = true;
-; 11196: 
-; 11197: 
-; 11198:             // Block keyboard input to the game while it's in the background
-; 11199:             if (config.window.background_render && (! game_window.active))
+; 11199:               filter = true;
+; 11200: 
+; 11201: 
+; 11202:             // Block keyboard input to the game while it's in the background
+; 11203:             if (config.window.background_render && (! game_window.active))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+764, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	je	SHORT $LN19@operator
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	movzx	ebx, bl
 	cmove	ebx, edi
 $LN19@operator:
 
-; 11200:               filter = true;
-; 11201: 
-; 11202: 
-; 11203:             if (VKey & 0xF8) // Valid Keys:  8 - 255
+; 11204:               filter = true;
+; 11205: 
+; 11206: 
+; 11207:             if (VKey & 0xF8) // Valid Keys:  8 - 255
 
 	test	dl, 248					; 000000f8H
 	je	SHORT $LN45@operator
 
-; 11204:               keyboard = true;
+; 11208:               keyboard = true;
 
 	mov	eax, DWORD PTR _keyboard$[ebp]
 	pop	edi
 	pop	esi
 	mov	BYTE PTR [eax], 1
 
-; 11216:           } break;
-; 11217:         }
-; 11218: 
-; 11219:         return filter;
+; 11220:           } break;
+; 11221:         }
+; 11222: 
+; 11223:         return filter;
 
 	mov	al, bl
 	pop	ebx
 
-; 11220:       };
+; 11224:       };
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN4@operator:
 
-; 11140:         {
-; 11141:           case RIM_TYPEMOUSE:
-; 11142:           {
-; 11143:             if ((! self) && uiCommand == RID_INPUT && (! already_processed))
+; 11144:         {
+; 11145:           case RIM_TYPEMOUSE:
+; 11146:           {
+; 11147:             if ((! self) && uiCommand == RID_INPUT && (! already_processed))
 
 	mov	eax, DWORD PTR [esi]
 	cmp	DWORD PTR [eax], 0
@@ -8680,15 +8698,15 @@ $LN4@operator:
 $LN5@operator:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 11146:             if (SK_ImGui_IsMouseRelevant ())
+; 11150:             if (SK_ImGui_IsMouseRelevant ())
 
 	call	?SK_ImGui_IsMouseRelevant@@YA_NXZ	; SK_ImGui_IsMouseRelevant
 	mov	edi, 1
 	test	al, al
 	je	SHORT $LN7@operator
 
-; 11147:             {
-; 11148:               if ( SK_ImGui_WantMouseCapture () )
+; 11151:             {
+; 11152:               if ( SK_ImGui_WantMouseCapture () )
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
@@ -8696,51 +8714,122 @@ $LN5@operator:
 	cmovne	ebx, edi
 $LN7@operator:
 
-; 11149:                 filter = true;
-; 11150:             }
-; 11151: 
-; 11152:             // Block mouse input to the game while it's in the background
-; 11153:             if (config.window.background_render && (! game_window.active))
+; 11153:                 filter = true;
+; 11154:             }
+; 11155: 
+; 11156:             // Block mouse input to the game while it's in the background
+; 11157:             if (config.window.background_render && (! game_window.active))
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+764, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	je	SHORT $LN8@operator
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	movzx	ebx, bl
 	cmove	ebx, edi
 $LN8@operator:
 
-; 11154:               filter = true;
-; 11155: 
-; 11156:             mouse = true;
+; 11158:               filter = true;
+; 11159: 
+; 11160:             mouse = true;
 
 	mov	eax, DWORD PTR _mouse$[ebp]
 	mov	BYTE PTR [eax], 1
 $LN45@operator:
 
-; 11216:           } break;
-; 11217:         }
-; 11218: 
-; 11219:         return filter;
+; 11220:           } break;
+; 11221:         }
+; 11222: 
+; 11223:         return filter;
 
 	pop	edi
 	pop	esi
 	mov	al, bl
 	pop	ebx
 
-; 11220:       };
+; 11224:       };
 
 	pop	ebp
 	ret	16					; 00000010H
 ??R<lambda_0ae521ef5a0d84f91f4c9393d2278f3e>@@QBE_NIPAUtagRAWINPUT@@AA_N1@Z ENDP ; <lambda_0ae521ef5a0d84f91f4c9393d2278f3e>::operator()
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
+;	COMDAT ??1?$lock_guard@VSK_Thread_HybridSpinlock@@@std@@QAE@XZ
+_TEXT	SEGMENT
+??1?$lock_guard@VSK_Thread_HybridSpinlock@@@std@@QAE@XZ PROC ; std::lock_guard<SK_Thread_HybridSpinlock>::~lock_guard<SK_Thread_HybridSpinlock>, COMDAT
+; _this$ = ecx
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 269  :     LeaveCriticalSection (cs_);
+
+	mov	eax, DWORD PTR [ecx]
+	push	DWORD PTR [eax]
+	call	DWORD PTR __imp__LeaveCriticalSection@4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
+
+; 230  : 		}
+
+	ret	0
+??1?$lock_guard@VSK_Thread_HybridSpinlock@@@std@@QAE@XZ ENDP ; std::lock_guard<SK_Thread_HybridSpinlock>::~lock_guard<SK_Thread_HybridSpinlock>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
+;	COMDAT ??0?$lock_guard@VSK_Thread_HybridSpinlock@@@std@@QAE@AAVSK_Thread_HybridSpinlock@@@Z
+_TEXT	SEGMENT
+__Mtx$ = 8						; size = 4
+??0?$lock_guard@VSK_Thread_HybridSpinlock@@@std@@QAE@AAVSK_Thread_HybridSpinlock@@@Z PROC ; std::lock_guard<SK_Thread_HybridSpinlock>::lock_guard<SK_Thread_HybridSpinlock>, COMDAT
+; _this$ = ecx
+
+; 218  : 		{	// construct and lock
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 217  : 		: _MyMutex(_Mtx)
+
+	mov	eax, DWORD PTR __Mtx$[ebp]
+	push	esi
+
+; 218  : 		{	// construct and lock
+
+	mov	esi, ecx
+	mov	DWORD PTR [esi], eax
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 264  :     EnterCriticalSection (cs_);
+
+	push	DWORD PTR [eax]
+	call	DWORD PTR __imp__EnterCriticalSection@4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
+
+; 220  : 		}
+
+	mov	eax, esi
+	pop	esi
+	pop	ebp
+	ret	4
+??0?$lock_guard@VSK_Thread_HybridSpinlock@@@std@@QAE@AAVSK_Thread_HybridSpinlock@@@Z ENDP ; std::lock_guard<SK_Thread_HybridSpinlock>::lock_guard<SK_Thread_HybridSpinlock>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 _TEXT	SEGMENT
-_FilterRawInput$ = -24					; size = 12
-_size$1$ = -12						; size = 4
-tv543 = -8						; size = 4
-_already_processed$ = -2				; size = 1
-_foreground$ = -1					; size = 1
+_FilterRawInput$ = -40					; size = 12
+_lock$ = -28						; size = 4
+$T3 = -24						; size = 4
+tv617 = -20						; size = 4
+_already_processed$ = -14				; size = 1
+_foreground$ = -13					; size = 1
+__$EHRec$ = -12						; size = 12
 _hRawInput$ = 8						; size = 4
 _owns_data$1$ = 11					; size = 1
 _uiCommand$ = 12					; size = 4
@@ -8753,27 +8842,56 @@ _keyboard$ = 27						; size = 1
 _self$ = 28						; size = 4
 ?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z PROC ; SK_ImGui_ProcessRawInput
 
-; 11074: {
+; 11076: {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
-	sub	esp, 24					; 00000018H
+	push	-1
+	push	__ehhandler$?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 28					; 0000001cH
+	push	ebx
+	push	esi
+	push	edi
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 11075:   HWND hWndActive =
-; 11076:     GetActiveWindow ();
+; 264  :     EnterCriticalSection (cs_);
+
+	push	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
+
+; 217  : 		: _MyMutex(_Mtx)
+
+	mov	DWORD PTR _lock$[ebp], OFFSET ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 264  :     EnterCriticalSection (cs_);
+
+	call	DWORD PTR __imp__EnterCriticalSection@4
+; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
+
+; 11077:   std::lock_guard <SK_Thread_HybridSpinlock> lock (raw_input_lock);
+
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+
+; 11078: 
+; 11079:   HWND hWndActive =
+; 11080:     GetActiveWindow ();
 
 	call	DWORD PTR __imp__GetActiveWindow@0
 
-; 11077: 
-; 11078:   if ( ( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
+; 11081: 
+; 11082:   if ( ( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
 
 	test	eax, eax
 	je	SHORT $LN4@SK_ImGui_P
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	je	SHORT $LN4@SK_ImGui_P
 
-; 11079:     return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+; 11083:     return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
 	push	DWORD PTR _cbSizeHeader$[ebp]
 	push	DWORD PTR _pcbSize$[ebp]
@@ -8781,25 +8899,22 @@ _self$ = 28						; size = 4
 	push	DWORD PTR _uiCommand$[ebp]
 	push	DWORD PTR _hRawInput$[ebp]
 	call	DWORD PTR ?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA ; GetRawInputData_Original
-
-; 11382: }
-
-	mov	esp, ebp
-	pop	ebp
-	ret	24					; 00000018H
+	mov	esi, eax
+	jmp	$LN51@SK_ImGui_P
 $LN4@SK_ImGui_P:
 
-; 11080: 
-; 11081: 
-; 11082:   static HRAWINPUT last_input = nullptr;
-; 11083: 
-; 11084:   bool already_processed = (last_input == hRawInput);
-; 11085:        last_input        =  (! self) ? hRawInput : nullptr;
+; 11084: 
+; 11085: 
+; 11086:   static HRAWINPUT last_input = nullptr;
+; 11087: 
+; 11088:   bool already_processed = (last_input == hRawInput);
 
-	mov	ecx, DWORD PTR _self$[ebp]
-	push	esi
 	mov	esi, DWORD PTR _hRawInput$[ebp]
 	cmp	DWORD PTR ?last_input@?1??SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z@4PAU2@A, esi
+
+; 11089:        last_input        =  (! self) ? hRawInput : nullptr;
+
+	mov	ecx, DWORD PTR _self$[ebp]
 	sete	dl
 	xor	eax, eax
 	test	ecx, ecx
@@ -8807,64 +8922,62 @@ $LN4@SK_ImGui_P:
 	cmove	eax, esi
 	mov	DWORD PTR ?last_input@?1??SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z@4PAU2@A, eax
 
-; 11086: 
-; 11087: 
-; 11088:   if (self && (! already_processed))
+; 11090: 
+; 11091: 
+; 11092:   if (self && (! already_processed))
 
 	je	SHORT $LN7@SK_ImGui_P
 	test	dl, dl
 	jne	SHORT $LN7@SK_ImGui_P
 
-; 11089:   {
-; 11090:     if (SK_ImGui_WantMouseCapture ())
+; 11093:   {
+; 11094:     if (SK_ImGui_WantMouseCapture ())
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
 	je	SHORT $LN6@SK_ImGui_P
 
-; 11091:       SK_RawInput_EnableLegacyMouse  (true);
+; 11095:       SK_RawInput_EnableLegacyMouse  (true);
 
 	push	1
 	call	?SK_RawInput_EnableLegacyMouse@@YA_N_N@Z ; SK_RawInput_EnableLegacyMouse
 	add	esp, 4
 
-; 11092:     else
+; 11096:     else
 
 	jmp	SHORT $LN7@SK_ImGui_P
 $LN6@SK_ImGui_P:
 
-; 11093:       SK_RawInput_RestoreLegacyMouse ();
+; 11097:       SK_RawInput_RestoreLegacyMouse ();
 
 	call	?SK_RawInput_RestoreLegacyMouse@@YAXXZ	; SK_RawInput_RestoreLegacyMouse
 $LN7@SK_ImGui_P:
-	push	ebx
-	push	edi
 
-; 11094:   }
-; 11095:   
-; 11096:   // Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
-; 11097:   //
-; 11098:   //if (SK_ImGui_WantKeyboardCapture ())
-; 11099:     SK_RawInput_EnableLegacyKeyboard (true);
+; 11098:   }
+; 11099:   
+; 11100:   // Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
+; 11101:   //
+; 11102:   //if (SK_ImGui_WantKeyboardCapture ())
+; 11103:     SK_RawInput_EnableLegacyKeyboard (true);
 
 	push	1
 	call	?SK_RawInput_EnableLegacyKeyboard@@YA_N_N@Z ; SK_RawInput_EnableLegacyKeyboard
 
-; 11100:   //else
-; 11101:   //  SK_RawInput_RestoreLegacyKeyboard ();
-; 11102: 
-; 11103: 
-; 11104:   bool owns_data = false;
-; 11105: 
-; 11106:   if (pData == nullptr)
+; 11104:   //else
+; 11105:   //  SK_RawInput_RestoreLegacyKeyboard ();
+; 11106: 
+; 11107: 
+; 11108:   bool owns_data = false;
+; 11109: 
+; 11110:   if (pData == nullptr)
 
 	mov	edi, DWORD PTR _pData$[ebp]
 	add	esp, 4
 	mov	ecx, DWORD PTR _cbSizeHeader$[ebp]
 	mov	eax, DWORD PTR _uiCommand$[ebp]
 
-; 11107:   {
-; 11108:     GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+; 11111:   {
+; 11112:     GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
 	mov	ebx, DWORD PTR _pcbSize$[ebp]
 	mov	BYTE PTR _owns_data$1$[ebp], 0
@@ -8877,40 +8990,40 @@ $LN7@SK_ImGui_P:
 	push	esi
 	call	DWORD PTR ?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA ; GetRawInputData_Original
 
-; 11109: 
-; 11110:     if (*pcbSize < 1024)
+; 11113: 
+; 11114:     if (*pcbSize < 1024)
 
 	mov	eax, DWORD PTR [ebx]
 	cmp	eax, 1024				; 00000400H
 	jae	$LN10@SK_ImGui_P
 
-; 11111:       pData = new uint8_t [*pcbSize];
+; 11115:       pData = new uint8_t [*pcbSize];
 
 	push	eax
 	call	??_U@YAPAXI@Z				; operator new[]
 	mov	edi, eax
 	add	esp, 4
 
-; 11112: 
-; 11113:     if (pData != nullptr)
+; 11116: 
+; 11117:     if (pData != nullptr)
 
 	test	edi, edi
 	je	$LN10@SK_ImGui_P
 
-; 11114:       owns_data = true;
-; 11115: 
-; 11116:     else
+; 11118:       owns_data = true;
+; 11119: 
+; 11120:     else
 
 	mov	eax, DWORD PTR _uiCommand$[ebp]
 	mov	ecx, DWORD PTR _cbSizeHeader$[ebp]
 	mov	BYTE PTR _owns_data$1$[ebp], 1
 $LN11@SK_ImGui_P:
 
-; 11118:   }
-; 11119: 
-; 11120: 
-; 11121:   int size =
-; 11122:     GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+; 11122:   }
+; 11123: 
+; 11124: 
+; 11125:   int size =
+; 11126:     GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
 	push	ecx
 	push	ebx
@@ -8919,43 +9032,65 @@ $LN11@SK_ImGui_P:
 	push	esi
 	call	DWORD PTR ?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA ; GetRawInputData_Original
 
-; 11126:   bool keyboard = false;
-; 11127: 
-; 11128:   // Input event happened while the window had focus if true, otherwise aanother
-; 11129:   //   window is currently capturing input and the most appropriate response is
-; 11130:   //     usually to ignore the event.
-; 11131:   bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+; 11130:   bool keyboard = false;
+; 11131: 
+; 11132:   // Input event happened while the window had focus if true, otherwise aanother
+; 11133:   //   window is currently capturing input and the most appropriate response is
+; 11134:   //     usually to ignore the event.
+; 11135:   bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
 	cmp	BYTE PTR [edi+12], 0
 
-; 11221: 
-; 11222:   filter = FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
+; 11225: 
+; 11226:   filter = FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
 
 	lea	ecx, DWORD PTR _FilterRawInput$[ebp]
-	mov	esi, DWORD PTR _uiCommand$[ebp]
-	mov	DWORD PTR _size$1$[ebp], eax
-	sete	BYTE PTR _foreground$[ebp]
+	mov	ebx, DWORD PTR _uiCommand$[ebp]
+	mov	esi, eax
 
-; 11220:       };
+; 11224:       };
 
 	lea	eax, DWORD PTR _self$[ebp]
 
+; 11122:   }
 ; 11123: 
-; 11124:   bool filter   = false;
-; 11125:   bool mouse    = false;
+; 11124: 
+; 11125:   int size =
+; 11126:     GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+
+	mov	DWORD PTR $T3[ebp], esi
+
+; 11224:       };
+
+	mov	DWORD PTR _FilterRawInput$[ebp], eax
+
+; 11130:   bool keyboard = false;
+; 11131: 
+; 11132:   // Input event happened while the window had focus if true, otherwise aanother
+; 11133:   //   window is currently capturing input and the most appropriate response is
+; 11134:   //     usually to ignore the event.
+; 11135:   bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
+
+	sete	BYTE PTR _foreground$[ebp]
+
+; 11224:       };
+
+	lea	eax, DWORD PTR _already_processed$[ebp]
+
+; 11127: 
+; 11128:   bool filter   = false;
+; 11129:   bool mouse    = false;
 
 	mov	BYTE PTR _mouse$[ebp], 0
 
-; 11220:       };
+; 11224:       };
 
-	mov	DWORD PTR _FilterRawInput$[ebp], eax
-	lea	eax, DWORD PTR _already_processed$[ebp]
 	mov	DWORD PTR _FilterRawInput$[ebp+4], eax
 	lea	eax, DWORD PTR _foreground$[ebp]
 	mov	DWORD PTR _FilterRawInput$[ebp+8], eax
 
-; 11221: 
-; 11222:   filter = FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
+; 11225: 
+; 11226:   filter = FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
 
 	lea	eax, DWORD PTR _keyboard$[ebp]
 	push	eax
@@ -8963,18 +9098,18 @@ $LN11@SK_ImGui_P:
 	mov	BYTE PTR _keyboard$[ebp], 0
 	push	eax
 	push	edi
-	push	esi
+	push	ebx
 	call	??R<lambda_0ae521ef5a0d84f91f4c9393d2278f3e>@@QBE_NIPAUtagRAWINPUT@@AA_N1@Z ; <lambda_0ae521ef5a0d84f91f4c9393d2278f3e>::operator()
 	mov	BYTE PTR _filter$1$[ebp], al
 
-; 11223: 
-; 11224:   if (uiCommand == RID_INPUT /*&& SK_ImGui_Visible*/)
+; 11227: 
+; 11228:   if (uiCommand == RID_INPUT /*&& SK_ImGui_Visible*/)
 
-	cmp	esi, 268435459				; 10000003H
+	cmp	ebx, 268435459				; 10000003H
 	jne	$LN22@SK_ImGui_P
 
-; 11225:   {
-; 11226:     switch (((RAWINPUT *)pData)->header.dwType)
+; 11229:   {
+; 11230:     switch (((RAWINPUT *)pData)->header.dwType)
 
 	mov	ecx, DWORD PTR [edi]
 	sub	ecx, 0
@@ -8982,144 +9117,136 @@ $LN11@SK_ImGui_P:
 	sub	ecx, 1
 	jne	$LN22@SK_ImGui_P
 
-; 11266:         }
-; 11267:       } break;
-; 11268: 
-; 11269: 
-; 11270:       case RIM_TYPEKEYBOARD:
-; 11271:       {
-; 11272:         USHORT VKey =
-; 11273:           ((RAWINPUT *)pData)->data.keyboard.VKey;
+; 11270:         }
+; 11271:       } break;
+; 11272: 
+; 11273: 
+; 11274:       case RIM_TYPEKEYBOARD:
+; 11275:       {
+; 11276:         USHORT VKey =
+; 11277:           ((RAWINPUT *)pData)->data.keyboard.VKey;
 
 	movzx	ebx, WORD PTR [edi+22]
 
-; 11274: 
-; 11275:         // VKeys 0-7 aren't on the keyboard :)
-; 11276:         if (VKey & 0xFFF8) // Valid Keys:  8 - 65535
+; 11278: 
+; 11279:         // VKeys 0-7 aren't on the keyboard :)
+; 11280:         if (VKey & 0xFFF8) // Valid Keys:  8 - 65535
 
 	test	ebx, 65528				; 0000fff8H
 	je	$LN22@SK_ImGui_P
 
-; 11277:         {
-; 11278:           if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
+; 11281:         {
+; 11282:           if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
 
 	test	BYTE PTR [edi+18], 1
-	jne	SHORT $LN54@SK_ImGui_P
+	jne	SHORT $LN76@SK_ImGui_P
 
-; 11279:           {
-; 11280:             if (foreground)
+; 11283:           {
+; 11284:             if (foreground)
 
 	cmp	BYTE PTR _foreground$[ebp], cl
-	je	SHORT $LN54@SK_ImGui_P
+	je	SHORT $LN76@SK_ImGui_P
 
-; 11281:               ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+; 11285:               ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	movzx	ecx, bl
 	mov	BYTE PTR [eax+ecx+229], 1
-$LN54@SK_ImGui_P:
+$LN76@SK_ImGui_P:
 
-; 11282:           }
-; 11283: 
-; 11284:           if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN)
+; 11286:           }
+; 11287: 
+; 11288:           if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN)
 
 	cmp	DWORD PTR [edi+24], 256			; 00000100H
 	jne	SHORT $LN28@SK_ImGui_P
 
-; 11285:           {
-; 11286:             if (foreground && (! self))
+; 11289:           {
+; 11290:             if (foreground && (! self))
 
 	cmp	BYTE PTR _foreground$[ebp], 0
 	je	$LN22@SK_ImGui_P
 	cmp	DWORD PTR _self$[ebp], 0
 	jne	SHORT $LN28@SK_ImGui_P
 
-; 11287:               ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+; 11291:               ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	movzx	ecx, bl
 	mov	BYTE PTR [eax+ecx+229], 1
 $LN28@SK_ImGui_P:
 
-; 11288:           }
-; 11289: 
-; 11290:           if (foreground)
+; 11292:           }
+; 11293: 
+; 11294:           if (foreground)
 
 	cmp	BYTE PTR _foreground$[ebp], 0
 	je	$LN22@SK_ImGui_P
 
-; 11291:           {
-; 11292:             if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
+; 11295:           {
+; 11296:             if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
 
 	cmp	DWORD PTR [edi+24], 258			; 00000102H
 	jne	$LN22@SK_ImGui_P
 
-; 11293:               ImGui::GetIO ().AddInputCharacter (VKey);
+; 11297:               ImGui::GetIO ().AddInputCharacter (VKey);
 
 	push	ebx
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	ecx, eax
 	call	?AddInputCharacter@ImGuiIO@@QAEXG@Z	; ImGuiIO::AddInputCharacter
 
-; 11294:           }
-; 11295:         }
-; 11296:       } break;
+; 11298:           }
+; 11299:         }
+; 11300:       } break;
 
 	jmp	$LN22@SK_ImGui_P
 $LN10@SK_ImGui_P:
-	pop	edi
-	pop	ebx
 
-; 11117:       return 0;
+; 11121:       return 0;
 
-	xor	eax, eax
-	pop	esi
-
-; 11382: }
-
-	mov	esp, ebp
-	pop	ebp
-	ret	24					; 00000018H
+	xor	esi, esi
+	jmp	$LN51@SK_ImGui_P
 $LN13@SK_ImGui_P:
 
-; 11227:     {
-; 11228:       case RIM_TYPEMOUSE:
-; 11229:       {
-; 11230:         if (self)
+; 11231:     {
+; 11232:       case RIM_TYPEMOUSE:
+; 11233:       {
+; 11234:         if (self)
 
 	cmp	DWORD PTR _self$[ebp], 0
 	je	$LN22@SK_ImGui_P
 
-; 11231:         {
-; 11232:           if (SK_ImGui_IsMouseRelevant () && config.input.mouse.add_relative_motion)
+; 11235:         {
+; 11236:           if (SK_ImGui_IsMouseRelevant () && config.input.mouse.add_relative_motion)
 
 	call	?SK_ImGui_IsMouseRelevant@@YA_NXZ	; SK_ImGui_IsMouseRelevant
 	test	al, al
 	je	SHORT $LN15@SK_ImGui_P
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+729, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+733, 0
 	je	SHORT $LN15@SK_ImGui_P
 
-; 11233:           {
-; 11234:             // 99% of games don't need this, and if we use relative motion to update the cursor position that
-; 11235:             //   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
-; 11236:             //     Raw Input does not include cursor accelleration, etc.
-; 11237:             POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX, ((RAWINPUT *)pData)->data.mouse.lLastY };
-; 11238: 
-; 11239:             ////SK_ImGui_Cursor.ClientToLocal (&client);
-; 11240: 
-; 11241:             SK_ImGui_Cursor.pos.x += client.x;
+; 11237:           {
+; 11238:             // 99% of games don't need this, and if we use relative motion to update the cursor position that
+; 11239:             //   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
+; 11240:             //     Raw Input does not include cursor accelleration, etc.
+; 11241:             POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX, ((RAWINPUT *)pData)->data.mouse.lLastY };
+; 11242: 
+; 11243:             ////SK_ImGui_Cursor.ClientToLocal (&client);
+; 11244: 
+; 11245:             SK_ImGui_Cursor.pos.x += client.x;
 
 	mov	esi, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+20
 	mov	eax, DWORD PTR [edi+32]
 	add	esi, DWORD PTR [edi+28]
 
-; 11242:             SK_ImGui_Cursor.pos.y += client.y;
+; 11246:             SK_ImGui_Cursor.pos.y += client.y;
 
 	add	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+24, eax
 	mov	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+20, esi
 
-; 11243:             
-; 11244:             ImGui::GetIO ().MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+; 11247:             
+; 11248:             ImGui::GetIO ().MousePos.x = (float)SK_ImGui_Cursor.pos.x;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	movd	xmm0, esi
@@ -9127,93 +9254,94 @@ $LN13@SK_ImGui_P:
 	movss	DWORD PTR [eax+204], xmm0
 	movd	xmm0, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+24
 
-; 11245:             ImGui::GetIO ().MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+; 11249:             ImGui::GetIO ().MousePos.y = (float)SK_ImGui_Cursor.pos.y;
 
 	cvtdq2ps xmm0, xmm0
-	movss	DWORD PTR tv543[ebp], xmm0
+	movss	DWORD PTR tv617[ebp], xmm0
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
-	movss	xmm0, DWORD PTR tv543[ebp]
+	movss	xmm0, DWORD PTR tv617[ebp]
 
-; 11246: 
-; 11247:             SK_ImGui_Cursor.update ();
+; 11250: 
+; 11251:             SK_ImGui_Cursor.update ();
 
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
 	movss	DWORD PTR [eax+208], xmm0
 	call	?update@sk_imgui_cursor_s@@QAEXXZ	; sk_imgui_cursor_s::update
+	mov	esi, DWORD PTR $T3[ebp]
 $LN15@SK_ImGui_P:
 
-; 11248:           }
-; 11249: 
-; 11250:           if (foreground)
+; 11252:           }
+; 11253: 
+; 11254:           if (foreground)
 
 	cmp	BYTE PTR _foreground$[ebp], 0
 	je	SHORT $LN21@SK_ImGui_P
 
-; 11251:           {
-; 11252:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
+; 11255:           {
+; 11256:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
 
 	test	BYTE PTR [edi+20], 1
 	je	SHORT $LN17@SK_ImGui_P
 
-; 11253:               ImGui::GetIO ().MouseDown [0] = true;
+; 11257:               ImGui::GetIO ().MouseDown [0] = true;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	BYTE PTR [eax+212], 1
 $LN17@SK_ImGui_P:
 
-; 11254:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
+; 11258:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
 
 	test	BYTE PTR [edi+20], 4
 	je	SHORT $LN18@SK_ImGui_P
 
-; 11255:               ImGui::GetIO ().MouseDown [1] = true;
+; 11259:               ImGui::GetIO ().MouseDown [1] = true;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	BYTE PTR [eax+213], 1
 $LN18@SK_ImGui_P:
 
-; 11256:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
+; 11260:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
 
 	test	BYTE PTR [edi+20], 16			; 00000010H
 	je	SHORT $LN19@SK_ImGui_P
 
-; 11257:               ImGui::GetIO ().MouseDown [2] = true;
+; 11261:               ImGui::GetIO ().MouseDown [2] = true;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	BYTE PTR [eax+214], 1
 $LN19@SK_ImGui_P:
 
-; 11258:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
+; 11262:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
 
 	test	BYTE PTR [edi+20], 64			; 00000040H
 	je	SHORT $LN20@SK_ImGui_P
 
-; 11259:               ImGui::GetIO ().MouseDown [3] = true;
+; 11263:               ImGui::GetIO ().MouseDown [3] = true;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	BYTE PTR [eax+215], 1
 $LN20@SK_ImGui_P:
 
-; 11260:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
+; 11264:             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
 
 	test	DWORD PTR [edi+20], 256			; 00000100H
 	je	SHORT $LN21@SK_ImGui_P
 
-; 11261:               ImGui::GetIO ().MouseDown [4] = true;
+; 11265:               ImGui::GetIO ().MouseDown [4] = true;
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	BYTE PTR [eax+216], 1
 $LN21@SK_ImGui_P:
 
-; 11262:           }
-; 11263: 
-; 11264:           if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags == RI_MOUSE_WHEEL       )
+; 11266:           }
+; 11267: 
+; 11268:           if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags == RI_MOUSE_WHEEL       )
 
 	mov	eax, 1024				; 00000400H
 	cmp	WORD PTR [edi+20], ax
 	jne	SHORT $LN22@SK_ImGui_P
 
-; 11265:             ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData);
+; 11269:             ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData);
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	lea	ecx, DWORD PTR [eax+220]
@@ -9224,66 +9352,73 @@ $LN21@SK_ImGui_P:
 	movss	DWORD PTR [ecx], xmm0
 $LN22@SK_ImGui_P:
 
-; 11297: 
-; 11298: 
-; 11299:       default:
-; 11300:         break;
-; 11301:     }
-; 11302:   }
-; 11303: 
-; 11304:   if (filter || keyboard)
+; 11301: 
+; 11302: 
+; 11303:       default:
+; 11304:         break;
+; 11305:     }
+; 11306:   }
+; 11307: 
+; 11308:   if (filter || keyboard)
 
-	mov	bh, BYTE PTR _filter$1$[ebp]
+	cmp	BYTE PTR _filter$1$[ebp], 0
 	mov	bl, BYTE PTR _keyboard$[ebp]
-	test	bh, bh
 	jne	SHORT $LN33@SK_ImGui_P
 	test	bl, bl
-	jne	SHORT $LN52@SK_ImGui_P
-	mov	ebx, DWORD PTR _size$1$[ebp]
+	jne	SHORT $LN74@SK_ImGui_P
+	mov	bh, BYTE PTR _owns_data$1$[ebp]
 $LN32@SK_ImGui_P:
 
-; 11376:   }
-; 11377: 
-; 11378:   if (owns_data)
+; 11380:   }
+; 11381: 
+; 11382:   if (owns_data)
 
-	mov	al, BYTE PTR _owns_data$1$[ebp]
-	test	al, al
+	test	bh, bh
 	je	SHORT $LN45@SK_ImGui_P
 
-; 11379:     delete [] pData;
+; 11383:     delete [] pData;
 
 	push	edi
 	call	??_V@YAXPAX@Z				; operator delete[]
-	mov	al, BYTE PTR _owns_data$1$[ebp]
 	add	esp, 4
 $LN45@SK_ImGui_P:
 
-; 11380: 
-; 11381:   return owns_data ? 0 : size;
+; 11384: 
+; 11385:   return owns_data ? 0 : size;
 
-	xor	ecx, ecx
-	test	al, al
+	xor	eax, eax
+	test	bh, bh
+	cmovne	esi, eax
+$LN51@SK_ImGui_P:
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 269  :     LeaveCriticalSection (cs_);
+
+	push	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
+	call	DWORD PTR __imp__LeaveCriticalSection@4
+; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
+
+; 11386: }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	eax, esi
 	pop	edi
-	cmovne	ebx, ecx
-	mov	eax, ebx
-	pop	ebx
 	pop	esi
-
-; 11382: }
-
+	pop	ebx
+	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	24					; 00000018H
 $LN33@SK_ImGui_P:
 
-; 11305:   {
-; 11306:     // Clearing all bytes above would have set the type to mouse, and some games
-; 11307:     //   will actually read data coming from RawInput even when the size returned is 0!
-; 11308:     ((RAWINPUT *)pData)->header.dwType = keyboard ? RIM_TYPEKEYBOARD      :
+; 11309:   {
+; 11310:     // Clearing all bytes above would have set the type to mouse, and some games
+; 11311:     //   will actually read data coming from RawInput even when the size returned is 0!
+; 11312:     ((RAWINPUT *)pData)->header.dwType = keyboard ? RIM_TYPEKEYBOARD      :
 
 	test	bl, bl
 	je	SHORT $LN47@SK_ImGui_P
-$LN52@SK_ImGui_P:
+$LN74@SK_ImGui_P:
 	mov	eax, 1
 	jmp	SHORT $LN48@SK_ImGui_P
 $LN47@SK_ImGui_P:
@@ -9293,28 +9428,29 @@ $LN47@SK_ImGui_P:
 	cmovne	eax, ecx
 $LN48@SK_ImGui_P:
 
-; 11309:                                                     mouse ? RIM_TYPEMOUSE :
-; 11310:                                                             RIM_TYPEHID;
-; 11311: 
-; 11312:     if (! owns_data)
+; 11313:                                                     mouse ? RIM_TYPEMOUSE :
+; 11314:                                                             RIM_TYPEHID;
+; 11315: 
+; 11316:     if (! owns_data)
 
-	cmp	BYTE PTR _owns_data$1$[ebp], 0
+	mov	bh, BYTE PTR _owns_data$1$[ebp]
 
-; 11315:       {
-; 11316:         memset (pData, 0, *pcbSize);
+; 11319:       {
+; 11320:         memset (pData, 0, *pcbSize);
 
 	mov	esi, DWORD PTR _pcbSize$[ebp]
 	mov	DWORD PTR [edi], eax
+	test	bh, bh
 	jne	$LN44@SK_ImGui_P
 
-; 11313:     {
-; 11314:       if (! keyboard)
+; 11317:     {
+; 11318:       if (! keyboard)
 
 	test	bl, bl
 	jne	SHORT $LN35@SK_ImGui_P
 
-; 11315:       {
-; 11316:         memset (pData, 0, *pcbSize);
+; 11319:       {
+; 11320:         memset (pData, 0, *pcbSize);
 
 	push	DWORD PTR [esi]
 	push	0
@@ -9323,68 +9459,68 @@ $LN48@SK_ImGui_P:
 	add	esp, 12					; 0000000cH
 $LN35@SK_ImGui_P:
 
-; 11317:       }
-; 11318: 
-; 11319:       // Tell the game this event happened in the background, most will
-; 11320:       //   throw it out quick and easy. Even easier if we tell it the event came
-; 11321:       //     from the keyboard.
-; 11322:       if (filter)
+; 11321:       }
+; 11322: 
+; 11323:       // Tell the game this event happened in the background, most will
+; 11324:       //   throw it out quick and easy. Even easier if we tell it the event came
+; 11325:       //     from the keyboard.
+; 11326:       if (filter)
 
-	test	bh, bh
+	cmp	BYTE PTR _filter$1$[ebp], 0
 	je	SHORT $LN36@SK_ImGui_P
 
-; 11323:       {
-; 11324:         ((RAWINPUT *)pData)->header.wParam = RIM_INPUTSINK;
-; 11325:         ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
-; 11326: 
-; 11327:         // Fake key release
-; 11328:         ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
+; 11327:       {
+; 11328:         ((RAWINPUT *)pData)->header.wParam = RIM_INPUTSINK;
+; 11329:         ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
+; 11330: 
+; 11331:         // Fake key release
+; 11332:         ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
 
 	or	WORD PTR [edi+18], 1
 	mov	DWORD PTR [edi+12], 1
 	mov	DWORD PTR [edi], 1
 $LN36@SK_ImGui_P:
 
-; 11329:       }
-; 11330: 
-; 11331:       // Ugh, why does everything have to be so complicated? :P
-; 11332:       //
-; 11333:       //   This horrible nightmare prevents games from seeing keys as stuck after
-; 11334:       //     activating the ImGui overlay.
-; 11335:       //
-; 11336:       if (keyboard)
+; 11333:       }
+; 11334: 
+; 11335:       // Ugh, why does everything have to be so complicated? :P
+; 11336:       //
+; 11337:       //   This horrible nightmare prevents games from seeing keys as stuck after
+; 11338:       //     activating the ImGui overlay.
+; 11339:       //
+; 11340:       if (keyboard)
 
 	test	bl, bl
-	je	SHORT $LN51@SK_ImGui_P
+	je	SHORT $LN73@SK_ImGui_P
 
-; 11337:       {
-; 11338:         bool release = (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) != 0;
+; 11341:       {
+; 11342:         bool release = (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK) != 0;
 
 	mov	bl, BYTE PTR [edi+18]
 	and	bl, 1
 
-; 11339:         bool erase   = SK_ImGui_WantKeyboardCapture ();
+; 11343:         bool erase   = SK_ImGui_WantKeyboardCapture ();
 
 	call	?SK_ImGui_WantKeyboardCapture@@YA_NXZ	; SK_ImGui_WantKeyboardCapture
 
-; 11340:         bool invert  = false;
-; 11341: 
-; 11342:         USHORT VKey =
-; 11343:           ( (RAWINPUT *)pData )->data.keyboard.VKey & 0xFF;
+; 11344:         bool invert  = false;
+; 11345: 
+; 11346:         USHORT VKey =
+; 11347:           ( (RAWINPUT *)pData )->data.keyboard.VKey & 0xFF;
 
 	mov	cx, WORD PTR [edi+22]
 	mov	edx, 255				; 000000ffH
 	and	cx, dx
 	movzx	ecx, cx
 
-; 11344: 
-; 11345:         if (erase)
+; 11348: 
+; 11349:         if (erase)
 
 	test	al, al
 	je	SHORT $LN44@SK_ImGui_P
 
-; 11346:         {
-; 11347:           if ((! release) && SK_ImGui_ActivationKeys [VKey] > 0)
+; 11350:         {
+; 11351:           if ((! release) && SK_ImGui_ActivationKeys [VKey] > 0)
 
 	test	bl, bl
 	jne	SHORT $LN44@SK_ImGui_P
@@ -9392,28 +9528,28 @@ $LN36@SK_ImGui_P:
 	test	eax, eax
 	jle	SHORT $LN44@SK_ImGui_P
 
-; 11348:           {
-; 11349:             SK_ImGui_ActivationKeys [VKey]--;
+; 11352:           {
+; 11353:             SK_ImGui_ActivationKeys [VKey]--;
 
 	dec	eax
 	mov	DWORD PTR ?SK_ImGui_ActivationKeys@@3PAHA[ecx*4], eax
 
-; 11350:             invert = true;
-; 11351:           }
-; 11352: 
-; 11353:           if (invert)
-; 11354:           {
-; 11355:             // We WANT the game to know about this event, don't sink it.
-; 11356:             ((RAWINPUT *)pData)->header.wParam = RIM_INPUT;
-; 11357:             ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
-; 11358: 
-; 11359:             // Fake key release
-; 11360:             ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
+; 11354:             invert = true;
+; 11355:           }
+; 11356: 
+; 11357:           if (invert)
+; 11358:           {
+; 11359:             // We WANT the game to know about this event, don't sink it.
+; 11360:             ((RAWINPUT *)pData)->header.wParam = RIM_INPUT;
+; 11361:             ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
+; 11362: 
+; 11363:             // Fake key release
+; 11364:             ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
 
 	or	WORD PTR [edi+18], 1
 
-; 11361: 
-; 11362:             if (((RAWINPUT *)pData)->data.keyboard.Message      == WM_KEYDOWN)
+; 11365: 
+; 11366:             if (((RAWINPUT *)pData)->data.keyboard.Message      == WM_KEYDOWN)
 
 	mov	eax, DWORD PTR [edi+24]
 	mov	DWORD PTR [edi+12], 0
@@ -9421,54 +9557,116 @@ $LN36@SK_ImGui_P:
 	cmp	eax, 256				; 00000100H
 	jne	SHORT $LN41@SK_ImGui_P
 
-; 11363:               ((RAWINPUT *)pData)->data.keyboard.Message = WM_KEYUP;
+; 11367:               ((RAWINPUT *)pData)->data.keyboard.Message = WM_KEYUP;
 
 	mov	DWORD PTR [edi+24], 257			; 00000101H
 
-; 11373:     }
-; 11374: 
-; 11375:     size = *pcbSize;
+; 11377:     }
+; 11378: 
+; 11379:     size = *pcbSize;
 
-	mov	ebx, DWORD PTR [esi]
+	mov	esi, DWORD PTR [esi]
 	jmp	$LN32@SK_ImGui_P
 $LN41@SK_ImGui_P:
 
-; 11364: 
-; 11365:             else if (((RAWINPUT *)pData)->data.keyboard.Message == WM_SYSKEYDOWN)
+; 11368: 
+; 11369:             else if (((RAWINPUT *)pData)->data.keyboard.Message == WM_SYSKEYDOWN)
 
 	cmp	eax, 260				; 00000104H
 	jne	SHORT $LN44@SK_ImGui_P
 
-; 11366:               ((RAWINPUT *)pData)->data.keyboard.Message = WM_SYSKEYUP;
+; 11370:               ((RAWINPUT *)pData)->data.keyboard.Message = WM_SYSKEYUP;
 
 	mov	DWORD PTR [edi+24], 261			; 00000105H
 
-; 11373:     }
-; 11374: 
-; 11375:     size = *pcbSize;
+; 11377:     }
+; 11378: 
+; 11379:     size = *pcbSize;
 
-	mov	ebx, DWORD PTR [esi]
+	mov	esi, DWORD PTR [esi]
 	jmp	$LN32@SK_ImGui_P
-$LN51@SK_ImGui_P:
+$LN73@SK_ImGui_P:
 
-; 11367:           }
-; 11368:         }
-; 11369:       }
-; 11370: 
-; 11371:       if (! keyboard)
-; 11372:         *pcbSize = 0;
+; 11371:           }
+; 11372:         }
+; 11373:       }
+; 11374: 
+; 11375:       if (! keyboard)
+; 11376:         *pcbSize = 0;
 
 	mov	DWORD PTR [esi], 0
 $LN44@SK_ImGui_P:
 
-; 11373:     }
-; 11374: 
-; 11375:     size = *pcbSize;
+; 11377:     }
+; 11378: 
+; 11379:     size = *pcbSize;
 
-	mov	ebx, DWORD PTR [esi]
+	mov	esi, DWORD PTR [esi]
 	jmp	$LN32@SK_ImGui_P
-?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z ENDP ; SK_ImGui_ProcessRawInput
 _TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z$0:
+	lea	ecx, DWORD PTR _lock$[ebp]
+	jmp	??1?$lock_guard@VSK_Thread_HybridSpinlock@@@std@@QAE@XZ ; std::lock_guard<SK_Thread_HybridSpinlock>::~lock_guard<SK_Thread_HybridSpinlock>
+__ehhandler$?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z:
+	mov	eax, OFFSET __ehfuncinfo$?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?SK_ImGui_ProcessRawInput@@YGIPAUHRAWINPUT__@@IPAXPAIIH@Z ENDP ; SK_ImGui_ProcessRawInput
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+;	COMDAT ??__Fraw_input_lock@@YAXXZ
+text$yd	SEGMENT
+??__Fraw_input_lock@@YAXXZ PROC				; `dynamic atexit destructor for 'raw_input_lock'', COMDAT
+
+; 287  :     DeleteCriticalSection (cs_);
+
+	push	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
+	call	DWORD PTR __imp__DeleteCriticalSection@4
+
+; 288  :     delete cs_;
+
+	push	24					; 00000018H
+	push	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+	ret	0
+??__Fraw_input_lock@@YAXXZ ENDP				; `dynamic atexit destructor for 'raw_input_lock''
+text$yd	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
+;	COMDAT ??__Eraw_input_lock@@YAXXZ
+text$di	SEGMENT
+??__Eraw_input_lock@@YAXXZ PROC				; `dynamic initializer for 'raw_input_lock'', COMDAT
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+
+	push	24					; 00000018H
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 258  :     cs_ = pCS;
+
+	mov	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A, eax ; raw_input_lock
+
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+
+	push	9000					; 00002328H
+	push	eax
+	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
+; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
+
+; 11066: SK_Thread_HybridSpinlock raw_input_lock (9000);
+
+	push	OFFSET ??__Fraw_input_lock@@YAXXZ	; `dynamic atexit destructor for 'raw_input_lock''
+	call	_atexit
+	pop	ecx
+	ret	0
+??__Eraw_input_lock@@YAXXZ ENDP				; `dynamic initializer for 'raw_input_lock''
+text$di	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -9785,7 +9983,7 @@ _TEXT	SEGMENT
 ; _this$ = ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 266  :     LeaveCriticalSection (cs_);
+; 269  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [eax]
@@ -9824,7 +10022,7 @@ __Mtx$ = 8						; size = 4
 	mov	DWORD PTR [esi], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 261  :     EnterCriticalSection (cs_);
+; 264  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__EnterCriticalSection@4
@@ -9885,7 +10083,7 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 261  :     EnterCriticalSection (cs_);
+; 264  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -9895,7 +10093,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _cs_load_font$[ebp], OFFSET ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 261  :     EnterCriticalSection (cs_);
+; 264  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
@@ -10137,7 +10335,7 @@ $LN3@SK_ImGui_L:
 $LN2@SK_ImGui_L:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 266  :     LeaveCriticalSection (cs_);
+; 269  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -10167,12 +10365,12 @@ text$x	ENDS
 text$yd	SEGMENT
 ??__Ffont_lock@@YAXXZ PROC				; `dynamic atexit destructor for 'font_lock'', COMDAT
 
-; 284  :     DeleteCriticalSection (cs_);
+; 287  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 285  :     delete cs_;
+; 288  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
@@ -10190,17 +10388,17 @@ text$di	SEGMENT
 ??__Efont_lock@@YAXXZ PROC				; `dynamic initializer for 'font_lock'', COMDAT
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 255  :     cs_ = pCS;
+; 258  :     cs_ = pCS;
 
 	mov	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A, eax ; font_lock
 
-; 279  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	300					; 0000012cH
 	push	eax
@@ -10246,18 +10444,18 @@ _TEXT	SEGMENT
 ??1SK_Thread_HybridSpinlock@@QAE@XZ PROC		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 283  :   {
+; 286  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 284  :     DeleteCriticalSection (cs_);
+; 287  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 285  :     delete cs_;
+; 288  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [esi]
@@ -10265,7 +10463,7 @@ _TEXT	SEGMENT
 	add	esp, 8
 	pop	esi
 
-; 286  :   }
+; 289  :   }
 
 	ret	0
 ??1SK_Thread_HybridSpinlock@@QAE@XZ ENDP		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock
@@ -10278,55 +10476,55 @@ _spin_count$ = 8					; size = 4
 ??0SK_Thread_HybridSpinlock@@QAE@H@Z PROC		; SK_Thread_HybridSpinlock::SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 278  :   {
+; 281  :   {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 256  :   };
-; 257  : 
-; 258  :   ~SK_Thread_CriticalSection (void) = default;
-; 259  : 
-; 260  :   void lock (void) {
-; 261  :     EnterCriticalSection (cs_);
-; 262  :   }
-; 263  : 
-; 264  :   void unlock (void)
-; 265  :   {
-; 266  :     LeaveCriticalSection (cs_);
-; 267  :   }
-; 268  : 
-; 269  : protected:
-; 270  :   CRITICAL_SECTION* cs_;
-; 271  : };
-; 272  : 
-; 273  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
-; 274  : {
-; 275  : public:
-; 276  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
-; 277  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 259  :   };
+; 260  : 
+; 261  :   ~SK_Thread_CriticalSection (void) = default;
+; 262  : 
+; 263  :   void lock (void) {
+; 264  :     EnterCriticalSection (cs_);
+; 265  :   }
+; 266  : 
+; 267  :   void unlock (void)
+; 268  :   {
+; 269  :     LeaveCriticalSection (cs_);
+; 270  :   }
+; 271  : 
+; 272  : protected:
+; 273  :   CRITICAL_SECTION* cs_;
+; 274  : };
+; 275  : 
+; 276  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
+; 277  : {
+; 278  : public:
+; 279  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 
-; 278  :   {
+; 281  :   {
 
 	mov	esi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 255  :     cs_ = pCS;
+; 258  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 279  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	DWORD PTR _spin_count$[ebp]
 	push	eax
 	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 
-; 280  :   }
+; 283  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -10341,12 +10539,12 @@ _TEXT	SEGMENT
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::unlock, COMDAT
 ; _this$ = ecx
 
-; 266  :     LeaveCriticalSection (cs_);
+; 269  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 267  :   }
+; 270  :   }
 
 	ret	0
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::unlock
@@ -10358,12 +10556,12 @@ _TEXT	SEGMENT
 ?lock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::lock, COMDAT
 ; _this$ = ecx
 
-; 261  :     EnterCriticalSection (cs_);
+; 264  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 262  :   }
+; 265  :   }
 
 	ret	0
 ?lock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::lock
@@ -10376,19 +10574,19 @@ _pCS$ = 8						; size = 4
 ??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z PROC ; SK_Thread_CriticalSection::SK_Thread_CriticalSection, COMDAT
 ; _this$ = ecx
 
-; 253  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+; 256  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 254  :   {
-; 255  :     cs_ = pCS;
+; 257  :   {
+; 258  :     cs_ = pCS;
 
 	mov	eax, DWORD PTR _pCS$[ebp]
 	mov	DWORD PTR [ecx], eax
 
-; 256  :   };
+; 259  :   };
 
 	mov	eax, ecx
 	pop	ebp
@@ -17230,7 +17428,7 @@ $LN3@BeginChild:
 	push	eax
 	push	DWORD PTR [esi]
 	lea	eax, DWORD PTR _title$[ebp]
-	push	OFFSET $SG119711
+	push	OFFSET $SG119737
 	push	256					; 00000100H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -17245,7 +17443,7 @@ $LN5@BeginChild:
 
 	push	DWORD PTR [esi]
 	lea	eax, DWORD PTR _title$[ebp]
-	push	OFFSET $SG119712
+	push	OFFSET $SG119738
 	push	256					; 00000100H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -25137,7 +25335,7 @@ $LN9@DataTypeAp:
 ; 7340 :         const int old_v = *v;
 
 	mov	eax, DWORD PTR _scalar_format$[ebp]
-	mov	ecx, OFFSET $SG121742
+	mov	ecx, OFFSET $SG121768
 	mov	edi, DWORD PTR _data_ptr$[ebp]
 	test	eax, eax
 	cmovne	ecx, eax
@@ -25177,7 +25375,7 @@ $LN13@DataTypeAp:
 	jne	SHORT $LN14@DataTypeAp
 	lea	eax, DWORD PTR _arg1$4[ebp]
 	push	eax
-	push	OFFSET $SG121747
+	push	OFFSET $SG121773
 	push	esi
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25211,7 +25409,7 @@ $LN14@DataTypeAp:
 	jne	SHORT $LN17@DataTypeAp
 	lea	eax, DWORD PTR _arg1$4[ebp]
 	push	eax
-	push	OFFSET $SG121751
+	push	OFFSET $SG121777
 	push	esi
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25245,7 +25443,7 @@ $LN17@DataTypeAp:
 	jne	SHORT $LN20@DataTypeAp
 	lea	eax, DWORD PTR _arg1$4[ebp]
 	push	eax
-	push	OFFSET $SG121755
+	push	OFFSET $SG121781
 	push	esi
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25333,7 +25531,7 @@ $LN10@DataTypeAp:
 	je	SHORT $LN25@DataTypeAp
 	lea	eax, DWORD PTR _arg0$1[ebp]
 	push	eax
-	push	OFFSET $SG121758
+	push	OFFSET $SG121784
 	push	DWORD PTR _initial_value_buf$[ebp]
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25349,7 +25547,7 @@ $LN25@DataTypeAp:
 	lea	eax, DWORD PTR _arg1$3[ebp]
 	mov	DWORD PTR _arg1$3[ebp], 0
 	push	eax
-	push	OFFSET $SG121758
+	push	OFFSET $SG121784
 	push	esi
 	call	_sscanf
 	add	esp, 12					; 0000000cH
@@ -25590,7 +25788,7 @@ _buf_size$ = 24						; size = 4
 	push	DWORD PTR [eax]
 	test	ecx, ecx
 	jns	SHORT $LN4@DataTypeFo
-	push	OFFSET $SG121676
+	push	OFFSET $SG121702
 	push	DWORD PTR _buf_size$[ebp]
 	push	DWORD PTR _buf$[ebp]
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -25607,7 +25805,7 @@ $LN4@DataTypeFo:
 ; 7284 :             ImFormatString(buf, buf_size, "%.*d", decimal_precision, *(int*)data_ptr);
 
 	push	ecx
-	push	OFFSET $SG121677
+	push	OFFSET $SG121703
 	push	DWORD PTR _buf_size$[ebp]
 	push	DWORD PTR _buf$[ebp]
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -25638,7 +25836,7 @@ $LN2@DataTypeFo:
 	movsd	QWORD PTR [esp], xmm0
 	test	ecx, ecx
 	jns	SHORT $LN7@DataTypeFo
-	push	OFFSET $SG121681
+	push	OFFSET $SG121707
 	push	DWORD PTR _buf_size$[ebp]
 	push	DWORD PTR _buf$[ebp]
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -25655,7 +25853,7 @@ $LN7@DataTypeFo:
 ; 7291 :             ImFormatString(buf, buf_size, "%.*f", decimal_precision, *(float*)data_ptr);
 
 	push	ecx
-	push	OFFSET $SG121682
+	push	OFFSET $SG121708
 	push	DWORD PTR _buf_size$[ebp]
 	push	DWORD PTR _buf$[ebp]
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -27261,7 +27459,7 @@ $LN2@BeginPopup:
 	test	esi, 134217728				; 08000000H
 	je	SHORT $LN3@BeginPopup
 	push	DWORD PTR [edi+6368]
-	push	OFFSET $SG119637
+	push	OFFSET $SG119663
 
 ; 4380 :     else
 
@@ -27271,7 +27469,7 @@ $LN3@BeginPopup:
 ; 4381 :         ImFormatString(name, IM_ARRAYSIZE(name), "##popup_%08x", id); // Not recycling, so we can close/open during the same frame
 
 	push	ebx
-	push	OFFSET $SG119638
+	push	OFFSET $SG119664
 $LN10@BeginPopup:
 	push	20					; 00000014H
 	push	eax
@@ -28445,10 +28643,10 @@ _horizontal$ = 12					; size = 1
 ; 5392 :     const ImGuiID id = window->GetID(horizontal ? "#SCROLLX" : "#SCROLLY");
 
 	cmp	BYTE PTR _horizontal$[ebp], 0
-	mov	ecx, OFFSET $SG120286
+	mov	ecx, OFFSET $SG120312
 	push	esi
 	mov	esi, DWORD PTR _window$[ebp]
-	mov	eax, OFFSET $SG120285
+	mov	eax, OFFSET $SG120311
 	push	edi
 	mov	edi, DWORD PTR ?GImGui@@3PAUImGuiContext@@A ; GImGui
 	cmove	eax, ecx
@@ -31000,7 +31198,7 @@ $LN14@LogRendere:
 
 	push	ecx
 	push	eax
-	push	OFFSET $SG119103
+	push	OFFSET $SG119129
 	call	?LogText@ImGui@@YAXPBDZZ		; ImGui::LogText
 	add	esp, 12					; 0000000cH
 	jmp	SHORT $LN32@LogRendere
@@ -31010,10 +31208,10 @@ $LN17@LogRendere:
 
 	push	ecx
 	push	eax
-	push	OFFSET $SG119101
+	push	OFFSET $SG119127
 	lea	eax, DWORD PTR [edx*4]
 	push	eax
-	push	OFFSET $SG119102
+	push	OFFSET $SG119128
 	call	?LogText@ImGui@@YAXPBDZZ		; ImGui::LogText
 	add	esp, 20					; 00000014H
 $LN32@LogRendere:
@@ -31491,7 +31689,7 @@ ___formal$ = 60						; size = 4
 _inverse$ = 64						; size = 1
 ?PlotCEx@ImGui@@YAXW4ImGuiPlotType@@PBDP6AMPAXH@Z2HH1MMUImVec2@@MMM_N@Z PROC ; ImGui::PlotCEx
 
-; 12536: {
+; 12540: {
 
 	npad	2
 	push	ebp
@@ -31509,22 +31707,22 @@ _inverse$ = 64						; size = 1
 	mov	DWORD PTR _window$1$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12540:   if (window->SkipItems)
+; 12544:   if (window->SkipItems)
 
 	cmp	BYTE PTR [esi+137], 0
 	jne	$LN18@PlotCEx
 
-; 12541:     return;
-; 12542: 
-; 12543:   ImGuiContext&     g     = *GImGui;
-; 12544:   const ImGuiStyle& style = g.Style;
+; 12545:     return;
+; 12546: 
+; 12547:   ImGuiContext&     g     = *GImGui;
+; 12548:   const ImGuiStyle& style = g.Style;
 
 	push	ebx
 	mov	ebx, DWORD PTR ?GImGui@@3PAUImGuiContext@@A ; GImGui
 
-; 12545: 
-; 12546:   const ImVec2 label_size =
-; 12547:     CalcTextSize (label, nullptr, true);
+; 12549: 
+; 12550:   const ImVec2 label_size =
+; 12551:     CalcTextSize (label, nullptr, true);
 
 	lea	eax, DWORD PTR _label_size$[ebp]
 	push	ecx
@@ -31536,8 +31734,8 @@ _inverse$ = 64						; size = 1
 	push	eax
 	call	?CalcTextSize@ImGui@@YA?AUImVec2@@PBD0_NM@Z ; ImGui::CalcTextSize
 
-; 12548: 
-; 12549:   if (graph_size.x == 0.0f)
+; 12552: 
+; 12553:   if (graph_size.x == 0.0f)
 
 	movss	xmm3, DWORD PTR _graph_size$[ebp]
 	add	esp, 20					; 00000014H
@@ -31547,7 +31745,7 @@ _inverse$ = 64						; size = 1
 	test	ah, 68					; 00000044H
 	jp	SHORT $LN9@PlotCEx
 
-; 12550:       graph_size.x = CalcItemWidth ();
+; 12554:       graph_size.x = CalcItemWidth ();
 
 	call	?CalcItemWidth@ImGui@@YAMXZ		; ImGui::CalcItemWidth
 	fstp	DWORD PTR _graph_size$[ebp]
@@ -31555,7 +31753,7 @@ _inverse$ = 64						; size = 1
 	xorps	xmm1, xmm1
 $LN9@PlotCEx:
 
-; 12551:   if (graph_size.y == 0.0f)
+; 12555:   if (graph_size.y == 0.0f)
 
 	movss	xmm0, DWORD PTR _graph_size$[ebp+4]
 	ucomiss	xmm0, xmm1
@@ -31563,7 +31761,7 @@ $LN9@PlotCEx:
 	test	ah, 68					; 00000044H
 	jp	SHORT $LN10@PlotCEx
 
-; 12552:       graph_size.y = label_size.y + (style.FramePadding.y * 2.0f);
+; 12556:       graph_size.y = label_size.y + (style.FramePadding.y * 2.0f);
 
 	movss	xmm0, DWORD PTR [ebx+5360]
 	addss	xmm0, xmm0
@@ -31645,7 +31843,7 @@ $LN10@PlotCEx:
 	movss	DWORD PTR $T2$sroa$398$1$[ebp], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12559:   const ImRect total_bb ( frame_bb.Min,
+; 12563:   const ImRect total_bb ( frame_bb.Min,
 
 	movss	xmm0, DWORD PTR _label_size$[ebp]
 	comiss	xmm0, xmm1
@@ -31664,7 +31862,7 @@ $LN20@PlotCEx:
 	addss	xmm2, xmm1
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12569:   ItemSize (total_bb, style.FramePadding.y);
+; 12573:   ItemSize (total_bb, style.FramePadding.y);
 
 	movss	xmm0, DWORD PTR [ebx+5360]
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
@@ -31697,7 +31895,7 @@ $LN20@PlotCEx:
 	mov	eax, DWORD PTR $T14[ebp+4]
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12569:   ItemSize (total_bb, style.FramePadding.y);
+; 12573:   ItemSize (total_bb, style.FramePadding.y);
 
 	push	ecx
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
@@ -31707,15 +31905,15 @@ $LN20@PlotCEx:
 	mov	DWORD PTR _total_bb$[ebp+12], eax
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12569:   ItemSize (total_bb, style.FramePadding.y);
+; 12573:   ItemSize (total_bb, style.FramePadding.y);
 
 	lea	eax, DWORD PTR _total_bb$[ebp]
 	movss	DWORD PTR [esp], xmm0
 	push	eax
 	call	?ItemSize@ImGui@@YAXABUImRect@@M@Z	; ImGui::ItemSize
 
-; 12570: 
-; 12571:   if (! ItemAdd (total_bb, nullptr, &frame_bb))
+; 12574: 
+; 12575:   if (! ItemAdd (total_bb, nullptr, &frame_bb))
 
 	lea	eax, DWORD PTR _frame_bb$[ebp]
 	push	eax
@@ -31727,10 +31925,10 @@ $LN20@PlotCEx:
 	test	al, al
 	je	$LN138@PlotCEx
 
-; 12572:     return;
-; 12573: 
-; 12574:   // Determine scale from values if not specified
-; 12575:   if ( scale_min == std::numeric_limits <float>::max () ||
+; 12576:     return;
+; 12577: 
+; 12578:   // Determine scale from values if not specified
+; 12579:   if ( scale_min == std::numeric_limits <float>::max () ||
 
 	movss	xmm3, DWORD PTR __real@7f7fffff
 	movss	xmm0, DWORD PTR _scale_min$[ebp]
@@ -31757,7 +31955,7 @@ $LN13@PlotCEx:
 	movaps	xmm2, xmm3
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12581:     for (int i = 0; i < values_count; i++)
+; 12585:     for (int i = 0; i < values_count; i++)
 
 	xor	esi, esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\limits
@@ -31771,14 +31969,14 @@ $LN13@PlotCEx:
 	movss	DWORD PTR _v_max$1$[ebp], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12581:     for (int i = 0; i < values_count; i++)
+; 12585:     for (int i = 0; i < values_count; i++)
 
 	test	edi, edi
 	jle	SHORT $LN3@PlotCEx
 	npad	3
 $LL4@PlotCEx:
 
-; 12584:         values_getter (data, i);
+; 12588:         values_getter (data, i);
 
 	push	esi
 	push	DWORD PTR _data$[ebp]
@@ -31790,7 +31988,7 @@ $LL4@PlotCEx:
 	movss	xmm2, DWORD PTR _v_min$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12584:         values_getter (data, i);
+; 12588:         values_getter (data, i);
 
 	add	esp, 8
 	fstp	DWORD PTR _v$17[ebp]
@@ -31817,7 +32015,7 @@ $LN136@PlotCEx:
 $LN73@PlotCEx:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12581:     for (int i = 0; i < values_count; i++)
+; 12585:     for (int i = 0; i < values_count; i++)
 
 	inc	esi
 	cmp	esi, edi
@@ -31825,12 +32023,12 @@ $LN73@PlotCEx:
 	movss	xmm3, DWORD PTR __real@7f7fffff
 $LN3@PlotCEx:
 
-; 12585: 
-; 12586:       v_min = ImMin (v_min, v);
-; 12587:       v_max = ImMax (v_max, v);
-; 12588:     }
 ; 12589: 
-; 12590:     if (scale_min == std::numeric_limits <float>::max ())
+; 12590:       v_min = ImMin (v_min, v);
+; 12591:       v_max = ImMax (v_max, v);
+; 12592:     }
+; 12593: 
+; 12594:     if (scale_min == std::numeric_limits <float>::max ())
 
 	movss	xmm1, DWORD PTR _scale_min$[ebp]
 	ucomiss	xmm1, xmm3
@@ -31838,12 +32036,12 @@ $LN3@PlotCEx:
 	test	ah, 68					; 00000044H
 	jp	SHORT $LN14@PlotCEx
 
-; 12591:         scale_min = v_min;
+; 12595:         scale_min = v_min;
 
 	movss	DWORD PTR _scale_min$[ebp], xmm2
 $LN14@PlotCEx:
 
-; 12592:     if (scale_max == std::numeric_limits <float>::max ())
+; 12596:     if (scale_max == std::numeric_limits <float>::max ())
 
 	movss	xmm1, DWORD PTR _scale_max$[ebp]
 	mov	esi, DWORD PTR _window$1$[ebp]
@@ -31852,14 +32050,14 @@ $LN14@PlotCEx:
 	test	ah, 68					; 00000044H
 	jp	SHORT $LN15@PlotCEx
 
-; 12593:         scale_max = v_max;
+; 12597:         scale_max = v_max;
 
 	movss	DWORD PTR _scale_max$[ebp], xmm0
 $LN15@PlotCEx:
 
-; 12594:   }
-; 12595: 
-; 12596:   RenderFrame ( frame_bb.Min,
+; 12598:   }
+; 12599: 
+; 12600:   RenderFrame ( frame_bb.Min,
 
 	movss	xmm0, DWORD PTR [ebx+5364]
 	push	ecx
@@ -31878,19 +32076,19 @@ $LN15@PlotCEx:
 	call	?RenderFrame@ImGui@@YAXUImVec2@@0I_NM@Z	; ImGui::RenderFrame
 	add	esp, 28					; 0000001cH
 
-; 12597:                 frame_bb.Max,
-; 12598:                   GetColorU32 (ImGuiCol_FrameBg),
-; 12599:                     true,
-; 12600:                       style.FrameRounding );
-; 12601: 
-; 12602:   if (values_count > 0)
+; 12601:                 frame_bb.Max,
+; 12602:                   GetColorU32 (ImGuiCol_FrameBg),
+; 12603:                     true,
+; 12604:                       style.FrameRounding );
+; 12605: 
+; 12606:   if (values_count > 0)
 
 	test	edi, edi
 	jle	$LN6@PlotCEx
 
-; 12603:   {
-; 12604:     int    res_w      = ImMin ( static_cast <int> ( graph_size.x ),
-; 12605:                                                     values_count ) - 1;
+; 12607:   {
+; 12608:     int    res_w      = ImMin ( static_cast <int> ( graph_size.x ),
+; 12609:                                                     values_count ) - 1;
 
 	cvttss2si eax, DWORD PTR _graph_size$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
@@ -31900,7 +32098,7 @@ $LN15@PlotCEx:
 	mov	ecx, edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12609:            t_step     = 1.0f / static_cast <float> (res_w);
+; 12613:            t_step     = 1.0f / static_cast <float> (res_w);
 
 	movss	xmm1, DWORD PTR __real@3f800000
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
@@ -31911,7 +32109,7 @@ $LN15@PlotCEx:
 	cmovl	ecx, eax
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12612:     float  v0         = values_getter (
+; 12616:     float  v0         = values_getter (
 
 	mov	eax, DWORD PTR _values_offset$[ebp]
 	cdq
@@ -31926,7 +32124,7 @@ $LN15@PlotCEx:
 	movss	DWORD PTR _t_step$1$[ebp], xmm1
 	call	DWORD PTR _values_getter$[ebp]
 
-; 12618:     ImVec2 tp0 ( t0, 1.0f - ImSaturate ( (v0        - scale_min) /
+; 12622:     ImVec2 tp0 ( t0, 1.0f - ImSaturate ( (v0        - scale_min) /
 
 	movss	xmm2, DWORD PTR _scale_max$[ebp]
 	add	esp, 8
@@ -31956,7 +32154,7 @@ $LN86@PlotCEx:
 $LN87@PlotCEx:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12621:     for (int n = 0; n < res_w; n++)
+; 12625:     for (int n = 0; n < res_w; n++)
 
 	cmp	DWORD PTR _res_w$1$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -31966,13 +32164,13 @@ $LN87@PlotCEx:
 	movss	DWORD PTR _tp0$3$sroa$298$1$[ebp], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12618:     ImVec2 tp0 ( t0, 1.0f - ImSaturate ( (v0        - scale_min) /
+; 12622:     ImVec2 tp0 ( t0, 1.0f - ImSaturate ( (v0        - scale_min) /
 
 	movaps	xmm0, xmm1
 	subss	xmm0, xmm3
 	movss	DWORD PTR _tp0$3$sroa$297$1$[ebp], xmm0
 
-; 12621:     for (int n = 0; n < res_w; n++)
+; 12625:     for (int n = 0; n < res_w; n++)
 
 	jle	$LN6@PlotCEx
 	movss	xmm0, DWORD PTR $T1$sroa$469$1$[ebp]
@@ -31998,7 +32196,7 @@ $LN87@PlotCEx:
 $LL7@PlotCEx:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12629:         values_getter (data, (v1_idx + values_offset + 1) % values_count);
+; 12633:         values_getter (data, (v1_idx + values_offset + 1) % values_count);
 
 	mov	ecx, DWORD PTR _values_offset$[ebp]
 	movaps	xmm0, xmm1
@@ -32023,12 +32221,12 @@ $LL7@PlotCEx:
 	xorps	xmm1, xmm1
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12629:         values_getter (data, (v1_idx + values_offset + 1) % values_count);
+; 12633:         values_getter (data, (v1_idx + values_offset + 1) % values_count);
 
 	fstp	DWORD PTR _v1$18[ebp]
 
-; 12630: 
-; 12631:       const ImVec2 tp1 ( t1, 1.0f - ImSaturate ( (v1        - scale_min) /
+; 12634: 
+; 12635:       const ImVec2 tp1 ( t1, 1.0f - ImSaturate ( (v1        - scale_min) /
 
 	movss	xmm4, DWORD PTR _v1$18[ebp]
 	add	esp, 8
@@ -32048,7 +32246,7 @@ $LN94@PlotCEx:
 $LN95@PlotCEx:
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12634:       float col_v0 = ( inverse ? scale_max - v0 : v0 );
+; 12638:       float col_v0 = ( inverse ? scale_max - v0 : v0 );
 
 	cmp	BYTE PTR _inverse$[ebp], 0
 	movaps	xmm1, xmm3
@@ -32058,23 +32256,23 @@ $LN95@PlotCEx:
 	movss	xmm0, DWORD PTR _scale_max$[ebp]
 	movaps	xmm2, xmm0
 
-; 12635:       float col_v1 = ( inverse ? scale_max - v1 : v1 );
+; 12639:       float col_v1 = ( inverse ? scale_max - v1 : v1 );
 
 	subss	xmm0, xmm4
 	subss	xmm2, DWORD PTR _v0$1$[ebp]
 	jmp	SHORT $LN25@PlotCEx
 $LN22@PlotCEx:
 
-; 12634:       float col_v0 = ( inverse ? scale_max - v0 : v0 );
+; 12638:       float col_v0 = ( inverse ? scale_max - v0 : v0 );
 
 	movss	xmm2, DWORD PTR _v0$1$[ebp]
 
-; 12635:       float col_v1 = ( inverse ? scale_max - v1 : v1 );
+; 12639:       float col_v1 = ( inverse ? scale_max - v1 : v1 );
 
 	movaps	xmm0, xmm4
 $LN25@PlotCEx:
 
-; 12638:         ImColor::HSV (
+; 12642:         ImColor::HSV (
 
 	movss	xmm1, DWORD PTR tv716[ebp]
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -32084,7 +32282,7 @@ $LN25@PlotCEx:
 	lea	eax, DWORD PTR _b$6[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12638:         ImColor::HSV (
+; 12642:         ImColor::HSV (
 
 	mulss	xmm1, xmm0
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -32094,7 +32292,7 @@ $LN25@PlotCEx:
 	push	eax
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12638:         ImColor::HSV (
+; 12642:         ImColor::HSV (
 
 	movss	xmm0, DWORD PTR tv716[ebp]
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -32104,7 +32302,7 @@ $LN25@PlotCEx:
 	lea	eax, DWORD PTR _g$7[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12638:         ImColor::HSV (
+; 12642:         ImColor::HSV (
 
 	mulss	xmm0, xmm2
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -32136,7 +32334,7 @@ $LN25@PlotCEx:
 	addss	xmm1, xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12638:         ImColor::HSV (
+; 12642:         ImColor::HSV (
 
 	movss	xmm0, DWORD PTR __real@3e9eb852
 	mulss	xmm1, xmm0
@@ -32162,7 +32360,7 @@ $LN25@PlotCEx:
 	movss	xmm2, DWORD PTR $T1$sroa$469$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12651:       window->DrawList->AddLine (pos0, pos1, col_base);
+; 12655:       window->DrawList->AddLine (pos0, pos1, col_base);
 
 	add	esp, 20					; 00000014H
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -32191,7 +32389,7 @@ $LN25@PlotCEx:
 	mulss	xmm0, DWORD PTR _tp0$3$sroa$298$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12651:       window->DrawList->AddLine (pos0, pos1, col_base);
+; 12655:       window->DrawList->AddLine (pos0, pos1, col_base);
 
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -32251,7 +32449,7 @@ $LN25@PlotCEx:
 	call	?ColorConvertFloat4ToU32@ImGui@@YAIABUImVec4@@@Z ; ImGui::ColorConvertFloat4ToU32
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12651:       window->DrawList->AddLine (pos0, pos1, col_base);
+; 12655:       window->DrawList->AddLine (pos0, pos1, col_base);
 
 	mov	ecx, DWORD PTR [esi+624]
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -32261,7 +32459,7 @@ $LN25@PlotCEx:
 	add	esp, 4
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12651:       window->DrawList->AddLine (pos0, pos1, col_base);
+; 12655:       window->DrawList->AddLine (pos0, pos1, col_base);
 
 	push	eax
 	lea	eax, DWORD PTR _pos1$12[ebp]
@@ -32270,14 +32468,14 @@ $LN25@PlotCEx:
 	push	eax
 	call	?AddLine@ImDrawList@@QAEXABUImVec2@@0IM@Z ; ImDrawList::AddLine
 
-; 12652: 
-; 12653:       v0  = v1;
+; 12656: 
+; 12657:       v0  = v1;
 
 	movss	xmm0, DWORD PTR _v1$18[ebp]
 	movss	xmm3, DWORD PTR tv715[ebp]
 	movss	DWORD PTR _v0$1$[ebp], xmm0
 
-; 12654:       t0  = t1;
+; 12658:       t0  = t1;
 
 	movss	xmm0, DWORD PTR _t1$1$[ebp]
 	movss	DWORD PTR _tp0$3$sroa$298$1$[ebp], xmm0
@@ -32289,12 +32487,12 @@ $LN25@PlotCEx:
 	mov	ebx, DWORD PTR tv588[ebp]
 $LN6@PlotCEx:
 
-; 12655:       tp0 = tp1;
-; 12656:     }
-; 12657:   }
-; 12658: 
-; 12659:   // Text overlay
-; 12660:   if (overlay_text)
+; 12659:       tp0 = tp1;
+; 12660:     }
+; 12661:   }
+; 12662: 
+; 12663:   // Text overlay
+; 12664:   if (overlay_text)
 
 	mov	eax, DWORD PTR _overlay_text$[ebp]
 	pop	edi
@@ -32307,7 +32505,7 @@ $LN6@PlotCEx:
 	movss	xmm0, DWORD PTR _frame_bb$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12662:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
+; 12666:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
 
 	lea	ecx, DWORD PTR $T9[ebp]
 	push	0
@@ -32320,7 +32518,7 @@ $LN6@PlotCEx:
 	movss	DWORD PTR $T11[ebp], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12662:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
+; 12666:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
 
 	movss	xmm0, DWORD PTR _frame_bb$[ebp+4]
 	addss	xmm0, DWORD PTR [ebx+5360]
@@ -32334,7 +32532,7 @@ $LN6@PlotCEx:
 	mov	DWORD PTR $T9[ebp], 1056964608		; 3f000000H
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12662:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
+; 12666:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
 
 	push	eax
 	lea	eax, DWORD PTR $T11[ebp]
@@ -32345,7 +32543,7 @@ $LN6@PlotCEx:
 	mov	DWORD PTR $T9[ebp+4], 0
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12662:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
+; 12666:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
 
 	push	eax
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
@@ -32355,26 +32553,26 @@ $LN6@PlotCEx:
 	movss	DWORD PTR $T11[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12662:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
+; 12666:     RenderTextClipped ( ImVec2 ( frame_bb.Min.x,
 
 	call	?RenderTextClipped@ImGui@@YAXABUImVec2@@0PBD1PBU2@0PBUImRect@@@Z ; ImGui::RenderTextClipped
 	add	esp, 28					; 0000001cH
 $LN17@PlotCEx:
 
-; 12663:                                  frame_bb.Min.y + style.FramePadding.y ),
-; 12664:                           frame_bb.Max,
-; 12665:                             overlay_text,
-; 12666:                               nullptr, nullptr,
-; 12667:                                 ImVec2 (0.5f, 0.0f) );
-; 12668:   }
-; 12669: 
-; 12670:   if (label_size.x > 0.0f)
+; 12667:                                  frame_bb.Min.y + style.FramePadding.y ),
+; 12668:                           frame_bb.Max,
+; 12669:                             overlay_text,
+; 12670:                               nullptr, nullptr,
+; 12671:                                 ImVec2 (0.5f, 0.0f) );
+; 12672:   }
+; 12673: 
+; 12674:   if (label_size.x > 0.0f)
 
 	movss	xmm0, DWORD PTR _label_size$[ebp]
 	comiss	xmm0, DWORD PTR __real@00000000
 	jbe	SHORT $LN138@PlotCEx
 
-; 12672:     RenderText ( ImVec2 ( frame_bb.Max.x + style.ItemInnerSpacing.x,
+; 12676:     RenderText ( ImVec2 ( frame_bb.Max.x + style.ItemInnerSpacing.x,
 
 	movss	xmm0, DWORD PTR [ebx+5376]
 	addss	xmm0, DWORD PTR _frame_bb$[ebp+8]
@@ -32390,7 +32588,7 @@ $LN17@PlotCEx:
 	movss	DWORD PTR $T13[ebp+4], xmm0
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
 
-; 12672:     RenderText ( ImVec2 ( frame_bb.Max.x + style.ItemInnerSpacing.x,
+; 12676:     RenderText ( ImVec2 ( frame_bb.Max.x + style.ItemInnerSpacing.x,
 
 	push	DWORD PTR $T13[ebp+4]
 	push	DWORD PTR $T13[ebp]
@@ -32401,10 +32599,10 @@ $LN138@PlotCEx:
 $LN18@PlotCEx:
 	pop	esi
 
-; 12673:                           inner_bb.Min.y ),
-; 12674:                    label );
-; 12675:   }
-; 12676: }
+; 12677:                           inner_bb.Min.y ),
+; 12678:                    label );
+; 12679:   }
+; 12680: }
 
 	mov	esp, ebp
 	pop	ebp
@@ -34530,9 +34728,9 @@ $LN38@TreeNodeBe:
 ; 6998 :             const char log_prefix[] = "\n##";
 ; 6999 :             const char log_suffix[] = "##";
 
-	mov	ax, WORD PTR $SG121415
+	mov	ax, WORD PTR $SG121441
 	mov	WORD PTR _log_suffix$19[ebp], ax
-	mov	al, BYTE PTR $SG121415+2
+	mov	al, BYTE PTR $SG121441+2
 	mov	BYTE PTR _log_suffix$19[ebp+2], al
 
 ; 7000 :             LogRenderedText(text_pos, log_prefix, log_prefix+3);
@@ -34767,7 +34965,7 @@ $LN21@TreeNodeBe:
 
 	push	0
 	lea	eax, DWORD PTR _text_pos$[ebp]
-	push	OFFSET $SG121422
+	push	OFFSET $SG121448
 	push	eax
 	call	?LogRenderedText@@YAXABUImVec2@@PBD1@Z	; LogRenderedText
 	add	esp, 12					; 0000000cH
@@ -35252,7 +35450,7 @@ $LN34@InputScala:
 	push	edx
 	push	64					; 00000040H
 	push	eax
-	push	OFFSET $SG123611
+	push	OFFSET $SG123637
 	call	?InputText@ImGui@@YA_NPBDPADIHP6AHPAUImGuiTextEditCallbackData@@@ZPAX@Z ; ImGui::InputText
 	add	esp, 24					; 00000018H
 	test	al, al
@@ -35305,7 +35503,7 @@ $LN5@InputScala:
 	push	65					; 00000041H
 	lea	eax, DWORD PTR _button_sz$[ebp]
 	push	eax
-	push	OFFSET $SG123614
+	push	OFFSET $SG123640
 	call	?ButtonEx@ImGui@@YA_NPBDABUImVec2@@H@Z	; ImGui::ButtonEx
 	mov	edi, DWORD PTR _step_fast_ptr$[ebp]
 	add	esp, 20					; 00000014H
@@ -35349,7 +35547,7 @@ $LN7@InputScala:
 	push	65					; 00000041H
 	lea	eax, DWORD PTR _button_sz$[ebp]
 	push	eax
-	push	OFFSET $SG123616
+	push	OFFSET $SG123642
 	call	?ButtonEx@ImGui@@YA_NPBDABUImVec2@@H@Z	; ImGui::ButtonEx
 	add	esp, 20					; 00000014H
 	test	al, al
@@ -35571,7 +35769,7 @@ $LL4@InputIntN:
 	push	0
 	push	0
 	push	edi
-	push	OFFSET $SG123696
+	push	OFFSET $SG123722
 	call	?InputInt@ImGui@@YA_NPBDPAHHHH@Z	; ImGui::InputInt
 	or	bl, al
 
@@ -35745,7 +35943,7 @@ $LL4@InputFloat:
 	mov	DWORD PTR [esp+4], 0
 	mov	DWORD PTR [esp], 0
 	push	edi
-	push	OFFSET $SG123663
+	push	OFFSET $SG123689
 	call	?InputFloat@ImGui@@YA_NPBDPAMMMHH@Z	; ImGui::InputFloat
 	or	bl, al
 
@@ -36571,7 +36769,7 @@ $LN181@InputTextE:
 	jne	SHORT $LN182@InputTextE
 	mov	ecx, DWORD PTR _draw_window$1$[ebp]
 	push	0
-	push	OFFSET $SG123414
+	push	OFFSET $SG123440
 	call	?GetIDNoKeepAlive@ImGuiWindow@@QAEIPBD0@Z ; ImGuiWindow::GetIDNoKeepAlive
 	cmp	DWORD PTR [edi+6268], eax
 	jne	SHORT $LN182@InputTextE
@@ -38544,7 +38742,7 @@ $LN510@InputTextE:
 	je	SHORT $LN219@InputTextE
 	mov	ecx, DWORD PTR _draw_window$1$[ebp]
 	push	0
-	push	OFFSET $SG123523
+	push	OFFSET $SG123549
 	call	?GetIDNoKeepAlive@ImGuiWindow@@QAEIPBD0@Z ; ImGuiWindow::GetIDNoKeepAlive
 	cmp	DWORD PTR [edi+6264], eax
 	jne	SHORT $LN219@InputTextE
@@ -39856,7 +40054,7 @@ $LL4@DragIntN:
 	push	ecx
 	movss	DWORD PTR [esp], xmm0
 	push	edi
-	push	OFFSET $SG122289
+	push	OFFSET $SG122315
 	call	?DragInt@ImGui@@YA_NPBDPAHMHH0@Z	; ImGui::DragInt
 	or	bl, al
 
@@ -40037,7 +40235,7 @@ $LL4@DragFloatN:
 	movss	xmm0, DWORD PTR _v_speed$[ebp]
 	movss	DWORD PTR [esp], xmm0
 	push	DWORD PTR _v$[ebp]
-	push	OFFSET $SG122211
+	push	OFFSET $SG122237
 	call	?DragFloat@ImGui@@YA_NPBDPAMMMM0M@Z	; ImGui::DragFloat
 	or	bl, al
 
@@ -40727,7 +40925,7 @@ $LL4@SliderIntN:
 	push	DWORD PTR _v_max$[ebp]
 	push	DWORD PTR _v_min$[ebp]
 	push	edi
-	push	OFFSET $SG122082
+	push	OFFSET $SG122108
 	call	?SliderInt@ImGui@@YA_NPBDPAHHH0@Z	; ImGui::SliderInt
 	or	bl, al
 
@@ -40891,7 +41089,7 @@ $LL4@SliderFloa:
 	movss	xmm0, DWORD PTR _v_min$[ebp]
 	movss	DWORD PTR [esp], xmm0
 	push	DWORD PTR _v$[ebp]
-	push	OFFSET $SG122041
+	push	OFFSET $SG122067
 	call	?SliderFloat@ImGui@@YA_NPBDPAMMM0M@Z	; ImGui::SliderFloat
 	or	bl, al
 
@@ -45203,7 +45401,7 @@ $LN8@OpenPopupE:
 ; 4270 :     ImGuiPopupRef popup_ref = ImGuiPopupRef(id, window, window->GetID("##menus"), popup_pos, mouse_pos); // Tagged as new ref because constructor sets Window to NULL (we are passing the ParentWindow info here)
 
 	push	0
-	push	OFFSET $SG119562
+	push	OFFSET $SG119588
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
 ; 380  :     ImGuiPopupRef(ImGuiID id, ImGuiWindow* parent_window, ImGuiID parent_menu_set, const ImVec2& popup_pos, const ImVec2& mouse_pos) { PopupId = id; Window = NULL; ParentWindow = parent_window; ParentMenuSet = parent_menu_set; PopupPosOnOpen = popup_pos; MousePosOnOpen = mouse_pos; }
@@ -69768,7 +69966,7 @@ $LN4@GetStyleCo:
 ; 5750 :     {
 ; 5751 :     case ImGuiCol_Text: return "Text";
 
-	mov	eax, OFFSET $SG120517
+	mov	eax, OFFSET $SG120543
 
 ; 5799 : }
 
@@ -69778,7 +69976,7 @@ $LN5@GetStyleCo:
 
 ; 5752 :     case ImGuiCol_TextDisabled: return "TextDisabled";
 
-	mov	eax, OFFSET $SG120519
+	mov	eax, OFFSET $SG120545
 
 ; 5799 : }
 
@@ -69788,7 +69986,7 @@ $LN6@GetStyleCo:
 
 ; 5753 :     case ImGuiCol_WindowBg: return "WindowBg";
 
-	mov	eax, OFFSET $SG120521
+	mov	eax, OFFSET $SG120547
 
 ; 5799 : }
 
@@ -69798,7 +69996,7 @@ $LN7@GetStyleCo:
 
 ; 5754 :     case ImGuiCol_ChildWindowBg: return "ChildWindowBg";
 
-	mov	eax, OFFSET $SG120523
+	mov	eax, OFFSET $SG120549
 
 ; 5799 : }
 
@@ -69808,7 +70006,7 @@ $LN8@GetStyleCo:
 
 ; 5755 :     case ImGuiCol_PopupBg: return "PopupBg";
 
-	mov	eax, OFFSET $SG120525
+	mov	eax, OFFSET $SG120551
 
 ; 5799 : }
 
@@ -69818,7 +70016,7 @@ $LN9@GetStyleCo:
 
 ; 5756 :     case ImGuiCol_Border: return "Border";
 
-	mov	eax, OFFSET $SG120527
+	mov	eax, OFFSET $SG120553
 
 ; 5799 : }
 
@@ -69828,7 +70026,7 @@ $LN10@GetStyleCo:
 
 ; 5757 :     case ImGuiCol_BorderShadow: return "BorderShadow";
 
-	mov	eax, OFFSET $SG120529
+	mov	eax, OFFSET $SG120555
 
 ; 5799 : }
 
@@ -69838,7 +70036,7 @@ $LN11@GetStyleCo:
 
 ; 5758 :     case ImGuiCol_FrameBg: return "FrameBg";
 
-	mov	eax, OFFSET $SG120531
+	mov	eax, OFFSET $SG120557
 
 ; 5799 : }
 
@@ -69848,7 +70046,7 @@ $LN12@GetStyleCo:
 
 ; 5759 :     case ImGuiCol_FrameBgHovered: return "FrameBgHovered";
 
-	mov	eax, OFFSET $SG120533
+	mov	eax, OFFSET $SG120559
 
 ; 5799 : }
 
@@ -69858,7 +70056,7 @@ $LN13@GetStyleCo:
 
 ; 5760 :     case ImGuiCol_FrameBgActive: return "FrameBgActive";
 
-	mov	eax, OFFSET $SG120535
+	mov	eax, OFFSET $SG120561
 
 ; 5799 : }
 
@@ -69868,7 +70066,7 @@ $LN14@GetStyleCo:
 
 ; 5761 :     case ImGuiCol_TitleBg: return "TitleBg";
 
-	mov	eax, OFFSET $SG120537
+	mov	eax, OFFSET $SG120563
 
 ; 5799 : }
 
@@ -69878,7 +70076,7 @@ $LN15@GetStyleCo:
 
 ; 5762 :     case ImGuiCol_TitleBgCollapsed: return "TitleBgCollapsed";
 
-	mov	eax, OFFSET $SG120539
+	mov	eax, OFFSET $SG120565
 
 ; 5799 : }
 
@@ -69888,7 +70086,7 @@ $LN16@GetStyleCo:
 
 ; 5763 :     case ImGuiCol_TitleBgActive: return "TitleBgActive";
 
-	mov	eax, OFFSET $SG120541
+	mov	eax, OFFSET $SG120567
 
 ; 5799 : }
 
@@ -69898,7 +70096,7 @@ $LN17@GetStyleCo:
 
 ; 5764 :     case ImGuiCol_MenuBarBg: return "MenuBarBg";
 
-	mov	eax, OFFSET $SG120543
+	mov	eax, OFFSET $SG120569
 
 ; 5799 : }
 
@@ -69908,7 +70106,7 @@ $LN18@GetStyleCo:
 
 ; 5765 :     case ImGuiCol_ScrollbarBg: return "ScrollbarBg";
 
-	mov	eax, OFFSET $SG120545
+	mov	eax, OFFSET $SG120571
 
 ; 5799 : }
 
@@ -69918,7 +70116,7 @@ $LN19@GetStyleCo:
 
 ; 5766 :     case ImGuiCol_ScrollbarGrab: return "ScrollbarGrab";
 
-	mov	eax, OFFSET $SG120547
+	mov	eax, OFFSET $SG120573
 
 ; 5799 : }
 
@@ -69928,7 +70126,7 @@ $LN20@GetStyleCo:
 
 ; 5767 :     case ImGuiCol_ScrollbarGrabHovered: return "ScrollbarGrabHovered";
 
-	mov	eax, OFFSET $SG120549
+	mov	eax, OFFSET $SG120575
 
 ; 5799 : }
 
@@ -69938,7 +70136,7 @@ $LN21@GetStyleCo:
 
 ; 5768 :     case ImGuiCol_ScrollbarGrabActive: return "ScrollbarGrabActive";
 
-	mov	eax, OFFSET $SG120551
+	mov	eax, OFFSET $SG120577
 
 ; 5799 : }
 
@@ -69948,7 +70146,7 @@ $LN22@GetStyleCo:
 
 ; 5769 :     case ImGuiCol_ComboBg: return "ComboBg";
 
-	mov	eax, OFFSET $SG120553
+	mov	eax, OFFSET $SG120579
 
 ; 5799 : }
 
@@ -69958,7 +70156,7 @@ $LN23@GetStyleCo:
 
 ; 5770 :     case ImGuiCol_CheckMark: return "CheckMark";
 
-	mov	eax, OFFSET $SG120555
+	mov	eax, OFFSET $SG120581
 
 ; 5799 : }
 
@@ -69968,7 +70166,7 @@ $LN24@GetStyleCo:
 
 ; 5771 :     case ImGuiCol_SliderGrab: return "SliderGrab";
 
-	mov	eax, OFFSET $SG120557
+	mov	eax, OFFSET $SG120583
 
 ; 5799 : }
 
@@ -69978,7 +70176,7 @@ $LN25@GetStyleCo:
 
 ; 5772 :     case ImGuiCol_SliderGrabActive: return "SliderGrabActive";
 
-	mov	eax, OFFSET $SG120559
+	mov	eax, OFFSET $SG120585
 
 ; 5799 : }
 
@@ -69988,7 +70186,7 @@ $LN26@GetStyleCo:
 
 ; 5773 :     case ImGuiCol_Button: return "Button";
 
-	mov	eax, OFFSET $SG120561
+	mov	eax, OFFSET $SG120587
 
 ; 5799 : }
 
@@ -69998,7 +70196,7 @@ $LN27@GetStyleCo:
 
 ; 5774 :     case ImGuiCol_ButtonHovered: return "ButtonHovered";
 
-	mov	eax, OFFSET $SG120563
+	mov	eax, OFFSET $SG120589
 
 ; 5799 : }
 
@@ -70008,7 +70206,7 @@ $LN28@GetStyleCo:
 
 ; 5775 :     case ImGuiCol_ButtonActive: return "ButtonActive";
 
-	mov	eax, OFFSET $SG120565
+	mov	eax, OFFSET $SG120591
 
 ; 5799 : }
 
@@ -70018,7 +70216,7 @@ $LN29@GetStyleCo:
 
 ; 5776 :     case ImGuiCol_Header: return "Header";
 
-	mov	eax, OFFSET $SG120567
+	mov	eax, OFFSET $SG120593
 
 ; 5799 : }
 
@@ -70028,7 +70226,7 @@ $LN30@GetStyleCo:
 
 ; 5777 :     case ImGuiCol_HeaderHovered: return "HeaderHovered";
 
-	mov	eax, OFFSET $SG120569
+	mov	eax, OFFSET $SG120595
 
 ; 5799 : }
 
@@ -70038,7 +70236,7 @@ $LN31@GetStyleCo:
 
 ; 5778 :     case ImGuiCol_HeaderActive: return "HeaderActive";
 
-	mov	eax, OFFSET $SG120571
+	mov	eax, OFFSET $SG120597
 
 ; 5799 : }
 
@@ -70048,7 +70246,7 @@ $LN32@GetStyleCo:
 
 ; 5779 :     case ImGuiCol_Column: return "Column";
 
-	mov	eax, OFFSET $SG120573
+	mov	eax, OFFSET $SG120599
 
 ; 5799 : }
 
@@ -70058,7 +70256,7 @@ $LN33@GetStyleCo:
 
 ; 5780 :     case ImGuiCol_ColumnHovered: return "ColumnHovered";
 
-	mov	eax, OFFSET $SG120575
+	mov	eax, OFFSET $SG120601
 
 ; 5799 : }
 
@@ -70068,7 +70266,7 @@ $LN34@GetStyleCo:
 
 ; 5781 :     case ImGuiCol_ColumnActive: return "ColumnActive";
 
-	mov	eax, OFFSET $SG120577
+	mov	eax, OFFSET $SG120603
 
 ; 5799 : }
 
@@ -70078,7 +70276,7 @@ $LN35@GetStyleCo:
 
 ; 5782 :     case ImGuiCol_ResizeGrip: return "ResizeGrip";
 
-	mov	eax, OFFSET $SG120579
+	mov	eax, OFFSET $SG120605
 
 ; 5799 : }
 
@@ -70088,7 +70286,7 @@ $LN36@GetStyleCo:
 
 ; 5783 :     case ImGuiCol_ResizeGripHovered: return "ResizeGripHovered";
 
-	mov	eax, OFFSET $SG120581
+	mov	eax, OFFSET $SG120607
 
 ; 5799 : }
 
@@ -70098,7 +70296,7 @@ $LN37@GetStyleCo:
 
 ; 5784 :     case ImGuiCol_ResizeGripActive: return "ResizeGripActive";
 
-	mov	eax, OFFSET $SG120583
+	mov	eax, OFFSET $SG120609
 
 ; 5799 : }
 
@@ -70108,7 +70306,7 @@ $LN38@GetStyleCo:
 
 ; 5785 :     case ImGuiCol_CloseButton: return "CloseButton";
 
-	mov	eax, OFFSET $SG120585
+	mov	eax, OFFSET $SG120611
 
 ; 5799 : }
 
@@ -70118,7 +70316,7 @@ $LN39@GetStyleCo:
 
 ; 5786 :     case ImGuiCol_CloseButtonHovered: return "CloseButtonHovered";
 
-	mov	eax, OFFSET $SG120587
+	mov	eax, OFFSET $SG120613
 
 ; 5799 : }
 
@@ -70128,7 +70326,7 @@ $LN40@GetStyleCo:
 
 ; 5787 :     case ImGuiCol_CloseButtonActive: return "CloseButtonActive";
 
-	mov	eax, OFFSET $SG120589
+	mov	eax, OFFSET $SG120615
 
 ; 5799 : }
 
@@ -70138,7 +70336,7 @@ $LN41@GetStyleCo:
 
 ; 5788 :     case ImGuiCol_PlotLines: return "PlotLines";
 
-	mov	eax, OFFSET $SG120591
+	mov	eax, OFFSET $SG120617
 
 ; 5799 : }
 
@@ -70148,7 +70346,7 @@ $LN42@GetStyleCo:
 
 ; 5789 :     case ImGuiCol_PlotLinesHovered: return "PlotLinesHovered";
 
-	mov	eax, OFFSET $SG120593
+	mov	eax, OFFSET $SG120619
 
 ; 5799 : }
 
@@ -70158,7 +70356,7 @@ $LN43@GetStyleCo:
 
 ; 5790 :     case ImGuiCol_PlotHistogram: return "PlotHistogram";
 
-	mov	eax, OFFSET $SG120595
+	mov	eax, OFFSET $SG120621
 
 ; 5799 : }
 
@@ -70168,7 +70366,7 @@ $LN44@GetStyleCo:
 
 ; 5791 :     case ImGuiCol_PlotHistogramHovered: return "PlotHistogramHovered";
 
-	mov	eax, OFFSET $SG120597
+	mov	eax, OFFSET $SG120623
 
 ; 5799 : }
 
@@ -70178,7 +70376,7 @@ $LN45@GetStyleCo:
 
 ; 5792 :     case ImGuiCol_TextSelectedBg: return "TextSelectedBg";
 
-	mov	eax, OFFSET $SG120599
+	mov	eax, OFFSET $SG120625
 
 ; 5799 : }
 
@@ -70188,7 +70386,7 @@ $LN46@GetStyleCo:
 
 ; 5793 :     case ImGuiCol_ModalWindowDarkening: return "ModalWindowDarkening";
 
-	mov	eax, OFFSET $SG120601
+	mov	eax, OFFSET $SG120627
 
 ; 5799 : }
 
@@ -70198,7 +70396,7 @@ $LN47@GetStyleCo:
 
 ; 5794 :     case ImGuiCol_NavHighlight: return "NavHighlight";
 
-	mov	eax, OFFSET $SG120603
+	mov	eax, OFFSET $SG120629
 
 ; 5799 : }
 
@@ -70208,7 +70406,7 @@ $LN48@GetStyleCo:
 
 ; 5795 :     case ImGuiCol_NavWindowingHighlight: return "NavWindowingHighlight"; 
 
-	mov	eax, OFFSET $SG120605
+	mov	eax, OFFSET $SG120631
 
 ; 5799 : }
 
@@ -70220,7 +70418,7 @@ $LN2@GetStyleCo:
 ; 5797 :     IM_ASSERT(0);
 ; 5798 :     return "Unknown";
 
-	mov	eax, OFFSET $SG120606
+	mov	eax, OFFSET $SG120632
 
 ; 5799 : }
 
@@ -71552,7 +71750,7 @@ _log_to_file$1$ = -1					; size = 1
 ; 6853 : 
 ; 6854 :     PushID("LogButtons");
 
-	push	OFFSET $SG121317
+	push	OFFSET $SG121343
 	call	?PushID@ImGui@@YAXPBD@Z			; ImGui::PushID
 
 ; 6855 :     const bool log_to_tty = Button("Log To TTY"); SameLine();
@@ -71568,7 +71766,7 @@ _log_to_file$1$ = -1					; size = 1
 ; 6855 :     const bool log_to_tty = Button("Log To TTY"); SameLine();
 
 	push	eax
-	push	OFFSET $SG121318
+	push	OFFSET $SG121344
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -71598,7 +71796,7 @@ _log_to_file$1$ = -1					; size = 1
 ; 6856 :     const bool log_to_file = Button("Log To File"); SameLine();
 
 	push	eax
-	push	OFFSET $SG121319
+	push	OFFSET $SG121345
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -71628,7 +71826,7 @@ _log_to_file$1$ = -1					; size = 1
 ; 6857 :     const bool log_to_clipboard = Button("Log To Clipboard"); SameLine();
 
 	push	eax
-	push	OFFSET $SG121320
+	push	OFFSET $SG121346
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -71663,7 +71861,7 @@ _log_to_file$1$ = -1					; size = 1
 	push	0
 	lea	esi, DWORD PTR [edi+11616]
 	push	esi
-	push	OFFSET $SG121321
+	push	OFFSET $SG121347
 	call	?SliderInt@ImGui@@YA_NPBDPAHHH0@Z	; ImGui::SliderInt
 	add	esp, 28					; 0000001cH
 
@@ -71759,7 +71957,7 @@ $T1 = -1						; size = 1
 ; 6831 : 
 ; 6832 :     LogText(IM_NEWLINE);
 
-	push	OFFSET $SG121303
+	push	OFFSET $SG121329
 	call	?LogText@ImGui@@YAXPBDZZ		; ImGui::LogText
 	add	esp, 4
 
@@ -71977,7 +72175,7 @@ $LN4@LogToFile:
 ; 6798 : 
 ; 6799 :     g.LogFile = ImFileOpen(filename, "ab");
 
-	push	OFFSET $SG121289
+	push	OFFSET $SG121315
 	push	eax
 	call	?ImFileOpen@@YAPAU_iobuf@@PBD0@Z	; ImFileOpen
 	add	esp, 8
@@ -72236,7 +72434,7 @@ _mouse_button$ = 12					; size = 4
 	mov	eax, DWORD PTR _str_id$[ebp]
 	test	eax, eax
 	push	esi
-	mov	esi, OFFSET $SG119685
+	mov	esi, OFFSET $SG119711
 	cmovne	esi, eax
 
 ; 4462 :     if (!str_id) str_id = "void_context_menu";
@@ -72289,7 +72487,7 @@ _mouse_button$ = 16					; size = 4
 	mov	eax, DWORD PTR _str_id$[ebp]
 	test	eax, eax
 	push	esi
-	mov	esi, OFFSET $SG119676
+	mov	esi, OFFSET $SG119702
 	cmovne	esi, eax
 
 ; 4453 :     if (!str_id) str_id = "window_context_menu";
@@ -73222,7 +73420,7 @@ $LN2@BeginMenu:
 ; 9937 :     bool menuset_is_open = !(window->Flags & ImGuiWindowFlags_Popup) && (g.OpenPopupStack.Size > g.CurrentPopupStack.Size && g.OpenPopupStack[g.CurrentPopupStack.Size].ParentMenuSet == window->GetID("##menus"));
 
 	push	0
-	push	OFFSET $SG124095
+	push	OFFSET $SG124121
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 912  :     inline value_type&          operator[](int i)               { IM_ASSERT(i < Size); return Data[i]; }
@@ -74339,7 +74537,7 @@ $LN2@BeginMenuB:
 
 ; 9894 :     PushID("##menubar");
 
-	push	OFFSET $SG124030
+	push	OFFSET $SG124056
 	call	?PushID@ImGui@@YAXPBD@Z			; ImGui::PushID
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
@@ -74728,7 +74926,7 @@ $T3 = -8						; size = 8
 
 	push	1359					; 0000054fH
 	push	0
-	push	OFFSET $SG124016
+	push	OFFSET $SG124042
 	call	?Begin@ImGui@@YA_NPBDPA_NH@Z		; ImGui::Begin
 	add	esp, 28					; 0000001cH
 	test	al, al
@@ -74801,7 +74999,7 @@ _TEXT	SEGMENT
 
 	push	16777543				; 01000147H
 	push	0
-	push	OFFSET $SG119538
+	push	OFFSET $SG119564
 	call	?Begin@ImGui@@YA_NPBDPA_NH@Z		; ImGui::Begin
 	add	esp, 12					; 0000000cH
 
@@ -74889,7 +75087,7 @@ _v$ = 12						; size = 4
 
 	push	DWORD PTR _v$[ebp]
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124532
+	push	OFFSET $SG124558
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10707:     SameLine();
@@ -74951,7 +75149,7 @@ _v$ = 12						; size = 4
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124526
+	push	OFFSET $SG124552
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10700:     SameLine();
@@ -75003,7 +75201,7 @@ _float_format$ = 16					; size = 4
 ; 10687:         ImFormatString(fmt, IM_ARRAYSIZE(fmt), "%%s: %s", float_format);
 
 	push	eax
-	push	OFFSET $SG124520
+	push	OFFSET $SG124546
 	lea	eax, DWORD PTR _fmt$1[ebp]
 	push	64					; 00000040H
 	push	eax
@@ -75045,7 +75243,7 @@ $LN2@Value:
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124521
+	push	OFFSET $SG124547
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 16					; 00000010H
 
@@ -75074,7 +75272,7 @@ _v$ = 12						; size = 4
 
 	push	DWORD PTR _v$[ebp]
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124510
+	push	OFFSET $SG124536
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 12					; 0000000cH
 
@@ -75101,7 +75299,7 @@ _v$ = 12						; size = 4
 
 	push	DWORD PTR _v$[ebp]
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124505
+	push	OFFSET $SG124531
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 12					; 0000000cH
 
@@ -75127,12 +75325,12 @@ _b$ = 12						; size = 1
 ; 10669:     Text("%s: %s", prefix, (b ? "true" : "false"));
 
 	cmp	BYTE PTR _b$[ebp], 0
-	mov	ecx, OFFSET $SG124499
-	mov	eax, OFFSET $SG124498
+	mov	ecx, OFFSET $SG124525
+	mov	eax, OFFSET $SG124524
 	cmove	eax, ecx
 	push	eax
 	push	DWORD PTR _prefix$[ebp]
-	push	OFFSET $SG124500
+	push	OFFSET $SG124526
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 12					; 0000000cH
 
@@ -75738,7 +75936,7 @@ $LL6@ListBox:
 	sete	BYTE PTR _item_selected$2[ebp]
 	call	DWORD PTR _items_getter$[ebp]
 	test	al, al
-	mov	ecx, OFFSET $SG123965
+	mov	ecx, OFFSET $SG123991
 
 ; 9805 :                 item_text = "*Unknown item*";
 ; 9806 : 
@@ -77001,7 +77199,7 @@ _ptr_id$ = 8						; size = 4
 ; 10648:     PushID(ptr_id ? ptr_id : (const void*)"#TreePush");
 
 	mov	eax, DWORD PTR _ptr_id$[ebp]
-	mov	ecx, OFFSET $SG124486
+	mov	ecx, OFFSET $SG124512
 	test	eax, eax
 	cmovne	ecx, eax
 	pop	esi
@@ -77064,7 +77262,7 @@ _str_id$ = 8						; size = 4
 ; 10640:     PushID(str_id ? str_id : "#TreePush");
 
 	mov	eax, DWORD PTR _str_id$[ebp]
-	mov	ecx, OFFSET $SG124480
+	mov	ecx, OFFSET $SG124506
 	test	eax, eax
 	cmovne	ecx, eax
 	pop	esi
@@ -77585,7 +77783,7 @@ _display_format$ = 28					; size = 4
 
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	mov	ecx, OFFSET $SG122023
+	mov	ecx, OFFSET $SG122049
 	cmovne	ecx, eax
 	lea	eax, DWORD PTR _v_f$[ebp]
 	movd	xmm0, DWORD PTR [esi]
@@ -77923,7 +78121,7 @@ $LN4@VSliderFlo:
 ; 7702 :     int decimal_precision = ParseFormatPrecision(display_format, 3);
 
 	mov	eax, DWORD PTR _display_format$[ebp]
-	mov	ecx, OFFSET $SG121979
+	mov	ecx, OFFSET $SG122005
 	test	eax, eax
 	push	3
 	cmovne	ecx, eax
@@ -78242,7 +78440,7 @@ _display_format$ = 24					; size = 4
 
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	mov	ecx, OFFSET $SG122007
+	mov	ecx, OFFSET $SG122033
 	cmovne	ecx, eax
 	lea	eax, DWORD PTR _v_f$[ebp]
 	movd	xmm0, DWORD PTR [esi]
@@ -78300,7 +78498,7 @@ _v_degrees_max$ = 20					; size = 4
 	lea	eax, DWORD PTR _v_deg$[ebp]
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	push	OFFSET $SG121992
+	push	OFFSET $SG122018
 	movss	xmm0, DWORD PTR [esi]
 	sub	esp, 8
 	mulss	xmm0, DWORD PTR __real@42652ee0
@@ -78756,7 +78954,7 @@ $LN4@SliderFloa:
 ; 7644 :     int decimal_precision = ParseFormatPrecision(display_format, 3);
 
 	mov	eax, DWORD PTR _display_format$[ebp]
-	mov	ecx, OFFSET $SG121937
+	mov	ecx, OFFSET $SG121963
 	test	eax, eax
 	push	3
 	cmovne	ecx, eax
@@ -79097,7 +79295,7 @@ _extra_flags$ = 24					; size = 4
 ; 9370 :     // Hexadecimal input provided as a convenience but the flag name is awkward. Typically you'd use InputText() to parse your own data, if you want to handle prefixes.
 ; 9371 :     const char* scalar_format = (extra_flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%08X" : "%d";
 
-	mov	ecx, OFFSET $SG123647
+	mov	ecx, OFFSET $SG123673
 
 ; 9372 :     return InputScalarEx(label, ImGuiDataType_Int, (void*)v, (void*)(step>0.0f ? &step : NULL), (void*)(step_fast>0.0f ? &step_fast : NULL), scalar_format, extra_flags);
 
@@ -79105,7 +79303,7 @@ _extra_flags$ = 24					; size = 4
 	xorps	xmm1, xmm1
 	push	eax
 	test	al, 2
-	mov	eax, OFFSET $SG123646
+	mov	eax, OFFSET $SG123672
 	cvtdq2ps xmm0, xmm0
 	cmove	eax, ecx
 	xor	ecx, ecx
@@ -79253,9 +79451,9 @@ _extra_flags$ = 28					; size = 4
 
 ; 9362 :         strcpy(display_format, "%f");      // Ideally we'd have a minimum decimal precision of 1 to visually denote that this is a float, while hiding non-significant digits? %f doesn't have a minimum of 1
 
-	mov	ax, WORD PTR $SG123633
+	mov	ax, WORD PTR $SG123659
 	mov	WORD PTR _display_format$[ebp], ax
-	mov	al, BYTE PTR $SG123633+2
+	mov	al, BYTE PTR $SG123659+2
 	mov	BYTE PTR _display_format$[ebp+2], al
 
 ; 9363 :     else
@@ -79266,7 +79464,7 @@ $LN2@InputFloat:
 ; 9364 :         ImFormatString(display_format, IM_ARRAYSIZE(display_format), "%%.%df", decimal_precision);
 
 	push	eax
-	push	OFFSET $SG123634
+	push	OFFSET $SG123660
 	lea	eax, DWORD PTR _display_format$[ebp]
 	push	16					; 00000010H
 	push	eax
@@ -79514,7 +79712,7 @@ $LN5@DragIntRan:
 	push	ecx
 	movss	DWORD PTR [esp], xmm0
 	push	DWORD PTR _v_current_min$[ebp]
-	push	OFFSET $SG122328
+	push	OFFSET $SG122354
 	call	?DragInt@ImGui@@YA_NPBDPAHMHH0@Z	; ImGui::DragInt
 	mov	BYTE PTR _value_changed$1$[ebp], al
 
@@ -79563,7 +79761,7 @@ $LN7@DragIntRan:
 	push	ecx
 	movss	DWORD PTR [esp], xmm0
 	push	ebx
-	push	OFFSET $SG122329
+	push	OFFSET $SG122355
 	call	?DragInt@ImGui@@YA_NPBDPAHMHH0@Z	; ImGui::DragInt
 	mov	bl, BYTE PTR _value_changed$1$[ebp]
 	or	bl, al
@@ -79758,7 +79956,7 @@ _display_format$ = 28					; size = 4
 
 	push	ecx
 	mov	DWORD PTR [esp], 1065353216		; 3f800000H
-	mov	ecx, OFFSET $SG122271
+	mov	ecx, OFFSET $SG122297
 	cmovne	ecx, eax
 	lea	eax, DWORD PTR _v_f$[ebp]
 	movd	xmm0, DWORD PTR [esi]
@@ -79903,7 +80101,7 @@ $LN6@DragFloatR:
 	movss	xmm0, DWORD PTR _v_speed$[ebp]
 	movss	DWORD PTR [esp], xmm0
 	push	ebx
-	push	OFFSET $SG122254
+	push	OFFSET $SG122280
 	call	?DragFloat@ImGui@@YA_NPBDPAMMMM0M@Z	; ImGui::DragFloat
 	mov	BYTE PTR _value_changed$1$[ebp], al
 
@@ -79953,7 +80151,7 @@ $LN11@DragFloatR:
 	movss	xmm0, DWORD PTR _v_speed$[ebp]
 	movss	DWORD PTR [esp], xmm0
 	push	esi
-	push	OFFSET $SG122255
+	push	OFFSET $SG122281
 	call	?DragFloat@ImGui@@YA_NPBDPAMMMM0M@Z	; ImGui::DragFloat
 	mov	bl, BYTE PTR _value_changed$1$[ebp]
 	or	bl, al
@@ -80455,7 +80653,7 @@ $LN4@DragFloat:
 ; 7953 :     int decimal_precision = ParseFormatPrecision(display_format, 3);
 
 	mov	eax, DWORD PTR _display_format$[ebp]
-	mov	ecx, OFFSET $SG122184
+	mov	ecx, OFFSET $SG122210
 	test	eax, eax
 	push	3
 	cmovne	ecx, eax
@@ -81021,7 +81219,7 @@ $LN17@ProgressBa:
 	addss	xmm0, DWORD PTR __real@3c23d70a
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG122523
+	push	OFFSET $SG122549
 	push	32					; 00000020H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -81259,17 +81457,17 @@ _avg$ = 56						; size = 4
 _inverse$ = 60						; size = 1
 ?PlotLinesC@ImGui@@YAXPBDPBMHH0MMUImVec2@@HMMM_N@Z PROC	; ImGui::PlotLinesC
 
-; 12692: {
+; 12696: {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 8
 
-; 12693:   ImGuiPlotArrayGetterData data =
-; 12694:     ImGuiPlotArrayGetterData (values, stride);
-; 12695: 
-; 12696:   PlotCEx ( ImGuiPlotType_Lines, label,        &Plot_ArrayGetter,
+; 12697:   ImGuiPlotArrayGetterData data =
+; 12698:     ImGuiPlotArrayGetterData (values, stride);
+; 12699: 
+; 12700:   PlotCEx ( ImGuiPlotType_Lines, label,        &Plot_ArrayGetter,
 
 	push	DWORD PTR _inverse$[ebp]
 	movss	xmm0, DWORD PTR _avg$[ebp]
@@ -81282,10 +81480,10 @@ _inverse$ = 60						; size = 1
 	mov	eax, DWORD PTR _stride$[ebp]
 	mov	DWORD PTR _data$[ebp+4], eax
 
-; 12693:   ImGuiPlotArrayGetterData data =
-; 12694:     ImGuiPlotArrayGetterData (values, stride);
-; 12695: 
-; 12696:   PlotCEx ( ImGuiPlotType_Lines, label,        &Plot_ArrayGetter,
+; 12697:   ImGuiPlotArrayGetterData data =
+; 12698:     ImGuiPlotArrayGetterData (values, stride);
+; 12699: 
+; 12700:   PlotCEx ( ImGuiPlotType_Lines, label,        &Plot_ArrayGetter,
 
 	lea	eax, DWORD PTR _data$[ebp]
 	movss	DWORD PTR [esp+8], xmm0
@@ -81310,14 +81508,14 @@ _inverse$ = 60						; size = 1
 	call	?PlotCEx@ImGui@@YAXW4ImGuiPlotType@@PBDP6AMPAXH@Z2HH1MMUImVec2@@MMM_N@Z ; ImGui::PlotCEx
 	add	esp, 60					; 0000003cH
 
-; 12697:               reinterpret_cast <void *>(&data), values_count,
-; 12698:                                                 values_offset,
-; 12699:                 overlay_text,   scale_min, scale_max,
-; 12700:                   graph_size,
-; 12701:                     saturation, value,     avg,
-; 12702:                       inverse
-; 12703:           );
-; 12704: }
+; 12701:               reinterpret_cast <void *>(&data), values_count,
+; 12702:                                                 values_offset,
+; 12703:                 overlay_text,   scale_min, scale_max,
+; 12704:                   graph_size,
+; 12705:                     saturation, value,     avg,
+; 12706:                       inverse
+; 12707:           );
+; 12708: }
 
 	mov	esp, ebp
 	pop	ebp
@@ -81761,7 +81959,7 @@ $LN41@ColorEdit4:
 	push	DWORD PTR _i$[ebp+8]
 	push	DWORD PTR _i$[ebp+4]
 	push	DWORD PTR _i$[ebp]
-	push	OFFSET $SG124247
+	push	OFFSET $SG124273
 	push	64					; 00000040H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -81777,7 +81975,7 @@ $LN20@ColorEdit4:
 	push	DWORD PTR _i$[ebp+8]
 	push	DWORD PTR _i$[ebp+4]
 	push	DWORD PTR _i$[ebp]
-	push	OFFSET $SG124248
+	push	OFFSET $SG124274
 	push	64					; 00000040H
 	push	eax
 	call	?ImFormatString@@YAHPADHPBDZZ		; ImFormatString
@@ -81800,7 +81998,7 @@ $LN21@ColorEdit4:
 	push	64					; 00000040H
 	lea	eax, DWORD PTR _buf$1[ebp]
 	push	eax
-	push	OFFSET $SG124250
+	push	OFFSET $SG124276
 	call	?InputText@ImGui@@YA_NPBDPADIHP6AHPAUImGuiTextEditCallbackData@@@ZPAX@Z ; ImGui::InputText
 	add	esp, 28					; 0000001cH
 	test	al, al
@@ -81861,7 +82059,7 @@ $LN124@ColorEdit4:
 	push	eax
 	lea	eax, DWORD PTR _i$[ebp]
 	push	eax
-	push	OFFSET $SG124254
+	push	OFFSET $SG124280
 	push	ecx
 	call	_sscanf
 	add	esp, 24					; 00000018H
@@ -81882,7 +82080,7 @@ $LN24@ColorEdit4:
 	push	eax
 	lea	eax, DWORD PTR _i$[ebp]
 	push	eax
-	push	OFFSET $SG124255
+	push	OFFSET $SG124281
 	push	ecx
 	call	_sscanf
 	add	esp, 20					; 00000014H
@@ -81922,12 +82120,12 @@ $LN16@ColorEdit4:
 
 ; 10139:             const char* ids[4] = { "##X", "##Y", "##Z", "##W" };
 
-	mov	DWORD PTR _ids$3[ebp], OFFSET $SG124226
-	mov	DWORD PTR _ids$3[ebp+4], OFFSET $SG124227
+	mov	DWORD PTR _ids$3[ebp], OFFSET $SG124252
+	mov	DWORD PTR _ids$3[ebp+4], OFFSET $SG124253
 	subss	xmm3, xmm0
-	mov	DWORD PTR _ids$3[ebp+8], OFFSET $SG124228
+	mov	DWORD PTR _ids$3[ebp+8], OFFSET $SG124254
 	movaps	xmm0, xmm2
-	mov	DWORD PTR _ids$3[ebp+12], OFFSET $SG124229
+	mov	DWORD PTR _ids$3[ebp+12], OFFSET $SG124255
 	mulss	xmm0, xmm4
 	push	0
 	push	0
@@ -81937,29 +82135,29 @@ $LN16@ColorEdit4:
 ; 10141:             {
 ; 10142:                 {   "%3.0f",   "%3.0f",   "%3.0f",   "%3.0f" },
 
-	mov	DWORD PTR _fmt_table$2[ebp], OFFSET $SG124230
+	mov	DWORD PTR _fmt_table$2[ebp], OFFSET $SG124256
 	subss	xmm1, xmm0
-	mov	DWORD PTR _fmt_table$2[ebp+4], OFFSET $SG124231
+	mov	DWORD PTR _fmt_table$2[ebp+4], OFFSET $SG124257
 	movd	xmm0, ebx
 	cvtdq2ps xmm0, xmm0
-	push	OFFSET $SG124225
-	mov	DWORD PTR _fmt_table$2[ebp+8], OFFSET $SG124232
-	mov	DWORD PTR _fmt_table$2[ebp+12], OFFSET $SG124233
+	push	OFFSET $SG124251
+	mov	DWORD PTR _fmt_table$2[ebp+8], OFFSET $SG124258
+	mov	DWORD PTR _fmt_table$2[ebp+12], OFFSET $SG124259
 
 ; 10143:                 { "R:%3.0f", "G:%3.0f", "B:%3.0f", "A:%3.0f" },
 
-	mov	DWORD PTR _fmt_table$2[ebp+16], OFFSET $SG124234
-	mov	DWORD PTR _fmt_table$2[ebp+20], OFFSET $SG124235
+	mov	DWORD PTR _fmt_table$2[ebp+16], OFFSET $SG124260
+	mov	DWORD PTR _fmt_table$2[ebp+20], OFFSET $SG124261
 	divss	xmm1, xmm0
-	mov	DWORD PTR _fmt_table$2[ebp+24], OFFSET $SG124236
-	mov	DWORD PTR _fmt_table$2[ebp+28], OFFSET $SG124237
+	mov	DWORD PTR _fmt_table$2[ebp+24], OFFSET $SG124262
+	mov	DWORD PTR _fmt_table$2[ebp+28], OFFSET $SG124263
 
 ; 10144:                 { "H:%3.0f", "S:%3.0f", "V:%3.0f", "A:%3.0f" }
 
-	mov	DWORD PTR _fmt_table$2[ebp+32], OFFSET $SG124238
-	mov	DWORD PTR _fmt_table$2[ebp+36], OFFSET $SG124239
-	mov	DWORD PTR _fmt_table$2[ebp+40], OFFSET $SG124240
-	mov	DWORD PTR _fmt_table$2[ebp+44], OFFSET $SG124241
+	mov	DWORD PTR _fmt_table$2[ebp+32], OFFSET $SG124264
+	mov	DWORD PTR _fmt_table$2[ebp+36], OFFSET $SG124265
+	mov	DWORD PTR _fmt_table$2[ebp+40], OFFSET $SG124266
+	mov	DWORD PTR _fmt_table$2[ebp+44], OFFSET $SG124267
 	cvttss2si eax, xmm1
 	movd	xmm0, eax
 	cvtdq2ps xmm0, xmm0
@@ -82249,7 +82447,7 @@ $LN86@ColorEdit4:
 	movsd	QWORD PTR [esp+8], xmm0
 	cvtps2pd xmm0, xmm4
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG124258
+	push	OFFSET $SG124284
 	call	?SetTooltip@ImGui@@YAXPBDZZ		; ImGui::SetTooltip
 	add	esp, 52					; 00000034H
 $LN27@ColorEdit4:
@@ -82274,10 +82472,10 @@ $LN27@ColorEdit4:
 
 	push	64					; 00000040H
 	lea	eax, DWORD PTR $T4[ebp]
-	mov	DWORD PTR _button_titles$5[ebp], OFFSET $SG124260
+	mov	DWORD PTR _button_titles$5[ebp], OFFSET $SG124286
 	push	eax
-	mov	DWORD PTR _button_titles$5[ebp+4], OFFSET $SG124261
-	mov	DWORD PTR _button_titles$5[ebp+8], OFFSET $SG124262
+	mov	DWORD PTR _button_titles$5[ebp+4], OFFSET $SG124287
+	mov	DWORD PTR _button_titles$5[ebp+8], OFFSET $SG124288
 	push	DWORD PTR _button_titles$5[ebp+ebx*4]
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
@@ -82589,7 +82787,7 @@ $LN2@ColorButto:
 
 	mov	ecx, esi
 	push	0
-	push	OFFSET $SG124143
+	push	OFFSET $SG124169
 	call	?GetID@ImGuiWindow@@QAEIPBD0@Z		; ImGuiWindow::GetID
 
 ; 10067:     const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(square_size + style.FramePadding.y*2, square_size + (small_height ? 0 : style.FramePadding.y*2)));
@@ -82860,7 +83058,7 @@ $LN43@ColorButto:
 	movss	xmm0, DWORD PTR [esi]
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG124146
+	push	OFFSET $SG124172
 	call	?SetTooltip@ImGui@@YAXPBDZZ		; ImGui::SetTooltip
 	add	esp, 52					; 00000034H
 $LN4@ColorButto:
@@ -83945,7 +84143,7 @@ $LL4@Combo:
 	sete	BYTE PTR _item_selected$18[ebp]
 	call	DWORD PTR _items_getter$[ebp]
 	test	al, al
-	mov	ecx, OFFSET $SG123829
+	mov	ecx, OFFSET $SG123855
 
 ; 9611 :                     item_text = "*Unknown item*";
 ; 9612 :                 if (Selectable(item_text, item_selected))
@@ -84862,7 +85060,7 @@ $LN7@RadioButto:
 
 ; 8432 :         LogRenderedText(text_bb.GetTL(), active ? "(x)" : "( )");
 
-	mov	ecx, OFFSET $SG122629
+	mov	ecx, OFFSET $SG122655
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
 ; 248  :     ImVec2      GetTL() const                   { return Min; }                   // Top-left
@@ -84882,7 +85080,7 @@ $LN7@RadioButto:
 
 ; 8432 :         LogRenderedText(text_bb.GetTL(), active ? "(x)" : "( )");
 
-	mov	eax, OFFSET $SG122628
+	mov	eax, OFFSET $SG122654
 	cmove	eax, ecx
 	push	0
 	push	eax
@@ -85630,8 +85828,8 @@ $LN7@Checkbox:
 ; 8359 :         LogRenderedText(text_bb.GetTL(), *v ? "[x]" : "[ ]");
 
 	cmp	BYTE PTR [edi], 0
-	mov	ecx, OFFSET $SG122570
-	mov	eax, OFFSET $SG122569
+	mov	ecx, OFFSET $SG122596
+	mov	eax, OFFSET $SG122595
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
 ; 248  :     ImVec2      GetTL() const                   { return Min; }                   // Top-left
@@ -85801,7 +85999,7 @@ $LN2@ImageButto:
 
 	mov	ecx, esi
 	push	0
-	push	OFFSET $SG121269
+	push	OFFSET $SG121295
 	call	?GetID@ImGuiWindow@@QAEIPBD0@Z		; ImGuiWindow::GetID
 	mov	ebx, eax
 	mov	DWORD PTR _id$[ebp], ebx
@@ -89825,7 +90023,7 @@ $LN3@Columns:
 
 ; 10581:     window->DC.ColumnsSetId = window->GetID(id ? id : "columns");
 
-	mov	eax, OFFSET $SG124463
+	mov	eax, OFFSET $SG124489
 	test	esi, esi
 	mov	ecx, edi
 	cmovne	eax, esi
@@ -91816,7 +92014,7 @@ $LN5@Separator:
 
 ; 10268:         LogText(IM_NEWLINE "--------------------------------");
 
-	push	OFFSET $SG124289
+	push	OFFSET $SG124315
 	call	?LogText@ImGui@@YAXPBDZZ		; ImGui::LogText
 	add	esp, 4
 $LN7@Separator:
@@ -94915,7 +95113,7 @@ _TEXT	SEGMENT
 ; 5367 :     Columns(1, "#CloseColumns");
 
 	push	1
-	push	OFFSET $SG120232
+	push	OFFSET $SG120258
 	mov	edi, DWORD PTR [esi+6240]
 	push	1
 	call	?Columns@ImGui@@YAXHPBD_N@Z		; ImGui::Columns
@@ -98176,7 +98374,7 @@ $LN80@Begin:
 ; 5084 :                 const ImGuiID resize_id = window->GetID("#RESIZE");
 
 	push	0
-	push	OFFSET $SG120180
+	push	OFFSET $SG120206
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 98   :     ImVec2(float _x, float _y) { x = _x; y = _y; }
@@ -100802,7 +101000,7 @@ $LN115@Begin:
 ; 5265 :                 ImGuiID id = window->GetID("#COLLAPSE");
 
 	push	0
-	push	OFFSET $SG120217
+	push	OFFSET $SG120243
 	mov	ecx, edi
 	call	?GetID@ImGuiWindow@@QAEIPBD0@Z		; ImGuiWindow::GetID
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
@@ -101042,7 +101240,7 @@ $LN874@Begin:
 	subss	xmm1, xmm3
 	push	eax
 	push	0
-	push	OFFSET $SG120221
+	push	OFFSET $SG120247
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui_internal.h
 
 ; 114  : static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)            { return ImVec2(lhs.x+rhs.x, lhs.y+rhs.y); }
@@ -101797,7 +101995,7 @@ _p_open$ = 8						; size = 4
 
 	push	0
 	push	DWORD PTR _p_open$[ebp]
-	push	OFFSET $SG124705
+	push	OFFSET $SG124731
 	call	?Begin@ImGui@@YA_NPBDPA_NH@Z		; ImGui::Begin
 	add	esp, 12					; 0000000cH
 	test	al, al
@@ -101810,7 +102008,7 @@ _p_open$ = 8						; size = 4
 	push	edi
 	call	?GetVersion@ImGui@@YAPBDXZ		; ImGui::GetVersion
 	push	eax
-	push	OFFSET $SG124706
+	push	OFFSET $SG124732
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10823:         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -101824,7 +102022,7 @@ _p_open$ = 8						; size = 4
 	divss	xmm0, xmm1
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG124707
+	push	OFFSET $SG124733
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10824:         ImGui::Text("%d vertices, %d indices (%d triangles)", ImGui::GetIO().MetricsRenderVertices, ImGui::GetIO().MetricsRenderIndices, ImGui::GetIO().MetricsRenderIndices / 3);
@@ -101840,7 +102038,7 @@ _p_open$ = 8						; size = 4
 	push	ecx
 	push	esi
 	push	DWORD PTR [edi+856]
-	push	OFFSET $SG124708
+	push	OFFSET $SG124734
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10825:         ImGui::Text("%d allocations", ImGui::GetIO().MetricsAllocs);
@@ -101848,21 +102046,21 @@ _p_open$ = 8						; size = 4
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	eax, DWORD PTR [eax+852]
 	push	eax
-	push	OFFSET $SG124709
+	push	OFFSET $SG124735
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10826:         ImGui::Text("sizeof(ImGuiContext) = %u, sizeof(ImGuiWindow) = %u", (int)sizeof(ImGuiContext), (int)sizeof(ImGuiWindow));
 
 	push	668					; 0000029cH
 	push	15192					; 00003b58H
-	push	OFFSET $SG124710
+	push	OFFSET $SG124736
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10827:         static bool show_clip_rects = true;
 ; 10828:         ImGui::Checkbox("Show clipping rectangles when hovering a ImDrawCmd", &show_clip_rects);
 
 	push	OFFSET ?show_clip_rects@?4??ShowMetricsWindow@ImGui@@YAXPA_N@Z@4_NA
-	push	OFFSET $SG124711
+	push	OFFSET $SG124737
 	call	?Checkbox@ImGui@@YA_NPBDPA_N@Z		; ImGui::Checkbox
 	add	esp, 64					; 00000040H
 
@@ -101962,7 +102160,7 @@ _p_open$ = 8						; size = 4
 
 ; 10917:         Funcs::NodeWindows(g.Windows, "Windows");
 
-	push	OFFSET $SG124712
+	push	OFFSET $SG124738
 	lea	eax, DWORD PTR [esi+6204]
 	push	eax
 	call	?NodeWindows@Funcs@?4??ShowMetricsWindow@ImGui@@YAXPA_N@Z@SAXAAV?$ImVector@PAUImGuiWindow@@@@PBD@Z ; `ImGui::ShowMetricsWindow'::`5'::Funcs::NodeWindows
@@ -101970,8 +102168,8 @@ _p_open$ = 8						; size = 4
 ; 10918:         if (ImGui::TreeNode("DrawList", "Active DrawLists (%d)", g.RenderDrawLists[0].Size))
 
 	push	DWORD PTR [esi+6616]
-	push	OFFSET $SG124714
-	push	OFFSET $SG124715
+	push	OFFSET $SG124740
+	push	OFFSET $SG124741
 	call	?TreeNode@ImGui@@YA_NPBD0ZZ		; ImGui::TreeNode
 	add	esp, 20					; 00000014H
 	test	al, al
@@ -101989,7 +102187,7 @@ $LL4@ShowMetric:
 ; 10921:                 Funcs::NodeDrawList(g.RenderDrawLists[0][i], "DrawList");
 
 	mov	eax, DWORD PTR [esi+6624]
-	push	OFFSET $SG124716
+	push	OFFSET $SG124742
 	push	DWORD PTR [eax+edi*4]
 	call	?NodeDrawList@Funcs@?4??ShowMetricsWindow@ImGui@@YAXPA_N@Z@SAXPAUImDrawList@@PBD@Z ; `ImGui::ShowMetricsWindow'::`5'::Funcs::NodeDrawList
 	inc	edi
@@ -102007,8 +102205,8 @@ $LN9@ShowMetric:
 ; 10924:         if (ImGui::TreeNode("Popups", "Open Popups Stack (%d)", g.OpenPopupStack.Size))
 
 	push	DWORD PTR [esi+6356]
-	push	OFFSET $SG124718
-	push	OFFSET $SG124719
+	push	OFFSET $SG124744
+	push	OFFSET $SG124745
 	call	?TreeNode@ImGui@@YA_NPBD0ZZ		; ImGui::TreeNode
 	add	esp, 12					; 0000000cH
 	test	al, al
@@ -102035,32 +102233,32 @@ $LL7@ShowMetric:
 	test	eax, eax
 	je	SHORT $LN13@ShowMetric
 	test	DWORD PTR [eax+8], 134217728		; 08000000H
-	mov	edx, OFFSET $SG124720
+	mov	edx, OFFSET $SG124746
 	jne	SHORT $LN14@ShowMetric
 $LN13@ShowMetric:
-	mov	edx, OFFSET $SG124721
+	mov	edx, OFFSET $SG124747
 $LN14@ShowMetric:
 	test	eax, eax
 	je	SHORT $LN15@ShowMetric
 	test	DWORD PTR [eax+8], 4194304		; 00400000H
-	mov	ecx, OFFSET $SG124722
+	mov	ecx, OFFSET $SG124748
 	jne	SHORT $LN16@ShowMetric
 $LN15@ShowMetric:
-	mov	ecx, OFFSET $SG124723
+	mov	ecx, OFFSET $SG124749
 $LN16@ShowMetric:
 	test	eax, eax
 	je	SHORT $LN17@ShowMetric
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN18@ShowMetric
 $LN17@ShowMetric:
-	mov	eax, OFFSET $SG124724
+	mov	eax, OFFSET $SG124750
 $LN18@ShowMetric:
 	push	edx
 	push	ecx
 	push	eax
 	mov	eax, DWORD PTR [esi+6364]
 	push	DWORD PTR [edi+eax]
-	push	OFFSET $SG124725
+	push	OFFSET $SG124751
 	call	?BulletText@ImGui@@YAXPBDZZ		; ImGui::BulletText
 	inc	ebx
 	add	esp, 20					; 00000014H
@@ -102079,7 +102277,7 @@ $LN10@ShowMetric:
 ; 10932:         }
 ; 10933:         if (ImGui::TreeNode("Basic state"))
 
-	push	OFFSET $SG124727
+	push	OFFSET $SG124753
 	call	?TreeNode@ImGui@@YA_NPBD@Z		; ImGui::TreeNode
 	add	esp, 4
 	test	al, al
@@ -102090,18 +102288,18 @@ $LN10@ShowMetric:
 ; 10936:             ImGui::Text("HoveredWindow: '%s'", g.HoveredWindow ? g.HoveredWindow->Name : "NULL");
 
 	mov	eax, DWORD PTR [esi+6244]
-	mov	DWORD PTR _input_source_names$1[ebp], OFFSET $SG124728
-	mov	DWORD PTR _input_source_names$1[ebp+4], OFFSET $SG124729
-	mov	DWORD PTR _input_source_names$1[ebp+8], OFFSET $SG124730
+	mov	DWORD PTR _input_source_names$1[ebp], OFFSET $SG124754
+	mov	DWORD PTR _input_source_names$1[ebp+4], OFFSET $SG124755
+	mov	DWORD PTR _input_source_names$1[ebp+8], OFFSET $SG124756
 	test	eax, eax
 	je	SHORT $LN19@ShowMetric
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN20@ShowMetric
 $LN19@ShowMetric:
-	mov	eax, OFFSET $SG124731
+	mov	eax, OFFSET $SG124757
 $LN20@ShowMetric:
 	push	eax
-	push	OFFSET $SG124732
+	push	OFFSET $SG124758
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10937:             ImGui::Text("HoveredRootWindow: '%s'", g.HoveredRootWindow ? g.HoveredRootWindow->Name : "NULL");
@@ -102113,17 +102311,17 @@ $LN20@ShowMetric:
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN22@ShowMetric
 $LN21@ShowMetric:
-	mov	eax, OFFSET $SG124733
+	mov	eax, OFFSET $SG124759
 $LN22@ShowMetric:
 	push	eax
-	push	OFFSET $SG124734
+	push	OFFSET $SG124760
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10938:             ImGui::Text("HoveredId: 0x%08X/0x%08X", g.HoveredId, g.HoveredIdPreviousFrame); // Data is "in-flight" so depending on when the Metrics window is called we may see current frame information or not
 
 	push	DWORD PTR [esi+6260]
 	push	DWORD PTR [esi+6252]
-	push	OFFSET $SG124735
+	push	OFFSET $SG124761
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10939:             ImGui::Text("ActiveId: 0x%08X/0x%08X, ActiveIdSource: %s", g.ActiveId, g.ActiveIdPreviousFrame, input_source_names[g.ActiveIdSource]);
@@ -102132,7 +102330,7 @@ $LN22@ShowMetric:
 	push	DWORD PTR _input_source_names$1[ebp+eax*4]
 	push	DWORD PTR [esi+6268]
 	push	DWORD PTR [esi+6264]
-	push	OFFSET $SG124736
+	push	OFFSET $SG124762
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10940:             ImGui::Text("ActiveIdWindow: '%s", g.ActiveIdWindow ? g.ActiveIdWindow->Name : "NULL");
@@ -102144,10 +102342,10 @@ $LN22@ShowMetric:
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN24@ShowMetric
 $LN23@ShowMetric:
-	mov	eax, OFFSET $SG124737
+	mov	eax, OFFSET $SG124763
 $LN24@ShowMetric:
 	push	eax
-	push	OFFSET $SG124738
+	push	OFFSET $SG124764
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10941:             ImGui::Text("NavWindow: '%s', NavId: 0x%08X, NavLayer: %d", g.NavWindow ? g.NavWindow->Name : "NULL", g.NavId, g.NavLayer);
@@ -102159,12 +102357,12 @@ $LN24@ShowMetric:
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN26@ShowMetric
 $LN25@ShowMetric:
-	mov	eax, OFFSET $SG124739
+	mov	eax, OFFSET $SG124765
 $LN26@ShowMetric:
 	push	DWORD PTR [esi+6444]
 	push	DWORD PTR [esi+6384]
 	push	eax
-	push	OFFSET $SG124740
+	push	OFFSET $SG124766
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	movss	xmm0, DWORD PTR [esi+6412]
 
@@ -102182,7 +102380,7 @@ $LN26@ShowMetric:
 	movss	xmm0, DWORD PTR [esi+6400]
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG124741
+	push	OFFSET $SG124767
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10943:             ImGui::Text("NavUsable: %d, NavActive: %d", g.IO.NavUsable, g.IO.NavActive);
@@ -102191,7 +102389,7 @@ $LN26@ShowMetric:
 	push	eax
 	movzx	eax, BYTE PTR [esi+848]
 	push	eax
-	push	OFFSET $SG124742
+	push	OFFSET $SG124768
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 
 ; 10944:             ImGui::Text("NavDisableHighlight: %d, NavDisableMouseHover: %d", g.NavDisableHighlight, g.NavDisableMouseHover);
@@ -102200,7 +102398,7 @@ $LN26@ShowMetric:
 	push	eax
 	movzx	eax, BYTE PTR [esi+6454]
 	push	eax
-	push	OFFSET $SG124743
+	push	OFFSET $SG124769
 	call	?Text@ImGui@@YAXPBDZZ			; ImGui::Text
 	add	esp, 60					; 0000003cH
 
@@ -105195,7 +105393,7 @@ $LN212@NewFrame:
 
 	push	0
 	push	0
-	push	OFFSET $SG118743
+	push	OFFSET $SG118769
 	call	?Begin@ImGui@@YA_NPBDPA_NH@Z		; ImGui::Begin
 	add	esp, 20					; 00000014H
 

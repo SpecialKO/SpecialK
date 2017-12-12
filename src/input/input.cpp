@@ -1390,6 +1390,8 @@ GetCursorInfo_Detour (PCURSORINFO pci)
   return ret;
 }
 
+float SK_SO4_MouseScale = 2.467f;
+
 BOOL
 WINAPI
 GetCursorPos_Detour (LPPOINT lpPoint)
@@ -1443,6 +1445,47 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
   }
+
+
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4 && GetForegroundWindow () == SK_GetGameWindow () && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  {
+    static ULONG last_frame = SK_GetFramesDrawn ();
+    static POINT last_pos   = *lpPoint;
+
+    POINT new_pos = *lpPoint;
+
+    new_pos.x = (LONG)(ImGui::GetIO ().DisplayFramebufferScale.x * 0.5f);
+    new_pos.y = (LONG)(ImGui::GetIO ().DisplayFramebufferScale.y * 0.5f);
+
+    float ndc_x = 2.0f * (((float)(lpPoint->x - last_pos.x) + new_pos.x) / ImGui::GetIO ().DisplayFramebufferScale.x) - 1.0f;
+    float ndc_y = 2.0f * (((float)(lpPoint->y - last_pos.y) + new_pos.y) / ImGui::GetIO ().DisplayFramebufferScale.y) - 1.0f;
+
+    bool new_frame = false;
+
+    if (last_frame != SK_GetFramesDrawn ())
+    {
+      last_pos   = *lpPoint;
+      last_frame = SK_GetFramesDrawn ();
+      new_frame  = true;
+    }
+
+    lpPoint->x = (LONG)((ndc_x * SK_SO4_MouseScale * ImGui::GetIO ().DisplayFramebufferScale.x + ImGui::GetIO ().DisplayFramebufferScale.x) / 2.0f);
+    lpPoint->y = (LONG)((ndc_y * SK_SO4_MouseScale * ImGui::GetIO ().DisplayFramebufferScale.y + ImGui::GetIO ().DisplayFramebufferScale.y) / 2.0f);
+
+    static int calls = 0;
+
+    POINT get_pos; // 4 pixel cushion to avoid showing the cursor
+    if (new_frame && ( (calls++ % 8) == 0 || ( GetCursorPos_Original (&get_pos) && (get_pos.x <= 4 || get_pos.x >= (ImGui::GetIO ().DisplayFramebufferScale.x - 4) ||
+                                                                                    get_pos.y <= 4 || get_pos.y >= (ImGui::GetIO ().DisplayFramebufferScale.y - 4)) ) ))
+    {
+      last_pos = new_pos;
+      SetCursorPos_Original (new_pos.x, new_pos.y);
+      lpPoint->x = new_pos.x;
+      lpPoint->y = new_pos.y;
+    }
+  }
+
 
   return bRet;
 }

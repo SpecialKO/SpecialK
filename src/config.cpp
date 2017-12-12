@@ -1391,8 +1391,10 @@ struct param_decl_s {
 
       case SK_GAME_ID::StarOcean4:
         // Prevent the game from layering windows always on top.
-        config.window.always_on_top       = 0;
-        config.window.disable_screensaver = true;
+        config.window.always_on_top             = 0;
+        config.window.disable_screensaver       = true;
+        config.textures.d3d11.uncompressed_mips = true;
+        config.textures.d3d11.cache_gen_mips    = false;
         break;
     }
   }

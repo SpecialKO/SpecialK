@@ -2478,6 +2478,24 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
+    if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4)
+    {
+      if (ImGui::CollapsingHeader ("STAR OCEAN - THE LAST HOPE - 4K & Full HD Remaster", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        ImGui::TreePush ("");
+
+        extern float SK_SO4_MouseScale;
+        ImGui::SliderFloat ("Mouselook Deadzone Compensation", &SK_SO4_MouseScale, 2.0f, 33.333f);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("Reduces mouse deadzone, but may cause Windows to draw the system cursor if set too high.");
+        }
+
+        ImGui::TreePop  (  );
+      }
+    }
+
     if (SK_GetCurrentGameID () == SK_GAME_ID::LifeIsStrange_BeforeTheStorm)
     {
       if (ImGui::CollapsingHeader ("Life is Strange: Before the Storm", ImGuiTreeNodeFlags_DefaultOpen))

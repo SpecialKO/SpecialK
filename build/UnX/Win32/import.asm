@@ -236,9 +236,9 @@ _IID_IAxWinHostWindowLic DD 03935bda8H
 	DB	04bH
 CONST	ENDS
 CONST	SEGMENT
-$SG151570 DB	00H, 00H
+$SG151572 DB	00H, 00H
 	ORG $+6
-$SG151577 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151579 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
@@ -246,9 +246,9 @@ $SG151577 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
 	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-$SG151583 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG151585 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151584 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151586 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
@@ -256,15 +256,15 @@ $SG91177 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG151585 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151587 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
 	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
 	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
 	DB	0aH, 00H, 00H, 00H
-$SG151611 DB	'SKPlugIn_Shutdown', 00H
+$SG151613 DB	'SKPlugIn_Shutdown', 00H
 	ORG $+2
-$SG151613 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151615 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'l', 00H, 'o', 00H, 'a', 00H, 'd', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'C', 00H, 'u', 00H, 's'
@@ -272,7 +272,7 @@ $SG151613 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's'
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG151618 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG151620 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '['
@@ -289,7 +289,7 @@ $SG151618 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	00H, '4', 00H, 'u', 00H, ' ', 00H, 'm', 00H, 's', 00H, ')', 00H
 	DB	0aH, 00H, 00H, 00H
 	ORG $+2
-$SG151619 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151621 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
@@ -303,27 +303,27 @@ $SG91318 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG146647 DB	'E', 00H, 'a', 00H, 'r', 00H, 'l', 00H, 'y', 00H, 00H, 00H
-$SG146655 DB	'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, 'I', 00H, 'n', 00H
+$SG146649 DB	'E', 00H, 'a', 00H, 'r', 00H, 'l', 00H, 'y', 00H, 00H, 00H
+$SG146657 DB	'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, 'I', 00H, 'n', 00H
 	DB	00H, 00H
-	ORG $+2
-$SG146661 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
 $SG91365 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG146663 DB	'L', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
 $SG91370 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG146667 DB	'L', 00H, 'a', 00H, 'z', 00H, 'y', 00H, 00H, 00H
+$SG146669 DB	'L', 00H, 'a', 00H, 'z', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG150769 DB	'SK_SHIM_GetReShade', 00H
+$SG150771 DB	'SK_SHIM_GetReShade', 00H
 	ORG $+1
-$SG146675 DB	'P', 00H, 'r', 00H, 'o', 00H, 'x', 00H, 'y', 00H, 00H, 00H
-$SG146681 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG146677 DB	'P', 00H, 'r', 00H, 'o', 00H, 'x', 00H, 'y', 00H, 00H, 00H
+$SG146683 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG146687 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, 00H, 00H
-$SG150779 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG146689 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, 00H, 00H
+$SG150781 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'i', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'z'
@@ -331,18 +331,18 @@ $SG150779 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ':', 00H, ' '
 	DB	00H, '%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG150780 DB	'SKPlugIn_Init', 00H
+$SG150782 DB	'SKPlugIn_Init', 00H
 	ORG $+2
-$SG146695 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
+$SG146697 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
 	ORG $+2
-$SG150785 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG150787 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
 	DB	00H, 'n', 00H, 'i', 00H, 't', 00H, ' ', 00H, 'S', 00H, 'u', 00H
 	DB	'c', 00H, 'c', 00H, 'e', 00H, 's', 00H, 's', 00H, ' ', 00H, '('
 	DB	00H, '%', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG150786 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG150788 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
@@ -353,7 +353,7 @@ $SG150786 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'e', 00H, 'd', 00H, ' ', 00H, 'f', 00H, 'a', 00H, 'l', 00H
 	DB	's', 00H, 'e', 00H, ')', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG150787 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG150789 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
@@ -365,24 +365,24 @@ $SG150787 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'n', 00H, ' ', 00H, 'E', 00H, 'n', 00H, 't', 00H, 'r', 00H, 'y'
 	DB	00H, ' ', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H
 	DB	')', 00H, '!', 00H, 00H, 00H
-$SG146703 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG146705 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG146711 DB	'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, 'I', 00H, 'n', 00H
+$SG146713 DB	'P', 00H, 'l', 00H, 'u', 00H, 'g', 00H, 'I', 00H, 'n', 00H
 	DB	00H, 00H
 	ORG $+2
 $SG91417 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG146719 DB	'T', 00H, 'h', 00H, 'i', 00H, 'r', 00H, 'd', 00H, 'P', 00H
+$SG146721 DB	'T', 00H, 'h', 00H, 'i', 00H, 'r', 00H, 'd', 00H, 'P', 00H
 	DB	'a', 00H, 'r', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG146725 DB	'x', 00H, '6', 00H, '4', 00H, 00H, 00H
-$SG146731 DB	'W', 00H, 'i', 00H, 'n', 00H, '3', 00H, '2', 00H, 00H, 00H
-$SG146750 DB	00H, 00H
+$SG146727 DB	'x', 00H, '6', 00H, '4', 00H, 00H, 00H
+$SG146733 DB	'W', 00H, 'i', 00H, 'n', 00H, '3', 00H, '2', 00H, 00H, 00H
+$SG146752 DB	00H, 00H
 	ORG $+2
-$SG146751 DB	00H, 00H
+$SG146753 DB	00H, 00H
 	ORG $+2
 $SG91464 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
@@ -428,14 +428,14 @@ $SG101850 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 $SG90613 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG151070 DB	00H, 00H
+$SG151072 DB	00H, 00H
 	ORG $+2
 $SG90660 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG151083 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG151085 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151077 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151079 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'E', 00H, 'a'
@@ -444,7 +444,7 @@ $SG151077 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H
 	DB	's', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG151087 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151089 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
@@ -452,15 +452,15 @@ $SG90707 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG151088 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151090 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
 	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
 	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
 	DB	0aH, 00H, 00H, 00H
-$SG151147 DB	00H, 00H
+$SG151149 DB	00H, 00H
 	ORG $+2
-$SG151154 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151156 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'S', 00H, 'p'
@@ -469,9 +469,9 @@ $SG151154 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'I', 00H, 'n', 00H, ' ', 00H, '%', 00H, 's', 00H, '.', 00H
 	DB	'.', 00H, '.', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG151160 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG151162 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151164 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151166 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, '0'
@@ -480,7 +480,7 @@ $SG151164 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 $SG90754 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG151165 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151167 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, 'H'
@@ -488,15 +488,15 @@ $SG151165 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'p', 00H, ' ', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'B', 00H, 'l'
 	DB	00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l', 00H, 'i', 00H, 's', 00H
 	DB	't', 00H, 'e', 00H, 'd', 00H, '!', 00H, 00H, 00H
-$SG151213 DB	00H, 00H
+$SG151215 DB	00H, 00H
 	ORG $+2
 $SG90801 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG151226 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG151228 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151220 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151222 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
@@ -504,11 +504,11 @@ $SG151220 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
 	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-$SG151227 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151229 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG151228 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151230 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
 	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
@@ -517,9 +517,9 @@ $SG151228 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 $SG90848 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG151276 DB	00H, 00H
+$SG151278 DB	00H, 00H
 	ORG $+2
-$SG151283 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151285 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
@@ -527,9 +527,9 @@ $SG151283 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	't', 00H, 'o', 00H, 'm', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
 	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-$SG151289 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG151291 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151290 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151292 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
@@ -537,14 +537,14 @@ $SG90895 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG151291 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151293 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
 	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
 	DB	00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'd', 00H, '!', 00H
 	DB	0aH, 00H, 00H, 00H
 $SG101149 DB	'S', 00H, 00H, 00H
-$SG151300 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151302 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'i', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'z'
@@ -552,17 +552,17 @@ $SG151300 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ':', 00H, ' '
 	DB	00H, '%', 00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG151301 DB	'SKPlugIn_Init', 00H
+$SG151303 DB	'SKPlugIn_Init', 00H
 	ORG $+2
 $SG101151 DB	'M', 00H, 00H, 00H
-$SG151306 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151308 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
 	DB	00H, 'n', 00H, 'i', 00H, 't', 00H, ' ', 00H, 'S', 00H, 'u', 00H
 	DB	'c', 00H, 'c', 00H, 'e', 00H, 's', 00H, 's', 00H, ' ', 00H, '('
 	DB	00H, '%', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG151307 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151309 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
@@ -573,7 +573,7 @@ $SG151307 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'e', 00H, 'd', 00H, ' ', 00H, 'f', 00H, 'a', 00H, 'l', 00H
 	DB	's', 00H, 'e', 00H, ')', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG151308 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151310 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'P', 00H, 'l', 00H
 	DB	'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H, ' ', 00H, 'I'
@@ -600,11 +600,11 @@ $SG90942 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG151365 DB	00H, 00H
+$SG151367 DB	00H, 00H
 	ORG $+2
-$SG151378 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG151380 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151372 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151374 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'E', 00H, 'a'
@@ -613,13 +613,13 @@ $SG151372 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, '%', 00H
 	DB	's', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG151382 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151384 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG151440 DB	00H, 00H
+$SG151442 DB	00H, 00H
 	ORG $+2
-$SG151383 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151385 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
 	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
@@ -632,9 +632,9 @@ $SG90989 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 $SG91036 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG151453 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG151455 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151447 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151449 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'S', 00H, 'p'
@@ -643,17 +643,17 @@ $SG151447 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'I', 00H, 'n', 00H, ' ', 00H, '%', 00H, 's', 00H, '.', 00H
 	DB	'.', 00H, '.', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG151506 DB	00H, 00H
+$SG151508 DB	00H, 00H
 	ORG $+2
-$SG151457 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151459 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, '0'
 	DB	00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X', 00H, ' ', 00H
 	DB	'(', 00H, '%', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
-$SG151519 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG151521 DB	's', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, '!', 00H, 0aH, 00H, 00H, 00H
-$SG151458 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151460 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '*', 00H, ']', 00H, ' ', 00H, 'F', 00H, 'a', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ':', 00H, ' ', 00H, 'H'
@@ -665,11 +665,11 @@ $SG91083 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG151520 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151522 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
-$SG151513 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG151515 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H
 	DB	'd', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'L', 00H, 'a'
@@ -680,7 +680,7 @@ $SG151513 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 $SG91130 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG151521 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG151523 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	':', 00H, ' ', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, ' ', 00H, 'i', 00H, 's', 00H
 	DB	' ', 00H, 'B', 00H, 'l', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'l'
@@ -2132,7 +2132,7 @@ $LN23@SK_InitPlu:
 ; 476  :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
 
 	push	eax
-	push	OFFSET $SG151300
+	push	OFFSET $SG151302
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2177,7 +2177,7 @@ $LN33@SK_InitPlu:
 
 ; 481  :       GetProcAddress (
 
-	push	OFFSET $SG151301
+	push	OFFSET $SG151303
 	push	esi
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	edi, eax
@@ -2228,7 +2228,7 @@ $LN72@SK_InitPlu:
 ; 491  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
 
 	push	eax
-	push	OFFSET $SG151306
+	push	OFFSET $SG151308
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2304,7 +2304,7 @@ $LN4@SK_InitPlu:
 ; 496  :     {
 ; 497  :       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
-	push	OFFSET $SG151307
+	push	OFFSET $SG151309
 
 ; 498  : 
 ; 499  :       FreeLibrary_Original (hLibrary);
@@ -2320,7 +2320,7 @@ $LN2@SK_InitPlu:
 ; 505  :   {
 ; 506  :     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
-	push	OFFSET $SG151308
+	push	OFFSET $SG151310
 $LN109@SK_InitPlu:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -2625,7 +2625,7 @@ $LN23@SK_InitPlu:
 ; 95   :   dll_log.Log ( L"[ SpecialK ] [*] Initializing Plug-In: %s...",
 
 	push	eax
-	push	OFFSET $SG150779
+	push	OFFSET $SG150781
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2670,7 +2670,7 @@ $LN33@SK_InitPlu:
 
 ; 100  :       GetProcAddress (
 
-	push	OFFSET $SG150780
+	push	OFFSET $SG150782
 	push	esi
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	edi, eax
@@ -2721,7 +2721,7 @@ $LN72@SK_InitPlu:
 ; 110  :       dll_log.Log ( L"[ SpecialK ] [*] Plug-In Init Success (%s)!",
 
 	push	eax
-	push	OFFSET $SG150785
+	push	OFFSET $SG150787
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2797,7 +2797,7 @@ $LN4@SK_InitPlu:
 ; 115  :     {
 ; 116  :       dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Plug-In returned false)!");
 
-	push	OFFSET $SG150786
+	push	OFFSET $SG150788
 
 ; 117  : 
 ; 118  :       FreeLibrary_Original (hLibrary);
@@ -2813,7 +2813,7 @@ $LN2@SK_InitPlu:
 ; 124  :   {
 ; 125  :     dll_log.Log (L"[ SpecialK ] [*] Plug-In Init Failed (Lacks SpecialK PlugIn Entry Point)!");
 
-	push	OFFSET $SG150787
+	push	OFFSET $SG150789
 $LN109@SK_InitPlu:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -2857,7 +2857,7 @@ _hModReal$ = 12						; size = 4
 ; 75   :   SK_SHIM_GetReShade_pfn SK_SHIM_GetReShade =
 ; 76   :     (SK_SHIM_GetReShade_pfn)GetProcAddress (hModShim, "SK_SHIM_GetReShade");
 
-	push	OFFSET $SG150769
+	push	OFFSET $SG150771
 	push	DWORD PTR _hModShim$[ebp]
 	call	DWORD PTR __imp__GetProcAddress@8
 
@@ -3142,7 +3142,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG146750
+	push	OFFSET $SG146752
 	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+8
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -3187,7 +3187,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG146751
+	push	OFFSET $SG146753
 	mov	ecx, OFFSET ?host_executable@@3Uimport_s@@A+32
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -3393,7 +3393,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146731
+	push	OFFSET $SG146733
 	mov	ecx, OFFSET ?SK_IMPORT_ARCH_WIN32@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_ARCH_WIN32
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -3547,7 +3547,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146725
+	push	OFFSET $SG146727
 	mov	ecx, OFFSET ?SK_IMPORT_ARCH_X64@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_ARCH_X64
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -3701,7 +3701,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146719
+	push	OFFSET $SG146721
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_3RDPARTY@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -3855,7 +3855,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146711
+	push	OFFSET $SG146713
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_PLUGIN@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4009,7 +4009,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146703
+	push	OFFSET $SG146705
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_OPENGL@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4163,7 +4163,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146695
+	push	OFFSET $SG146697
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_D3D9@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4317,7 +4317,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146687
+	push	OFFSET $SG146689
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_D3D11@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_ROLE_D3D11
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4471,7 +4471,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146681
+	push	OFFSET $SG146683
 	mov	ecx, OFFSET ?SK_IMPORT_ROLE_DXGI@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_ROLE_DXGI
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4625,7 +4625,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146675
+	push	OFFSET $SG146677
 	mov	ecx, OFFSET ?SK_IMPORT_PROXY@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4779,7 +4779,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146667
+	push	OFFSET $SG146669
 	mov	ecx, OFFSET ?SK_IMPORT_LAZY@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_LAZY
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -4933,7 +4933,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146661
+	push	OFFSET $SG146663
 	mov	ecx, OFFSET ?SK_IMPORT_LATE@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_LATE
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -5087,7 +5087,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146655
+	push	OFFSET $SG146657
 	mov	ecx, OFFSET ?SK_IMPORT_PLUGIN@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -5241,7 +5241,7 @@ text$di	SEGMENT
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG146647
+	push	OFFSET $SG146649
 	mov	ecx, OFFSET ?SK_IMPORT_EARLY@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@B ; SK_IMPORT_EARLY
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -5537,7 +5537,7 @@ $LN120@SK_UnloadI:
 ; 868  :           reinterpret_cast <SKPlugIn_Shutdown_pfn> (
 ; 869  :             GetProcAddress ( imports [i].hLibrary,
 
-	push	OFFSET $SG151611
+	push	OFFSET $SG151613
 	push	DWORD PTR [edi-56]
 	call	DWORD PTR __imp__GetProcAddress@8
 
@@ -5582,7 +5582,7 @@ $LN142@SK_UnloadI:
 ; 877  :       dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
 
 	push	eax
-	push	OFFSET $SG151613
+	push	OFFSET $SG151615
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -5721,7 +5721,7 @@ $LN10@SK_UnloadI:
 	call	DWORD PTR __imp__timeGetTime@0
 	sub	eax, DWORD PTR _dwTime$1$[ebp]
 	push	eax
-	push	OFFSET $SG151618
+	push	OFFSET $SG151620
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -5786,7 +5786,7 @@ $LN202@SK_UnloadI:
 	push	eax
 	movzx	eax, si
 	push	eax
-	push	OFFSET $SG151619
+	push	OFFSET $SG151621
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -6049,7 +6049,7 @@ $LN20@SK_LoadPlu:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151440
+	push	OFFSET $SG151442
 	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -6533,7 +6533,7 @@ $LN298@SK_LoadPlu:
 ; 639  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
 
 	push	esi
-	push	OFFSET $SG151447
+	push	OFFSET $SG151449
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -6624,7 +6624,7 @@ $LN346@SK_LoadPlu:
 
 ; 653  :                 dll_log.LogEx (false, L"success!\n");
 
-	push	OFFSET $SG151453
+	push	OFFSET $SG151455
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -6778,7 +6778,7 @@ $LN382@SK_LoadPlu:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151457
+	push	OFFSET $SG151459
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -6799,7 +6799,7 @@ $LN11@SK_LoadPlu:
 ; 681  :             {
 ; 682  :               dll_log.Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
 
-	push	OFFSET $SG151458
+	push	OFFSET $SG151460
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -7190,7 +7190,7 @@ $LN18@SK_LoadLaz:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151570
+	push	OFFSET $SG151572
 	lea	ecx, DWORD PTR $T8[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -7674,7 +7674,7 @@ $LN295@SK_LoadLaz:
 ; 807  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG151577
+	push	OFFSET $SG151579
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -7765,7 +7765,7 @@ $LN343@SK_LoadLaz:
 
 ; 821  :                 dll_log.LogEx (false, L"success!\n");
 
-	push	OFFSET $SG151583
+	push	OFFSET $SG151585
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -7868,7 +7868,7 @@ $LN376@SK_LoadLaz:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151584
+	push	OFFSET $SG151586
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -7890,7 +7890,7 @@ $LN11@SK_LoadLaz:
 ; 841  :             {
 ; 842  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG151585
+	push	OFFSET $SG151587
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -8286,7 +8286,7 @@ $LN18@SK_LoadLat:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151506
+	push	OFFSET $SG151508
 	lea	ecx, DWORD PTR $T8[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -8770,7 +8770,7 @@ $LN295@SK_LoadLat:
 ; 727  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG151513
+	push	OFFSET $SG151515
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -8861,7 +8861,7 @@ $LN343@SK_LoadLat:
 
 ; 741  :                 dll_log.LogEx (false, L"success!\n");
 
-	push	OFFSET $SG151519
+	push	OFFSET $SG151521
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -8964,7 +8964,7 @@ $LN376@SK_LoadLat:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151520
+	push	OFFSET $SG151522
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -8986,7 +8986,7 @@ $LN11@SK_LoadLat:
 ; 761  :             {
 ; 762  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG151521
+	push	OFFSET $SG151523
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -9387,7 +9387,7 @@ $LN20@SK_LoadEar:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151365
+	push	OFFSET $SG151367
 	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -9871,7 +9871,7 @@ $LN298@SK_LoadEar:
 ; 551  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG151372
+	push	OFFSET $SG151374
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -9962,7 +9962,7 @@ $LN346@SK_LoadEar:
 
 ; 565  :                 dll_log.LogEx (false, L"success!\n");
 
-	push	OFFSET $SG151378
+	push	OFFSET $SG151380
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -10116,7 +10116,7 @@ $LN382@SK_LoadEar:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151382
+	push	OFFSET $SG151384
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -10138,7 +10138,7 @@ $LN11@SK_LoadEar:
 ; 593  :             {
 ; 594  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG151383
+	push	OFFSET $SG151385
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -10539,7 +10539,7 @@ $LN20@SK_LoadPlu:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151147
+	push	OFFSET $SG151149
 	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -11023,7 +11023,7 @@ $LN298@SK_LoadPlu:
 ; 257  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Special K Plug-In %s... ",
 
 	push	esi
-	push	OFFSET $SG151154
+	push	OFFSET $SG151156
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -11114,7 +11114,7 @@ $LN346@SK_LoadPlu:
 
 ; 271  :                 dll_log.LogEx (false, L"success!\n");
 
-	push	OFFSET $SG151160
+	push	OFFSET $SG151162
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -11268,7 +11268,7 @@ $LN382@SK_LoadPlu:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151164
+	push	OFFSET $SG151166
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -11289,7 +11289,7 @@ $LN11@SK_LoadPlu:
 ; 299  :             {
 ; 300  :               dll_log.Log (L"[ SpecialK ] [*] Failed: Host App is Blacklisted!");
 
-	push	OFFSET $SG151165
+	push	OFFSET $SG151167
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -11680,7 +11680,7 @@ $LN18@SK_LoadLaz:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151276
+	push	OFFSET $SG151278
 	lea	ecx, DWORD PTR $T8[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -12164,7 +12164,7 @@ $LN295@SK_LoadLaz:
 ; 425  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Lazy Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG151283
+	push	OFFSET $SG151285
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -12255,7 +12255,7 @@ $LN343@SK_LoadLaz:
 
 ; 439  :                 dll_log.LogEx (false, L"success!\n");
 
-	push	OFFSET $SG151289
+	push	OFFSET $SG151291
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -12358,7 +12358,7 @@ $LN376@SK_LoadLaz:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151290
+	push	OFFSET $SG151292
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -12380,7 +12380,7 @@ $LN11@SK_LoadLaz:
 ; 459  :             {
 ; 460  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG151291
+	push	OFFSET $SG151293
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -12772,7 +12772,7 @@ $LN18@SK_LoadLat:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151213
+	push	OFFSET $SG151215
 	lea	ecx, DWORD PTR $T8[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -13256,7 +13256,7 @@ $LN295@SK_LoadLat:
 ; 345  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Late Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG151220
+	push	OFFSET $SG151222
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -13347,7 +13347,7 @@ $LN343@SK_LoadLat:
 
 ; 359  :                 dll_log.LogEx (false, L"success!\n");
 
-	push	OFFSET $SG151226
+	push	OFFSET $SG151228
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -13450,7 +13450,7 @@ $LN376@SK_LoadLat:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151227
+	push	OFFSET $SG151229
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -13472,7 +13472,7 @@ $LN11@SK_LoadLat:
 ; 379  :             {
 ; 380  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG151228
+	push	OFFSET $SG151230
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -13873,7 +13873,7 @@ $LN20@SK_LoadEar:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG151070
+	push	OFFSET $SG151072
 	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -14357,7 +14357,7 @@ $LN298@SK_LoadEar:
 ; 170  :             dll_log.LogEx (true, L"[ SpecialK ]  * Loading Early Custom Import %s... ",
 
 	push	esi
-	push	OFFSET $SG151077
+	push	OFFSET $SG151079
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -14497,7 +14497,7 @@ $LN370@SK_LoadEar:
 ; 188  : 
 ; 189  :                 dll_log.LogEx (false, L"success!\n");
 
-	push	OFFSET $SG151083
+	push	OFFSET $SG151085
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -14606,7 +14606,7 @@ $LN382@SK_LoadEar:
 	call	?WCode@_com_error@@QBEGXZ		; _com_error::WCode
 	movzx	eax, ax
 	push	eax
-	push	OFFSET $SG151087
+	push	OFFSET $SG151089
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -14628,7 +14628,7 @@ $LN11@SK_LoadEar:
 ; 211  :             {
 ; 212  :               dll_log.LogEx (false, L"failed: Host App is Blacklisted!\n");
 
-	push	OFFSET $SG151088
+	push	OFFSET $SG151090
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx

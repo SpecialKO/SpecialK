@@ -9,199 +9,235 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
-PUBLIC	?count@SK_InjectionRecord_s@@2JC		; SK_InjectionRecord_s::count
-PUBLIC	?rollovers@SK_InjectionRecord_s@@2JC		; SK_InjectionRecord_s::rollovers
 PUBLIC	?g_hHookCBT@@3RAUHHOOK__@@A			; g_hHookCBT
 PUBLIC	?g_hHookShell@@3RAUHHOOK__@@A			; g_hHookShell
 PUBLIC	?g_hShutdown@@3RAXA				; g_hShutdown
 PUBLIC	?g_sHookedPIDs@@3PAJA				; g_sHookedPIDs
+PUBLIC	?__SK_InjectionHistory_name@@3PA_WA		; __SK_InjectionHistory_name
+PUBLIC	?__SK_InjectionHistory_ids@@3PAKA		; __SK_InjectionHistory_ids
+PUBLIC	?__SK_InjectionHistory_inject@@3PA_JA		; __SK_InjectionHistory_inject
+PUBLIC	?__SK_InjectionHistory_eject@@3PA_JA		; __SK_InjectionHistory_eject
+PUBLIC	?__SK_InjectionHistory_api@@3PAW4SK_RenderAPI@@A ; __SK_InjectionHistory_api
+PUBLIC	?__SK_InjectionHistory_frames@@3PA_KA		; __SK_InjectionHistory_frames
 PUBLIC	?whitelist_patterns@@3PA_WA			; whitelist_patterns
 PUBLIC	?whitelist_count@@3HA				; whitelist_count
 PUBLIC	?hModHookInstance@@3PAUHINSTANCE__@@A		; hModHookInstance
-PUBLIC	?local_record@@3PAUSK_InjectionRecord_s@@A	; local_record
+PUBLIC	?local_record@@3JA				; local_record
+PUBLIC	?count@SK_InjectionRecord_s@@2JC		; SK_InjectionRecord_s::count
+PUBLIC	?rollovers@SK_InjectionRecord_s@@2JC		; SK_InjectionRecord_s::rollovers
+PUBLIC	?temp_tls@@3_NA					; temp_tls
 _BSS	SEGMENT
 ?hModHookInstance@@3PAUHINSTANCE__@@A DD 01H DUP (?)	; hModHookInstance
-?local_record@@3PAUSK_InjectionRecord_s@@A DD 01H DUP (?) ; local_record
+?local_record@@3JA DD 01H DUP (?)			; local_record
+?temp_tls@@3_NA DB 01H DUP (?)				; temp_tls
 _BSS	ENDS
 CONST	SEGMENT
-$SG147568 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG147637 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG147666 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG147669 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '_', 00H, 'R', 00H, 'e'
-	DB	00H, 's', 00H, 'e', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG147671 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG147672 DB	'SpecialK32.dll,RunDLL_HookManager_D3D9 dump', 00H
-$SG147673 DB	'open', 00H
+$SG257024 DB	'SpecialK32.pid', 00H
+?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+$SG257026 DB	'%lu', 0aH, 00H
 	ORG $+3
-$SG147674 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG147675 DB	'SpecialK32.dll,RunDLL_HookManager_DXGI dump', 00H
-$SG147676 DB	'open', 00H
-	ORG $+3
-$SG147697 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG147700 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '_', 00H, 'R', 00H, 'e'
-	DB	00H, 's', 00H, 'e', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG147793 DB	'Install', 00H
-$SG147795 DB	'w', 00H
-	ORG $+2
-$SG147796 DB	'SpecialK32.pid', 00H
+$SG257028 DB	'Remove', 00H
 	ORG $+1
-$SG147798 DB	'%lu', 0aH, 00H
-	ORG $+3
-$SG147800 DB	'Remove', 00H
-	ORG $+1
-$SG147801 DB	'r', 00H
+$SG257029 DB	'r', 00H
 	ORG $+2
-$SG147802 DB	'SpecialK32.pid', 00H
+$SG257030 DB	'SpecialK32.pid', 00H
 	ORG $+1
-$SG147804 DB	'%lu', 00H
-$SG147807 DB	'SpecialK32.pid', 00H
+$SG257032 DB	'%lu', 00H
+$SG257035 DB	'SpecialK32.pid', 00H
 	ORG $+1
-$SG147823 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+$SG257051 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
 	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'c', 00H, 'e', 00H, 'n'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG147824 DB	'w', 00H, 00H, 00H
-$SG147825 DB	' ', 00H, 00H, 00H
-$SG147827 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
+$SG257052 DB	'w', 00H, 00H, 00H
+$SG257053 DB	' ', 00H, 00H, 00H
+$SG257055 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
 	ORG $+2
-$SG147829 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
+$SG257057 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
 	ORG $+2
-$SG147831 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
-$SG147833 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG257059 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
+$SG257061 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG147835 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG257063 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG147855 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
+$SG257083 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147857 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+$SG257085 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147859 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
+$SG257087 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
 	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG147861 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+$SG257089 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG147863 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
+$SG257091 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147865 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG257093 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p', 00H, 'd'
 	DB	00H, 'b', 00H, 00H, 00H
 	ORG $+2
-$SG147866 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+$SG257094 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
 	DB	'a', 00H, 'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p'
 	DB	00H, 'd', 00H, 'b', 00H, 00H, 00H
-$SG147868 DB	'%ws\Version', 00H
-$SG147871 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
+$SG257096 DB	'%ws\Version', 00H
+$SG257099 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, '\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H
 	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG147872 DB	'\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H
+$SG257100 DB	'\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H
 	DB	'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H, 'n'
 	DB	00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG147873 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
+$SG257101 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, '\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o'
 	DB	00H, 's', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H
 	DB	'.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG147874 DB	'\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H
+$SG257102 DB	'\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H
 	DB	'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, 'i'
 	DB	00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG147895 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
+$SG257123 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147897 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
+$SG257125 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147899 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+$SG257127 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG147901 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+$SG257129 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147903 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
+$SG257131 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
 	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG147905 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG257133 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p', 00H, 'd'
 	DB	00H, 'b', 00H, 00H, 00H
 	ORG $+2
-$SG147906 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+$SG257134 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
 	DB	'a', 00H, 'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p'
 	DB	00H, 'd', 00H, 'b', 00H, 00H, 00H
-$SG147908 DB	'%ws\Version', 00H
-$SG147911 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
+$SG257136 DB	'%ws\Version', 00H
+$SG257139 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, '\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H
 	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG147912 DB	'\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H
+$SG257140 DB	'\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H
 	DB	'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H, 'n'
 	DB	00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG147913 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
+$SG257141 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, '\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o'
 	DB	00H, 's', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H
 	DB	'.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG147914 DB	'\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H
+$SG257142 DB	'\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H
 	DB	'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, 'i'
 	DB	00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG147925 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
+$SG257153 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147927 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
+$SG257155 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147929 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+$SG257157 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG147931 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+$SG257159 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147933 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
+$SG257161 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
 	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG147934 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
-$SG147935 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG257162 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
+$SG257163 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG147945 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
+$SG147602 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257173 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147947 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
+$SG257175 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147949 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+$SG257177 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG147951 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+$SG257179 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147953 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
+$SG257181 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
 	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG147954 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
-$SG147955 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG257182 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
+$SG257183 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG148204 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+$SG147671 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257428 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257431 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
+	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG257432 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG157379 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG257433 DB	'SpecialK32.dll,RunDLL_InjectionManager Remove', 00H
+	ORG $+2
+$SG257434 DB	'open', 00H
+	ORG $+3
+$SG257435 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG257436 DB	'SpecialK64.dll,RunDLL_InjectionManager Remove', 00H
+	ORG $+2
+$SG257437 DB	'open', 00H
+	ORG $+3
+$SG257438 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '_', 00H, 'F', 00H
+	DB	'r', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG257441 DB	'-Inject', 00H
+$SG257442 DB	'SKIM64.exe', 00H
+	ORG $+1
+$SG257443 DB	'open', 00H
+	ORG $+3
+$SG257444 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
+	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG257463 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
+	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG257465 DB	'Remove', 00H
+	ORG $+1
+$SG257466 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG257467 DB	'SpecialK64.dll,RunDLL_InjectionManager Install', 00H
+	ORG $+1
+$SG257468 DB	'open', 00H
+	ORG $+3
+$SG257469 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG257470 DB	'SpecialK32.dll,RunDLL_InjectionManager Install', 00H
+	ORG $+1
+$SG257471 DB	'open', 00H
+	ORG $+3
+$SG257473 DB	'Remove', 00H
+	ORG $+1
+$SG257474 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '_', 00H, 'F', 00H
+	DB	'r', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG257477 DB	'+Inject', 00H
+$SG257478 DB	'SKIM64.exe', 00H
+	ORG $+1
+$SG257479 DB	'open', 00H
+	ORG $+3
+$SG266053 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 'G', 00H
 	DB	'l', 00H, 'o', 00H, 'b', 00H, 'a', 00H, 'l', 00H, '\', 00H, 'w'
@@ -209,80 +245,59 @@ $SG157379 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	's', 00H, 't', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG148200 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG256885 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
 	DB	00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG148203 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
-	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
+$SG256888 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '_', 00H, 'R', 00H, 'e'
+	DB	00H, 's', 00H, 'e', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG148205 DB	'SpecialK32.dll,RunDLL_InjectionManager Remove', 00H
-	ORG $+2
-$SG148206 DB	'open', 00H
-	ORG $+3
-$SG148207 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+$SG256890 DB	'QueryPerformanceCounter', 00H
+$SG256891 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG148208 DB	'SpecialK64.dll,RunDLL_InjectionManager Remove', 00H
+$SG256925 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG148209 DB	'open', 00H
-	ORG $+3
-$SG148210 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '_', 00H, 'F', 00H
-	DB	'r', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG148213 DB	'-Inject', 00H
-$SG148214 DB	'SKIM64.exe', 00H
-	ORG $+1
-$SG148215 DB	'open', 00H
-	ORG $+3
-$SG148216 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
-	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
+$SG256928 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '_', 00H, 'R', 00H, 'e'
+	DB	00H, 's', 00H, 'e', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG148235 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
-	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG148237 DB	'Remove', 00H
-	ORG $+1
-$SG148238 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG148239 DB	'SpecialK64.dll,RunDLL_InjectionManager Install', 00H
-	ORG $+1
-$SG148240 DB	'open', 00H
-	ORG $+3
-$SG148241 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG148242 DB	'SpecialK32.dll,RunDLL_InjectionManager Install', 00H
-	ORG $+1
-$SG148243 DB	'open', 00H
-	ORG $+3
-$SG148245 DB	'Remove', 00H
-	ORG $+1
-$SG148246 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '_', 00H, 'F', 00H
-	DB	'r', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG148249 DB	'+Inject', 00H
-$SG148250 DB	'SKIM64.exe', 00H
-	ORG $+1
-$SG148251 DB	'open', 00H
+$SG257021 DB	'Install', 00H
+$SG257023 DB	'w', 00H
 CONST	ENDS
 SK_Hooks	SEGMENT
-?count@SK_InjectionRecord_s@@2JC DD 00H			; SK_InjectionRecord_s::count
-?rollovers@SK_InjectionRecord_s@@2JC DD 00H		; SK_InjectionRecord_s::rollovers
 ?g_hHookCBT@@3RAUHHOOK__@@A DD 00H			; g_hHookCBT
 ?g_hHookShell@@3RAUHHOOK__@@A DD 00H			; g_hHookShell
 ?g_hShutdown@@3RAXA DD 00H				; g_hShutdown
 ?whitelist_count@@3HA DD 00H				; whitelist_count
-?g_sHookedPIDs@@3PAJA	ORG $+64				; g_sHookedPIDs
+?g_sHookedPIDs@@3PAJA DD 00H				; g_sHookedPIDs
+	ORG $+60
+?__SK_InjectionHistory_name@@3PA_WA DW 00H		; __SK_InjectionHistory_name
+	ORG $+33278
+?__SK_InjectionHistory_ids@@3PAKA DD 00H		; __SK_InjectionHistory_ids
+	ORG $+252
+?__SK_InjectionHistory_inject@@3PA_JA DQ 0000000000000000H ; __SK_InjectionHistory_inject
+	ORG $+504
+?__SK_InjectionHistory_eject@@3PA_JA DQ 0000000000000000H ; __SK_InjectionHistory_eject
+	ORG $+504
+?__SK_InjectionHistory_api@@3PAW4SK_RenderAPI@@A DD 01H	; __SK_InjectionHistory_api
+	ORG $+252
+?__SK_InjectionHistory_frames@@3PA_KA DQ 0000000000000000H ; __SK_InjectionHistory_frames
+	ORG $+504
 ?whitelist_patterns@@3PA_WA DW 00H			; whitelist_patterns
 	ORG $+8318
+?count@SK_InjectionRecord_s@@2JC DD 00H			; SK_InjectionRecord_s::count
+?rollovers@SK_InjectionRecord_s@@2JC DD 00H		; SK_InjectionRecord_s::rollovers
 SK_Hooks	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
+PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
+PUBLIC	?__empty_global_delete@@YAXPAXI@Z		; __empty_global_delete
 PUBLIC	_ReadAcquire
+PUBLIC	?_InterlockedIncrement@@YAKPCK@Z		; _InterlockedIncrement
 PUBLIC	?_Hash_seq@std@@YAIPBEI@Z			; std::_Hash_seq
 PUBLIC	_wmemcmp
 PUBLIC	_wmemcpy
@@ -491,11 +506,25 @@ PUBLIC	?_Tidy_deallocate@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W
 PUBLIC	?_Xlen@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xlen
 PUBLIC	?_Check_offset@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEXI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Check_offset
 PUBLIC	?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Xran
+PUBLIC	??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z ; SK_Thread_CriticalSection::SK_Thread_CriticalSection
+PUBLIC	??0SK_Thread_HybridSpinlock@@QAE@H@Z		; SK_Thread_HybridSpinlock::SK_Thread_HybridSpinlock
 PUBLIC	?SK_Inject_ValidateProcesses@@YAXXZ		; SK_Inject_ValidateProcesses
 PUBLIC	?SK_Inject_InvadingProcess@@YA_NK@Z		; SK_Inject_InvadingProcess
 PUBLIC	?ShellProc@@YGJHIJ@Z				; ShellProc
 PUBLIC	?SK_TerminatePID@@YAHKI@Z			; SK_TerminatePID
 PUBLIC	?SKX_InstallShellHook@@YGXXZ			; SKX_InstallShellHook
+PUBLIC	??0?$allocator@I@std@@QAE@ABV01@@Z		; std::allocator<unsigned int>::allocator<unsigned int>
+PUBLIC	?deallocate@?$allocator@I@std@@QAEXPAII@Z	; std::allocator<unsigned int>::deallocate
+PUBLIC	?allocate@?$allocator@I@std@@QAEPAII@Z		; std::allocator<unsigned int>::allocate
+PUBLIC	?max_size@?$allocator@I@std@@QBEIXZ		; std::allocator<unsigned int>::max_size
+PUBLIC	?max_size@?$allocator_traits@V?$allocator@I@std@@@std@@SAIABV?$allocator@I@2@@Z ; std::allocator_traits<std::allocator<unsigned int> >::max_size
+PUBLIC	?select_on_container_copy_construction@?$allocator_traits@V?$allocator@I@std@@@std@@SA?AV?$allocator@I@2@ABV32@@Z ; std::allocator_traits<std::allocator<unsigned int> >::select_on_container_copy_construction
+PUBLIC	?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBE?AU12@U_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::select_on_container_copy_construction
+PUBLIC	??0?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAE@$$QAU01@@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::_Wrap_alloc<std::allocator<unsigned int> >
+PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEPAII@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::allocate
+PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEXPAII@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::deallocate
+PUBLIC	?max_size@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBEIU_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::max_size
+PUBLIC	??_GSK_Inject_AddressCacheRegistry@@QAEPAXI@Z	; SK_Inject_AddressCacheRegistry::`scalar deleting destructor'
 PUBLIC	?SKX_RemoveShellHook@@YGXXZ			; SKX_RemoveShellHook
 PUBLIC	?SKX_IsHookingShell@@YG_NXZ			; SKX_IsHookingShell
 PUBLIC	?RunDLL_InjectionManager@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z ; RunDLL_InjectionManager
@@ -570,17 +599,6 @@ PUBLIC	??0_Node_rep@std@@QAE@_NHHPAV_Node_end_rep@1@I@Z ; std::_Node_rep::_Node_
 PUBLIC	??1_Node_rep@std@@UAE@XZ			; std::_Node_rep::~_Node_rep
 PUBLIC	??_G_Node_rep@std@@UAEPAXI@Z			; std::_Node_rep::`scalar deleting destructor'
 PUBLIC	??0?$allocator@_N@std@@QAE@XZ			; std::allocator<bool>::allocator<bool>
-PUBLIC	??0?$allocator@I@std@@QAE@ABV01@@Z		; std::allocator<unsigned int>::allocator<unsigned int>
-PUBLIC	?deallocate@?$allocator@I@std@@QAEXPAII@Z	; std::allocator<unsigned int>::deallocate
-PUBLIC	?allocate@?$allocator@I@std@@QAEPAII@Z		; std::allocator<unsigned int>::allocate
-PUBLIC	?max_size@?$allocator@I@std@@QBEIXZ		; std::allocator<unsigned int>::max_size
-PUBLIC	?max_size@?$allocator_traits@V?$allocator@I@std@@@std@@SAIABV?$allocator@I@2@@Z ; std::allocator_traits<std::allocator<unsigned int> >::max_size
-PUBLIC	?select_on_container_copy_construction@?$allocator_traits@V?$allocator@I@std@@@std@@SA?AV?$allocator@I@2@ABV32@@Z ; std::allocator_traits<std::allocator<unsigned int> >::select_on_container_copy_construction
-PUBLIC	?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBE?AU12@U_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::select_on_container_copy_construction
-PUBLIC	??0?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAE@$$QAU01@@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::_Wrap_alloc<std::allocator<unsigned int> >
-PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEPAII@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::allocate
-PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEXPAII@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::deallocate
-PUBLIC	?max_size@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBEIU_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<unsigned int> >::max_size
 PUBLIC	?_Copy_alloc@?$_Vector_alloc@U?$_Vec_base_types@IV?$allocator@_N@std@@@std@@@std@@QAEXABU?$_Wrap_alloc@V?$allocator@I@std@@@2@@Z ; std::_Vector_alloc<std::_Vec_base_types<unsigned int,std::allocator<bool> > >::_Copy_alloc
 PUBLIC	?_Orphan_all@?$_Vector_alloc@U?$_Vec_base_types@IV?$allocator@_N@std@@@std@@@std@@QAEXXZ ; std::_Vector_alloc<std::_Vec_base_types<unsigned int,std::allocator<bool> > >::_Orphan_all
 PUBLIC	?_Getal@?$_Vector_alloc@U?$_Vec_base_types@IV?$allocator@_N@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@I@std@@@2@XZ ; std::_Vector_alloc<std::_Vec_base_types<unsigned int,std::allocator<bool> > >::_Getal
@@ -746,6 +764,7 @@ PUBLIC	??0?$_String_iterator@V?$_String_val@U?$_Simple_types@D@std@@@std@@@std@@
 PUBLIC	??D?$_String_iterator@V?$_String_val@U?$_Simple_types@D@std@@@std@@@std@@QBEAADXZ ; std::_String_iterator<std::_String_val<std::_Simple_types<char> > >::operator*
 PUBLIC	??$use_facet@V?$ctype@_W@std@@@std@@YAABV?$ctype@_W@0@ABVlocale@0@@Z ; std::use_facet<std::ctype<wchar_t> >
 PUBLIC	??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@_W@std@@@0@AAV10@@Z ; std::addressof<std::_String_val<std::_Simple_types<wchar_t> > >
+PUBLIC	??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
 PUBLIC	??$move@AAU?$_Wrap_alloc@V?$allocator@D@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@0@AAU10@@Z ; std::move<std::_Wrap_alloc<std::allocator<char> > &>
 PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@D@std@@@std@@X@?$_String_alloc@U?$_String_base_types@DV?$allocator@D@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@1@@Z ; std::_String_alloc<std::_String_base_types<char,std::allocator<char> > >::_String_alloc<std::_String_base_types<char,std::allocator<char> > ><std::_Wrap_alloc<std::allocator<char> >,void>
 PUBLIC	??$move@AAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YA$$QAV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@AAV10@@Z ; std::move<std::basic_string<char,std::char_traits<char>,std::allocator<char> > &>
@@ -772,7 +791,6 @@ PUBLIC	??$addressof@_W@std@@YAPA_WAA_W@Z		; std::addressof<wchar_t>
 PUBLIC	??$use_facet@V?$collate@_W@std@@@std@@YAABV?$collate@_W@0@ABVlocale@0@@Z ; std::use_facet<std::collate<wchar_t> >
 PUBLIC	??$_Unfancy@D@std@@YAPADPAD@Z			; std::_Unfancy<char>
 PUBLIC	?pointer_to@?$pointer_traits@PAD@std@@SAPADAAD@Z ; std::pointer_traits<char *>::pointer_to
-PUBLIC	??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
 PUBLIC	??$addressof@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 PUBLIC	??$_Min_value@I@std@@YAABIABI0@Z		; std::_Min_value<unsigned int>
 PUBLIC	??$addressof@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YAPBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@ABV10@@Z ; std::addressof<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const >
@@ -989,10 +1007,12 @@ PUBLIC	?_Get_ncap@?$_Matcher@PB_W_WV?$regex_traits@_W@std@@PB_W@std@@ABEIXZ ; st
 PUBLIC	??1?$_Matcher@PB_W_WV?$regex_traits@_W@std@@PB_W@std@@QAE@XZ ; std::_Matcher<wchar_t const *,wchar_t,std::regex_traits<wchar_t>,wchar_t const *>::~_Matcher<wchar_t const *,wchar_t,std::regex_traits<wchar_t>,wchar_t const *>
 PUBLIC	??$_Match@V?$allocator@V?$sub_match@PB_W@std@@@std@@@?$_Matcher@PB_W_WV?$regex_traits@_W@std@@PB_W@std@@QAE_NPAV?$match_results@PB_WV?$allocator@V?$sub_match@PB_W@std@@@std@@@1@_N@Z ; std::_Matcher<wchar_t const *,wchar_t,std::regex_traits<wchar_t>,wchar_t const *>::_Match<std::allocator<std::sub_match<wchar_t const *> > >
 PUBLIC	??$_Match@V?$allocator@V?$sub_match@PB_W@std@@@std@@@?$_Matcher@PB_W_WV?$regex_traits@_W@std@@PB_W@std@@QAE_NPB_WPAV?$match_results@PB_WV?$allocator@V?$sub_match@PB_W@std@@@std@@@1@_N@Z ; std::_Matcher<wchar_t const *,wchar_t,std::regex_traits<wchar_t>,wchar_t const *>::_Match<std::allocator<std::sub_match<wchar_t const *> > >
+PUBLIC	??$forward@ABI@std@@YAABIABI@Z			; std::forward<unsigned int const &>
 PUBLIC	??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z ; std::allocator<wchar_t>::destroy<wchar_t *>
 PUBLIC	??$destroy@PAD@?$allocator@D@std@@QAEXPAPAD@Z	; std::allocator<char>::destroy<char *>
 PUBLIC	??$construct@PA_WAAPA_W@?$allocator@_W@std@@QAEXPAPA_WAAPA_W@Z ; std::allocator<wchar_t>::construct<wchar_t *,wchar_t * &>
 PUBLIC	??$construct@PADAAPAD@?$allocator@D@std@@QAEXPAPADAAPAD@Z ; std::allocator<char>::construct<char *,char * &>
+PUBLIC	??$?0U?$integral_constant@_N$00@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$00@1@@Z ; std::_Any_tag::_Any_tag<std::integral_constant<bool,1> >
 PUBLIC	??$_Destroy_range1@V?$allocator@I@std@@PAI@std@@YAXPAI0AAU?$_Wrap_alloc@V?$allocator@I@std@@@0@U?$integral_constant@_N$00@0@@Z ; std::_Destroy_range1<std::allocator<unsigned int>,unsigned int *>
 PUBLIC	??0?$_Vector_const_iterator@V?$_Vector_val@U?$_Simple_types@I@std@@@std@@@std@@QAE@PAIPBU_Container_base0@1@@Z ; std::_Vector_const_iterator<std::_Vector_val<std::_Simple_types<unsigned int> > >::_Vector_const_iterator<std::_Vector_val<std::_Simple_types<unsigned int> > >
 PUBLIC	??Y?$_Vector_const_iterator@V?$_Vector_val@U?$_Simple_types@I@std@@@std@@@std@@QAEAAV01@H@Z ; std::_Vector_const_iterator<std::_Vector_val<std::_Simple_types<unsigned int> > >::operator+=
@@ -1103,7 +1123,6 @@ PUBLIC	??$_Uninitialized_default_fill_n1@PAU_Grp_t@?$_Tgt_state_t@PB_W@std@@IV?$
 PUBLIC	??$_Unchecked@PAU_Loop_vals_t@std@@@std@@YAPAU_Loop_vals_t@0@PAU10@@Z ; std::_Unchecked<std::_Loop_vals_t *>
 PUBLIC	??$_Ptr_move_cat@U_Loop_vals_t@std@@U12@@std@@YA?AU_Really_trivial_ptr_iterator_tag@0@ABQAU_Loop_vals_t@0@0@Z ; std::_Ptr_move_cat<std::_Loop_vals_t,std::_Loop_vals_t>
 PUBLIC	??$_Uninitialized_move_al_unchecked@U_Loop_vals_t@std@@U12@V?$allocator@U_Loop_vals_t@std@@@2@@std@@YAPAU_Loop_vals_t@0@PAU10@00AAU?$_Wrap_alloc@V?$allocator@U_Loop_vals_t@std@@@std@@@0@U_Really_trivial_ptr_iterator_tag@0@U?$integral_constant@_N$00@0@@Z ; std::_Uninitialized_move_al_unchecked<std::_Loop_vals_t,std::_Loop_vals_t,std::allocator<std::_Loop_vals_t> >
-PUBLIC	??$?0U?$integral_constant@_N$00@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$00@1@@Z ; std::_Any_tag::_Any_tag<std::integral_constant<bool,1> >
 PUBLIC	??$_Rechecked@PAU_Loop_vals_t@std@@PAU12@@std@@YAAAPAU_Loop_vals_t@0@AAPAU10@PAU10@@Z ; std::_Rechecked<std::_Loop_vals_t *,std::_Loop_vals_t *>
 PUBLIC	??$_Unchecked@V?$_Vb_iterator@U?$_Wrap_alloc@V?$allocator@I@std@@@std@@@std@@@std@@YA?AV?$_Vb_iterator@U?$_Wrap_alloc@V?$allocator@I@std@@@std@@@0@V10@@Z ; std::_Unchecked<std::_Vb_iterator<std::_Wrap_alloc<std::allocator<unsigned int> > > >
 PUBLIC	??$_Fill_unchecked@V?$_Vb_iterator@U?$_Wrap_alloc@V?$allocator@I@std@@@std@@@std@@_N@std@@YAXV?$_Vb_iterator@U?$_Wrap_alloc@V?$allocator@I@std@@@std@@@0@0AB_N@Z ; std::_Fill_unchecked<std::_Vb_iterator<std::_Wrap_alloc<std::allocator<unsigned int> > >,bool>
@@ -1165,7 +1184,6 @@ PUBLIC	??0?$_Vector_iterator@V?$_Vector_val@U?$_Simple_types@_W@std@@@std@@@std@
 PUBLIC	??D?$_Vector_iterator@V?$_Vector_val@U?$_Simple_types@_W@std@@@std@@@std@@QBEAA_WXZ ; std::_Vector_iterator<std::_Vector_val<std::_Simple_types<wchar_t> > >::operator*
 PUBLIC	??$construct@U_Loop_vals_t@std@@$$V@?$allocator_traits@V?$allocator@U_Loop_vals_t@std@@@std@@@std@@SAXAAV?$allocator@U_Loop_vals_t@std@@@1@PAU_Loop_vals_t@1@@Z ; std::allocator_traits<std::allocator<std::_Loop_vals_t> >::construct<std::_Loop_vals_t>
 PUBLIC	??$?0_N@?$allocator@I@std@@QAE@ABV?$allocator@_N@1@@Z ; std::allocator<unsigned int>::allocator<unsigned int><bool>
-PUBLIC	??$forward@ABI@std@@YAABIABI@Z			; std::forward<unsigned int const &>
 PUBLIC	??$construct@IABI@?$allocator_traits@V?$allocator@I@std@@@std@@SAXAAV?$allocator@I@1@PAIABI@Z ; std::allocator_traits<std::allocator<unsigned int> >::construct<unsigned int,unsigned int const &>
 PUBLIC	??$construct@U_Grp_t@?$_Tgt_state_t@PB_W@std@@$$V@?$_Wrap_alloc@V?$allocator@U_Grp_t@?$_Tgt_state_t@PB_W@std@@@std@@@std@@QAEXPAU_Grp_t@?$_Tgt_state_t@PB_W@1@@Z ; std::_Wrap_alloc<std::allocator<std::_Tgt_state_t<wchar_t const *>::_Grp_t> >::construct<std::_Tgt_state_t<wchar_t const *>::_Grp_t>
 PUBLIC	??$_Copy_memmove@PAU_Loop_vals_t@std@@PAU12@@std@@YAPAU_Loop_vals_t@0@PAU10@00@Z ; std::_Copy_memmove<std::_Loop_vals_t *,std::_Loop_vals_t *>
@@ -1284,6 +1302,15 @@ PUBLIC	??_C@_08EPJLHIJG@bad?5cast?$AA@			; `string'
 PUBLIC	??_R0?AVexception@std@@@8			; std::exception `RTTI Type Descriptor'
 PUBLIC	__CT??_R0?AVexception@std@@@8??0exception@std@@QAE@ABV01@@Z12
 PUBLIC	?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A ; __SK_InjectionHistory
+PUBLIC	??_C@_0BI@FBBDFMGP@IDXGISwapChain?3?3Present?$AA@ ; `string'
+PUBLIC	??_C@_19OIBDDOMN@?$AAd?$AAx?$AAg?$AAi?$AA?$AA@	; `string'
+PUBLIC	??_C@_1DM@OEJKFDNC@?$AAI?$AAD?$AAX?$AAG?$AAI?$AAS?$AAw?$AAa?$AAp?$AAC?$AAh?$AAa?$AAi?$AAn?$AA?3?$AA?3?$AAP?$AAr?$AAe?$AAs?$AAe?$AAn?$AAt?$AA?5?$AA?$DN?$AA?5?$AA?$CF?$AAp?$AAh?$AA?$AA@ ; `string'
+PUBLIC	??_C@_0BK@IDFDJGMI@IDirect3DDevice9?3?3Present?$AA@ ; `string'
+PUBLIC	??_C@_19NBHNJNHK@?$AAd?$AA3?$AAd?$AA9?$AA?$AA@	; `string'
+PUBLIC	??_C@_0BO@GEEOLCAL@IDirect3DDevice9Ex?3?3PresentEx?$AA@ ; `string'
+PUBLIC	??_C@_0BN@OCBPKAKP@IDirect3DSwapChain9?3?3Present?$AA@ ; `string'
+PUBLIC	??_C@_0BI@HNGKIOLG@IDirect3DDevice9?3?3Reset?$AA@ ; `string'
+PUBLIC	??_C@_0BM@NJNEPMLL@IDirect3DDevice9Ex?3?3ResetEx?$AA@ ; `string'
 PUBLIC	??_7?$collate@_W@std@@6B@			; std::collate<wchar_t>::`vftable'
 PUBLIC	?_Is_word_table@?1??_Is_word@std@@YA_NE@Z@4QB_NB ; `std::_Is_word'::`2'::_Is_word_table
 PUBLIC	??_7_Node_base@std@@6B@				; std::_Node_base::`vftable'
@@ -1301,6 +1328,7 @@ PUBLIC	??_7?$basic_ifstream@_WU?$char_traits@_W@std@@@std@@6B@ ; std::basic_ifst
 PUBLIC	??_8?$basic_ifstream@_WU?$char_traits@_W@std@@@std@@7B@ ; std::basic_ifstream<wchar_t,std::char_traits<wchar_t> >::`vbtable'
 PUBLIC	?_Stinit@?1??_Init@?$basic_filebuf@_WU?$char_traits@_W@std@@@std@@IAEXPAU_iobuf@@W4_Initfl@23@@Z@4U_Mbstatet@@A ; `std::basic_filebuf<wchar_t,std::char_traits<wchar_t> >::_Init'::`2'::_Stinit
 PUBLIC	??_C@_0BA@JFNIOLAK@string?5too?5long?$AA@	; `string'
+PUBLIC	??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ ; `string'
 PUBLIC	??_C@_0BI@CFPLBAOH@invalid?5string?5position?$AA@ ; `string'
 PUBLIC	__TI2?AVbad_cast@std@@
 PUBLIC	__CTA2?AVbad_cast@std@@
@@ -1310,7 +1338,6 @@ PUBLIC	?_Psave@?$_Facetptr@V?$ctype@_W@std@@@std@@2PBVfacet@locale@2@B ; std::_F
 PUBLIC	?_Psave@?$_Facetptr@V?$codecvt@_WDU_Mbstatet@@@std@@@std@@2PBVfacet@locale@2@B ; std::_Facetptr<std::codecvt<wchar_t,char,_Mbstatet> >::_Psave
 PUBLIC	?_Psave@?$_Facetptr@V?$collate@_W@std@@@std@@2PBVfacet@locale@2@B ; std::_Facetptr<std::collate<wchar_t> >::_Psave
 PUBLIC	??_C@_0BG@EOMJEIFA@vector?$DMbool?$DO?5too?5long?$AA@ ; `string'
-PUBLIC	??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ ; `string'
 PUBLIC	?_Meta_map@?1??_Trans@?$_Parser@PB_W_WV?$regex_traits@_W@std@@@std@@AAEXXZ@4QBDB ; `std::_Parser<wchar_t const *,wchar_t,std::regex_traits<wchar_t> >::_Trans'::`2'::_Meta_map
 PUBLIC	??_7?$_Node_str@_W@std@@6B@			; std::_Node_str<wchar_t>::`vftable'
 PUBLIC	??_7?$_Node_class@_WV?$regex_traits@_W@std@@@std@@6B@ ; std::_Node_class<wchar_t,std::regex_traits<wchar_t> >::`vftable'
@@ -1485,6 +1512,7 @@ EXTRN	__imp__GetFileAttributesA@4:PROC
 EXTRN	__imp__GetFileAttributesW@4:PROC
 EXTRN	__imp__GetTempFileNameW@16:PROC
 EXTRN	__imp__CloseHandle@4:PROC
+EXTRN	__imp__InitializeCriticalSectionAndSpinCount@8:PROC
 EXTRN	__imp__SetEvent@4:PROC
 EXTRN	__imp__WaitForSingleObject@8:PROC
 EXTRN	__imp__SleepEx@8:PROC
@@ -1495,13 +1523,15 @@ EXTRN	__imp__TerminateProcess@8:PROC
 EXTRN	__imp__GetExitCodeProcess@8:PROC
 EXTRN	__imp__CreateThread@24:PROC
 EXTRN	__imp__GetCurrentThread@0:PROC
+EXTRN	__imp__TlsAlloc@0:PROC
+EXTRN	__imp__TlsFree@4:PROC
 EXTRN	__imp__OpenProcess@12:PROC
 EXTRN	__imp__GetSystemDirectoryW@8:PROC
 EXTRN	__imp__GetModuleHandleW@4:PROC
 EXTRN	__imp__GetModuleHandleExW@12:PROC
+EXTRN	__imp__GetProcAddress@8:PROC
 EXTRN	__imp__lstrcatW@8:PROC
 EXTRN	__imp__LoadLibraryW@4:PROC
-EXTRN	__imp__GetSystemWow64DirectoryW@8:PROC
 EXTRN	__imp__CopyFileW@12:PROC
 EXTRN	__imp__MoveFileW@8:PROC
 EXTRN	__imp__ReplaceFileW@24:PROC
@@ -1539,12 +1569,15 @@ EXTRN	_fscanf:PROC
 EXTRN	__imp_?_Xbad_alloc@std@@YAXXZ:PROC
 EXTRN	__imp_?_Xlength_error@std@@YAXPBD@Z:PROC
 EXTRN	__imp_?_Xout_of_range@std@@YAXPBD@Z:PROC
+EXTRN	?WaitForInit@@YAXXZ:PROC			; WaitForInit
 EXTRN	?SK_GetConfigPath@@YGPB_WXZ:PROC		; SK_GetConfigPath
 EXTRN	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ:PROC		; SK_GetDLL
+EXTRN	?SK_SetDLLRole@@YAXW4DLL_ROLE@@@Z:PROC		; SK_SetDLLRole
 EXTRN	?SK_IsHostAppSKIM@@YA_NXZ:PROC			; SK_IsHostAppSKIM
 EXTRN	?SK_IsInjected@@YG_N_N@Z:PROC			; SK_IsInjected
 EXTRN	?SK_GetFramesDrawn@@YGKXZ:PROC			; SK_GetFramesDrawn
 EXTRN	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ:PROC ; SK_GetCurrentRenderBackend
+EXTRN	?SK_BootD3D9@@YAXXZ:PROC			; SK_BootD3D9
 EXTRN	__imp____std_exception_copy:PROC
 EXTRN	__imp____std_exception_destroy:PROC
 EXTRN	??_Eexception@std@@UAEPAXI@Z:PROC		; std::exception::`vector deleting destructor'
@@ -1584,6 +1617,7 @@ EXTRN	__imp_??0?$basic_istream@_WU?$char_traits@_W@std@@@std@@QAE@PAV?$basic_str
 EXTRN	__imp_??1?$basic_istream@_WU?$char_traits@_W@std@@@std@@UAE@XZ:PROC
 EXTRN	__imp_?_Ipfx@?$basic_istream@_WU?$char_traits@_W@std@@@std@@QAE_N_N@Z:PROC
 EXTRN	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z:PROC ; SK_SaveConfig
+EXTRN	?Log@iSK_Logger@@UAAXQB_WZZ:PROC		; iSK_Logger::Log
 EXTRN	__imp___time64:PROC
 EXTRN	?SK_GetHostPath@@YAPB_WXZ:PROC			; SK_GetHostPath
 EXTRN	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK_GetDocumentsDir
@@ -1597,6 +1631,14 @@ EXTRN	__imp__StrStrIW@8:PROC
 EXTRN	__imp__PathAppendW@8:PROC
 EXTRN	__imp__PathRemoveFileSpecW@4:PROC
 EXTRN	__imp__PathStripPathW@4:PROC
+EXTRN	?SK_PreInitLoadLibrary@@YGXXZ:PROC		; SK_PreInitLoadLibrary
+EXTRN	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ:PROC	; SK_ApplyQueuedHooks
+EXTRN	?SK_Init_MinHook@@YG?AW4MH_STATUS@@XZ:PROC	; SK_Init_MinHook
+EXTRN	?Startup@DXGI@SK@@YA_NXZ:PROC			; SK::DXGI::Startup
+EXTRN	??0SK_Inject_AddressCacheRegistry@@QAE@XZ:PROC	; SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry
+EXTRN	??1SK_Inject_AddressCacheRegistry@@QAE@XZ:PROC	; SK_Inject_AddressCacheRegistry::~SK_Inject_AddressCacheRegistry
+EXTRN	?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z:PROC ; SK_Inject_AddressCacheRegistry::storeNamedAddress
+EXTRN	?SK_EstablishRootPath@@YGXXZ:PROC		; SK_EstablishRootPath
 EXTRN	?SK_EstablishRootPath@@YGXXZ:PROC		; SK_EstablishRootPath
 EXTRN	_CreateToolhelp32Snapshot@8:PROC
 EXTRN	_Process32FirstW@8:PROC
@@ -1628,16 +1670,37 @@ EXTRN	___CxxFrameHandler3:PROC
 EXTRN	_memcpy:PROC
 EXTRN	_memset:PROC
 EXTRN	__imp_?_BADOFF@std@@3_JB:QWORD
+EXTRN	?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A:DWORD ; init_mutex
+EXTRN	?budget_mutex@@3PAVSK_Thread_HybridSpinlock@@A:DWORD ; budget_mutex
+EXTRN	?loader_lock@@3PAVSK_Thread_HybridSpinlock@@A:DWORD ; loader_lock
+EXTRN	?wmi_cs@@3PAVSK_Thread_HybridSpinlock@@A:DWORD	; wmi_cs
+EXTRN	?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A:DWORD ; cs_dbghelp
 EXTRN	??_7type_info@@6B@:QWORD			; type_info::`vftable'
 EXTRN	__imp_?id@?$codecvt@_WDU_Mbstatet@@@std@@2V0locale@2@A:DWORD
 EXTRN	__imp_?id@?$ctype@_W@std@@2V0locale@2@A:DWORD
 EXTRN	?config@@3Usk_config_t@@A:BYTE			; config
+EXTRN	?dll_log@@3UiSK_Logger@@A:BYTE			; dll_log
 EXTRN	?__SK_DLL_Attached@@3JC:DWORD			; __SK_DLL_Attached
 EXTRN	?__SK_HookContextOwner@@3JC:DWORD		; __SK_HookContextOwner
+EXTRN	?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA:DWORD ; QueryPerformanceCounter_Original
+EXTRN	?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A:DWORD ; SK_Inject_AddressManager
+EXTRN	?__SK_DLL_Refs@@3KC:DWORD			; __SK_DLL_Refs
+EXTRN	?__SK_TLS_INDEX@@3KC:DWORD			; __SK_TLS_INDEX
+EXTRN	?__SK_DLL_AttachTime@@3_JA:QWORD		; __SK_DLL_AttachTime
+EXTRN	?__SK_RunDLL_Bypass@@3_NA:BYTE			; __SK_RunDLL_Bypass
+EXTRN	?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA:DWORD ; Present_Target
+EXTRN	?D3D9Present_Target@@3P6GJPAUIDirect3DDevice9@@PBUtagRECT@@1PAUHWND__@@PBU_RGNDATA@@@ZA:DWORD ; D3D9Present_Target
+EXTRN	?D3D9PresentEx_Target@@3P6GJPAUIDirect3DDevice9Ex@@PBUtagRECT@@1PAUHWND__@@PBU_RGNDATA@@K@ZA:DWORD ; D3D9PresentEx_Target
+EXTRN	?D3D9PresentSwap_Target@@3P6GJPAUIDirect3DSwapChain9@@PBUtagRECT@@1PAUHWND__@@PBU_RGNDATA@@K@ZA:DWORD ; D3D9PresentSwap_Target
+EXTRN	?D3D9Reset_Target@@3P6GJPAUIDirect3DDevice9@@PAU_D3DPRESENT_PARAMETERS_@@@ZA:DWORD ; D3D9Reset_Target
+EXTRN	?D3D9ResetEx_Target@@3P6GJPAUIDirect3DDevice9Ex@@PAU_D3DPRESENT_PARAMETERS_@@PAUD3DDISPLAYMODEEX@@@ZA:DWORD ; D3D9ResetEx_Target
+EXTRN	?dll_ini@@3PAUiSK_INI@@A:DWORD			; dll_ini
 EXTRN	__imp_?id@?$collate@_W@std@@2V0locale@2@A:DWORD
-SK_Hooks	SEGMENT
+_BSS	SEGMENT
+	ALIGN	4
+
 ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A DB 08e00H DUP (?) ; __SK_InjectionHistory
-SK_Hooks	ENDS
+_BSS	ENDS
 ;	COMDAT ?lHookIters@?6??CBTProc@@YGJHIJ@Z@4JC
 _BSS	SEGMENT
 ?lHookIters@?6??CBTProc@@YGJHIJ@Z@4JC DD 01H DUP (?)	; `CBTProc'::`7'::lHookIters
@@ -2793,11 +2856,6 @@ CONST	SEGMENT
 	DB	08H
 	DB	00H
 CONST	ENDS
-;	COMDAT ??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@
-CONST	SEGMENT
-??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ DB 'vector<T> too long'
-	DB	00H						; `string'
-CONST	ENDS
 ;	COMDAT ??_C@_0BG@EOMJEIFA@vector?$DMbool?$DO?5too?5long?$AA@
 CONST	SEGMENT
 ??_C@_0BG@EOMJEIFA@vector?$DMbool?$DO?5too?5long?$AA@ DB 'vector<bool> to'
@@ -2836,6 +2894,11 @@ xdata$x	ENDS
 CONST	SEGMENT
 ??_C@_0BI@CFPLBAOH@invalid?5string?5position?$AA@ DB 'invalid string posi'
 	DB	'tion', 00H					; `string'
+CONST	ENDS
+;	COMDAT ??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@
+CONST	SEGMENT
+??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ DB 'vector<T> too long'
+	DB	00H						; `string'
 CONST	ENDS
 ;	COMDAT ??_C@_0BA@JFNIOLAK@string?5too?5long?$AA@
 CONST	SEGMENT
@@ -3188,6 +3251,55 @@ CONST	SEGMENT
 	DD	FLAT:?do_compare@?$collate@_W@std@@MBEHPB_W000@Z
 	DD	FLAT:?do_transform@?$collate@_W@std@@MBE?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@PB_W0@Z
 	DD	FLAT:?do_hash@?$collate@_W@std@@MBEJPB_W0@Z
+CONST	ENDS
+;	COMDAT ??_C@_0BM@NJNEPMLL@IDirect3DDevice9Ex?3?3ResetEx?$AA@
+CONST	SEGMENT
+??_C@_0BM@NJNEPMLL@IDirect3DDevice9Ex?3?3ResetEx?$AA@ DB 'IDirect3DDevice'
+	DB	'9Ex::ResetEx', 00H				; `string'
+CONST	ENDS
+;	COMDAT ??_C@_0BI@HNGKIOLG@IDirect3DDevice9?3?3Reset?$AA@
+CONST	SEGMENT
+??_C@_0BI@HNGKIOLG@IDirect3DDevice9?3?3Reset?$AA@ DB 'IDirect3DDevice9::R'
+	DB	'eset', 00H					; `string'
+CONST	ENDS
+;	COMDAT ??_C@_0BN@OCBPKAKP@IDirect3DSwapChain9?3?3Present?$AA@
+CONST	SEGMENT
+??_C@_0BN@OCBPKAKP@IDirect3DSwapChain9?3?3Present?$AA@ DB 'IDirect3DSwapC'
+	DB	'hain9::Present', 00H			; `string'
+CONST	ENDS
+;	COMDAT ??_C@_0BO@GEEOLCAL@IDirect3DDevice9Ex?3?3PresentEx?$AA@
+CONST	SEGMENT
+??_C@_0BO@GEEOLCAL@IDirect3DDevice9Ex?3?3PresentEx?$AA@ DB 'IDirect3DDevi'
+	DB	'ce9Ex::PresentEx', 00H			; `string'
+CONST	ENDS
+;	COMDAT ??_C@_19NBHNJNHK@?$AAd?$AA3?$AAd?$AA9?$AA?$AA@
+CONST	SEGMENT
+??_C@_19NBHNJNHK@?$AAd?$AA3?$AAd?$AA9?$AA?$AA@ DB 'd', 00H, '3', 00H, 'd', 00H
+	DB	'9', 00H, 00H, 00H				; `string'
+CONST	ENDS
+;	COMDAT ??_C@_0BK@IDFDJGMI@IDirect3DDevice9?3?3Present?$AA@
+CONST	SEGMENT
+??_C@_0BK@IDFDJGMI@IDirect3DDevice9?3?3Present?$AA@ DB 'IDirect3DDevice9:'
+	DB	':Present', 00H				; `string'
+CONST	ENDS
+;	COMDAT ??_C@_1DM@OEJKFDNC@?$AAI?$AAD?$AAX?$AAG?$AAI?$AAS?$AAw?$AAa?$AAp?$AAC?$AAh?$AAa?$AAi?$AAn?$AA?3?$AA?3?$AAP?$AAr?$AAe?$AAs?$AAe?$AAn?$AAt?$AA?5?$AA?$DN?$AA?5?$AA?$CF?$AAp?$AAh?$AA?$AA@
+CONST	SEGMENT
+??_C@_1DM@OEJKFDNC@?$AAI?$AAD?$AAX?$AAG?$AAI?$AAS?$AAw?$AAa?$AAp?$AAC?$AAh?$AAa?$AAi?$AAn?$AA?3?$AA?3?$AAP?$AAr?$AAe?$AAs?$AAe?$AAn?$AAt?$AA?5?$AA?$DN?$AA?5?$AA?$CF?$AAp?$AAh?$AA?$AA@ DB 'I'
+	DB	00H, 'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, 'S', 00H, 'w', 00H
+	DB	'a', 00H, 'p', 00H, 'C', 00H, 'h', 00H, 'a', 00H, 'i', 00H, 'n'
+	DB	00H, ':', 00H, ':', 00H, 'P', 00H, 'r', 00H, 'e', 00H, 's', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, '=', 00H, ' ', 00H, '%'
+	DB	00H, 'p', 00H, 'h', 00H, 00H, 00H		; `string'
+CONST	ENDS
+;	COMDAT ??_C@_19OIBDDOMN@?$AAd?$AAx?$AAg?$AAi?$AA?$AA@
+CONST	SEGMENT
+??_C@_19OIBDDOMN@?$AAd?$AAx?$AAg?$AAi?$AA?$AA@ DB 'd', 00H, 'x', 00H, 'g', 00H
+	DB	'i', 00H, 00H, 00H				; `string'
+CONST	ENDS
+;	COMDAT ??_C@_0BI@FBBDFMGP@IDXGISwapChain?3?3Present?$AA@
+CONST	SEGMENT
+??_C@_0BI@FBBDFMGP@IDXGISwapChain?3?3Present?$AA@ DB 'IDXGISwapChain::Pre'
+	DB	'sent', 00H					; `string'
 CONST	ENDS
 ;	COMDAT __CT??_R0?AVexception@std@@@8??0exception@std@@QAE@ABV01@@Z12
 xdata$x	SEGMENT
@@ -3967,6 +4079,20 @@ __unwindtable$?_Getcat@?$collate@_W@std@@SAIPAPBVfacet@locale@2@PBV42@@Z DD 0fff
 xdata$x	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
+__unwindtable$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z$0
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z$1
+__ehfuncinfo$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z DD 019930522H
+	DD	02H
+	DD	FLAT:__unwindtable$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
 __catchsym$?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z$18 DD 040H
 	DD	00H
 	DD	00H
@@ -4071,6 +4197,23 @@ __ehfuncinfo$?SK_Inject_SwitchToRenderWrapper@@YA_NXZ DD 019930522H
 	DD	2 DUP(00H)
 	DD	00H
 	DD	01H
+__ehfuncinfo$?SKX_InstallCBTHook@@YGXXZ DD 019930522H
+	DD	05H
+	DD	FLAT:__unwindtable$?SKX_InstallCBTHook@@YGXXZ
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
+__unwindtable$?SKX_InstallCBTHook@@YGXXZ DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$1
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$2
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$3
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$4
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$5
 __unwindtable$?SK_Inject_TestUserWhitelist@@YA_NPB_W@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Inject_TestUserWhitelist@@YA_NPB_W@Z$0
 	DD	00H
@@ -9760,29 +9903,6 @@ $LN8@construct:
 ??$construct@IABI@?$allocator_traits@V?$allocator@I@std@@@std@@SAXAAV?$allocator@I@1@PAIABI@Z ENDP ; std::allocator_traits<std::allocator<unsigned int> >::construct<unsigned int,unsigned int const &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
-;	COMDAT ??$forward@ABI@std@@YAABIABI@Z
-_TEXT	SEGMENT
-__Arg$ = 8						; size = 4
-??$forward@ABI@std@@YAABIABI@Z PROC			; std::forward<unsigned int const &>, COMDAT
-
-; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1335 : 	return (static_cast<_Ty&&>(_Arg));
-
-	mov	eax, DWORD PTR __Arg$[ebp]
-
-; 1336 : 	}
-
-	pop	ebp
-	ret	0
-??$forward@ABI@std@@YAABIABI@Z ENDP			; std::forward<unsigned int const &>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$?0_N@?$allocator@I@std@@QAE@ABV?$allocator@_N@1@@Z
 _TEXT	SEGMENT
@@ -11743,20 +11863,6 @@ __Src$ = 12						; size = 4
 	pop	ebp
 	ret	0
 ??$_Rechecked@PAU_Loop_vals_t@std@@PAU12@@std@@YAAAPAU_Loop_vals_t@0@AAPAU10@PAU10@@Z ENDP ; std::_Rechecked<std::_Loop_vals_t *,std::_Loop_vals_t *>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-;	COMDAT ??$?0U?$integral_constant@_N$00@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$00@1@@Z
-_TEXT	SEGMENT
-___formal$ = 8						; size = 4
-??$?0U?$integral_constant@_N$00@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$00@1@@Z PROC ; std::_Any_tag::_Any_tag<std::integral_constant<bool,1> >, COMDAT
-; _this$ = ecx
-
-; 556  : 		constexpr _Any_tag(_Ty&&) _NOEXCEPT {}
-
-	mov	eax, ecx
-	ret	4
-??$?0U?$integral_constant@_N$00@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$00@1@@Z ENDP ; std::_Any_tag::_Any_tag<std::integral_constant<bool,1> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory
@@ -20085,6 +20191,20 @@ ___formal$ = 20						; size = 1
 ??$_Destroy_range1@V?$allocator@I@std@@PAI@std@@YAXPAI0AAU?$_Wrap_alloc@V?$allocator@I@std@@@0@U?$integral_constant@_N$00@0@@Z ENDP ; std::_Destroy_range1<std::allocator<unsigned int>,unsigned int *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$?0U?$integral_constant@_N$00@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$00@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??$?0U?$integral_constant@_N$00@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$00@1@@Z PROC ; std::_Any_tag::_Any_tag<std::integral_constant<bool,1> >, COMDAT
+; _this$ = ecx
+
+; 556  : 		constexpr _Any_tag(_Ty&&) _NOEXCEPT {}
+
+	mov	eax, ecx
+	ret	4
+??$?0U?$integral_constant@_N$00@std@@@_Any_tag@std@@QAE@$$QAU?$integral_constant@_N$00@1@@Z ENDP ; std::_Any_tag::_Any_tag<std::integral_constant<bool,1> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@PADAAPAD@?$allocator@D@std@@QAEXPAPADAAPAD@Z
 _TEXT	SEGMENT
@@ -20173,6 +20293,29 @@ __Ptr$ = 8						; size = 4
 
 	ret	4
 ??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z ENDP	; std::allocator<wchar_t>::destroy<wchar_t *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@ABI@std@@YAABIABI@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@ABI@std@@YAABIABI@Z PROC			; std::forward<unsigned int const &>, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@ABI@std@@YAABIABI@Z ENDP			; std::forward<unsigned int const &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\regex
@@ -43683,29 +43826,6 @@ __Val$ = 8						; size = 4
 ??$addressof@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z ENDP ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-;	COMDAT ??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z
-_TEXT	SEGMENT
-__Val$ = 8						; size = 4
-??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z PROC ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >, COMDAT
-
-; 629  : 	{	// return address of _Val
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 630  : 	return (__builtin_addressof(_Val));
-
-	mov	eax, DWORD PTR __Val$[ebp]
-
-; 631  : 	}
-
-	pop	ebp
-	ret	0
-??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ENDP ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ?pointer_to@?$pointer_traits@PAD@std@@SAPADAAD@Z
 _TEXT	SEGMENT
@@ -44668,6 +44788,29 @@ __Arg$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$move@AAU?$_Wrap_alloc@V?$allocator@D@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@0@AAU10@@Z ENDP ; std::move<std::_Wrap_alloc<std::allocator<char> > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z PROC ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ENDP ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
@@ -49771,7 +49914,7 @@ __$EHRec$ = -12						; size = 12
 _wszExecutable$ = 8					; size = 4
 ?SK_Inject_TestUserWhitelist@@YA_NPB_W@Z PROC		; SK_Inject_TestUserWhitelist
 
-; 1276 : {
+; 1430 : {
 
 	npad	2
 	push	ebp
@@ -49783,7 +49926,7 @@ _wszExecutable$ = 8					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 348				; 0000015cH
 
-; 1277 :   if (whitelist_count == 0)
+; 1431 :   if (whitelist_count == 0)
 
 	mov	eax, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
 	push	ebx
@@ -49793,13 +49936,13 @@ _wszExecutable$ = 8					; size = 4
 	test	eax, eax
 	jne	$LN257@SK_Inject_
 
-; 1278 :   {
-; 1279 :     std::wifstream whitelist_file (std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\whitelist.ini"));
+; 1432 :   {
+; 1433 :     std::wifstream whitelist_file (std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\whitelist.ini"));
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG157379
+	push	OFFSET $SG266053
 	push	eax
 	lea	eax, DWORD PTR $T5[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -49895,7 +50038,7 @@ $LN56@SK_Inject_:
 	cmp	DWORD PTR _whitelist_file$2[ebp+92], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1281 :     if (whitelist_file.is_open ())
+; 1435 :     if (whitelist_file.is_open ())
 
 	je	$LN11@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -49926,7 +50069,7 @@ $LN56@SK_Inject_:
 	mov	eax, DWORD PTR _whitelist_file$2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1283 :       std::wstring line;
+; 1437 :       std::wstring line;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xiosbase
@@ -49940,7 +50083,7 @@ $LN56@SK_Inject_:
 	cmp	DWORD PTR _whitelist_file$2[ebp+eax+12], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1285 :       while (whitelist_file.good ())
+; 1439 :       while (whitelist_file.good ())
 
 	jne	$LN504@SK_Inject_
 	mov	ebx, DWORD PTR __imp__iswalpha
@@ -50002,13 +50145,13 @@ $LL2@SK_Inject_:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1290 :         for (const auto& it : line)
+; 1444 :         for (const auto& it : line)
 
 	je	SHORT $LN5@SK_Inject_
 $LL6@SK_Inject_:
 
-; 1291 :         {
-; 1292 :           if (iswalpha (it))
+; 1445 :         {
+; 1446 :           if (iswalpha (it))
 
 	movzx	eax, WORD PTR [esi]
 	push	eax
@@ -50027,16 +50170,16 @@ $LL6@SK_Inject_:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1290 :         for (const auto& it : line)
+; 1444 :         for (const auto& it : line)
 
 	jne	SHORT $LL6@SK_Inject_
 
-; 1312 :     if (std::regex_search (wszExecutable, regexp))
+; 1466 :     if (std::regex_search (wszExecutable, regexp))
 
 	jmp	SHORT $LN510@SK_Inject_
 $LN480@SK_Inject_:
 
-; 1294 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
+; 1448 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
 
 	mov	eax, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
 	imul	ecx, eax, 520
@@ -50049,7 +50192,7 @@ $LN480@SK_Inject_:
 	lea	eax, DWORD PTR _line$6[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1294 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
+; 1448 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
 
 	push	259					; 00000103H
 	add	ecx, OFFSET ?whitelist_patterns@@3PA_WA	; whitelist_patterns
@@ -50064,7 +50207,7 @@ $LN480@SK_Inject_:
 	cmovae	eax, DWORD PTR _line$6[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1294 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
+; 1448 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
 
 	push	eax
 	push	ecx
@@ -50085,18 +50228,18 @@ $LN5@SK_Inject_:
 	cmp	DWORD PTR _whitelist_file$2[ebp+eax+12], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1285 :       while (whitelist_file.good ())
+; 1439 :       while (whitelist_file.good ())
 
 	je	$LL2@SK_Inject_
 	or	esi, -1
 $LN504@SK_Inject_:
 
-; 1295 :             break;
-; 1296 :           }
-; 1297 :         }
-; 1298 :       }
-; 1299 : 
-; 1300 :       if (whitelist_count == 0)
+; 1449 :             break;
+; 1450 :           }
+; 1451 :         }
+; 1452 :       }
+; 1453 : 
+; 1454 :       if (whitelist_count == 0)
 
 	mov	eax, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
 	test	eax, eax
@@ -50130,18 +50273,18 @@ $LN504@SK_Inject_:
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1304 :     else
+; 1458 :     else
 
 	jmp	SHORT $LN12@SK_Inject_
 $LN11@SK_Inject_:
 
-; 1305 :       whitelist_count = -1;
+; 1459 :       whitelist_count = -1;
 
 	mov	DWORD PTR ?whitelist_count@@3HA, -1	; whitelist_count
 $LN12@SK_Inject_:
 	lea	ecx, DWORD PTR _whitelist_file$2[ebp+112]
 
-; 1306 :   }
+; 1460 :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	??1?$basic_ifstream@_WU?$char_traits@_W@std@@@std@@UAE@XZ ; std::basic_ifstream<wchar_t,std::char_traits<wchar_t> >::~basic_ifstream<wchar_t,std::char_traits<wchar_t> >
@@ -50150,7 +50293,7 @@ $LN12@SK_Inject_:
 	mov	eax, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
 $LN257@SK_Inject_:
 
-; 1308 :   for ( int i = 0; i < whitelist_count; i++ )
+; 1462 :   for ( int i = 0; i < whitelist_count; i++ )
 
 	mov	DWORD PTR _i$1$[ebp], 0
 	test	eax, eax
@@ -50427,7 +50570,7 @@ $LN308@SK_Inject_:
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1310 :     std::wregex regexp ((wchar_t *)&whitelist_patterns [MAX_PATH * i], std::regex_constants::icase);
+; 1464 :     std::wregex regexp ((wchar_t *)&whitelist_patterns [MAX_PATH * i], std::regex_constants::icase);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 10		; 0000000aH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -50458,7 +50601,7 @@ $LL503@SK_Inject_:
 	add	esp, 24					; 00000018H
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1312 :     if (std::regex_search (wszExecutable, regexp))
+; 1466 :     if (std::regex_search (wszExecutable, regexp))
 
 	test	al, al
 	jne	$LN486@SK_Inject_
@@ -50533,7 +50676,7 @@ $LN506@SK_Inject_:
 $LN471@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1308 :   for ( int i = 0; i < whitelist_count; i++ )
+; 1462 :   for ( int i = 0; i < whitelist_count; i++ )
 
 	mov	esi, DWORD PTR _i$1$[ebp]
 	add	ebx, 520				; 00000208H
@@ -50545,7 +50688,7 @@ $LN471@SK_Inject_:
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1308 :   for ( int i = 0; i < whitelist_count; i++ )
+; 1462 :   for ( int i = 0; i < whitelist_count; i++ )
 
 	mov	DWORD PTR _i$1$[ebp], esi
 	cmp	esi, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
@@ -50633,16 +50776,16 @@ $LN447@SK_Inject_:
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1314 :       return true;
+; 1468 :       return true;
 
 	mov	al, 1
 	pop	ebx
 
-; 1315 :     }
-; 1316 :   }
-; 1317 : 
-; 1318 :   return false;
-; 1319 : }
+; 1469 :     }
+; 1470 :   }
+; 1471 : 
+; 1472 :   return false;
+; 1473 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -55997,333 +56140,6 @@ __Al$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?max_size@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBEIU_Nil@2@@Z
-_TEXT	SEGMENT
-___formal$ = 8						; size = 1
-?max_size@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBEIU_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::max_size, COMDAT
-; _this$ = ecx
-
-; 1108 : 		return (_Mytraits::max_size(*this));
-
-	mov	eax, 1073741823				; 3fffffffH
-
-; 1109 : 		}
-
-	ret	4
-?max_size@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBEIU_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::max_size
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?deallocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEXPAII@Z
-_TEXT	SEGMENT
-__Ptr$ = 8						; size = 4
-__Count$ = 12						; size = 4
-?deallocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEXPAII@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::deallocate, COMDAT
-; _this$ = ecx
-
-; 1087 : 		{	// deallocate object at _Ptr, ignore size
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	4
-	push	DWORD PTR __Count$[ebp]
-	push	DWORD PTR __Ptr$[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-
-; 1088 : 		_Mybase::deallocate(_Ptr, _Count);
-; 1089 : 		}
-
-	pop	ebp
-	ret	8
-?deallocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEXPAII@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::deallocate
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?allocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEPAII@Z
-_TEXT	SEGMENT
-__Count$ = 8						; size = 4
-?allocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEPAII@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::allocate, COMDAT
-; _this$ = ecx
-
-; 1076 : 		{	// allocate array of _Count elements
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1078 : 		}
-
-	pop	ebp
-
-; 1077 : 		return (_Mybase::allocate(_Count));
-
-	jmp	?allocate@?$allocator@I@std@@QAEPAII@Z	; std::allocator<unsigned int>::allocate
-?allocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEPAII@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::allocate
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ??0?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAE@$$QAU01@@Z
-_TEXT	SEGMENT
-__Right$ = 8						; size = 4
-??0?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAE@$$QAU01@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::_Wrap_alloc<std::allocator<unsigned int> >, COMDAT
-; _this$ = ecx
-
-; 1048 : 		}
-
-	mov	eax, ecx
-	ret	4
-??0?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAE@$$QAU01@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::_Wrap_alloc<std::allocator<unsigned int> >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBE?AU12@U_Nil@2@@Z
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-___formal$ = 12						; size = 1
-?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBE?AU12@U_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::select_on_container_copy_construction, COMDAT
-; _this$ = ecx
-
-; 1013 : 		{	// get allocator to use
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1014 : 		return (_Mytraits::select_on_container_copy_construction(*this));
-
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-
-; 1015 : 		}
-
-	pop	ebp
-	ret	8
-?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBE?AU12@U_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::select_on_container_copy_construction
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?select_on_container_copy_construction@?$allocator_traits@V?$allocator@I@std@@@std@@SA?AV?$allocator@I@2@ABV32@@Z
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-__Al$ = 12						; size = 4
-?select_on_container_copy_construction@?$allocator_traits@V?$allocator@I@std@@@std@@SA?AV?$allocator@I@2@ABV32@@Z PROC ; std::allocator_traits<std::allocator<unsigned int> >::select_on_container_copy_construction, COMDAT
-
-; 975  : 		{	// get allocator to use
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 976  : 		return (_Al);
-
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-
-; 977  : 		}
-
-	pop	ebp
-	ret	0
-?select_on_container_copy_construction@?$allocator_traits@V?$allocator@I@std@@@std@@SA?AV?$allocator@I@2@ABV32@@Z ENDP ; std::allocator_traits<std::allocator<unsigned int> >::select_on_container_copy_construction
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?max_size@?$allocator_traits@V?$allocator@I@std@@@std@@SAIABV?$allocator@I@2@@Z
-_TEXT	SEGMENT
-__Al$ = 8						; size = 4
-?max_size@?$allocator_traits@V?$allocator@I@std@@@std@@SAIABV?$allocator@I@2@@Z PROC ; std::allocator_traits<std::allocator<unsigned int> >::max_size, COMDAT
-
-; 970  : 		return (_Al.max_size());
-
-	mov	eax, 1073741823				; 3fffffffH
-
-; 971  : 		}
-
-	ret	0
-?max_size@?$allocator_traits@V?$allocator@I@std@@@std@@SAIABV?$allocator@I@2@@Z ENDP ; std::allocator_traits<std::allocator<unsigned int> >::max_size
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?max_size@?$allocator@I@std@@QBEIXZ
-_TEXT	SEGMENT
-?max_size@?$allocator@I@std@@QBEIXZ PROC		; std::allocator<unsigned int>::max_size, COMDAT
-; _this$ = ecx
-
-; 851  : 		return ((size_t)(-1) / sizeof (_Ty));
-
-	mov	eax, 1073741823				; 3fffffffH
-
-; 852  : 		}
-
-	ret	0
-?max_size@?$allocator@I@std@@QBEIXZ ENDP		; std::allocator<unsigned int>::max_size
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?allocate@?$allocator@I@std@@QAEPAII@Z
-_TEXT	SEGMENT
-__Count$ = 8						; size = 4
-?allocate@?$allocator@I@std@@QAEPAII@Z PROC		; std::allocator<unsigned int>::allocate, COMDAT
-; _this$ = ecx
-
-; 827  : 		{	// allocate array of _Count elements
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 53   : 	if (_Count == 0)
-
-	mov	eax, DWORD PTR __Count$[ebp]
-	test	eax, eax
-	jne	SHORT $LN4@allocate
-$LN12@allocate:
-
-; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
-; 829  : 		}
-
-	pop	ebp
-	ret	4
-$LN4@allocate:
-
-; 57   : 	if ((size_t)(-1) / _Sz < _Count)
-
-	cmp	eax, 1073741823				; 3fffffffH
-	jbe	SHORT $LN5@allocate
-
-; 58   : 		_Xbad_alloc();	// report no memory
-
-	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
-$LN15@allocate:
-$LN5@allocate:
-
-; 59   : 	const size_t _User_size = _Count * _Sz;
-
-	shl	eax, 2
-
-; 60   : 
-; 61   :  #if defined(_M_IX86) || defined(_M_X64)
-; 62   : 	if (_Try_aligned_allocation
-; 63   : 		&& _BIG_ALLOCATION_THRESHOLD <= _User_size)
-
-	cmp	eax, 4096				; 00001000H
-	jb	SHORT $LN6@allocate
-
-; 64   : 		{	// allocate large block
-; 65   : 		static_assert(sizeof (void *) < _BIG_ALLOCATION_ALIGNMENT,
-; 66   : 			"Big allocations should at least match vector register size");
-; 67   : 		const size_t _Block_size = _NON_USER_SIZE + _User_size;
-
-	lea	ecx, DWORD PTR [eax+35]
-
-; 68   : 		if (_Block_size <= _User_size)
-
-	cmp	ecx, eax
-	ja	SHORT $LN8@allocate
-
-; 69   : 			_Xbad_alloc();	// report no memory
-
-	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
-$LN16@allocate:
-$LN8@allocate:
-
-; 70   : 		const uintptr_t _Ptr_container =
-; 71   : 			reinterpret_cast<uintptr_t>(::operator new(_Block_size));
-
-	push	ecx
-	call	??2@YAPAXI@Z				; operator new
-	mov	ecx, eax
-	add	esp, 4
-
-; 72   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container != 0);
-
-	test	ecx, ecx
-	jne	SHORT $LN9@allocate
-	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN17@allocate:
-$LN9@allocate:
-
-; 73   : 		_Ptr = reinterpret_cast<void *>((_Ptr_container + _NON_USER_SIZE)
-
-	lea	eax, DWORD PTR [ecx+35]
-	and	eax, -32				; ffffffe0H
-
-; 74   : 			& ~(_BIG_ALLOCATION_ALIGNMENT - 1));
-; 75   : 		static_cast<uintptr_t *>(_Ptr)[-1] = _Ptr_container;
-
-	mov	DWORD PTR [eax-4], ecx
-
-; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
-; 829  : 		}
-
-	pop	ebp
-	ret	4
-$LN6@allocate:
-
-; 87   : 		_Ptr = ::operator new(_User_size);
-
-	push	eax
-	call	??2@YAPAXI@Z				; operator new
-	add	esp, 4
-
-; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
-
-	test	eax, eax
-	jne	SHORT $LN12@allocate
-	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
-$LN18@allocate:
-$LN14@allocate:
-	int	3
-?allocate@?$allocator@I@std@@QAEPAII@Z ENDP		; std::allocator<unsigned int>::allocate
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?deallocate@?$allocator@I@std@@QAEXPAII@Z
-_TEXT	SEGMENT
-__Ptr$ = 8						; size = 4
-__Count$ = 12						; size = 4
-?deallocate@?$allocator@I@std@@QAEXPAII@Z PROC		; std::allocator<unsigned int>::deallocate, COMDAT
-; _this$ = ecx
-
-; 822  : 		{	// deallocate object at _Ptr
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	4
-	push	DWORD PTR __Count$[ebp]
-	push	DWORD PTR __Ptr$[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-
-; 824  : 		}
-
-	pop	ebp
-	ret	8
-?deallocate@?$allocator@I@std@@QAEXPAII@Z ENDP		; std::allocator<unsigned int>::deallocate
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ??0?$allocator@I@std@@QAE@ABV01@@Z
-_TEXT	SEGMENT
-___formal$ = 8						; size = 4
-??0?$allocator@I@std@@QAE@ABV01@@Z PROC			; std::allocator<unsigned int>::allocator<unsigned int>, COMDAT
-; _this$ = ecx
-
-; 807  : 		{	// construct by copying (do nothing)
-; 808  : 		}
-
-	mov	eax, ecx
-	ret	4
-??0?$allocator@I@std@@QAE@ABV01@@Z ENDP			; std::allocator<unsigned int>::allocator<unsigned int>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??0?$allocator@_N@std@@QAE@XZ
 _TEXT	SEGMENT
 ??0?$allocator@_N@std@@QAE@XZ PROC			; std::allocator<bool>::allocator<bool>, COMDAT
@@ -60272,14 +60088,14 @@ $T3 = -28						; size = 24
 $T4 = -28						; size = 24
 ?SK_Inject_Start@@YAXXZ PROC				; SK_Inject_Start
 
-; 1177 : {
+; 1331 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 2116				; 00000844H
 
-; 1178 :   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
+; 1332 :   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	esi
@@ -60290,14 +60106,14 @@ $T4 = -28						; size = 24
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1179 :   GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
+; 1333 :   GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	push	519					; 00000207H
 	call	DWORD PTR __imp__GetCurrentDirectoryW@8
 
-; 1181 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 1335 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -60320,7 +60136,7 @@ $T4 = -28						; size = 24
 $LN30@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1181 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 1335 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
@@ -60350,7 +60166,7 @@ $LN30@SK_Inject_:
 $LN39@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1187 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
+; 1341 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
@@ -60358,7 +60174,7 @@ $LN39@SK_Inject_:
 	push	eax
 	call	_memset
 
-; 1188 :   GetSystemDirectoryW      (wszWOW64, MAX_PATH);
+; 1342 :   GetSystemDirectoryW      (wszWOW64, MAX_PATH);
 
 	mov	esi, DWORD PTR __imp__GetSystemDirectoryW@8
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
@@ -60367,9 +60183,9 @@ $LN39@SK_Inject_:
 	push	eax
 	call	esi
 
-; 1189 : #endif
-; 1190 : 
-; 1191 :   wchar_t wszSys32 [MAX_PATH + 2] = { };
+; 1343 : #endif
+; 1344 : 
+; 1345 :   wchar_t wszSys32 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszSys32$[ebp]
@@ -60378,54 +60194,54 @@ $LN39@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1192 :   GetSystemDirectoryW      (wszSys32, MAX_PATH);
+; 1346 :   GetSystemDirectoryW      (wszSys32, MAX_PATH);
 
 	lea	eax, DWORD PTR _wszSys32$[ebp]
 	push	260					; 00000104H
 	push	eax
 	call	esi
 
-; 1193 : 
-; 1194 :   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
+; 1347 : 
+; 1348 :   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
 
-	push	OFFSET $SG148235
+	push	OFFSET $SG257463
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
 	jne	$LN2@SK_Inject_
 
-; 1195 :   {
-; 1196 :     if (SKX_IsHookingCBT ())
+; 1349 :   {
+; 1350 :     if (SKX_IsHookingCBT ())
 
 	call	?SKX_IsHookingCBT@@YG_NXZ		; SKX_IsHookingCBT
 	test	al, al
 	je	SHORT $LN4@SK_Inject_
 
-; 1197 :     {
-; 1198 :       RunDLL_InjectionManager ( nullptr, nullptr,
+; 1351 :     {
+; 1352 :       RunDLL_InjectionManager ( nullptr, nullptr,
 
 	push	-128					; ffffff80H
-	push	OFFSET $SG148237
+	push	OFFSET $SG257465
 	push	0
 	push	0
 	call	?RunDLL_InjectionManager@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z ; RunDLL_InjectionManager
 $LN4@SK_Inject_:
 
-; 1199 :                                 "Remove", -128 );
-; 1200 :     }
-; 1201 : 
-; 1202 :     PathAppendW   (wszSys32, L"rundll32.exe");
+; 1353 :                                 "Remove", -128 );
+; 1354 :     }
+; 1355 : 
+; 1356 :     PathAppendW   (wszSys32, L"rundll32.exe");
 
 	mov	edi, DWORD PTR __imp__PathAppendW@8
 	lea	eax, DWORD PTR _wszSys32$[ebp]
-	push	OFFSET $SG148238
+	push	OFFSET $SG257466
 	push	eax
 	call	edi
 
-; 1203 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1357 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	push	0
 	push	0
-	push	OFFSET $SG148239
+	push	OFFSET $SG257467
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -60434,7 +60250,7 @@ $LN4@SK_Inject_:
 	lea	ecx, DWORD PTR _wszSys32$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1203 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1357 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -60489,7 +60305,7 @@ $LL260@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1203 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1357 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -60512,11 +60328,11 @@ $LL260@SK_Inject_:
 $LN103@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1203 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1357 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	mov	esi, DWORD PTR __imp__ShellExecuteA@24
 	push	eax
-	push	OFFSET $SG148240
+	push	OFFSET $SG257468
 	push	0
 	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -60545,18 +60361,18 @@ $LN103@SK_Inject_:
 $LN112@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1205 :     PathAppendW   (wszWOW64, L"rundll32.exe");
+; 1359 :     PathAppendW   (wszWOW64, L"rundll32.exe");
 
-	push	OFFSET $SG148241
+	push	OFFSET $SG257469
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
 	push	eax
 	call	edi
 
-; 1206 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1360 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	push	0
 	push	0
-	push	OFFSET $SG148242
+	push	OFFSET $SG257470
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -60565,7 +60381,7 @@ $LN112@SK_Inject_:
 	lea	ecx, DWORD PTR _wszWOW64$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1206 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1360 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -60620,7 +60436,7 @@ $LL261@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1206 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1360 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -60643,57 +60459,57 @@ $LL261@SK_Inject_:
 $LN176@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1206 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1360 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	push	eax
-	push	OFFSET $SG148243
+	push	OFFSET $SG257471
 	push	0
 	call	esi
 
-; 1207 :   }
-; 1208 : 
-; 1209 :   else
+; 1361 :   }
+; 1362 : 
+; 1363 :   else
 
 	jmp	$LN263@SK_Inject_
 $LN2@SK_Inject_:
 
-; 1210 :   {
-; 1211 :     if (SKX_IsHookingCBT ())
+; 1364 :   {
+; 1365 :     if (SKX_IsHookingCBT ())
 
 	call	?SKX_IsHookingCBT@@YG_NXZ		; SKX_IsHookingCBT
 	test	al, al
 	je	SHORT $LN5@SK_Inject_
 
-; 1212 :     {
-; 1213 :       RunDLL_InjectionManager ( nullptr, nullptr,
+; 1366 :     {
+; 1367 :       RunDLL_InjectionManager ( nullptr, nullptr,
 
 	push	-128					; ffffff80H
-	push	OFFSET $SG148245
+	push	OFFSET $SG257473
 	push	0
 	push	0
 	call	?RunDLL_InjectionManager@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z ; RunDLL_InjectionManager
 $LN5@SK_Inject_:
 
-; 1214 :                                 "Remove", -128 );
-; 1215 :     }
-; 1216 : 
-; 1217 :     HWND hWndExisting =
-; 1218 :       FindWindow (L"SKIM_Frontend", nullptr);
+; 1368 :                                 "Remove", -128 );
+; 1369 :     }
+; 1370 : 
+; 1371 :     HWND hWndExisting =
+; 1372 :       FindWindow (L"SKIM_Frontend", nullptr);
 
 	push	0
-	push	OFFSET $SG148246
+	push	OFFSET $SG257474
 	call	DWORD PTR __imp__FindWindowW@8
 	mov	edi, eax
 
-; 1219 : 
-; 1220 :     // Best-case, SKIM restarts itself
-; 1221 :     if (hWndExisting)
+; 1373 : 
+; 1374 :     // Best-case, SKIM restarts itself
+; 1375 :     if (hWndExisting)
 
 	test	edi, edi
 	je	SHORT $LN6@SK_Inject_
 
-; 1222 :     {
-; 1223 :       SendMessage (hWndExisting, WM_USER + 0x125, 0, 0);
+; 1376 :     {
+; 1377 :       SendMessage (hWndExisting, WM_USER + 0x125, 0, 0);
 
 	mov	esi, DWORD PTR __imp__SendMessageW@16
 	push	0
@@ -60702,13 +60518,13 @@ $LN5@SK_Inject_:
 	push	edi
 	call	esi
 
-; 1224 :       SleepEx     (100, FALSE);
+; 1378 :       SleepEx     (100, FALSE);
 
 	push	0
 	push	100					; 00000064H
 	call	DWORD PTR __imp__SleepEx@8
 
-; 1225 :       SendMessage (hWndExisting, WM_USER + 0x124, 0, 0);
+; 1379 :       SendMessage (hWndExisting, WM_USER + 0x124, 0, 0);
 
 	push	0
 	push	0
@@ -60716,13 +60532,13 @@ $LN5@SK_Inject_:
 	push	edi
 	call	esi
 
-; 1233 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1387 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1234 : }
+; 1388 : }
 
 	pop	edi
 	pop	esi
@@ -60731,7 +60547,7 @@ $LN5@SK_Inject_:
 	ret	0
 $LN6@SK_Inject_:
 
-; 1230 :       ShellExecuteA (nullptr, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+; 1384 :       ShellExecuteA (nullptr, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
 
 	push	11					; 0000000bH
 	sub	esp, 24					; 00000018H
@@ -60759,12 +60575,12 @@ $LN6@SK_Inject_:
 $LN225@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1230 :       ShellExecuteA (nullptr, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+; 1384 :       ShellExecuteA (nullptr, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
 
 	push	eax
-	push	OFFSET $SG148249
-	push	OFFSET $SG148250
-	push	OFFSET $SG148251
+	push	OFFSET $SG257477
+	push	OFFSET $SG257478
+	push	OFFSET $SG257479
 	push	0
 	call	DWORD PTR __imp__ShellExecuteA@24
 $LN263@SK_Inject_:
@@ -60799,13 +60615,13 @@ $LN263@SK_Inject_:
 $LN234@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1233 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1387 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1234 : }
+; 1388 : }
 
 	pop	edi
 	pop	esi
@@ -60872,14 +60688,14 @@ $T3 = -28						; size = 24
 $T4 = -28						; size = 24
 ?SK_Inject_Stop@@YAXXZ PROC				; SK_Inject_Stop
 
-; 1117 : {
+; 1271 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 2116				; 00000844H
 
-; 1118 :   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
+; 1272 :   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	ebx
@@ -60890,14 +60706,14 @@ $T4 = -28						; size = 24
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1119 :   GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
+; 1273 :   GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	push	519					; 00000207H
 	call	DWORD PTR __imp__GetCurrentDirectoryW@8
 
-; 1121 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 1275 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -60920,7 +60736,7 @@ $T4 = -28						; size = 24
 $LN28@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1121 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 1275 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
@@ -60950,20 +60766,20 @@ $LN28@SK_Inject_:
 $LN37@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1124 :   LoadLibrary (L"SpecialK32.dll");
+; 1278 :   LoadLibrary (L"SpecialK32.dll");
 
-	push	OFFSET $SG148200
+	push	OFFSET $SG257428
 	call	DWORD PTR __imp__LoadLibraryW@4
 
-; 1125 : #else
-; 1126 :   LoadLibrary (L"SpecialK64.dll");
-; 1127 : #endif
-; 1128 : 
-; 1129 : #ifdef _WIN64
-; 1130 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
-; 1131 :   GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
-; 1132 : #else
-; 1133 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
+; 1279 : #else
+; 1280 :   LoadLibrary (L"SpecialK64.dll");
+; 1281 : #endif
+; 1282 : 
+; 1283 : #ifdef _WIN64
+; 1284 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
+; 1285 :   GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
+; 1286 : #else
+; 1287 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
@@ -60971,7 +60787,7 @@ $LN37@SK_Inject_:
 	push	eax
 	call	_memset
 
-; 1134 :   GetSystemDirectoryW      (wszWOW64, MAX_PATH);
+; 1288 :   GetSystemDirectoryW      (wszWOW64, MAX_PATH);
 
 	mov	esi, DWORD PTR __imp__GetSystemDirectoryW@8
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
@@ -60980,9 +60796,9 @@ $LN37@SK_Inject_:
 	push	eax
 	call	esi
 
-; 1135 : #endif
-; 1136 : 
-; 1137 :   wchar_t wszSys32 [MAX_PATH + 2] = { };
+; 1289 : #endif
+; 1290 : 
+; 1291 :   wchar_t wszSys32 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszSys32$[ebp]
@@ -60991,37 +60807,37 @@ $LN37@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1138 :   GetSystemDirectoryW      (wszSys32, MAX_PATH);
+; 1292 :   GetSystemDirectoryW      (wszSys32, MAX_PATH);
 
 	lea	eax, DWORD PTR _wszSys32$[ebp]
 	push	260					; 00000104H
 	push	eax
 	call	esi
 
-; 1139 : 
-; 1140 :   //SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
-; 1141 : 
-; 1142 :   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
+; 1293 : 
+; 1294 :   //SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
+; 1295 : 
+; 1296 :   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
 
-	push	OFFSET $SG148203
+	push	OFFSET $SG257431
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
 	jne	$LN2@SK_Inject_
 
-; 1143 :   {
-; 1144 :     PathAppendW   (wszWOW64, L"rundll32.exe");
+; 1297 :   {
+; 1298 :     PathAppendW   (wszWOW64, L"rundll32.exe");
 
 	mov	ebx, DWORD PTR __imp__PathAppendW@8
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
-	push	OFFSET $SG148204
+	push	OFFSET $SG257432
 	push	eax
 	call	ebx
 
-; 1145 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1299 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	push	0
 	push	0
-	push	OFFSET $SG148205
+	push	OFFSET $SG257433
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -61030,7 +60846,7 @@ $LN37@SK_Inject_:
 	lea	ecx, DWORD PTR _wszWOW64$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1145 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1299 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -61085,7 +60901,7 @@ $LL258@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1145 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1299 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -61108,11 +60924,11 @@ $LL258@SK_Inject_:
 $LN101@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1145 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1299 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	mov	esi, DWORD PTR __imp__ShellExecuteA@24
 	push	eax
-	push	OFFSET $SG148206
+	push	OFFSET $SG257434
 	push	0
 	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -61141,18 +60957,18 @@ $LN101@SK_Inject_:
 $LN110@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1147 :     PathAppendW   (wszSys32, L"rundll32.exe");
+; 1301 :     PathAppendW   (wszSys32, L"rundll32.exe");
 
-	push	OFFSET $SG148207
+	push	OFFSET $SG257435
 	lea	eax, DWORD PTR _wszSys32$[ebp]
 	push	eax
 	call	ebx
 
-; 1148 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1302 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	push	0
 	push	0
-	push	OFFSET $SG148208
+	push	OFFSET $SG257436
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -61161,7 +60977,7 @@ $LN110@SK_Inject_:
 	lea	ecx, DWORD PTR _wszSys32$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1148 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1302 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -61216,7 +61032,7 @@ $LL259@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1148 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1302 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -61239,10 +61055,10 @@ $LL259@SK_Inject_:
 $LN174@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1148 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1302 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	push	eax
-	push	OFFSET $SG148209
+	push	OFFSET $SG257437
 	push	0
 	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -61275,13 +61091,13 @@ $LN174@SK_Inject_:
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1172 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1326 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1173 : }
+; 1327 : }
 
 	pop	esi
 	pop	ebx
@@ -61290,26 +61106,26 @@ $LN174@SK_Inject_:
 	ret	0
 $LN2@SK_Inject_:
 
-; 1149 :   }
-; 1150 : 
-; 1151 :   else
-; 1152 :   {
-; 1153 :     HWND hWndExisting =
-; 1154 :       FindWindow (L"SKIM_Frontend", nullptr);
+; 1303 :   }
+; 1304 : 
+; 1305 :   else
+; 1306 :   {
+; 1307 :     HWND hWndExisting =
+; 1308 :       FindWindow (L"SKIM_Frontend", nullptr);
 
 	push	0
-	push	OFFSET $SG148210
+	push	OFFSET $SG257438
 	call	DWORD PTR __imp__FindWindowW@8
 
-; 1155 : 
-; 1156 :     // Best-case, SKIM restarts itself
-; 1157 :     if (hWndExisting)
+; 1309 : 
+; 1310 :     // Best-case, SKIM restarts itself
+; 1311 :     if (hWndExisting)
 
 	test	eax, eax
 	je	SHORT $LN4@SK_Inject_
 
-; 1158 :     {
-; 1159 :       SendMessage (hWndExisting, WM_USER + 0x122, 0, 0);
+; 1312 :     {
+; 1313 :       SendMessage (hWndExisting, WM_USER + 0x122, 0, 0);
 
 	push	0
 	push	0
@@ -61317,19 +61133,19 @@ $LN2@SK_Inject_:
 	push	eax
 	call	DWORD PTR __imp__SendMessageW@16
 
-; 1160 :       SleepEx     (100UL, FALSE);
+; 1314 :       SleepEx     (100UL, FALSE);
 
 	push	0
 	push	100					; 00000064H
 	call	DWORD PTR __imp__SleepEx@8
 
-; 1172 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1326 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1173 : }
+; 1327 : }
 
 	pop	esi
 	pop	ebx
@@ -61338,7 +61154,7 @@ $LN2@SK_Inject_:
 	ret	0
 $LN4@SK_Inject_:
 
-; 1166 :       ShellExecuteA        (nullptr, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+; 1320 :       ShellExecuteA        (nullptr, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
 
 	push	11					; 0000000bH
 	sub	esp, 24					; 00000018H
@@ -61366,12 +61182,12 @@ $LN4@SK_Inject_:
 $LN223@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1166 :       ShellExecuteA        (nullptr, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+; 1320 :       ShellExecuteA        (nullptr, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
 
 	push	eax
-	push	OFFSET $SG148213
-	push	OFFSET $SG148214
-	push	OFFSET $SG148215
+	push	OFFSET $SG257441
+	push	OFFSET $SG257442
+	push	OFFSET $SG257443
 	push	0
 	call	DWORD PTR __imp__ShellExecuteA@24
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -61405,27 +61221,27 @@ $LN223@SK_Inject_:
 $LN232@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1167 :       SleepEx              (100UL, FALSE);
+; 1321 :       SleepEx              (100UL, FALSE);
 
 	push	0
 	push	100					; 00000064H
 	call	DWORD PTR __imp__SleepEx@8
 
-; 1168 :       SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
+; 1322 :       SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
 
 	push	0
-	push	OFFSET $SG148216
+	push	OFFSET $SG257444
 	call	?SK_ExitRemoteProcess@@YA_NPB_WI@Z	; SK_ExitRemoteProcess
 	add	esp, 8
 $LN5@SK_Inject_:
 
-; 1172 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1326 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1173 : }
+; 1327 : }
 
 	pop	esi
 	pop	ebx
@@ -61442,17 +61258,17 @@ _wszProcName$ = 8					; size = 4
 _uExitCode$ = 12					; size = 4
 ?SK_ExitRemoteProcess@@YA_NPB_WI@Z PROC			; SK_ExitRemoteProcess
 
-; 1077 : {
+; 1231 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 564				; 00000234H
 
-; 1078 :   UNREFERENCED_PARAMETER (uExitCode);
-; 1079 : 
-; 1080 : 
-; 1081 :   PROCESSENTRY32 pe32      = { };
+; 1232 :   UNREFERENCED_PARAMETER (uExitCode);
+; 1233 : 
+; 1234 : 
+; 1235 :   PROCESSENTRY32 pe32      = { };
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	push	esi
@@ -61462,25 +61278,25 @@ _uExitCode$ = 12					; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1082 :   HANDLE         hProcSnap =
-; 1083 :     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+; 1236 :   HANDLE         hProcSnap =
+; 1237 :     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
 
 	push	0
 	push	2
 	call	_CreateToolhelp32Snapshot@8
 	mov	esi, eax
 
-; 1084 : 
-; 1085 :   if (hProcSnap == INVALID_HANDLE_VALUE)
+; 1238 : 
+; 1239 :   if (hProcSnap == INVALID_HANDLE_VALUE)
 
 	cmp	esi, -1
 	je	SHORT $LN21@SK_ExitRem
 
-; 1086 :     return false;
-; 1087 : 
-; 1088 :   pe32.dwSize = sizeof PROCESSENTRY32;
-; 1089 : 
-; 1090 :   if (! Process32First (hProcSnap, &pe32))
+; 1240 :     return false;
+; 1241 : 
+; 1242 :   pe32.dwSize = sizeof PROCESSENTRY32;
+; 1243 : 
+; 1244 :   if (! Process32First (hProcSnap, &pe32))
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	mov	DWORD PTR _pe32$[ebp], 556		; 0000022cH
@@ -61490,19 +61306,19 @@ _uExitCode$ = 12					; size = 4
 	test	eax, eax
 	jne	SHORT $LN18@SK_ExitRem
 
-; 1091 :   {
-; 1092 :     CloseHandle (hProcSnap);
+; 1245 :   {
+; 1246 :     CloseHandle (hProcSnap);
 
 	push	esi
 	call	DWORD PTR __imp__CloseHandle@4
 $LN21@SK_ExitRem:
 
-; 1093 :     return false;
+; 1247 :     return false;
 
 	xor	al, al
 	pop	esi
 
-; 1112 : }
+; 1266 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -61510,18 +61326,18 @@ $LN21@SK_ExitRem:
 $LN18@SK_ExitRem:
 	push	ebx
 
-; 1093 :     return false;
+; 1247 :     return false;
 
 	mov	ebx, DWORD PTR __imp__StrStrIW@8
 	push	edi
 	mov	edi, DWORD PTR _wszProcName$[ebp]
 $LL4@SK_ExitRem:
 
-; 1094 :   }
-; 1095 : 
-; 1096 :   do
-; 1097 :   {
-; 1098 :     if (StrStrIW (wszProcName, pe32.szExeFile))
+; 1248 :   }
+; 1249 : 
+; 1250 :   do
+; 1251 :   {
+; 1252 :     if (StrStrIW (wszProcName, pe32.szExeFile))
 
 	lea	eax, DWORD PTR _pe32$[ebp+36]
 	push	eax
@@ -61530,8 +61346,8 @@ $LL4@SK_ExitRem:
 	test	eax, eax
 	jne	SHORT $LN10@SK_ExitRem
 
-; 1106 :     }
-; 1107 :   } while (Process32Next (hProcSnap, &pe32));
+; 1260 :     }
+; 1261 :   } while (Process32Next (hProcSnap, &pe32));
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	push	eax
@@ -61540,36 +61356,36 @@ $LL4@SK_ExitRem:
 	test	eax, eax
 	jne	SHORT $LL4@SK_ExitRem
 
-; 1108 : 
-; 1109 :   CloseHandle (hProcSnap);
+; 1262 : 
+; 1263 :   CloseHandle (hProcSnap);
 
 	push	esi
 	call	DWORD PTR __imp__CloseHandle@4
 	pop	edi
 	pop	ebx
 
-; 1110 : 
-; 1111 :   return false;
+; 1264 : 
+; 1265 :   return false;
 
 	xor	al, al
 	pop	esi
 
-; 1112 : }
+; 1266 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN10@SK_ExitRem:
 
-; 1099 :     {
-; 1100 :       window_t win = SK_FindRootWindow (pe32.th32ProcessID);
+; 1253 :     {
+; 1254 :       window_t win = SK_FindRootWindow (pe32.th32ProcessID);
 
 	push	DWORD PTR _pe32$[ebp+8]
 	call	?SK_FindRootWindow@@YA?AUwindow_t@@K@Z	; SK_FindRootWindow
 	add	esp, 4
 
-; 1101 : 
-; 1102 :       SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
+; 1255 : 
+; 1256 :       SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
 
 	push	0
 	push	0
@@ -61577,20 +61393,20 @@ $LN10@SK_ExitRem:
 	push	edx
 	call	DWORD PTR __imp__SendMessageW@16
 
-; 1103 : 
-; 1104 :       CloseHandle (hProcSnap);
+; 1257 : 
+; 1258 :       CloseHandle (hProcSnap);
 
 	push	esi
 	call	DWORD PTR __imp__CloseHandle@4
 	pop	edi
 	pop	ebx
 
-; 1105 :       return true;
+; 1259 :       return true;
 
 	mov	al, 1
 	pop	esi
 
-; 1112 : }
+; 1266 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -61609,14 +61425,14 @@ _TEXT	SEGMENT
 _wszOut$ = -1044					; size = 1040
 ?SK_Inject_EnableCentralizedConfig@@YAXXZ PROC		; SK_Inject_EnableCentralizedConfig
 
-; 615  : {
+; 769  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 1044				; 00000414H
 
-; 616  :   wchar_t wszOut [MAX_PATH * 2] = { };
+; 770  :   wchar_t wszOut [MAX_PATH * 2] = { };
 
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	esi
@@ -61626,8 +61442,8 @@ _wszOut$ = -1044					; size = 1040
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 617  : 
-; 618  :   lstrcatW (wszOut, SK_GetHostPath ());
+; 771  : 
+; 772  :   lstrcatW (wszOut, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	mov	esi, DWORD PTR __imp__lstrcatW@8
@@ -61636,46 +61452,46 @@ _wszOut$ = -1044					; size = 1040
 	push	eax
 	call	esi
 
-; 619  :   lstrcatW (wszOut, L"\\SpecialK.central");
+; 773  :   lstrcatW (wszOut, L"\\SpecialK.central");
 
-	push	OFFSET $SG147823
+	push	OFFSET $SG257051
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 
-; 620  : 
-; 621  :   FILE* fOut = _wfopen (wszOut, L"w");
+; 774  : 
+; 775  :   FILE* fOut = _wfopen (wszOut, L"w");
 
 	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	OFFSET $SG147824
+	push	OFFSET $SG257052
 	push	eax
 	call	DWORD PTR __imp___wfopen
 	mov	esi, eax
 
-; 622  :                fputws (L" ", fOut);
+; 776  :                fputws (L" ", fOut);
 
 	push	esi
-	push	OFFSET $SG147825
+	push	OFFSET $SG257053
 	call	DWORD PTR __imp__fputws
 
-; 623  :                      fclose (fOut);
+; 777  :                      fclose (fOut);
 
 	push	esi
 	call	DWORD PTR __imp__fclose
 	add	esp, 20					; 00000014H
 
-; 624  : 
-; 625  :   config.system.central_repository = true;
+; 778  : 
+; 779  :   config.system.central_repository = true;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+832, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+844, 1
 
-; 626  : 
-; 627  :   SK_EstablishRootPath ();
+; 780  : 
+; 781  :   SK_EstablishRootPath ();
 
 	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
 
-; 628  : 
-; 629  :   switch (SK_GetCurrentRenderBackend ().api)
+; 782  : 
+; 783  :   switch (SK_GetCurrentRenderBackend ().api)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
@@ -61690,29 +61506,29 @@ _wszOut$ = -1044					; size = 1040
 	jne	$LN2@SK_Inject_
 $LN4@SK_Inject_:
 
-; 630  :   {
-; 631  :     case SK_RenderAPI::D3D9:
-; 632  :     case SK_RenderAPI::D3D9Ex:
-; 633  :       SK_SaveConfig (L"d3d9");
+; 784  :   {
+; 785  :     case SK_RenderAPI::D3D9:
+; 786  :     case SK_RenderAPI::D3D9Ex:
+; 787  :       SK_SaveConfig (L"d3d9");
 
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG147827
+	push	OFFSET $SG257055
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 652  :       SK_SaveConfig (L"dxgi");
+; 806  :       SK_SaveConfig (L"dxgi");
 
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 657  :       break;
-; 658  : 
-; 659  :     //case SK_RenderAPI::Vulkan:
-; 660  :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 661  :       //break;
-; 662  :   }
-; 663  : }
+; 811  :       break;
+; 812  : 
+; 813  :     //case SK_RenderAPI::Vulkan:
+; 814  :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 815  :       //break;
+; 816  :   }
+; 817  : }
 
 	pop	esi
 	mov	esp, ebp
@@ -61720,26 +61536,26 @@ $LN4@SK_Inject_:
 	ret	0
 $LN8@SK_Inject_:
 
-; 653  :     } break;
-; 654  : 
-; 655  :     case SK_RenderAPI::OpenGL:
-; 656  :       SK_SaveConfig (L"OpenGL32");
+; 807  :     } break;
+; 808  : 
+; 809  :     case SK_RenderAPI::OpenGL:
+; 810  :       SK_SaveConfig (L"OpenGL32");
 
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG147835
+	push	OFFSET $SG257063
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 657  :       break;
-; 658  : 
-; 659  :     //case SK_RenderAPI::Vulkan:
-; 660  :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 661  :       //break;
-; 662  :   }
-; 663  : }
+; 811  :       break;
+; 812  : 
+; 813  :     //case SK_RenderAPI::Vulkan:
+; 814  :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 815  :       //break;
+; 816  :   }
+; 817  : }
 
 	pop	esi
 	mov	esp, ebp
@@ -61747,8 +61563,8 @@ $LN8@SK_Inject_:
 	ret	0
 $LN10@SK_Inject_:
 
-; 628  : 
-; 629  :   switch (SK_GetCurrentRenderBackend ().api)
+; 782  : 
+; 783  :   switch (SK_GetCurrentRenderBackend ().api)
 
 	cmp	eax, 64					; 00000040H
 	je	SHORT $LN7@SK_Inject_
@@ -61757,29 +61573,29 @@ $LN10@SK_Inject_:
 	cmp	eax, 16448				; 00004040H
 	jne	SHORT $LN2@SK_Inject_
 
-; 639  :     break;
-; 640  : 
-; 641  :   case SK_RenderAPI::DDrawOn11:
-; 642  :     SK_SaveConfig (L"ddraw");
+; 793  :     break;
+; 794  : 
+; 795  :   case SK_RenderAPI::DDrawOn11:
+; 796  :     SK_SaveConfig (L"ddraw");
 
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG147831
+	push	OFFSET $SG257059
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 652  :       SK_SaveConfig (L"dxgi");
+; 806  :       SK_SaveConfig (L"dxgi");
 
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 657  :       break;
-; 658  : 
-; 659  :     //case SK_RenderAPI::Vulkan:
-; 660  :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 661  :       //break;
-; 662  :   }
-; 663  : }
+; 811  :       break;
+; 812  : 
+; 813  :     //case SK_RenderAPI::Vulkan:
+; 814  :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 815  :       //break;
+; 816  :   }
+; 817  : }
 
 	pop	esi
 	mov	esp, ebp
@@ -61787,30 +61603,30 @@ $LN10@SK_Inject_:
 	ret	0
 $LN5@SK_Inject_:
 
-; 634  :       break;
-; 635  : 
-; 636  : #ifndef _WIN64
-; 637  :   case SK_RenderAPI::D3D8On11:
-; 638  :     SK_SaveConfig (L"d3d8");
+; 788  :       break;
+; 789  : 
+; 790  : #ifndef _WIN64
+; 791  :   case SK_RenderAPI::D3D8On11:
+; 792  :     SK_SaveConfig (L"d3d8");
 
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG147829
+	push	OFFSET $SG257057
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 652  :       SK_SaveConfig (L"dxgi");
+; 806  :       SK_SaveConfig (L"dxgi");
 
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 657  :       break;
-; 658  : 
-; 659  :     //case SK_RenderAPI::Vulkan:
-; 660  :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 661  :       //break;
-; 662  :   }
-; 663  : }
+; 811  :       break;
+; 812  : 
+; 813  :     //case SK_RenderAPI::Vulkan:
+; 814  :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 815  :       //break;
+; 816  :   }
+; 817  : }
 
 	pop	esi
 	mov	esp, ebp
@@ -61818,7 +61634,7 @@ $LN5@SK_Inject_:
 	ret	0
 $LN7@SK_Inject_:
 
-; 652  :       SK_SaveConfig (L"dxgi");
+; 806  :       SK_SaveConfig (L"dxgi");
 
 	push	0
 	sub	esp, 24					; 00000018H
@@ -61829,7 +61645,7 @@ $LN7@SK_Inject_:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 652  :       SK_SaveConfig (L"dxgi");
+; 806  :       SK_SaveConfig (L"dxgi");
 
 	mov	ecx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -61848,7 +61664,7 @@ $LN7@SK_Inject_:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG147833
+	push	OFFSET $SG257061
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -61861,19 +61677,19 @@ $LN7@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 652  :       SK_SaveConfig (L"dxgi");
+; 806  :       SK_SaveConfig (L"dxgi");
 
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 $LN2@SK_Inject_:
 
-; 657  :       break;
-; 658  : 
-; 659  :     //case SK_RenderAPI::Vulkan:
-; 660  :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 661  :       //break;
-; 662  :   }
-; 663  : }
+; 811  :       break;
+; 812  : 
+; 813  :     //case SK_RenderAPI::Vulkan:
+; 814  :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 815  :       //break;
+; 816  :   }
+; 817  : }
 
 	pop	esi
 	mov	esp, ebp
@@ -61888,7 +61704,7 @@ _TEXT	SEGMENT
 ??B<lambda_f14ec5e87491314fd4de237527dc1a25>@@QBEP6GKPAX@ZXZ PROC ; <lambda_f14ec5e87491314fd4de237527dc1a25>::operator unsigned long (__stdcall*)(void *), COMDAT
 ; _this$ = ecx
 
-; 562  :              },
+; 716  :              },
 
 	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_f14ec5e87491314fd4de237527dc1a25>@@CGKPAX@Z ; <lambda_f14ec5e87491314fd4de237527dc1a25>::<lambda_invoker_stdcall>
 	ret	0
@@ -61901,7 +61717,7 @@ _TEXT	SEGMENT
 _user$ = 8						; size = 4
 ?<lambda_invoker_stdcall>@<lambda_f14ec5e87491314fd4de237527dc1a25>@@CGKPAX@Z PROC ; <lambda_f14ec5e87491314fd4de237527dc1a25>::<lambda_invoker_stdcall>, COMDAT
 
-; 562  :              },
+; 716  :              },
 
 	npad	2
 	push	ebp
@@ -61921,18 +61737,18 @@ _user$ = 8						; size = 4
 ??R<lambda_f14ec5e87491314fd4de237527dc1a25>@@QBEKPAX@Z PROC ; <lambda_f14ec5e87491314fd4de237527dc1a25>::operator(), COMDAT
 ; _this$ = ecx
 
-; 548  :              {
+; 702  :              {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 549  :                if (g_hShutdown != nullptr)
+; 703  :                if (g_hShutdown != nullptr)
 
 	cmp	DWORD PTR ?g_hShutdown@@3RAXA, 0	; g_hShutdown
 	je	SHORT $LN21@operator
 
-; 550  :                  WaitForSingleObject (g_hShutdown, INFINITE);
+; 704  :                  WaitForSingleObject (g_hShutdown, INFINITE);
 
 	mov	eax, DWORD PTR ?g_hShutdown@@3RAXA	; g_hShutdown
 	push	-1
@@ -61949,7 +61765,7 @@ $LL2@operator:
 	mov	eax, DWORD PTR ?__SK_DLL_Attached@@3JC	; __SK_DLL_Attached
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 552  :                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
+; 706  :                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
 
 	test	eax, eax
 	jne	SHORT $LN5@operator
@@ -61958,7 +61774,7 @@ $LL2@operator:
 	jne	SHORT $LN3@operator
 $LN5@operator:
 
-; 553  :                  SleepEx (250UL, FALSE);
+; 707  :                  SleepEx (250UL, FALSE);
 
 	push	0
 	push	250					; 000000faH
@@ -61966,34 +61782,34 @@ $LN5@operator:
 	jmp	SHORT $LL2@operator
 $LN3@operator:
 
-; 554  : 
-; 555  : 
-; 556  :                if (PtrToInt (user) != -128)
+; 708  : 
+; 709  : 
+; 710  :                if (PtrToInt (user) != -128)
 
 	cmp	DWORD PTR _user$[ebp], -128		; ffffff80H
 	pop	esi
 	je	SHORT $LN6@operator
 
-; 557  :                  ExitProcess (0x00);
+; 711  :                  ExitProcess (0x00);
 
 	push	0
 	call	DWORD PTR __imp__ExitProcess@4
 $LN24@operator:
 $LN6@operator:
 
-; 558  :                else
-; 559  :                  CloseHandle (GetCurrentThread ());
+; 712  :                else
+; 713  :                  CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 560  : 
-; 561  :                return 0;
+; 714  : 
+; 715  :                return 0;
 
 	xor	eax, eax
 
-; 562  :              },
+; 716  :              },
 
 	pop	ebp
 	ret	4
@@ -62010,20 +61826,20 @@ _lpszCmdLine$ = 16					; size = 4
 _nCmdShow$ = 20						; size = 4
 ?RunDLL_InjectionManager@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z PROC ; RunDLL_InjectionManager
 
-; 524  : {
+; 678  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 525  :   UNREFERENCED_PARAMETER (hInst);
-; 526  :   UNREFERENCED_PARAMETER (hwnd);
-; 527  : 
-; 528  :   if (StrStrA (lpszCmdLine, "Install") && (! SKX_IsHookingCBT ()))
+; 679  :   UNREFERENCED_PARAMETER (hInst);
+; 680  :   UNREFERENCED_PARAMETER (hwnd);
+; 681  : 
+; 682  :   if (StrStrA (lpszCmdLine, "Install") && (! SKX_IsHookingCBT ()))
 
 	mov	esi, DWORD PTR _lpszCmdLine$[ebp]
-	push	OFFSET $SG147793
+	push	OFFSET $SG257021
 	push	esi
 	call	DWORD PTR __imp__StrStrA@8
 	test	eax, eax
@@ -62032,54 +61848,54 @@ _nCmdShow$ = 20						; size = 4
 	test	al, al
 	jne	SHORT $LN2@RunDLL_Inj
 
-; 529  :   {
-; 530  :     SKX_InstallCBTHook ();
+; 683  :   {
+; 684  :     SKX_InstallCBTHook ();
 
 	call	?SKX_InstallCBTHook@@YGXXZ		; SKX_InstallCBTHook
 
-; 531  : 
-; 532  :     if (SKX_IsHookingCBT ())
+; 685  : 
+; 686  :     if (SKX_IsHookingCBT ())
 
 	call	?SKX_IsHookingCBT@@YG_NXZ		; SKX_IsHookingCBT
 	test	al, al
 	je	$LN8@RunDLL_Inj
 
-; 533  :     {
-; 534  : #ifndef _WIN64
-; 535  :       FILE* fPID = fopen ("SpecialK32.pid", "w");
+; 687  :     {
+; 688  : #ifndef _WIN64
+; 689  :       FILE* fPID = fopen ("SpecialK32.pid", "w");
 
-	push	OFFSET $SG147795
-	push	OFFSET $SG147796
+	push	OFFSET $SG257023
+	push	OFFSET $SG257024
 	call	DWORD PTR __imp__fopen
 	mov	esi, eax
 	add	esp, 8
 
-; 536  : #else
-; 537  :       FILE* fPID = fopen ("SpecialK64.pid", "w");
-; 538  : #endif
-; 539  : 
-; 540  :       if (fPID)
+; 690  : #else
+; 691  :       FILE* fPID = fopen ("SpecialK64.pid", "w");
+; 692  : #endif
+; 693  : 
+; 694  :       if (fPID)
 
 	test	esi, esi
 	je	$LN8@RunDLL_Inj
 
-; 541  :       {
-; 542  :         fprintf (fPID, "%lu\n", GetCurrentProcessId ());
+; 695  :       {
+; 696  :         fprintf (fPID, "%lu\n", GetCurrentProcessId ());
 
 	call	DWORD PTR __imp__GetCurrentProcessId@0
 	push	eax
-	push	OFFSET $SG147798
+	push	OFFSET $SG257026
 	push	esi
 	call	_fprintf
 
-; 543  :         fclose  (fPID);
+; 697  :         fclose  (fPID);
 
 	push	esi
 	call	DWORD PTR __imp__fclose
 	add	esp, 16					; 00000010H
 
-; 544  : 
-; 545  :         CreateThread ( nullptr, 0,
+; 698  : 
+; 699  :         CreateThread ( nullptr, 0,
 
 	push	0
 	push	0
@@ -62089,92 +61905,92 @@ _nCmdShow$ = 20						; size = 4
 	push	0
 	call	DWORD PTR __imp__CreateThread@24
 
-; 546  :          [](LPVOID user) ->
-; 547  :            DWORD
-; 548  :              {
-; 549  :                if (g_hShutdown != nullptr)
-; 550  :                  WaitForSingleObject (g_hShutdown, INFINITE);
-; 551  : 
-; 552  :                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
-; 553  :                  SleepEx (250UL, FALSE);
-; 554  : 
-; 555  : 
-; 556  :                if (PtrToInt (user) != -128)
-; 557  :                  ExitProcess (0x00);
-; 558  :                else
-; 559  :                  CloseHandle (GetCurrentThread ());
-; 560  : 
-; 561  :                return 0;
-; 562  :              },
-; 563  :              UIntToPtr (nCmdShow),
-; 564  :            0x00,
-; 565  :          nullptr );
-; 566  : 
-; 567  :         SleepEx (INFINITE, FALSE);
+; 700  :          [](LPVOID user) ->
+; 701  :            DWORD
+; 702  :              {
+; 703  :                if (g_hShutdown != nullptr)
+; 704  :                  WaitForSingleObject (g_hShutdown, INFINITE);
+; 705  : 
+; 706  :                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
+; 707  :                  SleepEx (250UL, FALSE);
+; 708  : 
+; 709  : 
+; 710  :                if (PtrToInt (user) != -128)
+; 711  :                  ExitProcess (0x00);
+; 712  :                else
+; 713  :                  CloseHandle (GetCurrentThread ());
+; 714  : 
+; 715  :                return 0;
+; 716  :              },
+; 717  :              UIntToPtr (nCmdShow),
+; 718  :            0x00,
+; 719  :          nullptr );
+; 720  : 
+; 721  :         SleepEx (INFINITE, FALSE);
 
 	push	0
 	push	-1
 	call	DWORD PTR __imp__SleepEx@8
 
-; 568  :       }
-; 569  :     }
-; 570  :   }
+; 722  :       }
+; 723  :     }
+; 724  :   }
 
 	jmp	SHORT $LN8@RunDLL_Inj
 $LN2@RunDLL_Inj:
 
-; 571  : 
-; 572  :   else if (StrStrA (lpszCmdLine, "Remove"))
+; 725  : 
+; 726  :   else if (StrStrA (lpszCmdLine, "Remove"))
 
-	push	OFFSET $SG147800
+	push	OFFSET $SG257028
 	push	esi
 	call	DWORD PTR __imp__StrStrA@8
 	test	eax, eax
 	je	SHORT $LN8@RunDLL_Inj
 
-; 573  :   {
-; 574  :     SKX_RemoveCBTHook ();
+; 727  :   {
+; 728  :     SKX_RemoveCBTHook ();
 
 	call	?SKX_RemoveCBTHook@@YGXXZ		; SKX_RemoveCBTHook
 
-; 575  : 
-; 576  : #ifndef _WIN64
-; 577  :     FILE* fPID = fopen ("SpecialK32.pid", "r");
+; 729  : 
+; 730  : #ifndef _WIN64
+; 731  :     FILE* fPID = fopen ("SpecialK32.pid", "r");
 
-	push	OFFSET $SG147801
-	push	OFFSET $SG147802
+	push	OFFSET $SG257029
+	push	OFFSET $SG257030
 	call	DWORD PTR __imp__fopen
 	mov	esi, eax
 	add	esp, 8
 
-; 578  : #else
-; 579  :     FILE* fPID = fopen ("SpecialK64.pid", "r");
-; 580  : #endif
-; 581  : 
-; 582  :     if (fPID != nullptr)
+; 732  : #else
+; 733  :     FILE* fPID = fopen ("SpecialK64.pid", "r");
+; 734  : #endif
+; 735  : 
+; 736  :     if (fPID != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN8@RunDLL_Inj
 
-; 583  :     {
-; 584  :                       DWORD dwPID = 0;
-; 585  :       fscanf (fPID, "%lu", &dwPID);
+; 737  :     {
+; 738  :                       DWORD dwPID = 0;
+; 739  :       fscanf (fPID, "%lu", &dwPID);
 
 	lea	eax, DWORD PTR _dwPID$1[ebp]
 	mov	DWORD PTR _dwPID$1[ebp], 0
 	push	eax
-	push	OFFSET $SG147804
+	push	OFFSET $SG257032
 	push	esi
 	call	_fscanf
 
-; 586  :       fclose (fPID);
+; 740  :       fclose (fPID);
 
 	push	esi
 	call	DWORD PTR __imp__fclose
 	add	esp, 16					; 00000010H
 
-; 587  : 
-; 588  :       if (dwPID == GetCurrentProcessId () || SK_TerminatePID (dwPID, 0x00))
+; 741  : 
+; 742  :       if (dwPID == GetCurrentProcessId () || SK_TerminatePID (dwPID, 0x00))
 
 	call	DWORD PTR __imp__GetCurrentProcessId@0
 	mov	ecx, DWORD PTR _dwPID$1[ebp]
@@ -62188,35 +62004,35 @@ $LN2@RunDLL_Inj:
 	je	SHORT $LN8@RunDLL_Inj
 $LN9@RunDLL_Inj:
 
-; 589  :       {
-; 590  : #ifndef _WIN64
-; 591  :         DeleteFileA ("SpecialK32.pid");
+; 743  :       {
+; 744  : #ifndef _WIN64
+; 745  :         DeleteFileA ("SpecialK32.pid");
 
-	push	OFFSET $SG147807
+	push	OFFSET $SG257035
 	call	DWORD PTR __imp__DeleteFileA@4
 $LN8@RunDLL_Inj:
 
-; 592  : #else
-; 593  :         DeleteFileA ("SpecialK64.pid");
-; 594  : #endif
-; 595  :       }
-; 596  :     }
-; 597  :   }
-; 598  : 
-; 599  :   if (nCmdShow != -128)
+; 746  : #else
+; 747  :         DeleteFileA ("SpecialK64.pid");
+; 748  : #endif
+; 749  :       }
+; 750  :     }
+; 751  :   }
+; 752  : 
+; 753  :   if (nCmdShow != -128)
 
 	cmp	DWORD PTR _nCmdShow$[ebp], -128		; ffffff80H
 	pop	esi
 	je	SHORT $LN10@RunDLL_Inj
 
-; 600  :    ExitProcess (0x00);
+; 754  :    ExitProcess (0x00);
 
 	push	0
 	call	DWORD PTR __imp__ExitProcess@4
 $LN17@RunDLL_Inj:
 $LN10@RunDLL_Inj:
 
-; 601  : }
+; 755  : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -62228,14 +62044,14 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SKX_IsHookingShell@@YG_NXZ PROC			; SKX_IsHookingShell
 
-; 512  :   return (g_hHookShell != nullptr);
+; 666  :   return (g_hHookShell != nullptr);
 
 	mov	eax, DWORD PTR ?g_hHookShell@@3RAUHHOOK__@@A ; g_hHookShell
 	neg	eax
 	sbb	eax, eax
 	neg	eax
 
-; 513  : }
+; 667  : }
 
 	ret	0
 ?SKX_IsHookingShell@@YG_NXZ ENDP			; SKX_IsHookingShell
@@ -62245,26 +62061,26 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SKX_RemoveShellHook@@YGXXZ PROC			; SKX_RemoveShellHook
 
-; 495  :   if (g_hShutdown != nullptr)
+; 649  :   if (g_hShutdown != nullptr)
 
 	cmp	DWORD PTR ?g_hShutdown@@3RAXA, 0	; g_hShutdown
 	je	SHORT $LN2@SKX_Remove
 
-; 496  :     SetEvent (g_hShutdown);
+; 650  :     SetEvent (g_hShutdown);
 
 	mov	eax, DWORD PTR ?g_hShutdown@@3RAXA	; g_hShutdown
 	push	eax
 	call	DWORD PTR __imp__SetEvent@4
 $LN2@SKX_Remove:
 
-; 497  : 
-; 498  :   if (g_hHookShell)
+; 651  : 
+; 652  :   if (g_hHookShell)
 
 	cmp	DWORD PTR ?g_hHookShell@@3RAUHHOOK__@@A, 0 ; g_hHookShell
 	je	SHORT $LN4@SKX_Remove
 
-; 499  :   {
-; 500  :     if (UnhookWindowsHookEx (g_hHookShell))
+; 653  :   {
+; 654  :     if (UnhookWindowsHookEx (g_hHookShell))
 
 	mov	eax, DWORD PTR ?g_hHookShell@@3RAUHHOOK__@@A ; g_hHookShell
 	push	eax
@@ -62272,22 +62088,768 @@ $LN2@SKX_Remove:
 	test	eax, eax
 	je	SHORT $LN4@SKX_Remove
 
-; 501  :     {
-; 502  :       __SK_HookContextOwner = false;
+; 655  :     {
+; 656  :       __SK_HookContextOwner = false;
 
 	mov	DWORD PTR ?__SK_HookContextOwner@@3JC, 0 ; __SK_HookContextOwner
 
-; 503  :       g_hHookShell = nullptr;
+; 657  :       g_hHookShell = nullptr;
 
 	mov	DWORD PTR ?g_hHookShell@@3RAUHHOOK__@@A, 0 ; g_hHookShell
 $LN4@SKX_Remove:
 
-; 504  :     }
-; 505  :   }
-; 506  : }
+; 658  :     }
+; 659  :   }
+; 660  : }
 
 	ret	0
 ?SKX_RemoveShellHook@@YGXXZ ENDP			; SKX_RemoveShellHook
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+;	COMDAT ??B<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEP6GKPAX@ZXZ
+_TEXT	SEGMENT
+??B<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEP6GKPAX@ZXZ PROC ; <lambda_45484e326abf0e6bbb3347a9d246591d>::operator unsigned long (__stdcall*)(void *), COMDAT
+; _this$ = ecx
+
+; 560  :         }, nullptr, 0, nullptr);
+
+	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_45484e326abf0e6bbb3347a9d246591d>@@CGKPAX@Z ; <lambda_45484e326abf0e6bbb3347a9d246591d>::<lambda_invoker_stdcall>
+	ret	0
+??B<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEP6GKPAX@ZXZ ENDP ; <lambda_45484e326abf0e6bbb3347a9d246591d>::operator unsigned long (__stdcall*)(void *)
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+;	COMDAT ?<lambda_invoker_stdcall>@<lambda_45484e326abf0e6bbb3347a9d246591d>@@CGKPAX@Z
+_TEXT	SEGMENT
+___p1$ = 8						; size = 4
+?<lambda_invoker_stdcall>@<lambda_45484e326abf0e6bbb3347a9d246591d>@@CGKPAX@Z PROC ; <lambda_45484e326abf0e6bbb3347a9d246591d>::<lambda_invoker_stdcall>, COMDAT
+
+; 560  :         }, nullptr, 0, nullptr);
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	xor	ecx, ecx
+	pop	ebp
+	jmp	??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z ; <lambda_45484e326abf0e6bbb3347a9d246591d>::operator()
+?<lambda_invoker_stdcall>@<lambda_45484e326abf0e6bbb3347a9d246591d>@@CGKPAX@Z ENDP ; <lambda_45484e326abf0e6bbb3347a9d246591d>::<lambda_invoker_stdcall>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+;	COMDAT ??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z
+_TEXT	SEGMENT
+$T2 = -16						; size = 4
+$T3 = -16						; size = 4
+__$EHRec$ = -12						; size = 12
+___formal$ = 8						; size = 4
+??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z PROC ; <lambda_45484e326abf0e6bbb3347a9d246591d>::operator(), COMDAT
+; _this$ = ecx
+
+; 477  :         {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	ecx
+
+; 478  :           config.apis.d3d9.hook    = false;  config.apis.d3d9ex.hook    = false;
+
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+815, 65536 ; 00010000H
+
+; 479  :           config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = true;
+; 480  :           config.apis.NvAPI.enable = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+819, 0
+
+; 481  :           config.cegui.enable                          = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+160, 0
+
+; 482  :           config.steam.preload_overlay                 = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+389, 0
+
+; 483  :           config.steam.silent                          = true;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+372, 1
+
+; 484  :           config.system.trace_load_library             = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+872, 0
+
+; 485  :           config.system.handle_crashes                 = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+840, 0
+
+; 486  :           config.system.central_repository             = true;
+; 487  :           config.system.game_output                    = false;
+
+	mov	WORD PTR ?config@@3Usk_config_t@@A+843, 256 ; 00000100H
+
+; 488  :           config.render.dxgi.rehook_present            = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+507, 0
+
+; 489  :           config.injection.global.use_static_addresses = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+744, 0
+
+; 490  :           config.input.gamepad.hook_dinput8            = false;
+
+	mov	WORD PTR ?config@@3Usk_config_t@@A+691, 0
+
+; 491  :           config.input.gamepad.hook_hid                = false;
+; 492  :           config.input.gamepad.hook_xinput             = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+693, 0
+
+; 493  : 
+; 494  :           if (SK::DXGI::Startup ())
+
+	call	?Startup@DXGI@SK@@YA_NXZ		; SK::DXGI::Startup
+	test	al, al
+	je	$LN2@operator
+
+; 495  :           {
+; 496  :             WaitForInit ();
+
+	call	?WaitForInit@@YAXXZ			; WaitForInit
+
+; 497  : 
+; 498  :             extern PresentSwapChain_pfn Present_Target;
+; 499  : 
+; 500  :             SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+
+	push	8
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+	mov	DWORD PTR $T3[ebp], eax
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	test	eax, eax
+	je	SHORT $LN5@operator
+	mov	ecx, eax
+	call	??0SK_Inject_AddressCacheRegistry@@QAE@XZ ; SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry
+	jmp	SHORT $LN6@operator
+$LN5@operator:
+	xor	eax, eax
+$LN6@operator:
+	push	esi
+
+; 501  :             SK_Inject_AddressManager->storeNamedAddress (L"dxgi", "IDXGISwapChain::Present", reinterpret_cast <uintptr_t> (Present_Target));
+
+	push	1
+	push	DWORD PTR ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA ; Present_Target
+	mov	ecx, eax
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	push	OFFSET ??_C@_0BI@FBBDFMGP@IDXGISwapChain?3?3Present?$AA@
+	push	OFFSET ??_C@_19OIBDDOMN@?$AAd?$AAx?$AAg?$AAi?$AA?$AA@
+	mov	DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A, eax ; SK_Inject_AddressManager
+	call	?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z ; SK_Inject_AddressCacheRegistry::storeNamedAddress
+
+; 502  : 
+; 503  :             delete SK_Inject_AddressManager;
+
+	mov	esi, DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
+	test	esi, esi
+	je	SHORT $LN16@operator
+	mov	ecx, esi
+	call	??1SK_Inject_AddressCacheRegistry@@QAE@XZ ; SK_Inject_AddressCacheRegistry::~SK_Inject_AddressCacheRegistry
+	push	8
+	push	esi
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+$LN16@operator:
+
+; 504  :                    SK_Inject_AddressManager = nullptr;
+; 505  : 
+; 506  :             dll_log.Log (L"IDXGISwapChain::Present = %ph", Present_Target);
+
+	push	DWORD PTR ?Present_Target@@3P6GJPAUIDXGISwapChain@@II@ZA ; Present_Target
+	mov	DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A, 0 ; SK_Inject_AddressManager
+	push	OFFSET ??_C@_1DM@OEJKFDNC@?$AAI?$AAD?$AAX?$AAG?$AAI?$AAS?$AAw?$AAa?$AAp?$AAC?$AAh?$AAa?$AAi?$AAn?$AA?3?$AA?3?$AAP?$AAr?$AAe?$AAs?$AAe?$AAn?$AAt?$AA?5?$AA?$DN?$AA?5?$AA?$CF?$AAp?$AAh?$AA?$AA@
+	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
+	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
+
+; 507  : 
+; 508  :             config.apis.d3d9.hook    = true;  config.apis.d3d9ex.hook     = true;
+
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+815, 257 ; 00000101H
+
+; 509  :             config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = false;
+; 510  :             config.apis.NvAPI.enable = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+819, 0
+
+; 511  :             config.cegui.enable                          = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+160, 0
+
+; 512  :             config.steam.preload_overlay                 = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+389, 0
+
+; 513  :             config.steam.silent                          = true;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+372, 1
+
+; 514  :             config.system.trace_load_library             = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+872, 0
+
+; 515  :             config.system.handle_crashes                 = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+840, 0
+
+; 516  :             config.system.central_repository             = true;
+; 517  :             config.system.game_output                    = false;
+
+	mov	WORD PTR ?config@@3Usk_config_t@@A+843, 256 ; 00000100H
+
+; 518  :             config.render.dxgi.rehook_present            = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+507, 0
+
+; 519  :             config.injection.global.use_static_addresses = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+744, 0
+
+; 520  :             config.input.gamepad.hook_dinput8            = false;
+
+	mov	WORD PTR ?config@@3Usk_config_t@@A+691, 0
+
+; 521  :             config.input.gamepad.hook_hid                = false;
+; 522  :             config.input.gamepad.hook_xinput             = false;
+
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+693, 0
+
+; 523  : 
+; 524  :             SK_BootD3D9 ();
+
+	call	?SK_BootD3D9@@YAXXZ			; SK_BootD3D9
+
+; 525  : 
+; 526  :             extern D3D9PresentDevice_pfn         D3D9Present_Target;
+; 527  :             extern D3D9PresentDeviceEx_pfn       D3D9PresentEx_Target;
+; 528  :             extern D3D9PresentSwapChain_pfn      D3D9PresentSwap_Target;
+; 529  :             extern D3D9Reset_pfn                 D3D9Reset_Target;
+; 530  :             extern D3D9ResetEx_pfn               D3D9ResetEx_Target;
+; 531  : 
+; 532  :             SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+
+	push	8
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 16					; 00000010H
+	mov	DWORD PTR $T2[ebp], eax
+	mov	DWORD PTR __$EHRec$[ebp+8], 1
+	test	eax, eax
+	je	SHORT $LN9@operator
+	mov	ecx, eax
+	call	??0SK_Inject_AddressCacheRegistry@@QAE@XZ ; SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry
+	jmp	SHORT $LN10@operator
+$LN9@operator:
+	xor	eax, eax
+$LN10@operator:
+
+; 533  : 
+; 534  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Present",     reinterpret_cast <uintptr_t> (D3D9Present_Target));
+
+	push	1
+	push	DWORD PTR ?D3D9Present_Target@@3P6GJPAUIDirect3DDevice9@@PBUtagRECT@@1PAUHWND__@@PBU_RGNDATA@@@ZA ; D3D9Present_Target
+	mov	ecx, eax
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	push	OFFSET ??_C@_0BK@IDFDJGMI@IDirect3DDevice9?3?3Present?$AA@
+	push	OFFSET ??_C@_19NBHNJNHK@?$AAd?$AA3?$AAd?$AA9?$AA?$AA@
+	mov	DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A, eax ; SK_Inject_AddressManager
+	call	?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z ; SK_Inject_AddressCacheRegistry::storeNamedAddress
+
+; 535  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::PresentEx", reinterpret_cast <uintptr_t> (D3D9PresentEx_Target));
+
+	mov	ecx, DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
+	push	1
+	push	DWORD PTR ?D3D9PresentEx_Target@@3P6GJPAUIDirect3DDevice9Ex@@PBUtagRECT@@1PAUHWND__@@PBU_RGNDATA@@K@ZA ; D3D9PresentEx_Target
+	push	OFFSET ??_C@_0BO@GEEOLCAL@IDirect3DDevice9Ex?3?3PresentEx?$AA@
+	push	OFFSET ??_C@_19NBHNJNHK@?$AAd?$AA3?$AAd?$AA9?$AA?$AA@
+	call	?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z ; SK_Inject_AddressCacheRegistry::storeNamedAddress
+
+; 536  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DSwapChain9::Present",  reinterpret_cast <uintptr_t> (D3D9PresentSwap_Target));
+
+	mov	ecx, DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
+	push	1
+	push	DWORD PTR ?D3D9PresentSwap_Target@@3P6GJPAUIDirect3DSwapChain9@@PBUtagRECT@@1PAUHWND__@@PBU_RGNDATA@@K@ZA ; D3D9PresentSwap_Target
+	push	OFFSET ??_C@_0BN@OCBPKAKP@IDirect3DSwapChain9?3?3Present?$AA@
+	push	OFFSET ??_C@_19NBHNJNHK@?$AAd?$AA3?$AAd?$AA9?$AA?$AA@
+	call	?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z ; SK_Inject_AddressCacheRegistry::storeNamedAddress
+
+; 537  : 
+; 538  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Reset",       reinterpret_cast <uintptr_t> (D3D9Reset_Target));
+
+	mov	ecx, DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
+	push	1
+	push	DWORD PTR ?D3D9Reset_Target@@3P6GJPAUIDirect3DDevice9@@PAU_D3DPRESENT_PARAMETERS_@@@ZA ; D3D9Reset_Target
+	push	OFFSET ??_C@_0BI@HNGKIOLG@IDirect3DDevice9?3?3Reset?$AA@
+	push	OFFSET ??_C@_19NBHNJNHK@?$AAd?$AA3?$AAd?$AA9?$AA?$AA@
+	call	?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z ; SK_Inject_AddressCacheRegistry::storeNamedAddress
+
+; 539  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::ResetEx",   reinterpret_cast <uintptr_t> (D3D9ResetEx_Target));
+
+	mov	ecx, DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
+	push	1
+	push	DWORD PTR ?D3D9ResetEx_Target@@3P6GJPAUIDirect3DDevice9Ex@@PAU_D3DPRESENT_PARAMETERS_@@PAUD3DDISPLAYMODEEX@@@ZA ; D3D9ResetEx_Target
+	push	OFFSET ??_C@_0BM@NJNEPMLL@IDirect3DDevice9Ex?3?3ResetEx?$AA@
+	push	OFFSET ??_C@_19NBHNJNHK@?$AAd?$AA3?$AAd?$AA9?$AA?$AA@
+	call	?storeNamedAddress@SK_Inject_AddressCacheRegistry@@QAEXPB_WPBDIW4SK_SYS_CPUArch@@@Z ; SK_Inject_AddressCacheRegistry::storeNamedAddress
+
+; 540  : 
+; 541  :             delete SK_Inject_AddressManager;
+
+	mov	esi, DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
+	test	esi, esi
+	je	SHORT $LN20@operator
+	mov	ecx, esi
+	call	??1SK_Inject_AddressCacheRegistry@@QAE@XZ ; SK_Inject_AddressCacheRegistry::~SK_Inject_AddressCacheRegistry
+	push	8
+	push	esi
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+$LN20@operator:
+
+; 542  :                    SK_Inject_AddressManager = nullptr;
+; 543  : 
+; 544  :             //SK::DXGI::Shutdown ();
+; 545  :             
+; 546  :             extern iSK_INI* dll_ini;
+; 547  :             DeleteFileW (dll_ini->get_filename ());
+
+	mov	eax, DWORD PTR ?dll_ini@@3PAUiSK_INI@@A	; dll_ini
+	mov	DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A, 0 ; SK_Inject_AddressManager
+	push	eax
+	mov	ecx, DWORD PTR [eax]
+	call	DWORD PTR [ecx+44]
+	push	eax
+	call	DWORD PTR __imp__DeleteFileW@4
+	pop	esi
+$LN2@operator:
+
+; 548  :           }
+; 549  : 
+; 550  :           if (temp_tls)
+
+	cmp	BYTE PTR ?temp_tls@@3_NA, 0		; temp_tls
+	je	SHORT $LN3@operator
+
+; 551  :           {
+; 552  :             TlsFree (__SK_TLS_INDEX);
+
+	mov	eax, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
+	push	eax
+	call	DWORD PTR __imp__TlsFree@4
+
+; 553  :                      __SK_TLS_INDEX = 0;
+
+	mov	DWORD PTR ?__SK_TLS_INDEX@@3KC, 0	; __SK_TLS_INDEX
+
+; 554  :             temp_tls = false;
+
+	mov	BYTE PTR ?temp_tls@@3_NA, 0		; temp_tls
+$LN3@operator:
+
+; 555  :           }
+; 556  : 
+; 557  :           CloseHandle (GetCurrentThread ());
+
+	call	DWORD PTR __imp__GetCurrentThread@0
+	push	eax
+	call	DWORD PTR __imp__CloseHandle@4
+
+; 558  : 
+; 559  :           return 0;
+; 560  :         }, nullptr, 0, nullptr);
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	xor	eax, eax
+	mov	DWORD PTR fs:0, ecx
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__unwindfunclet$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z$0:
+	push	8
+	mov	eax, DWORD PTR $T3[ebp]
+	push	eax
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+	ret	0
+__unwindfunclet$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z$1:
+	push	8
+	mov	eax, DWORD PTR $T2[ebp]
+	push	eax
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+	ret	0
+__ehhandler$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z:
+	mov	eax, OFFSET __ehfuncinfo$??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??R<lambda_45484e326abf0e6bbb3347a9d246591d>@@QBEKPAX@Z ENDP ; <lambda_45484e326abf0e6bbb3347a9d246591d>::operator()
+; Function compile flags: /Ogtp
+;	COMDAT ??_GSK_Inject_AddressCacheRegistry@@QAEPAXI@Z
+_TEXT	SEGMENT
+___flags$ = 8						; size = 4
+??_GSK_Inject_AddressCacheRegistry@@QAEPAXI@Z PROC	; SK_Inject_AddressCacheRegistry::`scalar deleting destructor', COMDAT
+; _this$ = ecx
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+	mov	esi, ecx
+	call	??1SK_Inject_AddressCacheRegistry@@QAE@XZ ; SK_Inject_AddressCacheRegistry::~SK_Inject_AddressCacheRegistry
+	test	BYTE PTR ___flags$[ebp], 1
+	je	SHORT $LN4@scalar
+	push	8
+	push	esi
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+$LN4@scalar:
+	mov	eax, esi
+	pop	esi
+	pop	ebp
+	ret	4
+??_GSK_Inject_AddressCacheRegistry@@QAEPAXI@Z ENDP	; SK_Inject_AddressCacheRegistry::`scalar deleting destructor'
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBEIU_Nil@2@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+?max_size@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBEIU_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::max_size, COMDAT
+; _this$ = ecx
+
+; 1108 : 		return (_Mytraits::max_size(*this));
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 1109 : 		}
+
+	ret	4
+?max_size@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBEIU_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEXPAII@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEXPAII@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::deallocate, COMDAT
+; _this$ = ecx
+
+; 1087 : 		{	// deallocate object at _Ptr, ignore size
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 1088 : 		_Mybase::deallocate(_Ptr, _Count);
+; 1089 : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEXPAII@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEPAII@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEPAII@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::allocate, COMDAT
+; _this$ = ecx
+
+; 1076 : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1078 : 		}
+
+	pop	ebp
+
+; 1077 : 		return (_Mybase::allocate(_Count));
+
+	jmp	?allocate@?$allocator@I@std@@QAEPAII@Z	; std::allocator<unsigned int>::allocate
+?allocate@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAEPAII@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??0?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAE@$$QAU01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??0?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAE@$$QAU01@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::_Wrap_alloc<std::allocator<unsigned int> >, COMDAT
+; _this$ = ecx
+
+; 1048 : 		}
+
+	mov	eax, ecx
+	ret	4
+??0?$_Wrap_alloc@V?$allocator@I@std@@@std@@QAE@$$QAU01@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::_Wrap_alloc<std::allocator<unsigned int> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBE?AU12@U_Nil@2@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+___formal$ = 12						; size = 1
+?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBE?AU12@U_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned int> >::select_on_container_copy_construction, COMDAT
+; _this$ = ecx
+
+; 1013 : 		{	// get allocator to use
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1014 : 		return (_Mytraits::select_on_container_copy_construction(*this));
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 1015 : 		}
+
+	pop	ebp
+	ret	8
+?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@I@std@@@std@@QBE?AU12@U_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned int> >::select_on_container_copy_construction
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?select_on_container_copy_construction@?$allocator_traits@V?$allocator@I@std@@@std@@SA?AV?$allocator@I@2@ABV32@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Al$ = 12						; size = 4
+?select_on_container_copy_construction@?$allocator_traits@V?$allocator@I@std@@@std@@SA?AV?$allocator@I@2@ABV32@@Z PROC ; std::allocator_traits<std::allocator<unsigned int> >::select_on_container_copy_construction, COMDAT
+
+; 975  : 		{	// get allocator to use
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 976  : 		return (_Al);
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 977  : 		}
+
+	pop	ebp
+	ret	0
+?select_on_container_copy_construction@?$allocator_traits@V?$allocator@I@std@@@std@@SA?AV?$allocator@I@2@ABV32@@Z ENDP ; std::allocator_traits<std::allocator<unsigned int> >::select_on_container_copy_construction
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$allocator_traits@V?$allocator@I@std@@@std@@SAIABV?$allocator@I@2@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+?max_size@?$allocator_traits@V?$allocator@I@std@@@std@@SAIABV?$allocator@I@2@@Z PROC ; std::allocator_traits<std::allocator<unsigned int> >::max_size, COMDAT
+
+; 970  : 		return (_Al.max_size());
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 971  : 		}
+
+	ret	0
+?max_size@?$allocator_traits@V?$allocator@I@std@@@std@@SAIABV?$allocator@I@2@@Z ENDP ; std::allocator_traits<std::allocator<unsigned int> >::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?max_size@?$allocator@I@std@@QBEIXZ
+_TEXT	SEGMENT
+?max_size@?$allocator@I@std@@QBEIXZ PROC		; std::allocator<unsigned int>::max_size, COMDAT
+; _this$ = ecx
+
+; 851  : 		return ((size_t)(-1) / sizeof (_Ty));
+
+	mov	eax, 1073741823				; 3fffffffH
+
+; 852  : 		}
+
+	ret	0
+?max_size@?$allocator@I@std@@QBEIXZ ENDP		; std::allocator<unsigned int>::max_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?allocate@?$allocator@I@std@@QAEPAII@Z
+_TEXT	SEGMENT
+__Count$ = 8						; size = 4
+?allocate@?$allocator@I@std@@QAEPAII@Z PROC		; std::allocator<unsigned int>::allocate, COMDAT
+; _this$ = ecx
+
+; 827  : 		{	// allocate array of _Count elements
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 53   : 	if (_Count == 0)
+
+	mov	eax, DWORD PTR __Count$[ebp]
+	test	eax, eax
+	jne	SHORT $LN4@allocate
+$LN12@allocate:
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN4@allocate:
+
+; 57   : 	if ((size_t)(-1) / _Sz < _Count)
+
+	cmp	eax, 1073741823				; 3fffffffH
+	jbe	SHORT $LN5@allocate
+
+; 58   : 		_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN15@allocate:
+$LN5@allocate:
+
+; 59   : 	const size_t _User_size = _Count * _Sz;
+
+	shl	eax, 2
+
+; 60   : 
+; 61   :  #if defined(_M_IX86) || defined(_M_X64)
+; 62   : 	if (_Try_aligned_allocation
+; 63   : 		&& _BIG_ALLOCATION_THRESHOLD <= _User_size)
+
+	cmp	eax, 4096				; 00001000H
+	jb	SHORT $LN6@allocate
+
+; 64   : 		{	// allocate large block
+; 65   : 		static_assert(sizeof (void *) < _BIG_ALLOCATION_ALIGNMENT,
+; 66   : 			"Big allocations should at least match vector register size");
+; 67   : 		const size_t _Block_size = _NON_USER_SIZE + _User_size;
+
+	lea	ecx, DWORD PTR [eax+35]
+
+; 68   : 		if (_Block_size <= _User_size)
+
+	cmp	ecx, eax
+	ja	SHORT $LN8@allocate
+
+; 69   : 			_Xbad_alloc();	// report no memory
+
+	call	DWORD PTR __imp_?_Xbad_alloc@std@@YAXXZ
+$LN16@allocate:
+$LN8@allocate:
+
+; 70   : 		const uintptr_t _Ptr_container =
+; 71   : 			reinterpret_cast<uintptr_t>(::operator new(_Block_size));
+
+	push	ecx
+	call	??2@YAPAXI@Z				; operator new
+	mov	ecx, eax
+	add	esp, 4
+
+; 72   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr_container != 0);
+
+	test	ecx, ecx
+	jne	SHORT $LN9@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN17@allocate:
+$LN9@allocate:
+
+; 73   : 		_Ptr = reinterpret_cast<void *>((_Ptr_container + _NON_USER_SIZE)
+
+	lea	eax, DWORD PTR [ecx+35]
+	and	eax, -32				; ffffffe0H
+
+; 74   : 			& ~(_BIG_ALLOCATION_ALIGNMENT - 1));
+; 75   : 		static_cast<uintptr_t *>(_Ptr)[-1] = _Ptr_container;
+
+	mov	DWORD PTR [eax-4], ecx
+
+; 828  : 		return (static_cast<pointer>(_Allocate(_Count, sizeof (_Ty))));
+; 829  : 		}
+
+	pop	ebp
+	ret	4
+$LN6@allocate:
+
+; 87   : 		_Ptr = ::operator new(_User_size);
+
+	push	eax
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 88   : 		_SCL_SECURE_ALWAYS_VALIDATE(_Ptr != 0);
+
+	test	eax, eax
+	jne	SHORT $LN12@allocate
+	call	DWORD PTR __imp___invalid_parameter_noinfo_noreturn
+$LN18@allocate:
+$LN14@allocate:
+	int	3
+?allocate@?$allocator@I@std@@QAEPAII@Z ENDP		; std::allocator<unsigned int>::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?deallocate@?$allocator@I@std@@QAEXPAII@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+__Count$ = 12						; size = 4
+?deallocate@?$allocator@I@std@@QAEXPAII@Z PROC		; std::allocator<unsigned int>::deallocate, COMDAT
+; _this$ = ecx
+
+; 822  : 		{	// deallocate object at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	4
+	push	DWORD PTR __Count$[ebp]
+	push	DWORD PTR __Ptr$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+
+; 824  : 		}
+
+	pop	ebp
+	ret	8
+?deallocate@?$allocator@I@std@@QAEXPAII@Z ENDP		; std::allocator<unsigned int>::deallocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??0?$allocator@I@std@@QAE@ABV01@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+??0?$allocator@I@std@@QAE@ABV01@@Z PROC			; std::allocator<unsigned int>::allocator<unsigned int>, COMDAT
+; _this$ = ecx
+
+; 807  : 		{	// construct by copying (do nothing)
+; 808  : 		}
+
+	mov	eax, ecx
+	ret	4
+??0?$allocator@I@std@@QAE@ABV01@@Z ENDP			; std::allocator<unsigned int>::allocator<unsigned int>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
@@ -62295,62 +62857,62 @@ _TEXT	SEGMENT
 _hMod$ = -4						; size = 4
 ?SKX_InstallShellHook@@YGXXZ PROC			; SKX_InstallShellHook
 
-; 451  : {
+; 605  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ecx
 
-; 452  :   // Nothing to do here, move along.
-; 453  :   if (g_hHookShell != nullptr)
+; 606  :   // Nothing to do here, move along.
+; 607  :   if (g_hHookShell != nullptr)
 
 	cmp	DWORD PTR ?g_hHookShell@@3RAUHHOOK__@@A, 0 ; g_hHookShell
 	jne	SHORT $LN5@SKX_Instal
 
-; 454  :     return;
-; 455  : 
-; 456  :   HMODULE hMod = nullptr;
-; 457  : 
-; 458  :   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+; 608  :     return;
+; 609  : 
+; 610  :   HMODULE hMod = nullptr;
+; 611  : 
+; 612  :   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 
 	lea	eax, DWORD PTR _hMod$[ebp]
 	mov	DWORD PTR _hMod$[ebp], 0
 	push	eax
-	push	OFFSET $SG147697
+	push	OFFSET $SG256925
 	push	2
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 
-; 459  : #ifdef _WIN64
-; 460  :                           L"SpecialK64.dll",
-; 461  : #else
-; 462  :                           L"SpecialK32.dll",
-; 463  : #endif
-; 464  :                           (HMODULE *) &hMod );
-; 465  : 
-; 466  :   extern HMODULE
-; 467  :   __stdcall
-; 468  :   SK_GetDLL (void);
-; 469  : 
-; 470  :   if (hMod == SK_GetDLL ())
+; 613  : #ifdef _WIN64
+; 614  :                           L"SpecialK64.dll",
+; 615  : #else
+; 616  :                           L"SpecialK32.dll",
+; 617  : #endif
+; 618  :                           (HMODULE *) &hMod );
+; 619  : 
+; 620  :   extern HMODULE
+; 621  :   __stdcall
+; 622  :   SK_GetDLL (void);
+; 623  : 
+; 624  :   if (hMod == SK_GetDLL ())
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	cmp	DWORD PTR _hMod$[ebp], eax
 	jne	SHORT $LN5@SKX_Instal
 
-; 471  :   {
-; 472  :     if (g_hShutdown == nullptr)
+; 625  :   {
+; 626  :     if (g_hShutdown == nullptr)
 
 	cmp	DWORD PTR ?g_hShutdown@@3RAXA, 0	; g_hShutdown
 	jne	SHORT $LN4@SKX_Instal
 
-; 473  :     {
-; 474  : #ifdef _WIN64
-; 475  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
-; 476  : #else
-; 477  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
+; 627  :     {
+; 628  : #ifdef _WIN64
+; 629  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
+; 630  : #else
+; 631  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
 
-	push	OFFSET $SG147700
+	push	OFFSET $SG256928
 	push	0
 	push	1
 	push	0
@@ -62358,10 +62920,10 @@ _hMod$ = -4						; size = 4
 	mov	DWORD PTR ?g_hShutdown@@3RAXA, eax	; g_hShutdown
 $LN4@SKX_Instal:
 
-; 478  : #endif
-; 479  :     }
-; 480  : 
-; 481  :     g_hHookShell =
+; 632  : #endif
+; 633  :     }
+; 634  : 
+; 635  :     g_hHookShell =
 
 	push	0
 	push	DWORD PTR _hMod$[ebp]
@@ -62370,22 +62932,22 @@ $LN4@SKX_Instal:
 	call	DWORD PTR __imp__SetWindowsHookExW@16
 	mov	DWORD PTR ?g_hHookShell@@3RAUHHOOK__@@A, eax ; g_hHookShell
 
-; 482  :       SetWindowsHookEx (WH_SHELL, ShellProc, hMod, 0);
-; 483  : 
-; 484  :     if (g_hHookShell != nullptr)
+; 636  :       SetWindowsHookEx (WH_SHELL, ShellProc, hMod, 0);
+; 637  : 
+; 638  :     if (g_hHookShell != nullptr)
 
 	cmp	DWORD PTR ?g_hHookShell@@3RAUHHOOK__@@A, 0 ; g_hHookShell
 	je	SHORT $LN5@SKX_Instal
 
-; 485  :     {
-; 486  :       __SK_HookContextOwner = true;
+; 639  :     {
+; 640  :       __SK_HookContextOwner = true;
 
 	mov	DWORD PTR ?__SK_HookContextOwner@@3JC, 1 ; __SK_HookContextOwner
 $LN5@SKX_Instal:
 
-; 487  :     }
-; 488  :   }
-; 489  : }
+; 641  :     }
+; 642  :   }
+; 643  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -62399,18 +62961,18 @@ _dwProcessId$ = 8					; size = 4
 _uExitCode$ = 12					; size = 4
 ?SK_TerminatePID@@YAHKI@Z PROC				; SK_TerminatePID
 
-; 299  : {
+; 310  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	edi
 
-; 300  :   DWORD dwDesiredAccess = PROCESS_TERMINATE;
-; 301  :   BOOL  bInheritHandle  = FALSE;
-; 302  : 
-; 303  :   HANDLE hProcess =
-; 304  :     OpenProcess ( dwDesiredAccess, bInheritHandle, dwProcessId );
+; 311  :   DWORD dwDesiredAccess = PROCESS_TERMINATE;
+; 312  :   BOOL  bInheritHandle  = FALSE;
+; 313  : 
+; 314  :   HANDLE hProcess =
+; 315  :     OpenProcess ( dwDesiredAccess, bInheritHandle, dwProcessId );
 
 	push	DWORD PTR _dwProcessId$[ebp]
 	push	0
@@ -62418,44 +62980,44 @@ _uExitCode$ = 12					; size = 4
 	call	DWORD PTR __imp__OpenProcess@12
 	mov	edi, eax
 
-; 305  : 
-; 306  :   if (hProcess == nullptr)
+; 316  : 
+; 317  :   if (hProcess == nullptr)
 
 	test	edi, edi
 	jne	SHORT $LN2@SK_Termina
 	pop	edi
 
-; 315  : }
+; 326  : }
 
 	pop	ebp
 	ret	0
 $LN2@SK_Termina:
 	push	esi
 
-; 307  :     return FALSE;
-; 308  :   
-; 309  :   BOOL result =
-; 310  :     TerminateProcess (hProcess, uExitCode);
+; 318  :     return FALSE;
+; 319  :   
+; 320  :   BOOL result =
+; 321  :     TerminateProcess (hProcess, uExitCode);
 
 	push	DWORD PTR _uExitCode$[ebp]
 	push	edi
 	call	DWORD PTR __imp__TerminateProcess@8
 
-; 311  :   
-; 312  :   CloseHandle (hProcess);
+; 322  :   
+; 323  :   CloseHandle (hProcess);
 
 	push	edi
 	mov	esi, eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 313  :   
-; 314  :   return result;
+; 324  :   
+; 325  :   return result;
 
 	mov	eax, esi
 	pop	esi
 	pop	edi
 
-; 315  : }
+; 326  : }
 
 	pop	ebp
 	ret	0
@@ -62468,7 +63030,7 @@ _TEXT	SEGMENT
 ??B<lambda_90c74cd29502a5a993a6ec8518c919e5>@@QBEP6GKPAX@ZXZ PROC ; <lambda_90c74cd29502a5a993a6ec8518c919e5>::operator unsigned long (__stdcall*)(void *), COMDAT
 ; _this$ = ecx
 
-; 285  :              },
+; 296  :              },
 
 	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_90c74cd29502a5a993a6ec8518c919e5>@@CGKPAX@Z ; <lambda_90c74cd29502a5a993a6ec8518c919e5>::<lambda_invoker_stdcall>
 	ret	0
@@ -62481,12 +63043,12 @@ _TEXT	SEGMENT
 _user$ = 8						; size = 4
 ?<lambda_invoker_stdcall>@<lambda_90c74cd29502a5a993a6ec8518c919e5>@@CGKPAX@Z PROC ; <lambda_90c74cd29502a5a993a6ec8518c919e5>::<lambda_invoker_stdcall>, COMDAT
 
-; 277  :                if (g_hShutdown != nullptr)
+; 288  :                if (g_hShutdown != nullptr)
 
 	cmp	DWORD PTR ?g_hShutdown@@3RAXA, 0	; g_hShutdown
 	je	SHORT $LN4@
 
-; 278  :                  WaitForSingleObject (g_hShutdown, INFINITE);
+; 289  :                  WaitForSingleObject (g_hShutdown, INFINITE);
 
 	mov	eax, DWORD PTR ?g_hShutdown@@3RAXA	; g_hShutdown
 	push	-1
@@ -62494,19 +63056,19 @@ _user$ = 8						; size = 4
 	call	DWORD PTR __imp__WaitForSingleObject@8
 $LN4@:
 
-; 279  : 
-; 280  :                hModHookInstance = nullptr;
+; 290  : 
+; 291  :                hModHookInstance = nullptr;
 
 	mov	DWORD PTR ?hModHookInstance@@3PAUHINSTANCE__@@A, 0 ; hModHookInstance
 
-; 281  : 
-; 282  :                CloseHandle (GetCurrentThread ());
+; 292  : 
+; 293  :                CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 285  :              },
+; 296  :              },
 
 	xor	eax, eax
 	ret	4
@@ -62520,14 +63082,14 @@ _user$ = 8						; size = 4
 ??R<lambda_90c74cd29502a5a993a6ec8518c919e5>@@QBEKPAX@Z PROC ; <lambda_90c74cd29502a5a993a6ec8518c919e5>::operator(), COMDAT
 ; _this$ = ecx
 
-; 275  :                UNREFERENCED_PARAMETER (user);
-; 276  : 
-; 277  :                if (g_hShutdown != nullptr)
+; 286  :                UNREFERENCED_PARAMETER (user);
+; 287  : 
+; 288  :                if (g_hShutdown != nullptr)
 
 	cmp	DWORD PTR ?g_hShutdown@@3RAXA, 0	; g_hShutdown
 	je	SHORT $LN2@operator
 
-; 278  :                  WaitForSingleObject (g_hShutdown, INFINITE);
+; 289  :                  WaitForSingleObject (g_hShutdown, INFINITE);
 
 	mov	eax, DWORD PTR ?g_hShutdown@@3RAXA	; g_hShutdown
 	push	-1
@@ -62535,24 +63097,24 @@ _user$ = 8						; size = 4
 	call	DWORD PTR __imp__WaitForSingleObject@8
 $LN2@operator:
 
-; 279  : 
-; 280  :                hModHookInstance = nullptr;
+; 290  : 
+; 291  :                hModHookInstance = nullptr;
 
 	mov	DWORD PTR ?hModHookInstance@@3PAUHINSTANCE__@@A, 0 ; hModHookInstance
 
-; 281  : 
-; 282  :                CloseHandle (GetCurrentThread ());
+; 292  : 
+; 293  :                CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 283  : 
-; 284  :                return 0;
+; 294  : 
+; 295  :                return 0;
 
 	xor	eax, eax
 
-; 285  :              },
+; 296  :              },
 
 	ret	4
 ??R<lambda_90c74cd29502a5a993a6ec8518c919e5>@@QBEKPAX@Z ENDP ; <lambda_90c74cd29502a5a993a6ec8518c919e5>::operator()
@@ -62565,35 +63127,35 @@ _wParam$ = 12						; size = 4
 _lParam$ = 16						; size = 4
 ?ShellProc@@YGJHIJ@Z PROC				; ShellProc
 
-; 248  : {
+; 259  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 249  :   if (nCode < 0)
+; 260  :   if (nCode < 0)
 
 	mov	esi, DWORD PTR _nCode$[ebp]
 	test	esi, esi
 	js	SHORT $LN3@ShellProc
 
-; 250  :     return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
-; 251  : 
-; 252  : 
-; 253  :   if (hModHookInstance == nullptr && g_hHookShell)
+; 261  :     return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+; 262  : 
+; 263  : 
+; 264  :   if (hModHookInstance == nullptr && g_hHookShell)
 
 	cmp	DWORD PTR ?hModHookInstance@@3PAUHINSTANCE__@@A, 0 ; hModHookInstance
 	jne	SHORT $LN3@ShellProc
 	cmp	DWORD PTR ?g_hHookShell@@3RAUHHOOK__@@A, 0 ; g_hHookShell
 	je	SHORT $LN3@ShellProc
 
-; 254  :   {
-; 255  :     static volatile LONG lHookIters = 0L;
-; 256  : 
-; 257  :     // Don't create that thread more than once, but don't bother with a complete
-; 258  :     //   critical section.
-; 259  :     if (InterlockedIncrement (&lHookIters) > 1L)
+; 265  :   {
+; 266  :     static volatile LONG lHookIters = 0L;
+; 267  : 
+; 268  :     // Don't create that thread more than once, but don't bother with a complete
+; 269  :     //   critical section.
+; 270  :     if (InterlockedIncrement (&lHookIters) > 1L)
 
 	mov	eax, 1
 	lock	 xadd	 DWORD PTR ?lHookIters@?6??ShellProc@@YGJHIJ@Z@4JC, eax
@@ -62601,24 +63163,24 @@ _lParam$ = 16						; size = 4
 	cmp	eax, 1
 	jg	SHORT $LN3@ShellProc
 
-; 260  :       return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
-; 261  : 
-; 262  :     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+; 271  :       return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+; 272  : 
+; 273  :     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 
 	push	OFFSET ?hModHookInstance@@3PAUHINSTANCE__@@A ; hModHookInstance
-	push	OFFSET $SG147637
+	push	OFFSET $SG147671
 	push	2
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 
-; 263  : #ifdef _WIN64
-; 264  :                           L"SpecialK64.dll",
-; 265  : #else
-; 266  :                           L"SpecialK32.dll",
-; 267  : #endif
-; 268  :                             (HMODULE *) &hModHookInstance );
-; 269  : 
-; 270  :     // Get and keep a reference to this DLL if this is the first time we are injecting.
-; 271  :     CreateThread ( nullptr, 0,
+; 274  : #ifdef _WIN64
+; 275  :                           L"SpecialK64.dll",
+; 276  : #else
+; 277  :                           L"SpecialK32.dll",
+; 278  : #endif
+; 279  :                             (HMODULE *) &hModHookInstance );
+; 280  : 
+; 281  :     // Get and keep a reference to this DLL if this is the first time we are injecting.
+; 282  :     CreateThread ( nullptr, 0,
 
 	push	0
 	push	0
@@ -62629,28 +63191,28 @@ _lParam$ = 16						; size = 4
 	call	DWORD PTR __imp__CreateThread@24
 $LN3@ShellProc:
 
-; 272  :          [](LPVOID user) ->
-; 273  :            DWORD
-; 274  :              {
-; 275  :                UNREFERENCED_PARAMETER (user);
-; 276  : 
-; 277  :                if (g_hShutdown != nullptr)
-; 278  :                  WaitForSingleObject (g_hShutdown, INFINITE);
-; 279  : 
-; 280  :                hModHookInstance = nullptr;
-; 281  : 
-; 282  :                CloseHandle (GetCurrentThread ());
-; 283  : 
-; 284  :                return 0;
-; 285  :              },
-; 286  :            nullptr,
-; 287  :          0x00,
-; 288  :        nullptr
-; 289  :     );
-; 290  :   }
-; 291  : 
+; 283  :          [](LPVOID user) ->
+; 284  :            DWORD
+; 285  :              {
+; 286  :                UNREFERENCED_PARAMETER (user);
+; 287  : 
+; 288  :                if (g_hShutdown != nullptr)
+; 289  :                  WaitForSingleObject (g_hShutdown, INFINITE);
+; 290  : 
+; 291  :                hModHookInstance = nullptr;
 ; 292  : 
-; 293  :   return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
+; 293  :                CloseHandle (GetCurrentThread ());
+; 294  : 
+; 295  :                return 0;
+; 296  :              },
+; 297  :            nullptr,
+; 298  :          0x00,
+; 299  :        nullptr
+; 300  :     );
+; 301  :   }
+; 302  : 
+; 303  : 
+; 304  :   return CallNextHookEx (g_hHookShell, nCode, wParam, lParam);
 
 	push	DWORD PTR _lParam$[ebp]
 	mov	eax, DWORD PTR ?g_hHookShell@@3RAUHHOOK__@@A ; g_hHookShell
@@ -62660,7 +63222,7 @@ $LN3@ShellProc:
 	call	DWORD PTR __imp__CallNextHookEx@16
 	pop	esi
 
-; 294  : }
+; 305  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -62673,7 +63235,7 @@ _TEXT	SEGMENT
 ??B<lambda_0b64b922eede83fc8ad9efc12102c151>@@QBEP6GKPAX@ZXZ PROC ; <lambda_0b64b922eede83fc8ad9efc12102c151>::operator unsigned long (__stdcall*)(void *), COMDAT
 ; _this$ = ecx
 
-; 232  :              },
+; 243  :              },
 
 	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_0b64b922eede83fc8ad9efc12102c151>@@CGKPAX@Z ; <lambda_0b64b922eede83fc8ad9efc12102c151>::<lambda_invoker_stdcall>
 	ret	0
@@ -62686,12 +63248,12 @@ _TEXT	SEGMENT
 _user$ = 8						; size = 4
 ?<lambda_invoker_stdcall>@<lambda_0b64b922eede83fc8ad9efc12102c151>@@CGKPAX@Z PROC ; <lambda_0b64b922eede83fc8ad9efc12102c151>::<lambda_invoker_stdcall>, COMDAT
 
-; 224  :                if (g_hShutdown != nullptr)
+; 235  :                if (g_hShutdown != nullptr)
 
 	cmp	DWORD PTR ?g_hShutdown@@3RAXA, 0	; g_hShutdown
 	je	SHORT $LN4@
 
-; 225  :                  WaitForSingleObject (g_hShutdown, INFINITE);
+; 236  :                  WaitForSingleObject (g_hShutdown, INFINITE);
 
 	mov	eax, DWORD PTR ?g_hShutdown@@3RAXA	; g_hShutdown
 	push	-1
@@ -62699,19 +63261,19 @@ _user$ = 8						; size = 4
 	call	DWORD PTR __imp__WaitForSingleObject@8
 $LN4@:
 
-; 226  : 
-; 227  :                hModHookInstance = nullptr;
+; 237  : 
+; 238  :                hModHookInstance = nullptr;
 
 	mov	DWORD PTR ?hModHookInstance@@3PAUHINSTANCE__@@A, 0 ; hModHookInstance
 
-; 228  : 
-; 229  :                CloseHandle (GetCurrentThread ());
+; 239  : 
+; 240  :                CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 232  :              },
+; 243  :              },
 
 	xor	eax, eax
 	ret	4
@@ -62725,14 +63287,14 @@ _user$ = 8						; size = 4
 ??R<lambda_0b64b922eede83fc8ad9efc12102c151>@@QBEKPAX@Z PROC ; <lambda_0b64b922eede83fc8ad9efc12102c151>::operator(), COMDAT
 ; _this$ = ecx
 
-; 222  :                UNREFERENCED_PARAMETER (user);
-; 223  : 
-; 224  :                if (g_hShutdown != nullptr)
+; 233  :                UNREFERENCED_PARAMETER (user);
+; 234  : 
+; 235  :                if (g_hShutdown != nullptr)
 
 	cmp	DWORD PTR ?g_hShutdown@@3RAXA, 0	; g_hShutdown
 	je	SHORT $LN2@operator
 
-; 225  :                  WaitForSingleObject (g_hShutdown, INFINITE);
+; 236  :                  WaitForSingleObject (g_hShutdown, INFINITE);
 
 	mov	eax, DWORD PTR ?g_hShutdown@@3RAXA	; g_hShutdown
 	push	-1
@@ -62740,24 +63302,24 @@ _user$ = 8						; size = 4
 	call	DWORD PTR __imp__WaitForSingleObject@8
 $LN2@operator:
 
-; 226  : 
-; 227  :                hModHookInstance = nullptr;
+; 237  : 
+; 238  :                hModHookInstance = nullptr;
 
 	mov	DWORD PTR ?hModHookInstance@@3PAUHINSTANCE__@@A, 0 ; hModHookInstance
 
-; 228  : 
-; 229  :                CloseHandle (GetCurrentThread ());
+; 239  : 
+; 240  :                CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 230  : 
-; 231  :                return 0;
+; 241  : 
+; 242  :                return 0;
 
 	xor	eax, eax
 
-; 232  :              },
+; 243  :              },
 
 	ret	4
 ??R<lambda_0b64b922eede83fc8ad9efc12102c151>@@QBEKPAX@Z ENDP ; <lambda_0b64b922eede83fc8ad9efc12102c151>::operator()
@@ -62770,13 +63332,13 @@ _TEXT	SEGMENT
 _dwThreadId$ = 8					; size = 4
 ?SK_Inject_InvadingProcess@@YA_NK@Z PROC		; SK_Inject_InvadingProcess
 
-; 178  : {
+; 189  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 179  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 190  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	mov	edx, DWORD PTR _dwThreadId$[ebp]
 	mov	eax, OFFSET ?g_sHookedPIDs@@3PAJA
@@ -62789,34 +63351,34 @@ $LL4@SK_Inject_:
 	mov	ecx, DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 181  :     if (ReadAcquire (&g_sHookedPID) == static_cast <LONG> (dwThreadId))
+; 192  :     if (ReadAcquire (&g_sHookedPID) == static_cast <LONG> (dwThreadId))
 
 	cmp	ecx, edx
 	je	SHORT $LN10@SK_Inject_
 
-; 179  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 190  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	add	eax, 4
 	cmp	eax, OFFSET ?g_sHookedPIDs@@3PAJA+64
 	jne	SHORT $LL4@SK_Inject_
 
-; 183  :   }
-; 184  : 
-; 185  :   return false;
+; 194  :   }
+; 195  : 
+; 196  :   return false;
 
 	xor	al, al
 
-; 186  : }
+; 197  : }
 
 	pop	ebp
 	ret	0
 $LN10@SK_Inject_:
 
-; 182  :       return true;
+; 193  :       return true;
 
 	mov	al, 1
 
-; 186  : }
+; 197  : }
 
 	pop	ebp
 	ret	0
@@ -62834,7 +63396,7 @@ _TEXT	SEGMENT
 _dwExitCode$1 = -4					; size = 4
 ?SK_Inject_ValidateProcesses@@YAXXZ PROC		; SK_Inject_ValidateProcesses
 
-; 77   : {
+; 86   : {
 
 	npad	2
 	push	ebp
@@ -62842,7 +63404,7 @@ _dwExitCode$1 = -4					; size = 4
 	push	ecx
 	push	ebx
 
-; 78   :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 87   :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	mov	ebx, DWORD PTR __imp__CloseHandle@4
 	push	esi
@@ -62856,7 +63418,7 @@ $LL4@SK_Inject_:
 	mov	eax, DWORD PTR [esi]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 81   :       OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE, 
+; 90   :       OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE, 
 
 	push	eax
 	push	0
@@ -62864,9 +63426,9 @@ $LL4@SK_Inject_:
 	call	DWORD PTR __imp__OpenProcess@12
 	mov	edi, eax
 
-; 82   :                       ReadAcquire (&g_sHookedPID) );
-; 83   : 
-; 84   :     if (hProc == nullptr)
+; 91   :                       ReadAcquire (&g_sHookedPID) );
+; 92   : 
+; 93   :     if (hProc == nullptr)
 
 	test	edi, edi
 	jne	SHORT $LN5@SK_Inject_
@@ -62877,15 +63439,15 @@ $LL4@SK_Inject_:
 	mov	eax, DWORD PTR [esi]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 89   :     else
+; 98   :     else
 
 	jmp	SHORT $LN2@SK_Inject_
 $LN5@SK_Inject_:
 
-; 90   :     {
-; 91   :       DWORD dwExitCode = STILL_ACTIVE;
-; 92   : 
-; 93   :       GetExitCodeProcess (hProc, &dwExitCode);
+; 99   :     {
+; 100  :       DWORD dwExitCode = STILL_ACTIVE;
+; 101  : 
+; 102  :       GetExitCodeProcess (hProc, &dwExitCode);
 
 	lea	eax, DWORD PTR _dwExitCode$1[ebp]
 	mov	DWORD PTR _dwExitCode$1[ebp], 259	; 00000103H
@@ -62893,8 +63455,8 @@ $LN5@SK_Inject_:
 	push	edi
 	call	DWORD PTR __imp__GetExitCodeProcess@8
 
-; 94   : 
-; 95   :       if (dwExitCode != STILL_ACTIVE)
+; 103  : 
+; 104  :       if (dwExitCode != STILL_ACTIVE)
 
 	cmp	DWORD PTR _dwExitCode$1[ebp], 259	; 00000103H
 	je	SHORT $LN7@SK_Inject_
@@ -62906,13 +63468,13 @@ $LN5@SK_Inject_:
 $LN7@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 98   :       CloseHandle (hProc);
+; 107  :       CloseHandle (hProc);
 
 	push	edi
 	call	ebx
 $LN2@SK_Inject_:
 
-; 78   :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 87   :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	add	esi, 4
 	cmp	esi, OFFSET ?g_sHookedPIDs@@3PAJA+64
@@ -62921,9 +63483,9 @@ $LN2@SK_Inject_:
 	pop	esi
 	pop	ebx
 
-; 99   :     }
-; 100  :   }
-; 101  : }
+; 108  :     }
+; 109  :   }
+; 110  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -62936,7 +63498,7 @@ _TEXT	ENDS
 text$di	SEGMENT
 ??__E__SK_InjectionHistory@@YAXXZ PROC			; `dynamic initializer for '__SK_InjectionHistory'', COMDAT
 
-; 45   :                                     [MAX_INJECTED_PROC_HISTORY] = { };
+; 33   : SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 	npad	2
 	push	esi
@@ -62945,9 +63507,11 @@ text$di	SEGMENT
 	mov	esi, OFFSET ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A+561
 	npad	2
 $LL4@dynamic:
-	push	520					; 00000208H
-	lea	eax, DWORD PTR [esi-561]
-	push	0
+	xor	eax, eax
+	push	518					; 00000206H
+	push	eax
+	mov	WORD PTR [esi-561], ax
+	lea	eax, DWORD PTR [esi-559]
 	push	eax
 	call	_memset
 	mov	DWORD PTR [esi-41], 0
@@ -62963,12 +63527,103 @@ $LL4@dynamic:
 	mov	DWORD PTR [esi-569], 0
 	mov	BYTE PTR [esi-565], 0
 	sub	edi, 1
-	jne	SHORT $LL4@dynamic
+	jne	$LL4@dynamic
 	pop	edi
 	pop	esi
 	ret	0
 ??__E__SK_InjectionHistory@@YAXXZ ENDP			; `dynamic initializer for '__SK_InjectionHistory''
 text$di	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+;	COMDAT ??0SK_Thread_HybridSpinlock@@QAE@H@Z
+_TEXT	SEGMENT
+_spin_count$ = 8					; size = 4
+??0SK_Thread_HybridSpinlock@@QAE@H@Z PROC		; SK_Thread_HybridSpinlock::SK_Thread_HybridSpinlock, COMDAT
+; _this$ = ecx
+
+; 281  :   {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+
+; 259  :   };
+; 260  : 
+; 261  :   ~SK_Thread_CriticalSection (void) = default;
+; 262  : 
+; 263  :   void lock (void) {
+; 264  :     EnterCriticalSection (cs_);
+; 265  :   }
+; 266  : 
+; 267  :   void unlock (void)
+; 268  :   {
+; 269  :     LeaveCriticalSection (cs_);
+; 270  :   }
+; 271  : 
+; 272  : protected:
+; 273  :   CRITICAL_SECTION* cs_;
+; 274  : };
+; 275  : 
+; 276  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
+; 277  : {
+; 278  : public:
+; 279  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+
+	push	24					; 00000018H
+
+; 281  :   {
+
+	mov	esi, ecx
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 258  :     cs_ = pCS;
+
+	mov	DWORD PTR [esi], eax
+
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+
+	push	DWORD PTR _spin_count$[ebp]
+	push	eax
+	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
+
+; 283  :   }
+
+	mov	eax, esi
+	pop	esi
+	pop	ebp
+	ret	4
+??0SK_Thread_HybridSpinlock@@QAE@H@Z ENDP		; SK_Thread_HybridSpinlock::SK_Thread_HybridSpinlock
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+;	COMDAT ??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z
+_TEXT	SEGMENT
+_pCS$ = 8						; size = 4
+??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z PROC ; SK_Thread_CriticalSection::SK_Thread_CriticalSection, COMDAT
+; _this$ = ecx
+
+; 256  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 257  :   {
+; 258  :     cs_ = pCS;
+
+	mov	eax, DWORD PTR _pCS$[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 259  :   };
+
+	mov	eax, ecx
+	pop	ebp
+	ret	4
+??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z ENDP ; SK_Thread_CriticalSection::SK_Thread_CriticalSection
+_TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ;	COMDAT ?_Xran@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@SAXXZ
@@ -72802,18 +73457,65 @@ _TEXT	SEGMENT
 _idx$ = 8						; size = 4
 ?SK_Inject_GetRecord@@YAPAUSK_InjectionRecord_s@@H@Z PROC ; SK_Inject_GetRecord
 
-; 67   : {
+; 69   : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
+	push	ebx
+	push	esi
 
-; 68   :   return &__SK_InjectionHistory [idx];
+; 70   :   wcsncpy (__SK_InjectionHistory [idx].process.name,   &__SK_InjectionHistory_name   [idx * MAX_PATH], MAX_PATH - 1);
 
-	imul	eax, DWORD PTR _idx$[ebp], 568
-	add	eax, OFFSET ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A ; __SK_InjectionHistory
+	mov	esi, DWORD PTR _idx$[ebp]
+	push	edi
+	imul	edi, esi, 568
+	imul	eax, esi, 520
+	push	259					; 00000103H
+	add	eax, OFFSET ?__SK_InjectionHistory_name@@3PA_WA ; __SK_InjectionHistory_name
+	push	eax
+	lea	ebx, DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[edi]
+	push	ebx
+	call	DWORD PTR __imp__wcsncpy
 
-; 69   : }
+; 71   :            __SK_InjectionHistory [idx].process.id     = __SK_InjectionHistory_ids    [idx];
+; 72   :            __SK_InjectionHistory [idx].process.inject = __SK_InjectionHistory_inject [idx];
+; 73   :            __SK_InjectionHistory [idx].process.eject  = __SK_InjectionHistory_eject  [idx];
+
+	mov	ecx, DWORD PTR ?__SK_InjectionHistory_eject@@3PA_JA[esi*8]
+	add	esp, 12					; 0000000cH
+	mov	eax, DWORD PTR ?__SK_InjectionHistory_ids@@3PAKA[esi*4]
+	mov	DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[edi+536], ecx
+	mov	ecx, DWORD PTR ?__SK_InjectionHistory_eject@@3PA_JA[esi*8+4]
+	mov	DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[edi+540], ecx
+
+; 74   :            
+; 75   :            __SK_InjectionHistory [idx].render.api     = __SK_InjectionHistory_api    [idx];
+
+	mov	ecx, DWORD PTR ?__SK_InjectionHistory_api@@3PAW4SK_RenderAPI@@A[esi*4]
+	mov	DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[edi+520], eax
+	mov	eax, DWORD PTR ?__SK_InjectionHistory_inject@@3PA_JA[esi*8]
+	mov	DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[edi+544], ecx
+
+; 76   :            __SK_InjectionHistory [idx].render.frames  = __SK_InjectionHistory_frames [idx];
+
+	mov	ecx, DWORD PTR ?__SK_InjectionHistory_frames@@3PA_KA[esi*8]
+	mov	DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[edi+528], eax
+	mov	eax, DWORD PTR ?__SK_InjectionHistory_inject@@3PA_JA[esi*8+4]
+	mov	DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[edi+552], ecx
+	mov	ecx, DWORD PTR ?__SK_InjectionHistory_frames@@3PA_KA[esi*8+4]
+	mov	DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[edi+532], eax
+
+; 77   : 
+; 78   :   return &__SK_InjectionHistory [idx];
+
+	mov	eax, ebx
+	mov	DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[edi+556], ecx
+	pop	edi
+	pop	esi
+	pop	ebx
+
+; 79   : }
 
 	pop	ebp
 	ret	0
@@ -72826,10 +73528,13 @@ _TEXT	SEGMENT
 ; _this$ = ecx
 	npad	2
 	push	esi
-	push	520					; 00000208H
 	mov	esi, ecx
-	push	0
-	push	esi
+	xor	eax, eax
+	push	518					; 00000206H
+	push	eax
+	mov	WORD PTR [esi], ax
+	lea	eax, DWORD PTR [esi+2]
+	push	eax
 	call	_memset
 	mov	DWORD PTR [esi+520], 0
 	add	esp, 12					; 0000000cH
@@ -72877,10 +73582,13 @@ _TEXT	SEGMENT
 ; _this$ = ecx
 	npad	2
 	push	esi
-	push	520					; 00000208H
 	mov	esi, ecx
-	push	0
-	push	esi
+	xor	eax, eax
+	push	518					; 00000206H
+	push	eax
+	mov	WORD PTR [esi], ax
+	lea	eax, DWORD PTR [esi+2]
+	push	eax
 	call	_memset
 	add	esp, 12					; 0000000cH
 	mov	DWORD PTR [esi+520], 0
@@ -72906,26 +73614,27 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 _TEXT	SEGMENT
-$T1 = -24						; size = 24
+_wszName$1 = -544					; size = 520
+$T2 = -24						; size = 24
 ?SK_Inject_AcquireProcess@@YAXXZ PROC			; SK_Inject_AcquireProcess
 
-; 131  : {
+; 140  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
-	sub	esp, 24					; 00000018H
+	sub	esp, 544				; 00000220H
 
-; 132  :   if (! SK_IsInjected ())
+; 141  :   if (! SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	$LN3@SK_Inject_
 
-; 133  :     return;
-; 134  : 
-; 135  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 142  :     return;
+; 143  : 
+; 144  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	push	esi
 	push	edi
@@ -72933,8 +73642,8 @@ $T1 = -24						; size = 24
 	mov	esi, OFFSET ?g_sHookedPIDs@@3PAJA
 $LL4@SK_Inject_:
 
-; 136  :   {
-; 137  :     if (! InterlockedCompareExchange (&g_sHookedPID, GetCurrentProcessId (), 0))
+; 145  :   {
+; 146  :     if (! InterlockedCompareExchange (&g_sHookedPID, GetCurrentProcessId (), 0))
 
 	call	edi
 	mov	ecx, eax
@@ -72943,9 +73652,9 @@ $LL4@SK_Inject_:
 	test	eax, eax
 	je	SHORT $LN62@SK_Inject_
 
-; 133  :     return;
-; 134  : 
-; 135  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 142  :     return;
+; 143  : 
+; 144  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	add	esi, 4
 	cmp	esi, OFFSET ?g_sHookedPIDs@@3PAJA+64
@@ -72953,95 +73662,97 @@ $LL4@SK_Inject_:
 	pop	edi
 	pop	esi
 
-; 167  :                           GET_MODULE_HANDLE_EX_FLAG_PIN,
-; 168  :                             (LPCWSTR)&SK_Inject_AcquireProcess,
-; 169  :                                &hModHookInstance );
-; 170  : 
-; 171  :       break;
-; 172  :     }
-; 173  :   }
-; 174  : }
+; 179  :                             (LPCWSTR)&SK_Inject_AcquireProcess,
+; 180  :                                &hModHookInstance );
+; 181  : 
+; 182  :       break;
+; 183  :     }
+; 184  :   }
+; 185  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN62@SK_Inject_:
 
-; 138  :     {
-; 139  :       ULONG injection_idx = InterlockedIncrement (&SK_InjectionRecord_s::count);
+; 147  :     {
+; 148  :       ULONG injection_idx = InterlockedIncrement (&SK_InjectionRecord_s::count);
 
 	mov	eax, 1
 	lock	 xadd	 DWORD PTR ?count@SK_InjectionRecord_s@@2JC, eax
 	inc	eax
 
-; 140  : 
-; 141  :       // Rollover and start erasing the oldest history
-; 142  :       if (injection_idx >= MAX_INJECTED_PROC_HISTORY)
+; 149  : 
+; 150  :       // Rollover and start erasing the oldest history
+; 151  :       if (injection_idx >= MAX_INJECTED_PROC_HISTORY)
 
 	cmp	eax, 64					; 00000040H
 	jb	SHORT $LN9@SK_Inject_
 
-; 143  :       {
-; 144  :         if (InterlockedCompareExchange (&SK_InjectionRecord_s::count, 0, injection_idx))
+; 152  :       {
+; 153  :         if (InterlockedCompareExchange (&SK_InjectionRecord_s::count, 0, injection_idx))
 
 	xor	ecx, ecx
 	mov	edx, OFFSET ?count@SK_InjectionRecord_s@@2JC ; SK_InjectionRecord_s::count
 	lock	 cmpxchg DWORD PTR [edx], ecx
 	test	eax, eax
 
-; 145  :         {
-; 146  :           injection_idx = 1;
+; 154  :         {
+; 155  :           injection_idx = 1;
 
 	mov	eax, 1
 	je	SHORT $LN8@SK_Inject_
 
-; 147  :           InterlockedIncrement (&SK_InjectionRecord_s::rollovers);
+; 156  :           InterlockedIncrement (&SK_InjectionRecord_s::rollovers);
 
 	lock	 inc	 DWORD PTR ?rollovers@SK_InjectionRecord_s@@2JC
 
-; 148  :         }
-; 149  : 
-; 150  :         else
+; 157  :         }
+; 158  : 
+; 159  :         else
 
 	jmp	SHORT $LN9@SK_Inject_
 $LN8@SK_Inject_:
 
-; 151  :           injection_idx = InterlockedIncrement (&SK_InjectionRecord_s::count);
+; 160  :           injection_idx = InterlockedIncrement (&SK_InjectionRecord_s::count);
 
 	lock	 xadd	 DWORD PTR ?count@SK_InjectionRecord_s@@2JC, eax
 	inc	eax
 $LN9@SK_Inject_:
 
-; 152  :       }
-; 153  : 
-; 154  :       local_record =
+; 161  :       }
+; 162  : 
+; 163  :       local_record =
 
-	imul	eax, eax, 568
-	lea	eax, DWORD PTR ?__SK_InjectionHistory@@3PAUSK_InjectionRecord_s@@A[eax-568]
-	mov	DWORD PTR ?local_record@@3PAUSK_InjectionRecord_s@@A, eax ; local_record
+	dec	eax
+	mov	DWORD PTR ?local_record@@3JA, eax	; local_record
 
-; 155  :         &__SK_InjectionHistory [injection_idx - 1];
-; 156  : 
-; 157  :                 local_record->process.id = GetCurrentProcessId ();
+; 164  :         injection_idx - 1;
+; 165  : 
+; 166  :                 __SK_InjectionHistory_ids    [local_record] = GetCurrentProcessId ();
 
 	call	edi
-	mov	ecx, DWORD PTR ?local_record@@3PAUSK_InjectionRecord_s@@A ; local_record
-	mov	DWORD PTR [ecx+520], eax
+	mov	ecx, DWORD PTR ?local_record@@3JA	; local_record
+	mov	DWORD PTR ?__SK_InjectionHistory_ids@@3PAKA[ecx*4], eax
 
-; 158  :       _time64 (&local_record->process.inject);
+; 167  :       _time64 (&__SK_InjectionHistory_inject [local_record]);
 
-	mov	eax, DWORD PTR ?local_record@@3PAUSK_InjectionRecord_s@@A ; local_record
-	add	eax, 528				; 00000210H
+	lea	eax, DWORD PTR ?__SK_InjectionHistory_inject@@3PA_JA[ecx*8]
 	push	eax
 	call	DWORD PTR __imp___time64
-	add	esp, 4
+	push	520					; 00000208H
+	lea	eax, DWORD PTR _wszName$1[ebp]
+	push	0
+	push	eax
+	call	_memset
+	add	esp, 16					; 00000010H
 
-; 159  :       wcsncpy ( local_record->process.name,
+; 171  :       wcsncpy (wszName, SK_GetModuleFullName (GetModuleHandle (nullptr)).c_str (),
 
 	push	0
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
-	lea	eax, DWORD PTR $T1[ebp]
+	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
 	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
 	add	esp, 8
@@ -73062,20 +73773,22 @@ $LN9@SK_Inject_:
 $LN25@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 159  :       wcsncpy ( local_record->process.name,
+; 171  :       wcsncpy (wszName, SK_GetModuleFullName (GetModuleHandle (nullptr)).c_str (),
 
+	mov	esi, DWORD PTR __imp__wcsncpy
 	push	259					; 00000103H
 	push	eax
-	push	DWORD PTR ?local_record@@3PAUSK_InjectionRecord_s@@A ; local_record
-	call	DWORD PTR __imp__wcsncpy
+	lea	eax, DWORD PTR _wszName$1[ebp]
+	push	eax
+	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T1[ebp+20]
+	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 159  :       wcsncpy ( local_record->process.name,
+; 171  :       wcsncpy (wszName, SK_GetModuleFullName (GetModuleHandle (nullptr)).c_str (),
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -73102,37 +73815,49 @@ $LN25@SK_Inject_:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR $T1[ebp]
+	push	DWORD PTR $T2[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 $LN35@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 163  :       PathStripPath (local_record->process.name);
+; 173  :       PathStripPath (wszName);
 
-	push	DWORD PTR ?local_record@@3PAUSK_InjectionRecord_s@@A ; local_record
+	lea	eax, DWORD PTR _wszName$1[ebp]
+	push	eax
 	call	DWORD PTR __imp__PathStripPathW@4
 
-; 164  : 
-; 165  :       // Hold a reference so that removing the CBT hook doesn't crash the software
-; 166  :       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+; 174  : 
+; 175  :       wcsncpy (&__SK_InjectionHistory_name [local_record * MAX_PATH], wszName, MAX_PATH - 1);
+
+	push	259					; 00000103H
+	lea	eax, DWORD PTR _wszName$1[ebp]
+	push	eax
+	imul	eax, DWORD PTR ?local_record@@3JA, 520	; local_record
+	add	eax, OFFSET ?__SK_InjectionHistory_name@@3PA_WA ; __SK_InjectionHistory_name
+	push	eax
+	call	esi
+	add	esp, 12					; 0000000cH
+
+; 176  : 
+; 177  :       // Hold a reference so that removing the CBT hook doesn't crash the software
+; 178  :       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
 
 	push	OFFSET ?hModHookInstance@@3PAUHINSTANCE__@@A ; hModHookInstance
 	push	OFFSET ?SK_Inject_AcquireProcess@@YAXXZ	; SK_Inject_AcquireProcess
-	push	5
+	push	4
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 	pop	edi
 	pop	esi
 $LN3@SK_Inject_:
 
-; 167  :                           GET_MODULE_HANDLE_EX_FLAG_PIN,
-; 168  :                             (LPCWSTR)&SK_Inject_AcquireProcess,
-; 169  :                                &hModHookInstance );
-; 170  : 
-; 171  :       break;
-; 172  :     }
-; 173  :   }
-; 174  : }
+; 179  :                             (LPCWSTR)&SK_Inject_AcquireProcess,
+; 180  :                                &hModHookInstance );
+; 181  : 
+; 182  :       break;
+; 183  :     }
+; 184  :   }
+; 185  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -73144,16 +73869,16 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_Inject_ReleaseProcess@@YAXXZ PROC			; SK_Inject_ReleaseProcess
 
-; 106  :   if (! SK_IsInjected ())
+; 115  :   if (! SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	je	SHORT $LN6@SK_Inject_
+	je	SHORT $LN1@SK_Inject_
 
-; 107  :     return;
-; 108  : 
-; 109  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 116  :     return;
+; 117  : 
+; 118  :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	push	esi
 	push	edi
@@ -73161,8 +73886,8 @@ _TEXT	SEGMENT
 	mov	esi, OFFSET ?g_sHookedPIDs@@3PAJA
 $LL4@SK_Inject_:
 
-; 110  :   {
-; 111  :     InterlockedCompareExchange (&g_sHookedPID, 0, GetCurrentProcessId ());
+; 119  :   {
+; 120  :     InterlockedCompareExchange (&g_sHookedPID, 0, GetCurrentProcessId ());
 
 	call	edi
 	xor	ecx, ecx
@@ -73171,48 +73896,44 @@ $LL4@SK_Inject_:
 	cmp	esi, OFFSET ?g_sHookedPIDs@@3PAJA+64
 	jne	SHORT $LL4@SK_Inject_
 
-; 112  :   }
-; 113  : 
-; 114  :   if (local_record != nullptr)
+; 121  :   }
+; 122  : 
+; 123  :   //if (local_record != 0)
+; 124  :   {
+; 125  :     _time64 (&__SK_InjectionHistory_eject [local_record]);
 
-	mov	eax, DWORD PTR ?local_record@@3PAUSK_InjectionRecord_s@@A ; local_record
-	pop	edi
-	pop	esi
-	test	eax, eax
-	je	SHORT $LN6@SK_Inject_
-
-; 115  :   {
-; 116  :     _time64 (&local_record->process.eject);
-
-	add	eax, 536				; 00000218H
+	mov	eax, DWORD PTR ?local_record@@3JA	; local_record
+	lea	eax, DWORD PTR ?__SK_InjectionHistory_eject@@3PA_JA[eax*8]
 	push	eax
 	call	DWORD PTR __imp___time64
 	add	esp, 4
 
-; 117  : 
-; 118  :     local_record->render.api    = SK_GetCurrentRenderBackend ().api;
+; 126  : 
+; 127  :     __SK_InjectionHistory_api    [local_record] = SK_GetCurrentRenderBackend ().api;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	ecx, DWORD PTR [eax]
-	mov	eax, DWORD PTR ?local_record@@3PAUSK_InjectionRecord_s@@A ; local_record
-	mov	DWORD PTR [eax+544], ecx
+	mov	eax, DWORD PTR ?local_record@@3JA	; local_record
+	mov	DWORD PTR ?__SK_InjectionHistory_api@@3PAW4SK_RenderAPI@@A[eax*4], ecx
 
-; 119  :     local_record->render.frames = SK_GetFramesDrawn ();
+; 128  :     __SK_InjectionHistory_frames [local_record] = SK_GetFramesDrawn          ();
 
 	call	?SK_GetFramesDrawn@@YGKXZ		; SK_GetFramesDrawn
-	mov	ecx, DWORD PTR ?local_record@@3PAUSK_InjectionRecord_s@@A ; local_record
-	mov	DWORD PTR [ecx+552], eax
-	mov	DWORD PTR [ecx+556], 0
-$LN6@SK_Inject_:
+	mov	ecx, DWORD PTR ?local_record@@3JA	; local_record
+	pop	edi
+	pop	esi
+	mov	DWORD PTR ?__SK_InjectionHistory_frames@@3PA_KA[ecx*8], eax
+	mov	DWORD PTR ?__SK_InjectionHistory_frames@@3PA_KA[ecx*8+4], 0
+$LN1@SK_Inject_:
 
-; 120  : 
-; 121  :     //local_record.input.xinput  = SK_Input_
-; 122  :     // ...
-; 123  :     // ...
-; 124  :     // ...
-; 125  :     // ...
-; 126  :   }
-; 127  : }
+; 129  : 
+; 130  :     //local_record.input.xinput  = SK_Input_
+; 131  :     // ...
+; 132  :     // ...
+; 133  :     // ...
+; 134  :     // ...
+; 135  :   }
+; 136  : }
 
 	ret	0
 ?SK_Inject_ReleaseProcess@@YAXXZ ENDP			; SK_Inject_ReleaseProcess
@@ -73291,7 +74012,7 @@ __$EHRec$ = -12						; size = 12
 _role$ = 8						; size = 4
 ?SK_Inject_SwitchToRenderWrapperEx@@YA_NW4DLL_ROLE@@@Z PROC ; SK_Inject_SwitchToRenderWrapperEx
 
-; 668  : {
+; 822  : {
 
 	npad	2
 	push	ebp
@@ -73302,7 +74023,7 @@ _role$ = 8						; size = 4
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 669  :   wchar_t wszIn  [MAX_PATH * 2] = { };
+; 823  :   wchar_t wszIn  [MAX_PATH * 2] = { };
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	sub	esp, 2152				; 00000868H
@@ -73314,7 +74035,7 @@ _role$ = 8						; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 670  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 824  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -73339,7 +74060,7 @@ _role$ = 8						; size = 4
 $LN37@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 670  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 824  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	mov	esi, DWORD PTR __imp__lstrcatW@8
 	push	eax
@@ -73372,7 +74093,7 @@ $LN37@SK_Inject_:
 $LN46@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 672  :   wchar_t wszOut [MAX_PATH * 2] = { };
+; 826  :   wchar_t wszOut [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -73381,7 +74102,7 @@ $LN46@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 673  :   lstrcatW (wszOut, SK_GetHostPath ());
+; 827  :   lstrcatW (wszOut, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
@@ -73389,8 +74110,8 @@ $LN46@SK_Inject_:
 	push	eax
 	call	esi
 
-; 674  : 
-; 675  :   switch (role)
+; 828  : 
+; 829  :   switch (role)
 
 	mov	eax, DWORD PTR _role$[ebp]
 	cmp	eax, 1
@@ -73401,115 +74122,115 @@ $LN46@SK_Inject_:
 	cmp	eax, -1073741792			; c0000020H
 	jne	SHORT $LN2@SK_Inject_
 
-; 688  : 
-; 689  : #ifndef _WIN64
-; 690  :     case DLL_ROLE::DDraw:
-; 691  :       lstrcatW (wszOut, L"\\ddraw.dll");
+; 842  : 
+; 843  : #ifndef _WIN64
+; 844  :     case DLL_ROLE::DDraw:
+; 845  :       lstrcatW (wszOut, L"\\ddraw.dll");
 
-	push	OFFSET $SG147861
+	push	OFFSET $SG257089
 
-; 692  :       break;
+; 846  :       break;
 
 	jmp	SHORT $LN417@SK_Inject_
 $LN8@SK_Inject_:
 
-; 693  : 
-; 694  :     case DLL_ROLE::D3D8:
-; 695  :       lstrcatW (wszOut, L"\\d3d8.dll");
+; 847  : 
+; 848  :     case DLL_ROLE::D3D8:
+; 849  :       lstrcatW (wszOut, L"\\d3d8.dll");
 
-	push	OFFSET $SG147863
+	push	OFFSET $SG257091
 	jmp	SHORT $LN417@SK_Inject_
 $LN5@SK_Inject_:
 
-; 679  :       break;
-; 680  : 
-; 681  :     case DLL_ROLE::DXGI:
-; 682  :       lstrcatW (wszOut, L"\\dxgi.dll");
+; 833  :       break;
+; 834  : 
+; 835  :     case DLL_ROLE::DXGI:
+; 836  :       lstrcatW (wszOut, L"\\dxgi.dll");
 
-	push	OFFSET $SG147857
+	push	OFFSET $SG257085
 
-; 683  :       break;
+; 837  :       break;
 
 	jmp	SHORT $LN417@SK_Inject_
 $LN14@SK_Inject_:
 
-; 674  : 
-; 675  :   switch (role)
+; 828  : 
+; 829  :   switch (role)
 
 	sub	eax, 2
 	je	SHORT $LN4@SK_Inject_
 	sub	eax, 2
 	jne	SHORT $LN2@SK_Inject_
 
-; 684  : 
-; 685  :     case DLL_ROLE::OpenGL:
-; 686  :       lstrcatW (wszOut, L"\\OpenGL32.dll");
+; 838  : 
+; 839  :     case DLL_ROLE::OpenGL:
+; 840  :       lstrcatW (wszOut, L"\\OpenGL32.dll");
 
-	push	OFFSET $SG147859
+	push	OFFSET $SG257087
 
-; 687  :       break;
+; 841  :       break;
 
 	jmp	SHORT $LN417@SK_Inject_
 $LN4@SK_Inject_:
 
-; 676  :   {
-; 677  :     case DLL_ROLE::D3D9:
-; 678  :       lstrcatW (wszOut, L"\\d3d9.dll");
+; 830  :   {
+; 831  :     case DLL_ROLE::D3D9:
+; 832  :       lstrcatW (wszOut, L"\\d3d9.dll");
 
-	push	OFFSET $SG147855
+	push	OFFSET $SG257083
 $LN417@SK_Inject_:
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 $LN2@SK_Inject_:
 
-; 696  :       break;
-; 697  : #endif
-; 698  : 
-; 699  :     //case SK_RenderAPI::Vulkan:
-; 700  :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 701  :       //break;
-; 702  :   }
-; 703  : 
-; 704  : 
-; 705  :   //std::queue <DWORD> suspended =
-; 706  :   //  SK_SuspendAllOtherThreads ();
-; 707  :   //
-; 708  :   //extern volatile LONG   SK_bypass_dialog_active;
-; 709  :   //InterlockedIncrement (&SK_bypass_dialog_active);
-; 710  :   //
-; 711  :   //int mb_ret = 
-; 712  :   //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
-; 713  :   //                       L"\r\n"
-; 714  :   //                       L"Linked installs allow you to update wrapped games the same way "
-; 715  :   //                       L"as global injection, but require administrator privileges to setup.",
-; 716  :   //                         L"Perform a Linked Wrapper Install?",
-; 717  :   //                           MB_YESNO | MB_ICONQUESTION
-; 718  :   //                     );
-; 719  :   //
-; 720  :   //InterlockedIncrement (&SK_bypass_dialog_active);
-; 721  :   //
-; 722  :   //SK_ResumeThreads (suspended);
-; 723  : 
-; 724  :   //if ( mb_ret == IDYES )
-; 725  :   //{
-; 726  :   //  wchar_t   wszCmd [MAX_PATH * 3] = { };
-; 727  :   //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
-; 728  :   //
-; 729  :   //  ShellExecuteW ( GetActiveWindow (),
-; 730  :   //                    L"runas",
-; 731  :   //                      L"cmd.exe",
-; 732  :   //                        wszCmd,
-; 733  :   //                          nullptr,
-; 734  :   //                            SW_HIDE );
-; 735  :   //
-; 736  :   //  SK_Inject_EnableCentralizedConfig ();
-; 737  :   //
-; 738  :   //  return true;
-; 739  :   //}
-; 740  : 
-; 741  : 
-; 742  :   if (CopyFile (wszIn, wszOut, TRUE))
+; 850  :       break;
+; 851  : #endif
+; 852  : 
+; 853  :     //case SK_RenderAPI::Vulkan:
+; 854  :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 855  :       //break;
+; 856  :   }
+; 857  : 
+; 858  : 
+; 859  :   //std::queue <DWORD> suspended =
+; 860  :   //  SK_SuspendAllOtherThreads ();
+; 861  :   //
+; 862  :   //extern volatile LONG   SK_bypass_dialog_active;
+; 863  :   //InterlockedIncrement (&SK_bypass_dialog_active);
+; 864  :   //
+; 865  :   //int mb_ret = 
+; 866  :   //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
+; 867  :   //                       L"\r\n"
+; 868  :   //                       L"Linked installs allow you to update wrapped games the same way "
+; 869  :   //                       L"as global injection, but require administrator privileges to setup.",
+; 870  :   //                         L"Perform a Linked Wrapper Install?",
+; 871  :   //                           MB_YESNO | MB_ICONQUESTION
+; 872  :   //                     );
+; 873  :   //
+; 874  :   //InterlockedIncrement (&SK_bypass_dialog_active);
+; 875  :   //
+; 876  :   //SK_ResumeThreads (suspended);
+; 877  : 
+; 878  :   //if ( mb_ret == IDYES )
+; 879  :   //{
+; 880  :   //  wchar_t   wszCmd [MAX_PATH * 3] = { };
+; 881  :   //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
+; 882  :   //
+; 883  :   //  ShellExecuteW ( GetActiveWindow (),
+; 884  :   //                    L"runas",
+; 885  :   //                      L"cmd.exe",
+; 886  :   //                        wszCmd,
+; 887  :   //                          nullptr,
+; 888  :   //                            SW_HIDE );
+; 889  :   //
+; 890  :   //  SK_Inject_EnableCentralizedConfig ();
+; 891  :   //
+; 892  :   //  return true;
+; 893  :   //}
+; 894  : 
+; 895  : 
+; 896  :   if (CopyFile (wszIn, wszOut, TRUE))
 
 	mov	edi, DWORD PTR __imp__CopyFileW@12
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -73521,23 +74242,23 @@ $LN2@SK_Inject_:
 	test	eax, eax
 	je	$LN9@SK_Inject_
 
-; 743  :   {
-; 744  :     SK_Inject_EnableCentralizedConfig ();
+; 897  :   {
+; 898  :     SK_Inject_EnableCentralizedConfig ();
 
 	call	?SK_Inject_EnableCentralizedConfig@@YAXXZ ; SK_Inject_EnableCentralizedConfig
 
-; 745  : 
-; 746  :     *wszOut = L'\0';
+; 899  : 
+; 900  :     *wszOut = L'\0';
 
 	xor	eax, eax
 	mov	WORD PTR _wszOut$[ebp], ax
 
-; 747  :     *wszIn  = L'\0';
+; 901  :     *wszIn  = L'\0';
 
 	mov	WORD PTR _wszIn$[ebp], ax
 
-; 748  : 
-; 749  :     lstrcatW (wszOut, SK_GetHostPath ());
+; 902  : 
+; 903  :     lstrcatW (wszOut, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
@@ -73545,28 +74266,28 @@ $LN2@SK_Inject_:
 	push	eax
 	call	esi
 
-; 750  : 
-; 751  : #ifdef _WIN64
-; 752  :     lstrcatW (wszIn,  L"SpecialK64.pdb");
-; 753  :     lstrcatW (wszOut, L"\\SpecialK64.pdb");
-; 754  : #else
-; 755  :     lstrcatW (wszIn,  L"SpecialK32.pdb");
+; 904  : 
+; 905  : #ifdef _WIN64
+; 906  :     lstrcatW (wszIn,  L"SpecialK64.pdb");
+; 907  :     lstrcatW (wszOut, L"\\SpecialK64.pdb");
+; 908  : #else
+; 909  :     lstrcatW (wszIn,  L"SpecialK32.pdb");
 
-	push	OFFSET $SG147865
+	push	OFFSET $SG257093
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	esi
 
-; 756  :     lstrcatW (wszOut, L"\\SpecialK32.pdb");
+; 910  :     lstrcatW (wszOut, L"\\SpecialK32.pdb");
 
-	push	OFFSET $SG147866
+	push	OFFSET $SG257094
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 
-; 757  : #endif
-; 758  : 
-; 759  :     if (! CopyFileW (wszIn, wszOut, TRUE))
+; 911  : #endif
+; 912  : 
+; 913  :     if (! CopyFileW (wszIn, wszOut, TRUE))
 
 	push	1
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -73577,7 +74298,7 @@ $LN2@SK_Inject_:
 	test	eax, eax
 	jne	SHORT $LN10@SK_Inject_
 
-; 760  :       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
+; 914  :       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
 
 	push	eax
 	push	eax
@@ -73590,18 +74311,18 @@ $LN2@SK_Inject_:
 	call	DWORD PTR __imp__ReplaceFileW@24
 $LN10@SK_Inject_:
 
-; 761  : 
-; 762  :     *wszIn = L'\0';
+; 915  : 
+; 916  :     *wszIn = L'\0';
 
 	xor	eax, eax
 	mov	WORD PTR _wszIn$[ebp], ax
 
-; 765  :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
+; 919  :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
 
 	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
 	push	eax
 	lea	eax, DWORD PTR _ver_dir$3[ebp]
-	push	OFFSET $SG147868
+	push	OFFSET $SG257096
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
 	add	esp, 12					; 0000000cH
@@ -73616,7 +74337,7 @@ $LN10@SK_Inject_:
 	lea	eax, DWORD PTR _ver_dir$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 765  :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
+; 919  :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -73626,12 +74347,12 @@ $LN10@SK_Inject_:
 	cmovae	eax, DWORD PTR _ver_dir$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 768  :       GetFileAttributesA (ver_dir.c_str ());
+; 922  :       GetFileAttributesA (ver_dir.c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesA@4
 
-; 770  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+; 924  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
 
 	cmp	eax, -1
 	jne	SHORT $LN12@SK_Inject_
@@ -73646,7 +74367,7 @@ $LN10@SK_Inject_:
 	lea	eax, DWORD PTR _ver_dir$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 770  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+; 924  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
 
 	push	0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -73656,7 +74377,7 @@ $LN10@SK_Inject_:
 	cmovae	eax, DWORD PTR _ver_dir$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 770  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+; 924  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
 
 	push	eax
 	call	DWORD PTR __imp__CreateDirectoryA@8
@@ -73664,7 +74385,7 @@ $LN10@SK_Inject_:
 	je	$LN11@SK_Inject_
 $LN12@SK_Inject_:
 
-; 773  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 927  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -73689,7 +74410,7 @@ $LN12@SK_Inject_:
 $LN124@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 773  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 927  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszIn$[ebp]
@@ -73726,21 +74447,21 @@ $LN124@SK_Inject_:
 $LN133@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 774  :       PathRemoveFileSpecW  (wszIn);
+; 928  :       PathRemoveFileSpecW  (wszIn);
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathRemoveFileSpecW@4
 
-; 775  : 
-; 776  :       lstrcatW (wszIn, L"\\Version\\installed.ini");
+; 929  : 
+; 930  :       lstrcatW (wszIn, L"\\Version\\installed.ini");
 
-	push	OFFSET $SG147871
+	push	OFFSET $SG257099
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	esi
 
-; 780  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 934  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	sub	esp, 24					; 00000018H
 	xor	eax, eax
@@ -73777,7 +74498,7 @@ $LN133@SK_Inject_:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 780  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 934  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
@@ -73800,7 +74521,7 @@ $LN133@SK_Inject_:
 $LN213@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 780  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 934  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -73837,21 +74558,21 @@ $LN213@SK_Inject_:
 $LN222@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 781  :       lstrcatW (wszOut, L"\\installed.ini");
+; 935  :       lstrcatW (wszOut, L"\\installed.ini");
 
-	push	OFFSET $SG147872
+	push	OFFSET $SG257100
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 
-; 782  : 
-; 783  :       DeleteFileW (       wszOut);
+; 936  : 
+; 937  :       DeleteFileW (       wszOut);
 
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	DWORD PTR __imp__DeleteFileW@4
 
-; 784  :       CopyFile    (wszIn, wszOut, FALSE);
+; 938  :       CopyFile    (wszIn, wszOut, FALSE);
 
 	push	0
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -73860,13 +74581,13 @@ $LN222@SK_Inject_:
 	push	eax
 	call	edi
 
-; 785  : 
-; 786  :       *wszIn = L'\0';
+; 939  : 
+; 940  :       *wszIn = L'\0';
 
 	xor	eax, eax
 	mov	WORD PTR _wszIn$[ebp], ax
 
-; 788  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 942  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -73891,7 +74612,7 @@ $LN222@SK_Inject_:
 $LN262@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 788  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 942  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszIn$[ebp]
@@ -73928,21 +74649,21 @@ $LN262@SK_Inject_:
 $LN271@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 789  :       PathRemoveFileSpecW  (wszIn);
+; 943  :       PathRemoveFileSpecW  (wszIn);
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathRemoveFileSpecW@4
 
-; 790  : 
-; 791  :       lstrcatW (wszIn, L"\\Version\\repository.ini");
+; 944  : 
+; 945  :       lstrcatW (wszIn, L"\\Version\\repository.ini");
 
-	push	OFFSET $SG147873
+	push	OFFSET $SG257101
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	esi
 
-; 795  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 949  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	sub	esp, 24					; 00000018H
 	xor	eax, eax
@@ -73979,7 +74700,7 @@ $LN271@SK_Inject_:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 795  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 949  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -74002,7 +74723,7 @@ $LN271@SK_Inject_:
 $LN351@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 795  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 949  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -74039,21 +74760,21 @@ $LN351@SK_Inject_:
 $LN360@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 796  :       lstrcatW (wszOut, L"\\repository.ini");
+; 950  :       lstrcatW (wszOut, L"\\repository.ini");
 
-	push	OFFSET $SG147874
+	push	OFFSET $SG257102
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 
-; 797  : 
-; 798  :       DeleteFileW (       wszOut);
+; 951  : 
+; 952  :       DeleteFileW (       wszOut);
 
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	DWORD PTR __imp__DeleteFileW@4
 
-; 799  :       CopyFile    (wszIn, wszOut, FALSE);
+; 953  :       CopyFile    (wszIn, wszOut, FALSE);
 
 	push	0
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -74093,14 +74814,14 @@ $LN11@SK_Inject_:
 $LN390@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 802  :     return true;
+; 956  :     return true;
 
 	mov	al, 1
 
-; 803  :   }
-; 804  : 
-; 805  :   return false;
-; 806  : }
+; 957  :   }
+; 958  : 
+; 959  :   return false;
+; 960  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -74201,7 +74922,7 @@ $T7 = -40						; size = 24
 __$EHRec$ = -12						; size = 12
 ?SK_Inject_SwitchToRenderWrapper@@YA_NXZ PROC		; SK_Inject_SwitchToRenderWrapper
 
-; 810  : {
+; 964  : {
 
 	npad	2
 	push	ebp
@@ -74212,7 +74933,7 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 811  :   wchar_t wszIn [MAX_PATH * 2] = { };
+; 965  :   wchar_t wszIn [MAX_PATH * 2] = { };
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	sub	esp, 2156				; 0000086cH
@@ -74224,7 +74945,7 @@ __$EHRec$ = -12						; size = 12
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 812  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 966  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -74249,7 +74970,7 @@ __$EHRec$ = -12						; size = 12
 $LN37@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 812  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 966  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	mov	esi, DWORD PTR __imp__lstrcatW@8
 	push	eax
@@ -74282,7 +75003,7 @@ $LN37@SK_Inject_:
 $LN46@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 814  :   wchar_t wszOut [MAX_PATH * 2] = { };
+; 968  :   wchar_t wszOut [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -74291,7 +75012,7 @@ $LN46@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 815  :   lstrcatW (wszOut, SK_GetHostPath ());
+; 969  :   lstrcatW (wszOut, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
@@ -74299,8 +75020,8 @@ $LN46@SK_Inject_:
 	push	eax
 	call	esi
 
-; 816  : 
-; 817  :   switch (SK_GetCurrentRenderBackend ().api)
+; 970  : 
+; 971  :   switch (SK_GetCurrentRenderBackend ().api)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
@@ -74315,29 +75036,29 @@ $LN46@SK_Inject_:
 	jne	SHORT $LN2@SK_Inject_
 $LN4@SK_Inject_:
 
-; 818  :   {
-; 819  :     case SK_RenderAPI::D3D9:
-; 820  :     case SK_RenderAPI::D3D9Ex:
-; 821  :       lstrcatW (wszOut, L"\\d3d9.dll");
+; 972  :   {
+; 973  :     case SK_RenderAPI::D3D9:
+; 974  :     case SK_RenderAPI::D3D9Ex:
+; 975  :       lstrcatW (wszOut, L"\\d3d9.dll");
 
-	push	OFFSET $SG147895
+	push	OFFSET $SG257123
 
-; 822  :       break;
+; 976  :       break;
 
 	jmp	SHORT $LN417@SK_Inject_
 $LN8@SK_Inject_:
 
-; 841  :     } break;
-; 842  : 
-; 843  :     case SK_RenderAPI::OpenGL:
-; 844  :       lstrcatW (wszOut, L"\\OpenGL32.dll");
+; 995  :     } break;
+; 996  : 
+; 997  :     case SK_RenderAPI::OpenGL:
+; 998  :       lstrcatW (wszOut, L"\\OpenGL32.dll");
 
-	push	OFFSET $SG147903
+	push	OFFSET $SG257131
 	jmp	SHORT $LN417@SK_Inject_
 $LN14@SK_Inject_:
 
-; 816  : 
-; 817  :   switch (SK_GetCurrentRenderBackend ().api)
+; 970  : 
+; 971  :   switch (SK_GetCurrentRenderBackend ().api)
 
 	cmp	eax, 64					; 00000040H
 	je	SHORT $LN7@SK_Inject_
@@ -74346,92 +75067,92 @@ $LN14@SK_Inject_:
 	cmp	eax, 16448				; 00004040H
 	jne	SHORT $LN2@SK_Inject_
 
-; 828  : 
-; 829  :     case SK_RenderAPI::DDrawOn11:
-; 830  :       lstrcatW (wszOut, L"\\ddraw.dll");
+; 982  : 
+; 983  :     case SK_RenderAPI::DDrawOn11:
+; 984  :       lstrcatW (wszOut, L"\\ddraw.dll");
 
-	push	OFFSET $SG147899
+	push	OFFSET $SG257127
 
-; 831  :       break;
+; 985  :       break;
 
 	jmp	SHORT $LN417@SK_Inject_
 $LN5@SK_Inject_:
 
-; 823  : 
-; 824  : #ifndef _WIN64
-; 825  :     case SK_RenderAPI::D3D8On11:
-; 826  :       lstrcatW (wszOut, L"\\d3d8.dll");
+; 977  : 
+; 978  : #ifndef _WIN64
+; 979  :     case SK_RenderAPI::D3D8On11:
+; 980  :       lstrcatW (wszOut, L"\\d3d8.dll");
 
-	push	OFFSET $SG147897
+	push	OFFSET $SG257125
 
-; 827  :       break;
+; 981  :       break;
 
 	jmp	SHORT $LN417@SK_Inject_
 $LN7@SK_Inject_:
 
-; 832  : #endif
-; 833  : 
-; 834  :     case SK_RenderAPI::D3D10:
-; 835  :     case SK_RenderAPI::D3D11:
-; 836  : #ifdef _WIN64
-; 837  :     case SK_RenderAPI::D3D12:
-; 838  : #endif
-; 839  :     {
-; 840  :       lstrcatW (wszOut, L"\\dxgi.dll");
+; 986  : #endif
+; 987  : 
+; 988  :     case SK_RenderAPI::D3D10:
+; 989  :     case SK_RenderAPI::D3D11:
+; 990  : #ifdef _WIN64
+; 991  :     case SK_RenderAPI::D3D12:
+; 992  : #endif
+; 993  :     {
+; 994  :       lstrcatW (wszOut, L"\\dxgi.dll");
 
-	push	OFFSET $SG147901
+	push	OFFSET $SG257129
 $LN417@SK_Inject_:
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 $LN2@SK_Inject_:
 
-; 845  :       break;
-; 846  : 
-; 847  :     //case SK_RenderAPI::Vulkan:
-; 848  :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 849  :       //break;
-; 850  :   }
-; 851  : 
-; 852  : 
-; 853  :   //std::queue <DWORD> suspended =
-; 854  :   //  SK_SuspendAllOtherThreads ();
-; 855  :   //
-; 856  :   //extern volatile LONG   SK_bypass_dialog_active;
-; 857  :   //InterlockedIncrement (&SK_bypass_dialog_active);
-; 858  :   //
-; 859  :   //int mb_ret = 
-; 860  :   //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
-; 861  :   //                       L"\r\n"
-; 862  :   //                       L"Linked installs allow you to update wrapped games the same way "
-; 863  :   //                       L"as global injection, but require administrator privileges to setup.",
-; 864  :   //                         L"Perform a Linked Wrapper Install?",
-; 865  :   //                           MB_YESNO | MB_ICONQUESTION
-; 866  :   //                     );
-; 867  :   //
-; 868  :   //InterlockedIncrement (&SK_bypass_dialog_active);
-; 869  :   //
-; 870  :   //SK_ResumeThreads (suspended);
-; 871  :   //
-; 872  :   //if ( mb_ret == IDYES )
-; 873  :   //{
-; 874  :   //  wchar_t   wszCmd [MAX_PATH * 3] = { };
-; 875  :   //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
-; 876  :   //
-; 877  :   //  ShellExecuteW ( GetActiveWindow (),
-; 878  :   //                    L"runas",
-; 879  :   //                      L"cmd.exe",
-; 880  :   //                        wszCmd,
-; 881  :   //                          nullptr,
-; 882  :   //                            SW_HIDE );
-; 883  :   //
-; 884  :   //  SK_Inject_EnableCentralizedConfig ();
-; 885  :   //
-; 886  :   //  return true;
-; 887  :   //}
-; 888  : 
-; 889  : 
-; 890  :   if (CopyFile (wszIn, wszOut, TRUE))
+; 999  :       break;
+; 1000 : 
+; 1001 :     //case SK_RenderAPI::Vulkan:
+; 1002 :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 1003 :       //break;
+; 1004 :   }
+; 1005 : 
+; 1006 : 
+; 1007 :   //std::queue <DWORD> suspended =
+; 1008 :   //  SK_SuspendAllOtherThreads ();
+; 1009 :   //
+; 1010 :   //extern volatile LONG   SK_bypass_dialog_active;
+; 1011 :   //InterlockedIncrement (&SK_bypass_dialog_active);
+; 1012 :   //
+; 1013 :   //int mb_ret = 
+; 1014 :   //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
+; 1015 :   //                       L"\r\n"
+; 1016 :   //                       L"Linked installs allow you to update wrapped games the same way "
+; 1017 :   //                       L"as global injection, but require administrator privileges to setup.",
+; 1018 :   //                         L"Perform a Linked Wrapper Install?",
+; 1019 :   //                           MB_YESNO | MB_ICONQUESTION
+; 1020 :   //                     );
+; 1021 :   //
+; 1022 :   //InterlockedIncrement (&SK_bypass_dialog_active);
+; 1023 :   //
+; 1024 :   //SK_ResumeThreads (suspended);
+; 1025 :   //
+; 1026 :   //if ( mb_ret == IDYES )
+; 1027 :   //{
+; 1028 :   //  wchar_t   wszCmd [MAX_PATH * 3] = { };
+; 1029 :   //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
+; 1030 :   //
+; 1031 :   //  ShellExecuteW ( GetActiveWindow (),
+; 1032 :   //                    L"runas",
+; 1033 :   //                      L"cmd.exe",
+; 1034 :   //                        wszCmd,
+; 1035 :   //                          nullptr,
+; 1036 :   //                            SW_HIDE );
+; 1037 :   //
+; 1038 :   //  SK_Inject_EnableCentralizedConfig ();
+; 1039 :   //
+; 1040 :   //  return true;
+; 1041 :   //}
+; 1042 : 
+; 1043 : 
+; 1044 :   if (CopyFile (wszIn, wszOut, TRUE))
 
 	mov	edi, DWORD PTR __imp__CopyFileW@12
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -74443,23 +75164,23 @@ $LN2@SK_Inject_:
 	test	eax, eax
 	je	$LN9@SK_Inject_
 
-; 891  :   {
-; 892  :     SK_Inject_EnableCentralizedConfig ();
+; 1045 :   {
+; 1046 :     SK_Inject_EnableCentralizedConfig ();
 
 	call	?SK_Inject_EnableCentralizedConfig@@YAXXZ ; SK_Inject_EnableCentralizedConfig
 
-; 893  : 
-; 894  :     *wszOut = L'\0';
+; 1047 : 
+; 1048 :     *wszOut = L'\0';
 
 	xor	eax, eax
 	mov	WORD PTR _wszOut$[ebp], ax
 
-; 895  :     *wszIn  = L'\0';
+; 1049 :     *wszIn  = L'\0';
 
 	mov	WORD PTR _wszIn$[ebp], ax
 
-; 896  : 
-; 897  :     lstrcatW (wszOut, SK_GetHostPath ());
+; 1050 : 
+; 1051 :     lstrcatW (wszOut, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
@@ -74467,28 +75188,28 @@ $LN2@SK_Inject_:
 	push	eax
 	call	esi
 
-; 898  : 
-; 899  : #ifdef _WIN64
-; 900  :     lstrcatW (wszIn,  L"SpecialK64.pdb");
-; 901  :     lstrcatW (wszOut, L"\\SpecialK64.pdb");
-; 902  : #else
-; 903  :     lstrcatW (wszIn,  L"SpecialK32.pdb");
+; 1052 : 
+; 1053 : #ifdef _WIN64
+; 1054 :     lstrcatW (wszIn,  L"SpecialK64.pdb");
+; 1055 :     lstrcatW (wszOut, L"\\SpecialK64.pdb");
+; 1056 : #else
+; 1057 :     lstrcatW (wszIn,  L"SpecialK32.pdb");
 
-	push	OFFSET $SG147905
+	push	OFFSET $SG257133
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	esi
 
-; 904  :     lstrcatW (wszOut, L"\\SpecialK32.pdb");
+; 1058 :     lstrcatW (wszOut, L"\\SpecialK32.pdb");
 
-	push	OFFSET $SG147906
+	push	OFFSET $SG257134
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 
-; 905  : #endif
-; 906  : 
-; 907  :     if (! CopyFileW (wszIn, wszOut, TRUE))
+; 1059 : #endif
+; 1060 : 
+; 1061 :     if (! CopyFileW (wszIn, wszOut, TRUE))
 
 	push	1
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -74499,7 +75220,7 @@ $LN2@SK_Inject_:
 	test	eax, eax
 	jne	SHORT $LN10@SK_Inject_
 
-; 908  :       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
+; 1062 :       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
 
 	push	eax
 	push	eax
@@ -74512,18 +75233,18 @@ $LN2@SK_Inject_:
 	call	DWORD PTR __imp__ReplaceFileW@24
 $LN10@SK_Inject_:
 
-; 909  : 
-; 910  :     *wszIn = L'\0';
+; 1063 : 
+; 1064 :     *wszIn = L'\0';
 
 	xor	eax, eax
 	mov	WORD PTR _wszIn$[ebp], ax
 
-; 913  :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
+; 1067 :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
 
 	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
 	push	eax
 	lea	eax, DWORD PTR _ver_dir$3[ebp]
-	push	OFFSET $SG147908
+	push	OFFSET $SG257136
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
 	add	esp, 12					; 0000000cH
@@ -74538,7 +75259,7 @@ $LN10@SK_Inject_:
 	lea	eax, DWORD PTR _ver_dir$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 913  :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
+; 1067 :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -74548,12 +75269,12 @@ $LN10@SK_Inject_:
 	cmovae	eax, DWORD PTR _ver_dir$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 916  :       GetFileAttributesA (ver_dir.c_str ());
+; 1070 :       GetFileAttributesA (ver_dir.c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesA@4
 
-; 918  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+; 1072 :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
 
 	cmp	eax, -1
 	jne	SHORT $LN12@SK_Inject_
@@ -74568,7 +75289,7 @@ $LN10@SK_Inject_:
 	lea	eax, DWORD PTR _ver_dir$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 918  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+; 1072 :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
 
 	push	0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -74578,7 +75299,7 @@ $LN10@SK_Inject_:
 	cmovae	eax, DWORD PTR _ver_dir$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 918  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+; 1072 :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
 
 	push	eax
 	call	DWORD PTR __imp__CreateDirectoryA@8
@@ -74586,7 +75307,7 @@ $LN10@SK_Inject_:
 	je	$LN11@SK_Inject_
 $LN12@SK_Inject_:
 
-; 921  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 1075 :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -74611,7 +75332,7 @@ $LN12@SK_Inject_:
 $LN124@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 921  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 1075 :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszIn$[ebp]
@@ -74648,21 +75369,21 @@ $LN124@SK_Inject_:
 $LN133@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 922  :       PathRemoveFileSpecW  (wszIn);
+; 1076 :       PathRemoveFileSpecW  (wszIn);
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathRemoveFileSpecW@4
 
-; 923  : 
-; 924  :       lstrcatW (wszIn, L"\\Version\\installed.ini");
+; 1077 : 
+; 1078 :       lstrcatW (wszIn, L"\\Version\\installed.ini");
 
-	push	OFFSET $SG147911
+	push	OFFSET $SG257139
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	esi
 
-; 928  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 1082 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	sub	esp, 24					; 00000018H
 	xor	eax, eax
@@ -74699,7 +75420,7 @@ $LN133@SK_Inject_:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 928  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 1082 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
@@ -74722,7 +75443,7 @@ $LN133@SK_Inject_:
 $LN213@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 928  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 1082 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -74759,21 +75480,21 @@ $LN213@SK_Inject_:
 $LN222@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 929  :       lstrcatW (wszOut, L"\\installed.ini");
+; 1083 :       lstrcatW (wszOut, L"\\installed.ini");
 
-	push	OFFSET $SG147912
+	push	OFFSET $SG257140
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 
-; 930  : 
-; 931  :       DeleteFileW (       wszOut);
+; 1084 : 
+; 1085 :       DeleteFileW (       wszOut);
 
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	DWORD PTR __imp__DeleteFileW@4
 
-; 932  :       CopyFile    (wszIn, wszOut, FALSE);
+; 1086 :       CopyFile    (wszIn, wszOut, FALSE);
 
 	push	0
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -74782,13 +75503,13 @@ $LN222@SK_Inject_:
 	push	eax
 	call	edi
 
-; 933  : 
-; 934  :       *wszIn = L'\0';
+; 1087 : 
+; 1088 :       *wszIn = L'\0';
 
 	xor	eax, eax
 	mov	WORD PTR _wszIn$[ebp], ax
 
-; 936  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 1090 :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -74813,7 +75534,7 @@ $LN222@SK_Inject_:
 $LN262@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 936  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 1090 :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszIn$[ebp]
@@ -74850,21 +75571,21 @@ $LN262@SK_Inject_:
 $LN271@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 937  :       PathRemoveFileSpecW  (wszIn);
+; 1091 :       PathRemoveFileSpecW  (wszIn);
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathRemoveFileSpecW@4
 
-; 938  : 
-; 939  :       lstrcatW (wszIn, L"\\Version\\repository.ini");
+; 1092 : 
+; 1093 :       lstrcatW (wszIn, L"\\Version\\repository.ini");
 
-	push	OFFSET $SG147913
+	push	OFFSET $SG257141
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	esi
 
-; 943  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 1097 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	sub	esp, 24					; 00000018H
 	xor	eax, eax
@@ -74901,7 +75622,7 @@ $LN271@SK_Inject_:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 943  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 1097 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -74924,7 +75645,7 @@ $LN271@SK_Inject_:
 $LN351@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 943  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 1097 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -74961,21 +75682,21 @@ $LN351@SK_Inject_:
 $LN360@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 944  :       lstrcatW (wszOut, L"\\repository.ini");
+; 1098 :       lstrcatW (wszOut, L"\\repository.ini");
 
-	push	OFFSET $SG147914
+	push	OFFSET $SG257142
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 
-; 945  : 
-; 946  :       DeleteFileW (       wszOut);
+; 1099 : 
+; 1100 :       DeleteFileW (       wszOut);
 
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	DWORD PTR __imp__DeleteFileW@4
 
-; 947  :       CopyFile    (wszIn, wszOut, FALSE);
+; 1101 :       CopyFile    (wszIn, wszOut, FALSE);
 
 	push	0
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -75015,14 +75736,14 @@ $LN11@SK_Inject_:
 $LN390@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 950  :     return true;
+; 1104 :     return true;
 
 	mov	al, 1
 
-; 951  :   }
-; 952  : 
-; 953  :   return false;
-; 954  : }
+; 1105 :   }
+; 1106 : 
+; 1107 :   return false;
+; 1108 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -75064,24 +75785,24 @@ _wszOut$ = -1040					; size = 1040
 _role$ = 8						; size = 4
 ?SK_Inject_SwitchToGlobalInjectorEx@@YA_NW4DLL_ROLE@@@Z PROC ; SK_Inject_SwitchToGlobalInjectorEx
 
-; 1012 : {
+; 1166 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 1560				; 00000618H
 
-; 1013 :   config.system.central_repository = true;
+; 1167 :   config.system.central_repository = true;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+832, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+844, 1
 	push	esi
 
-; 1014 :   SK_EstablishRootPath ();
+; 1168 :   SK_EstablishRootPath ();
 
 	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
 
-; 1015 : 
-; 1016 :   wchar_t wszOut [MAX_PATH * 2] = { };
+; 1169 : 
+; 1170 :   wchar_t wszOut [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -75090,7 +75811,7 @@ _role$ = 8						; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1017 :   lstrcatW (wszOut, SK_GetHostPath ());
+; 1171 :   lstrcatW (wszOut, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	mov	esi, DWORD PTR __imp__lstrcatW@8
@@ -75099,8 +75820,8 @@ _role$ = 8						; size = 4
 	push	eax
 	call	esi
 
-; 1018 : 
-; 1019 :   switch (role)
+; 1172 : 
+; 1173 :   switch (role)
 
 	mov	eax, DWORD PTR _role$[ebp]
 	cmp	eax, 1
@@ -75111,77 +75832,77 @@ _role$ = 8						; size = 4
 	cmp	eax, -1073741792			; c0000020H
 	jne	SHORT $LN2@SK_Inject_
 
-; 1029 :     case DLL_ROLE::DDraw:
-; 1030 :       lstrcatW (wszOut, L"\\ddraw.dll");
+; 1183 :     case DLL_ROLE::DDraw:
+; 1184 :       lstrcatW (wszOut, L"\\ddraw.dll");
 
-	push	OFFSET $SG147949
+	push	OFFSET $SG257177
 
-; 1031 :       break;
+; 1185 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN5@SK_Inject_:
 
-; 1023 :       break;
-; 1024 : 
-; 1025 : #ifndef _WIN64
-; 1026 :     case DLL_ROLE::D3D8:
-; 1027 :       lstrcatW (wszOut, L"\\d3d8.dll");
+; 1177 :       break;
+; 1178 : 
+; 1179 : #ifndef _WIN64
+; 1180 :     case DLL_ROLE::D3D8:
+; 1181 :       lstrcatW (wszOut, L"\\d3d8.dll");
 
-	push	OFFSET $SG147947
+	push	OFFSET $SG257175
 
-; 1028 :       break;
+; 1182 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN7@SK_Inject_:
 
-; 1032 : #endif
-; 1033 : 
-; 1034 :     case DLL_ROLE::DXGI:
-; 1035 :     {
-; 1036 :       lstrcatW (wszOut, L"\\dxgi.dll");
+; 1186 : #endif
+; 1187 : 
+; 1188 :     case DLL_ROLE::DXGI:
+; 1189 :     {
+; 1190 :       lstrcatW (wszOut, L"\\dxgi.dll");
 
-	push	OFFSET $SG147951
+	push	OFFSET $SG257179
 
-; 1037 :     } break;
+; 1191 :     } break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN10@SK_Inject_:
 
-; 1018 : 
-; 1019 :   switch (role)
+; 1172 : 
+; 1173 :   switch (role)
 
 	sub	eax, 2
 	je	SHORT $LN4@SK_Inject_
 	sub	eax, 2
 	jne	SHORT $LN2@SK_Inject_
 
-; 1038 : 
-; 1039 :     case DLL_ROLE::OpenGL:
-; 1040 :       lstrcatW (wszOut, L"\\OpenGL32.dll");
+; 1192 : 
+; 1193 :     case DLL_ROLE::OpenGL:
+; 1194 :       lstrcatW (wszOut, L"\\OpenGL32.dll");
 
-	push	OFFSET $SG147953
+	push	OFFSET $SG257181
 	jmp	SHORT $LN36@SK_Inject_
 $LN4@SK_Inject_:
 
-; 1020 :   {
-; 1021 :     case DLL_ROLE::D3D9:
-; 1022 :       lstrcatW (wszOut, L"\\d3d9.dll");
+; 1174 :   {
+; 1175 :     case DLL_ROLE::D3D9:
+; 1176 :       lstrcatW (wszOut, L"\\d3d9.dll");
 
-	push	OFFSET $SG147945
+	push	OFFSET $SG257173
 $LN36@SK_Inject_:
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 $LN2@SK_Inject_:
 
-; 1041 :       break;
-; 1042 : 
-; 1043 :     //case SK_RenderAPI::Vulkan:
-; 1044 :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 1045 :       //break;
-; 1046 :   }
-; 1047 : 
-; 1048 :   wchar_t wszTemp [MAX_PATH] = { };
+; 1195 :       break;
+; 1196 : 
+; 1197 :     //case SK_RenderAPI::Vulkan:
+; 1198 :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 1199 :       //break;
+; 1200 :   }
+; 1201 : 
+; 1202 :   wchar_t wszTemp [MAX_PATH] = { };
 
 	push	520					; 00000208H
 	lea	eax, DWORD PTR _wszTemp$[ebp]
@@ -75190,19 +75911,19 @@ $LN2@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1049 :   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
+; 1203 :   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
 
 	lea	eax, DWORD PTR _wszTemp$[ebp]
 	push	eax
 	call	DWORD PTR __imp__timeGetTime@0
 	push	eax
-	push	OFFSET $SG147954
+	push	OFFSET $SG257182
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
 	call	DWORD PTR __imp__GetTempFileNameW@16
 
-; 1050 : 
-; 1051 :   MoveFileW (wszOut, wszTemp);
+; 1204 : 
+; 1205 :   MoveFileW (wszOut, wszTemp);
 
 	lea	eax, DWORD PTR _wszTemp$[ebp]
 	push	eax
@@ -75210,7 +75931,7 @@ $LN2@SK_Inject_:
 	push	eax
 	call	DWORD PTR __imp__MoveFileW@8
 
-; 1053 :   SK_SaveConfig (L"SpecialK");
+; 1207 :   SK_SaveConfig (L"SpecialK");
 
 	push	0
 	sub	esp, 24					; 00000018H
@@ -75221,7 +75942,7 @@ $LN2@SK_Inject_:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1053 :   SK_SaveConfig (L"SpecialK");
+; 1207 :   SK_SaveConfig (L"SpecialK");
 
 	mov	ecx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -75240,7 +75961,7 @@ $LN2@SK_Inject_:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG147955
+	push	OFFSET $SG257183
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -75253,17 +75974,17 @@ $LN2@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1053 :   SK_SaveConfig (L"SpecialK");
+; 1207 :   SK_SaveConfig (L"SpecialK");
 
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 1054 : 
-; 1055 :   return true;
+; 1208 : 
+; 1209 :   return true;
 
 	mov	al, 1
 
-; 1056 : }
+; 1210 : }
 
 	pop	esi
 	mov	esp, ebp
@@ -75284,24 +76005,24 @@ _wszTemp$ = -1564					; size = 520
 _wszOut$ = -1044					; size = 1040
 ?SK_Inject_SwitchToGlobalInjector@@YA_NXZ PROC		; SK_Inject_SwitchToGlobalInjector
 
-; 958  : {
+; 1112 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 1564				; 0000061cH
 
-; 959  :   config.system.central_repository = true;
+; 1113 :   config.system.central_repository = true;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+832, 1
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+844, 1
 	push	esi
 
-; 960  :   SK_EstablishRootPath ();
+; 1114 :   SK_EstablishRootPath ();
 
 	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
 
-; 961  : 
-; 962  :   wchar_t wszOut [MAX_PATH * 2] = { };
+; 1115 : 
+; 1116 :   wchar_t wszOut [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -75310,7 +76031,7 @@ _wszOut$ = -1044					; size = 1040
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 963  :   lstrcatW (wszOut, SK_GetHostPath ());
+; 1117 :   lstrcatW (wszOut, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	mov	esi, DWORD PTR __imp__lstrcatW@8
@@ -75319,8 +76040,8 @@ _wszOut$ = -1044					; size = 1040
 	push	eax
 	call	esi
 
-; 964  : 
-; 965  :   switch (SK_GetCurrentRenderBackend ().api)
+; 1118 : 
+; 1119 :   switch (SK_GetCurrentRenderBackend ().api)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
@@ -75335,29 +76056,29 @@ _wszOut$ = -1044					; size = 1040
 	jne	SHORT $LN2@SK_Inject_
 $LN4@SK_Inject_:
 
-; 966  :   {
-; 967  :     case SK_RenderAPI::D3D9:
-; 968  :     case SK_RenderAPI::D3D9Ex:
-; 969  :       lstrcatW (wszOut, L"\\d3d9.dll");
+; 1120 :   {
+; 1121 :     case SK_RenderAPI::D3D9:
+; 1122 :     case SK_RenderAPI::D3D9Ex:
+; 1123 :       lstrcatW (wszOut, L"\\d3d9.dll");
 
-	push	OFFSET $SG147925
+	push	OFFSET $SG257153
 
-; 970  :       break;
+; 1124 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN8@SK_Inject_:
 
-; 989  :     } break;
-; 990  : 
-; 991  :     case SK_RenderAPI::OpenGL:
-; 992  :       lstrcatW (wszOut, L"\\OpenGL32.dll");
+; 1143 :     } break;
+; 1144 : 
+; 1145 :     case SK_RenderAPI::OpenGL:
+; 1146 :       lstrcatW (wszOut, L"\\OpenGL32.dll");
 
-	push	OFFSET $SG147933
+	push	OFFSET $SG257161
 	jmp	SHORT $LN36@SK_Inject_
 $LN10@SK_Inject_:
 
-; 964  : 
-; 965  :   switch (SK_GetCurrentRenderBackend ().api)
+; 1118 : 
+; 1119 :   switch (SK_GetCurrentRenderBackend ().api)
 
 	cmp	eax, 64					; 00000040H
 	je	SHORT $LN7@SK_Inject_
@@ -75366,54 +76087,54 @@ $LN10@SK_Inject_:
 	cmp	eax, 16448				; 00004040H
 	jne	SHORT $LN2@SK_Inject_
 
-; 976  : 
-; 977  :     case SK_RenderAPI::DDrawOn11:
-; 978  :       lstrcatW (wszOut, L"\\ddraw.dll");
+; 1130 : 
+; 1131 :     case SK_RenderAPI::DDrawOn11:
+; 1132 :       lstrcatW (wszOut, L"\\ddraw.dll");
 
-	push	OFFSET $SG147929
+	push	OFFSET $SG257157
 
-; 979  :       break;
+; 1133 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN5@SK_Inject_:
 
-; 971  : 
-; 972  : #ifndef _WIN64
-; 973  :     case SK_RenderAPI::D3D8On11:
-; 974  :       lstrcatW (wszOut, L"\\d3d8.dll");
+; 1125 : 
+; 1126 : #ifndef _WIN64
+; 1127 :     case SK_RenderAPI::D3D8On11:
+; 1128 :       lstrcatW (wszOut, L"\\d3d8.dll");
 
-	push	OFFSET $SG147927
+	push	OFFSET $SG257155
 
-; 975  :       break;
+; 1129 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN7@SK_Inject_:
 
-; 980  : #endif
-; 981  : 
-; 982  :     case SK_RenderAPI::D3D10:
-; 983  :     case SK_RenderAPI::D3D11:
-; 984  : #ifdef _WIN64
-; 985  :     case SK_RenderAPI::D3D12:
-; 986  : #endif
-; 987  :     {
-; 988  :       lstrcatW (wszOut, L"\\dxgi.dll");
+; 1134 : #endif
+; 1135 : 
+; 1136 :     case SK_RenderAPI::D3D10:
+; 1137 :     case SK_RenderAPI::D3D11:
+; 1138 : #ifdef _WIN64
+; 1139 :     case SK_RenderAPI::D3D12:
+; 1140 : #endif
+; 1141 :     {
+; 1142 :       lstrcatW (wszOut, L"\\dxgi.dll");
 
-	push	OFFSET $SG147931
+	push	OFFSET $SG257159
 $LN36@SK_Inject_:
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 $LN2@SK_Inject_:
 
-; 993  :       break;
-; 994  : 
-; 995  :     //case SK_RenderAPI::Vulkan:
-; 996  :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 997  :       //break;
-; 998  :   }
-; 999  : 
-; 1000 :   wchar_t wszTemp [MAX_PATH] = {  };
+; 1147 :       break;
+; 1148 : 
+; 1149 :     //case SK_RenderAPI::Vulkan:
+; 1150 :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 1151 :       //break;
+; 1152 :   }
+; 1153 : 
+; 1154 :   wchar_t wszTemp [MAX_PATH] = {  };
 
 	push	520					; 00000208H
 	lea	eax, DWORD PTR _wszTemp$[ebp]
@@ -75422,19 +76143,19 @@ $LN2@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1001 :   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
+; 1155 :   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
 
 	lea	eax, DWORD PTR _wszTemp$[ebp]
 	push	eax
 	call	DWORD PTR __imp__timeGetTime@0
 	push	eax
-	push	OFFSET $SG147934
+	push	OFFSET $SG257162
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
 	call	DWORD PTR __imp__GetTempFileNameW@16
 
-; 1002 : 
-; 1003 :   MoveFileW (wszOut, wszTemp);
+; 1156 : 
+; 1157 :   MoveFileW (wszOut, wszTemp);
 
 	lea	eax, DWORD PTR _wszTemp$[ebp]
 	push	eax
@@ -75442,7 +76163,7 @@ $LN2@SK_Inject_:
 	push	eax
 	call	DWORD PTR __imp__MoveFileW@8
 
-; 1005 :   SK_SaveConfig (L"SpecialK");
+; 1159 :   SK_SaveConfig (L"SpecialK");
 
 	push	0
 	sub	esp, 24					; 00000018H
@@ -75453,7 +76174,7 @@ $LN2@SK_Inject_:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1005 :   SK_SaveConfig (L"SpecialK");
+; 1159 :   SK_SaveConfig (L"SpecialK");
 
 	mov	ecx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -75472,7 +76193,7 @@ $LN2@SK_Inject_:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG147935
+	push	OFFSET $SG257163
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -75485,17 +76206,17 @@ $LN2@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1005 :   SK_SaveConfig (L"SpecialK");
+; 1159 :   SK_SaveConfig (L"SpecialK");
 
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 1006 : 
-; 1007 :   return true;
+; 1160 : 
+; 1161 :   return true;
 
 	mov	al, 1
 
-; 1008 : }
+; 1162 : }
 
 	pop	esi
 	mov	esp, ebp
@@ -75512,29 +76233,29 @@ _pdwList$ = 8						; size = 4
 _capacity$ = 12						; size = 4
 ?SKX_GetInjectedPIDs@@YGIPAKI@Z PROC			; SKX_GetInjectedPIDs
 
-; 1241 : {
+; 1395 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 1242 :   DWORD*  pdwListIter = pdwList;
+; 1396 :   DWORD*  pdwListIter = pdwList;
 
 	mov	esi, DWORD PTR _pdwList$[ebp]
 	push	edi
 
-; 1243 :   SSIZE_T i           = 0;
+; 1397 :   SSIZE_T i           = 0;
 
 	xor	edi, edi
 
-; 1244 : 
-; 1245 :   SK_Inject_ValidateProcesses ();
+; 1398 : 
+; 1399 :   SK_Inject_ValidateProcesses ();
 
 	call	?SK_Inject_ValidateProcesses@@YAXXZ	; SK_Inject_ValidateProcesses
 
-; 1246 : 
-; 1247 :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 1400 : 
+; 1401 :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	mov	edx, DWORD PTR _capacity$[ebp]
 	mov	ecx, OFFSET ?g_sHookedPIDs@@3PAJA
@@ -75547,69 +76268,69 @@ $LL4@SKX_GetInj:
 	mov	eax, DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1249 :     if (ReadAcquire (&g_sHookedPID) != 0)
+; 1403 :     if (ReadAcquire (&g_sHookedPID) != 0)
 
 	test	eax, eax
 	je	SHORT $LN2@SKX_GetInj
 
-; 1250 :     {
-; 1251 :       if (i < (SSIZE_T)capacity - 1)
+; 1404 :     {
+; 1405 :       if (i < (SSIZE_T)capacity - 1)
 
 	lea	eax, DWORD PTR [edx-1]
 	cmp	edi, eax
 	jge	SHORT $LN7@SKX_GetInj
 
-; 1252 :       {
-; 1253 :         if (pdwListIter != nullptr)
+; 1406 :       {
+; 1407 :         if (pdwListIter != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN7@SKX_GetInj
 
-; 1254 :         {
-; 1255 :           *pdwListIter = ReadAcquire (&g_sHookedPID);
+; 1408 :         {
+; 1409 :           *pdwListIter = ReadAcquire (&g_sHookedPID);
 
 	mov	eax, DWORD PTR [ecx]
 	mov	DWORD PTR [esi], eax
 
-; 1256 :            pdwListIter++;
+; 1410 :            pdwListIter++;
 
 	add	esi, 4
 $LN7@SKX_GetInj:
 
-; 1257 :         }
-; 1258 :       }
-; 1259 : 
-; 1260 :       ++i;
+; 1411 :         }
+; 1412 :       }
+; 1413 : 
+; 1414 :       ++i;
 
 	inc	edi
 $LN2@SKX_GetInj:
 
-; 1246 : 
-; 1247 :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 1400 : 
+; 1401 :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	add	ecx, 4
 	cmp	ecx, OFFSET ?g_sHookedPIDs@@3PAJA+64
 	jne	SHORT $LL4@SKX_GetInj
 
-; 1266 : 
-; 1267 :   return i;
+; 1420 : 
+; 1421 :   return i;
 
 	mov	eax, edi
 	test	esi, esi
 	je	SHORT $LN8@SKX_GetInj
 
-; 1261 :     }
-; 1262 :   }
-; 1263 : 
-; 1264 :   if (pdwListIter != nullptr)
-; 1265 :      *pdwListIter  = 0;
+; 1415 :     }
+; 1416 :   }
+; 1417 : 
+; 1418 :   if (pdwListIter != nullptr)
+; 1419 :      *pdwListIter  = 0;
 
 	mov	DWORD PTR [esi], 0
 $LN8@SKX_GetInj:
 	pop	edi
 	pop	esi
 
-; 1268 : }
+; 1422 : }
 
 	pop	ebp
 	ret	8
@@ -75620,14 +76341,14 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SKX_IsHookingCBT@@YG_NXZ PROC				; SKX_IsHookingCBT
 
-; 445  :   return (g_hHookCBT != nullptr);
+; 599  :   return (g_hHookCBT != nullptr);
 
 	mov	eax, DWORD PTR ?g_hHookCBT@@3RAUHHOOK__@@A ; g_hHookCBT
 	neg	eax
 	sbb	eax, eax
 	neg	eax
 
-; 446  : }
+; 600  : }
 
 	ret	0
 ?SKX_IsHookingCBT@@YG_NXZ ENDP				; SKX_IsHookingCBT
@@ -75637,30 +76358,30 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SKX_RemoveCBTHook@@YGXXZ PROC				; SKX_RemoveCBTHook
 
-; 421  : #ifdef USE_SHELL_HOOK
-; 422  :   SKX_RemoveShellHook ();
-; 423  : #endif
-; 424  : 
-; 425  :   if (g_hShutdown != nullptr)
+; 575  : #ifdef USE_SHELL_HOOK
+; 576  :   SKX_RemoveShellHook ();
+; 577  : #endif
+; 578  : 
+; 579  :   if (g_hShutdown != nullptr)
 
 	cmp	DWORD PTR ?g_hShutdown@@3RAXA, 0	; g_hShutdown
 	je	SHORT $LN2@SKX_Remove
 
-; 426  :     SetEvent (g_hShutdown);
+; 580  :     SetEvent (g_hShutdown);
 
 	mov	eax, DWORD PTR ?g_hShutdown@@3RAXA	; g_hShutdown
 	push	eax
 	call	DWORD PTR __imp__SetEvent@4
 $LN2@SKX_Remove:
 
-; 427  : 
-; 428  :   if (g_hHookCBT)
+; 581  : 
+; 582  :   if (g_hHookCBT)
 
 	cmp	DWORD PTR ?g_hHookCBT@@3RAUHHOOK__@@A, 0 ; g_hHookCBT
 	je	SHORT $LN4@SKX_Remove
 
-; 429  :   {
-; 430  :     if (UnhookWindowsHookEx (g_hHookCBT))
+; 583  :   {
+; 584  :     if (UnhookWindowsHookEx (g_hHookCBT))
 
 	mov	eax, DWORD PTR ?g_hHookCBT@@3RAUHHOOK__@@A ; g_hHookCBT
 	push	eax
@@ -75668,32 +76389,32 @@ $LN2@SKX_Remove:
 	test	eax, eax
 	je	SHORT $LN4@SKX_Remove
 
-; 431  :     {
-; 432  :       ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+; 585  :     {
+; 586  :       ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
 
 	push	8320					; 00002080H
 	push	0
 	push	OFFSET ?whitelist_patterns@@3PA_WA	; whitelist_patterns
 	call	_memset
 
-; 433  :       whitelist_count = 0;
+; 587  :       whitelist_count = 0;
 
 	mov	DWORD PTR ?whitelist_count@@3HA, 0	; whitelist_count
 	add	esp, 12					; 0000000cH
 
-; 434  : 
-; 435  :       __SK_HookContextOwner = false;
+; 588  : 
+; 589  :       __SK_HookContextOwner = false;
 
 	mov	DWORD PTR ?__SK_HookContextOwner@@3JC, 0 ; __SK_HookContextOwner
 
-; 436  :       g_hHookCBT            = nullptr;
+; 590  :       g_hHookCBT            = nullptr;
 
 	mov	DWORD PTR ?g_hHookCBT@@3RAUHHOOK__@@A, 0 ; g_hHookCBT
 $LN4@SKX_Remove:
 
-; 437  :     }
-; 438  :   }
-; 439  : }
+; 591  :     }
+; 592  :   }
+; 593  : }
 
 	ret	0
 ?SKX_RemoveCBTHook@@YGXXZ ENDP				; SKX_RemoveCBTHook
@@ -75712,51 +76433,57 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 _TEXT	SEGMENT
-_wszCurrentDir$1 = -2168				; size = 1040
-_wszSys32$2 = -1128					; size = 524
-_wszWOW64$3 = -604					; size = 524
-$T4 = -80						; size = 24
-$T5 = -56						; size = 24
-$T6 = -32						; size = 24
-_hMod$ = -4						; size = 4
+_wszCurrentDir$2 = -2132				; size = 1040
+_wszSys32$3 = -1092					; size = 524
+_wszWOW64$4 = -568					; size = 524
+$T5 = -44						; size = 24
+_hMod$ = -20						; size = 4
+$T6 = -16						; size = 4
+$T7 = -16						; size = 4
+$T8 = -16						; size = 4
+$T9 = -16						; size = 4
+$T10 = -16						; size = 4
+__$EHRec$ = -12						; size = 12
 ?SKX_InstallCBTHook@@YGXXZ PROC				; SKX_InstallCBTHook
 
-; 328  : {
+; 349  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
-	sub	esp, 2168				; 00000878H
+	mov	eax, DWORD PTR fs:0
+	push	-1
+	push	__ehhandler$?SKX_InstallCBTHook@@YGXXZ
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 2120				; 00000848H
 
-; 329  : #ifdef USE_SHELL_HOOK
-; 330  :   SKX_InstallShellHook ();
-; 331  : #endif
-; 332  : 
-; 333  :   // Nothing to do here, move along.
-; 334  :   if (g_hHookCBT != nullptr)
+; 350  : #ifdef USE_SHELL_HOOK
+; 351  :   SKX_InstallShellHook ();
+; 352  : #endif
+; 353  : 
+; 354  :   // Nothing to do here, move along.
+; 355  :   if (g_hHookCBT != nullptr)
 
 	cmp	DWORD PTR ?g_hHookCBT@@3RAUHHOOK__@@A, 0 ; g_hHookCBT
-	push	esi
-	jne	$LN133@SKX_Instal
+	jne	$LN9@SKX_Instal
 
-; 335  :     return;
-; 336  : 
-; 337  :   ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+; 356  :     return;
+; 357  : 
+; 358  :   ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
 
 	push	8320					; 00002080H
 	push	0
@@ -75764,52 +76491,52 @@ _hMod$ = -4						; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 338  :   whitelist_count = 0;
+; 359  :   whitelist_count = 0;
 
 	mov	DWORD PTR ?whitelist_count@@3HA, 0	; whitelist_count
 
-; 339  : 
-; 340  :   HMODULE hMod = nullptr;
-; 341  : 
-; 342  :   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+; 360  : 
+; 361  :   HMODULE hMod = nullptr;
+; 362  : 
+; 363  :   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 
 	lea	eax, DWORD PTR _hMod$[ebp]
 	mov	DWORD PTR _hMod$[ebp], 0
 	push	eax
-	push	OFFSET $SG147666
+	push	OFFSET $SG256885
 	push	2
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 
-; 343  : #ifdef _WIN64
-; 344  :                           L"SpecialK64.dll",
-; 345  : #else
-; 346  :                           L"SpecialK32.dll",
-; 347  : #endif
-; 348  :                           (HMODULE *) &hMod );
-; 349  : 
-; 350  :   extern HMODULE
-; 351  :   __stdcall
-; 352  :   SK_GetDLL (void);
-; 353  : 
-; 354  :   if (hMod == SK_GetDLL ())
+; 364  : #ifdef _WIN64
+; 365  :                           L"SpecialK64.dll",
+; 366  : #else
+; 367  :                           L"SpecialK32.dll",
+; 368  : #endif
+; 369  :                           (HMODULE *) &hMod );
+; 370  : 
+; 371  :   extern HMODULE
+; 372  :   __stdcall
+; 373  :   SK_GetDLL (void);
+; 374  : 
+; 375  :   if (hMod == SK_GetDLL ())
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	cmp	DWORD PTR _hMod$[ebp], eax
-	jne	$LN133@SKX_Instal
+	jne	$LN9@SKX_Instal
 
-; 355  :   {
-; 356  :     if (g_hShutdown == nullptr)
+; 376  :   {
+; 377  :     if (g_hShutdown == nullptr)
 
 	cmp	DWORD PTR ?g_hShutdown@@3RAXA, 0	; g_hShutdown
 	jne	SHORT $LN4@SKX_Instal
 
-; 357  :     {
-; 358  : #ifdef _WIN64
-; 359  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
-; 360  : #else
-; 361  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
+; 378  :     {
+; 379  : #ifdef _WIN64
+; 380  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
+; 381  : #else
+; 382  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
 
-	push	OFFSET $SG147669
+	push	OFFSET $SG256888
 	push	0
 	push	1
 	push	0
@@ -75817,29 +76544,28 @@ _hMod$ = -4						; size = 4
 	mov	DWORD PTR ?g_hShutdown@@3RAXA, eax	; g_hShutdown
 $LN4@SKX_Instal:
 
-; 362  : #endif
-; 363  :     }
-; 364  : 
-; 365  : 
-; 366  :   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
+; 383  : #endif
+; 384  :     }
+; 385  : 
+; 386  :     wchar_t wszCurrentDir [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
-	lea	eax, DWORD PTR _wszCurrentDir$1[ebp]
+	lea	eax, DWORD PTR _wszCurrentDir$2[ebp]
 	push	0
 	push	eax
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 367  :   GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
+; 387  :     GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
 
-	lea	eax, DWORD PTR _wszCurrentDir$1[ebp]
+	lea	eax, DWORD PTR _wszCurrentDir$2[ebp]
 	push	eax
 	push	519					; 00000207H
 	call	DWORD PTR __imp__GetCurrentDirectoryW@8
 
-; 369  :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 389  :     SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
-	lea	eax, DWORD PTR $T6[ebp]
+	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
 	call	?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_SYS_GetInstallPath
 	add	esp, 4
@@ -75851,16 +76577,16 @@ $LN4@SKX_Instal:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN26@SKX_Instal
+	jb	SHORT $LN42@SKX_Instal
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN26@SKX_Instal:
+$LN42@SKX_Instal:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 369  :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 389  :     SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
@@ -75868,13 +76594,17 @@ $LN26@SKX_Instal:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T6[ebp+20]
+	mov	eax, DWORD PTR $T5[ebp+20]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN35@SKX_Instal
+	jb	SHORT $LN52@SKX_Instal
 
+; 3609 : 			{
+; 3610 : 			pointer _Ptr = _My_data._Bx._Ptr;
+; 3611 : 			auto& _Al = this->_Getal();
+; 3612 : 			_Al.destroy(_STD addressof(_My_data._Bx._Ptr));
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
 	inc	eax
@@ -75884,10 +76614,11 @@ $LN26@SKX_Instal:
 
 	push	2
 	push	eax
-	push	DWORD PTR $T6[ebp]
+	push	DWORD PTR $T5[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN35@SKX_Instal:
+$LN52@SKX_Instal:
+	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -75897,10 +76628,10 @@ $LN35@SKX_Instal:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T6[ebp+16], 0
+	mov	DWORD PTR $T5[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 375  :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
+; 395  :     wchar_t wszWOW64 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	push	eax
@@ -75908,55 +76639,55 @@ $LN35@SKX_Instal:
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR $T6[ebp], ax
+	mov	WORD PTR $T5[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 375  :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
+; 395  :     wchar_t wszWOW64 [MAX_PATH + 2] = { };
 
-	lea	eax, DWORD PTR _wszWOW64$3[ebp]
+	lea	eax, DWORD PTR _wszWOW64$4[ebp]
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR $T6[ebp+20], 7
+	mov	DWORD PTR $T5[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 375  :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
+; 395  :     wchar_t wszWOW64 [MAX_PATH + 2] = { };
 
 	call	_memset
 
-; 376  :   GetSystemDirectoryW      (wszWOW64, MAX_PATH);
+; 396  :     GetSystemDirectoryW      (wszWOW64, MAX_PATH);
 
 	mov	esi, DWORD PTR __imp__GetSystemDirectoryW@8
-	lea	eax, DWORD PTR _wszWOW64$3[ebp]
+	lea	eax, DWORD PTR _wszWOW64$4[ebp]
 	add	esp, 12					; 0000000cH
 	push	260					; 00000104H
 	push	eax
 	call	esi
 
-; 377  : #endif
-; 378  : 
-; 379  :   wchar_t wszSys32 [MAX_PATH + 2] = { };
+; 397  : #endif
+; 398  : 
+; 399  :     wchar_t wszSys32 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
-	lea	eax, DWORD PTR _wszSys32$2[ebp]
+	lea	eax, DWORD PTR _wszSys32$3[ebp]
 	push	0
 	push	eax
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 380  :   GetSystemDirectoryW      (wszSys32, MAX_PATH);
+; 400  :     GetSystemDirectoryW      (wszSys32, MAX_PATH);
 
-	lea	eax, DWORD PTR _wszSys32$2[ebp]
+	lea	eax, DWORD PTR _wszSys32$3[ebp]
 	push	260					; 00000104H
 	push	eax
 	call	esi
 
-; 381  : 
-; 382  :     // Shell hooks don't work very well, they run into problems with
-; 383  :     //   hooking XInput -- CBT is more reliable, but slower.
-; 384  :     g_hHookCBT =
+; 401  : 
+; 402  :     // Shell hooks don't work very well, they run into problems with
+; 403  :     //   hooking XInput -- CBT is more reliable, but slower.
+; 404  :     g_hHookCBT =
 
 	push	0
 	push	DWORD PTR _hMod$[ebp]
@@ -75965,194 +76696,483 @@ $LN35@SKX_Instal:
 	call	DWORD PTR __imp__SetWindowsHookExW@16
 	mov	DWORD PTR ?g_hHookCBT@@3RAUHHOOK__@@A, eax ; g_hHookCBT
 
-; 385  :       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
-; 386  : 
-; 387  :     if (g_hHookCBT != nullptr)
+; 405  :       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
+; 406  : 
+; 407  :     if (g_hHookCBT != nullptr)
 
 	cmp	DWORD PTR ?g_hHookCBT@@3RAUHHOOK__@@A, 0 ; g_hHookCBT
-	je	$LN133@SKX_Instal
+	je	$LN108@SKX_Instal
 
-; 388  :     {
-; 389  :       __SK_HookContextOwner = true;
-; 390  : 
-; 391  : #ifdef _WIN64
-; 392  :       GetSystemDirectoryW (wszSys32, MAX_PATH);
-; 393  :       PathAppendW         (wszSys32, L"rundll32.exe");
-; 394  :       ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
-; 395  : 
-; 396  :       GetSystemDirectoryW (wszSys32, MAX_PATH);
-; 397  :       PathAppendW         (wszSys32, L"rundll32.exe");
-; 398  :       ShellExecuteA       (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
-; 399  : #else
-; 400  :       GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
+; 408  :     {
+; 409  :       __SK_HookContextOwner = true;
 
-	push	260					; 00000104H
-	lea	eax, DWORD PTR _wszWOW64$3[ebp]
 	mov	DWORD PTR ?__SK_HookContextOwner@@3JC, 1 ; __SK_HookContextOwner
-	push	eax
-	call	DWORD PTR __imp__GetSystemWow64DirectoryW@8
+; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
 
-; 401  :       PathAppendW              (wszWOW64, L"rundll32.exe");
+; 8837 :     return (unsigned long) _InterlockedIncrement((volatile long*) Addend);
 
-	push	OFFSET $SG147671
-	lea	eax, DWORD PTR _wszWOW64$3[ebp]
-	push	eax
-	call	DWORD PTR __imp__PathAppendW@8
-
-; 402  :       ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
-
-	push	0
-	push	0
-	push	OFFSET $SG147672
-	sub	esp, 24					; 00000018H
-	lea	eax, DWORD PTR _wszWOW64$3[ebp]
-	mov	ecx, esp
-	push	eax
-	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-	lea	eax, DWORD PTR $T5[ebp]
-	push	eax
-	call	?SK_WideCharToUTF8@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@@Z ; SK_WideCharToUTF8
-	add	esp, 28					; 0000001cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR [eax+20], 16			; 00000010H
-
-; 1621 : 		return (_Large_string_engaged()
-
-	jb	SHORT $LN75@SKX_Instal
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 643  : 	return (_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-$LN75@SKX_Instal:
+	lock	 inc	 DWORD PTR ?__SK_DLL_Refs@@3KC
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 402  :       ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_D3D9 dump", nullptr, SW_HIDE);
+; 418  :       config.system.central_repository = true;
 
-	mov	esi, DWORD PTR __imp__ShellExecuteA@24
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+844, 1
+
+; 419  :       SK_EstablishRootPath ();
+
+	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
+
+; 420  : 
+; 421  :       // Setup unhooked function pointers
+; 422  :       SK_PreInitLoadLibrary ();
+
+	call	?SK_PreInitLoadLibrary@@YGXXZ		; SK_PreInitLoadLibrary
+
+; 423  : 
+; 424  :       QueryPerformanceCounter_Original =
+
+	push	OFFSET $SG256890
+	push	OFFSET $SG256891
+	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
-	push	OFFSET $SG147673
-	push	0
-	call	esi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+	call	DWORD PTR __imp__GetProcAddress@8
+	mov	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA, eax ; QueryPerformanceCounter_Original
 
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+; 425  :         reinterpret_cast <QueryPerformanceCounter_pfn> (
+; 426  :           GetProcAddress (
+; 427  :             GetModuleHandle ( L"kernel32.dll"),
+; 428  :                                 "QueryPerformanceCounter" )
+; 429  :         );
+; 430  : 
+; 431  :       SK_Init_MinHook        ();
 
-	mov	eax, DWORD PTR $T5[ebp+20]
-	cmp	eax, 16					; 00000010H
+	call	?SK_Init_MinHook@@YG?AW4MH_STATUS@@XZ	; SK_Init_MinHook
 
-; 3608 : 		if (_My_data._Large_string_engaged())
+; 432  :       SK_ApplyQueuedHooks    ();
 
-	jb	SHORT $LN84@SKX_Instal
+	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
 
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+; 433  : 
+; 434  :       if (SK_Inject_AddressManager != nullptr)
 
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+	mov	esi, DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A ; SK_Inject_AddressManager
+	test	esi, esi
+	je	SHORT $LN6@SKX_Instal
 
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+; 435  :       {
+; 436  :         delete SK_Inject_AddressManager;
+; 437  :         SK_Inject_AddressManager = nullptr;
+
+	mov	ecx, esi
+	call	??1SK_Inject_AddressCacheRegistry@@QAE@XZ ; SK_Inject_AddressCacheRegistry::~SK_Inject_AddressCacheRegistry
+	push	8
+	push	esi
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+	mov	DWORD PTR ?SK_Inject_AddressManager@@3PAVSK_Inject_AddressCacheRegistry@@A, 0 ; SK_Inject_AddressManager
+$LN6@SKX_Instal:
+
+; 440  :       budget_mutex = new SK_Thread_HybridSpinlock ( 400);
+
+	push	edi
+	push	4
+	call	??2@YAPAXI@Z				; operator new
+	mov	esi, eax
+	add	esp, 4
+	mov	DWORD PTR $T10[ebp], esi
+	mov	edi, DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	test	esi, esi
+	je	SHORT $LN13@SKX_Instal
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+
+	push	24					; 00000018H
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 258  :     cs_ = pCS;
+
+	mov	DWORD PTR [esi], eax
+
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+
+	push	400					; 00000190H
+	push	eax
+	call	edi
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 440  :       budget_mutex = new SK_Thread_HybridSpinlock ( 400);
+
+	jmp	SHORT $LN14@SKX_Instal
+$LN13@SKX_Instal:
+	xor	esi, esi
+$LN14@SKX_Instal:
+
+; 441  :       init_mutex   = new SK_Thread_HybridSpinlock (5000);
+
+	push	4
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	mov	DWORD PTR ?budget_mutex@@3PAVSK_Thread_HybridSpinlock@@A, esi ; budget_mutex
+	call	??2@YAPAXI@Z				; operator new
+	mov	esi, eax
+	add	esp, 4
+	mov	DWORD PTR $T9[ebp], esi
+	mov	DWORD PTR __$EHRec$[ebp+8], 1
+	test	esi, esi
+	je	SHORT $LN15@SKX_Instal
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+
+	push	24					; 00000018H
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 258  :     cs_ = pCS;
+
+	mov	DWORD PTR [esi], eax
+
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+
+	push	5000					; 00001388H
+	push	eax
+	call	edi
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 441  :       init_mutex   = new SK_Thread_HybridSpinlock (5000);
+
+	jmp	SHORT $LN16@SKX_Instal
+$LN15@SKX_Instal:
+	xor	esi, esi
+$LN16@SKX_Instal:
+
+; 442  :       loader_lock  = new SK_Thread_HybridSpinlock (6536);
+
+	push	4
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	mov	DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A, esi ; init_mutex
+	call	??2@YAPAXI@Z				; operator new
+	mov	esi, eax
+	add	esp, 4
+	mov	DWORD PTR $T8[ebp], esi
+	mov	DWORD PTR __$EHRec$[ebp+8], 2
+	test	esi, esi
+	je	SHORT $LN17@SKX_Instal
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+
+	push	24					; 00000018H
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 258  :     cs_ = pCS;
+
+	mov	DWORD PTR [esi], eax
+
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+
+	push	6536					; 00001988H
+	push	eax
+	call	edi
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 442  :       loader_lock  = new SK_Thread_HybridSpinlock (6536);
+
+	jmp	SHORT $LN18@SKX_Instal
+$LN17@SKX_Instal:
+	xor	esi, esi
+$LN18@SKX_Instal:
+
+; 443  :       wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
+
+	push	4
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	mov	DWORD PTR ?loader_lock@@3PAVSK_Thread_HybridSpinlock@@A, esi ; loader_lock
+	call	??2@YAPAXI@Z				; operator new
+	mov	esi, eax
+	add	esp, 4
+	mov	DWORD PTR $T7[ebp], esi
+	mov	DWORD PTR __$EHRec$[ebp+8], 3
+	test	esi, esi
+	je	SHORT $LN19@SKX_Instal
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+
+	push	24					; 00000018H
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 258  :     cs_ = pCS;
+
+	mov	DWORD PTR [esi], eax
+
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+
+	push	128					; 00000080H
+	push	eax
+	call	edi
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 443  :       wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
+
+	jmp	SHORT $LN20@SKX_Instal
+$LN19@SKX_Instal:
+	xor	esi, esi
+$LN20@SKX_Instal:
+
+; 444  :       cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
+
+	push	4
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	mov	DWORD PTR ?wmi_cs@@3PAVSK_Thread_HybridSpinlock@@A, esi ; wmi_cs
+	call	??2@YAPAXI@Z				; operator new
+	mov	esi, eax
+	add	esp, 4
+	mov	DWORD PTR $T6[ebp], esi
+	mov	DWORD PTR __$EHRec$[ebp+8], 4
+	test	esi, esi
+	je	SHORT $LN21@SKX_Instal
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+
+	push	24					; 00000018H
+	call	??2@YAPAXI@Z				; operator new
+	add	esp, 4
+
+; 258  :     cs_ = pCS;
+
+	mov	DWORD PTR [esi], eax
+
+; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+
+	push	104857					; 00019999H
+	push	eax
+	call	edi
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 444  :       cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
+
+	jmp	SHORT $LN22@SKX_Instal
+$LN21@SKX_Instal:
+	xor	esi, esi
+$LN22@SKX_Instal:
+
+; 445  : 
+; 446  :       extern volatile DWORD __SK_TLS_INDEX;
+; 447  : 
+; 448  :       if (__SK_TLS_INDEX == 0)
+
+	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, 0	; __SK_TLS_INDEX
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	mov	DWORD PTR ?cs_dbghelp@@3PAVSK_Thread_HybridSpinlock@@A, esi ; cs_dbghelp
+	pop	edi
+	jne	SHORT $LN7@SKX_Instal
+
+; 449  :       {
+; 450  :         __SK_TLS_INDEX = TlsAlloc ();
+
+	call	DWORD PTR __imp__TlsAlloc@0
+	mov	DWORD PTR ?__SK_TLS_INDEX@@3KC, eax	; __SK_TLS_INDEX
+
+; 451  :         temp_tls       = true;
+
+	mov	BYTE PTR ?temp_tls@@3_NA, 1		; temp_tls
+$LN7@SKX_Instal:
+
+; 452  :       }
+; 453  : 
+; 454  :       if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
+
+	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
+	je	SHORT $LN108@SKX_Instal
+
+; 455  :       {
+; 456  : #if 0
+; 457  :         MessageBox ( NULL,
+; 458  :                        L"Out of TLS Indexes",
+; 459  :                          L"Cannot Init. Special K",
+; 460  :                            MB_ICONERROR | MB_OK |
+; 461  :                            MB_APPLMODAL | MB_SETFOREGROUND );
+; 462  : #endif
+; 463  :       }
+; 464  : 
+; 465  :       else
+; 466  :       {
+; 467  :         SK_SetDLLRole (DLL_ROLE::DXGI);
 
 	push	1
-	push	eax
-	push	DWORD PTR $T5[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN84@SKX_Instal:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+	call	?SK_SetDLLRole@@YAXW4DLL_ROLE@@@Z	; SK_SetDLLRole
 
-; 404  :       GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
+; 468  : 
+; 469  :         extern __time64_t __SK_DLL_AttachTime;
+; 470  :         _time64 (&__SK_DLL_AttachTime);
 
-	push	260					; 00000104H
-	lea	eax, DWORD PTR _wszWOW64$3[ebp]
-	push	eax
-	call	DWORD PTR __imp__GetSystemWow64DirectoryW@8
+	push	OFFSET ?__SK_DLL_AttachTime@@3_JA	; __SK_DLL_AttachTime
+	call	DWORD PTR __imp___time64
+	add	esp, 8
 
-; 405  :       PathAppendW              (wszWOW64, L"rundll32.exe");
+; 471  : 
+; 472  :         extern bool __SK_RunDLL_Bypass;
+; 473  :                     __SK_RunDLL_Bypass = true;
 
-	push	OFFSET $SG147674
-	lea	eax, DWORD PTR _wszWOW64$3[ebp]
-	push	eax
-	call	DWORD PTR __imp__PathAppendW@8
+	mov	BYTE PTR ?__SK_RunDLL_Bypass@@3_NA, 1	; __SK_RunDLL_Bypass
 
-; 406  :       ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
+; 474  : 
+; 475  :         CreateThread (nullptr, 0x0, [](LPVOID /*user*/) ->
 
 	push	0
 	push	0
-	push	OFFSET $SG147675
-	sub	esp, 24					; 00000018H
-	lea	eax, DWORD PTR _wszWOW64$3[ebp]
-	mov	ecx, esp
-	push	eax
-	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-	lea	eax, DWORD PTR $T4[ebp]
-	push	eax
-	call	?SK_WideCharToUTF8@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@@Z ; SK_WideCharToUTF8
-	add	esp, 28					; 0000001cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR [eax+20], 16			; 00000010H
-
-; 1621 : 		return (_Large_string_engaged()
-
-	jb	SHORT $LN124@SKX_Instal
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 643  : 	return (_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-$LN124@SKX_Instal:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 406  :       ShellExecuteA            (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_HookManager_DXGI dump", nullptr, SW_HIDE);
-
-	push	eax
-	push	OFFSET $SG147676
 	push	0
-	call	esi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR $T4[ebp+20]
-	cmp	eax, 16					; 00000010H
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN133@SKX_Instal
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	eax
-	push	DWORD PTR $T4[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN133@SKX_Instal:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 410  : }
-
+	push	OFFSET ?<lambda_invoker_stdcall>@<lambda_45484e326abf0e6bbb3347a9d246591d>@@CGKPAX@Z ; <lambda_45484e326abf0e6bbb3347a9d246591d>::<lambda_invoker_stdcall>
+	push	0
+	push	0
+	call	DWORD PTR __imp__CreateThread@24
+$LN108@SKX_Instal:
 	pop	esi
+$LN9@SKX_Instal:
+
+; 476  :         DWORD
+; 477  :         {
+; 478  :           config.apis.d3d9.hook    = false;  config.apis.d3d9ex.hook    = false;
+; 479  :           config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = true;
+; 480  :           config.apis.NvAPI.enable = false;
+; 481  :           config.cegui.enable                          = false;
+; 482  :           config.steam.preload_overlay                 = false;
+; 483  :           config.steam.silent                          = true;
+; 484  :           config.system.trace_load_library             = false;
+; 485  :           config.system.handle_crashes                 = false;
+; 486  :           config.system.central_repository             = true;
+; 487  :           config.system.game_output                    = false;
+; 488  :           config.render.dxgi.rehook_present            = false;
+; 489  :           config.injection.global.use_static_addresses = false;
+; 490  :           config.input.gamepad.hook_dinput8            = false;
+; 491  :           config.input.gamepad.hook_hid                = false;
+; 492  :           config.input.gamepad.hook_xinput             = false;
+; 493  : 
+; 494  :           if (SK::DXGI::Startup ())
+; 495  :           {
+; 496  :             WaitForInit ();
+; 497  : 
+; 498  :             extern PresentSwapChain_pfn Present_Target;
+; 499  : 
+; 500  :             SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+; 501  :             SK_Inject_AddressManager->storeNamedAddress (L"dxgi", "IDXGISwapChain::Present", reinterpret_cast <uintptr_t> (Present_Target));
+; 502  : 
+; 503  :             delete SK_Inject_AddressManager;
+; 504  :                    SK_Inject_AddressManager = nullptr;
+; 505  : 
+; 506  :             dll_log.Log (L"IDXGISwapChain::Present = %ph", Present_Target);
+; 507  : 
+; 508  :             config.apis.d3d9.hook    = true;  config.apis.d3d9ex.hook     = true;
+; 509  :             config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = false;
+; 510  :             config.apis.NvAPI.enable = false;
+; 511  :             config.cegui.enable                          = false;
+; 512  :             config.steam.preload_overlay                 = false;
+; 513  :             config.steam.silent                          = true;
+; 514  :             config.system.trace_load_library             = false;
+; 515  :             config.system.handle_crashes                 = false;
+; 516  :             config.system.central_repository             = true;
+; 517  :             config.system.game_output                    = false;
+; 518  :             config.render.dxgi.rehook_present            = false;
+; 519  :             config.injection.global.use_static_addresses = false;
+; 520  :             config.input.gamepad.hook_dinput8            = false;
+; 521  :             config.input.gamepad.hook_hid                = false;
+; 522  :             config.input.gamepad.hook_xinput             = false;
+; 523  : 
+; 524  :             SK_BootD3D9 ();
+; 525  : 
+; 526  :             extern D3D9PresentDevice_pfn         D3D9Present_Target;
+; 527  :             extern D3D9PresentDeviceEx_pfn       D3D9PresentEx_Target;
+; 528  :             extern D3D9PresentSwapChain_pfn      D3D9PresentSwap_Target;
+; 529  :             extern D3D9Reset_pfn                 D3D9Reset_Target;
+; 530  :             extern D3D9ResetEx_pfn               D3D9ResetEx_Target;
+; 531  : 
+; 532  :             SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+; 533  : 
+; 534  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Present",     reinterpret_cast <uintptr_t> (D3D9Present_Target));
+; 535  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::PresentEx", reinterpret_cast <uintptr_t> (D3D9PresentEx_Target));
+; 536  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DSwapChain9::Present",  reinterpret_cast <uintptr_t> (D3D9PresentSwap_Target));
+; 537  : 
+; 538  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Reset",       reinterpret_cast <uintptr_t> (D3D9Reset_Target));
+; 539  :             SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::ResetEx",   reinterpret_cast <uintptr_t> (D3D9ResetEx_Target));
+; 540  : 
+; 541  :             delete SK_Inject_AddressManager;
+; 542  :                    SK_Inject_AddressManager = nullptr;
+; 543  : 
+; 544  :             //SK::DXGI::Shutdown ();
+; 545  :             
+; 546  :             extern iSK_INI* dll_ini;
+; 547  :             DeleteFileW (dll_ini->get_filename ());
+; 548  :           }
+; 549  : 
+; 550  :           if (temp_tls)
+; 551  :           {
+; 552  :             TlsFree (__SK_TLS_INDEX);
+; 553  :                      __SK_TLS_INDEX = 0;
+; 554  :             temp_tls = false;
+; 555  :           }
+; 556  : 
+; 557  :           CloseHandle (GetCurrentThread ());
+; 558  : 
+; 559  :           return 0;
+; 560  :         }, nullptr, 0, nullptr);
+; 561  :       }
+; 562  :     }
+; 563  :   }
+; 564  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-?SKX_InstallCBTHook@@YGXXZ ENDP				; SKX_InstallCBTHook
 _TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$1:
+	push	4
+	mov	eax, DWORD PTR $T10[ebp]
+	push	eax
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+	ret	0
+__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$2:
+	push	4
+	mov	eax, DWORD PTR $T9[ebp]
+	push	eax
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+	ret	0
+__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$3:
+	push	4
+	mov	eax, DWORD PTR $T8[ebp]
+	push	eax
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+	ret	0
+__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$4:
+	push	4
+	mov	eax, DWORD PTR $T7[ebp]
+	push	eax
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+	ret	0
+__unwindfunclet$?SKX_InstallCBTHook@@YGXXZ$5:
+	push	4
+	mov	eax, DWORD PTR $T6[ebp]
+	push	eax
+	call	??3@YAXPAXI@Z				; operator delete
+	add	esp, 8
+	ret	0
+__ehhandler$?SKX_InstallCBTHook@@YGXXZ:
+	mov	eax, OFFSET __ehfuncinfo$?SKX_InstallCBTHook@@YGXXZ
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?SKX_InstallCBTHook@@YGXXZ ENDP				; SKX_InstallCBTHook
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 _TEXT	SEGMENT
@@ -76161,35 +77181,35 @@ _wParam$ = 12						; size = 4
 _lParam$ = 16						; size = 4
 ?CBTProc@@YGJHIJ@Z PROC					; CBTProc
 
-; 195  : {
+; 206  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 196  :   if (nCode < 0)
+; 207  :   if (nCode < 0)
 
 	mov	esi, DWORD PTR _nCode$[ebp]
 	test	esi, esi
 	js	SHORT $LN3@CBTProc
 
-; 197  :     return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
-; 198  : 
-; 199  : 
-; 200  :   if (hModHookInstance == nullptr && g_hHookCBT)
+; 208  :     return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+; 209  : 
+; 210  : 
+; 211  :   if (hModHookInstance == nullptr && g_hHookCBT)
 
 	cmp	DWORD PTR ?hModHookInstance@@3PAUHINSTANCE__@@A, 0 ; hModHookInstance
 	jne	SHORT $LN3@CBTProc
 	cmp	DWORD PTR ?g_hHookCBT@@3RAUHHOOK__@@A, 0 ; g_hHookCBT
 	je	SHORT $LN3@CBTProc
 
-; 201  :   {
-; 202  :     static volatile LONG lHookIters = 0L;
-; 203  : 
-; 204  :     // Don't create that thread more than once, but don't bother with a complete
-; 205  :     //   critical section.
-; 206  :     if (InterlockedIncrement (&lHookIters) > 1L)
+; 212  :   {
+; 213  :     static volatile LONG lHookIters = 0L;
+; 214  : 
+; 215  :     // Don't create that thread more than once, but don't bother with a complete
+; 216  :     //   critical section.
+; 217  :     if (InterlockedIncrement (&lHookIters) > 1L)
 
 	mov	eax, 1
 	lock	 xadd	 DWORD PTR ?lHookIters@?6??CBTProc@@YGJHIJ@Z@4JC, eax
@@ -76197,24 +77217,24 @@ _lParam$ = 16						; size = 4
 	cmp	eax, 1
 	jg	SHORT $LN3@CBTProc
 
-; 207  :       return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
-; 208  : 
-; 209  :     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+; 218  :       return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+; 219  : 
+; 220  :     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 
 	push	OFFSET ?hModHookInstance@@3PAUHINSTANCE__@@A ; hModHookInstance
-	push	OFFSET $SG147568
+	push	OFFSET $SG147602
 	push	2
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 
-; 210  : #ifdef _WIN64
-; 211  :                           L"SpecialK64.dll",
-; 212  : #else
-; 213  :                           L"SpecialK32.dll",
-; 214  : #endif
-; 215  :                             (HMODULE *) &hModHookInstance );
-; 216  : 
-; 217  :     // Get and keep a reference to this DLL if this is the first time we are injecting.
-; 218  :     CreateThread ( nullptr, 0,
+; 221  : #ifdef _WIN64
+; 222  :                           L"SpecialK64.dll",
+; 223  : #else
+; 224  :                           L"SpecialK32.dll",
+; 225  : #endif
+; 226  :                             (HMODULE *) &hModHookInstance );
+; 227  : 
+; 228  :     // Get and keep a reference to this DLL if this is the first time we are injecting.
+; 229  :     CreateThread ( nullptr, 0,
 
 	push	0
 	push	0
@@ -76225,28 +77245,28 @@ _lParam$ = 16						; size = 4
 	call	DWORD PTR __imp__CreateThread@24
 $LN3@CBTProc:
 
-; 219  :          [](LPVOID user) ->
-; 220  :            DWORD
-; 221  :              {
-; 222  :                UNREFERENCED_PARAMETER (user);
-; 223  : 
-; 224  :                if (g_hShutdown != nullptr)
-; 225  :                  WaitForSingleObject (g_hShutdown, INFINITE);
-; 226  : 
-; 227  :                hModHookInstance = nullptr;
-; 228  : 
-; 229  :                CloseHandle (GetCurrentThread ());
-; 230  : 
-; 231  :                return 0;
-; 232  :              },
-; 233  :            nullptr,
-; 234  :          0x00,
-; 235  :        nullptr
-; 236  :     );
-; 237  :   }
-; 238  : 
+; 230  :          [](LPVOID user) ->
+; 231  :            DWORD
+; 232  :              {
+; 233  :                UNREFERENCED_PARAMETER (user);
+; 234  : 
+; 235  :                if (g_hShutdown != nullptr)
+; 236  :                  WaitForSingleObject (g_hShutdown, INFINITE);
+; 237  : 
+; 238  :                hModHookInstance = nullptr;
 ; 239  : 
-; 240  :   return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+; 240  :                CloseHandle (GetCurrentThread ());
+; 241  : 
+; 242  :                return 0;
+; 243  :              },
+; 244  :            nullptr,
+; 245  :          0x00,
+; 246  :        nullptr
+; 247  :     );
+; 248  :   }
+; 249  : 
+; 250  : 
+; 251  :   return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 
 	push	DWORD PTR _lParam$[ebp]
 	mov	eax, DWORD PTR ?g_hHookCBT@@3RAUHHOOK__@@A ; g_hHookCBT
@@ -76256,7 +77276,7 @@ $LN3@CBTProc:
 	call	DWORD PTR __imp__CallNextHookEx@16
 	pop	esi
 
-; 241  : }
+; 252  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -77106,6 +78126,32 @@ $LN12@Hash_seq:
 ?_Hash_seq@std@@YAIPBEI@Z ENDP				; std::_Hash_seq
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
+;	COMDAT ?_InterlockedIncrement@@YAKPCK@Z
+_TEXT	SEGMENT
+_Addend$ = 8						; size = 4
+?_InterlockedIncrement@@YAKPCK@Z PROC			; _InterlockedIncrement, COMDAT
+
+; 8836 : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 8837 :     return (unsigned long) _InterlockedIncrement((volatile long*) Addend);
+
+	mov	ecx, DWORD PTR _Addend$[ebp]
+	mov	eax, 1
+	lock	 xadd	 DWORD PTR [ecx], eax
+	inc	eax
+
+; 8838 : }
+
+	pop	ebp
+	ret	0
+?_InterlockedIncrement@@YAKPCK@Z ENDP			; _InterlockedIncrement
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 ;	COMDAT _ReadAcquire
 _TEXT	SEGMENT
@@ -77271,6 +78317,31 @@ $LN6@memcpy_s:
 	pop	ebp
 	ret	0
 _memcpy_s ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+;	COMDAT ?__empty_global_delete@@YAXPAXI@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+___formal$ = 12						; size = 4
+?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
+
+; 1518 : //}
+
+	ret	0
+?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+;	COMDAT ?__empty_global_delete@@YAXPAX@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
+
+; 1518 : //}
+
+	ret	0
+?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ;	COMDAT ??_H@YGXPAXIIP6EPAX0@Z@Z

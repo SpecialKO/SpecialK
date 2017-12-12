@@ -79,6 +79,12 @@ __stdcall
 SK_D3D11_BytesPerPixel (DXGI_FORMAT fmt);
 
 BOOL
+SK_D3D11_IsFormatBC6Or7 (DXGI_FORMAT fmt)
+{
+  return (fmt >= DXGI_FORMAT_BC6H_TYPELESS && fmt <= DXGI_FORMAT_BC7_UNORM_SRGB);
+}
+
+BOOL
 __stdcall
 SK_D3D11_IsFormatCompressed (DXGI_FORMAT fmt)
 {
@@ -6871,6 +6877,127 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 }
 
 
+bool
+SK_D3D11_IsFormatSRGB (DXGI_FORMAT format)
+{
+  switch (format)
+  {
+    case DXGI_FORMAT_BC1_UNORM_SRGB:
+    case DXGI_FORMAT_BC2_UNORM_SRGB:
+    case DXGI_FORMAT_BC3_UNORM_SRGB:
+    case DXGI_FORMAT_BC7_UNORM_SRGB:
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+      return true;
+    default:
+      return false;
+  }
+}
+
+DXGI_FORMAT
+SK_D3D11_MakeFormatSRGB (DXGI_FORMAT format)
+{
+  switch (format)
+  {
+    //case DXGI_FORMAT_BC1_UNORM:
+    case DXGI_FORMAT_BC1_TYPELESS:
+      return DXGI_FORMAT_BC1_UNORM_SRGB;
+    //case DXGI_FORMAT_BC2_UNORM:
+    case DXGI_FORMAT_BC2_TYPELESS:
+      return DXGI_FORMAT_BC2_UNORM_SRGB;
+    //case DXGI_FORMAT_BC3_UNORM:
+    case DXGI_FORMAT_BC3_TYPELESS:
+      return DXGI_FORMAT_BC3_UNORM_SRGB;
+    //case DXGI_FORMAT_BC7_UNORM:
+    case DXGI_FORMAT_BC7_TYPELESS:
+      return DXGI_FORMAT_BC7_UNORM_SRGB;
+    //case DXGI_FORMAT_B8G8R8A8_UNORM:
+    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+      return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+    //case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+      return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    case DXGI_FORMAT_B8G8R8X8_TYPELESS:
+    //case DXGI_FORMAT_B8G8R8X8_UNORM:
+      return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
+    default:
+      return format;
+  }
+}
+
+DXGI_FORMAT
+SK_D3D11_MakeTypedFormat (DXGI_FORMAT typeless)
+{
+  switch (typeless)
+  {
+    case DXGI_FORMAT_BC1_TYPELESS:
+      return DXGI_FORMAT_BC1_UNORM;
+    case DXGI_FORMAT_BC2_TYPELESS:
+      return DXGI_FORMAT_BC2_UNORM;
+    case DXGI_FORMAT_BC3_TYPELESS:
+      return DXGI_FORMAT_BC3_UNORM;
+    case DXGI_FORMAT_BC4_TYPELESS:
+      return DXGI_FORMAT_BC4_UNORM;
+    case DXGI_FORMAT_BC5_TYPELESS:
+      return DXGI_FORMAT_BC5_UNORM;
+    case DXGI_FORMAT_BC6H_TYPELESS:
+      return DXGI_FORMAT_BC6H_SF16;
+    case DXGI_FORMAT_BC7_TYPELESS:
+      return DXGI_FORMAT_BC7_UNORM;
+
+    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+      return DXGI_FORMAT_B8G8R8A8_UNORM;
+    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+      return DXGI_FORMAT_R8G8B8A8_UNORM;
+
+    default:
+      return typeless;
+  };
+}
+
+DXGI_FORMAT
+SK_D3D11_MakeTypelessFormat (DXGI_FORMAT typeless)
+{
+  switch (typeless)
+  {
+    case DXGI_FORMAT_BC1_UNORM:
+    case DXGI_FORMAT_BC1_UNORM_SRGB:
+      return DXGI_FORMAT_BC1_TYPELESS;
+    case DXGI_FORMAT_BC2_UNORM:
+    case DXGI_FORMAT_BC2_UNORM_SRGB:
+      return DXGI_FORMAT_BC2_TYPELESS;
+    case DXGI_FORMAT_BC3_UNORM:
+    case DXGI_FORMAT_BC3_UNORM_SRGB:
+      return DXGI_FORMAT_BC3_TYPELESS;
+    case DXGI_FORMAT_BC4_UNORM:
+      return DXGI_FORMAT_BC4_TYPELESS;
+    case DXGI_FORMAT_BC5_UNORM:
+      return DXGI_FORMAT_BC5_TYPELESS;
+    case DXGI_FORMAT_BC6H_SF16:
+    case DXGI_FORMAT_BC6H_UF16:
+      return DXGI_FORMAT_BC6H_TYPELESS;
+    case DXGI_FORMAT_BC7_UNORM:
+    case DXGI_FORMAT_BC7_UNORM_SRGB:
+      return DXGI_FORMAT_BC7_TYPELESS;
+
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+      return DXGI_FORMAT_B8G8R8A8_TYPELESS;
+
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+      return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+
+    case DXGI_FORMAT_B8G8R8X8_UNORM:
+    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+      return DXGI_FORMAT_B8G8R8A8_TYPELESS;
+
+    default:
+      return typeless;
+  };
+}
+
 HRESULT
 __stdcall
 SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
@@ -6917,33 +7044,45 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
     const DirectX::Image*       orig_img =
       img.GetImage (0, 0, 0);
 
+    DirectX::TexMetadata meta =
+      img.GetMetadata ();
+
+    meta.format = SK_D3D11_MakeTypedFormat (meta.format);
+
     ret =
-      DirectX::Decompress (orig_img, 1, img.GetMetadata (), DXGI_FORMAT_UNKNOWN, decompressed);
+      DirectX::Decompress (orig_img, 1, meta, DXGI_FORMAT_UNKNOWN, decompressed);
 
     if (SUCCEEDED (ret))
     {
       ret =
         DirectX::GenerateMipMaps ( decompressed.GetImage (0,0,0),
                                    1,
-                                   decompressed.GetMetadata   (), DirectX::TEX_FILTER_BOX | DirectX::TEX_FILTER_SRGB,
+                                   decompressed.GetMetadata   (), DirectX::TEX_FILTER_BOX,
                                    0, *mipmaps );
 
       if (SUCCEEDED (ret))
       {
-        //if (! config.textures.d3d11.uncompressed_mips)
+        if ((! config.textures.d3d11.uncompressed_mips) && (! SK_D3D11_IsFormatBC6Or7 (meta.format)))
         {
           DirectX::ScratchImage* compressed_mips =
             new DirectX::ScratchImage;
 
-          DXGI_FORMAT newFormat = img.GetMetadata ().format;
+          DirectX::TexMetadata mipmap_meta =
+            mipmaps->GetMetadata ();
+
+          mipmap_meta.format           =
+            SK_D3D11_MakeTypedFormat (mipmap_meta.format);
+
+          DXGI_FORMAT newFormat =
+            SK_D3D11_MakeTypedFormat (img.GetMetadata ().format);
 
           ret =
             DirectX::Compress ( //This,
                                   mipmaps->GetImages       (),
                                     mipmaps->GetImageCount (),
-                                      mipmaps->GetMetadata (),
+                                      mipmap_meta,
                                         newFormat,//DXGI_FORMAT_BC7_UNORM,
-                                          DirectX::TEX_COMPRESS_SRGB | DirectX::TEX_COMPRESS_DITHER //|
+                                          DirectX::TEX_COMPRESS_DITHER //|
                                           ,//DirectX::TEX_COMPRESS_PARALLEL,
                                             DirectX::TEX_THRESHOLD_DEFAULT, *compressed_mips );
 
@@ -6959,10 +7098,15 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
 
   else
   {
+    DirectX::TexMetadata meta =
+      img.GetMetadata ();
+
+    meta.format = SK_D3D11_MakeTypedFormat (meta.format);
+
     ret =
       DirectX::GenerateMipMaps ( img.GetImages     (),
                                  img.GetImageCount (),
-                                 img.GetMetadata   (), DirectX::TEX_FILTER_BOX | DirectX::TEX_FILTER_SRGB,
+                                 meta,                 DirectX::TEX_FILTER_BOX,
                                    0, *mipmaps );
   }
 
@@ -6970,8 +7114,13 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
   {
     if (config.textures.d3d11.cache_gen_mips)
     {
-      if (SUCCEEDED (DirectX::SaveToDDSFile ( mipmaps->GetImages   (), mipmaps->GetImageCount (),
-                                              mipmaps->GetMetadata (), 0x00, wszOutName ) ) )
+      DirectX::TexMetadata meta =
+        mipmaps->GetMetadata ();
+
+      meta.format = SK_D3D11_MakeTypedFormat (meta.format);
+
+      if (SUCCEEDED (DirectX::SaveToDDSFile ( mipmaps->GetImages (), mipmaps->GetImageCount (),
+                                              meta,                  0x00, wszOutName ) ) )
       {
         size = mipmaps->GetPixelsSize ();
       }
@@ -7571,6 +7720,9 @@ D3D11Dev_CreateShaderResourceView_Override (
 
           if (pDescOrig->Format != newFormat)// && SK_DXGI_FormatToStr (pDescOrig->Format) != L"UNKNOWN")
           {
+            if (SK_D3D11_IsFormatSRGB (pDescOrig->Format))
+              newFormat = SK_D3D11_MakeFormatSRGB (newFormat);
+
             override = true;
 
             SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
@@ -7598,8 +7750,15 @@ D3D11Dev_CreateShaderResourceView_Override (
           auto pDescCopy =
             std::make_unique <D3D11_SHADER_RESOURCE_VIEW_DESC> (*pDescOrig);
 
-          pDescCopy->Format              = newFormat;
-          pDescCopy->Texture2D.MipLevels = newMipLevels;
+          pDescCopy->Format                    = newFormat;
+          pDescCopy->Texture2D.MipLevels       = newMipLevels;
+
+          //if (newMipLevels > 0 && ( pDesc->Format == DXGI_FORMAT_BC3_UNORM || pDesc->Format == DXGI_FORMAT_BC3_UNORM_SRGB || pDesc->Format == DXGI_FORMAT_BC3_TYPELESS ||
+          //                          pDesc->Format == DXGI_FORMAT_BC2_UNORM || pDesc->Format == DXGI_FORMAT_BC2_UNORM_SRGB || pDesc->Format == DXGI_FORMAT_BC2_TYPELESS ))
+          //{
+            //pDescCopy->Texture2D.MostDetailedMip =  1;
+            //pDescCopy->Texture2D.MipLevels       = -1;
+          //}
 
           pDesc                          = pDescCopy.get ();
 
@@ -7833,12 +7992,14 @@ D3D11Dev_CreateSamplerState_Override
 
   if (config.textures.d3d11.generate_mips && new_desc.Filter <= D3D11_FILTER_ANISOTROPIC)
   {
-    if (new_desc.MipLODBias != 0.0f || new_desc.Filter != D3D11_FILTER_MIN_MAG_MIP_POINT)
+    if (new_desc.Filter != D3D11_FILTER_MIN_MAG_MIP_POINT)
     {
       new_desc.Filter        = D3D11_FILTER_ANISOTROPIC;
       new_desc.MaxAnisotropy = 16;
 
-      new_desc.MipLODBias    = 0.0f;
+      if (new_desc.MipLODBias < 0.0f)
+        new_desc.MipLODBias   = 0.0f;
+
       new_desc.MinLOD        = 0.0f;
       new_desc.MaxLOD        = D3D11_FLOAT32_MAX;
     }
@@ -7954,7 +8115,7 @@ SK_D3D11_ReloadTexture (ID3D11Texture2D* pTex)
         if (config.textures.d3d11.injection_keeps_fmt)
           load_info.Format       = texDesc2D.desc.Format;
         else
-          load_info.Format       = texDesc2D.desc.Format;
+          load_info.Format       = img_info.Format;
 
         load_info.Height         = texDesc2D.desc.Height;
         load_info.MipFilter      = D3DX11_DEFAULT;

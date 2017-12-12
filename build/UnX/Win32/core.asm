@@ -9,6 +9,9 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
+PUBLIC	?SK_bypass_dialog_tid@@3JC			; SK_bypass_dialog_tid
+PUBLIC	?SK_bypass_dialog_active@@3JC			; SK_bypass_dialog_active
+PUBLIC	?__SK_Init@@3JC					; __SK_Init
 PUBLIC	?chDirSep@ATL@@3_WB				; ATL::chDirSep
 PUBLIC	?chRightBracket@ATL@@3_WB			; ATL::chRightBracket
 PUBLIC	?chLeftBracket@ATL@@3_WB			; ATL::chLeftBracket
@@ -40,23 +43,24 @@ PUBLIC	_IID_IAxWinHostWindowLic
 PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
 PUBLIC	_IID_IAxWinAmbientDispatch
 PUBLIC	?poll_interval@@3_KA				; poll_interval
-PUBLIC	?osd_shutdown@@3PAXA				; osd_shutdown
 PUBLIC	_LIBID_ATLLib
 PUBLIC	?g_iRenderDevice@@3PAUIUnknown@@A		; g_iRenderDevice
 PUBLIC	?g_iSwapChain@@3PAUIUnknown@@A			; g_iSwapChain
+PUBLIC	?osd_shutdown@@3PAXA				; osd_shutdown
 PUBLIC	___pobjMapEntryFirst
 PUBLIC	___pobjMapEntryLast
 PUBLIC	?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA	; ATL::_pPerfRegFunc
 PUBLIC	?_pPerfUnRegFunc@ATL@@3P6AJXZA			; ATL::_pPerfUnRegFunc
 PUBLIC	?_AtlRegisterPerUser@ATL@@3_NA			; ATL::_AtlRegisterPerUser
 PUBLIC	?_pModule@ATL@@3PAVCComModule@1@A		; ATL::_pModule
-PUBLIC	_IID_IAxWinAmbientDispatchEx
-PUBLIC	?SK_bypass_dialog_active@@3JC			; SK_bypass_dialog_active
-PUBLIC	?__SK_Init@@3JC					; __SK_Init
 PUBLIC	?backend_dll@@3PAUHINSTANCE__@@A		; backend_dll
 PUBLIC	?nvapi_init@@3HA				; nvapi_init
+PUBLIC	_IID_IAxWinAmbientDispatchEx
 PUBLIC	_IID_IInternalConnection
 _BSS	SEGMENT
+?SK_bypass_dialog_tid@@3JC DD 01H DUP (?)		; SK_bypass_dialog_tid
+?SK_bypass_dialog_active@@3JC DD 01H DUP (?)		; SK_bypass_dialog_active
+?__SK_Init@@3JC DD 01H DUP (?)				; __SK_Init
 ?dll_role@@3W4DLL_ROLE@@A DD 01H DUP (?)		; dll_role
 _BSS	ENDS
 ;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
@@ -76,8 +80,6 @@ _BSS	SEGMENT
 ?_pAtlModule@ATL@@3PAVCAtlModule@1@A DD 01H DUP (?)	; ATL::_pAtlModule
 _BSS	ENDS
 _BSS	SEGMENT
-	ALIGN	8
-
 ?poll_interval@@3_KA DQ 01H DUP (?)			; poll_interval
 ?g_iRenderDevice@@3PAUIUnknown@@A DD 01H DUP (?)	; g_iRenderDevice
 ?g_iSwapChain@@3PAUIUnknown@@A DD 01H DUP (?)		; g_iSwapChain
@@ -99,8 +101,6 @@ _BSS	SEGMENT
 ?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
 _BSS	ENDS
 _BSS	SEGMENT
-?SK_bypass_dialog_active@@3JC DD 01H DUP (?)		; SK_bypass_dialog_active
-?__SK_Init@@3JC DD 01H DUP (?)				; __SK_Init
 ?backend_dll@@3PAUHINSTANCE__@@A DD 01H DUP (?)		; backend_dll
 ?nvapi_init@@3HA DD 01H DUP (?)				; nvapi_init
 _BSS	ENDS
@@ -198,7 +198,7 @@ _IID_IAxWinHostWindow DD 0b6ea2050H
 CONST	ENDS
 _DATA	SEGMENT
 ?hPumpThread@@3PAXA DD 0ffffffffH			; hPumpThread
-?__SK_DLL_Backend@@3PB_WB DD FLAT:$SG427383		; __SK_DLL_Backend
+?__SK_DLL_Backend@@3PB_WB DD FLAT:$SG427467		; __SK_DLL_Backend
 ?osd_shutdown@@3PAXA DD 0ffffffffH			; osd_shutdown
 _DATA	ENDS
 ;	COMDAT _IID_IDocHostUIHandlerDispatch
@@ -245,35 +245,35 @@ _CLSID_Registrar DD 044ec053aH
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG189572			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG189595			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG189570		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG189593		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG189568		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG189591		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG189566		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG189589		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG189564		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG189587		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG189562		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG189585		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG189560		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG189583		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG189558		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG189581		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -296,7 +296,107 @@ CONST	SEGMENT
 ?chDirSep@ATL@@3_WB DW 05cH				; ATL::chDirSep
 CONST	ENDS
 CONST	SEGMENT
-$SG428035 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+$SG428035 DB	'%cx', 00H
+$SG428036 DB	'%u', 00H
+$SG428067 DB	00H
+$SG428037 DB	'mem', 00H
+$SG428040 DB	'%hx', 00H
+$SG428041 DB	'%u', 00H
+?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+$SG428042 DB	'mem', 00H
+$SG428045 DB	'%x', 00H
+$SG427957 DB	00H
+$SG428046 DB	'%u', 00H
+$SG428029 DB	00H
+$SG428047 DB	'mem', 00H
+$SG428050 DB	'%llx', 00H
+	ORG $+3
+$SG428051 DB	'%llu', 00H
+	ORG $+3
+$SG428052 DB	'mem', 00H
+$SG428055 DB	'%lf', 00H
+$SG428056 DB	'%f', 00H
+	ORG $+1
+$SG428057 DB	'mem', 00H
+$SG428060 DB	'%f', 00H
+	ORG $+1
+$SG428061 DB	'%f', 00H
+	ORG $+1
+$SG428062 DB	'mem', 00H
+$SG178208 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
+	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG428065 DB	'%s', 00H
+	ORG $+1
+$SG428066 DB	'mem', 00H
+$SG428068 DB	'mem', 00H
+$SG178255 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
+	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG428107 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'i', 00H, 'z', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
+	DB	00H, 'N', 00H, 'V', 00H, 'I', 00H, 'D', 00H, 'I', 00H, 'A', 00H
+	DB	' ', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, '(', 00H, 'N', 00H, 'v', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, ')', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
+	ORG $+2
+$SG428108 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	DB	's', 00H, 00H, 00H
+$SG428109 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	' ', 00H, 00H, 00H
+$SG428122 DB	'O', 00H, 'P', 00H, 'E', 00H, 'N', 00H, 00H, 00H
+	ORG $+2
+$SG428110 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, 'N', 00H, 'v', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H
+	DB	'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, ' ', 00H, ' ', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	'{', 00H, ' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '}', 00H, 00H
+	DB	00H
+$SG428113 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '>', 00H, '>', 00H, ' ', 00H, 'N', 00H, 'V', 00H, 'I', 00H
+	DB	'D', 00H, 'I', 00H, 'A', 00H, ' ', 00H, 'D', 00H, 'r', 00H, 'i'
+	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'V', 00H, 'e', 00H
+	DB	'r', 00H, 's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, 's', 00H, 00H, 00H
+$SG428130 DB	'NvOptimusEnablement', 00H
+$SG428114 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H
+	DB	'b', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' '
+	DB	00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+	DB	'l', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'N', 00H, 'V', 00H, 'I'
+	DB	00H, 'D', 00H, 'I', 00H, 'A', 00H, ' ', 00H, 'G', 00H, 'P', 00H
+	DB	'U', 00H, 's', 00H, ':', 00H, ' ', 00H, '%', 00H, 'i', 00H, ' '
+	DB	00H, ' ', 00H, '{', 00H, ' ', 00H, 'S', 00H, 'L', 00H, 'I', 00H
+	DB	':', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, ' '
+	DB	00H, '}', 00H, 00H, 00H
+	ORG $+2
+$SG428115 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H
+	DB	'b', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' '
+	DB	00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+	DB	'l', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'N', 00H, 'V', 00H, 'I'
+	DB	00H, 'D', 00H, 'I', 00H, 'A', 00H, ' ', 00H, 'G', 00H, 'P', 00H
+	DB	'U', 00H, 's', 00H, ':', 00H, ' ', 00H, '%', 00H, 'i', 00H, ' '
+	DB	00H, ' ', 00H, '{', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
+	DB	'''', 00H, ' ', 00H, '}', 00H, 00H, 00H
+$SG428133 DB	'M', 00H, 'a', 00H, 'x', 00H, ' ', 00H, 'P', 00H, 'e', 00H
+	DB	'r', 00H, 'f', 00H, '.', 00H, 00H, 00H
+$SG428117 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
+	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'S', 00H, 'L', 00H
+	DB	'I', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ' ', 00H, '%'
+	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG428121 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '>', 00H, '>', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 's', 00H
 	DB	't', 00H, 'a', 00H, 'r', 00H, 't', 00H, 'i', 00H, 'n', 00H, 'g'
@@ -306,10 +406,8 @@ $SG428035 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
 	DB	'i', 00H, 'v', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 's', 00H, 'e'
 	DB	00H, 't', 00H, 't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 's', 00H
 	DB	' ', 00H, '<', 00H, '<', 00H, 00H, 00H
-$SG428036 DB	'O', 00H, 'P', 00H, 'E', 00H, 'N', 00H, 00H, 00H
-?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-$SG427873 DB	00H
-$SG428037 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
+$SG189581 DB	'S', 00H, 00H, 00H
+$SG428123 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
 	DB	'a', 00H, 'y', 00H, 'L', 00H, 'i', 00H, 'b', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'i', 00H, 'z', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
@@ -318,13 +416,12 @@ $SG428037 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
 	DB	00H, 'i', 00H, 'b', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 'y', 00H
 	DB	' ', 00H, '(', 00H, 'A', 00H, 'D', 00H, 'L', 00H, ')', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, 00H, 00H
-$SG427945 DB	00H
-$SG427983 DB	00H
-$SG428038 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
+	ORG $+2
+$SG428124 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, 00H, 00H
-$SG428039 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG428125 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	' ', 00H, 00H, 00H
-$SG428040 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
+$SG428126 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
 	DB	'a', 00H, 'y', 00H, 'L', 00H, 'i', 00H, 'b', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
@@ -333,10 +430,7 @@ $SG428040 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	'{', 00H, ' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '}', 00H, 00H
 	DB	00H
-$SG178185 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
-	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG428042 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
+$SG428128 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
 	DB	'a', 00H, 'y', 00H, 'L', 00H, 'i', 00H, 'b', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H
 	DB	'b', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' '
@@ -346,13 +440,10 @@ $SG428042 DB	'[', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'p', 00H, 'l', 00H
 	DB	'r', 00H, 's', 00H, ':', 00H, ' ', 00H, '%', 00H, 'i', 00H, ' '
 	DB	00H, '(', 00H, '%', 00H, 'i', 00H, ' ', 00H, 'a', 00H, 'c', 00H
 	DB	't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, ')', 00H, 00H, 00H
-$SG428044 DB	'NvOptimusEnablement', 00H
-$SG428047 DB	'M', 00H, 'a', 00H, 'x', 00H, ' ', 00H, 'P', 00H, 'e', 00H
-	DB	'r', 00H, 'f', 00H, '.', 00H, 00H, 00H
-$SG428048 DB	'D', 00H, 'o', 00H, 'n', 00H, '''', 00H, 't', 00H, ' ', 00H
+$SG428134 DB	'D', 00H, 'o', 00H, 'n', 00H, '''', 00H, 't', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG428049 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
+$SG428135 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
 	DB	'd', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'N', 00H, 'v', 00H, 'O', 00H, 'p', 00H, 't', 00H
 	DB	'i', 00H, 'm', 00H, 'u', 00H, 's', 00H, 'E', 00H, 'n', 00H, 'a'
@@ -364,11 +455,8 @@ $SG428049 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
 	DB	'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG178232 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
-	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG428050 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
+$SG189583 DB	'M', 00H, 00H, 00H
+$SG428136 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
 	DB	'd', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'N', 00H, 'v', 00H, 'O', 00H, 'p', 00H, 't', 00H
 	DB	'i', 00H, 'm', 00H, 'u', 00H, 's', 00H, 'E', 00H, 'n', 00H, 'a'
@@ -379,15 +467,15 @@ $SG428050 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
 	DB	00H, ' ', 00H, 'U', 00H, 'N', 00H, 'D', 00H, 'E', 00H, 'F', 00H
 	DB	'I', 00H, 'N', 00H, 'E', 00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG428051 DB	'AmdPowerXpressRequestHighPerformance', 00H
+$SG428137 DB	'AmdPowerXpressRequestHighPerformance', 00H
 	ORG $+3
-$SG428054 DB	'H', 00H, 'i', 00H, 'g', 00H, 'h', 00H, ' ', 00H, 'P', 00H
+$SG428140 DB	'H', 00H, 'i', 00H, 'g', 00H, 'h', 00H, ' ', 00H, 'P', 00H
 	DB	'e', 00H, 'r', 00H, 'f', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG428055 DB	'D', 00H, 'o', 00H, 'n', 00H, '''', 00H, 't', 00H, ' ', 00H
+$SG428141 DB	'D', 00H, 'o', 00H, 'n', 00H, '''', 00H, 't', 00H, ' ', 00H
 	DB	'C', 00H, 'a', 00H, 'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG428056 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
+$SG428142 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
 	DB	'd', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'A', 00H, 'm', 00H, 'd', 00H, 'P', 00H, 'o', 00H
 	DB	'w', 00H, 'e', 00H, 'r', 00H, 'X', 00H, 'p', 00H, 'r', 00H, 'e'
@@ -399,8 +487,8 @@ $SG428056 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
 	DB	'X', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG189558 DB	'S', 00H, 00H, 00H
-$SG428057 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
+$SG189585 DB	'D', 00H, 00H, 00H
+$SG428143 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
 	DB	'd', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'A', 00H, 'm', 00H, 'd', 00H, 'P', 00H, 'o', 00H
 	DB	'w', 00H, 'e', 00H, 'r', 00H, 'X', 00H, 'p', 00H, 'r', 00H, 'e'
@@ -411,7 +499,11 @@ $SG428057 DB	'[', 00H, 'H', 00H, 'y', 00H, 'b', 00H, 'r', 00H, 'i', 00H
 	DB	00H, ' ', 00H, 'U', 00H, 'N', 00H, 'D', 00H, 'E', 00H, 'F', 00H
 	DB	'I', 00H, 'N', 00H, 'E', 00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG428084 DB	'[', 00H, ' ', 00H, 'M', 00H, 'u', 00H, 'l', 00H, 't', 00H
+$SG178302 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
+	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+	ORG $+2
+$SG428170 DB	'[', 00H, ' ', 00H, 'M', 00H, 'u', 00H, 'l', 00H, 't', 00H
 	DB	'i', 00H, 'T', 00H, 'h', 00H, 'r', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'n', 00H, 'j', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'B', 00H, 'y', 00H, 'p'
@@ -421,45 +513,97 @@ $SG428084 DB	'[', 00H, ' ', 00H, 'M', 00H, 'u', 00H, 'l', 00H, 't', 00H
 	DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '%', 00H, 'x', 00H, ')'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG178279 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
-	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG189560 DB	'M', 00H, 00H, 00H
-$SG189562 DB	'D', 00H, 00H, 00H
-$SG189564 DB	'B', 00H, 00H, 00H
-$SG189566 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG189568 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG189587 DB	'B', 00H, 00H, 00H
+$SG189589 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG189591 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG189570 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG189593 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG189572 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG189595 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG431253 DB	'D', 00H, '3', 00H, 'D', 00H, '9', 00H, 'E', 00H, 'x', 00H
+$SG431267 DB	'D', 00H, '3', 00H, 'D', 00H, '9', 00H, 'E', 00H, 'x', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG178326 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG431270 DB	'D', 00H, '3', 00H, 'D', 00H, '9', 00H, ' ', 00H, ' ', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG178349 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG431256 DB	'D', 00H, '3', 00H, 'D', 00H, '9', 00H, ' ', 00H, ' ', 00H
+$SG431278 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'4', 00H, 00H, 00H
+$SG431281 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'4', 00H, 00H, 00H
+$SG431284 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'3', 00H, 00H, 00H
+$SG431287 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'2', 00H, 00H, 00H
+$SG431290 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'1', 00H, 00H, 00H
+$SG431291 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, ' ', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG428184 DB	'S', 00H, 'K', 00H, 'I', 00H, '*', 00H, '.', 00H, 't', 00H
-	DB	'm', 00H, 'p', 00H, 00H, 00H
+$SG431294 DB	'D', 00H, '3', 00H, 'D', 00H, '8', 00H, 00H, 00H
 	ORG $+2
-$SG428185 DB	'*', 00H, '.', 00H, 'o', 00H, 'l', 00H, 'd', 00H, 00H, 00H
-$SG428186 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
-	DB	'n', 00H, 00H, 00H
-$SG430235 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG431296 DB	'D', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
+$SG431301 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+	DB	'N', 00H, 00H, 00H
+$SG431303 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG431307 DB	't', 00H, 'z', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG431308 DB	't', 00H, 'b', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG178396 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
+	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
+$SG430303 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'D', 00H, 'u', 00H, 'm'
 	DB	00H, 'm', 00H, 'y', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H
 	DB	'd', 00H, 'o', 00H, 'w', 00H, ' ', 00H, 'C', 00H, 'l', 00H, 'a'
 	DB	00H, 's', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG428187 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG431331 DB	'runas', 00H
+	ORG $+2
+$SG430307 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'D', 00H, 'u', 00H, 'm'
+	DB	00H, 'm', 00H, 'y', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H
+	DB	'd', 00H, 'o', 00H, 'w', 00H, ' ', 00H, 'C', 00H, 'l', 00H, 'a'
+	DB	00H, 's', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG430308 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'D', 00H, 'u', 00H, 'm'
+	DB	00H, 'm', 00H, 'y', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H
+	DB	'd', 00H, 'o', 00H, 'w', 00H, 00H, 00H
+	ORG $+2
+$SG430309 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'D', 00H, 'u', 00H, 'm'
+	DB	00H, 'm', 00H, 'y', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H
+	DB	'd', 00H, 'o', 00H, 'w', 00H, ' ', 00H, 'C', 00H, 'l', 00H, 'a'
+	DB	00H, 's', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG430311 DB	'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H
+	DB	' ', 00H, 'C', 00H, 'l', 00H, 'a', 00H, 's', 00H, 's', 00H, ' '
+	DB	00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's', 00H, 't', 00H
+	DB	'r', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' '
+	DB	00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	'!', 00H, 00H, 00H
+$SG431338 DB	'open', 00H
+	ORG $+3
+$SG428271 DB	'R', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG428274 DB	'S', 00H, 'K', 00H, 'I', 00H, '*', 00H, '.', 00H, 't', 00H
+	DB	'm', 00H, 'p', 00H, 00H, 00H
+	ORG $+2
+$SG428275 DB	'*', 00H, '.', 00H, 'o', 00H, 'l', 00H, 'd', 00H, 00H, 00H
+$SG428276 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+	DB	'n', 00H, 00H, 00H
+$SG428277 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'i', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'z'
@@ -467,57 +611,27 @@ $SG428187 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'F', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 's', 00H, 'h', 00H, 'e'
 	DB	00H, 'd', 00H, '!', 00H, ' ', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	00H, 00H
-$SG430238 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'D', 00H, 'u', 00H, 'm'
-	DB	00H, 'm', 00H, 'y', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H
-	DB	'd', 00H, 'o', 00H, 'w', 00H, 00H, 00H
-	ORG $+2
-$SG428190 DB	'VRAM.Purge', 00H
+$SG428279 DB	'VRAM.Purge', 00H
 	ORG $+1
-$SG430239 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'D', 00H, 'u', 00H, 'm'
-	DB	00H, 'm', 00H, 'y', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H
-	DB	'd', 00H, 'o', 00H, 'w', 00H, ' ', 00H, 'C', 00H, 'l', 00H, 'a'
-	DB	00H, 's', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG431264 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
-	DB	'4', 00H, 00H, 00H
-$SG428192 DB	'GPU.StatPollFreq', 00H
+$SG428281 DB	'GPU.StatPollFreq', 00H
 	ORG $+3
-$SG430241 DB	'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H
-	DB	' ', 00H, 'C', 00H, 'l', 00H, 'a', 00H, 's', 00H, 's', 00H, ' '
-	DB	00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's', 00H, 't', 00H
-	DB	'r', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' '
-	DB	00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	'!', 00H, 00H, 00H
-$SG428194 DB	'ImGui.FontScale', 00H
-$SG431267 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
-	DB	'4', 00H, 00H, 00H
-$SG428195 DB	'mem', 00H
-$SG428196 DB	'GetUpdate', 00H
+$SG428283 DB	'ImGui.FontScale', 00H
+$SG428284 DB	'mem', 00H
+$SG428285 DB	'GetUpdate', 00H
 	ORG $+2
-$SG431270 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
-	DB	'3', 00H, 00H, 00H
-$SG428198 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
+$SG428287 DB	'T', 00H, 'a', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
 	DB	'o', 00H, 'f', 00H, ' ', 00H, 'Z', 00H, 'e', 00H, 's', 00H, 't'
 	DB	00H, 'i', 00H, 'r', 00H, 'i', 00H, 'a', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
-$SG428199 DB	'TargetFPS %f', 00H
+$SG428288 DB	'TargetFPS %f', 00H
 	ORG $+3
-$SG431273 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
-	DB	'2', 00H, 00H, 00H
-$SG428202 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG428291 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG431276 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '.', 00H
-	DB	'1', 00H, 00H, 00H
-$SG431277 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, ' ', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG428205 DB	'O', 00H, 'S', 00H, 'D', 00H, ' ', 00H, 'P', 00H, 'u', 00H
+$SG428294 DB	'O', 00H, 'S', 00H, 'D', 00H, ' ', 00H, 'P', 00H, 'u', 00H
 	DB	'm', 00H, 'p', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'u', 00H, 't'
 	DB	00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n', 00H, 00H, 00H
-$SG428206 DB	'[', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H
+$SG428295 DB	'[', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H
 	DB	' ', 00H, 'O', 00H, 'S', 00H, 'D', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'p', 00H, 'a', 00H, 'w', 00H, 'n', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'P', 00H, 'u', 00H, 'm', 00H, 'p'
@@ -525,78 +639,62 @@ $SG428206 DB	'[', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H
 	DB	'd', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG431280 DB	'D', 00H, '3', 00H, 'D', 00H, '8', 00H, 00H, 00H
-	ORG $+2
-$SG431282 DB	'D', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
-$SG428209 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
+$SG428298 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
 	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, ',', 00H, ' ', 00H, 'i'
 	DB	00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'v', 00H, 'a', 00H
 	DB	'l', 00H, '=', 00H, '%', 00H, '0', 00H, '4', 00H, '.', 00H, '0'
 	DB	00H, '1', 00H, 'f', 00H, ' ', 00H, 'm', 00H, 's', 00H, 0aH, 00H
 	DB	00H, 00H
 	ORG $+2
-$SG428210 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG428299 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG431287 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
-	DB	'N', 00H, 00H, 00H
-$SG431289 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	00H, 00H
+$SG178443 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG431293 DB	't', 00H, 'z', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG431294 DB	't', 00H, 'b', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG428222 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
-	DB	'n', 00H, '\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a'
-	DB	00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H
-	DB	'n', 00H, 'i', 00H, 00H, 00H
-$SG428224 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG428226 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG178373 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
-	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG430287 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG430357 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'D', 00H, 'u', 00H, 'm'
 	DB	00H, 'm', 00H, 'y', 00H, ' ', 00H, 'W', 00H, 'i', 00H, 'n', 00H
 	DB	'd', 00H, 'o', 00H, 'w', 00H, ' ', 00H, 'C', 00H, 'l', 00H, 'a'
 	DB	00H, 's', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG431317 DB	'runas', 00H
+$SG428311 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+	DB	'n', 00H, '\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a'
+	DB	00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H
+	DB	'n', 00H, 'i', 00H, 00H, 00H
+$SG428313 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG431324 DB	'open', 00H
-	ORG $+3
-$SG428262 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG428315 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG178490 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
+	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+$SG428351 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 00H, 00H
 	ORG $+2
-$SG428263 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG428352 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
 	DB	00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG178420 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG428303 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG428392 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, 00H, 00H
-$SG428304 DB	'\', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'f', 00H, 'i', 00H
+$SG428393 DB	'\', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'f', 00H, 'i', 00H
 	DB	'l', 00H, 'e', 00H, 's', 00H, '\', 00H, 00H, 00H
 	ORG $+2
-$SG428307 DB	'\', 00H, 00H, 00H
-$SG428308 DB	'\', 00H, 00H, 00H
-$SG178467 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
-	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG178514 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG178537 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
+$SG428396 DB	'\', 00H, 00H, 00H
+$SG428397 DB	'\', 00H, 00H, 00H
+$SG178584 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
 ?IID_ID3D11Device2@@3U_GUID@@B DD 09d06dffaH		; IID_ID3D11Device2
 	DW	0d1e5H
 	DW	04d07H
@@ -641,26 +739,26 @@ $SG178514 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	01bH
 	DB	05eH
 	DB	0a0H
-$SG427383 DB	'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H
-	DB	'D', 00H, 00H, 00H
-$SG178561 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG178608 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG178631 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG178655 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG427467 DB	'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H
+	DB	'D', 00H, 00H, 00H
+$SG178678 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG428529 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
-	DB	'a', 00H, 'p', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG430598 DB	'D', 00H, 'a', 00H, 'r', 00H, 'k', 00H, 'S', 00H, 'o', 00H
+$SG178725 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG178730 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG430668 DB	'D', 00H, 'a', 00H, 'r', 00H, 'k', 00H, 'S', 00H, 'o', 00H
 	DB	'u', 00H, 'l', 00H, 's', 00H, 'I', 00H, 'I', 00H, 'I', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG430594 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG430664 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'i', 00H, 't', 00H, 'i', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'n'
@@ -668,21 +766,20 @@ $SG430594 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 'd', 00H, 'o', 00H, 'w'
 	DB	00H, 'n', 00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, 00H, 00H
 	ORG $+2
-$SG430599 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
+$SG430669 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
 	DB	't', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG430600 DB	'F', 00H, 'F', 00H, 'X', 00H, '.', 00H, 'e', 00H, 'x', 00H
+$SG430670 DB	'F', 00H, 'F', 00H, 'X', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
-$SG430601 DB	'F', 00H, 'F', 00H, 'X', 00H, '-', 00H, '2', 00H, '.', 00H
+$SG430671 DB	'F', 00H, 'F', 00H, 'X', 00H, '-', 00H, '2', 00H, '.', 00H
 	DB	'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG430602 DB	'd', 00H, 'i', 00H, 's', 00H, '1', 00H, '_', 00H, 's', 00H
+$SG430672 DB	'd', 00H, 'i', 00H, 's', 00H, '1', 00H, '_', 00H, 's', 00H
 	DB	't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG430610 DB	'D', 00H, 'i', 00H, 's', 00H, 'k', 00H, ' ', 00H, 'M', 00H
-	DB	'o', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG430603 DB	'[', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ' ', 00H
+$SG428624 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+	DB	'a', 00H, 'p', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG430673 DB	'[', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ' ', 00H
 	DB	'S', 00H, 't', 00H, 'a', 00H, 't', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 't', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n'
@@ -693,10 +790,10 @@ $SG430603 DB	'[', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ' ', 00H
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG430604 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, ' ', 00H
+$SG430674 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, ' ', 00H
 	DB	'(', 00H, '%', 00H, '4', 00H, 'u', 00H, ' ', 00H, 'm', 00H, 's'
 	DB	00H, ')', 00H, 0aH, 00H, 00H, 00H
-$SG430606 DB	'[', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H
+$SG430676 DB	'[', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H
 	DB	' ', 00H, 'O', 00H, 'S', 00H, 'D', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 't', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n'
@@ -704,31 +801,40 @@ $SG430606 DB	'[', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H
 	DB	'T', 00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 'd', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG178702 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG430607 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
+$SG430677 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
 	DB	00H, 00H
 	ORG $+2
-$SG430608 DB	'P', 00H, 'r', 00H, 'o', 00H, 'c', 00H, 'e', 00H, 's', 00H
+$SG430678 DB	'P', 00H, 'r', 00H, 'o', 00H, 'c', 00H, 'e', 00H, 's', 00H
 	DB	's', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'n', 00H, 'i', 00H, 't'
 	DB	00H, 'o', 00H, 'r', 00H, 00H, 00H
-$SG430609 DB	'C', 00H, 'P', 00H, 'U', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG430679 DB	'C', 00H, 'P', 00H, 'U', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'n', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 00H, 00H
-$SG430611 DB	'P', 00H, 'a', 00H, 'g', 00H, 'e', 00H, 'f', 00H, 'i', 00H
+$SG430680 DB	'D', 00H, 'i', 00H, 's', 00H, 'k', 00H, ' ', 00H, 'M', 00H
+	DB	'o', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG430681 DB	'P', 00H, 'a', 00H, 'g', 00H, 'e', 00H, 'f', 00H, 'i', 00H
 	DB	'l', 00H, 'e', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'n', 00H, 'i'
 	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG178707 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
-	DB	00H
+$SG178777 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG430613 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG430683 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG430615 DB	'd', 00H, 's', 00H, '3', 00H, 't', 00H, '.', 00H, 'e', 00H
+$SG430685 DB	'd', 00H, 's', 00H, '3', 00H, 't', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG430616 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG430687 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, ' ', 00H
+	DB	'(', 00H, '%', 00H, '4', 00H, 'u', 00H, ' ', 00H, 'm', 00H, 's'
+	DB	00H, ')', 00H, 0aH, 00H, 00H, 00H
+$SG178824 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG430686 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'a', 00H, 'v', 00H, 'i', 00H, 'n', 00H, 'g', 00H
 	DB	' ', 00H, 'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'p'
@@ -738,12 +844,12 @@ $SG430616 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'n', 00H, 'i', 00H, '.', 00H, '.', 00H, '.', 00H, ' '
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG430617 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, ' ', 00H
+$SG430689 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, ' ', 00H
 	DB	'(', 00H, '%', 00H, '4', 00H, 'u', 00H, ' ', 00H, 'm', 00H, 's'
 	DB	00H, ')', 00H, 0aH, 00H, 00H, 00H
-$SG427586 DB	'S', 00H, '_', 00H, 'O', 00H, 'K', 00H, 00H, 00H
+$SG427670 DB	'S', 00H, '_', 00H, 'O', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG430618 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG430688 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 't', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n'
@@ -754,10 +860,7 @@ $SG430618 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG430619 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, ' ', 00H
-	DB	'(', 00H, '%', 00H, '4', 00H, 'u', 00H, ' ', 00H, 'm', 00H, 's'
-	DB	00H, ')', 00H, 0aH, 00H, 00H, 00H
-$SG430620 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
+$SG430690 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	'P', 00H, 'e', 00H, 'r', 00H, 'f', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'h', 00H, 'u', 00H, 't', 00H, 't', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'n'
@@ -768,10 +871,10 @@ $SG430620 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG430621 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, ' ', 00H
+$SG430691 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, ' ', 00H
 	DB	'(', 00H, '%', 00H, '4', 00H, 'u', 00H, ' ', 00H, 'm', 00H, 's'
 	DB	00H, ')', 00H, 0aH, 00H, 00H, 00H
-$SG430623 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG430693 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'C', 00H, 'u', 00H, 's', 00H, 't', 00H, 'o', 00H, 'm', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
@@ -780,263 +883,127 @@ $SG430623 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H
 	DB	'4', 00H, 'x', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG178754 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
-	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG427588 DB	'S', 00H, '_', 00H, 'F', 00H, 'A', 00H, 'L', 00H, 'S', 00H
+$SG427672 DB	'S', 00H, '_', 00H, 'F', 00H, 'A', 00H, 'L', 00H, 'S', 00H
 	DB	'E', 00H, 00H, 00H
-$SG427590 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+$SG428698 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'c', 00H, 'e', 00H, 'n'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG427674 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
 	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'D', 00H, 'E'
 	DB	00H, 'V', 00H, 'I', 00H, 'C', 00H, 'E', 00H, '_', 00H, 'H', 00H
 	DB	'U', 00H, 'N', 00H, 'G', 00H, 00H, 00H
 	ORG $+2
-$SG427592 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+$SG427676 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
 	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'D', 00H, 'E'
 	DB	00H, 'V', 00H, 'I', 00H, 'C', 00H, 'E', 00H, '_', 00H, 'R', 00H
 	DB	'E', 00H, 'M', 00H, 'O', 00H, 'V', 00H, 'E', 00H, 'D', 00H, 00H
 	DB	00H
-$SG427594 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+$SG427678 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
 	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'D', 00H, 'E'
 	DB	00H, 'V', 00H, 'I', 00H, 'C', 00H, 'E', 00H, '_', 00H, 'R', 00H
 	DB	'E', 00H, 'S', 00H, 'E', 00H, 'T', 00H, 00H, 00H
-$SG427604 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'M', 00H, 'O'
-	DB	00H, 'R', 00H, 'E', 00H, '_', 00H, 'D', 00H, 'A', 00H, 'T', 00H
-	DB	'A', 00H, 00H, 00H
+$SG428703 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 00H, 00H
 	ORG $+2
-$SG427596 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+$SG428704 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 00H, 00H
+	ORG $+2
+$SG428707 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, '\', 00H, 00H, 00H
+$SG427680 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
 	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'D', 00H, 'R'
 	DB	00H, 'I', 00H, 'V', 00H, 'E', 00H, 'R', 00H, '_', 00H, 'I', 00H
 	DB	'N', 00H, 'T', 00H, 'E', 00H, 'R', 00H, 'N', 00H, 'A', 00H, 'L'
 	DB	00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG427602 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'I', 00H, 'N'
-	DB	00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H, 'D', 00H, '_', 00H
-	DB	'C', 00H, 'A', 00H, 'L', 00H, 'L', 00H, 00H, 00H
-$SG427610 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'N', 00H, 'O'
-	DB	00H, 'T', 00H, '_', 00H, 'F', 00H, 'O', 00H, 'U', 00H, 'N', 00H
-	DB	'D', 00H, 00H, 00H
-	ORG $+2
-$SG427598 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+$SG428708 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, '\', 00H, 00H, 00H
+$SG427682 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
 	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'F', 00H, 'R'
 	DB	00H, 'A', 00H, 'M', 00H, 'E', 00H, '_', 00H, 'S', 00H, 'T', 00H
 	DB	'A', 00H, 'T', 00H, 'I', 00H, 'S', 00H, 'T', 00H, 'I', 00H, 'C'
 	DB	00H, 'S', 00H, '_', 00H, 'D', 00H, 'I', 00H, 'S', 00H, 'J', 00H
 	DB	'O', 00H, 'I', 00H, 'N', 00H, 'T', 00H, 00H, 00H
 	ORG $+2
-$SG427606 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'N', 00H, 'O'
-	DB	00H, 'N', 00H, 'E', 00H, 'X', 00H, 'C', 00H, 'L', 00H, 'U', 00H
-	DB	'S', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 00H, 00H
-$SG427614 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'R', 00H, 'E'
-	DB	00H, 'M', 00H, 'O', 00H, 'T', 00H, 'E', 00H, '_', 00H, 'O', 00H
-	DB	'U', 00H, 'T', 00H, 'O', 00H, 'F', 00H, 'M', 00H, 'E', 00H, 'M'
-	DB	00H, 'O', 00H, 'R', 00H, 'Y', 00H, 00H, 00H
-$SG427600 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+$SG428709 DB	'R', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG427684 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
 	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'G', 00H, 'R'
 	DB	00H, 'A', 00H, 'P', 00H, 'H', 00H, 'I', 00H, 'C', 00H, 'S', 00H
 	DB	'_', 00H, 'V', 00H, 'I', 00H, 'D', 00H, 'P', 00H, 'N', 00H, '_'
 	DB	00H, 'S', 00H, 'O', 00H, 'U', 00H, 'R', 00H, 'C', 00H, 'E', 00H
 	DB	'_', 00H, 'I', 00H, 'N', 00H, '_', 00H, 'U', 00H, 'S', 00H, 'E'
 	DB	00H, 00H, 00H
-$SG427608 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+$SG427686 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'I', 00H, 'N'
+	DB	00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H, 'D', 00H, '_', 00H
+	DB	'C', 00H, 'A', 00H, 'L', 00H, 'L', 00H, 00H, 00H
+$SG427688 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'M', 00H, 'O'
+	DB	00H, 'R', 00H, 'E', 00H, '_', 00H, 'D', 00H, 'A', 00H, 'T', 00H
+	DB	'A', 00H, 00H, 00H
+	ORG $+2
+$SG428714 DB	'w', 00H, 00H, 00H
+$SG427690 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'N', 00H, 'O'
+	DB	00H, 'N', 00H, 'E', 00H, 'X', 00H, 'C', 00H, 'L', 00H, 'U', 00H
+	DB	'S', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 00H, 00H
+$SG428715 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, 'g', 00H
+	DB	'a', 00H, 'm', 00H, 'e', 00H, '_', 00H, 'o', 00H, 'u', 00H, 't'
+	DB	00H, 'p', 00H, 'u', 00H, 't', 00H, '.', 00H, 'l', 00H, 'o', 00H
+	DB	'g', 00H, 00H, 00H
+	ORG $+2
+$SG428716 DB	'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H
+	DB	'D', 00H, 00H, 00H
+$SG428717 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG427692 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
 	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'N', 00H, 'O'
 	DB	00H, 'T', 00H, '_', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'R', 00H
 	DB	'E', 00H, 'N', 00H, 'T', 00H, 'L', 00H, 'Y', 00H, '_', 00H, 'A'
 	DB	00H, 'V', 00H, 'A', 00H, 'I', 00H, 'L', 00H, 'A', 00H, 'B', 00H
 	DB	'L', 00H, 'E', 00H, 00H, 00H
 	ORG $+2
-$SG427612 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+$SG428718 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, '%', 00H
+	DB	's', 00H, '.', 00H, 'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
+$SG427694 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'N', 00H, 'O'
+	DB	00H, 'T', 00H, '_', 00H, 'F', 00H, 'O', 00H, 'U', 00H, 'N', 00H
+	DB	'D', 00H, 00H, 00H
+	ORG $+2
+$SG428719 DB	'w', 00H, 00H, 00H
+$SG428720 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG427698 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'R', 00H, 'E'
+	DB	00H, 'M', 00H, 'O', 00H, 'T', 00H, 'E', 00H, '_', 00H, 'O', 00H
+	DB	'U', 00H, 'T', 00H, 'O', 00H, 'F', 00H, 'M', 00H, 'E', 00H, 'M'
+	DB	00H, 'O', 00H, 'R', 00H, 'Y', 00H, 00H, 00H
+$SG427696 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
 	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'R', 00H, 'E'
 	DB	00H, 'M', 00H, 'O', 00H, 'T', 00H, 'E', 00H, '_', 00H, 'C', 00H
 	DB	'L', 00H, 'I', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_', 00H, 'D'
 	DB	00H, 'I', 00H, 'S', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'N', 00H
 	DB	'E', 00H, 'C', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-$SG427616 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+$SG428721 DB	'%', 00H, 's', 00H, '.', 00H, 'l', 00H, 'o', 00H, 'g', 00H
+	DB	' ', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
+	DB	00H, 'd', 00H, 00H, 00H
+	ORG $+2
+$SG428723 DB	'w', 00H, 00H, 00H
+$SG428724 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 'd', 00H
+	DB	'x', 00H, 'g', 00H, 'i', 00H, '_', 00H, 'b', 00H, 'u', 00H, 'd'
+	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, '.', 00H, 'l', 00H, 'o', 00H
+	DB	'g', 00H, 00H, 00H
+	ORG $+2
+$SG427700 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
 	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'W', 00H, 'A'
 	DB	00H, 'S', 00H, '_', 00H, 'S', 00H, 'T', 00H, 'I', 00H, 'L', 00H
 	DB	'L', 00H, '_', 00H, 'D', 00H, 'R', 00H, 'A', 00H, 'W', 00H, 'I'
 	DB	00H, 'N', 00H, 'G', 00H, 00H, 00H
 	ORG $+2
-$SG427618 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'U', 00H, 'N'
-	DB	00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P', 00H, 'O', 00H, 'R', 00H
-	DB	'T', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-	ORG $+2
-$SG427620 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'A', 00H, 'C'
-	DB	00H, 'C', 00H, 'E', 00H, 'S', 00H, 'S', 00H, '_', 00H, 'L', 00H
-	DB	'O', 00H, 'S', 00H, 'T', 00H, 00H, 00H
-	ORG $+2
-$SG427622 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'W', 00H, 'A'
-	DB	00H, 'I', 00H, 'T', 00H, '_', 00H, 'T', 00H, 'I', 00H, 'M', 00H
-	DB	'E', 00H, 'O', 00H, 'U', 00H, 'T', 00H, 00H, 00H
-$SG427624 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'S', 00H, 'E'
-	DB	00H, 'S', 00H, 'S', 00H, 'I', 00H, 'O', 00H, 'N', 00H, '_', 00H
-	DB	'D', 00H, 'I', 00H, 'S', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'N'
-	DB	00H, 'E', 00H, 'C', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-$SG427626 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'R', 00H, 'E'
-	DB	00H, 'S', 00H, 'T', 00H, 'R', 00H, 'I', 00H, 'C', 00H, 'T', 00H
-	DB	'_', 00H, 'T', 00H, 'O', 00H, '_', 00H, 'O', 00H, 'U', 00H, 'T'
-	DB	00H, 'P', 00H, 'U', 00H, 'T', 00H, '_', 00H, 'S', 00H, 'T', 00H
-	DB	'A', 00H, 'L', 00H, 'E', 00H, 00H, 00H
-$SG427628 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'C', 00H, 'A'
-	DB	00H, 'N', 00H, 'N', 00H, 'O', 00H, 'T', 00H, '_', 00H, 'P', 00H
-	DB	'R', 00H, 'O', 00H, 'T', 00H, 'E', 00H, 'C', 00H, 'T', 00H, '_'
-	DB	00H, 'C', 00H, 'O', 00H, 'N', 00H, 'T', 00H, 'E', 00H, 'N', 00H
-	DB	'T', 00H, 00H, 00H
-$SG427630 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'A', 00H, 'C'
-	DB	00H, 'C', 00H, 'E', 00H, 'S', 00H, 'S', 00H, '_', 00H, 'D', 00H
-	DB	'E', 00H, 'N', 00H, 'I', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-	ORG $+2
-$SG427632 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'N', 00H, 'A'
-	DB	00H, 'M', 00H, 'E', 00H, '_', 00H, 'A', 00H, 'L', 00H, 'R', 00H
-	DB	'E', 00H, 'A', 00H, 'D', 00H, 'Y', 00H, '_', 00H, 'E', 00H, 'X'
-	DB	00H, 'I', 00H, 'S', 00H, 'T', 00H, 'S', 00H, 00H, 00H
-	ORG $+2
-$SG178801 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG427636 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'D', 00H
-	DB	'D', 00H, 'I', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H, '_'
-	DB	00H, 'W', 00H, 'A', 00H, 'S', 00H, 'S', 00H, 'T', 00H, 'I', 00H
-	DB	'L', 00H, 'L', 00H, 'D', 00H, 'R', 00H, 'A', 00H, 'W', 00H, 'I'
-	DB	00H, 'N', 00H, 'G', 00H, 00H, 00H
-	ORG $+2
-$SG427634 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
-	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'S', 00H, 'D'
-	DB	00H, 'K', 00H, '_', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 'P', 00H
-	DB	'O', 00H, 'N', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_', 00H, 'M'
-	DB	00H, 'I', 00H, 'S', 00H, 'S', 00H, 'I', 00H, 'N', 00H, 'G', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG428661 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'c', 00H, 'e', 00H, 'n'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG427638 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'D', 00H
-	DB	'D', 00H, 'I', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H, '_'
-	DB	00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P', 00H
-	DB	'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-	ORG $+2
-$SG427640 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'D', 00H
-	DB	'D', 00H, 'I', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H, '_'
-	DB	00H, 'N', 00H, 'O', 00H, 'N', 00H, 'E', 00H, 'X', 00H, 'C', 00H
-	DB	'L', 00H, 'U', 00H, 'S', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 00H
-	DB	00H
-$SG428666 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 00H, 00H
-	ORG $+2
-$SG427642 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'O'
-	DB	00H, 'C', 00H, 'C', 00H, 'L', 00H, 'U', 00H, 'D', 00H, 'E', 00H
-	DB	'D', 00H, 00H, 00H
-	ORG $+2
-$SG428667 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 00H, 00H
-	ORG $+2
-$SG427644 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'U'
-	DB	00H, 'N', 00H, 'O', 00H, 'C', 00H, 'C', 00H, 'L', 00H, 'U', 00H
-	DB	'D', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-	ORG $+2
-$SG428670 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, '\', 00H, 00H, 00H
-$SG427646 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'C'
-	DB	00H, 'L', 00H, 'I', 00H, 'P', 00H, 'P', 00H, 'E', 00H, 'D', 00H
-	DB	00H, 00H
-$SG428671 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, '\', 00H, 00H, 00H
-$SG427648 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'N'
-	DB	00H, 'O', 00H, '_', 00H, 'R', 00H, 'E', 00H, 'D', 00H, 'I', 00H
-	DB	'R', 00H, 'E', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG427650 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'N'
-	DB	00H, 'O', 00H, '_', 00H, 'D', 00H, 'E', 00H, 'S', 00H, 'K', 00H
-	DB	'T', 00H, 'O', 00H, 'P', 00H, '_', 00H, 'A', 00H, 'C', 00H, 'C'
-	DB	00H, 'E', 00H, 'S', 00H, 'S', 00H, 00H, 00H
-$SG428676 DB	'w', 00H, 00H, 00H
-$SG428677 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, 'g', 00H
-	DB	'a', 00H, 'm', 00H, 'e', 00H, '_', 00H, 'o', 00H, 'u', 00H, 't'
-	DB	00H, 'p', 00H, 'u', 00H, 't', 00H, '.', 00H, 'l', 00H, 'o', 00H
-	DB	'g', 00H, 00H, 00H
-	ORG $+2
-$SG427652 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'G'
-	DB	00H, 'R', 00H, 'A', 00H, 'P', 00H, 'H', 00H, 'I', 00H, 'C', 00H
-	DB	'S', 00H, '_', 00H, 'V', 00H, 'I', 00H, 'D', 00H, 'P', 00H, 'N'
-	DB	00H, '_', 00H, 'S', 00H, 'O', 00H, 'U', 00H, 'R', 00H, 'C', 00H
-	DB	'E', 00H, '_', 00H, 'I', 00H, 'N', 00H, '_', 00H, 'U', 00H, 'S'
-	DB	00H, 'E', 00H, 00H, 00H
-	ORG $+2
-$SG428678 DB	'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H
-	DB	'D', 00H, 00H, 00H
-$SG428679 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG427654 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'D'
-	DB	00H, 'D', 00H, 'A', 00H, '_', 00H, 'W', 00H, 'A', 00H, 'S', 00H
-	DB	'_', 00H, 'S', 00H, 'T', 00H, 'I', 00H, 'L', 00H, 'L', 00H, '_'
-	DB	00H, 'D', 00H, 'R', 00H, 'A', 00H, 'W', 00H, 'I', 00H, 'N', 00H
-	DB	'G', 00H, 00H, 00H
-$SG428680 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, '%', 00H
-	DB	's', 00H, '.', 00H, 'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-$SG427656 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'M'
-	DB	00H, 'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'C', 00H, 'H', 00H
-	DB	'A', 00H, 'N', 00H, 'G', 00H, 'E', 00H, 'D', 00H, 00H, 00H
-	ORG $+2
-$SG428681 DB	'w', 00H, 00H, 00H
-$SG428682 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG427658 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
-	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'M'
-	DB	00H, 'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'C', 00H, 'H', 00H
-	DB	'A', 00H, 'N', 00H, 'G', 00H, 'E', 00H, '_', 00H, 'I', 00H, 'N'
-	DB	00H, '_', 00H, 'P', 00H, 'R', 00H, 'O', 00H, 'G', 00H, 'R', 00H
-	DB	'E', 00H, 'S', 00H, 'S', 00H, 00H, 00H
-$SG428683 DB	'%', 00H, 's', 00H, '.', 00H, 'l', 00H, 'o', 00H, 'g', 00H
-	DB	' ', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e'
-	DB	00H, 'd', 00H, 00H, 00H
-	ORG $+2
-$SG427660 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '_', 00H
-	DB	'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'F'
-	DB	00H, 'I', 00H, 'L', 00H, 'E', 00H, '_', 00H, 'N', 00H, 'O', 00H
-	DB	'T', 00H, '_', 00H, 'F', 00H, 'O', 00H, 'U', 00H, 'N', 00H, 'D'
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG428685 DB	'w', 00H, 00H, 00H
-$SG428686 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 'd', 00H
-	DB	'x', 00H, 'g', 00H, 'i', 00H, '_', 00H, 'b', 00H, 'u', 00H, 'd'
-	DB	00H, 'g', 00H, 'e', 00H, 't', 00H, '.', 00H, 'l', 00H, 'o', 00H
-	DB	'g', 00H, 00H, 00H
-	ORG $+2
-$SG427662 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '_', 00H
-	DB	'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'T'
-	DB	00H, 'O', 00H, 'O', 00H, '_', 00H, 'M', 00H, 'A', 00H, 'N', 00H
-	DB	'Y', 00H, '_', 00H, 'U', 00H, 'N', 00H, 'I', 00H, 'Q', 00H, 'U'
-	DB	00H, 'E', 00H, '_', 00H, 'S', 00H, 'T', 00H, 'A', 00H, 'T', 00H
-	DB	'E', 00H, '_', 00H, 'O', 00H, 'B', 00H, 'J', 00H, 'E', 00H, 'C'
-	DB	00H, 'T', 00H, 'S', 00H, 00H, 00H
-$SG428690 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG428687 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG428725 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
@@ -1052,39 +1019,33 @@ $SG428687 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG428688 DB	'>', 00H, '>', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H
+$SG428726 DB	'>', 00H, '>', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H
 	DB	')', 00H, ' ', 00H, '[', 00H, '%', 00H, 's', 00H, ']', 00H, ' '
 	DB	00H, '<', 00H, '<', 00H, 00H, 00H
-$SG430740 DB	'%', 00H, 's', 00H, 'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H
-	DB	'I', 00H, '\', 00H, 'b', 00H, 'i', 00H, 'n', 00H, '\', 00H, 'W'
-	DB	00H, 'i', 00H, 'n', 00H, '3', 00H, '2', 00H, 00H, 00H
-$SG427664 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '_', 00H
-	DB	'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'T'
-	DB	00H, 'O', 00H, 'O', 00H, '_', 00H, 'M', 00H, 'A', 00H, 'N', 00H
-	DB	'Y', 00H, '_', 00H, 'U', 00H, 'N', 00H, 'I', 00H, 'Q', 00H, 'U'
-	DB	00H, 'E', 00H, '_', 00H, 'V', 00H, 'I', 00H, 'E', 00H, 'W', 00H
-	DB	'_', 00H, 'O', 00H, 'B', 00H, 'J', 00H, 'E', 00H, 'C', 00H, 'T'
-	DB	00H, 'S', 00H, 00H, 00H
+$SG427702 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'U', 00H, 'N'
+	DB	00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P', 00H, 'O', 00H, 'R', 00H
+	DB	'T', 00H, 'E', 00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG427668 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'W', 00H, 'R', 00H, 'O', 00H, 'N', 00H, 'G', 00H, 'T'
-	DB	00H, 'E', 00H, 'X', 00H, 'T', 00H, 'U', 00H, 'R', 00H, 'E', 00H
-	DB	'F', 00H, 'O', 00H, 'R', 00H, 'M', 00H, 'A', 00H, 'T', 00H, 00H
-	DB	00H
-$SG427666 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '_', 00H
-	DB	'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'D'
-	DB	00H, 'E', 00H, 'F', 00H, 'E', 00H, 'R', 00H, 'R', 00H, 'E', 00H
-	DB	'D', 00H, '_', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'T', 00H, 'E'
-	DB	00H, 'X', 00H, 'T', 00H, '_', 00H, 'M', 00H, 'A', 00H, 'P', 00H
-	DB	'_', 00H, 'W', 00H, 'I', 00H, 'T', 00H, 'H', 00H, 'O', 00H, 'U'
-	DB	00H, 'T', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'I', 00H, 'T', 00H
-	DB	'I', 00H, 'A', 00H, 'L', 00H, '_', 00H, 'D', 00H, 'I', 00H, 'S'
-	DB	00H, 'C', 00H, 'A', 00H, 'R', 00H, 'D', 00H, 00H, 00H
+$SG178871 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG428728 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG428695 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG427704 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'A', 00H, 'C'
+	DB	00H, 'C', 00H, 'E', 00H, 'S', 00H, 'S', 00H, '_', 00H, 'L', 00H
+	DB	'O', 00H, 'S', 00H, 'T', 00H, 00H, 00H
+	ORG $+2
+$SG427706 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'W', 00H, 'A'
+	DB	00H, 'I', 00H, 'T', 00H, '_', 00H, 'T', 00H, 'I', 00H, 'M', 00H
+	DB	'E', 00H, 'O', 00H, 'U', 00H, 'T', 00H, 00H, 00H
+$SG428733 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG428691 DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'i', 00H, 'n', 00H
+$SG428729 DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, ' ', 00H, 'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, ' '
 	DB	00H, 'p', 00H, 'r', 00H, 'e', 00H, 'f', 00H, 'e', 00H, 'r', 00H
 	DB	'e', 00H, 'n', 00H, 'c', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'f'
@@ -1092,95 +1053,59 @@ $SG428691 DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'i', 00H, 'n', 00H
 	DB	'.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG428694 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
+$SG428732 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
 	DB	00H, 00H
 	ORG $+2
-$SG428696 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
+$SG428734 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
 	DB	't', 00H, '_', 00H, 00H, 00H
 	ORG $+2
-$SG427670 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
-	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'C', 00H
-	DB	'O', 00H, 'L', 00H, 'O', 00H, 'R', 00H, 'O', 00H, 'P', 00H, 'E'
-	DB	00H, 'R', 00H, 'A', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H
-	DB	00H, 00H
+$SG427708 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'S', 00H, 'E'
+	DB	00H, 'S', 00H, 'S', 00H, 'I', 00H, 'O', 00H, 'N', 00H, '_', 00H
+	DB	'D', 00H, 'I', 00H, 'S', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'N'
+	DB	00H, 'E', 00H, 'C', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 00H, 00H
+$SG427710 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'R', 00H, 'E'
+	DB	00H, 'S', 00H, 'T', 00H, 'R', 00H, 'I', 00H, 'C', 00H, 'T', 00H
+	DB	'_', 00H, 'T', 00H, 'O', 00H, '_', 00H, 'O', 00H, 'U', 00H, 'T'
+	DB	00H, 'P', 00H, 'U', 00H, 'T', 00H, '_', 00H, 'S', 00H, 'T', 00H
+	DB	'A', 00H, 'L', 00H, 'E', 00H, 00H, 00H
+$SG428735 DB	'.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG430745 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
-	DB	'P', 00H, 'A', 00H, 'R', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_'
-	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, '=', 00H, '%', 00H, 's', 00H
-	DB	00H, 00H
-$SG428697 DB	'.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
+$SG177855 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG427714 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'A', 00H, 'C'
+	DB	00H, 'C', 00H, 'E', 00H, 'S', 00H, 'S', 00H, '_', 00H, 'D', 00H
+	DB	'E', 00H, 'N', 00H, 'I', 00H, 'E', 00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG430743 DB	'%', 00H, 's', 00H, '\', 00H, 'M', 00H, 'y', 00H, ' ', 00H
-	DB	'M', 00H, 'o', 00H, 'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p'
-	DB	00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H
-	DB	'\', 00H, 'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '\'
-	DB	00H, 'b', 00H, 'i', 00H, 'n', 00H, '\', 00H, 'W', 00H, 'i', 00H
-	DB	'n', 00H, '3', 00H, '2', 00H, 00H, 00H
-$SG430744 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
-	DB	'P', 00H, 'A', 00H, 'R', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_'
-	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, '=', 00H, '%', 00H, 's', 00H
-	DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd'
-	DB	00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
-	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 00H, 00H
-$SG427672 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
-	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'C', 00H
-	DB	'O', 00H, 'L', 00H, 'O', 00H, 'R', 00H, 'A', 00H, 'R', 00H, 'G'
-	DB	00H, 00H, 00H
+$SG427712 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'C', 00H, 'A'
+	DB	00H, 'N', 00H, 'N', 00H, 'O', 00H, 'T', 00H, '_', 00H, 'P', 00H
+	DB	'R', 00H, 'O', 00H, 'T', 00H, 'E', 00H, 'C', 00H, 'T', 00H, '_'
+	DB	00H, 'C', 00H, 'O', 00H, 'N', 00H, 'T', 00H, 'E', 00H, 'N', 00H
+	DB	'T', 00H, 00H, 00H
+$SG428740 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	'!', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG430746 DB	'\', 00H, 'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H
-	DB	'B', 00H, 'a', 00H, 's', 00H, 'e', 00H, '-', 00H, '0', 00H, '.'
-	DB	00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG427674 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
-	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'A', 00H
-	DB	'L', 00H, 'P', 00H, 'H', 00H, 'A', 00H, 'O', 00H, 'P', 00H, 'E'
-	DB	00H, 'R', 00H, 'A', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG430748 DB	'AddDllDirectory', 00H
-$SG430749 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG428699 DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'i', 00H, 'n', 00H
+$SG428737 DB	'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, ' ', 00H, 'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u'
 	DB	00H, 'l', 00H, 't', 00H, ' ', 00H, 'p', 00H, 'r', 00H, 'e', 00H
 	DB	'f', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'n', 00H, 'c', 00H, 'e'
 	DB	00H, 's', 00H, ' ', 00H, 'f', 00H, 'r', 00H, 'o', 00H, 'm', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i'
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
-$SG427676 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
-	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'A', 00H
-	DB	'L', 00H, 'P', 00H, 'H', 00H, 'A', 00H, 'A', 00H, 'R', 00H, 'G'
-	DB	00H, 00H, 00H
+$SG427716 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'N', 00H, 'A'
+	DB	00H, 'M', 00H, 'E', 00H, '_', 00H, 'A', 00H, 'L', 00H, 'R', 00H
+	DB	'E', 00H, 'A', 00H, 'D', 00H, 'Y', 00H, '_', 00H, 'E', 00H, 'X'
+	DB	00H, 'I', 00H, 'S', 00H, 'T', 00H, 'S', 00H, 00H, 00H
 	ORG $+2
-$SG430750 DB	'RemoveDllDirectory', 00H
-	ORG $+1
-$SG428702 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	'!', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG427678 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'T', 00H, 'O', 00H, 'O', 00H, 'M', 00H, 'A', 00H, 'N'
-	DB	00H, 'Y', 00H, 'O', 00H, 'P', 00H, 'E', 00H, 'R', 00H, 'A', 00H
-	DB	'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H, 'S', 00H, 00H, 00H
-	ORG $+2
-$SG430751 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG428703 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
+$SG428741 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
 	DB	00H, 00H
 	ORG $+2
-$SG430752 DB	'SetDefaultDllDirectories', 00H
-	ORG $+3
-$SG178848 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG428704 DB	' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'W', 00H
+$SG428742 DB	' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'W', 00H
 	DB	'r', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'b', 00H, 'a', 00H, 's', 00H, 'e', 00H, ' ', 00H, 'I', 00H
 	DB	'N', 00H, 'I', 00H, ' ', 00H, 'f', 00H, 'i', 00H, 'l', 00H, 'e'
@@ -1190,85 +1115,65 @@ $SG428704 DB	' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'W', 00H
 	DB	't', 00H, 'e', 00H, 'd', 00H, '.', 00H, '.', 00H, '.', 00H, ' '
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG430753 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+$SG427720 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'D', 00H
+	DB	'D', 00H, 'I', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H, '_'
+	DB	00H, 'W', 00H, 'A', 00H, 'S', 00H, 'S', 00H, 'T', 00H, 'I', 00H
+	DB	'L', 00H, 'L', 00H, 'D', 00H, 'R', 00H, 'A', 00H, 'W', 00H, 'I'
+	DB	00H, 'N', 00H, 'G', 00H, 00H, 00H
+	ORG $+2
+$SG427718 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'E', 00H
+	DB	'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'S', 00H, 'D'
+	DB	00H, 'K', 00H, '_', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 'P', 00H
+	DB	'O', 00H, 'N', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_', 00H, 'M'
+	DB	00H, 'I', 00H, 'S', 00H, 'S', 00H, 'I', 00H, 'N', 00H, 'G', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG428743 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
+	DB	00H, 00H
+	ORG $+2
+$SG427722 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'D', 00H
+	DB	'D', 00H, 'I', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H, '_'
+	DB	00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P', 00H
+	DB	'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 00H, 00H
+	ORG $+2
+$SG427724 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'D', 00H
+	DB	'D', 00H, 'I', 00H, '_', 00H, 'E', 00H, 'R', 00H, 'R', 00H, '_'
+	DB	00H, 'N', 00H, 'O', 00H, 'N', 00H, 'E', 00H, 'X', 00H, 'C', 00H
+	DB	'L', 00H, 'U', 00H, 'S', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 00H
 	DB	00H
+$SG427726 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'O'
+	DB	00H, 'C', 00H, 'C', 00H, 'L', 00H, 'U', 00H, 'D', 00H, 'E', 00H
+	DB	'D', 00H, 00H, 00H
 	ORG $+2
-$SG427680 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'F', 00H, 'L', 00H, 'I'
-	DB	00H, 'C', 00H, 'T', 00H, 'I', 00H, 'N', 00H, 'G', 00H, 'T', 00H
-	DB	'E', 00H, 'X', 00H, 'T', 00H, 'U', 00H, 'R', 00H, 'E', 00H, 'F'
-	DB	00H, 'I', 00H, 'L', 00H, 'T', 00H, 'E', 00H, 'R', 00H, 00H, 00H
-$SG428705 DB	'd', 00H, 'o', 00H, 'n', 00H, 'e', 00H, '!', 00H, 0aH, 00H
+$SG427728 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'U'
+	DB	00H, 'N', 00H, 'O', 00H, 'C', 00H, 'C', 00H, 'L', 00H, 'U', 00H
+	DB	'D', 00H, 'E', 00H, 'D', 00H, 00H, 00H
+	ORG $+2
+$SG427730 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'C'
+	DB	00H, 'L', 00H, 'I', 00H, 'P', 00H, 'P', 00H, 'E', 00H, 'D', 00H
 	DB	00H, 00H
-	ORG $+2
-$SG427682 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
-	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'F', 00H
-	DB	'A', 00H, 'C', 00H, 'T', 00H, 'O', 00H, 'R', 00H, 'V', 00H, 'A'
-	DB	00H, 'L', 00H, 'U', 00H, 'E', 00H, 00H, 00H
-$SG427684 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'F', 00H, 'L', 00H, 'I'
-	DB	00H, 'C', 00H, 'T', 00H, 'I', 00H, 'N', 00H, 'G', 00H, 'R', 00H
-	DB	'E', 00H, 'N', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'S', 00H, 'T'
-	DB	00H, 'A', 00H, 'T', 00H, 'E', 00H, 00H, 00H
-$SG430755 DB	'[', 00H, ' ', 00H, ' ', 00H, 'C', 00H, 'E', 00H, 'G', 00H
-	DB	'U', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'i', 00H
-	DB	'n', 00H, 'g', 00H, ' ', 00H, 'C', 00H, 'E', 00H, 'G', 00H, 'U'
-	DB	00H, 'I', 00H, ':', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H
-	DB	')', 00H, 00H, 00H
-$SG430756 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
-	DB	'M', 00H, 'O', 00H, 'D', 00H, 'U', 00H, 'L', 00H, 'E', 00H, '_'
-	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, '=', 00H, '%', 00H, 's', 00H
-	DB	00H, 00H
-$SG430758 DB	'CEGUIBase-0.dll', 00H
-$SG430762 DB	'CEGUIOpenGLRenderer-0.dll', 00H
-	ORG $+2
-$SG427686 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
-	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'T', 00H
-	DB	'E', 00H, 'X', 00H, 'T', 00H, 'U', 00H, 'R', 00H, 'E', 00H, 'F'
-	DB	00H, 'I', 00H, 'L', 00H, 'T', 00H, 'E', 00H, 'R', 00H, 00H, 00H
-$SG427688 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'F', 00H, 'L', 00H, 'I'
-	DB	00H, 'C', 00H, 'T', 00H, 'I', 00H, 'N', 00H, 'G', 00H, 'T', 00H
-	DB	'E', 00H, 'X', 00H, 'T', 00H, 'U', 00H, 'R', 00H, 'E', 00H, 'P'
-	DB	00H, 'A', 00H, 'L', 00H, 'E', 00H, 'T', 00H, 'T', 00H, 'E', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG177832 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG427690 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'D', 00H, 'R', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 'R'
-	DB	00H, 'I', 00H, 'N', 00H, 'T', 00H, 'E', 00H, 'R', 00H, 'N', 00H
-	DB	'A', 00H, 'L', 00H, 'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R'
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG427692 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'N', 00H, 'O', 00H, 'T', 00H, 'F', 00H, 'O', 00H, 'U'
-	DB	00H, 'N', 00H, 'D', 00H, 00H, 00H
-$SG427696 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'D', 00H, 'E', 00H, 'V', 00H, 'I', 00H, 'C', 00H, 'E'
-	DB	00H, 'L', 00H, 'O', 00H, 'S', 00H, 'T', 00H, 00H, 00H
-$SG428717 DB	'%', 00H, 's', 00H, '\', 00H, 'M', 00H, 'y', 00H, ' ', 00H
+$SG428755 DB	'%', 00H, 's', 00H, '\', 00H, 'M', 00H, 'y', 00H, ' ', 00H
 	DB	'M', 00H, 'o', 00H, 'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p'
 	DB	00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H
 	DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a'
 	DB	00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG427694 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'M', 00H, 'O', 00H, 'R', 00H, 'E', 00H, 'D', 00H, 'A'
-	DB	00H, 'T', 00H, 'A', 00H, 00H, 00H
-$SG430768 DB	'CEGUIDirect3D9Renderer-0.dll', 00H
-	ORG $+3
-$SG427698 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'D', 00H, 'E', 00H, 'V', 00H, 'I', 00H, 'C', 00H, 'E'
-	DB	00H, 'N', 00H, 'O', 00H, 'T', 00H, 'R', 00H, 'E', 00H, 'S', 00H
-	DB	'E', 00H, 'T', 00H, 00H, 00H
-$SG428721 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
+$SG427732 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'N'
+	DB	00H, 'O', 00H, '_', 00H, 'R', 00H, 'E', 00H, 'D', 00H, 'I', 00H
+	DB	'R', 00H, 'E', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N'
+	DB	00H, 00H, 00H
+	ORG $+2
+$SG427734 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'N'
+	DB	00H, 'O', 00H, '_', 00H, 'D', 00H, 'E', 00H, 'S', 00H, 'K', 00H
+	DB	'T', 00H, 'O', 00H, 'P', 00H, '_', 00H, 'A', 00H, 'C', 00H, 'C'
+	DB	00H, 'E', 00H, 'S', 00H, 'S', 00H, 00H, 00H
+$SG428759 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	'o', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'M', 00H, 'a', 00H, 'n', 00H, 'u', 00H
 	DB	'a', 00H, 'l', 00H, 'l', 00H, 'y', 00H, ' ', 00H, 'b', 00H, 'o'
@@ -1276,9 +1181,10 @@ $SG428721 DB	'[', 00H, 'D', 00H, 'L', 00H, 'L', 00H, ' ', 00H, 'L', 00H
 	DB	't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, ':', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H
 	DB	00H, 00H
-$SG430774 DB	't', 00H, 'b', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG428722 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG430810 DB	'%', 00H, 's', 00H, 'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H
+	DB	'I', 00H, '\', 00H, 'b', 00H, 'i', 00H, 'n', 00H, '\', 00H, 'W'
+	DB	00H, 'i', 00H, 'n', 00H, '3', 00H, '2', 00H, 00H, 00H
+$SG428760 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
@@ -1294,45 +1200,68 @@ $SG428722 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG428723 DB	'%', 00H, 's', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG430772 DB	'CEGUIDirect3D11Renderer-0.dll', 00H
-	ORG $+2
-$SG427700 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'N', 00H, 'O', 00H, 'T', 00H, 'A', 00H, 'V', 00H, 'A'
-	DB	00H, 'I', 00H, 'L', 00H, 'A', 00H, 'B', 00H, 'L', 00H, 'E', 00H
-	DB	00H, 00H
-$SG428726 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG428764 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, 00H, 00H
-$SG427702 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'O', 00H, 'U', 00H, 'T', 00H, 'O', 00H, 'F', 00H, 'V'
-	DB	00H, 'I', 00H, 'D', 00H, 'E', 00H, 'O', 00H, 'M', 00H, 'E', 00H
-	DB	'M', 00H, 'O', 00H, 'R', 00H, 'Y', 00H, 00H, 00H
-$SG428727 DB	'%', 00H, 's', 00H, '\', 00H, 'P', 00H, 'l', 00H, 'u', 00H
+$SG427736 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'G'
+	DB	00H, 'R', 00H, 'A', 00H, 'P', 00H, 'H', 00H, 'I', 00H, 'C', 00H
+	DB	'S', 00H, '_', 00H, 'V', 00H, 'I', 00H, 'D', 00H, 'P', 00H, 'N'
+	DB	00H, '_', 00H, 'S', 00H, 'O', 00H, 'U', 00H, 'R', 00H, 'C', 00H
+	DB	'E', 00H, '_', 00H, 'I', 00H, 'N', 00H, '_', 00H, 'U', 00H, 'S'
+	DB	00H, 'E', 00H, 00H, 00H
+	ORG $+2
+$SG428761 DB	'%', 00H, 's', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG427740 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'M'
+	DB	00H, 'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'C', 00H, 'H', 00H
+	DB	'A', 00H, 'N', 00H, 'G', 00H, 'E', 00H, 'D', 00H, 00H, 00H
+	ORG $+2
+$SG427738 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'D'
+	DB	00H, 'D', 00H, 'A', 00H, '_', 00H, 'W', 00H, 'A', 00H, 'S', 00H
+	DB	'_', 00H, 'S', 00H, 'T', 00H, 'I', 00H, 'L', 00H, 'L', 00H, '_'
+	DB	00H, 'D', 00H, 'R', 00H, 'A', 00H, 'W', 00H, 'I', 00H, 'N', 00H
+	DB	'G', 00H, 00H, 00H
+$SG428767 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
+	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, 00H, 00H
+$SG430813 DB	'%', 00H, 's', 00H, '\', 00H, 'M', 00H, 'y', 00H, ' ', 00H
+	DB	'M', 00H, 'o', 00H, 'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p'
+	DB	00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H
+	DB	'\', 00H, 'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '\'
+	DB	00H, 'b', 00H, 'i', 00H, 'n', 00H, '\', 00H, 'W', 00H, 'i', 00H
+	DB	'n', 00H, '3', 00H, '2', 00H, 00H, 00H
+$SG428765 DB	'%', 00H, 's', 00H, '\', 00H, 'P', 00H, 'l', 00H, 'u', 00H
 	DB	'g', 00H, 'I', 00H, 'n', 00H, 's', 00H, '\', 00H, 'T', 00H, 'h'
 	DB	00H, 'i', 00H, 'r', 00H, 'd', 00H, 'P', 00H, 'a', 00H, 'r', 00H
 	DB	't', 00H, 'y', 00H, '\', 00H, 'd', 00H, 'g', 00H, 'V', 00H, 'o'
 	DB	00H, 'o', 00H, 'd', 00H, 'o', 00H, 'o', 00H, '\', 00H, 'd', 00H
 	DB	'3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG430776 DB	'First-frame Done', 00H
-	ORG $+3
-$SG427704 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I'
-	DB	00H, 'D', 00H, 'D', 00H, 'E', 00H, 'V', 00H, 'I', 00H, 'C', 00H
-	DB	'E', 00H, 00H, 00H
+$SG430814 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
+	DB	'P', 00H, 'A', 00H, 'R', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_'
+	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, '=', 00H, '%', 00H, 's', 00H
+	DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H, 'd'
+	DB	00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 00H, 00H
+$SG430816 DB	'\', 00H, 'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H
+	DB	'B', 00H, 'a', 00H, 's', 00H, 'e', 00H, '-', 00H, '0', 00H, '.'
+	DB	00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG428729 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
-	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
-	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, 00H, 00H
-$SG427708 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'D', 00H, 'R', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 'R'
-	DB	00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H
-	DB	'D', 00H, 'C', 00H, 'A', 00H, 'L', 00H, 'L', 00H, 00H, 00H
-	ORG $+2
-$SG428730 DB	'%', 00H, 's', 00H, '\', 00H, 'P', 00H, 'l', 00H, 'u', 00H
+$SG427742 DB	'D', 00H, 'X', 00H, 'G', 00H, 'I', 00H, '_', 00H, 'S', 00H
+	DB	'T', 00H, 'A', 00H, 'T', 00H, 'U', 00H, 'S', 00H, '_', 00H, 'M'
+	DB	00H, 'O', 00H, 'D', 00H, 'E', 00H, '_', 00H, 'C', 00H, 'H', 00H
+	DB	'A', 00H, 'N', 00H, 'G', 00H, 'E', 00H, '_', 00H, 'I', 00H, 'N'
+	DB	00H, '_', 00H, 'P', 00H, 'R', 00H, 'O', 00H, 'G', 00H, 'R', 00H
+	DB	'E', 00H, 'S', 00H, 'S', 00H, 00H, 00H
+$SG430815 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
+	DB	'P', 00H, 'A', 00H, 'R', 00H, 'E', 00H, 'N', 00H, 'T', 00H, '_'
+	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, '=', 00H, '%', 00H, 's', 00H
+	DB	00H, 00H
+$SG428768 DB	'%', 00H, 's', 00H, '\', 00H, 'P', 00H, 'l', 00H, 'u', 00H
 	DB	'g', 00H, 'I', 00H, 'n', 00H, 's', 00H, '\', 00H, 'T', 00H, 'h'
 	DB	00H, 'i', 00H, 'r', 00H, 'd', 00H, 'P', 00H, 'a', 00H, 'r', 00H
 	DB	't', 00H, 'y', 00H, '\', 00H, 'd', 00H, 'g', 00H, 'V', 00H, 'o'
@@ -1340,74 +1269,142 @@ $SG428730 DB	'%', 00H, 's', 00H, '\', 00H, 'P', 00H, 'l', 00H, 'u', 00H
 	DB	'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H, 'd', 00H, 'l'
 	DB	00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG427706 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I'
-	DB	00H, 'D', 00H, 'C', 00H, 'A', 00H, 'L', 00H, 'L', 00H, 00H, 00H
+$SG427744 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '_', 00H
+	DB	'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'F'
+	DB	00H, 'I', 00H, 'L', 00H, 'E', 00H, '_', 00H, 'N', 00H, 'O', 00H
+	DB	'T', 00H, '_', 00H, 'F', 00H, 'O', 00H, 'U', 00H, 'N', 00H, 'D'
+	DB	00H, 00H, 00H
 	ORG $+2
-$SG428735 DB	'\', 00H, 00H, 00H
-$SG428733 DB	' ', 00H, 'W', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 'i', 00H
+$SG430818 DB	'AddDllDirectory', 00H
+$SG430819 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG427746 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '_', 00H
+	DB	'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'T'
+	DB	00H, 'O', 00H, 'O', 00H, '_', 00H, 'M', 00H, 'A', 00H, 'N', 00H
+	DB	'Y', 00H, '_', 00H, 'U', 00H, 'N', 00H, 'I', 00H, 'Q', 00H, 'U'
+	DB	00H, 'E', 00H, '_', 00H, 'S', 00H, 'T', 00H, 'A', 00H, 'T', 00H
+	DB	'E', 00H, '_', 00H, 'O', 00H, 'B', 00H, 'J', 00H, 'E', 00H, 'C'
+	DB	00H, 'T', 00H, 'S', 00H, 00H, 00H
+$SG430820 DB	'RemoveDllDirectory', 00H
+	ORG $+1
+$SG428771 DB	' ', 00H, 'W', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e'
 	DB	00H, 'c', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ':', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG428734 DB	' ', 00H, 'S', 00H, 'y', 00H, 's', 00H, 't', 00H, 'e', 00H
+$SG428772 DB	' ', 00H, 'S', 00H, 'y', 00H, 's', 00H, 't', 00H, 'e', 00H
 	DB	'm', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c'
 	DB	00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, ':', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG427710 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
-	DB	'_', 00H, 'W', 00H, 'A', 00H, 'S', 00H, 'S', 00H, 'T', 00H, 'I'
-	DB	00H, 'L', 00H, 'L', 00H, 'D', 00H, 'R', 00H, 'A', 00H, 'W', 00H
-	DB	'I', 00H, 'N', 00H, 'G', 00H, 00H, 00H
+$SG427748 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '_', 00H
+	DB	'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'T'
+	DB	00H, 'O', 00H, 'O', 00H, '_', 00H, 'M', 00H, 'A', 00H, 'N', 00H
+	DB	'Y', 00H, '_', 00H, 'U', 00H, 'N', 00H, 'I', 00H, 'Q', 00H, 'U'
+	DB	00H, 'E', 00H, '_', 00H, 'V', 00H, 'I', 00H, 'E', 00H, 'W', 00H
+	DB	'_', 00H, 'O', 00H, 'B', 00H, 'J', 00H, 'E', 00H, 'C', 00H, 'T'
+	DB	00H, 'S', 00H, 00H, 00H
 	ORG $+2
-$SG428736 DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG427712 DB	'D', 00H, '3', 00H, 'D', 00H, 'O', 00H, 'K', 00H, '_', 00H
-	DB	'N', 00H, 'O', 00H, 'A', 00H, 'U', 00H, 'T', 00H, 'O', 00H, 'G'
-	DB	00H, 'E', 00H, 'N', 00H, 00H, 00H
-$SG427714 DB	'E', 00H, '_', 00H, 'F', 00H, 'A', 00H, 'I', 00H, 'L', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG427716 DB	'E', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H
-	DB	'L', 00H, 'I', 00H, 'D', 00H, 'A', 00H, 'R', 00H, 'G', 00H, 00H
+$SG430821 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG428742 DB	' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'i', 00H
+$SG428773 DB	'\', 00H, 00H, 00H
+$SG430822 DB	'SetDefaultDllDirectories', 00H
+	ORG $+3
+$SG428774 DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG430823 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG427750 DB	'D', 00H, '3', 00H, 'D', 00H, '1', 00H, '1', 00H, '_', 00H
+	DB	'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R', 00H, '_', 00H, 'D'
+	DB	00H, 'E', 00H, 'F', 00H, 'E', 00H, 'R', 00H, 'R', 00H, 'E', 00H
+	DB	'D', 00H, '_', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'T', 00H, 'E'
+	DB	00H, 'X', 00H, 'T', 00H, '_', 00H, 'M', 00H, 'A', 00H, 'P', 00H
+	DB	'_', 00H, 'W', 00H, 'I', 00H, 'T', 00H, 'H', 00H, 'O', 00H, 'U'
+	DB	00H, 'T', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'I', 00H, 'T', 00H
+	DB	'I', 00H, 'A', 00H, 'L', 00H, '_', 00H, 'D', 00H, 'I', 00H, 'S'
+	DB	00H, 'C', 00H, 'A', 00H, 'R', 00H, 'D', 00H, 00H, 00H
+	ORG $+2
+$SG427752 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'W', 00H, 'R', 00H, 'O', 00H, 'N', 00H, 'G', 00H, 'T'
+	DB	00H, 'E', 00H, 'X', 00H, 'T', 00H, 'U', 00H, 'R', 00H, 'E', 00H
+	DB	'F', 00H, 'O', 00H, 'R', 00H, 'M', 00H, 'A', 00H, 'T', 00H, 00H
+	DB	00H
+$SG430825 DB	'[', 00H, ' ', 00H, ' ', 00H, 'C', 00H, 'E', 00H, 'G', 00H
+	DB	'U', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'i', 00H
+	DB	'n', 00H, 'g', 00H, ' ', 00H, 'C', 00H, 'E', 00H, 'G', 00H, 'U'
+	DB	00H, 'I', 00H, ':', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H
+	DB	')', 00H, 00H, 00H
+$SG430826 DB	'C', 00H, 'E', 00H, 'G', 00H, 'U', 00H, 'I', 00H, '_', 00H
+	DB	'M', 00H, 'O', 00H, 'D', 00H, 'U', 00H, 'L', 00H, 'E', 00H, '_'
+	DB	00H, 'D', 00H, 'I', 00H, 'R', 00H, '=', 00H, '%', 00H, 's', 00H
+	DB	00H, 00H
+$SG428782 DB	' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'i', 00H
+	DB	'n', 00H, 'g', 00H, ' ', 00H, 'd', 00H, 'e', 00H, 'f', 00H, 'a'
+	DB	00H, 'u', 00H, 'l', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, 00H
+	DB	00H
+$SG427754 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
+	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'C', 00H
+	DB	'O', 00H, 'L', 00H, 'O', 00H, 'R', 00H, 'O', 00H, 'P', 00H, 'E'
+	DB	00H, 'R', 00H, 'A', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG430828 DB	'CEGUIBase-0.dll', 00H
+$SG428780 DB	' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'p', 00H, 'r', 00H, 'o', 00H, 'x'
 	DB	00H, 'y', 00H, ' ', 00H, '%', 00H, 's', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG427718 DB	'E', 00H, '_', 00H, 'O', 00H, 'U', 00H, 'T', 00H, 'O', 00H
-	DB	'F', 00H, 'M', 00H, 'E', 00H, 'M', 00H, 'O', 00H, 'R', 00H, 'Y'
+$SG427756 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
+	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'C', 00H
+	DB	'O', 00H, 'L', 00H, 'O', 00H, 'R', 00H, 'A', 00H, 'R', 00H, 'G'
 	DB	00H, 00H, 00H
-$SG428744 DB	' ', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'i', 00H
-	DB	'n', 00H, 'g', 00H, ' ', 00H, 'd', 00H, 'e', 00H, 'f', 00H, 'a'
-	DB	00H, 'u', 00H, 'l', 00H, 't', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, 00H
-	DB	00H
-$SG427720 DB	'E', 00H, '_', 00H, 'P', 00H, 'O', 00H, 'I', 00H, 'N', 00H
-	DB	'T', 00H, 'E', 00H, 'R', 00H, 00H, 00H
-$SG427722 DB	'E', 00H, '_', 00H, 'A', 00H, 'C', 00H, 'C', 00H, 'E', 00H
-	DB	'S', 00H, 'S', 00H, 'D', 00H, 'E', 00H, 'N', 00H, 'I', 00H, 'E'
-	DB	00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG427724 DB	'E', 00H, '_', 00H, 'H', 00H, 'A', 00H, 'N', 00H, 'D', 00H
-	DB	'L', 00H, 'E', 00H, 00H, 00H
+$SG430832 DB	'CEGUIOpenGLRenderer-0.dll', 00H
 	ORG $+2
-$SG428749 DB	' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H, 0aH, 00H
+$SG427758 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
+	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'A', 00H
+	DB	'L', 00H, 'P', 00H, 'H', 00H, 'A', 00H, 'O', 00H, 'P', 00H, 'E'
+	DB	00H, 'R', 00H, 'A', 00H, 'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG428750 DB	' ', 00H, 'F', 00H, 'A', 00H, 'I', 00H, 'L', 00H, 'E', 00H
+$SG427760 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
+	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'A', 00H
+	DB	'L', 00H, 'P', 00H, 'H', 00H, 'A', 00H, 'A', 00H, 'R', 00H, 'G'
+	DB	00H, 00H, 00H
+	ORG $+2
+$SG427762 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'T', 00H, 'O', 00H, 'O', 00H, 'M', 00H, 'A', 00H, 'N'
+	DB	00H, 'Y', 00H, 'O', 00H, 'P', 00H, 'E', 00H, 'R', 00H, 'A', 00H
+	DB	'T', 00H, 'I', 00H, 'O', 00H, 'N', 00H, 'S', 00H, 00H, 00H
+	ORG $+2
+$SG428787 DB	' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H, 0aH, 00H
+	DB	00H, 00H
+	ORG $+2
+$SG428788 DB	' ', 00H, 'F', 00H, 'A', 00H, 'I', 00H, 'L', 00H, 'E', 00H
 	DB	'D', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H, ')', 00H, '!'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG427726 DB	'E', 00H, '_', 00H, 'N', 00H, 'O', 00H, 'T', 00H, 'I', 00H
-	DB	'M', 00H, 'P', 00H, 'L', 00H, 00H, 00H
-$SG427728 DB	'E', 00H, '_', 00H, 'N', 00H, 'O', 00H, 'I', 00H, 'N', 00H
-	DB	'T', 00H, 'E', 00H, 'R', 00H, 'F', 00H, 'A', 00H, 'C', 00H, 'E'
-	DB	00H, 00H, 00H
-$SG428752 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG427764 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'F', 00H, 'L', 00H, 'I'
+	DB	00H, 'C', 00H, 'T', 00H, 'I', 00H, 'N', 00H, 'G', 00H, 'T', 00H
+	DB	'E', 00H, 'X', 00H, 'T', 00H, 'U', 00H, 'R', 00H, 'E', 00H, 'F'
+	DB	00H, 'I', 00H, 'L', 00H, 'T', 00H, 'E', 00H, 'R', 00H, 00H, 00H
+$SG430838 DB	'CEGUIDirect3D9Renderer-0.dll', 00H
+	ORG $+3
+$SG428790 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
@@ -1423,18 +1420,124 @@ $SG428752 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG427730 DB	'E', 00H, '_', 00H, 'A', 00H, 'B', 00H, 'O', 00H, 'R', 00H
+$SG427766 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
+	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'F', 00H
+	DB	'A', 00H, 'C', 00H, 'T', 00H, 'O', 00H, 'R', 00H, 'V', 00H, 'A'
+	DB	00H, 'L', 00H, 'U', 00H, 'E', 00H, 00H, 00H
+$SG427768 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'F', 00H, 'L', 00H, 'I'
+	DB	00H, 'C', 00H, 'T', 00H, 'I', 00H, 'N', 00H, 'G', 00H, 'R', 00H
+	DB	'E', 00H, 'N', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'S', 00H, 'T'
+	DB	00H, 'A', 00H, 'T', 00H, 'E', 00H, 00H, 00H
+$SG430842 DB	'CEGUIDirect3D11Renderer-0.dll', 00H
+	ORG $+2
+$SG428795 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG427770 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'U', 00H, 'N', 00H, 'S', 00H, 'U', 00H, 'P', 00H, 'P'
+	DB	00H, 'O', 00H, 'R', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 'T', 00H
+	DB	'E', 00H, 'X', 00H, 'T', 00H, 'U', 00H, 'R', 00H, 'E', 00H, 'F'
+	DB	00H, 'I', 00H, 'L', 00H, 'T', 00H, 'E', 00H, 'R', 00H, 00H, 00H
+$SG430844 DB	't', 00H, 'b', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG428796 DB	'.', 00H, 'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG427772 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'C', 00H, 'O', 00H, 'N', 00H, 'F', 00H, 'L', 00H, 'I'
+	DB	00H, 'C', 00H, 'T', 00H, 'I', 00H, 'N', 00H, 'G', 00H, 'T', 00H
+	DB	'E', 00H, 'X', 00H, 'T', 00H, 'U', 00H, 'R', 00H, 'E', 00H, 'P'
+	DB	00H, 'A', 00H, 'L', 00H, 'E', 00H, 'T', 00H, 'T', 00H, 'E', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG430846 DB	'First-frame Done', 00H
+	ORG $+3
+$SG427774 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'D', 00H, 'R', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 'R'
+	DB	00H, 'I', 00H, 'N', 00H, 'T', 00H, 'E', 00H, 'R', 00H, 'N', 00H
+	DB	'A', 00H, 'L', 00H, 'E', 00H, 'R', 00H, 'R', 00H, 'O', 00H, 'R'
+	DB	00H, 00H, 00H
+	ORG $+2
+$SG427776 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'N', 00H, 'O', 00H, 'T', 00H, 'F', 00H, 'O', 00H, 'U'
+	DB	00H, 'N', 00H, 'D', 00H, 00H, 00H
+$SG427778 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'M', 00H, 'O', 00H, 'R', 00H, 'E', 00H, 'D', 00H, 'A'
+	DB	00H, 'T', 00H, 'A', 00H, 00H, 00H
+$SG427780 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'D', 00H, 'E', 00H, 'V', 00H, 'I', 00H, 'C', 00H, 'E'
+	DB	00H, 'L', 00H, 'O', 00H, 'S', 00H, 'T', 00H, 00H, 00H
+$SG427782 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'D', 00H, 'E', 00H, 'V', 00H, 'I', 00H, 'C', 00H, 'E'
+	DB	00H, 'N', 00H, 'O', 00H, 'T', 00H, 'R', 00H, 'E', 00H, 'S', 00H
+	DB	'E', 00H, 'T', 00H, 00H, 00H
+$SG177926 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG427784 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'N', 00H, 'O', 00H, 'T', 00H, 'A', 00H, 'V', 00H, 'A'
+	DB	00H, 'I', 00H, 'L', 00H, 'A', 00H, 'B', 00H, 'L', 00H, 'E', 00H
+	DB	00H, 00H
+$SG427786 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'O', 00H, 'U', 00H, 'T', 00H, 'O', 00H, 'F', 00H, 'V'
+	DB	00H, 'I', 00H, 'D', 00H, 'E', 00H, 'O', 00H, 'M', 00H, 'E', 00H
+	DB	'M', 00H, 'O', 00H, 'R', 00H, 'Y', 00H, 00H, 00H
+$SG427788 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I'
+	DB	00H, 'D', 00H, 'D', 00H, 'E', 00H, 'V', 00H, 'I', 00H, 'C', 00H
+	DB	'E', 00H, 00H, 00H
+	ORG $+2
+$SG427790 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I'
+	DB	00H, 'D', 00H, 'C', 00H, 'A', 00H, 'L', 00H, 'L', 00H, 00H, 00H
+	ORG $+2
+$SG427792 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'D', 00H, 'R', 00H, 'I', 00H, 'V', 00H, 'E', 00H, 'R'
+	DB	00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H, 'L', 00H, 'I', 00H
+	DB	'D', 00H, 'C', 00H, 'A', 00H, 'L', 00H, 'L', 00H, 00H, 00H
+	ORG $+2
+$SG427794 DB	'D', 00H, '3', 00H, 'D', 00H, 'E', 00H, 'R', 00H, 'R', 00H
+	DB	'_', 00H, 'W', 00H, 'A', 00H, 'S', 00H, 'S', 00H, 'T', 00H, 'I'
+	DB	00H, 'L', 00H, 'L', 00H, 'D', 00H, 'R', 00H, 'A', 00H, 'W', 00H
+	DB	'I', 00H, 'N', 00H, 'G', 00H, 00H, 00H
+	ORG $+2
+$SG427796 DB	'D', 00H, '3', 00H, 'D', 00H, 'O', 00H, 'K', 00H, '_', 00H
+	DB	'N', 00H, 'O', 00H, 'A', 00H, 'U', 00H, 'T', 00H, 'O', 00H, 'G'
+	DB	00H, 'E', 00H, 'N', 00H, 00H, 00H
+$SG427798 DB	'E', 00H, '_', 00H, 'F', 00H, 'A', 00H, 'I', 00H, 'L', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG427800 DB	'E', 00H, '_', 00H, 'I', 00H, 'N', 00H, 'V', 00H, 'A', 00H
+	DB	'L', 00H, 'I', 00H, 'D', 00H, 'A', 00H, 'R', 00H, 'G', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG427802 DB	'E', 00H, '_', 00H, 'O', 00H, 'U', 00H, 'T', 00H, 'O', 00H
+	DB	'F', 00H, 'M', 00H, 'E', 00H, 'M', 00H, 'O', 00H, 'R', 00H, 'Y'
+	DB	00H, 00H, 00H
+$SG427804 DB	'E', 00H, '_', 00H, 'P', 00H, 'O', 00H, 'I', 00H, 'N', 00H
+	DB	'T', 00H, 'E', 00H, 'R', 00H, 00H, 00H
+$SG427806 DB	'E', 00H, '_', 00H, 'A', 00H, 'C', 00H, 'C', 00H, 'E', 00H
+	DB	'S', 00H, 'S', 00H, 'D', 00H, 'E', 00H, 'N', 00H, 'I', 00H, 'E'
+	DB	00H, 'D', 00H, 00H, 00H
+	ORG $+2
+$SG427808 DB	'E', 00H, '_', 00H, 'H', 00H, 'A', 00H, 'N', 00H, 'D', 00H
+	DB	'L', 00H, 'E', 00H, 00H, 00H
+	ORG $+2
+$SG427810 DB	'E', 00H, '_', 00H, 'N', 00H, 'O', 00H, 'T', 00H, 'I', 00H
+	DB	'M', 00H, 'P', 00H, 'L', 00H, 00H, 00H
+$SG427812 DB	'E', 00H, '_', 00H, 'N', 00H, 'O', 00H, 'I', 00H, 'N', 00H
+	DB	'T', 00H, 'E', 00H, 'R', 00H, 'F', 00H, 'A', 00H, 'C', 00H, 'E'
+	DB	00H, 00H, 00H
+$SG427814 DB	'E', 00H, '_', 00H, 'A', 00H, 'B', 00H, 'O', 00H, 'R', 00H
 	DB	'T', 00H, 00H, 00H
-$SG427732 DB	'E', 00H, '_', 00H, 'U', 00H, 'N', 00H, 'E', 00H, 'X', 00H
+$SG427816 DB	'E', 00H, '_', 00H, 'U', 00H, 'N', 00H, 'E', 00H, 'X', 00H
 	DB	'P', 00H, 'E', 00H, 'C', 00H, 'T', 00H, 'E', 00H, 'D', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG428757 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG428758 DB	'.', 00H, 'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG427734 DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'E', 00H
+$SG427819 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
+	DB	'N', 00H, 00H, 00H
+$SG190271 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG427818 DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'E', 00H
 	DB	'n', 00H, 'c', 00H, 'o', 00H, 'u', 00H, 'n', 00H, 't', 00H, 'e'
 	DB	00H, 'r', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'u', 00H, 'n', 00H
 	DB	'k', 00H, 'n', 00H, 'o', 00H, 'w', 00H, 'n', 00H, ' ', 00H, 'H'
@@ -1442,11 +1545,38 @@ $SG427734 DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'E', 00H
 	DB	':', 00H, ' ', 00H, '(', 00H, '0', 00H, 'x', 00H, '%', 00H, '0'
 	DB	00H, '8', 00H, 'X', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG427735 DB	'U', 00H, 'N', 00H, 'K', 00H, 'N', 00H, 'O', 00H, 'W', 00H
-	DB	'N', 00H, 00H, 00H
-$SG177903 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG427781 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
+$SG177973 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+	ORG $+2
+$SG190272 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG190273 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG190274 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG190275 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG190276 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG190277 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG190278 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG190279 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG190280 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG190281 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG190282 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+	DB	'b', 00H, 00H, 00H
+$SG427865 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	'P', 00H, 'e', 00H, 'r', 00H, 'f', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'p', 00H, 'a', 00H, 'w', 00H, 'n', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'c'
@@ -1454,17 +1584,17 @@ $SG427781 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	'n', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, '.', 00H, '.'
 	DB	00H, '.', 00H, ' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG427784 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
+$SG427868 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
 	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
-$SG427785 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+$SG427869 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	'!', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG427792 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
+$SG427876 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
 	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
-$SG427793 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	'!', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG427789 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
+$SG178020 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG427873 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	'P', 00H, 'e', 00H, 'r', 00H, 'f', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'p', 00H, 'a', 00H, 'w', 00H, 'n', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'C', 00H, 'P', 00H, 'U', 00H, ' '
@@ -1472,7 +1602,15 @@ $SG427789 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	'r', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG427796 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
+$SG427877 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	'!', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG427883 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
+	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
+$SG427884 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	'!', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG427880 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	'P', 00H, 'e', 00H, 'r', 00H, 'f', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'p', 00H, 'a', 00H, 'w', 00H, 'n', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'k'
@@ -1480,17 +1618,7 @@ $SG427796 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	'o', 00H, 'r', 00H, '.', 00H, '.', 00H, '.', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG427799 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
-	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
-$SG427800 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	'!', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG427806 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
-	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
-$SG427807 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	'!', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG427803 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
+$SG427887 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	'P', 00H, 'e', 00H, 'r', 00H, 'f', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'p', 00H, 'a', 00H, 'w', 00H, 'n', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 'P', 00H, 'a', 00H, 'g', 00H, 'e'
@@ -1498,155 +1626,32 @@ $SG427803 DB	'[', 00H, ' ', 00H, 'W', 00H, 'M', 00H, 'I', 00H, ' ', 00H
 	DB	'o', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG177950 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+$SG427890 DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H
+	DB	'%', 00H, '0', 00H, '4', 00H, 'x', 00H, 0aH, 00H, 00H, 00H
+$SG427891 DB	'f', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
+	DB	'!', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG190248 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG190249 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG190250 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
-	ORG $+2
-$SG190251 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG190252 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG190253 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG190254 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG190255 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG190256 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
-	ORG $+2
-$SG190257 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG190258 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG190259 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
-	DB	'b', 00H, 00H, 00H
-$SG177997 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG427871 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG427872 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG427874 DB	'Manual update initiated...', 00H
-	ORG $+1
-$SG178044 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG178067 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG427946 DB	'mem', 00H
-$SG427947 DB	'%c %lx %s', 00H
+$SG427955 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG178091 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG427956 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG427958 DB	'Manual update initiated...', 00H
+	ORG $+1
+$SG178114 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG427951 DB	'%cx', 00H
-$SG427952 DB	'%u', 00H
-	ORG $+1
-$SG427953 DB	'mem', 00H
-$SG427956 DB	'%hx', 00H
-$SG427957 DB	'%u', 00H
-	ORG $+1
-$SG427958 DB	'mem', 00H
-$SG427961 DB	'%x', 00H
-	ORG $+1
-$SG427962 DB	'%u', 00H
-	ORG $+1
-$SG427963 DB	'mem', 00H
-$SG427966 DB	'%llx', 00H
-	ORG $+3
-$SG427967 DB	'%llu', 00H
-	ORG $+3
-$SG427968 DB	'mem', 00H
-$SG427971 DB	'%lf', 00H
-$SG427972 DB	'%f', 00H
-	ORG $+1
-$SG427973 DB	'mem', 00H
-$SG427976 DB	'%f', 00H
-	ORG $+1
-$SG427977 DB	'%f', 00H
-	ORG $+1
-$SG427978 DB	'mem', 00H
-$SG427981 DB	'%s', 00H
-	ORG $+1
-$SG427982 DB	'mem', 00H
-$SG427984 DB	'mem', 00H
-$SG178138 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG178161 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG428022 DB	'S', 00H, 'u', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H
-	DB	's', 00H, 00H, 00H
-	ORG $+4
-$SG428021 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
-	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'i', 00H, 'z', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
-	DB	00H, 'N', 00H, 'V', 00H, 'I', 00H, 'D', 00H, 'I', 00H, 'A', 00H
-	DB	' ', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, '(', 00H, 'N', 00H, 'v', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, ')', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
-	ORG $+2
-$SG428023 DB	'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
-	DB	' ', 00H, 00H, 00H
-	ORG $+4
-$SG428024 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
-	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, 'N', 00H, 'v', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H
-	DB	'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, ' ', 00H, ' ', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	'{', 00H, ' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '}', 00H, 00H
-	DB	00H
-$SG428027 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
-	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '>', 00H, '>', 00H, ' ', 00H, 'N', 00H, 'V', 00H, 'I', 00H
-	DB	'D', 00H, 'I', 00H, 'A', 00H, ' ', 00H, 'D', 00H, 'r', 00H, 'i'
-	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'V', 00H, 'e', 00H
-	DB	'r', 00H, 's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, 's', 00H, 00H, 00H
-	ORG $+4
-$SG428028 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
-	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H
-	DB	'b', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' '
-	DB	00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
-	DB	'l', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'N', 00H, 'V', 00H, 'I'
-	DB	00H, 'D', 00H, 'I', 00H, 'A', 00H, ' ', 00H, 'G', 00H, 'P', 00H
-	DB	'U', 00H, 's', 00H, ':', 00H, ' ', 00H, '%', 00H, 'i', 00H, ' '
-	DB	00H, ' ', 00H, '{', 00H, ' ', 00H, 'S', 00H, 'L', 00H, 'I', 00H
-	DB	':', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, ' '
-	DB	00H, '}', 00H, 00H, 00H
-	ORG $+2
-$SG428029 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
-	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '*', 00H, ' ', 00H, 'N', 00H, 'u', 00H, 'm', 00H
-	DB	'b', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'o', 00H, 'f', 00H, ' '
-	DB	00H, 'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
-	DB	'l', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'N', 00H, 'V', 00H, 'I'
-	DB	00H, 'D', 00H, 'I', 00H, 'A', 00H, ' ', 00H, 'G', 00H, 'P', 00H
-	DB	'U', 00H, 's', 00H, ':', 00H, ' ', 00H, '%', 00H, 'i', 00H, ' '
-	DB	00H, ' ', 00H, '{', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
-	DB	'''', 00H, ' ', 00H, '}', 00H, 00H, 00H
-	ORG $+4
-$SG428031 DB	'[', 00H, ' ', 00H, ' ', 00H, 'N', 00H, 'v', 00H, 'A', 00H
-	DB	'P', 00H, 'I', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, ' ', 00H, '+', 00H, ' ', 00H, 'S', 00H, 'L', 00H
-	DB	'I', 00H, ' ', 00H, 'G', 00H, 'P', 00H, 'U', 00H, ' ', 00H, '%'
-	DB	00H, 'd', 00H, ':', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG428030 DB	'mem', 00H
+$SG428031 DB	'%c %lx %s', 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
@@ -1679,6 +1684,7 @@ PUBLIC	??0_Container_proxy@std@@QAE@XZ			; std::_Container_proxy::_Container_pro
 PUBLIC	??0_Container_base12@std@@QAE@XZ		; std::_Container_base12::_Container_base12
 PUBLIC	??1_Container_base12@std@@QAE@XZ		; std::_Container_base12::~_Container_base12
 PUBLIC	?_Orphan_all@_Container_base12@std@@QAEXXZ	; std::_Container_base12::_Orphan_all
+PUBLIC	?_Swap_all@_Container_base12@std@@QAEXAAU12@@Z	; std::_Container_base12::_Swap_all
 PUBLIC	??0_Iterator_base12@std@@QAE@XZ			; std::_Iterator_base12::_Iterator_base12
 PUBLIC	??1_Iterator_base12@std@@QAE@XZ			; std::_Iterator_base12::~_Iterator_base12
 PUBLIC	?_Adopt@_Iterator_base12@std@@QAEXPBU_Container_base12@2@@Z ; std::_Iterator_base12::_Adopt
@@ -1899,6 +1905,7 @@ PUBLIC	?select_on_container_copy_construction@?$allocator_traits@V?$allocator@K@
 PUBLIC	?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBE?AU12@U_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::select_on_container_copy_construction
 PUBLIC	??0?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@XZ ; std::_Wrap_alloc<std::allocator<unsigned long> >::_Wrap_alloc<std::allocator<unsigned long> >
 PUBLIC	??0?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAU01@@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::_Wrap_alloc<std::allocator<unsigned long> >
+PUBLIC	??4?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEAAU01@$$QAU01@@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::operator=
 PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEPAKI@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::allocate
 PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKI@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::deallocate
 PUBLIC	?max_size@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QBEIU_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::max_size
@@ -1909,10 +1916,12 @@ PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAEXPAPAKI@Z ; std:
 PUBLIC	?_Getblock@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEII@Z ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getblock
 PUBLIC	??0?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >
 PUBLIC	??1?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::~_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >
+PUBLIC	?_Move_alloc@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@@Z ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Move_alloc
 PUBLIC	?_Alloc_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Alloc_proxy
 PUBLIC	?_Free_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Free_proxy
 PUBLIC	?_Myproxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAPAU_Container_proxy@2@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Myproxy
 PUBLIC	?_Orphan_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Orphan_all
+PUBLIC	?_Swap_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXAAV12@@Z ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Swap_all
 PUBLIC	?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getal
 PUBLIC	?_Getal@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@K@std@@@2@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Getal
 PUBLIC	?_Get_data@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEAAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@XZ ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Get_data
@@ -1933,6 +1942,8 @@ PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@
 PUBLIC	??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::~_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>
 PUBLIC	??0?$deque@KV?$allocator@K@std@@@std@@QAE@XZ	; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
 PUBLIC	??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
+PUBLIC	??4?$deque@KV?$allocator@K@std@@@std@@QAEAAV01@$$QAV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::operator=
+PUBLIC	?_Assign_rv@?$deque@KV?$allocator@K@std@@@std@@QAEX$$QAV12@U?$integral_constant@_N$00@2@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::_Assign_rv
 PUBLIC	??1?$deque@KV?$allocator@K@std@@@std@@QAE@XZ	; std::deque<unsigned long,std::allocator<unsigned long> >::~deque<unsigned long,std::allocator<unsigned long> >
 PUBLIC	?begin@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ ; std::deque<unsigned long,std::allocator<unsigned long> >::begin
 PUBLIC	?end@?$deque@KV?$allocator@K@std@@@std@@QBE?AV?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@2@XZ ; std::deque<unsigned long,std::allocator<unsigned long> >::end
@@ -1945,6 +1956,7 @@ PUBLIC	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned lo
 PUBLIC	??0?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >
 PUBLIC	??1?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@XZ ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::~queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >
 PUBLIC	??0?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@ABV01@@Z ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >
+PUBLIC	??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::operator=
 PUBLIC	??0init_params_t@@QAE@XZ			; init_params_t::init_params_t
 PUBLIC	?SK_GetBackend@@YGPB_WXZ			; SK_GetBackend
 PUBLIC	?osd_pump@@YGKPAX@Z				; osd_pump
@@ -2088,6 +2100,8 @@ PUBLIC	?RunDLL_ElevateMe@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z ; RunDLL_ElevateM
 PUBLIC	?RunDLL_RestartGame@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z ; RunDLL_RestartGame
 PUBLIC	??$distance@V?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@std@@@std@@YAHV?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@0@0@Z ; std::distance<std::_Tree_const_iterator<std::_Tree_val<std::_Tree_simple_types<HWND__ *> > > >
 PUBLIC	??$addressof@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@std@@YAPAV?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@0@AAV10@@Z ; std::addressof<std::_Tree_val<std::_Tree_simple_types<HWND__ *> > >
+PUBLIC	??$addressof@V?$deque@KV?$allocator@K@std@@@std@@@std@@YAPAV?$deque@KV?$allocator@K@std@@@0@AAV10@@Z ; std::addressof<std::deque<unsigned long,std::allocator<unsigned long> > >
+PUBLIC	??$move@AAV?$deque@KV?$allocator@K@std@@@std@@@std@@YA$$QAV?$deque@KV?$allocator@K@std@@@0@AAV10@@Z ; std::move<std::deque<unsigned long,std::allocator<unsigned long> > &>
 PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@X@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > ><std::_Wrap_alloc<std::allocator<unsigned long> >,void>
 PUBLIC	??0?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QAE@IPBU_Container_base12@1@@Z ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
 PUBLIC	??D?$_Deque_const_iterator@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@QBEABKXZ ; std::_Deque_const_iterator<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >::operator*
@@ -2105,6 +2119,8 @@ PUBLIC	??$_Unfancy@D@std@@YAPADPAD@Z			; std::_Unfancy<char>
 PUBLIC	??$_Eqrange@PAUHWND__@@@?$_Tree@V?$_Tset_traits@PAUHWND__@@U?$less@PAUHWND__@@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@IAE?AU?$pair@V?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@std@@V12@@1@ABQAUHWND__@@@Z ; std::_Tree<std::_Tset_traits<HWND__ *,std::less<HWND__ *>,std::allocator<HWND__ *>,0> >::_Eqrange<HWND__ *>
 PUBLIC	??$_Eqrange@PAUHWND__@@@?$_Tree@V?$_Tset_traits@PAUHWND__@@U?$less@PAUHWND__@@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@IBE?AU?$pair@V?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@std@@V12@@1@ABQAUHWND__@@@Z ; std::_Tree<std::_Tset_traits<HWND__ *,std::less<HWND__ *>,std::allocator<HWND__ *>,0> >::_Eqrange<HWND__ *>
 PUBLIC	??$?0V?$allocator@K@std@@@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAE@$$QAV?$allocator@K@1@@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::_Wrap_alloc<std::allocator<unsigned long> ><std::allocator<unsigned long> >
+PUBLIC	??$?9V?$allocator@K@std@@V01@@std@@YA_NABU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z ; std::operator!=<std::allocator<unsigned long>,std::allocator<unsigned long> >
+PUBLIC	??$_Pocma@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z ; std::_Pocma<std::_Wrap_alloc<std::allocator<unsigned long> > >
 PUBLIC	??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ; std::_Wrap_alloc<std::allocator<unsigned long *> >::_Wrap_alloc<std::allocator<unsigned long *> ><std::_Wrap_alloc<std::allocator<unsigned long> > &>
 PUBLIC	??$addressof@PAK@std@@YAPAPAKAAPAK@Z		; std::addressof<unsigned long *>
 PUBLIC	??$destroy@PAK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAPAK@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::destroy<unsigned long *>
@@ -2131,6 +2147,9 @@ PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@Q
 PUBLIC	?deallocate@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@2@I@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::deallocate
 PUBLIC	??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::_Wrap_alloc<std::allocator<std::_Container_proxy> ><std::_Wrap_alloc<std::allocator<unsigned long> > &>
 PUBLIC	??$destroy@U_Container_proxy@std@@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::destroy<std::_Container_proxy>
+PUBLIC	??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z ; std::_Unfancy<std::_Container_proxy>
+PUBLIC	??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>
+PUBLIC	??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
 PUBLIC	??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1><>
 PUBLIC	??$_Unfancy@K@std@@YAPAKPAK@Z			; std::_Unfancy<unsigned long>
 PUBLIC	??$destroy@K@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAK@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::destroy<unsigned long>
@@ -2138,9 +2157,6 @@ PUBLIC	??$_Unfancy@_W@std@@YAPA_WPA_W@Z		; std::_Unfancy<wchar_t>
 PUBLIC	??$_Min_value@I@std@@YAABIABI0@Z		; std::_Min_value<unsigned int>
 PUBLIC	??$addressof@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@YAPBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@0@ABV10@@Z ; std::addressof<std::basic_string<char,std::char_traits<char>,std::allocator<char> > const >
 PUBLIC	?pointer_to@?$pointer_traits@PAU_Container_proxy@std@@@std@@SAPAU_Container_proxy@2@AAU32@@Z ; std::pointer_traits<std::_Container_proxy *>::pointer_to
-PUBLIC	??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z ; std::_Unfancy<std::_Container_proxy>
-PUBLIC	??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>
-PUBLIC	??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
 PUBLIC	??$construct@PA_WAAPA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_WAAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
 PUBLIC	??$construct@PADAAPAD@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAEXPAPADAAPAD@Z ; std::_Wrap_alloc<std::allocator<char> >::construct<char *,char * &>
 PUBLIC	??$addressof@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@AAU10@@Z ; std::addressof<std::_Container_proxy>
@@ -2156,6 +2172,9 @@ PUBLIC	??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap
 PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >
 PUBLIC	??$?0AAV?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@std@@AAV01@X$0A@@?$pair@V?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@std@@V12@@std@@QAE@AAV?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@1@0@Z ; std::pair<std::_Tree_const_iterator<std::_Tree_val<std::_Tree_simple_types<HWND__ *> > >,std::_Tree_const_iterator<std::_Tree_val<std::_Tree_simple_types<HWND__ *> > > >::pair<std::_Tree_const_iterator<std::_Tree_val<std::_Tree_simple_types<HWND__ *> > >,std::_Tree_const_iterator<std::_Tree_val<std::_Tree_simple_types<HWND__ *> > > ><std::_Tree_const_iterator<std::_Tree_val<std::_Tree_simple_types<HWND__ *> > > &,std::_Tree_const_iterator<std::_Tree_val<std::_Tree_simple_types<HWND__ *> > > &,void,0>
 PUBLIC	??$forward@V?$allocator@K@std@@@std@@YA$$QAV?$allocator@K@0@AAV10@@Z ; std::forward<std::allocator<unsigned long> >
+PUBLIC	??$?8V?$allocator@K@std@@V01@@std@@YA_NABU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z ; std::operator==<std::allocator<unsigned long>,std::allocator<unsigned long> >
+PUBLIC	??$?8KK@std@@YA_NABV?$allocator@K@0@0@Z		; std::operator==<unsigned long,unsigned long>
+PUBLIC	??$_Pocma@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@0U?$integral_constant@_N$00@0@@Z ; std::_Pocma<std::_Wrap_alloc<std::allocator<unsigned long> > >
 PUBLIC	??$forward@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<unsigned long> > &>
 PUBLIC	??$?0K@?$allocator@PAK@std@@QAE@ABV?$allocator@K@1@@Z ; std::allocator<unsigned long *>::allocator<unsigned long *><unsigned long>
 PUBLIC	??$destroy@PAK@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAPAK@Z ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long *>
@@ -2170,9 +2189,9 @@ PUBLIC	??$move@AAD@std@@YA$$QADAAD@Z			; std::move<char &>
 PUBLIC	??$destroy@PAUHWND__@@@?$allocator_traits@V?$allocator@U?$_Tree_node@PAUHWND__@@PAX@std@@@std@@@std@@SAXAAV?$allocator@U?$_Tree_node@PAUHWND__@@PAX@std@@@1@PAPAUHWND__@@@Z ; std::allocator_traits<std::allocator<std::_Tree_node<HWND__ *,void *> > >::destroy<HWND__ *>
 PUBLIC	??$?0K@?$allocator@U_Container_proxy@std@@@std@@QAE@ABV?$allocator@K@1@@Z ; std::allocator<std::_Container_proxy>::allocator<std::_Container_proxy><unsigned long>
 PUBLIC	??$destroy@U_Container_proxy@std@@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@@Z ; std::allocator_traits<std::allocator<std::_Container_proxy> >::destroy<std::_Container_proxy>
-PUBLIC	??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long>
 PUBLIC	??$forward@U_Container_proxy@std@@@std@@YA$$QAU_Container_proxy@0@AAU10@@Z ; std::forward<std::_Container_proxy>
 PUBLIC	??$construct@U_Container_proxy@std@@U12@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@$$QAU31@@Z ; std::allocator_traits<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>
+PUBLIC	??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long>
 PUBLIC	??$forward@AAPA_W@std@@YAAAPA_WAAPA_W@Z		; std::forward<wchar_t * &>
 PUBLIC	??$construct@PA_WAAPA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_WAAPA_W@Z ; std::allocator_traits<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
 PUBLIC	??$forward@AAPAD@std@@YAAAPADAAPAD@Z		; std::forward<char * &>
@@ -2188,19 +2207,19 @@ PUBLIC	??$?0AAV?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND
 PUBLIC	??$forward@ABK@std@@YAABKABK@Z			; std::forward<unsigned long const &>
 PUBLIC	??$construct@KABK@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEXPAKABK@Z ; std::_Wrap_alloc<std::allocator<unsigned long> >::construct<unsigned long,unsigned long const &>
 PUBLIC	??$forward@AAV?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@std@@@std@@YAAAV?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@0@AAV10@@Z ; std::forward<std::_Tree_const_iterator<std::_Tree_val<std::_Tree_simple_types<HWND__ *> > > &>
+PUBLIC	??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ; std::move<std::_Wrap_alloc<std::allocator<unsigned long> > &>
 PUBLIC	??$destroy@PAK@?$allocator@K@std@@QAEXPAPAK@Z	; std::allocator<unsigned long>::destroy<unsigned long *>
 PUBLIC	??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z ; std::allocator<wchar_t>::destroy<wchar_t *>
 PUBLIC	??$destroy@PAD@?$allocator@D@std@@QAEXPAPAD@Z	; std::allocator<char>::destroy<char *>
 PUBLIC	??$destroy@PAU?$_Tree_node@PAUHWND__@@PAX@std@@@?$allocator@U?$_Tree_node@PAUHWND__@@PAX@std@@@std@@QAEXPAPAU?$_Tree_node@PAUHWND__@@PAX@1@@Z ; std::allocator<std::_Tree_node<HWND__ *,void *> >::destroy<std::_Tree_node<HWND__ *,void *> *>
 PUBLIC	??$destroy@PAUHWND__@@@?$allocator@U?$_Tree_node@PAUHWND__@@PAX@std@@@std@@QAEXPAPAUHWND__@@@Z ; std::allocator<std::_Tree_node<HWND__ *,void *> >::destroy<HWND__ *>
 PUBLIC	??$destroy@U_Container_proxy@std@@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@@Z ; std::allocator<std::_Container_proxy>::destroy<std::_Container_proxy>
+PUBLIC	??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ; std::allocator<std::_Container_proxy>::construct<std::_Container_proxy,std::_Container_proxy>
 PUBLIC	??$forward@_N@std@@YA$$QA_NAA_N@Z		; std::forward<bool>
 PUBLIC	??$destroy@K@?$allocator@K@std@@QAEXPAK@Z	; std::allocator<unsigned long>::destroy<unsigned long>
-PUBLIC	??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ; std::allocator<std::_Container_proxy>::construct<std::_Container_proxy,std::_Container_proxy>
 PUBLIC	??$construct@PA_WAAPA_W@?$allocator@_W@std@@QAEXPAPA_WAAPA_W@Z ; std::allocator<wchar_t>::construct<wchar_t *,wchar_t * &>
 PUBLIC	??$construct@PADAAPAD@?$allocator@D@std@@QAEXPAPADAAPAD@Z ; std::allocator<char>::construct<char *,char * &>
 PUBLIC	??$construct@PAU?$_Tree_node@PAUHWND__@@PAX@std@@AAPAU12@@?$allocator@U?$_Tree_node@PAUHWND__@@PAX@std@@@std@@QAEXPAPAU?$_Tree_node@PAUHWND__@@PAX@1@AAPAU21@@Z ; std::allocator<std::_Tree_node<HWND__ *,void *> >::construct<std::_Tree_node<HWND__ *,void *> *,std::_Tree_node<HWND__ *,void *> * &>
-PUBLIC	??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ; std::move<std::_Wrap_alloc<std::allocator<unsigned long> > &>
 PUBLIC	??$_Uninitialized_copy@PAPAKPAPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ; std::_Uninitialized_copy<unsigned long * *,unsigned long * *,std::allocator<unsigned long *> >
 PUBLIC	??$_Uninitialized_default_fill_n@PAPAKIV?$allocator@PAK@std@@@std@@YAPAPAKPAPAKIAAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ; std::_Uninitialized_default_fill_n<unsigned long * *,unsigned int,std::allocator<unsigned long *> >
 PUBLIC	??$_Destroy_range@V?$allocator@PAK@std@@PAPAK@std@@YAXPAPAK0AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ; std::_Destroy_range<std::allocator<unsigned long *>,unsigned long * *>
@@ -2331,10 +2350,10 @@ EXTRN	__imp__GetSystemWow64DirectoryW@8:PROC
 EXTRN	__imp__SystemTimeToFileTime@8:PROC
 EXTRN	__imp__CreateSymbolicLinkW@12:PROC
 EXTRN	__imp__wsprintfW:PROC
-EXTRN	__imp__WaitForInputIdle@8:PROC
 EXTRN	__imp__DefWindowProcW@16:PROC
 EXTRN	__imp__RegisterClassW@4:PROC
 EXTRN	__imp__UnregisterClassW@8:PROC
+EXTRN	__imp__GetClassInfoW@12:PROC
 EXTRN	__imp__DestroyWindow@4:PROC
 EXTRN	__imp__GetAsyncKeyState@4:PROC
 EXTRN	__imp__MsgWaitForMultipleObjectsEx@20:PROC
@@ -2388,6 +2407,7 @@ EXTRN	?SK_DeleteTemporaryFiles@@YAIPB_W0@Z:PROC	; SK_DeleteTemporaryFiles
 EXTRN	?SK_GetModuleName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z:PROC ; SK_GetModuleName
 EXTRN	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z:PROC ; SK_GetModuleFullName
 EXTRN	?SK_StripUserNameFromPathW@@YA_NPA_W@Z:PROC	; SK_StripUserNameFromPathW
+EXTRN	?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ:PROC ; SK_SuspendAllOtherThreads
 EXTRN	?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z:PROC ; SK_ResumeThreads
 EXTRN	?SK_IsSuperSpecialK@@YA_NXZ:PROC		; SK_IsSuperSpecialK
 EXTRN	?SK_GetFileSize@@YG_KPB_W@Z:PROC		; SK_GetFileSize
@@ -2399,6 +2419,7 @@ EXTRN	?SK_UnlockSteamAchievement@@YAXI@Z:PROC		; SK_UnlockSteamAchievement
 EXTRN	?SK_Steam_LoadOverlayEarly@@YA_NXZ:PROC		; SK_Steam_LoadOverlayEarly
 EXTRN	?SK_Steam_PiratesAhoy@@YGIXZ:PROC		; SK_Steam_PiratesAhoy
 EXTRN	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ:PROC ; SK_GetCommandProcessor
+EXTRN	__imp__StrStrIW@8:PROC
 EXTRN	__imp__PathAppendW@8:PROC
 EXTRN	__imp__PathRemoveFileSpecW@4:PROC
 EXTRN	?SK_GetCurrentGLContext@@YGPAUHGLRC__@@XZ:PROC	; SK_GetCurrentGLContext
@@ -2408,7 +2429,6 @@ EXTRN	?SK_InitRenderBackends@@YGXXZ:PROC		; SK_InitRenderBackends
 EXTRN	?SK_BootDXGI@@YAXXZ:PROC			; SK_BootDXGI
 EXTRN	?SK_LoadConfig@@YA_NV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z:PROC ; SK_LoadConfig
 EXTRN	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z:PROC ; SK_SaveConfig
-EXTRN	?SK_InstallOSD@@YGXXZ:PROC			; SK_InstallOSD
 EXTRN	?SK_DrawOSD@@YGHXZ:PROC				; SK_DrawOSD
 EXTRN	?SK_ResizeOSD@@YGXMPBD@Z:PROC			; SK_ResizeOSD
 EXTRN	?SK_MonitorProcess@@YGKPAX@Z:PROC		; SK_MonitorProcess
@@ -2487,11 +2507,11 @@ EXTRN	?pagefile_stats@@3Upagefile_perf_t@@A:BYTE	; pagefile_stats
 EXTRN	?imports@@3PAUimport_s@@A:BYTE			; imports
 EXTRN	_IID_ID3D11Device1:BYTE
 EXTRN	?app_name@NVAPI@sk@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@A:BYTE ; sk::NVAPI::app_name
-EXTRN	?nv_hardware@NVAPI@sk@@3_NA:BYTE		; sk::NVAPI::nv_hardware
 EXTRN	?SK_ImGui_Visible@@3_NA:BYTE			; SK_ImGui_Visible
 EXTRN	?SK_ReShade_Visible@@3_NA:BYTE			; SK_ReShade_Visible
 EXTRN	?game_debug@@3UiSK_Logger@@A:BYTE		; game_debug
 EXTRN	?SK_D3D11_amount_to_purge@@3HA:DWORD		; SK_D3D11_amount_to_purge
+EXTRN	?__SK_RunDLL_Bypass@@3_NA:BYTE			; __SK_RunDLL_Bypass
 EXTRN	?CreateWindowExW_Original@@3P6GPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA:DWORD ; CreateWindowExW_Original
 EXTRN	?__SK_DLL_AttachTime@@3_JA:QWORD		; __SK_DLL_AttachTime
 EXTRN	?target_fps@@3MA:DWORD				; target_fps
@@ -2633,21 +2653,21 @@ _BSS	ENDS
 _BSS	SEGMENT
 ?cegui_init@?1??SK_BeginBufferSwap@@YGXXZ@4JC DD 01H DUP (?) ; `SK_BeginBufferSwap'::`2'::cegui_init
 _BSS	ENDS
-;	COMDAT ?k32_AddDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA
+;	COMDAT ?k32_AddDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA
 _BSS	SEGMENT
-?k32_AddDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA DD 01H DUP (?) ; `SK_BeginBufferSwap'::`28'::k32_AddDllDirectory
+?k32_AddDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA DD 01H DUP (?) ; `SK_BeginBufferSwap'::`30'::k32_AddDllDirectory
 _BSS	ENDS
-;	COMDAT ?$TSS0@?BM@??SK_BeginBufferSwap@@YGXXZ@4HA
+;	COMDAT ?$TSS0@?BO@??SK_BeginBufferSwap@@YGXXZ@4HA
 _BSS	SEGMENT
-?$TSS0@?BM@??SK_BeginBufferSwap@@YGXXZ@4HA DD 01H DUP (?) ; TSS0<`template-parameter-28',UNKNOWN volatile * const volatile,ginBufferSwap,int, ?? &>
+?$TSS0@?BO@??SK_BeginBufferSwap@@YGXXZ@4HA DD 01H DUP (?) ; TSS0<`template-parameter-30',UNKNOWN volatile * const volatile,ginBufferSwap,int, ?? &>
 _BSS	ENDS
-;	COMDAT ?k32_RemoveDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA
+;	COMDAT ?k32_RemoveDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA
 _BSS	SEGMENT
-?k32_RemoveDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA DD 01H DUP (?) ; `SK_BeginBufferSwap'::`28'::k32_RemoveDllDirectory
+?k32_RemoveDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA DD 01H DUP (?) ; `SK_BeginBufferSwap'::`30'::k32_RemoveDllDirectory
 _BSS	ENDS
-;	COMDAT ?k32_SetDefaultDllDirectories@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA
+;	COMDAT ?k32_SetDefaultDllDirectories@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA
 _BSS	SEGMENT
-?k32_SetDefaultDllDirectories@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA DD 01H DUP (?) ; `SK_BeginBufferSwap'::`28'::k32_SetDefaultDllDirectories
+?k32_SetDefaultDllDirectories@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA DD 01H DUP (?) ; `SK_BeginBufferSwap'::`30'::k32_SetDefaultDllDirectories
 _BSS	ENDS
 ;	COMDAT ?hModTBFix@?1??SK_BeginBufferSwap@@YGXXZ@4PAUHINSTANCE__@@A
 _BSS	SEGMENT
@@ -2668,46 +2688,6 @@ _BSS	ENDS
 ;	COMDAT ?toggle_time@?1??DoKeyboard@@YAXXZ@4_NA
 _BSS	SEGMENT
 ?toggle_time@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?)	; `DoKeyboard'::`2'::toggle_time
-_BSS	ENDS
-;	COMDAT ?toggle_mem@?1??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_mem@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?)	; `DoKeyboard'::`2'::toggle_mem
-_BSS	ENDS
-;	COMDAT ?toggle_sli@?CP@??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_sli@?CP@??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?)	; `DoKeyboard'::`47'::toggle_sli
-_BSS	ENDS
-;	COMDAT ?toggle_io@?1??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_io@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?)	; `DoKeyboard'::`2'::toggle_io
-_BSS	ENDS
-;	COMDAT ?toggle_cpu@?1??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_cpu@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?)	; `DoKeyboard'::`2'::toggle_cpu
-_BSS	ENDS
-;	COMDAT ?toggle_gpu@?1??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_gpu@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?)	; `DoKeyboard'::`2'::toggle_gpu
-_BSS	ENDS
-;	COMDAT ?toggle_fps@?1??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_fps@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?)	; `DoKeyboard'::`2'::toggle_fps
-_BSS	ENDS
-;	COMDAT ?toggle_disk@?1??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_disk@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?)	; `DoKeyboard'::`2'::toggle_disk
-_BSS	ENDS
-;	COMDAT ?toggle_pagefile@?1??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_pagefile@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?) ; `DoKeyboard'::`2'::toggle_pagefile
-_BSS	ENDS
-;	COMDAT ?toggle_osd@?1??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_osd@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?)	; `DoKeyboard'::`2'::toggle_osd
-_BSS	ENDS
-;	COMDAT ?toggle_render@?1??DoKeyboard@@YAXXZ@4_NA
-_BSS	SEGMENT
-?toggle_render@?1??DoKeyboard@@YAXXZ@4_NA DB 01H DUP (?) ; `DoKeyboard'::`2'::toggle_render
 _BSS	ENDS
 ;	COMDAT ?budget_init@?1??SK_EndBufferSwap@@YGJJPAUIUnknown@@@Z@4KC
 _BSS	SEGMENT
@@ -2946,7 +2926,7 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?wszSteamDLL@?DK@??SK_StartupCore@@YG_NPB_WPAX@Z@4PB_WB
 _DATA	SEGMENT
-?wszSteamDLL@?DK@??SK_StartupCore@@YG_NPB_WPAX@Z@4PB_WB DD FLAT:$SG428529 ; `SK_StartupCore'::`58'::wszSteamDLL
+?wszSteamDLL@?DK@??SK_StartupCore@@YG_NPB_WPAX@Z@4PB_WB DD FLAT:$SG428624 ; `SK_StartupCore'::`58'::wszSteamDLL
 _DATA	ENDS
 ;	COMDAT ??_7skUpdateCmd@@6B@
 CONST	SEGMENT
@@ -3090,7 +3070,7 @@ __ehfuncinfo$??1?$CComPtr@UIDirect3DDevice9@@@ATL@@QAE@XZ DD 019930522H
 xdata$x	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
-__sehtable$??R<lambda_7e66bdca6ded84295017a42506a51330>@@QBE_NPBD@Z DD 0ffffffffH
+__sehtable$??R<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QBE_NPBD@Z DD 0ffffffffH
 	DD	FLAT:$LN11@operator
 	DD	FLAT:$LN7@operator
 xdata$x	ENDS
@@ -3115,6 +3095,28 @@ __ehfuncinfo$??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_
 	DD	2 DUP(00H)
 	DD	00H
 	DD	01H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
+__unwindtable$??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z DD 0ffffffffH
+	DD	FLAT:___std_terminate
+__ehfuncinfo$??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	05H
+xdata$x	ENDS
+;	COMDAT xdata$x
+xdata$x	SEGMENT
+__ehfuncinfo$??4?$deque@KV?$allocator@K@std@@@std@@QAEAAV01@$$QAV01@@Z DD 019930522H
+	DD	00H
+	DD	00H
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	05H
 xdata$x	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
@@ -3314,11 +3316,11 @@ __unwindtable$?SK_StartupCore@@YG_NPB_WPAX@Z DD 0ffffffffH
 	DD	09H
 	DD	FLAT:__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$16
 	DD	08H
-	DD	FLAT:__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$21
+	DD	FLAT:__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$22
 	DD	08H
-	DD	FLAT:__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$23
+	DD	FLAT:__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$24
 	DD	08H
-	DD	FLAT:__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$27
+	DD	FLAT:__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$28
 xdata$x	ENDS
 ;	COMDAT CRT$XCU
 CRT$XCU	SEGMENT
@@ -3867,29 +3869,6 @@ __Al$ = 20						; size = 4
 ??$_Uninitialized_copy@PAPAKPAPAKV?$allocator@PAK@std@@@std@@YAPAPAKPAPAK00AAU?$_Wrap_alloc@V?$allocator@PAK@std@@@0@@Z ENDP ; std::_Uninitialized_copy<unsigned long * *,unsigned long * *,std::allocator<unsigned long *> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
-;	COMDAT ??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z
-_TEXT	SEGMENT
-__Arg$ = 8						; size = 4
-??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z PROC ; std::move<std::_Wrap_alloc<std::allocator<unsigned long> > &>, COMDAT
-
-; 1350 : 	{	// forward _Arg as movable
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
-
-	mov	eax, DWORD PTR __Arg$[ebp]
-
-; 1352 : 	}
-
-	pop	ebp
-	ret	0
-??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ENDP ; std::move<std::_Wrap_alloc<std::allocator<unsigned long> > &>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@PAU?$_Tree_node@PAUHWND__@@PAX@std@@AAPAU12@@?$allocator@U?$_Tree_node@PAUHWND__@@PAX@std@@@std@@QAEXPAPAU?$_Tree_node@PAUHWND__@@PAX@1@AAPAU21@@Z
 _TEXT	SEGMENT
@@ -3984,39 +3963,6 @@ $LN3@construct:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z
-_TEXT	SEGMENT
-__Ptr$ = 8						; size = 4
-_<_Args_0>$ = 12					; size = 4
-??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z PROC ; std::allocator<std::_Container_proxy>::construct<std::_Container_proxy,std::_Container_proxy>, COMDAT
-; _this$ = ecx
-
-; 839  : 		{	// construct _Objty(_Types...) at _Ptr
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
-
-	mov	edx, DWORD PTR __Ptr$[ebp]
-	test	edx, edx
-	je	SHORT $LN3@construct
-	mov	ecx, DWORD PTR _<_Args_0>$[ebp]
-	mov	eax, DWORD PTR [ecx]
-	mov	DWORD PTR [edx], eax
-	mov	eax, DWORD PTR [ecx+4]
-	mov	DWORD PTR [edx+4], eax
-$LN3@construct:
-
-; 841  : 		}
-
-	pop	ebp
-	ret	8
-??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ENDP ; std::allocator<std::_Container_proxy>::construct<std::_Container_proxy,std::_Container_proxy>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$destroy@K@?$allocator@K@std@@QAEXPAK@Z
 _TEXT	SEGMENT
 __Ptr$ = 8						; size = 4
@@ -4051,6 +3997,39 @@ __Arg$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$forward@_N@std@@YA$$QA_NAA_N@Z ENDP			; std::forward<bool>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z PROC ; std::allocator<std::_Container_proxy>::construct<std::_Container_proxy,std::_Container_proxy>, COMDAT
+; _this$ = ecx
+
+; 839  : 		{	// construct _Objty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	edx, DWORD PTR __Ptr$[ebp]
+	test	edx, edx
+	je	SHORT $LN3@construct
+	mov	ecx, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [ecx]
+	mov	DWORD PTR [edx], eax
+	mov	eax, DWORD PTR [ecx+4]
+	mov	DWORD PTR [edx+4], eax
+$LN3@construct:
+
+; 841  : 		}
+
+	pop	ebp
+	ret	8
+??$construct@U_Container_proxy@std@@U12@@?$allocator@U_Container_proxy@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ENDP ; std::allocator<std::_Container_proxy>::construct<std::_Container_proxy,std::_Container_proxy>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -4135,6 +4114,29 @@ __Ptr$ = 8						; size = 4
 
 	ret	4
 ??$destroy@PAK@?$allocator@K@std@@QAEXPAPAK@Z ENDP	; std::allocator<unsigned long>::destroy<unsigned long *>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z PROC ; std::move<std::_Wrap_alloc<std::allocator<unsigned long> > &>, COMDAT
+
+; 1350 : 	{	// forward _Arg as movable
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1352 : 	}
+
+	pop	ebp
+	ret	0
+??$move@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ENDP ; std::move<std::_Wrap_alloc<std::allocator<unsigned long> > &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
@@ -5100,6 +5102,20 @@ __Arg$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+__Ptr$ = 12						; size = 4
+??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z PROC ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long>, COMDAT
+
+; 965  : 		_Al.destroy(_Ptr);
+; 966  : 		}
+
+	ret	0
+??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z ENDP ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@U_Container_proxy@std@@U12@@?$allocator_traits@V?$allocator@U_Container_proxy@std@@@std@@@std@@SAXAAV?$allocator@U_Container_proxy@std@@@1@PAU_Container_proxy@1@$$QAU31@@Z
 _TEXT	SEGMENT
 __Al$ = 8						; size = 4
@@ -5154,20 +5170,6 @@ __Arg$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$forward@U_Container_proxy@std@@@std@@YA$$QAU_Container_proxy@0@AAU10@@Z ENDP ; std::forward<std::_Container_proxy>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z
-_TEXT	SEGMENT
-__Al$ = 8						; size = 4
-__Ptr$ = 12						; size = 4
-??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z PROC ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long>, COMDAT
-
-; 965  : 		_Al.destroy(_Ptr);
-; 966  : 		}
-
-	ret	0
-??$destroy@K@?$allocator_traits@V?$allocator@K@std@@@std@@SAXAAV?$allocator@K@1@PAK@Z ENDP ; std::allocator_traits<std::allocator<unsigned long> >::destroy<unsigned long>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -5428,6 +5430,56 @@ __Arg$ = 8						; size = 4
 	pop	ebp
 	ret	0
 ??$forward@AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@AAU10@@Z ENDP ; std::forward<std::_Wrap_alloc<std::allocator<unsigned long> > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Pocma@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@0U?$integral_constant@_N$00@0@@Z
+_TEXT	SEGMENT
+__Left$ = 8						; size = 4
+__Right$ = 12						; size = 4
+___formal$ = 16						; size = 1
+??$_Pocma@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@0U?$integral_constant@_N$00@0@@Z PROC ; std::_Pocma<std::_Wrap_alloc<std::allocator<unsigned long> > >, COMDAT
+
+; 1152 : 	_Left = _STD move(_Right);
+; 1153 : 	}
+
+	ret	0
+??$_Pocma@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@0U?$integral_constant@_N$00@0@@Z ENDP ; std::_Pocma<std::_Wrap_alloc<std::allocator<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?8KK@std@@YA_NABV?$allocator@K@0@0@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 4
+___formal$ = 12						; size = 4
+??$?8KK@std@@YA_NABV?$allocator@K@0@0@Z PROC		; std::operator==<unsigned long,unsigned long>, COMDAT
+
+; 898  : 	return (true);
+
+	mov	al, 1
+
+; 899  : 	}
+
+	ret	0
+??$?8KK@std@@YA_NABV?$allocator@K@0@0@Z ENDP		; std::operator==<unsigned long,unsigned long>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?8V?$allocator@K@std@@V01@@std@@YA_NABU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z
+_TEXT	SEGMENT
+__Left$ = 8						; size = 4
+__Right$ = 12						; size = 4
+??$?8V?$allocator@K@std@@V01@@std@@YA_NABU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z PROC ; std::operator==<std::allocator<unsigned long>,std::allocator<unsigned long> >, COMDAT
+
+; 1117 : 	return (static_cast<const _Ty&>(_Left)
+
+	mov	al, 1
+
+; 1118 : 		== static_cast<const _Other&>(_Right));
+; 1119 : 	}
+
+	ret	0
+??$?8V?$allocator@K@std@@V01@@std@@YA_NABU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z ENDP ; std::operator==<std::allocator<unsigned long>,std::allocator<unsigned long> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
@@ -6374,87 +6426,6 @@ $LN13@construct:
 ??$construct@PA_WAAPA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_WAAPA_W@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-;	COMDAT ??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z
-_TEXT	SEGMENT
-__Val$ = 8						; size = 4
-??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z PROC ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >, COMDAT
-
-; 629  : 	{	// return address of _Val
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 630  : 	return (__builtin_addressof(_Val));
-
-	mov	eax, DWORD PTR __Val$[ebp]
-
-; 631  : 	}
-
-	pop	ebp
-	ret	0
-??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z ENDP ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z
-_TEXT	SEGMENT
-__Ptr$ = 8						; size = 4
-_<_Args_0>$ = 12					; size = 4
-??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>, COMDAT
-; _this$ = ecx
-
-; 1095 : 		{	// construct _Ty(_Types...) at _Ptr
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
-
-	mov	edx, DWORD PTR __Ptr$[ebp]
-	test	edx, edx
-	je	SHORT $LN13@construct
-	mov	ecx, DWORD PTR _<_Args_0>$[ebp]
-	mov	eax, DWORD PTR [ecx]
-	mov	DWORD PTR [edx], eax
-	mov	eax, DWORD PTR [ecx+4]
-	mov	DWORD PTR [edx+4], eax
-$LN13@construct:
-
-; 1096 : 		_Mytraits::construct(*this, _Ptr,
-; 1097 : 			_STD forward<_Types>(_Args)...);
-; 1098 : 		}
-
-	pop	ebp
-	ret	8
-??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-;	COMDAT ??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z
-_TEXT	SEGMENT
-__Ptr$ = 8						; size = 4
-??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z PROC ; std::_Unfancy<std::_Container_proxy>, COMDAT
-
-; 642  : 	{	// do nothing for plain pointers
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 643  : 	return (_Ptr);
-
-	mov	eax, DWORD PTR __Ptr$[ebp]
-
-; 644  : 	}
-
-	pop	ebp
-	ret	0
-??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z ENDP ; std::_Unfancy<std::_Container_proxy>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ?pointer_to@?$pointer_traits@PAU_Container_proxy@std@@@std@@SAPAU_Container_proxy@2@AAU32@@Z
 _TEXT	SEGMENT
@@ -6628,6 +6599,87 @@ ___formal$ = 8						; size = 1
 
 	ret	4
 ??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<unsigned long> >,std::_Deque_val<std::_Deque_simple_types<unsigned long> >,1><>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z PROC ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@V?$_Deque_val@U?$_Deque_simple_types@K@std@@@std@@@std@@YAPAV?$_Deque_val@U?$_Deque_simple_types@K@std@@@0@AAV10@@Z ENDP ; std::addressof<std::_Deque_val<std::_Deque_simple_types<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+_<_Args_0>$ = 12					; size = 4
+??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z PROC ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>, COMDAT
+; _this$ = ecx
+
+; 1095 : 		{	// construct _Ty(_Types...) at _Ptr
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 840  : 		::new ((void *)_Ptr) _Objty(_STD forward<_Types>(_Args)...);
+
+	mov	edx, DWORD PTR __Ptr$[ebp]
+	test	edx, edx
+	je	SHORT $LN13@construct
+	mov	ecx, DWORD PTR _<_Args_0>$[ebp]
+	mov	eax, DWORD PTR [ecx]
+	mov	DWORD PTR [edx], eax
+	mov	eax, DWORD PTR [ecx+4]
+	mov	DWORD PTR [edx+4], eax
+$LN13@construct:
+
+; 1096 : 		_Mytraits::construct(*this, _Ptr,
+; 1097 : 			_STD forward<_Types>(_Args)...);
+; 1098 : 		}
+
+	pop	ebp
+	ret	8
+??$construct@U_Container_proxy@std@@U12@@?$_Wrap_alloc@V?$allocator@U_Container_proxy@std@@@std@@@std@@QAEXPAU_Container_proxy@1@$$QAU21@@Z ENDP ; std::_Wrap_alloc<std::allocator<std::_Container_proxy> >::construct<std::_Container_proxy,std::_Container_proxy>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z
+_TEXT	SEGMENT
+__Ptr$ = 8						; size = 4
+??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z PROC ; std::_Unfancy<std::_Container_proxy>, COMDAT
+
+; 642  : 	{	// do nothing for plain pointers
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR __Ptr$[ebp]
+
+; 644  : 	}
+
+	pop	ebp
+	ret	0
+??$_Unfancy@U_Container_proxy@std@@@std@@YAPAU_Container_proxy@0@PAU10@@Z ENDP ; std::_Unfancy<std::_Container_proxy>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -7298,6 +7350,38 @@ __Right$ = 8						; size = 4
 	mov	eax, ecx
 	ret	4
 ??$?0AAU?$_Wrap_alloc@V?$allocator@K@std@@@std@@@?$_Wrap_alloc@V?$allocator@PAK@std@@@std@@QAE@AAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long *> >::_Wrap_alloc<std::allocator<unsigned long *> ><std::_Wrap_alloc<std::allocator<unsigned long> > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Pocma@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z
+_TEXT	SEGMENT
+__Left$ = 8						; size = 4
+__Right$ = 12						; size = 4
+??$_Pocma@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z PROC ; std::_Pocma<std::_Wrap_alloc<std::allocator<unsigned long> > >, COMDAT
+
+; 1163 : 	typename _Alty::propagate_on_container_move_assignment _Tag;
+; 1164 : 	_Pocma(_Left, _Right, _Tag);
+; 1165 : 	}
+
+	ret	0
+??$_Pocma@U?$_Wrap_alloc@V?$allocator@K@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z ENDP ; std::_Pocma<std::_Wrap_alloc<std::allocator<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?9V?$allocator@K@std@@V01@@std@@YA_NABU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z
+_TEXT	SEGMENT
+__Left$ = 8						; size = 4
+__Right$ = 12						; size = 4
+??$?9V?$allocator@K@std@@V01@@std@@YA_NABU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z PROC ; std::operator!=<std::allocator<unsigned long>,std::allocator<unsigned long> >, COMDAT
+
+; 1126 : 	return (!(_Left == _Right));
+
+	xor	al, al
+
+; 1127 : 	}
+
+	ret	0
+??$?9V?$allocator@K@std@@V01@@std@@YA_NABU?$_Wrap_alloc@V?$allocator@K@std@@@0@0@Z ENDP ; std::operator!=<std::allocator<unsigned long>,std::allocator<unsigned long> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -8160,6 +8244,52 @@ $LN100@allocator:
 ??$?0U?$_Wrap_alloc@V?$allocator@K@std@@@std@@X@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@K@std@@@1@@Z ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > ><std::_Wrap_alloc<std::allocator<unsigned long> >,void>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$move@AAV?$deque@KV?$allocator@K@std@@@std@@@std@@YA$$QAV?$deque@KV?$allocator@K@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$move@AAV?$deque@KV?$allocator@K@std@@@std@@@std@@YA$$QAV?$deque@KV?$allocator@K@std@@@0@AAV10@@Z PROC ; std::move<std::deque<unsigned long,std::allocator<unsigned long> > &>, COMDAT
+
+; 1350 : 	{	// forward _Arg as movable
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1352 : 	}
+
+	pop	ebp
+	ret	0
+??$move@AAV?$deque@KV?$allocator@K@std@@@std@@@std@@YA$$QAV?$deque@KV?$allocator@K@std@@@0@AAV10@@Z ENDP ; std::move<std::deque<unsigned long,std::allocator<unsigned long> > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@V?$deque@KV?$allocator@K@std@@@std@@@std@@YAPAV?$deque@KV?$allocator@K@std@@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@V?$deque@KV?$allocator@K@std@@@std@@@std@@YAPAV?$deque@KV?$allocator@K@std@@@0@AAV10@@Z PROC ; std::addressof<std::deque<unsigned long,std::allocator<unsigned long> > >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@V?$deque@KV?$allocator@K@std@@@std@@@std@@YAPAV?$deque@KV?$allocator@K@std@@@0@AAV10@@Z ENDP ; std::addressof<std::deque<unsigned long,std::allocator<unsigned long> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ;	COMDAT ??$addressof@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@std@@YAPAV?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@0@AAV10@@Z
 _TEXT	SEGMENT
@@ -8222,25 +8352,25 @@ _lpszCmdLine$ = 16					; size = 4
 _nCmdShow$ = 20						; size = 4
 ?RunDLL_RestartGame@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z PROC ; RunDLL_RestartGame
 
-; 2729 : {
+; 2560 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2730 :   UNREFERENCED_PARAMETER (hInst);
-; 2731 : 
-; 2732 :   ShellExecuteA ( hwnd, "open", lpszCmdLine, nullptr, nullptr, nCmdShow );
+; 2561 :   UNREFERENCED_PARAMETER (hInst);
+; 2562 : 
+; 2563 :   ShellExecuteA ( hwnd, "open", lpszCmdLine, nullptr, nullptr, nCmdShow );
 
 	push	DWORD PTR _nCmdShow$[ebp]
 	push	0
 	push	0
 	push	DWORD PTR _lpszCmdLine$[ebp]
-	push	OFFSET $SG431324
+	push	OFFSET $SG431338
 	push	DWORD PTR _hwnd$[ebp]
 	call	DWORD PTR __imp__ShellExecuteA@24
 
-; 2733 : }
+; 2564 : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -8255,25 +8385,25 @@ _lpszCmdLine$ = 16					; size = 4
 _nCmdShow$ = 20						; size = 4
 ?RunDLL_ElevateMe@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z PROC ; RunDLL_ElevateMe
 
-; 2719 : {
+; 2550 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2720 :   UNREFERENCED_PARAMETER (hInst);
-; 2721 : 
-; 2722 :   ShellExecuteA ( hwnd, "runas", lpszCmdLine, nullptr, nullptr, nCmdShow );
+; 2551 :   UNREFERENCED_PARAMETER (hInst);
+; 2552 : 
+; 2553 :   ShellExecuteA ( hwnd, "runas", lpszCmdLine, nullptr, nullptr, nCmdShow );
 
 	push	DWORD PTR _nCmdShow$[ebp]
 	push	0
 	push	0
 	push	DWORD PTR _lpszCmdLine$[ebp]
-	push	OFFSET $SG431317
+	push	OFFSET $SG431331
 	push	DWORD PTR _hwnd$[ebp]
 	call	DWORD PTR __imp__ShellExecuteA@24
 
-; 2723 : }
+; 2554 : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -9121,11 +9251,11 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 _stNow$ = -32						; size = 16
 _ftNow$ = -16						; size = 8
-tv930 = -8						; size = 4
+tv317 = -8						; size = 4
 _ullNow$2$ = -4						; size = 4
 ?DoKeyboard@@YAXXZ PROC					; DoKeyboard
 
-; 2241 : {
+; 2263 : {
 
 	npad	2
 	push	ebp
@@ -9133,33 +9263,33 @@ _ullNow$2$ = -4						; size = 4
 	sub	esp, 32					; 00000020H
 	push	esi
 
-; 2242 :   //
-; 2243 :   // Do not poll the keyboard while the game window is inactive
-; 2244 :   //
-; 2245 :   bool skip = true;
-; 2246 : 
-; 2247 :   if ( SK_GetGameWindow () == GetForegroundWindow () )
+; 2264 :   //
+; 2265 :   // Do not poll the keyboard while the game window is inactive
+; 2266 :   //
+; 2267 :   bool skip = true;
+; 2268 : 
+; 2269 :   if ( SK_GetGameWindow () == GetForegroundWindow () )
 
 	call	DWORD PTR __imp__GetForegroundWindow@0
 	mov	esi, eax
 	call	?SK_GetGameWindow@@YGPAUHWND__@@XZ	; SK_GetGameWindow
 	cmp	eax, esi
-	jne	$LN49@DoKeyboard
+	jne	$LN13@DoKeyboard
 
-; 2248 :     skip = false;
-; 2249 : 
-; 2250 :   if (skip)
-; 2251 :     return;
-; 2252 : 
-; 2253 :   static ULONGLONG last_osd_scale { 0ULL };
-; 2254 :   static ULONGLONG last_poll      { 0ULL };
-; 2255 :   static ULONGLONG last_drag      { 0ULL };
-; 2256 : 
-; 2257 :   SYSTEMTIME    stNow;
-; 2258 :   FILETIME      ftNow;
-; 2259 :   LARGE_INTEGER ullNow;
-; 2260 : 
-; 2261 :   GetSystemTime        (&stNow);
+; 2270 :     skip = false;
+; 2271 : 
+; 2272 :   if (skip)
+; 2273 :     return;
+; 2274 : 
+; 2275 :   static ULONGLONG last_osd_scale { 0ULL };
+; 2276 :   static ULONGLONG last_poll      { 0ULL };
+; 2277 :   static ULONGLONG last_drag      { 0ULL };
+; 2278 : 
+; 2279 :   SYSTEMTIME    stNow;
+; 2280 :   FILETIME      ftNow;
+; 2281 :   LARGE_INTEGER ullNow;
+; 2282 : 
+; 2283 :   GetSystemTime        (&stNow);
 
 	push	ebx
 	push	edi
@@ -9167,7 +9297,7 @@ _ullNow$2$ = -4						; size = 4
 	push	eax
 	call	DWORD PTR __imp__GetSystemTime@4
 
-; 2262 :   SystemTimeToFileTime (&stNow, &ftNow);
+; 2284 :   SystemTimeToFileTime (&stNow, &ftNow);
 
 	lea	eax, DWORD PTR _ftNow$[ebp]
 	push	eax
@@ -9175,24 +9305,24 @@ _ullNow$2$ = -4						; size = 4
 	push	eax
 	call	DWORD PTR __imp__SystemTimeToFileTime@8
 
-; 2263 : 
-; 2264 :   ullNow.HighPart = ftNow.dwHighDateTime;
-; 2265 :   ullNow.LowPart  = ftNow.dwLowDateTime;
+; 2285 : 
+; 2286 :   ullNow.HighPart = ftNow.dwHighDateTime;
+; 2287 :   ullNow.LowPart  = ftNow.dwLowDateTime;
 
 	mov	esi, DWORD PTR _ftNow$[ebp]
 	mov	ebx, DWORD PTR _ftNow$[ebp+4]
 	mov	DWORD PTR _ullNow$2$[ebp], esi
 
-; 2266 : 
-; 2267 :   static bool toggle_drag = false;
-; 2268 : 
-; 2269 :   ImGuiIO& io (ImGui::GetIO ());
+; 2288 : 
+; 2289 :   static bool toggle_drag = false;
+; 2290 : 
+; 2291 :   ImGuiIO& io (ImGui::GetIO ());
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 	mov	edi, eax
 
-; 2270 : 
-; 2271 :   if (io.KeysDown [VK_CONTROL] && io.KeysDown [VK_SHIFT] && io.KeysDown [VK_SCROLL])
+; 2292 : 
+; 2293 :   if (io.KeysDown [VK_CONTROL] && io.KeysDown [VK_SHIFT] && io.KeysDown [VK_SCROLL])
 
 	cmp	BYTE PTR [edi+246], 0
 	je	SHORT $LN4@DoKeyboard
@@ -9201,99 +9331,99 @@ _ullNow$2$ = -4						; size = 4
 	cmp	BYTE PTR [edi+374], 0
 	je	SHORT $LN4@DoKeyboard
 
-; 2272 :   {
-; 2273 :     if (! toggle_drag)
+; 2294 :   {
+; 2295 :     if (! toggle_drag)
 
 	cmp	BYTE PTR ?toggle_drag@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN54@DoKeyboard
+	jne	SHORT $LN18@DoKeyboard
 
-; 2274 :       config.window.drag_lock = (! config.window.drag_lock);
+; 2296 :       config.window.drag_lock = (! config.window.drag_lock);
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+769, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+773, 0
 	sete	al
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+769, al
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+773, al
 	jmp	SHORT $LN6@DoKeyboard
-$LN54@DoKeyboard:
-	mov	al, BYTE PTR ?config@@3Usk_config_t@@A+769
+$LN18@DoKeyboard:
+	mov	al, BYTE PTR ?config@@3Usk_config_t@@A+773
 $LN6@DoKeyboard:
 
-; 2275 :     toggle_drag = true;
+; 2297 :     toggle_drag = true;
 
 	mov	BYTE PTR ?toggle_drag@?1??DoKeyboard@@YAXXZ@4_NA, 1
 
-; 2276 : 
-; 2277 :     if (config.window.drag_lock)
+; 2298 : 
+; 2299 :     if (config.window.drag_lock)
 
 	test	al, al
 	je	SHORT $LN8@DoKeyboard
 
-; 2278 :       ClipCursor (nullptr);
+; 2300 :       ClipCursor (nullptr);
 
 	push	0
 	call	DWORD PTR __imp__ClipCursor@4
 
-; 2279 :   } else {
+; 2301 :   } else {
 
 	jmp	SHORT $LN5@DoKeyboard
 $LN4@DoKeyboard:
 
-; 2280 :     toggle_drag = false;
+; 2302 :     toggle_drag = false;
 
 	mov	BYTE PTR ?toggle_drag@?1??DoKeyboard@@YAXXZ@4_NA, 0
 $LN5@DoKeyboard:
 
-; 2281 :   }
-; 2282 : 
-; 2283 :   if (config.window.drag_lock)
+; 2303 :   }
+; 2304 : 
+; 2305 :   if (config.window.drag_lock)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+769, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+773, 0
 	je	SHORT $LN8@DoKeyboard
 
-; 2284 :     SK_CenterWindowAtMouse (config.window.persistent_drag);
+; 2306 :     SK_CenterWindowAtMouse (config.window.persistent_drag);
 
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+768
+	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+772
 	push	eax
 	call	?SK_CenterWindowAtMouse@@YAXH@Z		; SK_CenterWindowAtMouse
 	add	esp, 4
 $LN8@DoKeyboard:
 
-; 2285 : 
-; 2286 : 
-; 2287 :   if (ullNow.QuadPart - last_osd_scale > 25ULL * poll_interval)
+; 2307 : 
+; 2308 : 
+; 2309 :   if (ullNow.QuadPart - last_osd_scale > 25ULL * poll_interval)
 
 	sub	esi, DWORD PTR ?last_osd_scale@?1??DoKeyboard@@YAXXZ@4_KA
 	push	0
 	push	25					; 00000019H
 	push	DWORD PTR ?poll_interval@@3_KA+4
-	mov	DWORD PTR tv930[ebp], esi
+	mov	DWORD PTR tv317[ebp], esi
 	mov	esi, ebx
 	push	DWORD PTR ?poll_interval@@3_KA
 	sbb	esi, DWORD PTR ?last_osd_scale@?1??DoKeyboard@@YAXXZ@4_KA+4
 	call	__allmul
 	cmp	esi, edx
 	jb	$LN11@DoKeyboard
-	ja	SHORT $LN53@DoKeyboard
-	cmp	DWORD PTR tv930[ebp], eax
+	ja	SHORT $LN17@DoKeyboard
+	cmp	DWORD PTR tv317[ebp], eax
 	jbe	$LN11@DoKeyboard
-$LN53@DoKeyboard:
+$LN17@DoKeyboard:
 
-; 2288 :   {
-; 2289 :     if (io.KeysDown [config.osd.keys.expand [0]] &&
-; 2290 :         io.KeysDown [config.osd.keys.expand [1]] &&
+; 2310 :   {
+; 2311 :     if (io.KeysDown [config.osd.keys.expand [0]] &&
+; 2312 :         io.KeysDown [config.osd.keys.expand [1]] &&
 
 	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+88
 
-; 2291 :         io.KeysDown [config.osd.keys.expand [2]])
-; 2292 :     {
-; 2293 :       last_osd_scale = ullNow.QuadPart;
+; 2313 :         io.KeysDown [config.osd.keys.expand [2]])
+; 2314 :     {
+; 2315 :       last_osd_scale = ullNow.QuadPart;
 
 	mov	esi, DWORD PTR _ullNow$2$[ebp]
 	cmp	BYTE PTR [eax+edi+229], 0
 	je	SHORT $LN10@DoKeyboard
 
-; 2288 :   {
-; 2289 :     if (io.KeysDown [config.osd.keys.expand [0]] &&
-; 2290 :         io.KeysDown [config.osd.keys.expand [1]] &&
+; 2310 :   {
+; 2311 :     if (io.KeysDown [config.osd.keys.expand [0]] &&
+; 2312 :         io.KeysDown [config.osd.keys.expand [1]] &&
 
 	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+89
 	cmp	BYTE PTR [eax+edi+229], 0
@@ -9302,7 +9432,7 @@ $LN53@DoKeyboard:
 	cmp	BYTE PTR [eax+edi+229], 0
 	je	SHORT $LN10@DoKeyboard
 
-; 2294 :       SK_ResizeOSD (+0.1f);
+; 2316 :       SK_ResizeOSD (+0.1f);
 
 	push	0
 	push	ecx
@@ -9312,10 +9442,10 @@ $LN53@DoKeyboard:
 	call	?SK_ResizeOSD@@YGXMPBD@Z		; SK_ResizeOSD
 $LN10@DoKeyboard:
 
-; 2295 :     }
-; 2296 : 
-; 2297 :     if (io.KeysDown [config.osd.keys.shrink [0]] &&
-; 2298 :         io.KeysDown [config.osd.keys.shrink [1]] &&
+; 2317 :     }
+; 2318 : 
+; 2319 :     if (io.KeysDown [config.osd.keys.shrink [0]] &&
+; 2320 :         io.KeysDown [config.osd.keys.shrink [1]] &&
 
 	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+84
 	cmp	BYTE PTR [eax+edi+229], 0
@@ -9327,10 +9457,10 @@ $LN10@DoKeyboard:
 	cmp	BYTE PTR [eax+edi+229], 0
 	je	SHORT $LN11@DoKeyboard
 
-; 2299 :         io.KeysDown [config.osd.keys.shrink [2]])
-; 2300 :     {
-; 2301 :       last_osd_scale = ullNow.QuadPart;
-; 2302 :       SK_ResizeOSD (-0.1f);
+; 2321 :         io.KeysDown [config.osd.keys.shrink [2]])
+; 2322 :     {
+; 2323 :       last_osd_scale = ullNow.QuadPart;
+; 2324 :       SK_ResizeOSD (-0.1f);
 
 	push	0
 	push	ecx
@@ -9340,20 +9470,20 @@ $LN10@DoKeyboard:
 	call	?SK_ResizeOSD@@YGXMPBD@Z		; SK_ResizeOSD
 $LN11@DoKeyboard:
 
-; 2303 :     }
-; 2304 :   }
-; 2305 : 
-; 2306 : #if 0
-; 2307 :   if (ullNow.QuadPart < last_poll + poll_interval)
-; 2308 :   {
-; 2309 :     SleepEx (10, TRUE);
-; 2310 :     last_poll = ullNow.QuadPart;
-; 2311 :   }
-; 2312 : #endif
-; 2313 : 
-; 2314 :   static bool toggle_time = false;
-; 2315 :   if (io.KeysDown [config.time.keys.toggle [0]] &&
-; 2316 :       io.KeysDown [config.time.keys.toggle [1]] &&
+; 2325 :     }
+; 2326 :   }
+; 2327 : 
+; 2328 : #if 0
+; 2329 :   if (ullNow.QuadPart < last_poll + poll_interval)
+; 2330 :   {
+; 2331 :     SleepEx (10, TRUE);
+; 2332 :     last_poll = ullNow.QuadPart;
+; 2333 :   }
+; 2334 : #endif
+; 2335 : 
+; 2336 :   static bool toggle_time = false;
+; 2337 :   if (io.KeysDown [config.time.keys.toggle [0]] &&
+; 2338 :       io.KeysDown [config.time.keys.toggle [1]] &&
 
 	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+8
 	cmp	BYTE PTR [eax+edi+229], 0
@@ -9365,609 +9495,53 @@ $LN11@DoKeyboard:
 	cmp	BYTE PTR [eax+edi+229], 0
 	je	SHORT $LN12@DoKeyboard
 
-; 2317 :       io.KeysDown [config.time.keys.toggle [2]])
-; 2318 :   {
-; 2319 :     if (! toggle_time) {
+; 2339 :       io.KeysDown [config.time.keys.toggle [2]])
+; 2340 :   {
+; 2341 :     if (! toggle_time) {
 
 	cmp	BYTE PTR ?toggle_time@?1??DoKeyboard@@YAXXZ@4_NA, 0
 	jne	SHORT $LN14@DoKeyboard
 
-; 2320 :       SK_UnlockSteamAchievement (0);
+; 2342 :       SK_UnlockSteamAchievement (0);
 
 	push	0
 	call	?SK_UnlockSteamAchievement@@YAXI@Z	; SK_UnlockSteamAchievement
 	add	esp, 4
 
-; 2321 : 
-; 2322 :       config.time.show = (! config.time.show);
+; 2343 : 
+; 2344 :       config.time.show = (! config.time.show);
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A, 0
 	sete	BYTE PTR ?config@@3Usk_config_t@@A
 $LN14@DoKeyboard:
 
-; 2323 :     }
-; 2324 :     toggle_time = true;
-
-	mov	BYTE PTR ?toggle_time@?1??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2325 :   } else {
-
-	jmp	SHORT $LN13@DoKeyboard
-$LN12@DoKeyboard:
-
-; 2326 :     toggle_time = false;
-
-	mov	BYTE PTR ?toggle_time@?1??DoKeyboard@@YAXXZ@4_NA, 0
-$LN13@DoKeyboard:
-
-; 2327 :   }
-; 2328 : 
-; 2329 :   static bool toggle_mem = false;
-; 2330 :   if (io.KeysDown [config.mem.keys.toggle [0]] &&
-; 2331 :       io.KeysDown [config.mem.keys.toggle [1]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+24
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN15@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+25
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN15@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+26
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN15@DoKeyboard
-
-; 2332 :       io.KeysDown [config.mem.keys.toggle [2]])
-; 2333 :   {
-; 2334 :     if (! toggle_mem) {
-
-	cmp	BYTE PTR ?toggle_mem@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN18@DoKeyboard
-
-; 2335 :       config.mem.show = (! config.mem.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+12, 0
-	sete	al
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+12, al
-
-; 2336 : 
-; 2337 :       if (config.mem.show)
-
-	test	al, al
-	je	SHORT $LN18@DoKeyboard
-
-; 2338 :         SK_StartPerfMonThreads ();
-
-	call	?SK_StartPerfMonThreads@@YGXXZ		; SK_StartPerfMonThreads
-$LN18@DoKeyboard:
-
-; 2339 :     }
-; 2340 : 
-; 2341 :     toggle_mem = true;
-
-	mov	BYTE PTR ?toggle_mem@?1??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2342 :   } else {
-
-	jmp	SHORT $LN16@DoKeyboard
-$LN15@DoKeyboard:
-
-; 2343 :     toggle_mem = false;
-
-	mov	BYTE PTR ?toggle_mem@?1??DoKeyboard@@YAXXZ@4_NA, 0
-$LN16@DoKeyboard:
-
-; 2344 :   }
-; 2345 : 
-; 2346 : #if 0
-; 2347 :   static bool toggle_balance = false;
-; 2348 :   if (io.KeysDown [config.load_balance.keys.toggle [0] &&
-; 2349 :       io.KeysDown [config.load_balance.keys.toggle [1] &&
-; 2350 :       io.KeysDown [config.load_balance.keys.toggle [2])
-; 2351 :   {
-; 2352 :     if (! toggle_balance)
-; 2353 :       config.load_balance.use = (! config.load_balance.use);
-; 2354 :     toggle_balance = true;
-; 2355 :   } else {
-; 2356 :     toggle_balance = false;
-; 2357 :   }
-; 2358 : #endif
-; 2359 : 
-; 2360 :   if (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs () > 1)
-
-	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
-	je	SHORT $LN21@DoKeyboard
-	cmp	BYTE PTR ?nv_hardware@NVAPI@sk@@3_NA, 0	; sk::NVAPI::nv_hardware
-	je	SHORT $LN21@DoKeyboard
-	call	?CountSLIGPUs@NVAPI@sk@@YAHXZ		; sk::NVAPI::CountSLIGPUs
-	cmp	eax, 1
-	jle	SHORT $LN21@DoKeyboard
-
-; 2361 :   {
-; 2362 :     static bool toggle_sli = false;
-; 2363 :     if (io.KeysDown [config.sli.keys.toggle [0]] &&
-; 2364 :         io.KeysDown [config.sli.keys.toggle [1]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+41
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN20@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+42
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN20@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+43
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN20@DoKeyboard
-
-; 2365 :         io.KeysDown [config.sli.keys.toggle [2]])
-; 2366 :     {
-; 2367 :       if (! toggle_sli)
-
-	cmp	BYTE PTR ?toggle_sli@?CP@??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN22@DoKeyboard
-
-; 2368 :         config.sli.show = (! config.sli.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+40, 0
-	sete	BYTE PTR ?config@@3Usk_config_t@@A+40
-$LN22@DoKeyboard:
-
-; 2369 :       toggle_sli = true;
-
-	mov	BYTE PTR ?toggle_sli@?CP@??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2370 :     }
-; 2371 : 
-; 2372 :     else
-
-	jmp	SHORT $LN21@DoKeyboard
-$LN20@DoKeyboard:
-
-; 2373 :     {
-; 2374 :       toggle_sli = false;
-
-	mov	BYTE PTR ?toggle_sli@?CP@??DoKeyboard@@YAXXZ@4_NA, 0
-$LN21@DoKeyboard:
-
-; 2375 :     }
-; 2376 :   }
-; 2377 : 
-; 2378 :   static bool toggle_io = false;
-; 2379 :   if (io.KeysDown [config.io.keys.toggle [0]] &&
-; 2380 :       io.KeysDown [config.io.keys.toggle [1]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+36
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN23@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+37
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN23@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+38
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN23@DoKeyboard
-
-; 2381 :       io.KeysDown [config.io.keys.toggle [2]])
-; 2382 :   {
-; 2383 :     if (! toggle_io)
-
-	cmp	BYTE PTR ?toggle_io@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN25@DoKeyboard
-
-; 2384 :       config.io.show = (! config.io.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+28, 0
-	sete	BYTE PTR ?config@@3Usk_config_t@@A+28
-$LN25@DoKeyboard:
-
-; 2385 :     toggle_io = true;
-
-	mov	BYTE PTR ?toggle_io@?1??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2386 :   }
-; 2387 : 
-; 2388 :   else
-
-	jmp	SHORT $LN24@DoKeyboard
-$LN23@DoKeyboard:
-
-; 2389 :   {
-; 2390 :     toggle_io = false;
-
-	mov	BYTE PTR ?toggle_io@?1??DoKeyboard@@YAXXZ@4_NA, 0
-$LN24@DoKeyboard:
-
-; 2391 :   }
-; 2392 : 
-; 2393 :   static bool toggle_cpu = false;
-; 2394 :   if (io.KeysDown [config.cpu.keys.toggle [0]] &&
-; 2395 :       io.KeysDown [config.cpu.keys.toggle [1]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+105
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN26@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+106
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN26@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+107
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN26@DoKeyboard
-
-; 2396 :       io.KeysDown [config.cpu.keys.toggle [2]])
-; 2397 :   {
-; 2398 :     if (! toggle_cpu)
-
-	cmp	BYTE PTR ?toggle_cpu@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN29@DoKeyboard
-
-; 2399 :     {
-; 2400 :       config.cpu.show = (! config.cpu.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+96, 0
-	sete	al
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+96, al
-
-; 2401 : 
-; 2402 :       if (config.cpu.show)
-
-	test	al, al
-	je	SHORT $LN29@DoKeyboard
-
-; 2403 :         SK_StartPerfMonThreads ();
-
-	call	?SK_StartPerfMonThreads@@YGXXZ		; SK_StartPerfMonThreads
-$LN29@DoKeyboard:
-
-; 2404 :     }
-; 2405 : 
-; 2406 :     toggle_cpu = true;
-
-	mov	BYTE PTR ?toggle_cpu@?1??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2407 :   }
-; 2408 : 
-; 2409 :   else
-
-	jmp	SHORT $LN27@DoKeyboard
-$LN26@DoKeyboard:
-
-; 2410 :   {
-; 2411 :     toggle_cpu = false;
-
-	mov	BYTE PTR ?toggle_cpu@?1??DoKeyboard@@YAXXZ@4_NA, 0
-$LN27@DoKeyboard:
-
-; 2412 :   }
-; 2413 : 
-; 2414 :   static bool toggle_gpu = false;
-; 2415 :   if (io.KeysDown [config.gpu.keys.toggle [0]] &&
-; 2416 :       io.KeysDown [config.gpu.keys.toggle [1]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+128
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN30@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+129
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN30@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+130
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN30@DoKeyboard
-
-; 2417 :       io.KeysDown [config.gpu.keys.toggle [2]])
-; 2418 :   {
-; 2419 :     if (! toggle_gpu)
-
-	cmp	BYTE PTR ?toggle_gpu@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN32@DoKeyboard
-
-; 2420 :       config.gpu.show = (! config.gpu.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+120, 0
-	sete	BYTE PTR ?config@@3Usk_config_t@@A+120
-$LN32@DoKeyboard:
-
-; 2421 :     toggle_gpu = true;
-
-	mov	BYTE PTR ?toggle_gpu@?1??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2422 :   }
-; 2423 : 
-; 2424 :   else
-
-	jmp	SHORT $LN31@DoKeyboard
-$LN30@DoKeyboard:
-
-; 2425 :   {
-; 2426 :     toggle_gpu = false;
-
-	mov	BYTE PTR ?toggle_gpu@?1??DoKeyboard@@YAXXZ@4_NA, 0
-$LN31@DoKeyboard:
-
-; 2427 :   }
-; 2428 : 
-; 2429 :   static bool toggle_fps = false;
-; 2430 :   if (io.KeysDown [config.fps.keys.toggle [0]] &&
-; 2431 :       io.KeysDown [config.fps.keys.toggle [1]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+113
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN33@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+114
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN33@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+115
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN33@DoKeyboard
-
-; 2432 :       io.KeysDown [config.fps.keys.toggle [2]])
-; 2433 :   {
-; 2434 :     if (! toggle_fps)
-
-	cmp	BYTE PTR ?toggle_fps@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN35@DoKeyboard
-
-; 2435 :       config.fps.show = (! config.fps.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+112, 0
-	sete	BYTE PTR ?config@@3Usk_config_t@@A+112
-$LN35@DoKeyboard:
-
-; 2436 :     toggle_fps = true;
-
-	mov	BYTE PTR ?toggle_fps@?1??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2437 :   }
-; 2438 : 
-; 2439 :   else
-
-	jmp	SHORT $LN34@DoKeyboard
-$LN33@DoKeyboard:
-
-; 2440 :   {
-; 2441 :     toggle_fps = false;
-
-	mov	BYTE PTR ?toggle_fps@?1??DoKeyboard@@YAXXZ@4_NA, 0
-$LN34@DoKeyboard:
-
-; 2442 :   }
-; 2443 : 
-; 2444 :   static bool toggle_disk = false;
-; 2445 :   if (io.KeysDown [config.disk.keys.toggle [0]] &&
-; 2446 :       io.KeysDown [config.disk.keys.toggle [1]] &&
-; 2447 :       io.KeysDown [config.disk.keys.toggle [2]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+144
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN36@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+145
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN36@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+146
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN36@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+147
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN36@DoKeyboard
-
-; 2448 :       io.KeysDown [config.disk.keys.toggle [3]])
-; 2449 :   {
-; 2450 :     if (! toggle_disk)
-
-	cmp	BYTE PTR ?toggle_disk@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN39@DoKeyboard
-
-; 2451 :     {
-; 2452 :       config.disk.show = (! config.disk.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+132, 0
-	sete	al
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+132, al
-
-; 2453 : 
-; 2454 :       if (config.disk.show)
-
-	test	al, al
-	je	SHORT $LN39@DoKeyboard
-
-; 2455 :         SK_StartPerfMonThreads ();
-
-	call	?SK_StartPerfMonThreads@@YGXXZ		; SK_StartPerfMonThreads
-$LN39@DoKeyboard:
-
-; 2456 :     }
-; 2457 : 
-; 2458 :     toggle_disk = true;
-
-	mov	BYTE PTR ?toggle_disk@?1??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2459 :   }
-; 2460 : 
-; 2461 :   else
-
-	jmp	SHORT $LN37@DoKeyboard
-$LN36@DoKeyboard:
-
-; 2462 :   {
-; 2463 :     toggle_disk = false;
-
-	mov	BYTE PTR ?toggle_disk@?1??DoKeyboard@@YAXXZ@4_NA, 0
-$LN37@DoKeyboard:
-
-; 2464 :   }
-; 2465 : 
-; 2466 :   static bool toggle_pagefile = false;
-; 2467 :   if (io.KeysDown [config.pagefile.keys.toggle [0]] &&
-; 2468 :       io.KeysDown [config.pagefile.keys.toggle [1]] &&
-; 2469 :       io.KeysDown [config.pagefile.keys.toggle [2]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+156
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN40@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+157
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN40@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+158
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN40@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+159
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN40@DoKeyboard
-
-; 2470 :       io.KeysDown [config.pagefile.keys.toggle [3]])
-; 2471 :   {
-; 2472 :     if (! toggle_pagefile)
-
-	cmp	BYTE PTR ?toggle_pagefile@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN43@DoKeyboard
-
-; 2473 :     {
-; 2474 :       config.pagefile.show = (! config.pagefile.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+148, 0
-	sete	al
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+148, al
-
-; 2475 : 
-; 2476 :       if (config.pagefile.show)
-
-	test	al, al
-	je	SHORT $LN43@DoKeyboard
-
-; 2477 :         SK_StartPerfMonThreads ();
-
-	call	?SK_StartPerfMonThreads@@YGXXZ		; SK_StartPerfMonThreads
-$LN43@DoKeyboard:
-
-; 2478 :     }
-; 2479 : 
-; 2480 :     toggle_pagefile = true;
-
-	mov	BYTE PTR ?toggle_pagefile@?1??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2481 :   } else {
-
-	jmp	SHORT $LN41@DoKeyboard
-$LN40@DoKeyboard:
-
-; 2482 :     toggle_pagefile = false;
-
-	mov	BYTE PTR ?toggle_pagefile@?1??DoKeyboard@@YAXXZ@4_NA, 0
-$LN41@DoKeyboard:
-
-; 2483 :   }
-; 2484 : 
-; 2485 :   static bool toggle_osd = false;
-; 2486 :   if (io.KeysDown [config.osd.keys.toggle [0]] &&
-; 2487 :       io.KeysDown [config.osd.keys.toggle [1]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+80
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN44@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+81
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN44@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+82
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN44@DoKeyboard
-
-; 2488 :       io.KeysDown [config.osd.keys.toggle [2]])
-; 2489 :   {
-; 2490 :     if (! toggle_osd)
-
-	cmp	BYTE PTR ?toggle_osd@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN47@DoKeyboard
-
-; 2491 :     {
-; 2492 :       config.osd.show = (! config.osd.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+48, 0
-	sete	al
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+48, al
-
-; 2493 : 
-; 2494 :       if (config.osd.show)
-
-	test	al, al
-	je	SHORT $LN47@DoKeyboard
-
-; 2495 :         SK_InstallOSD ();
-
-	call	?SK_InstallOSD@@YGXXZ			; SK_InstallOSD
-$LN47@DoKeyboard:
-
-; 2496 :     }
-; 2497 :     toggle_osd = true;
-
-	mov	BYTE PTR ?toggle_osd@?1??DoKeyboard@@YAXXZ@4_NA, 1
-
-; 2498 :   }
-; 2499 : 
-; 2500 :   else
-
-	jmp	SHORT $LN45@DoKeyboard
-$LN44@DoKeyboard:
-
-; 2501 :   {
-; 2502 :     toggle_osd = false;
-
-	mov	BYTE PTR ?toggle_osd@?1??DoKeyboard@@YAXXZ@4_NA, 0
-$LN45@DoKeyboard:
-
-; 2503 :   }
-; 2504 : 
-; 2505 :   static bool toggle_render = false;
-; 2506 :   if (io.KeysDown [config.render.keys.toggle [0]] &&
-; 2507 :       io.KeysDown [config.render.keys.toggle [1]] &&
-
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+509
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN48@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+510
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN48@DoKeyboard
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+511
-	cmp	BYTE PTR [eax+edi+229], 0
-	je	SHORT $LN48@DoKeyboard
-
-; 2508 :       io.KeysDown [config.render.keys.toggle [2]])
-; 2509 :   {
-; 2510 :     if (! toggle_render)
-
-	cmp	BYTE PTR ?toggle_render@?1??DoKeyboard@@YAXXZ@4_NA, 0
-	jne	SHORT $LN50@DoKeyboard
-
-; 2511 :       config.render.show = (! config.render.show);
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+508, 0
-	sete	BYTE PTR ?config@@3Usk_config_t@@A+508
-$LN50@DoKeyboard:
-
-; 2512 :     toggle_render = true;
+; 2345 :     }
+; 2346 :     toggle_time = true;
 
 	pop	edi
 	pop	ebx
-	mov	BYTE PTR ?toggle_render@?1??DoKeyboard@@YAXXZ@4_NA, 1
+	mov	BYTE PTR ?toggle_time@?1??DoKeyboard@@YAXXZ@4_NA, 1
 	pop	esi
 
-; 2518 :   }
-; 2519 : }
+; 2349 :   }
+; 2350 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN48@DoKeyboard:
+$LN12@DoKeyboard:
 	pop	edi
 
-; 2513 :   }
-; 2514 : 
-; 2515 :   else
-; 2516 :   {
-; 2517 :     toggle_render = false;
+; 2347 :   } else {
+; 2348 :     toggle_time = false;
 
-	mov	BYTE PTR ?toggle_render@?1??DoKeyboard@@YAXXZ@4_NA, 0
+	mov	BYTE PTR ?toggle_time@?1??DoKeyboard@@YAXXZ@4_NA, 0
 	pop	ebx
-$LN49@DoKeyboard:
+$LN13@DoKeyboard:
 	pop	esi
 
-; 2518 :   }
-; 2519 : }
+; 2349 :   }
+; 2350 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -9976,13 +9550,13 @@ $LN49@DoKeyboard:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
-;	COMDAT ??0<lambda_7e66bdca6ded84295017a42506a51330>@@QAE@AAY0BAE@_W@Z
+;	COMDAT ??0<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QAE@AAY0BAE@_W@Z
 _TEXT	SEGMENT
 _<wszCEGUIModPath>$ = 8					; size = 4
-??0<lambda_7e66bdca6ded84295017a42506a51330>@@QAE@AAY0BAE@_W@Z PROC ; <lambda_7e66bdca6ded84295017a42506a51330>::<lambda_7e66bdca6ded84295017a42506a51330>, COMDAT
+??0<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QAE@AAY0BAE@_W@Z PROC ; <lambda_e90c1de77d7500ca5331d50c90c1ba3f>::<lambda_e90c1de77d7500ca5331d50c90c1ba3f>, COMDAT
 ; _this$ = ecx
 
-; 2157 :             };
+; 2179 :             };
 
 	npad	2
 	push	ebp
@@ -9992,26 +9566,26 @@ _<wszCEGUIModPath>$ = 8					; size = 4
 	mov	eax, ecx
 	pop	ebp
 	ret	4
-??0<lambda_7e66bdca6ded84295017a42506a51330>@@QAE@AAY0BAE@_W@Z ENDP ; <lambda_7e66bdca6ded84295017a42506a51330>::<lambda_7e66bdca6ded84295017a42506a51330>
+??0<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QAE@AAY0BAE@_W@Z ENDP ; <lambda_e90c1de77d7500ca5331d50c90c1ba3f>::<lambda_e90c1de77d7500ca5331d50c90c1ba3f>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
-;	COMDAT ??R<lambda_7e66bdca6ded84295017a42506a51330>@@QBE_NPBD@Z
+;	COMDAT ??R<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QBE_NPBD@Z
 _TEXT	SEGMENT
 _cookie$ = -32						; size = 4
 _ret$ = -25						; size = 1
 __$SEHRec$ = -24					; size = 24
 _szDLL$ = 8						; size = 4
-??R<lambda_7e66bdca6ded84295017a42506a51330>@@QBE_NPBD@Z PROC ; <lambda_7e66bdca6ded84295017a42506a51330>::operator(), COMDAT
+??R<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QBE_NPBD@Z PROC ; <lambda_e90c1de77d7500ca5331d50c90c1ba3f>::operator(), COMDAT
 ; _this$ = ecx
 
-; 2132 :             {
+; 2154 :             {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	-1
-	push	OFFSET __sehtable$??R<lambda_7e66bdca6ded84295017a42506a51330>@@QBE_NPBD@Z
+	push	OFFSET __sehtable$??R<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QBE_NPBD@Z
 	push	OFFSET __except_handler3
 	mov	eax, DWORD PTR fs:0
 	push	eax
@@ -10023,12 +9597,12 @@ _szDLL$ = 8						; size = 4
 	mov	DWORD PTR __$SEHRec$[ebp], esp
 	mov	esi, ecx
 
-; 2133 :               if (! config.cegui.safe_init)
+; 2155 :               if (! config.cegui.safe_init)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+161, 0
 	jne	SHORT $LN2@operator
 
-; 2134 :                 return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
+; 2156 :                 return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
 
 	push	DWORD PTR _szDLL$[ebp]
 	call	___HrLoadAllImportsForDll@4
@@ -10036,7 +9610,7 @@ _szDLL$ = 8						; size = 4
 	test	eax, eax
 	setns	al
 
-; 2157 :             };
+; 2179 :             };
 
 	mov	ecx, DWORD PTR __$SEHRec$[ebp+8]
 	mov	DWORD PTR fs:0, ecx
@@ -10048,38 +9622,38 @@ _szDLL$ = 8						; size = 4
 	ret	4
 $LN2@operator:
 
-; 2135 : 
-; 2136 :               k32_SetDefaultDllDirectories (
+; 2157 : 
+; 2158 :               k32_SetDefaultDllDirectories (
 
 	push	7680					; 00001e00H
-	call	DWORD PTR ?k32_SetDefaultDllDirectories@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA
+	call	DWORD PTR ?k32_SetDefaultDllDirectories@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA
 
-; 2137 :                 LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-; 2138 :                 LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
-; 2139 :               );
-; 2140 : 
-; 2141 :               DLL_DIRECTORY_COOKIE cookie = nullptr;
+; 2159 :                 LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+; 2160 :                 LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
+; 2161 :               );
+; 2162 : 
+; 2163 :               DLL_DIRECTORY_COOKIE cookie = nullptr;
 
 	mov	DWORD PTR _cookie$[ebp], 0
 
-; 2142 :               bool                 ret    = false;
+; 2164 :               bool                 ret    = false;
 
 	mov	BYTE PTR _ret$[ebp], 0
 
-; 2143 : 
-; 2144 :               __try
+; 2165 : 
+; 2166 :               __try
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], 0
 
-; 2145 :               {
-; 2146 :                 cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
+; 2167 :               {
+; 2168 :                 cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
 
 	push	DWORD PTR [esi]
-	call	DWORD PTR ?k32_AddDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA
+	call	DWORD PTR ?k32_AddDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA
 	mov	esi, eax
 	mov	DWORD PTR _cookie$[ebp], esi
 
-; 2147 :                 ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
+; 2169 :                 ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
 
 	push	DWORD PTR _szDLL$[ebp]
 	call	___HrLoadAllImportsForDll@4
@@ -10088,15 +9662,15 @@ $LN2@operator:
 	setns	bl
 	mov	BYTE PTR _ret$[ebp], bl
 
-; 2148 :               }
+; 2170 :               }
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], -1
 	jmp	SHORT $LN9@operator
 $LN6@operator:
 $LN11@operator:
 
-; 2149 : 
-; 2150 :               __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
+; 2171 : 
+; 2172 :               __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
 
 	mov	eax, DWORD PTR __$SEHRec$[ebp+4]
 	mov	eax, DWORD PTR [eax]
@@ -10110,27 +9684,27 @@ $LN8@operator:
 $LN7@operator:
 	mov	esp, DWORD PTR __$SEHRec$[ebp]
 
-; 2148 :               }
+; 2170 :               }
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], -1
 	mov	esi, DWORD PTR _cookie$[ebp]
 	mov	bl, BYTE PTR _ret$[ebp]
 $LN9@operator:
 
-; 2151 :                          EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
-; 2152 :               {
-; 2153 :               }
-; 2154 :               k32_RemoveDllDirectory (cookie);
+; 2173 :                          EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+; 2174 :               {
+; 2175 :               }
+; 2176 :               k32_RemoveDllDirectory (cookie);
 
 	push	esi
-	call	DWORD PTR ?k32_RemoveDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA
+	call	DWORD PTR ?k32_RemoveDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA
 
-; 2155 : 
-; 2156 :               return ret;
+; 2177 : 
+; 2178 :               return ret;
 
 	mov	al, bl
 
-; 2157 :             };
+; 2179 :             };
 
 	mov	ecx, DWORD PTR __$SEHRec$[ebp+8]
 	mov	DWORD PTR fs:0, ecx
@@ -10140,7 +9714,7 @@ $LN9@operator:
 	mov	esp, ebp
 	pop	ebp
 	ret	4
-??R<lambda_7e66bdca6ded84295017a42506a51330>@@QBE_NPBD@Z ENDP ; <lambda_7e66bdca6ded84295017a42506a51330>::operator()
+??R<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QBE_NPBD@Z ENDP ; <lambda_e90c1de77d7500ca5331d50c90c1ba3f>::operator()
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -10183,7 +9757,7 @@ _wszName$ = 16						; size = 4
 ??R<lambda_6ec963c1094b1d994a1eb4d638d667db>@@QBEXACRAX0PA_W@Z PROC ; <lambda_6ec963c1094b1d994a1eb4d638d667db>::operator(), COMDAT
 ; _this$ = ecx
 
-; 1869 :   {
+; 1886 :   {
 
 	npad	2
 	push	ebp
@@ -10192,7 +9766,7 @@ _wszName$ = 16						; size = 4
 	push	esi
 	push	edi
 
-; 1870 :     wchar_t wszFmtName [32] = { };
+; 1887 :     wchar_t wszFmtName [32] = { };
 
 	push	64					; 00000040H
 	lea	eax, DWORD PTR _wszFmtName$[ebp]
@@ -10200,8 +9774,8 @@ _wszName$ = 16						; size = 4
 	push	eax
 	call	_memset
 
-; 1871 : 
-; 1872 :     lstrcatW (wszFmtName, wszName);
+; 1888 : 
+; 1889 :     lstrcatW (wszFmtName, wszName);
 
 	mov	esi, DWORD PTR __imp__lstrcatW@8
 	lea	eax, DWORD PTR _wszFmtName$[ebp]
@@ -10210,15 +9784,15 @@ _wszName$ = 16						; size = 4
 	push	eax
 	call	esi
 
-; 1873 :     lstrcatW (wszFmtName, L"...");
+; 1890 :     lstrcatW (wszFmtName, L"...");
 
 	push	OFFSET ??_C@_17LGKOMLJ@?$AA?4?$AA?4?$AA?4?$AA?$AA@
 	lea	eax, DWORD PTR _wszFmtName$[ebp]
 	push	eax
 	call	esi
 
-; 1874 : 
-; 1875 :     dll_log.LogEx (true, L"[ WMI Perf ] Shutting down %-30s ", wszFmtName);
+; 1891 : 
+; 1892 :     dll_log.LogEx (true, L"[ WMI Perf ] Shutting down %-30s ", wszFmtName);
 
 	lea	eax, DWORD PTR _wszFmtName$[ebp]
 	push	eax
@@ -10228,14 +9802,14 @@ _wszName$ = 16						; size = 4
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 1876 : 
-; 1877 :     DWORD dwTime = timeGetTime ();
+; 1893 : 
+; 1894 :     DWORD dwTime = timeGetTime ();
 
 	call	DWORD PTR __imp__timeGetTime@0
 
-; 1878 : 
-; 1879 :     // Signal the thread to shutdown
-; 1880 :     SetEvent (hSignal);
+; 1895 : 
+; 1896 :     // Signal the thread to shutdown
+; 1897 :     SetEvent (hSignal);
 
 	mov	esi, DWORD PTR _hSignal$[ebp]
 	mov	DWORD PTR _dwTime$1$[ebp], eax
@@ -10243,8 +9817,8 @@ _wszName$ = 16						; size = 4
 	push	ecx
 	call	DWORD PTR __imp__SetEvent@4
 
-; 1881 : 
-; 1882 :     if (SignalObjectAndWait (hSignal, hThread, 1000UL, TRUE) != WAIT_OBJECT_0) // Give 1 second, and
+; 1898 : 
+; 1899 :     if (SignalObjectAndWait (hSignal, hThread, 1000UL, TRUE) != WAIT_OBJECT_0) // Give 1 second, and
 
 	mov	edi, DWORD PTR _hThread$[ebp]
 	push	1
@@ -10257,8 +9831,8 @@ _wszName$ = 16						; size = 4
 	test	eax, eax
 	je	SHORT $LN2@operator
 
-; 1883 :     {                                                                          // then we're killing
-; 1884 :       TerminateThread (hThread, 0x00);                                         // the thing!
+; 1900 :     {                                                                          // then we're killing
+; 1901 :       TerminateThread (hThread, 0x00);                                         // the thing!
 
 	mov	eax, DWORD PTR [edi]
 	push	0
@@ -10266,20 +9840,20 @@ _wszName$ = 16						; size = 4
 	call	DWORD PTR __imp__TerminateThread@8
 $LN2@operator:
 
-; 1885 :     }
-; 1886 : 
-; 1887 :     CloseHandle (hThread);
+; 1902 :     }
+; 1903 : 
+; 1904 :     CloseHandle (hThread);
 
 	mov	eax, DWORD PTR [edi]
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 1888 :                  hThread  = INVALID_HANDLE_VALUE;
+; 1905 :                  hThread  = INVALID_HANDLE_VALUE;
 
 	mov	DWORD PTR [edi], -1
 
-; 1889 : 
-; 1890 :     dll_log.LogEx (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+; 1906 : 
+; 1907 :     dll_log.LogEx (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
 	call	DWORD PTR __imp__timeGetTime@0
 	sub	eax, DWORD PTR _dwTime$1$[ebp]
@@ -10292,7 +9866,7 @@ $LN2@operator:
 	pop	edi
 	pop	esi
 
-; 1891 :   };
+; 1908 :   };
 
 	mov	esp, ebp
 	pop	ebp
@@ -10985,7 +10559,7 @@ text$di	SEGMENT
 	call	?_Buyheadnode@?$_Tree_comp_alloc@V?$_Tset_traits@PAUHWND__@@U?$less@PAUHWND__@@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@QAEPAU?$_Tree_node@PAUHWND__@@PAX@2@XZ ; std::_Tree_comp_alloc<std::_Tset_traits<HWND__ *,std::less<HWND__ *>,std::allocator<HWND__ *>,0> >::_Buyheadnode
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1755 : std::set <HWND> dummy_windows;
+; 1771 : std::set <HWND> dummy_windows;
 
 	push	OFFSET ??__Fdummy_windows@@YAXXZ	; `dynamic atexit destructor for 'dummy_windows''
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -10995,7 +10569,7 @@ text$di	SEGMENT
 	mov	DWORD PTR ?dummy_windows@@3V?$set@PAUHWND__@@U?$less@PAUHWND__@@@std@@V?$allocator@PAUHWND__@@@3@@std@@A, eax
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1755 : std::set <HWND> dummy_windows;
+; 1771 : std::set <HWND> dummy_windows;
 
 	call	_atexit
 	pop	ecx
@@ -14336,90 +13910,6 @@ __Val$ = 8						; size = 4
 ?_Kfn@?$_Tset_traits@PAUHWND__@@U?$less@PAUHWND__@@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@SAABQAUHWND__@@ABQAU3@@Z ENDP ; std::_Tset_traits<HWND__ *,std::less<HWND__ *>,std::allocator<HWND__ *>,0>::_Kfn
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-;	COMDAT ??B<lambda_a971d289a90ca512e40e4e11b4beac01>@@QBEP6GKPAX@ZXZ
-_TEXT	SEGMENT
-??B<lambda_a971d289a90ca512e40e4e11b4beac01>@@QBEP6GKPAX@ZXZ PROC ; <lambda_a971d289a90ca512e40e4e11b4beac01>::operator unsigned long (__stdcall*)(void *), COMDAT
-; _this$ = ecx
-
-; 1732 :                    }, nullptr,
-
-	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_a971d289a90ca512e40e4e11b4beac01>@@CGKPAX@Z ; <lambda_a971d289a90ca512e40e4e11b4beac01>::<lambda_invoker_stdcall>
-	ret	0
-??B<lambda_a971d289a90ca512e40e4e11b4beac01>@@QBEP6GKPAX@ZXZ ENDP ; <lambda_a971d289a90ca512e40e4e11b4beac01>::operator unsigned long (__stdcall*)(void *)
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-;	COMDAT ?<lambda_invoker_stdcall>@<lambda_a971d289a90ca512e40e4e11b4beac01>@@CGKPAX@Z
-_TEXT	SEGMENT
-___p1$ = 8						; size = 4
-?<lambda_invoker_stdcall>@<lambda_a971d289a90ca512e40e4e11b4beac01>@@CGKPAX@Z PROC ; <lambda_a971d289a90ca512e40e4e11b4beac01>::<lambda_invoker_stdcall>, COMDAT
-
-; 1724 :                      WaitForInputIdle (GetCurrentProcess (), INFINITE);
-
-	push	-1
-	call	DWORD PTR __imp__GetCurrentProcess@0
-	push	eax
-	call	DWORD PTR __imp__WaitForInputIdle@8
-
-; 1725 : 
-; 1726 :                      bool SK_InitWMI (void);
-; 1727 :                        SK_InitWMI    (    );
-
-	call	?SK_InitWMI@@YA_NXZ			; SK_InitWMI
-
-; 1728 : 
-; 1729 :                      CloseHandle (GetCurrentThread ());
-
-	call	DWORD PTR __imp__GetCurrentThread@0
-	push	eax
-	call	DWORD PTR __imp__CloseHandle@4
-
-; 1732 :                    }, nullptr,
-
-	xor	eax, eax
-	ret	4
-?<lambda_invoker_stdcall>@<lambda_a971d289a90ca512e40e4e11b4beac01>@@CGKPAX@Z ENDP ; <lambda_a971d289a90ca512e40e4e11b4beac01>::<lambda_invoker_stdcall>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-;	COMDAT ??R<lambda_a971d289a90ca512e40e4e11b4beac01>@@QBEKPAX@Z
-_TEXT	SEGMENT
-___formal$ = 8						; size = 4
-??R<lambda_a971d289a90ca512e40e4e11b4beac01>@@QBEKPAX@Z PROC ; <lambda_a971d289a90ca512e40e4e11b4beac01>::operator(), COMDAT
-; _this$ = ecx
-
-; 1724 :                      WaitForInputIdle (GetCurrentProcess (), INFINITE);
-
-	push	-1
-	call	DWORD PTR __imp__GetCurrentProcess@0
-	push	eax
-	call	DWORD PTR __imp__WaitForInputIdle@8
-
-; 1725 : 
-; 1726 :                      bool SK_InitWMI (void);
-; 1727 :                        SK_InitWMI    (    );
-
-	call	?SK_InitWMI@@YA_NXZ			; SK_InitWMI
-
-; 1728 : 
-; 1729 :                      CloseHandle (GetCurrentThread ());
-
-	call	DWORD PTR __imp__GetCurrentThread@0
-	push	eax
-	call	DWORD PTR __imp__CloseHandle@4
-
-; 1730 : 
-; 1731 :                      return 0;
-
-	xor	eax, eax
-
-; 1732 :                    }, nullptr,
-
-	ret	4
-??R<lambda_a971d289a90ca512e40e4e11b4beac01>@@QBEKPAX@Z ENDP ; <lambda_a971d289a90ca512e40e4e11b4beac01>::operator()
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ;	COMDAT ??$?8_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA_NABV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@QB_W@Z
 _TEXT	SEGMENT
@@ -14452,7 +13942,7 @@ _TEXT	SEGMENT
 ??B<lambda_cfec501fcb6571b9a7c0522edf85241b>@@QBEP6GKPAX@ZXZ PROC ; <lambda_cfec501fcb6571b9a7c0522edf85241b>::operator unsigned long (__stdcall*)(void *), COMDAT
 ; _this$ = ecx
 
-; 1504 :                                  }, nullptr, 0x00, nullptr);
+; 1536 :                                  }, nullptr, 0x00, nullptr);
 
 	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_cfec501fcb6571b9a7c0522edf85241b>@@CGKPAX@Z ; <lambda_cfec501fcb6571b9a7c0522edf85241b>::<lambda_invoker_stdcall>
 	ret	0
@@ -14465,22 +13955,22 @@ _TEXT	SEGMENT
 ___p1$ = 8						; size = 4
 ?<lambda_invoker_stdcall>@<lambda_cfec501fcb6571b9a7c0522edf85241b>@@CGKPAX@Z PROC ; <lambda_cfec501fcb6571b9a7c0522edf85241b>::<lambda_invoker_stdcall>, COMDAT
 
-; 1498 :                                    SK_Steam_LoadOverlayEarly ();
+; 1530 :                                    SK_Steam_LoadOverlayEarly ();
 
 	call	?SK_Steam_LoadOverlayEarly@@YA_NXZ	; SK_Steam_LoadOverlayEarly
 
-; 1499 :                                    SK_Input_Init             ();
+; 1531 :                                    SK_Input_Init             ();
 
 	call	?SK_Input_Init@@YAXXZ			; SK_Input_Init
 
-; 1500 : 
-; 1501 :                                    CloseHandle (GetCurrentThread ());
+; 1532 : 
+; 1533 :                                    CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 1504 :                                  }, nullptr, 0x00, nullptr);
+; 1536 :                                  }, nullptr, 0x00, nullptr);
 
 	xor	eax, eax
 	ret	4
@@ -14494,27 +13984,27 @@ ___formal$ = 8						; size = 4
 ??R<lambda_cfec501fcb6571b9a7c0522edf85241b>@@QBEKPAX@Z PROC ; <lambda_cfec501fcb6571b9a7c0522edf85241b>::operator(), COMDAT
 ; _this$ = ecx
 
-; 1498 :                                    SK_Steam_LoadOverlayEarly ();
+; 1530 :                                    SK_Steam_LoadOverlayEarly ();
 
 	call	?SK_Steam_LoadOverlayEarly@@YA_NXZ	; SK_Steam_LoadOverlayEarly
 
-; 1499 :                                    SK_Input_Init             ();
+; 1531 :                                    SK_Input_Init             ();
 
 	call	?SK_Input_Init@@YAXXZ			; SK_Input_Init
 
-; 1500 : 
-; 1501 :                                    CloseHandle (GetCurrentThread ());
+; 1532 : 
+; 1533 :                                    CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 1502 : 
-; 1503 :                                    return 0;
+; 1534 : 
+; 1535 :                                    return 0;
 
 	xor	eax, eax
 
-; 1504 :                                  }, nullptr, 0x00, nullptr);
+; 1536 :                                  }, nullptr, 0x00, nullptr);
 
 	ret	4
 ??R<lambda_cfec501fcb6571b9a7c0522edf85241b>@@QBEKPAX@Z ENDP ; <lambda_cfec501fcb6571b9a7c0522edf85241b>::operator()
@@ -14666,16 +14156,16 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_ReenterCore@@YGXXZ PROC				; SK_ReenterCore
 
-; 1298 :   auto* params =
-; 1299 :     static_cast <init_params_t *> (&reentrant_core);
-; 1300 : 
-; 1301 :   SK_StartupCore (params->backend, params->callback);
+; 1321 :   auto* params =
+; 1322 :     static_cast <init_params_t *> (&reentrant_core);
+; 1323 : 
+; 1324 :   SK_StartupCore (params->backend, params->callback);
 
 	push	DWORD PTR ?reentrant_core@@3Uinit_params_t@@A+4
 	push	DWORD PTR ?reentrant_core@@3Uinit_params_t@@A
 	call	?SK_StartupCore@@YG_NPB_WPAX@Z		; SK_StartupCore
 
-; 1302 : }
+; 1325 : }
 
 	ret	0
 ?SK_ReenterCore@@YGXXZ ENDP				; SK_ReenterCore
@@ -14709,7 +14199,7 @@ $T3 = -36						; size = 24
 __$EHRec$ = -12						; size = 12
 ?SK_EstablishRootPath@@YGXXZ PROC			; SK_EstablishRootPath
 
-; 1240 : {
+; 1263 : {
 
 	npad	2
 	push	ebp
@@ -14722,7 +14212,7 @@ __$EHRec$ = -12						; size = 12
 	sub	esp, 572				; 0000023cH
 	push	esi
 
-; 1241 :   wchar_t wszConfigPath [MAX_PATH + 1] = { };
+; 1264 :   wchar_t wszConfigPath [MAX_PATH + 1] = { };
 
 	push	522					; 0000020aH
 	lea	eax, DWORD PTR _wszConfigPath$[ebp]
@@ -14730,35 +14220,35 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	call	_memset
 
-; 1242 :           wszConfigPath [  MAX_PATH  ] = { };
+; 1265 :           wszConfigPath [  MAX_PATH  ] = { };
 
 	xor	eax, eax
 	add	esp, 12					; 0000000cH
 	mov	WORD PTR _wszConfigPath$[ebp+520], ax
 
-; 1243 : 
-; 1244 :   // Store config profiles in a centralized location rather than relative to the game's executable
-; 1245 :   //
-; 1246 :   //   Currently, this location is always Documents\My Mods\SpecialK\
-; 1247 :   //
-; 1248 :   if (config.system.central_repository)
+; 1266 : 
+; 1267 :   // Store config profiles in a centralized location rather than relative to the game's executable
+; 1268 :   //
+; 1269 :   //   Currently, this location is always Documents\My Mods\SpecialK\
+; 1270 :   //
+; 1271 :   if (config.system.central_repository)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+832, al
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+844, al
 	je	$LN2@SK_Establi
 
-; 1249 :   {
-; 1250 :     if (! SK_IsSuperSpecialK ())
+; 1272 :   {
+; 1273 :     if (! SK_IsSuperSpecialK ())
 
 	call	?SK_IsSuperSpecialK@@YA_NXZ		; SK_IsSuperSpecialK
 	test	al, al
 	jne	$LN4@SK_Establi
 
-; 1252 :       wcsncpy ( SK_RootPath,
+; 1275 :       wcsncpy ( SK_RootPath,
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG428303
+	push	OFFSET $SG428392
 	push	eax
 	lea	eax, DWORD PTR $T3[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -14782,7 +14272,7 @@ __$EHRec$ = -12						; size = 12
 $LN24@SK_Establi:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1252 :       wcsncpy ( SK_RootPath,
+; 1275 :       wcsncpy ( SK_RootPath,
 
 	push	259					; 00000103H
 	push	eax
@@ -14795,7 +14285,7 @@ $LN24@SK_Establi:
 	mov	eax, DWORD PTR $T3[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1252 :       wcsncpy ( SK_RootPath,
+; 1275 :       wcsncpy ( SK_RootPath,
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -14847,7 +14337,7 @@ $LN34@SK_Establi:
 	mov	DWORD PTR $T3[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1252 :       wcsncpy ( SK_RootPath,
+; 1275 :       wcsncpy ( SK_RootPath,
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -14899,22 +14389,22 @@ $LN64@SK_Establi:
 	mov	WORD PTR $T2[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1257 :     else
+; 1280 :     else
 
 	jmp	SHORT $LN5@SK_Establi
 $LN4@SK_Establi:
 
-; 1258 :     {
-; 1259 :       GetCurrentDirectory (MAX_PATH, SK_RootPath);
+; 1281 :     {
+; 1282 :       GetCurrentDirectory (MAX_PATH, SK_RootPath);
 
 	push	OFFSET ?SK_RootPath@@3PA_WA		; SK_RootPath
 	push	260					; 00000104H
 	call	DWORD PTR __imp__GetCurrentDirectoryW@8
 $LN5@SK_Establi:
 
-; 1260 :     }
-; 1261 : 
-; 1262 :     lstrcatW (wszConfigPath, SK_GetRootPath ());
+; 1283 :     }
+; 1284 : 
+; 1285 :     lstrcatW (wszConfigPath, SK_GetRootPath ());
 
 	call	?SK_GetRootPath@@YGPB_WXZ		; SK_GetRootPath
 	mov	esi, DWORD PTR __imp__lstrcatW@8
@@ -14923,61 +14413,61 @@ $LN5@SK_Establi:
 	push	eax
 	call	esi
 
-; 1263 :     lstrcatW (wszConfigPath, L"\\Profiles\\");
+; 1286 :     lstrcatW (wszConfigPath, L"\\Profiles\\");
 
-	push	OFFSET $SG428304
+	push	OFFSET $SG428393
 	lea	eax, DWORD PTR _wszConfigPath$[ebp]
 	push	eax
 	call	esi
 
-; 1264 :     lstrcatW (wszConfigPath, SK_GetHostApp  ());
+; 1287 :     lstrcatW (wszConfigPath, SK_GetHostApp  ());
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 
-; 1265 :   }
-; 1266 : 
-; 1267 : 
-; 1268 :   // Relative to game's executable path
-; 1269 :   //
-; 1270 :   else
+; 1288 :   }
+; 1289 : 
+; 1290 : 
+; 1291 :   // Relative to game's executable path
+; 1292 :   //
+; 1293 :   else
 
 	jmp	SHORT $LN91@SK_Establi
 $LN2@SK_Establi:
 
-; 1271 :   {
-; 1272 :     if (! SK_IsSuperSpecialK ())
+; 1294 :   {
+; 1295 :     if (! SK_IsSuperSpecialK ())
 
 	call	?SK_IsSuperSpecialK@@YA_NXZ		; SK_IsSuperSpecialK
 	mov	esi, DWORD PTR __imp__lstrcatW@8
 	test	al, al
 	jne	SHORT $LN6@SK_Establi
 
-; 1273 :     {
-; 1274 :       lstrcatW (SK_RootPath, SK_GetHostPath ());
+; 1296 :     {
+; 1297 :       lstrcatW (SK_RootPath, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
 	push	OFFSET ?SK_RootPath@@3PA_WA		; SK_RootPath
 	call	esi
 
-; 1275 :     }
-; 1276 : 
-; 1277 :     else
+; 1298 :     }
+; 1299 : 
+; 1300 :     else
 
 	jmp	SHORT $LN7@SK_Establi
 $LN6@SK_Establi:
 
-; 1278 :     {
-; 1279 :       GetCurrentDirectory (MAX_PATH, SK_RootPath);
+; 1301 :     {
+; 1302 :       GetCurrentDirectory (MAX_PATH, SK_RootPath);
 
 	push	OFFSET ?SK_RootPath@@3PA_WA		; SK_RootPath
 	push	260					; 00000104H
 	call	DWORD PTR __imp__GetCurrentDirectoryW@8
 $LN7@SK_Establi:
 
-; 1280 :     }
-; 1281 : 
-; 1282 :     lstrcatW (wszConfigPath, SK_GetRootPath ());
+; 1303 :     }
+; 1304 : 
+; 1305 :     lstrcatW (wszConfigPath, SK_GetRootPath ());
 
 	call	?SK_GetRootPath@@YGPB_WXZ		; SK_GetRootPath
 $LN91@SK_Establi:
@@ -14986,32 +14476,32 @@ $LN91@SK_Establi:
 	push	eax
 	call	esi
 
-; 1283 :   }
-; 1284 : 
-; 1285 : 
-; 1286 :   // Not using the ShellW API because at this stage we can only reliably use Kernel32 functions
-; 1287 :   lstrcatW (SK_RootPath,   L"\\");
+; 1306 :   }
+; 1307 : 
+; 1308 : 
+; 1309 :   // Not using the ShellW API because at this stage we can only reliably use Kernel32 functions
+; 1310 :   lstrcatW (SK_RootPath,   L"\\");
 
-	push	OFFSET $SG428307
+	push	OFFSET $SG428396
 	push	OFFSET ?SK_RootPath@@3PA_WA		; SK_RootPath
 	call	esi
 
-; 1288 :   lstrcatW (wszConfigPath, L"\\");
+; 1311 :   lstrcatW (wszConfigPath, L"\\");
 
-	push	OFFSET $SG428308
+	push	OFFSET $SG428397
 	lea	eax, DWORD PTR _wszConfigPath$[ebp]
 	push	eax
 	call	esi
 
-; 1289 : 
-; 1290 : 
-; 1291 :   SK_SetConfigPath     (wszConfigPath);
+; 1312 : 
+; 1313 : 
+; 1314 :   SK_SetConfigPath     (wszConfigPath);
 
 	lea	eax, DWORD PTR _wszConfigPath$[ebp]
 	push	eax
 	call	?SK_SetConfigPath@@YGXPB_W@Z		; SK_SetConfigPath
 
-; 1292 : }
+; 1315 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	esi
@@ -15429,16 +14919,16 @@ _TEXT	SEGMENT
 _user$ = 8						; size = 4
 ?DllThread@@YGKPAX@Z PROC				; DllThread
 
-; 1188 : {
+; 1211 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1189 :   auto* params =
-; 1190 :     static_cast <init_params_t *> (user);
-; 1191 : 
-; 1192 :   reentrant_core = *params;
+; 1212 :   auto* params =
+; 1213 :     static_cast <init_params_t *> (user);
+; 1214 : 
+; 1215 :   reentrant_core = *params;
 
 	mov	ecx, DWORD PTR _user$[ebp]
 	mov	eax, DWORD PTR [ecx]
@@ -15446,19 +14936,19 @@ _user$ = 8						; size = 4
 	mov	eax, DWORD PTR [ecx+4]
 	mov	DWORD PTR ?reentrant_core@@3Uinit_params_t@@A+4, eax
 
-; 1193 : 
-; 1194 :   SK_InitCore (params->backend, params->callback);
+; 1216 : 
+; 1217 :   SK_InitCore (params->backend, params->callback);
 
 	push	DWORD PTR [ecx+4]
 	push	DWORD PTR [ecx]
 	call	?SK_InitCore@@YGXPB_WPAX@Z		; SK_InitCore
 
-; 1195 : 
-; 1196 :   return 0;
+; 1218 : 
+; 1219 :   return 0;
 
 	xor	eax, eax
 
-; 1197 : }
+; 1220 : }
 
 	pop	ebp
 	ret	4
@@ -15466,14 +14956,14 @@ _user$ = 8						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
-; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
@@ -15486,7 +14976,7 @@ $T5 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ?SK_InitFinishCallback@@YGXXZ PROC			; SK_InitFinishCallback
 
-; 1046 : {
+; 1065 : {
 
 	npad	2
 	push	ebp
@@ -15500,106 +14990,99 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 	push	edi
 
-; 1047 :   SK_Input_Init       ();
+; 1066 :   bool rundll_invoked =
+; 1067 :     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
+
+	push	OFFSET $SG428271
+	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
+	push	eax
+	call	DWORD PTR __imp__StrStrIW@8
+	test	eax, eax
+	setne	al
+
+; 1068 : 
+; 1069 :   if (rundll_invoked || SK_IsSuperSpecialK ())
+
+	test	al, al
+	jne	$LN3@SK_InitFin
+	call	?SK_IsSuperSpecialK@@YA_NXZ		; SK_IsSuperSpecialK
+	test	al, al
+	jne	$LN3@SK_InitFin
+
+; 1070 :   {
+; 1071 :     init_mutex->unlock ();
+; 1072 :     return;
+; 1073 :   }
+; 1074 : 
+; 1075 :   SK_Input_Init       ();
 
 	call	?SK_Input_Init@@YAXXZ			; SK_Input_Init
 
-; 1048 :   SK_ApplyQueuedHooks ();
+; 1076 :   SK_ApplyQueuedHooks ();
 
 	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
 
-; 1049 : 
-; 1050 :   SK_DeleteTemporaryFiles ();
+; 1077 : 
+; 1078 :   SK_DeleteTemporaryFiles ();
 
-	push	OFFSET $SG428184
+	push	OFFSET $SG428274
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
 	call	?SK_DeleteTemporaryFiles@@YAIPB_W0@Z	; SK_DeleteTemporaryFiles
 
-; 1051 :   SK_DeleteTemporaryFiles (L"Version", L"*.old");
+; 1079 :   SK_DeleteTemporaryFiles (L"Version", L"*.old");
 
-	push	OFFSET $SG428185
-	push	OFFSET $SG428186
+	push	OFFSET $SG428275
+	push	OFFSET $SG428276
 	call	?SK_DeleteTemporaryFiles@@YAIPB_W0@Z	; SK_DeleteTemporaryFiles
 
-; 1052 : 
-; 1053 :   SK::Framerate::Init ();
+; 1080 : 
+; 1081 :   SK::Framerate::Init ();
 
 	call	?Init@Framerate@SK@@YAXXZ		; SK::Framerate::Init
 
-; 1054 : 
-; 1055 :   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
+; 1082 : 
+; 1083 :   dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
-	push	OFFSET $SG428187
+	push	OFFSET $SG428277
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	add	esp, 24					; 00000018H
 
-; 1056 : 
-; 1057 :   if (SK_IsSuperSpecialK ())
-
-	call	?SK_IsSuperSpecialK@@YA_NXZ		; SK_IsSuperSpecialK
-	test	al, al
-	je	SHORT $LN2@SK_InitFin
-; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
-
-; 266  :     LeaveCriticalSection (cs_);
-
-	mov	eax, DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A ; init_mutex
-	push	DWORD PTR [eax]
-	call	DWORD PTR __imp__LeaveCriticalSection@4
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1153 : }
-
-	mov	ecx, DWORD PTR __$EHRec$[ebp]
-	mov	DWORD PTR fs:0, ecx
-	pop	edi
-	pop	esi
-	mov	esp, ebp
-	pop	ebp
-	ret	0
-$LN2@SK_InitFin:
-
-; 1058 :   {
-; 1059 :     init_mutex->unlock ();
-; 1060 :     return;
-; 1061 :   }
-; 1062 : 
-; 1063 :   extern int32_t SK_D3D11_amount_to_purge;
-; 1064 :   SK_GetCommandProcessor ()->AddVariable (
+; 1084 : 
+; 1085 :   extern int32_t SK_D3D11_amount_to_purge;
+; 1086 :   SK_GetCommandProcessor ()->AddVariable (
 
 	push	20					; 00000014H
 	call	??2@YAPAXI@Z				; operator new
-	add	esp, 4
+	add	esp, 28					; 0000001cH
 	mov	DWORD PTR $T5[ebp], eax
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	test	eax, eax
-	je	SHORT $LN11@SK_InitFin
+	je	SHORT $LN12@SK_InitFin
 	push	0
 	push	OFFSET ?SK_D3D11_amount_to_purge@@3HA	; SK_D3D11_amount_to_purge
 	mov	ecx, eax
 	call	??0?$SK_IVarStub@H@@QAE@PAHPAUSK_IVariableListener@@@Z ; SK_IVarStub<int>::SK_IVarStub<int>
 	mov	esi, eax
-	jmp	SHORT $LN12@SK_InitFin
-$LN11@SK_InitFin:
-	xor	esi, esi
+	jmp	SHORT $LN13@SK_InitFin
 $LN12@SK_InitFin:
+	xor	esi, esi
+$LN13@SK_InitFin:
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	push	esi
-	push	OFFSET $SG428190
+	push	OFFSET $SG428279
 	mov	ecx, eax
 	mov	edx, DWORD PTR [eax]
 	call	DWORD PTR [edx+20]
 
-; 1065 :     "VRAM.Purge",
-; 1066 :       new SK_IVarStub <int32_t> (
-; 1067 :         (int32_t *)&SK_D3D11_amount_to_purge
-; 1068 :       )
-; 1069 :   );
-; 1070 : 
-; 1071 :   SK_GetCommandProcessor ()->AddVariable (
+; 1087 :     "VRAM.Purge",
+; 1088 :       new SK_IVarStub <int32_t> (
+; 1089 :         (int32_t *)&SK_D3D11_amount_to_purge
+; 1090 :       )
+; 1091 :   );
+; 1092 : 
+; 1093 :   SK_GetCommandProcessor ()->AddVariable (
 
 	push	20					; 00000014H
 	call	??2@YAPAXI@Z				; operator new
@@ -15607,31 +15090,31 @@ $LN12@SK_InitFin:
 	mov	DWORD PTR $T4[ebp], eax
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 	test	eax, eax
-	je	SHORT $LN13@SK_InitFin
+	je	SHORT $LN14@SK_InitFin
 	push	0
 	push	OFFSET ?config@@3Usk_config_t@@A+124
 	mov	ecx, eax
 	call	??0?$SK_IVarStub@M@@QAE@PAMPAUSK_IVariableListener@@@Z ; SK_IVarStub<float>::SK_IVarStub<float>
 	mov	esi, eax
-	jmp	SHORT $LN14@SK_InitFin
-$LN13@SK_InitFin:
-	xor	esi, esi
+	jmp	SHORT $LN15@SK_InitFin
 $LN14@SK_InitFin:
+	xor	esi, esi
+$LN15@SK_InitFin:
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	push	esi
-	push	OFFSET $SG428192
+	push	OFFSET $SG428281
 	mov	ecx, eax
 	mov	edx, DWORD PTR [eax]
 	call	DWORD PTR [edx+20]
 
-; 1072 :     "GPU.StatPollFreq",
-; 1073 :       new SK_IVarStub <float> (
-; 1074 :         &config.gpu.interval
-; 1075 :       )
-; 1076 :   );
-; 1077 : 
-; 1078 :   SK_GetCommandProcessor ()->AddVariable (
+; 1094 :     "GPU.StatPollFreq",
+; 1095 :       new SK_IVarStub <float> (
+; 1096 :         &config.gpu.interval
+; 1097 :       )
+; 1098 :   );
+; 1099 : 
+; 1100 :   SK_GetCommandProcessor ()->AddVariable (
 
 	push	20					; 00000014H
 	call	??2@YAPAXI@Z				; operator new
@@ -15639,97 +15122,97 @@ $LN14@SK_InitFin:
 	mov	DWORD PTR $T3[ebp], eax
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
 	test	eax, eax
-	je	SHORT $LN15@SK_InitFin
+	je	SHORT $LN16@SK_InitFin
 	push	0
 	push	OFFSET ?config@@3Usk_config_t@@A+164
 	mov	ecx, eax
 	call	??0?$SK_IVarStub@M@@QAE@PAMPAUSK_IVariableListener@@@Z ; SK_IVarStub<float>::SK_IVarStub<float>
 	mov	esi, eax
-	jmp	SHORT $LN16@SK_InitFin
-$LN15@SK_InitFin:
-	xor	esi, esi
+	jmp	SHORT $LN17@SK_InitFin
 $LN16@SK_InitFin:
+	xor	esi, esi
+$LN17@SK_InitFin:
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	push	esi
-	push	OFFSET $SG428194
+	push	OFFSET $SG428283
 	mov	ecx, eax
 	mov	edx, DWORD PTR [eax]
 	call	DWORD PTR [edx+20]
 
-; 1079 :     "ImGui.FontScale",
-; 1080 :       new SK_IVarStub <float> (
-; 1081 :         &config.imgui.scale
-; 1082 :       )
-; 1083 :   );
-; 1084 : 
-; 1085 :   SK_InitRenderBackends ();
+; 1101 :     "ImGui.FontScale",
+; 1102 :       new SK_IVarStub <float> (
+; 1103 :         &config.imgui.scale
+; 1104 :       )
+; 1105 :   );
+; 1106 : 
+; 1107 :   SK_InitRenderBackends ();
 
 	call	?SK_InitRenderBackends@@YGXXZ		; SK_InitRenderBackends
 
-; 1086 : 
-; 1087 :   SK_GetCommandProcessor ()->AddCommand ("mem",       new skMemCmd    ());
+; 1108 : 
+; 1109 :   SK_GetCommandProcessor ()->AddCommand ("mem",       new skMemCmd    ());
 
 	push	4
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
 	add	esp, 4
 	test	esi, esi
-	je	SHORT $LN17@SK_InitFin
+	je	SHORT $LN18@SK_InitFin
 	mov	DWORD PTR [esi], 0
 	mov	DWORD PTR [esi], OFFSET ??_7skMemCmd@@6B@
-	jmp	SHORT $LN18@SK_InitFin
-$LN17@SK_InitFin:
-	xor	esi, esi
+	jmp	SHORT $LN19@SK_InitFin
 $LN18@SK_InitFin:
+	xor	esi, esi
+$LN19@SK_InitFin:
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	push	esi
-	push	OFFSET $SG428195
+	push	OFFSET $SG428284
 	mov	ecx, eax
 	mov	edx, DWORD PTR [eax]
 	call	DWORD PTR [edx+8]
 
-; 1088 :   SK_GetCommandProcessor ()->AddCommand ("GetUpdate", new skUpdateCmd ());
+; 1110 :   SK_GetCommandProcessor ()->AddCommand ("GetUpdate", new skUpdateCmd ());
 
 	push	4
 	call	??2@YAPAXI@Z				; operator new
 	mov	esi, eax
 	add	esp, 4
 	test	esi, esi
-	je	SHORT $LN19@SK_InitFin
+	je	SHORT $LN20@SK_InitFin
 	mov	DWORD PTR [esi], 0
 	mov	DWORD PTR [esi], OFFSET ??_7skUpdateCmd@@6B@
-	jmp	SHORT $LN20@SK_InitFin
-$LN19@SK_InitFin:
-	xor	esi, esi
+	jmp	SHORT $LN21@SK_InitFin
 $LN20@SK_InitFin:
+	xor	esi, esi
+$LN21@SK_InitFin:
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	push	esi
-	push	OFFSET $SG428196
+	push	OFFSET $SG428285
 	mov	ecx, eax
 	mov	edx, DWORD PTR [eax]
 	call	DWORD PTR [edx+8]
 
-; 1089 : 
-; 1090 :   //
-; 1091 :   // Game-Specific Stuff that I am not proud of
-; 1092 :   //
-; 1093 : #ifdef _WIN64
-; 1094 :   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-; 1095 :     SK_DS3_InitPlugin ();
-; 1096 : #endif
-; 1097 : 
-; 1098 :   if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
+; 1111 : 
+; 1112 :   //
+; 1113 :   // Game-Specific Stuff that I am not proud of
+; 1114 :   //
+; 1115 : #ifdef _WIN64
+; 1116 :   if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+; 1117 :     SK_DS3_InitPlugin ();
+; 1118 : #endif
+; 1119 : 
+; 1120 :   if (lstrcmpW (SK_GetHostApp (), L"Tales of Zestiria.exe"))
 
-	push	OFFSET $SG428198
+	push	OFFSET $SG428287
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	DWORD PTR __imp__lstrcmpW@8
 	test	eax, eax
-	je	SHORT $LN3@SK_InitFin
+	je	SHORT $LN4@SK_InitFin
 
-; 1099 :   {
-; 1100 :     SK_GetCommandProcessor ()->ProcessCommandFormatted (
+; 1121 :   {
+; 1122 :     SK_GetCommandProcessor ()->ProcessCommandFormatted (
 
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+396
@@ -15738,55 +15221,55 @@ $LN20@SK_InitFin:
 	sub	esp, 8
 	mov	ecx, DWORD PTR [eax]
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG428199
+	push	OFFSET $SG428288
 	push	edx
 	push	eax
 	call	DWORD PTR [ecx+32]
 	add	esp, 20					; 00000014H
 	lea	ecx, DWORD PTR $T2[ebp]
 	call	??1SK_ICommandResult@@QAE@XZ
-$LN3@SK_InitFin:
+$LN4@SK_InitFin:
 
-; 1101 :       "TargetFPS %f",
-; 1102 :         config.render.framerate.target_fps
-; 1103 :     );
-; 1104 :   }
-; 1105 : 
-; 1106 :   // Get rid of the game output log if the user doesn't want it...
-; 1107 :   if (! config.system.game_output)
+; 1123 :       "TargetFPS %f",
+; 1124 :         config.render.framerate.target_fps
+; 1125 :     );
+; 1126 :   }
+; 1127 : 
+; 1128 :   // Get rid of the game output log if the user doesn't want it...
+; 1129 :   if (! config.system.game_output)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+831, 0
-	jne	SHORT $LN4@SK_InitFin
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+843, 0
+	jne	SHORT $LN5@SK_InitFin
 
-; 1108 :   {
-; 1109 :     game_debug.close ();
+; 1130 :   {
+; 1131 :     game_debug.close ();
 
 	push	OFFSET ?game_debug@@3UiSK_Logger@@A	; game_debug
 	call	?close@iSK_Logger@@UAGXXZ		; iSK_Logger::close
 
-; 1110 :     game_debug.silent = true;
+; 1132 :     game_debug.silent = true;
 
 	mov	BYTE PTR ?game_debug@@3UiSK_Logger@@A+32, 1
-$LN4@SK_InitFin:
+$LN5@SK_InitFin:
 
-; 1111 :   }
-; 1112 : 
-; 1113 :   const wchar_t* config_name =
-; 1114 :     init_.backend;
+; 1133 :   }
+; 1134 : 
+; 1135 :   const wchar_t* config_name =
+; 1136 :     init_.backend;
 
 	mov	esi, DWORD PTR ?init_@@3Uinit_params_t@@A
 
-; 1115 : 
-; 1116 :   // Use a generic "SpecialK" name instead of the primary wrapped/hooked API name
-; 1117 :   //   for this DLL when it is injected at run-time rather than a proxy DLL.
-; 1118 :   if (SK_IsInjected ())
+; 1137 : 
+; 1138 :   // Use a generic "SpecialK" name instead of the primary wrapped/hooked API name
+; 1139 :   //   for this DLL when it is injected at run-time rather than a proxy DLL.
+; 1140 :   if (SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	mov	edx, OFFSET $SG428202
+	mov	edx, OFFSET $SG428291
 
-; 1121 :   SK_SaveConfig (config_name);
+; 1143 :   SK_SaveConfig (config_name);
 
 	push	0
 	cmove	edx, esi
@@ -15821,14 +15304,14 @@ $LN4@SK_InitFin:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR [esi], ax
-$LL70@SK_InitFin:
+$LL71@SK_InitFin:
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL70@SK_InitFin
+	jne	SHORT $LL71@SK_InitFin
 	sub	ecx, edi
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -15841,50 +15324,50 @@ $LL70@SK_InitFin:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1121 :   SK_SaveConfig (config_name);
+; 1143 :   SK_SaveConfig (config_name);
 
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 1122 : 
-; 1123 :   SK_Console::getInstance ()->Start ();
+; 1144 : 
+; 1145 :   SK_Console::getInstance ()->Start ();
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	mov	ecx, eax
 	call	?Start@SK_Console@@QAEXXZ		; SK_Console::Start
 
-; 1124 : 
-; 1125 :     // Create a thread that pumps the OSD
-; 1126 :   if (config.osd.pump || SK_UsingVulkan ())
+; 1146 : 
+; 1147 :     // Create a thread that pumps the OSD
+; 1148 :   if (config.osd.pump || SK_UsingVulkan ())
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+49, 0
-	jne	SHORT $LN7@SK_InitFin
+	jne	SHORT $LN8@SK_InitFin
 	call	?SK_UsingVulkan@@YAHXZ			; SK_UsingVulkan
 	test	eax, eax
-	je	$LN9@SK_InitFin
-$LN7@SK_InitFin:
+	je	$LN10@SK_InitFin
+$LN8@SK_InitFin:
 
-; 1127 :   {
-; 1128 :     osd_shutdown =
+; 1149 :   {
+; 1150 :     osd_shutdown =
 
-	push	OFFSET $SG428205
+	push	OFFSET $SG428294
 	push	0
 	push	0
 	push	0
 	call	DWORD PTR __imp__CreateEventW@16
 
-; 1129 :       CreateEvent (nullptr, FALSE, FALSE, L"OSD Pump Shutdown");
-; 1130 : 
-; 1131 :     dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
+; 1151 :       CreateEvent (nullptr, FALSE, FALSE, L"OSD Pump Shutdown");
+; 1152 : 
+; 1153 :     dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
 
-	push	OFFSET $SG428206
+	push	OFFSET $SG428295
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?osd_shutdown@@3PAXA, eax	; osd_shutdown
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 1132 :     hPumpThread =
+; 1154 :     hPumpThread =
 
 	push	0
 	push	0
@@ -15895,19 +15378,19 @@ $LN7@SK_InitFin:
 	call	DWORD PTR __imp__CreateThread@24
 	mov	DWORD PTR ?hPumpThread@@3PAXA, eax	; hPumpThread
 
-; 1133 :         CreateThread ( nullptr,
-; 1134 :                          0,
-; 1135 :                            osd_pump,
-; 1136 :                              nullptr,
-; 1137 :                                0,
-; 1138 :                                  nullptr );
-; 1139 : 
-; 1140 :     if (hPumpThread != INVALID_HANDLE_VALUE)
+; 1155 :         CreateThread ( nullptr,
+; 1156 :                          0,
+; 1157 :                            osd_pump,
+; 1158 :                              nullptr,
+; 1159 :                                0,
+; 1160 :                                  nullptr );
+; 1161 : 
+; 1162 :     if (hPumpThread != INVALID_HANDLE_VALUE)
 
 	cmp	eax, -1
-	je	SHORT $LN8@SK_InitFin
+	je	SHORT $LN9@SK_InitFin
 
-; 1141 :       dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
+; 1163 :       dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
 
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+52
 	sub	esp, 8
@@ -15917,43 +15400,43 @@ $LN7@SK_InitFin:
 	push	eax
 	call	DWORD PTR __imp__GetThreadId@4
 	push	eax
-	push	OFFSET $SG428209
+	push	OFFSET $SG428298
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 24					; 00000018H
 
-; 1142 :                         GetThreadId (hPumpThread),
-; 1143 :                           config.osd.pump_interval * 1000.0f );
-; 1144 :     else
+; 1164 :                         GetThreadId (hPumpThread),
+; 1165 :                           config.osd.pump_interval * 1000.0f );
+; 1166 :     else
 
-	jmp	SHORT $LN9@SK_InitFin
-$LN8@SK_InitFin:
+	jmp	SHORT $LN10@SK_InitFin
+$LN9@SK_InitFin:
 
-; 1145 :       dll_log.LogEx (false, L"failed!\n");
+; 1167 :       dll_log.LogEx (false, L"failed!\n");
 
-	push	OFFSET $SG428210
+	push	OFFSET $SG428299
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
-$LN9@SK_InitFin:
+$LN10@SK_InitFin:
 
-; 1146 :   }
-; 1147 : 
-; 1148 :   SK_StartPerfMonThreads ();
+; 1168 :   }
+; 1169 : 
+; 1170 :   SK_StartPerfMonThreads ();
 
 	call	?SK_StartPerfMonThreads@@YGXXZ		; SK_StartPerfMonThreads
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 266  :     LeaveCriticalSection (cs_);
+; 269  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A ; init_mutex
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1152 :   SK_ResumeThreads    (init_tids);
+; 1174 :   SK_ResumeThreads    (init_tids);
 
 	sub	esp, 20					; 00000014H
 	mov	ecx, esp
@@ -15961,13 +15444,32 @@ $LN9@SK_InitFin:
 	push	OFFSET ?init_tids@@3V?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@A ; init_tids
 	call	??0?$deque@KV?$allocator@K@std@@@std@@QAE@ABV01@@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::deque<unsigned long,std::allocator<unsigned long> >
 	call	?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z ; SK_ResumeThreads
+	add	esp, 20					; 00000014H
 
-; 1153 : }
+; 1175 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
-	add	esp, 20					; 00000014H
 	mov	DWORD PTR fs:0, ecx
 	pop	edi
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	0
+$LN3@SK_InitFin:
+; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
+
+; 269  :     LeaveCriticalSection (cs_);
+
+	mov	eax, DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A ; init_mutex
+	push	DWORD PTR [eax]
+	call	DWORD PTR __imp__LeaveCriticalSection@4
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1175 : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	pop	edi
+	mov	DWORD PTR fs:0, ecx
 	pop	esi
 	mov	esp, ebp
 	pop	ebp
@@ -16006,32 +15508,27 @@ _TEXT	SEGMENT
 _user$ = 8						; size = 4
 ?CheckVersionThread@@YGKPAX@Z PROC			; CheckVersionThread
 
-; 1159 :   UNREFERENCED_PARAMETER (user);
-; 1160 : 
-; 1161 :   // If a local repository is present, use that.
-; 1162 :   if (GetFileAttributes (L"Version\\installed.ini") == INVALID_FILE_ATTRIBUTES)
+; 1181 :   UNREFERENCED_PARAMETER (user);
+; 1182 : 
+; 1183 :   // If a local repository is present, use that.
+; 1184 :   if (GetFileAttributes (L"Version\\installed.ini") == INVALID_FILE_ATTRIBUTES)
 
-	push	OFFSET $SG428222
+	push	OFFSET $SG428311
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
-	jne	SHORT $LN2@CheckVersi
+	jne	SHORT $LN4@CheckVersi
 
-; 1163 :   {
-; 1164 :     InterlockedIncrement (&SK_bypass_dialog_active);
+; 1185 :   {
+; 1186 :     if (SK_FetchVersionInfo (L"SpecialK"))
 
-	lock	 inc	 DWORD PTR ?SK_bypass_dialog_active@@3JC
-
-; 1165 : 
-; 1166 :     if (SK_FetchVersionInfo (L"SpecialK"))
-
-	push	OFFSET $SG428224
+	push	OFFSET $SG428313
 	call	?SK_FetchVersionInfo@@YG_NPB_W@Z	; SK_FetchVersionInfo
 	test	al, al
 	je	SHORT $LN4@CheckVersi
 
-; 1167 :     {
-; 1168 :       // ↑ Check, but ↓ don't update unless running the global injector version
-; 1169 :       if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+; 1187 :     {
+; 1188 :       // ↑ Check, but ↓ don't update unless running the global injector version
+; 1189 :       if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
@@ -16041,35 +15538,45 @@ _user$ = 8						; size = 4
 	test	al, al
 	jne	SHORT $LN4@CheckVersi
 
-; 1170 :       {
-; 1171 :         SK_UpdateSoftware (L"SpecialK");
+; 1190 :       {
+; 1191 :         InterlockedIncrement (&SK_bypass_dialog_active);
 
-	push	OFFSET $SG428226
+	lock	 inc	 DWORD PTR ?SK_bypass_dialog_active@@3JC
+
+; 1192 :         InterlockedExchange  (&SK_bypass_dialog_tid, GetCurrentThreadId ());
+
+	call	DWORD PTR __imp__GetCurrentThreadId@0
+	mov	ecx, OFFSET ?SK_bypass_dialog_tid@@3JC	; SK_bypass_dialog_tid
+	xchg	DWORD PTR [ecx], eax
+
+; 1193 : 
+; 1194 :         SK_UpdateSoftware (L"SpecialK");
+
+	push	OFFSET $SG428315
 	call	?SK_UpdateSoftware@@YGJPB_W@Z		; SK_UpdateSoftware
-$LN4@CheckVersi:
 
-; 1172 :       }
-; 1173 :     }
-; 1174 : 
-; 1175 :     InterlockedDecrement (&SK_bypass_dialog_active);
+; 1195 : 
+; 1196 :         InterlockedDecrement (&SK_bypass_dialog_active);
 
 	lock	 dec	 DWORD PTR ?SK_bypass_dialog_active@@3JC
-$LN2@CheckVersi:
+$LN4@CheckVersi:
 
-; 1176 :   }
-; 1177 : 
-; 1178 :   CloseHandle (GetCurrentThread ());
+; 1197 :       }
+; 1198 :     }
+; 1199 :   }
+; 1200 : 
+; 1201 :   CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 1179 : 
-; 1180 :   return 0;
+; 1202 : 
+; 1203 :   return 0;
 
 	xor	eax, eax
 
-; 1181 : }
+; 1204 : }
 
 	ret	4
 ?CheckVersionThread@@YGKPAX@Z ENDP			; CheckVersionThread
@@ -16179,13 +15686,13 @@ $LL7@execute:
 ; 615  :     SK_FetchVersionInfo1 (L"SpecialK", true);
 
 	push	1
-	push	OFFSET $SG427871
+	push	OFFSET $SG427955
 	call	?SK_FetchVersionInfo1@@YG_NPB_W_N@Z	; SK_FetchVersionInfo1
 
 ; 616  :     SK_UpdateSoftware1   (L"SpecialK", true);
 
 	push	1
-	push	OFFSET $SG427872
+	push	OFFSET $SG427956
 
 ; 617  :   }
 ; 618  : 
@@ -16247,9 +15754,9 @@ $LN9@execute:
 	push	0
 	push	0
 	push	0
-	push	OFFSET $SG427873
+	push	OFFSET $SG427957
 	push	esi
-	push	OFFSET $SG427874
+	push	OFFSET $SG427958
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	esi
@@ -16382,9 +15889,9 @@ _type$ = 15						; size = 1
 	push	edi
 	push	edi
 	push	edi
-	push	OFFSET $SG427945
+	push	OFFSET $SG428029
 	push	edi
-	push	OFFSET $SG427946
+	push	OFFSET $SG428030
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -16423,7 +15930,7 @@ $LN4@execute:
 	push	eax
 	lea	eax, DWORD PTR _type$[ebp]
 	push	eax
-	push	OFFSET $SG427947
+	push	OFFSET $SG428031
 	push	edi
 	call	_sscanf
 
@@ -16524,7 +16031,7 @@ $LL28@execute:
 	lea	eax, DWORD PTR _out$8[ebp]
 	push	eax
 	lea	eax, DWORD PTR _val$[ebp]
-	push	OFFSET $SG427951
+	push	OFFSET $SG428035
 	push	eax
 	call	_sscanf
 
@@ -16553,7 +16060,7 @@ $LN7@execute:
 	movzx	eax, BYTE PTR [esi]
 	push	eax
 	lea	eax, DWORD PTR _result$[ebp]
-	push	OFFSET $SG427952
+	push	OFFSET $SG428036
 	push	eax
 	call	_sprintf
 
@@ -16571,7 +16078,7 @@ $LN7@execute:
 	push	1
 	push	eax
 	push	edi
-	push	OFFSET $SG427953
+	push	OFFSET $SG428037
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -16620,7 +16127,7 @@ $LL29@execute:
 	lea	eax, DWORD PTR _out$7[ebp]
 	push	eax
 	lea	eax, DWORD PTR _val$[ebp]
-	push	OFFSET $SG427956
+	push	OFFSET $SG428040
 	push	eax
 	call	_sscanf
 
@@ -16649,7 +16156,7 @@ $LN9@execute:
 	movzx	eax, WORD PTR [esi]
 	push	eax
 	lea	eax, DWORD PTR _result$[ebp]
-	push	OFFSET $SG427957
+	push	OFFSET $SG428041
 	push	eax
 	call	_sprintf
 
@@ -16667,7 +16174,7 @@ $LN9@execute:
 	push	1
 	push	eax
 	push	edi
-	push	OFFSET $SG427958
+	push	OFFSET $SG428042
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -16714,7 +16221,7 @@ $LL30@execute:
 	lea	eax, DWORD PTR _out$6[ebp]
 	push	eax
 	lea	eax, DWORD PTR _val$[ebp]
-	push	OFFSET $SG427961
+	push	OFFSET $SG428045
 	push	eax
 	call	_sscanf
 
@@ -16742,7 +16249,7 @@ $LN11@execute:
 
 	push	DWORD PTR [esi]
 	lea	eax, DWORD PTR _result$[ebp]
-	push	OFFSET $SG427962
+	push	OFFSET $SG428046
 	push	eax
 	call	_sprintf
 
@@ -16760,7 +16267,7 @@ $LN11@execute:
 	push	1
 	push	eax
 	push	edi
-	push	OFFSET $SG427963
+	push	OFFSET $SG428047
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -16807,7 +16314,7 @@ $LL31@execute:
 	lea	eax, DWORD PTR _out$4[ebp]
 	push	eax
 	lea	eax, DWORD PTR _val$[ebp]
-	push	OFFSET $SG427966
+	push	OFFSET $SG428050
 	push	eax
 	call	_sscanf
 
@@ -16838,7 +16345,7 @@ $LN13@execute:
 	push	DWORD PTR [esi+4]
 	lea	eax, DWORD PTR _result$[ebp]
 	push	DWORD PTR [esi]
-	push	OFFSET $SG427967
+	push	OFFSET $SG428051
 	push	eax
 	call	_sprintf
 
@@ -16856,7 +16363,7 @@ $LN13@execute:
 	push	1
 	push	eax
 	push	edi
-	push	OFFSET $SG427968
+	push	OFFSET $SG428052
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -16903,7 +16410,7 @@ $LL32@execute:
 	lea	eax, DWORD PTR _out$3[ebp]
 	push	eax
 	lea	eax, DWORD PTR _val$[ebp]
-	push	OFFSET $SG427971
+	push	OFFSET $SG428055
 	push	eax
 	call	_sscanf
 
@@ -16933,7 +16440,7 @@ $LN15@execute:
 	lea	eax, DWORD PTR _result$[ebp]
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG427972
+	push	OFFSET $SG428056
 	push	eax
 	call	_sprintf
 
@@ -16951,7 +16458,7 @@ $LN15@execute:
 	push	1
 	push	eax
 	push	edi
-	push	OFFSET $SG427973
+	push	OFFSET $SG428057
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -16998,7 +16505,7 @@ $LL33@execute:
 	lea	eax, DWORD PTR _out$5[ebp]
 	push	eax
 	lea	eax, DWORD PTR _val$[ebp]
-	push	OFFSET $SG427976
+	push	OFFSET $SG428060
 	push	eax
 	call	_sscanf
 
@@ -17029,7 +16536,7 @@ $LN17@execute:
 	cvtps2pd xmm0, xmm0
 	sub	esp, 8
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG427977
+	push	OFFSET $SG428061
 	push	eax
 	call	_sprintf
 
@@ -17047,7 +16554,7 @@ $LN17@execute:
 	push	1
 	push	eax
 	push	edi
-	push	OFFSET $SG427978
+	push	OFFSET $SG428062
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -17117,7 +16624,7 @@ $LN19@execute:
 
 	push	esi
 	lea	eax, DWORD PTR _result$[ebp]
-	push	OFFSET $SG427981
+	push	OFFSET $SG428065
 	push	eax
 	call	_sprintf
 
@@ -17135,7 +16642,7 @@ $LN19@execute:
 	push	1
 	push	eax
 	push	edi
-	push	OFFSET $SG427982
+	push	OFFSET $SG428066
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -17158,9 +16665,9 @@ $LN2@execute:
 	push	0
 	push	0
 	push	0
-	push	OFFSET $SG427983
+	push	OFFSET $SG428067
 	push	edi
-	push	OFFSET $SG427984
+	push	OFFSET $SG428068
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -17252,7 +16759,7 @@ _TEXT	SEGMENT
 ; 485  :     {
 ; 486  :       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
 
-	push	OFFSET $SG427781
+	push	OFFSET $SG427865
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17286,7 +16793,7 @@ _TEXT	SEGMENT
 	push	eax
 	call	esi
 	push	eax
-	push	OFFSET $SG427784
+	push	OFFSET $SG427868
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17299,7 +16806,7 @@ $LN4@SK_StartPe:
 
 ; 500  :         dll_log.LogEx (false, L"Failed!\n");
 
-	push	OFFSET $SG427785
+	push	OFFSET $SG427869
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17336,7 +16843,7 @@ $LN7@SK_StartPe:
 ; 511  :     {
 ; 512  :       dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
 
-	push	OFFSET $SG427789
+	push	OFFSET $SG427873
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17370,7 +16877,7 @@ $LN7@SK_StartPe:
 	push	eax
 	call	esi
 	push	eax
-	push	OFFSET $SG427792
+	push	OFFSET $SG427876
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17383,7 +16890,7 @@ $LN9@SK_StartPe:
 
 ; 526  :         dll_log.LogEx (false, L"Failed!\n");
 
-	push	OFFSET $SG427793
+	push	OFFSET $SG427877
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17416,7 +16923,7 @@ $LN10@SK_StartPe:
 ; 534  :     {
 ; 535  :       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
 
-	push	OFFSET $SG427796
+	push	OFFSET $SG427880
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17450,7 +16957,7 @@ $LN10@SK_StartPe:
 	push	eax
 	call	esi
 	push	eax
-	push	OFFSET $SG427799
+	push	OFFSET $SG427883
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17463,7 +16970,7 @@ $LN13@SK_StartPe:
 
 ; 549  :         dll_log.LogEx (false, L"failed!\n");
 
-	push	OFFSET $SG427800
+	push	OFFSET $SG427884
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17496,7 +17003,7 @@ $LN14@SK_StartPe:
 ; 557  :     {
 ; 558  :       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
 
-	push	OFFSET $SG427803
+	push	OFFSET $SG427887
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17530,7 +17037,7 @@ $LN14@SK_StartPe:
 	push	eax
 	call	esi
 	push	eax
-	push	OFFSET $SG427806
+	push	OFFSET $SG427890
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17550,7 +17057,7 @@ $LN17@SK_StartPe:
 ; 572  :       else
 ; 573  :         dll_log.LogEx (false, L"failed!\n");
 
-	push	OFFSET $SG427807
+	push	OFFSET $SG427891
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -17995,6 +17502,127 @@ $LN36@dynamic:
 $LN105@dynamic:
 ??__Einit_tids@@YAXXZ ENDP				; `dynamic initializer for 'init_tids''
 text$di	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+___that$ = 8						; size = 4
+??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z PROC ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::operator=, COMDAT
+; _this$ = ecx
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR fs:0
+	push	-1
+	push	__ehhandler$??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	esi
+	push	edi
+	mov	esi, ecx
+
+; 1113 : 		if (this != _STD addressof(_Right))
+
+	mov	edi, DWORD PTR ___that$[ebp]
+	cmp	esi, edi
+	je	SHORT $LN306@operator
+
+; 1114 : 			{	// different, assign it
+; 1115 : 			_Tidy();
+
+	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 259  : 	_Myproxy = _Right._Myproxy;
+
+	mov	eax, DWORD PTR [edi]
+	mov	edx, DWORD PTR [esi]
+	mov	DWORD PTR [esi], eax
+
+; 260  : 	_Right._Myproxy = _Temp;
+
+	mov	DWORD PTR [edi], edx
+
+; 261  : 
+; 262  : 	if (_Myproxy != 0)
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN194@operator
+
+; 263  : 		_Myproxy->_Mycont = (_Container_base12 *)this;
+
+	mov	DWORD PTR [eax], esi
+$LN194@operator:
+
+; 264  : 	if (_Right._Myproxy != 0)
+
+	mov	eax, DWORD PTR [edi]
+	test	eax, eax
+	je	SHORT $LN195@operator
+
+; 265  : 		_Right._Myproxy->_Mycont = (_Container_base12 *)&_Right;
+
+	mov	DWORD PTR [eax], edi
+$LN195@operator:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1126 : 		this->_Map() = _Right._Map();
+
+	mov	eax, DWORD PTR [edi+4]
+	mov	DWORD PTR [esi+4], eax
+
+; 1127 : 		this->_Mapsize() = _Right._Mapsize();
+
+	mov	eax, DWORD PTR [edi+8]
+	mov	DWORD PTR [esi+8], eax
+
+; 1128 : 		this->_Myoff() = _Right._Myoff();
+
+	mov	eax, DWORD PTR [edi+12]
+	mov	DWORD PTR [esi+12], eax
+
+; 1129 : 		this->_Mysize() = _Right._Mysize();
+
+	mov	eax, DWORD PTR [edi+16]
+	mov	DWORD PTR [esi+16], eax
+
+; 1130 : 
+; 1131 : 		_Right._Map() = _Mapptr();
+
+	mov	DWORD PTR [edi+4], 0
+
+; 1132 : 		_Right._Mapsize() = 0;
+
+	mov	DWORD PTR [edi+8], 0
+
+; 1133 : 		_Right._Myoff() = 0;
+
+	mov	DWORD PTR [edi+12], 0
+
+; 1134 : 		_Right._Mysize() = 0;
+
+	mov	DWORD PTR [edi+16], 0
+$LN306@operator:
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	eax, esi
+	pop	edi
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__ehhandler$??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z:
+	mov	eax, OFFSET __ehfuncinfo$??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z ENDP ; std::queue<unsigned long,std::deque<unsigned long,std::allocator<unsigned long> > >::operator=
 ; Function compile flags: /Ogtp
 ;	COMDAT ??0?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAE@ABV01@@Z
 _TEXT	SEGMENT
@@ -18926,6 +18554,239 @@ _TEXT	SEGMENT
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Assign_rv@?$deque@KV?$allocator@K@std@@@std@@QAEX$$QAV12@U?$integral_constant@_N$00@2@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+___formal$ = 12						; size = 1
+?_Assign_rv@?$deque@KV?$allocator@K@std@@@std@@QAEX$$QAV12@U?$integral_constant@_N$00@2@@Z PROC ; std::deque<unsigned long,std::allocator<unsigned long> >::_Assign_rv, COMDAT
+; _this$ = ecx
+
+; 1124 : 		{	// move from _Right, stealing its contents
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 258  : 	_Container_proxy *_Temp = _Myproxy;
+
+	mov	edx, DWORD PTR [ecx]
+	push	esi
+
+; 259  : 	_Myproxy = _Right._Myproxy;
+
+	mov	esi, DWORD PTR __Right$[ebp]
+	mov	eax, DWORD PTR [esi]
+	mov	DWORD PTR [ecx], eax
+
+; 260  : 	_Right._Myproxy = _Temp;
+
+	mov	DWORD PTR [esi], edx
+
+; 261  : 
+; 262  : 	if (_Myproxy != 0)
+
+	mov	eax, DWORD PTR [ecx]
+	test	eax, eax
+	je	SHORT $LN18@Assign_rv
+
+; 263  : 		_Myproxy->_Mycont = (_Container_base12 *)this;
+
+	mov	DWORD PTR [eax], ecx
+$LN18@Assign_rv:
+
+; 264  : 	if (_Right._Myproxy != 0)
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN19@Assign_rv
+
+; 265  : 		_Right._Myproxy->_Mycont = (_Container_base12 *)&_Right;
+
+	mov	DWORD PTR [eax], esi
+$LN19@Assign_rv:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1126 : 		this->_Map() = _Right._Map();
+
+	mov	eax, DWORD PTR [esi+4]
+	mov	DWORD PTR [ecx+4], eax
+
+; 1127 : 		this->_Mapsize() = _Right._Mapsize();
+
+	mov	eax, DWORD PTR [esi+8]
+	mov	DWORD PTR [ecx+8], eax
+
+; 1128 : 		this->_Myoff() = _Right._Myoff();
+
+	mov	eax, DWORD PTR [esi+12]
+	mov	DWORD PTR [ecx+12], eax
+
+; 1129 : 		this->_Mysize() = _Right._Mysize();
+
+	mov	eax, DWORD PTR [esi+16]
+	mov	DWORD PTR [ecx+16], eax
+
+; 1130 : 
+; 1131 : 		_Right._Map() = _Mapptr();
+
+	mov	DWORD PTR [esi+4], 0
+
+; 1132 : 		_Right._Mapsize() = 0;
+
+	mov	DWORD PTR [esi+8], 0
+
+; 1133 : 		_Right._Myoff() = 0;
+
+	mov	DWORD PTR [esi+12], 0
+
+; 1134 : 		_Right._Mysize() = 0;
+
+	mov	DWORD PTR [esi+16], 0
+	pop	esi
+
+; 1135 : 		}
+
+	pop	ebp
+	ret	8
+?_Assign_rv@?$deque@KV?$allocator@K@std@@@std@@QAEX$$QAV12@U?$integral_constant@_N$00@2@@Z ENDP ; std::deque<unsigned long,std::allocator<unsigned long> >::_Assign_rv
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ??4?$deque@KV?$allocator@K@std@@@std@@QAEAAV01@$$QAV01@@Z
+_TEXT	SEGMENT
+__$EHRec$ = -12						; size = 12
+__Right$ = 8						; size = 4
+??4?$deque@KV?$allocator@K@std@@@std@@QAEAAV01@$$QAV01@@Z PROC ; std::deque<unsigned long,std::allocator<unsigned long> >::operator=, COMDAT
+; _this$ = ecx
+
+; 1112 : 		{	// assign by moving _Right
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	mov	eax, DWORD PTR fs:0
+	push	-1
+	push	__ehhandler$??4?$deque@KV?$allocator@K@std@@@std@@QAEAAV01@$$QAV01@@Z
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	push	esi
+	push	edi
+
+; 1113 : 		if (this != _STD addressof(_Right))
+
+	mov	edi, DWORD PTR __Right$[ebp]
+	mov	esi, ecx
+	cmp	esi, edi
+	je	SHORT $LN302@operator
+
+; 1114 : 			{	// different, assign it
+; 1115 : 			_Tidy();
+
+	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 259  : 	_Myproxy = _Right._Myproxy;
+
+	mov	eax, DWORD PTR [edi]
+	mov	edx, DWORD PTR [esi]
+	mov	DWORD PTR [esi], eax
+
+; 260  : 	_Right._Myproxy = _Temp;
+
+	mov	DWORD PTR [edi], edx
+
+; 261  : 
+; 262  : 	if (_Myproxy != 0)
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN191@operator
+
+; 263  : 		_Myproxy->_Mycont = (_Container_base12 *)this;
+
+	mov	DWORD PTR [eax], esi
+$LN191@operator:
+
+; 264  : 	if (_Right._Myproxy != 0)
+
+	mov	eax, DWORD PTR [edi]
+	test	eax, eax
+	je	SHORT $LN192@operator
+
+; 265  : 		_Right._Myproxy->_Mycont = (_Container_base12 *)&_Right;
+
+	mov	DWORD PTR [eax], edi
+$LN192@operator:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1126 : 		this->_Map() = _Right._Map();
+
+	mov	eax, DWORD PTR [edi+4]
+	mov	DWORD PTR [esi+4], eax
+
+; 1127 : 		this->_Mapsize() = _Right._Mapsize();
+
+	mov	eax, DWORD PTR [edi+8]
+	mov	DWORD PTR [esi+8], eax
+
+; 1128 : 		this->_Myoff() = _Right._Myoff();
+
+	mov	eax, DWORD PTR [edi+12]
+	mov	DWORD PTR [esi+12], eax
+
+; 1129 : 		this->_Mysize() = _Right._Mysize();
+
+	mov	eax, DWORD PTR [edi+16]
+	mov	DWORD PTR [esi+16], eax
+
+; 1130 : 
+; 1131 : 		_Right._Map() = _Mapptr();
+
+	mov	DWORD PTR [edi+4], 0
+
+; 1132 : 		_Right._Mapsize() = 0;
+
+	mov	DWORD PTR [edi+8], 0
+
+; 1133 : 		_Right._Myoff() = 0;
+
+	mov	DWORD PTR [edi+12], 0
+
+; 1134 : 		_Right._Mysize() = 0;
+
+	mov	DWORD PTR [edi+16], 0
+$LN302@operator:
+
+; 1116 : 			this->_Move_alloc(_Right._Getal());
+; 1117 : 			_Assign_rv(_STD move(_Right),
+; 1118 : 				typename _Alty::propagate_on_container_move_assignment());
+; 1119 : 			}
+; 1120 : 		return (*this);
+; 1121 : 		}
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	eax, esi
+	pop	edi
+	mov	DWORD PTR fs:0, ecx
+	pop	esi
+	mov	esp, ebp
+	pop	ebp
+	ret	4
+_TEXT	ENDS
+;	COMDAT text$x
+text$x	SEGMENT
+__ehhandler$??4?$deque@KV?$allocator@K@std@@@std@@QAEAAV01@$$QAV01@@Z:
+	mov	eax, OFFSET __ehfuncinfo$??4?$deque@KV?$allocator@K@std@@@std@@QAEAAV01@$$QAV01@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+??4?$deque@KV?$allocator@K@std@@@std@@QAEAAV01@$$QAV01@@Z ENDP ; std::deque<unsigned long,std::allocator<unsigned long> >::operator=
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
@@ -19443,6 +19304,69 @@ _TEXT	SEGMENT
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Swap_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXAAV12@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+?_Swap_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXAAV12@@Z PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Swap_all, COMDAT
+; _this$ = ecx
+
+; 890  : 		{	// swap all iterators
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 258  : 	_Container_proxy *_Temp = _Myproxy;
+
+	mov	edx, DWORD PTR [ecx]
+	push	esi
+
+; 259  : 	_Myproxy = _Right._Myproxy;
+
+	mov	esi, DWORD PTR __Right$[ebp]
+	mov	eax, DWORD PTR [esi]
+	mov	DWORD PTR [ecx], eax
+
+; 260  : 	_Right._Myproxy = _Temp;
+
+	mov	DWORD PTR [esi], edx
+
+; 261  : 
+; 262  : 	if (_Myproxy != 0)
+
+	mov	eax, DWORD PTR [ecx]
+	test	eax, eax
+	je	SHORT $LN16@Swap_all
+
+; 263  : 		_Myproxy->_Mycont = (_Container_base12 *)this;
+
+	mov	DWORD PTR [eax], ecx
+$LN16@Swap_all:
+
+; 264  : 	if (_Right._Myproxy != 0)
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN17@Swap_all
+
+; 265  : 		_Right._Myproxy->_Mycont = (_Container_base12 *)&_Right;
+
+	mov	DWORD PTR [eax], esi
+$LN17@Swap_all:
+	pop	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 892  : 		}
+
+	pop	ebp
+	ret	4
+?_Swap_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXAAV12@@Z ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Swap_all
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
 ;	COMDAT ?_Orphan_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ
 _TEXT	SEGMENT
 ?_Orphan_all@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Orphan_all, COMDAT
@@ -19570,6 +19494,32 @@ $LN20@Alloc_prox:
 	ret	0
 $LN85@Alloc_prox:
 ?_Alloc_proxy@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXXZ ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Alloc_proxy
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+;	COMDAT ?_Move_alloc@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+?_Move_alloc@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@@Z PROC ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Move_alloc, COMDAT
+; _this$ = ecx
+
+; 835  : 		const bool _Reload = _Alty::propagate_on_container_move_assignment::value && _Getal() != _Al;
+; 836  : 
+; 837  : 		if (_Reload)
+; 838  : 			{
+; 839  : 			_Free_proxy();
+; 840  : 			}
+; 841  : 
+; 842  : 		_Pocma(_Getal(), _Al);
+; 843  : 
+; 844  : 		if (_Reload)
+; 845  : 			{
+; 846  : 			_Alloc_proxy();
+; 847  : 			}
+; 848  : 		}
+
+	ret	4
+?_Move_alloc@?$_Deque_alloc@U?$_Deque_base_types@KV?$allocator@K@std@@@std@@@std@@QAEXAAU?$_Wrap_alloc@V?$allocator@K@std@@@2@@Z ENDP ; std::_Deque_alloc<std::_Deque_base_types<unsigned long,std::allocator<unsigned long> > >::_Move_alloc
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
@@ -19992,6 +19942,24 @@ __Count$ = 8						; size = 4
 
 	jmp	?allocate@?$allocator@K@std@@QAEPAKI@Z	; std::allocator<unsigned long>::allocate
 ?allocate@?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEPAKI@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::allocate
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??4?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEAAU01@$$QAU01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??4?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEAAU01@$$QAU01@@Z PROC ; std::_Wrap_alloc<std::allocator<unsigned long> >::operator=, COMDAT
+; _this$ = ecx
+
+; 1064 : 		_Mybase::operator=(_STD move(_Right));
+; 1065 : 		return (*this);
+
+	mov	eax, ecx
+
+; 1066 : 		}
+
+	ret	4
+??4?$_Wrap_alloc@V?$allocator@K@std@@@std@@QAEAAU01@$$QAU01@@Z ENDP ; std::_Wrap_alloc<std::allocator<unsigned long> >::operator=
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -22371,7 +22339,7 @@ _cmd$ = 28						; size = 4
 ??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z PROC ; SK_ICommandResult::SK_ICommandResult, COMDAT
 ; _this$ = ecx
 
-; 47   :                                                              result_ (result) {
+; 47   :                                                                 result_ (result) {
 
 	npad	2
 	push	ebp
@@ -22403,7 +22371,7 @@ _cmd$ = 28						; size = 4
 	mov	edx, edi
 ; File c:\users\andon\source\repos\specialk\include\specialk\command.h
 
-; 47   :                                                              result_ (result) {
+; 47   :                                                                 result_ (result) {
 
 	mov	DWORD PTR _this$[ebp], esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -22445,7 +22413,7 @@ $LL78@SK_IComman:
 	mov	edi, DWORD PTR _arguments$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\command.h
 
-; 46   :                                                              args_   (arguments),
+; 46   :                                                                 args_   (arguments),
 
 	lea	ecx, DWORD PTR [esi+32]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -22496,7 +22464,7 @@ $LL79@SK_IComman:
 	mov	edi, DWORD PTR _result$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\command.h
 
-; 47   :                                                              result_ (result) {
+; 47   :                                                                 result_ (result) {
 
 	lea	ecx, DWORD PTR [esi+56]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -22515,7 +22483,7 @@ $LL79@SK_IComman:
 	mov	DWORD PTR [ecx+20], 15			; 0000000fH
 ; File c:\users\andon\source\repos\specialk\include\specialk\command.h
 
-; 46   :                                                              args_   (arguments),
+; 46   :                                                                 args_   (arguments),
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -22587,12 +22555,12 @@ _TEXT	SEGMENT
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::unlock, COMDAT
 ; _this$ = ecx
 
-; 266  :     LeaveCriticalSection (cs_);
+; 269  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 267  :   }
+; 270  :   }
 
 	ret	0
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::unlock
@@ -22604,12 +22572,12 @@ _TEXT	SEGMENT
 ?lock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::lock, COMDAT
 ; _this$ = ecx
 
-; 261  :     EnterCriticalSection (cs_);
+; 264  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 262  :   }
+; 265  :   }
 
 	ret	0
 ?lock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::lock
@@ -30488,7 +30456,7 @@ __Ans$1 = -12						; size = 8
 $T2 = -4						; size = 4
 ?SK_Win32_CleanupDummyWindow@@YAXXZ PROC		; SK_Win32_CleanupDummyWindow
 
-; 1795 : {
+; 1812 : {
 
 	npad	2
 	push	ebp
@@ -30508,14 +30476,14 @@ $T2 = -4						; size = 4
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1796 :   for (auto& it : dummy_windows)
+; 1813 :   for (auto& it : dummy_windows)
 
 	je	$LN3@SK_Win32_C
 	push	ebx
 	npad	5
 $LL87@SK_Win32_C:
 
-; 1798 :     if (DestroyWindow (it))
+; 1815 :     if (DestroyWindow (it))
 
 	push	DWORD PTR [esi+16]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -30525,7 +30493,7 @@ $LL87@SK_Win32_C:
 	lea	ebx, DWORD PTR [esi+16]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1798 :     if (DestroyWindow (it))
+; 1815 :     if (DestroyWindow (it))
 
 	call	DWORD PTR __imp__DestroyWindow@4
 	test	eax, eax
@@ -30627,27 +30595,27 @@ $LN179@SK_Win32_C:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1796 :   for (auto& it : dummy_windows)
+; 1813 :   for (auto& it : dummy_windows)
 
 	jne	SHORT $LL87@SK_Win32_C
 	pop	ebx
 $LN3@SK_Win32_C:
 
-; 1799 :     {
-; 1800 :       dummy_windows.erase (it);
-; 1801 :     }
-; 1802 :   }
-; 1803 : 
-; 1804 :   UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
+; 1816 :     {
+; 1817 :       dummy_windows.erase (it);
+; 1818 :     }
+; 1819 :   }
+; 1820 : 
+; 1821 :   UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
-	push	OFFSET $SG430287
+	push	OFFSET $SG430357
 	call	DWORD PTR __imp__UnregisterClassW@8
 	pop	edi
 	pop	esi
 
-; 1805 : }
+; 1822 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -30659,12 +30627,13 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 _TEXT	SEGMENT
+_wc_existing$ = -112					; size = 40
 _wc$ = -64						; size = 40
 $T1 = -12						; size = 8
 _hWnd$2 = -4						; size = 4
 ?SK_Win32_CreateDummyWindow@@YAPAUHWND__@@XZ PROC	; SK_Win32_CreateDummyWindow
 
-; 1759 : {
+; 1775 : {
 
 	npad	2
 	push	ebx
@@ -30676,40 +30645,81 @@ _hWnd$2 = -4						; size = 4
 	mov	ebp, DWORD PTR [ebx+4]
 	mov	DWORD PTR [esp+4], ebp
 	mov	ebp, esp
-	sub	esp, 64					; 00000040H
+	sub	esp, 112				; 00000070H
 
-; 1760 :   WNDCLASSW wc = { };
-; 1761 : 
-; 1762 :   wc.style         = CS_CLASSDC | CS_GLOBALCLASS;
-; 1763 :   wc.lpfnWndProc   = DefWindowProcW;
+; 1776 :   WNDCLASSW wc         = { };
+; 1777 :   WNDCLASS wc_existing = { };
+; 1778 : 
+; 1779 :   wc.style         = CS_CLASSDC | CS_GLOBALCLASS;
+; 1780 :   wc.lpfnWndProc   = DefWindowProcW;
 
 	mov	eax, DWORD PTR __imp__DefWindowProcW@16
 	xorps	xmm0, xmm0
 	movaps	XMMWORD PTR _wc$[ebp], xmm0
 	movaps	XMMWORD PTR _wc$[ebp+16], xmm0
 	movq	QWORD PTR _wc$[ebp+32], xmm0
+	movaps	XMMWORD PTR _wc_existing$[ebp], xmm0
+	movaps	XMMWORD PTR _wc_existing$[ebp+16], xmm0
+	movq	QWORD PTR _wc_existing$[ebp+32], xmm0
 	mov	DWORD PTR _wc$[ebp], 16448		; 00004040H
 	mov	DWORD PTR _wc$[ebp+4], eax
 
-; 1764 :   wc.hInstance     = SK_GetDLL ();
+; 1781 :   wc.hInstance     = SK_GetDLL ();
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	mov	DWORD PTR _wc$[ebp+16], eax
 
-; 1765 :   wc.lpszClassName = L"Special K Dummy Window Class";
-; 1766 : 
-; 1767 :   if (RegisterClassW (&wc))
+; 1782 :   wc.lpszClassName = L"Special K Dummy Window Class";
+; 1783 : 
+; 1784 :   if (RegisterClassW (&wc) || GetClassInfo (SK_GetDLL (), L"Special K Dummy Window Class", &wc_existing))
 
 	lea	eax, DWORD PTR _wc$[ebp]
 	push	eax
-	mov	DWORD PTR _wc$[ebp+36], OFFSET $SG430235
+	mov	DWORD PTR _wc$[ebp+36], OFFSET $SG430303
 	call	DWORD PTR __imp__RegisterClassW@4
 	test	ax, ax
-	je	SHORT $LN2@SK_Win32_C
+	jne	SHORT $LN4@SK_Win32_C
+	lea	eax, DWORD PTR _wc_existing$[ebp]
+	push	eax
+	push	OFFSET $SG430307
+	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
+	push	eax
+	call	DWORD PTR __imp__GetClassInfoW@12
+	test	eax, eax
+	jne	SHORT $LN4@SK_Win32_C
 
-; 1768 :   {
-; 1769 :     HWND hWnd =
-; 1770 :       CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class",
+; 1797 :       dummy_windows.emplace (hWnd);
+; 1798 : 
+; 1799 :     return hWnd;
+; 1800 :   }
+; 1801 : 
+; 1802 :   else
+; 1803 :   {
+; 1804 :     dll_log.Log (L"Window Class Registration Failed!");
+
+	push	OFFSET $SG430311
+	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
+	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
+	add	esp, 8
+
+; 1805 :   }
+; 1806 : 
+; 1807 :   return nullptr;
+
+	xor	eax, eax
+
+; 1808 : }
+
+	mov	esp, ebp
+	pop	ebp
+	mov	esp, ebx
+	pop	ebx
+	ret	0
+$LN4@SK_Win32_C:
+
+; 1785 :   {
+; 1786 :     HWND hWnd =
+; 1787 :       CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class",
 
 	push	0
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
@@ -30721,21 +30731,21 @@ _hWnd$2 = -4						; size = 4
 	push	0
 	push	0
 	push	-2046820352				; 86000000H
-	push	OFFSET $SG430238
-	push	OFFSET $SG430239
+	push	OFFSET $SG430308
+	push	OFFSET $SG430309
 	push	0
 	call	DWORD PTR ?CreateWindowExW_Original@@3P6GPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA ; CreateWindowExW_Original
 	mov	DWORD PTR _hWnd$2[ebp], eax
 
-; 1771 :                                      L"Special K Dummy Window",
-; 1772 :                                        WS_POPUP | WS_CLIPCHILDREN |
-; 1773 :                                        WS_CLIPSIBLINGS,
-; 1774 :                                          0, 0,
-; 1775 :                                          1, 1,
-; 1776 :                                            HWND_DESKTOP,   nullptr,
-; 1777 :                                              SK_GetDLL (), nullptr );
-; 1778 : 
-; 1779 :     if (hWnd != HWND_DESKTOP)
+; 1788 :                                      L"Special K Dummy Window",
+; 1789 :                                        WS_POPUP | WS_CLIPCHILDREN |
+; 1790 :                                        WS_CLIPSIBLINGS,
+; 1791 :                                          0, 0,
+; 1792 :                                          1, 1,
+; 1793 :                                            HWND_DESKTOP,   nullptr,
+; 1794 :                                              SK_GetDLL (), nullptr );
+; 1795 : 
+; 1796 :     if (hWnd != HWND_DESKTOP)
 
 	test	eax, eax
 	je	SHORT $LN1@SK_Win32_C
@@ -30765,39 +30775,10 @@ _hWnd$2 = -4						; size = 4
 	push	eax
 	call	??$_Insert_nohint@AAPAUHWND__@@PAU?$_Tree_node@PAUHWND__@@PAX@std@@@?$_Tree@V?$_Tset_traits@PAUHWND__@@U?$less@PAUHWND__@@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@IAE?AU?$pair@V?$_Tree_const_iterator@V?$_Tree_val@U?$_Tree_simple_types@PAUHWND__@@@std@@@std@@@std@@_N@1@_NAAPAUHWND__@@PAU?$_Tree_node@PAUHWND__@@PAX@1@@Z ; std::_Tree<std::_Tset_traits<HWND__ *,std::less<HWND__ *>,std::allocator<HWND__ *>,0> >::_Insert_nohint<HWND__ * &,std::_Tree_node<HWND__ *,void *> *>
 	mov	eax, DWORD PTR _hWnd$2[ebp]
+$LN1@SK_Win32_C:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1791 : }
-
-	mov	esp, ebp
-	pop	ebp
-	mov	esp, ebx
-	pop	ebx
-	ret	0
-$LN2@SK_Win32_C:
-
-; 1780 :       dummy_windows.emplace (hWnd);
-; 1781 : 
-; 1782 :     return hWnd;
-; 1783 :   }
-; 1784 : 
-; 1785 :   else
-; 1786 :   {
-; 1787 :     dll_log.Log (L"Window Class Registration Failed!");
-
-	push	OFFSET $SG430241
-	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
-	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	add	esp, 8
-
-; 1788 :   }
-; 1789 : 
-; 1790 :   return nullptr;
-
-	xor	eax, eax
-$LN1@SK_Win32_C:
-
-; 1791 : }
+; 1808 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -30850,7 +30831,7 @@ $T4 = -36						; size = 24
 __$EHRec$ = -12						; size = 12
 ?SK_HasGlobalInjector@@YG_NXZ PROC			; SK_HasGlobalInjector
 
-; 1203 : {
+; 1226 : {
 
 	npad	2
 	push	ebp
@@ -30862,16 +30843,16 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 1088				; 00000440H
 
-; 1204 :   static int last_test = 0;
-; 1205 : 
-; 1206 :   if (last_test == 0)
+; 1227 :   static int last_test = 0;
+; 1228 : 
+; 1229 :   if (last_test == 0)
 
 	mov	ecx, DWORD PTR ?last_test@?1??SK_HasGlobalInjector@@YG_NXZ@4HA
 	test	ecx, ecx
 	jne	$LN2@SK_HasGlob
 
-; 1207 :   {
-; 1208 :     wchar_t wszBasePath [MAX_PATH * 2 - 1] = { };
+; 1230 :   {
+; 1231 :     wchar_t wszBasePath [MAX_PATH * 2 - 1] = { };
 
 	push	1038					; 0000040eH
 	push	ecx
@@ -30879,12 +30860,12 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	call	_memset
 
-; 1210 :     wcsncpy ( wszBasePath,
+; 1233 :     wcsncpy ( wszBasePath,
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG428262
+	push	OFFSET $SG428351
 	push	eax
 	lea	eax, DWORD PTR $T4[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -30908,7 +30889,7 @@ __$EHRec$ = -12						; size = 12
 $LN20@SK_HasGlob:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1210 :     wcsncpy ( wszBasePath,
+; 1233 :     wcsncpy ( wszBasePath,
 
 	push	259					; 00000103H
 	push	eax
@@ -30922,7 +30903,7 @@ $LN20@SK_HasGlob:
 	mov	eax, DWORD PTR $T4[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1210 :     wcsncpy ( wszBasePath,
+; 1233 :     wcsncpy ( wszBasePath,
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31006,22 +30987,22 @@ $LN29@SK_HasGlob:
 $LN59@SK_HasGlob:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1217 :     lstrcatW (wszBasePath, L"SpecialK32.dll");
+; 1240 :     lstrcatW (wszBasePath, L"SpecialK32.dll");
 
-	push	OFFSET $SG428263
+	push	OFFSET $SG428352
 	lea	eax, DWORD PTR _wszBasePath$2[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrcatW@8
 
-; 1218 : #endif
-; 1219 : 
-; 1220 :     bool result = (GetFileAttributesW (wszBasePath) != INVALID_FILE_ATTRIBUTES);
+; 1241 : #endif
+; 1242 : 
+; 1243 :     bool result = (GetFileAttributesW (wszBasePath) != INVALID_FILE_ATTRIBUTES);
 
 	lea	eax, DWORD PTR _wszBasePath$2[ebp]
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
 
-; 1221 :     last_test   = result ? 1 : -1;
+; 1244 :     last_test   = result ? 1 : -1;
 
 	xor	ecx, ecx
 	cmp	eax, -1
@@ -31030,14 +31011,14 @@ $LN59@SK_HasGlob:
 	mov	DWORD PTR ?last_test@?1??SK_HasGlobalInjector@@YG_NXZ@4HA, ecx
 $LN2@SK_HasGlob:
 
-; 1222 :   }
-; 1223 : 
-; 1224 :   return (last_test != -1);
+; 1245 :   }
+; 1246 : 
+; 1247 :   return (last_test != -1);
 
 	xor	eax, eax
 	cmp	ecx, -1
 
-; 1225 : }
+; 1248 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	setne	al
@@ -31061,18 +31042,18 @@ _TEXT	SEGMENT
 _role$ = 8						; size = 4
 ?SK_SetDLLRole@@YAXW4DLL_ROLE@@@Z PROC			; SK_SetDLLRole
 
-; 2708 : {
+; 2539 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2709 :   dll_role = role;
+; 2540 :   dll_role = role;
 
 	mov	eax, DWORD PTR _role$[ebp]
 	mov	DWORD PTR ?dll_role@@3W4DLL_ROLE@@A, eax ; dll_role
 
-; 2710 : }
+; 2541 : }
 
 	pop	ebp
 	ret	0
@@ -31083,11 +31064,11 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ PROC			; SK_GetDLLRole
 
-; 2702 :   return dll_role;
+; 2533 :   return dll_role;
 
 	mov	eax, DWORD PTR ?dll_role@@3W4DLL_ROLE@@A ; dll_role
 
-; 2703 : }
+; 2534 : }
 
 	ret	0
 ?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ ENDP			; SK_GetDLLRole
@@ -31161,7 +31142,7 @@ $LN68@SK_Describ:
 ; 412  :   case E_FAIL:
 ; 413  :     return L"E_FAIL";
 
-	mov	eax, OFFSET $SG427714
+	mov	eax, OFFSET $SG427798
 
 ; 446  :   }
 ; 447  : }
@@ -31174,7 +31155,7 @@ $LN71@SK_Describ:
 ; 421  :   case E_POINTER:
 ; 422  :     return L"E_POINTER";
 
-	mov	eax, OFFSET $SG427720
+	mov	eax, OFFSET $SG427804
 
 ; 446  :   }
 ; 447  : }
@@ -31187,7 +31168,7 @@ $LN74@SK_Describ:
 ; 430  :   case E_NOTIMPL:
 ; 431  :     return L"E_NOTIMPL";
 
-	mov	eax, OFFSET $SG427726
+	mov	eax, OFFSET $SG427810
 
 ; 446  :   }
 ; 447  : }
@@ -31200,7 +31181,7 @@ $LN75@SK_Describ:
 ; 433  :   case E_NOINTERFACE:
 ; 434  :     return L"E_NOINTERFACE";
 
-	mov	eax, OFFSET $SG427728
+	mov	eax, OFFSET $SG427812
 
 ; 446  :   }
 ; 447  : }
@@ -31213,7 +31194,7 @@ $LN76@SK_Describ:
 ; 436  :   case E_ABORT:
 ; 437  :     return L"E_ABORT";
 
-	mov	eax, OFFSET $SG427730
+	mov	eax, OFFSET $SG427814
 
 ; 446  :   }
 ; 447  : }
@@ -31226,7 +31207,7 @@ $LN77@SK_Describ:
 ; 439  :   case E_UNEXPECTED:
 ; 440  :     return L"E_UNEXPECTED";
 
-	mov	eax, OFFSET $SG427732
+	mov	eax, OFFSET $SG427816
 
 ; 446  :   }
 ; 447  : }
@@ -31257,7 +31238,7 @@ $LN80@SK_Describ:
 ; 418  :   case E_OUTOFMEMORY:
 ; 419  :     return L"E_OUTOFMEMORY";
 
-	mov	eax, OFFSET $SG427718
+	mov	eax, OFFSET $SG427802
 
 ; 446  :   }
 ; 447  : }
@@ -31270,7 +31251,7 @@ $LN73@SK_Describ:
 ; 427  :   case E_HANDLE:
 ; 428  :     return L"E_HANDLE";
 
-	mov	eax, OFFSET $SG427724
+	mov	eax, OFFSET $SG427808
 
 ; 446  :   }
 ; 447  : }
@@ -31283,7 +31264,7 @@ $LN72@SK_Describ:
 ; 424  :   case E_ACCESSDENIED:
 ; 425  :     return L"E_ACCESSDENIED";
 
-	mov	eax, OFFSET $SG427722
+	mov	eax, OFFSET $SG427806
 
 ; 446  :   }
 ; 447  : }
@@ -31296,7 +31277,7 @@ $LN69@SK_Describ:
 ; 415  :   case E_INVALIDARG:
 ; 416  :     return L"E_INVALIDARG";
 
-	mov	eax, OFFSET $SG427716
+	mov	eax, OFFSET $SG427800
 
 ; 446  :   }
 ; 447  : }
@@ -31316,7 +31297,7 @@ $LN83@SK_Describ:
 ; 389  :   case D3DERR_WASSTILLDRAWING:
 ; 390  :     return L"D3DERR_WASSTILLDRAWING";
 
-	mov	eax, OFFSET $SG427710
+	mov	eax, OFFSET $SG427794
 
 ; 446  :   }
 ; 447  : }
@@ -31329,7 +31310,7 @@ $LN62@SK_Describ:
 ; 377  :   case D3DERR_OUTOFVIDEOMEMORY:
 ; 378  :     return L"D3DERR_OUTOFVIDEOMEMORY";
 
-	mov	eax, OFFSET $SG427702
+	mov	eax, OFFSET $SG427786
 
 ; 446  :   }
 ; 447  : }
@@ -31345,7 +31326,7 @@ $LN45@SK_Describ:
 ; 325  :   case D3DERR_WRONGTEXTUREFORMAT:
 ; 326  :     return L"D3DERR_WRONGTEXTUREFORMAT";
 
-	mov	eax, OFFSET $SG427668
+	mov	eax, OFFSET $SG427752
 
 ; 446  :   }
 ; 447  : }
@@ -31367,7 +31348,7 @@ $LN46@SK_Describ:
 ; 328  :   case D3DERR_UNSUPPORTEDCOLOROPERATION:
 ; 329  :     return L"D3DERR_UNSUPPORTEDCOLOROPERATION";
 
-	mov	eax, OFFSET $SG427670
+	mov	eax, OFFSET $SG427754
 
 ; 446  :   }
 ; 447  : }
@@ -31380,7 +31361,7 @@ $LN47@SK_Describ:
 ; 331  :   case D3DERR_UNSUPPORTEDCOLORARG:
 ; 332  :     return L"D3DERR_UNSUPPORTEDCOLORARG";
 
-	mov	eax, OFFSET $SG427672
+	mov	eax, OFFSET $SG427756
 
 ; 446  :   }
 ; 447  : }
@@ -31393,7 +31374,7 @@ $LN48@SK_Describ:
 ; 334  :   case D3DERR_UNSUPPORTEDALPHAOPERATION:
 ; 335  :     return L"D3DERR_UNSUPPORTEDALPHAOPERATION";
 
-	mov	eax, OFFSET $SG427674
+	mov	eax, OFFSET $SG427758
 
 ; 446  :   }
 ; 447  : }
@@ -31406,7 +31387,7 @@ $LN49@SK_Describ:
 ; 337  :   case D3DERR_UNSUPPORTEDALPHAARG:
 ; 338  :     return L"D3DERR_UNSUPPORTEDALPHAARG";
 
-	mov	eax, OFFSET $SG427676
+	mov	eax, OFFSET $SG427760
 
 ; 446  :   }
 ; 447  : }
@@ -31419,7 +31400,7 @@ $LN50@SK_Describ:
 ; 340  :   case D3DERR_TOOMANYOPERATIONS:
 ; 341  :     return L"D3DERR_TOOMANYOPERATIONS";
 
-	mov	eax, OFFSET $SG427678
+	mov	eax, OFFSET $SG427762
 
 ; 446  :   }
 ; 447  : }
@@ -31432,7 +31413,7 @@ $LN51@SK_Describ:
 ; 343  :   case D3DERR_CONFLICTINGTEXTUREFILTER:
 ; 344  :     return L"D3DERR_CONFLICTINGTEXTUREFILTER";
 
-	mov	eax, OFFSET $SG427680
+	mov	eax, OFFSET $SG427764
 
 ; 446  :   }
 ; 447  : }
@@ -31445,7 +31426,7 @@ $LN52@SK_Describ:
 ; 346  :   case D3DERR_UNSUPPORTEDFACTORVALUE:
 ; 347  :     return L"D3DERR_UNSUPPORTEDFACTORVALUE";
 
-	mov	eax, OFFSET $SG427682
+	mov	eax, OFFSET $SG427766
 
 ; 446  :   }
 ; 447  : }
@@ -31458,7 +31439,7 @@ $LN53@SK_Describ:
 ; 349  :   case D3DERR_CONFLICTINGRENDERSTATE:
 ; 350  :     return L"D3DERR_CONFLICTINGRENDERSTATE";
 
-	mov	eax, OFFSET $SG427684
+	mov	eax, OFFSET $SG427768
 
 ; 446  :   }
 ; 447  : }
@@ -31471,7 +31452,7 @@ $LN54@SK_Describ:
 ; 352  :   case D3DERR_UNSUPPORTEDTEXTUREFILTER:
 ; 353  :     return L"D3DERR_UNSUPPORTEDTEXTUREFILTER";
 
-	mov	eax, OFFSET $SG427686
+	mov	eax, OFFSET $SG427770
 
 ; 446  :   }
 ; 447  : }
@@ -31484,7 +31465,7 @@ $LN55@SK_Describ:
 ; 355  :   case D3DERR_CONFLICTINGTEXTUREPALETTE:
 ; 356  :     return L"D3DERR_CONFLICTINGTEXTUREPALETTE";
 
-	mov	eax, OFFSET $SG427688
+	mov	eax, OFFSET $SG427772
 
 ; 446  :   }
 ; 447  : }
@@ -31497,7 +31478,7 @@ $LN56@SK_Describ:
 ; 358  :   case D3DERR_DRIVERINTERNALERROR:
 ; 359  :     return L"D3DERR_DRIVERINTERNALERROR";
 
-	mov	eax, OFFSET $SG427690
+	mov	eax, OFFSET $SG427774
 
 ; 446  :   }
 ; 447  : }
@@ -31511,7 +31492,7 @@ $LN57@SK_Describ:
 ; 362  :   case D3DERR_NOTFOUND:
 ; 363  :     return L"D3DERR_NOTFOUND";
 
-	mov	eax, OFFSET $SG427692
+	mov	eax, OFFSET $SG427776
 
 ; 446  :   }
 ; 447  : }
@@ -31524,7 +31505,7 @@ $LN58@SK_Describ:
 ; 365  :   case D3DERR_MOREDATA:
 ; 366  :     return L"D3DERR_MOREDATA";
 
-	mov	eax, OFFSET $SG427694
+	mov	eax, OFFSET $SG427778
 
 ; 446  :   }
 ; 447  : }
@@ -31537,7 +31518,7 @@ $LN59@SK_Describ:
 ; 368  :   case D3DERR_DEVICELOST:
 ; 369  :     return L"D3DERR_DEVICELOST";
 
-	mov	eax, OFFSET $SG427696
+	mov	eax, OFFSET $SG427780
 
 ; 446  :   }
 ; 447  : }
@@ -31550,7 +31531,7 @@ $LN60@SK_Describ:
 ; 371  :   case D3DERR_DEVICENOTRESET:
 ; 372  :     return L"D3DERR_DEVICENOTRESET";
 
-	mov	eax, OFFSET $SG427698
+	mov	eax, OFFSET $SG427782
 
 ; 446  :   }
 ; 447  : }
@@ -31563,7 +31544,7 @@ $LN61@SK_Describ:
 ; 374  :   case D3DERR_NOTAVAILABLE:
 ; 375  :     return L"D3DERR_NOTAVAILABLE";
 
-	mov	eax, OFFSET $SG427700
+	mov	eax, OFFSET $SG427784
 
 ; 446  :   }
 ; 447  : }
@@ -31576,7 +31557,7 @@ $LN63@SK_Describ:
 ; 380  :   case D3DERR_INVALIDDEVICE:
 ; 381  :     return L"D3DERR_INVALIDDEVICE";
 
-	mov	eax, OFFSET $SG427704
+	mov	eax, OFFSET $SG427788
 
 ; 446  :   }
 ; 447  : }
@@ -31589,7 +31570,7 @@ $LN64@SK_Describ:
 ; 383  :   case D3DERR_INVALIDCALL:
 ; 384  :     return L"D3DERR_INVALIDCALL";
 
-	mov	eax, OFFSET $SG427706
+	mov	eax, OFFSET $SG427790
 
 ; 446  :   }
 ; 447  : }
@@ -31602,7 +31583,7 @@ $LN65@SK_Describ:
 ; 386  :   case D3DERR_DRIVERINVALIDCALL:
 ; 387  :     return L"D3DERR_DRIVERINVALIDCALL";
 
-	mov	eax, OFFSET $SG427708
+	mov	eax, OFFSET $SG427792
 
 ; 446  :   }
 ; 447  : }
@@ -31615,7 +31596,7 @@ $LN12@SK_Describ:
 ; 218  :   case DXGI_ERROR_INVALID_CALL:
 ; 219  :     return L"DXGI_ERROR_INVALID_CALL";
 
-	mov	eax, OFFSET $SG427602
+	mov	eax, OFFSET $SG427686
 
 ; 446  :   }
 ; 447  : }
@@ -31644,7 +31625,7 @@ $LN6@SK_Describ:
 ; 200  :   case DXGI_ERROR_DEVICE_HUNG:
 ; 201  :     return L"DXGI_ERROR_DEVICE_HUNG";
 
-	mov	eax, OFFSET $SG427590
+	mov	eax, OFFSET $SG427674
 
 ; 446  :   }
 ; 447  : }
@@ -31657,7 +31638,7 @@ $LN7@SK_Describ:
 ; 203  :   case DXGI_ERROR_DEVICE_REMOVED:
 ; 204  :     return L"DXGI_ERROR_DEVICE_REMOVED";
 
-	mov	eax, OFFSET $SG427592
+	mov	eax, OFFSET $SG427676
 
 ; 446  :   }
 ; 447  : }
@@ -31670,7 +31651,7 @@ $LN8@SK_Describ:
 ; 206  :   case DXGI_ERROR_DEVICE_RESET:
 ; 207  :     return L"DXGI_ERROR_DEVICE_RESET";
 
-	mov	eax, OFFSET $SG427594
+	mov	eax, OFFSET $SG427678
 
 ; 446  :   }
 ; 447  : }
@@ -31683,7 +31664,7 @@ $LN9@SK_Describ:
 ; 209  :   case DXGI_ERROR_DRIVER_INTERNAL_ERROR:
 ; 210  :     return L"DXGI_ERROR_DRIVER_INTERNAL_ERROR";
 
-	mov	eax, OFFSET $SG427596
+	mov	eax, OFFSET $SG427680
 
 ; 446  :   }
 ; 447  : }
@@ -31696,7 +31677,7 @@ $LN10@SK_Describ:
 ; 212  :   case DXGI_ERROR_FRAME_STATISTICS_DISJOINT:
 ; 213  :     return L"DXGI_ERROR_FRAME_STATISTICS_DISJOINT";
 
-	mov	eax, OFFSET $SG427598
+	mov	eax, OFFSET $SG427682
 
 ; 446  :   }
 ; 447  : }
@@ -31709,7 +31690,7 @@ $LN11@SK_Describ:
 ; 215  :   case DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE:
 ; 216  :     return L"DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE";
 
-	mov	eax, OFFSET $SG427600
+	mov	eax, OFFSET $SG427684
 
 ; 446  :   }
 ; 447  : }
@@ -31722,7 +31703,7 @@ $LN13@SK_Describ:
 ; 221  :   case DXGI_ERROR_MORE_DATA:
 ; 222  :     return L"DXGI_ERROR_MORE_DATA";
 
-	mov	eax, OFFSET $SG427604
+	mov	eax, OFFSET $SG427688
 
 ; 446  :   }
 ; 447  : }
@@ -31735,7 +31716,7 @@ $LN14@SK_Describ:
 ; 224  :   case DXGI_ERROR_NONEXCLUSIVE:
 ; 225  :     return L"DXGI_ERROR_NONEXCLUSIVE";
 
-	mov	eax, OFFSET $SG427606
+	mov	eax, OFFSET $SG427690
 
 ; 446  :   }
 ; 447  : }
@@ -31748,7 +31729,7 @@ $LN15@SK_Describ:
 ; 227  :   case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE:
 ; 228  :     return L"DXGI_ERROR_NOT_CURRENTLY_AVAILABLE";
 
-	mov	eax, OFFSET $SG427608
+	mov	eax, OFFSET $SG427692
 
 ; 446  :   }
 ; 447  : }
@@ -31761,7 +31742,7 @@ $LN16@SK_Describ:
 ; 230  :   case DXGI_ERROR_NOT_FOUND:
 ; 231  :     return L"DXGI_ERROR_NOT_FOUND";
 
-	mov	eax, OFFSET $SG427610
+	mov	eax, OFFSET $SG427694
 
 ; 446  :   }
 ; 447  : }
@@ -31774,7 +31755,7 @@ $LN17@SK_Describ:
 ; 233  :   case DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED:
 ; 234  :     return L"DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED";
 
-	mov	eax, OFFSET $SG427612
+	mov	eax, OFFSET $SG427696
 
 ; 446  :   }
 ; 447  : }
@@ -31787,7 +31768,7 @@ $LN18@SK_Describ:
 ; 236  :   case DXGI_ERROR_REMOTE_OUTOFMEMORY:
 ; 237  :     return L"DXGI_ERROR_REMOTE_OUTOFMEMORY";
 
-	mov	eax, OFFSET $SG427614
+	mov	eax, OFFSET $SG427698
 
 ; 446  :   }
 ; 447  : }
@@ -31800,7 +31781,7 @@ $LN19@SK_Describ:
 ; 239  :   case DXGI_ERROR_WAS_STILL_DRAWING:
 ; 240  :     return L"DXGI_ERROR_WAS_STILL_DRAWING";
 
-	mov	eax, OFFSET $SG427616
+	mov	eax, OFFSET $SG427700
 
 ; 446  :   }
 ; 447  : }
@@ -31813,7 +31794,7 @@ $LN20@SK_Describ:
 ; 242  :   case DXGI_ERROR_UNSUPPORTED:
 ; 243  :     return L"DXGI_ERROR_UNSUPPORTED";
 
-	mov	eax, OFFSET $SG427618
+	mov	eax, OFFSET $SG427702
 
 ; 446  :   }
 ; 447  : }
@@ -31826,7 +31807,7 @@ $LN21@SK_Describ:
 ; 245  :   case DXGI_ERROR_ACCESS_LOST:
 ; 246  :     return L"DXGI_ERROR_ACCESS_LOST";
 
-	mov	eax, OFFSET $SG427620
+	mov	eax, OFFSET $SG427704
 
 ; 446  :   }
 ; 447  : }
@@ -31839,7 +31820,7 @@ $LN22@SK_Describ:
 ; 248  :   case DXGI_ERROR_WAIT_TIMEOUT:
 ; 249  :     return L"DXGI_ERROR_WAIT_TIMEOUT";
 
-	mov	eax, OFFSET $SG427622
+	mov	eax, OFFSET $SG427706
 
 ; 446  :   }
 ; 447  : }
@@ -31852,7 +31833,7 @@ $LN23@SK_Describ:
 ; 251  :   case DXGI_ERROR_SESSION_DISCONNECTED:
 ; 252  :     return L"DXGI_ERROR_SESSION_DISCONNECTED";
 
-	mov	eax, OFFSET $SG427624
+	mov	eax, OFFSET $SG427708
 
 ; 446  :   }
 ; 447  : }
@@ -31865,7 +31846,7 @@ $LN24@SK_Describ:
 ; 254  :   case DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE:
 ; 255  :     return L"DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE";
 
-	mov	eax, OFFSET $SG427626
+	mov	eax, OFFSET $SG427710
 
 ; 446  :   }
 ; 447  : }
@@ -31878,7 +31859,7 @@ $LN25@SK_Describ:
 ; 257  :   case DXGI_ERROR_CANNOT_PROTECT_CONTENT:
 ; 258  :     return L"DXGI_ERROR_CANNOT_PROTECT_CONTENT";
 
-	mov	eax, OFFSET $SG427628
+	mov	eax, OFFSET $SG427712
 
 ; 446  :   }
 ; 447  : }
@@ -31891,7 +31872,7 @@ $LN26@SK_Describ:
 ; 260  :   case DXGI_ERROR_ACCESS_DENIED:
 ; 261  :     return L"DXGI_ERROR_ACCESS_DENIED";
 
-	mov	eax, OFFSET $SG427630
+	mov	eax, OFFSET $SG427714
 
 ; 446  :   }
 ; 447  : }
@@ -31904,7 +31885,7 @@ $LN27@SK_Describ:
 ; 263  :   case DXGI_ERROR_NAME_ALREADY_EXISTS:
 ; 264  :     return L"DXGI_ERROR_NAME_ALREADY_EXISTS";
 
-	mov	eax, OFFSET $SG427632
+	mov	eax, OFFSET $SG427716
 
 ; 446  :   }
 ; 447  : }
@@ -31917,7 +31898,7 @@ $LN28@SK_Describ:
 ; 266  :   case DXGI_ERROR_SDK_COMPONENT_MISSING:
 ; 267  :     return L"DXGI_ERROR_SDK_COMPONENT_MISSING";
 
-	mov	eax, OFFSET $SG427634
+	mov	eax, OFFSET $SG427718
 
 ; 446  :   }
 ; 447  : }
@@ -31930,7 +31911,7 @@ $LN29@SK_Describ:
 ; 269  :   case DXGI_DDI_ERR_WASSTILLDRAWING:
 ; 270  :     return L"DXGI_DDI_ERR_WASSTILLDRAWING";
 
-	mov	eax, OFFSET $SG427636
+	mov	eax, OFFSET $SG427720
 
 ; 446  :   }
 ; 447  : }
@@ -31956,7 +31937,7 @@ $LN84@SK_Describ:
 ; 275  :   case DXGI_DDI_ERR_NONEXCLUSIVE:
 ; 276  :     return L"DXGI_DDI_ERR_NONEXCLUSIVE";
 
-	mov	eax, OFFSET $SG427640
+	mov	eax, OFFSET $SG427724
 
 ; 446  :   }
 ; 447  : }
@@ -31969,7 +31950,7 @@ $LN30@SK_Describ:
 ; 272  :   case DXGI_DDI_ERR_UNSUPPORTED:
 ; 273  :     return L"DXGI_DDI_ERR_UNSUPPORTED";
 
-	mov	eax, OFFSET $SG427638
+	mov	eax, OFFSET $SG427722
 
 ; 446  :   }
 ; 447  : }
@@ -31982,7 +31963,7 @@ $LN42@SK_Describ:
 ; 313  :   case D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS:
 ; 314  :     return L"D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS";
 
-	mov	eax, OFFSET $SG427662
+	mov	eax, OFFSET $SG427746
 
 ; 446  :   }
 ; 447  : }
@@ -32007,7 +31988,7 @@ $LN86@SK_Describ:
 ; 319  :   case D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD:
 ; 320  :     return L"D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD";
 
-	mov	eax, OFFSET $SG427666
+	mov	eax, OFFSET $SG427750
 
 ; 446  :   }
 ; 447  : }
@@ -32020,7 +32001,7 @@ $LN43@SK_Describ:
 ; 316  :   case D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS:
 ; 317  :     return L"D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS";
 
-	mov	eax, OFFSET $SG427664
+	mov	eax, OFFSET $SG427748
 
 ; 446  :   }
 ; 447  : }
@@ -32036,7 +32017,7 @@ $LN41@SK_Describ:
 ; 310  :   case D3D11_ERROR_FILE_NOT_FOUND:
 ; 311  :     return L"D3D11_ERROR_FILE_NOT_FOUND";
 
-	mov	eax, OFFSET $SG427660
+	mov	eax, OFFSET $SG427744
 
 ; 446  :   }
 ; 447  : }
@@ -32051,7 +32032,7 @@ $LN4@SK_Describ:
 ; 190  :   case S_OK:
 ; 191  :     return L"S_OK";
 
-	mov	eax, OFFSET $SG427586
+	mov	eax, OFFSET $SG427670
 
 ; 446  :   }
 ; 447  : }
@@ -32073,7 +32054,7 @@ $LN87@SK_Describ:
 ; 393  :   case D3DOK_NOAUTOGEN:
 ; 394  :     return L"D3DOK_NOAUTOGEN";
 
-	mov	eax, OFFSET $SG427712
+	mov	eax, OFFSET $SG427796
 
 ; 446  :   }
 ; 447  : }
@@ -32086,7 +32067,7 @@ $LN5@SK_Describ:
 ; 193  :   case S_FALSE:
 ; 194  :     return L"S_FALSE";
 
-	mov	eax, OFFSET $SG427588
+	mov	eax, OFFSET $SG427672
 
 ; 446  :   }
 ; 447  : }
@@ -32101,7 +32082,7 @@ $LN32@SK_Describ:
 ; 280  :   case DXGI_STATUS_OCCLUDED:
 ; 281  :     return L"DXGI_STATUS_OCCLUDED";
 
-	mov	eax, OFFSET $SG427642
+	mov	eax, OFFSET $SG427726
 
 ; 446  :   }
 ; 447  : }
@@ -32122,7 +32103,7 @@ $LN33@SK_Describ:
 ; 283  :   case DXGI_STATUS_UNOCCLUDED:
 ; 284  :     return L"DXGI_STATUS_UNOCCLUDED";
 
-	mov	eax, OFFSET $SG427644
+	mov	eax, OFFSET $SG427728
 
 ; 446  :   }
 ; 447  : }
@@ -32135,7 +32116,7 @@ $LN34@SK_Describ:
 ; 286  :   case DXGI_STATUS_CLIPPED:
 ; 287  :     return L"DXGI_STATUS_CLIPPED";
 
-	mov	eax, OFFSET $SG427646
+	mov	eax, OFFSET $SG427730
 
 ; 446  :   }
 ; 447  : }
@@ -32148,7 +32129,7 @@ $LN35@SK_Describ:
 ; 289  :   case DXGI_STATUS_NO_REDIRECTION:
 ; 290  :     return L"DXGI_STATUS_NO_REDIRECTION";
 
-	mov	eax, OFFSET $SG427648
+	mov	eax, OFFSET $SG427732
 
 ; 446  :   }
 ; 447  : }
@@ -32161,7 +32142,7 @@ $LN36@SK_Describ:
 ; 292  :   case DXGI_STATUS_NO_DESKTOP_ACCESS:
 ; 293  :     return L"DXGI_STATUS_NO_DESKTOP_ACCESS";
 
-	mov	eax, OFFSET $SG427650
+	mov	eax, OFFSET $SG427734
 
 ; 446  :   }
 ; 447  : }
@@ -32174,7 +32155,7 @@ $LN37@SK_Describ:
 ; 295  :   case DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE:
 ; 296  :     return L"DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE";
 
-	mov	eax, OFFSET $SG427652
+	mov	eax, OFFSET $SG427736
 
 ; 446  :   }
 ; 447  : }
@@ -32187,7 +32168,7 @@ $LN38@SK_Describ:
 ; 298  :   case DXGI_STATUS_DDA_WAS_STILL_DRAWING:
 ; 299  :     return L"DXGI_STATUS_DDA_WAS_STILL_DRAWING";
 
-	mov	eax, OFFSET $SG427654
+	mov	eax, OFFSET $SG427738
 
 ; 446  :   }
 ; 447  : }
@@ -32200,7 +32181,7 @@ $LN39@SK_Describ:
 ; 301  :   case DXGI_STATUS_MODE_CHANGED:
 ; 302  :     return L"DXGI_STATUS_MODE_CHANGED";
 
-	mov	eax, OFFSET $SG427656
+	mov	eax, OFFSET $SG427740
 
 ; 446  :   }
 ; 447  : }
@@ -32213,7 +32194,7 @@ $LN40@SK_Describ:
 ; 304  :   case DXGI_STATUS_MODE_CHANGE_IN_PROGRESS:
 ; 305  :     return L"DXGI_STATUS_MODE_CHANGE_IN_PROGRESS";
 
-	mov	eax, OFFSET $SG427658
+	mov	eax, OFFSET $SG427742
 
 ; 446  :   }
 ; 447  : }
@@ -32227,7 +32208,7 @@ $LN78@SK_Describ:
 ; 443  :     dll_log.Log (L" *** Encountered unknown HRESULT: (0x%08X)",
 
 	push	ecx
-	push	OFFSET $SG427734
+	push	OFFSET $SG427818
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -32235,7 +32216,7 @@ $LN78@SK_Describ:
 ; 444  :       (unsigned long)result);
 ; 445  :     return L"UNKNOWN";
 
-	mov	eax, OFFSET $SG427735
+	mov	eax, OFFSET $SG427819
 
 ; 446  :   }
 ; 447  : }
@@ -32484,7 +32465,7 @@ _pTest$8 = 12						; size = 4
 _device$ = 12						; size = 4
 ?SK_EndBufferSwap@@YGJJPAUIUnknown@@@Z PROC		; SK_EndBufferSwap
 
-; 2530 : {
+; 2361 : {
 
 	npad	2
 	push	ebp
@@ -32497,14 +32478,14 @@ _device$ = 12						; size = 4
 	sub	esp, 52					; 00000034H
 	push	esi
 
-; 2531 :   extern SK_RenderBackend __SK_RBkEnd;
-; 2532 : 
-; 2533 :   __SK_RBkEnd.thread = GetCurrentThreadId ();
+; 2362 :   extern SK_RenderBackend __SK_RBkEnd;
+; 2363 : 
+; 2364 :   __SK_RBkEnd.thread = GetCurrentThreadId ();
 
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 
-; 2534 : 
-; 2535 :   if (device != nullptr)
+; 2365 : 
+; 2366 :   if (device != nullptr)
 
 	mov	esi, DWORD PTR _device$[ebp]
 	mov	DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+84, eax
@@ -32517,7 +32498,7 @@ _device$ = 12						; size = 4
 	mov	DWORD PTR _pDev9$3[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2537 :     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
+; 2368 :     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -32537,7 +32518,7 @@ _device$ = 12						; size = 4
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2539 :     CComPtr <ID3D11Device>       pDev11  = nullptr;
+; 2370 :     CComPtr <ID3D11Device>       pDev11  = nullptr;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\windows kits\8.1\include\um\unknwnbase.h
@@ -32547,23 +32528,23 @@ _device$ = 12						; size = 4
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2544 :     if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
+; 2375 :     if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
 
 	test	eax, eax
 	js	SHORT $LN8@SK_EndBuff
 
-; 2545 :     {
-; 2546 :       reinterpret_cast <int &> (__SK_RBkEnd.api) =
-; 2547 :         ( static_cast <int> (SK_RenderAPI::D3D9  ) |
-; 2548 :           static_cast <int> (SK_RenderAPI::D3D9Ex)  );
-; 2549 : 
-; 2550 :       wcsncpy (__SK_RBkEnd.name, L"D3D9Ex", 8);
+; 2376 :     {
+; 2377 :       reinterpret_cast <int &> (__SK_RBkEnd.api) =
+; 2378 :         ( static_cast <int> (SK_RenderAPI::D3D9  ) |
+; 2379 :           static_cast <int> (SK_RenderAPI::D3D9Ex)  );
+; 2380 : 
+; 2381 :       wcsncpy (__SK_RBkEnd.name, L"D3D9Ex", 8);
 
 	push	8
 	mov	DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A, 24 ; 00000018H
-	push	OFFSET $SG431253
+	push	OFFSET $SG431267
 
-; 2553 :     else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
+; 2384 :     else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
 
 	jmp	$LN114@SK_EndBuff
 $LN8@SK_EndBuff:
@@ -32579,20 +32560,20 @@ $LN8@SK_EndBuff:
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2553 :     else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
+; 2384 :     else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
 
 	test	eax, eax
 	js	SHORT $LN10@SK_EndBuff
 
-; 2554 :     {
-; 2555 :                __SK_RBkEnd.api  = SK_RenderAPI::D3D9;
-; 2556 :       wcsncpy (__SK_RBkEnd.name, L"D3D9  ", 8);
+; 2385 :     {
+; 2386 :                __SK_RBkEnd.api  = SK_RenderAPI::D3D9;
+; 2387 :       wcsncpy (__SK_RBkEnd.name, L"D3D9  ", 8);
 
 	push	8
 	mov	DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A, 8
-	push	OFFSET $SG431256
+	push	OFFSET $SG431270
 
-; 2559 :     else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
+; 2390 :     else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
 
 	jmp	$LN114@SK_EndBuff
 $LN10@SK_EndBuff:
@@ -32608,15 +32589,15 @@ $LN10@SK_EndBuff:
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2559 :     else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
+; 2390 :     else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
 
 	test	eax, eax
 	js	$LN12@SK_EndBuff
 
-; 2560 :     {
-; 2561 :       // Establish the API used this frame (and handle possible translation layers)
-; 2562 :       //
-; 2563 :       switch (SK_GetDLLRole ())
+; 2391 :     {
+; 2392 :       // Establish the API used this frame (and handle possible translation layers)
+; 2393 :       //
+; 2394 :       switch (SK_GetDLLRole ())
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	cmp	eax, -1073741808			; c0000010H
@@ -32627,29 +32608,29 @@ $LN10@SK_EndBuff:
 	cmovne	ecx, edx
 	mov	DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A, ecx
 
-; 2567 :           break;
-; 2568 :         case DLL_ROLE::DDraw:
-; 2569 :           __SK_RBkEnd.api = SK_RenderAPI::DDrawOn11;
-; 2570 :           break;
+; 2398 :           break;
+; 2399 :         case DLL_ROLE::DDraw:
+; 2400 :           __SK_RBkEnd.api = SK_RenderAPI::DDrawOn11;
+; 2401 :           break;
 
 	jmp	SHORT $LN2@SK_EndBuff
 $LN14@SK_EndBuff:
 
-; 2564 :       {
-; 2565 :         case DLL_ROLE::D3D8:
-; 2566 :           __SK_RBkEnd.api = SK_RenderAPI::D3D8On11;
+; 2395 :       {
+; 2396 :         case DLL_ROLE::D3D8:
+; 2397 :           __SK_RBkEnd.api = SK_RenderAPI::D3D8On11;
 
 	mov	DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A, 8256 ; 00002040H
 $LN2@SK_EndBuff:
 
-; 2571 :         default:
-; 2572 :           __SK_RBkEnd.api = SK_RenderAPI::D3D11;
-; 2573 :           break;
-; 2574 :       }
-; 2575 : 
-; 2576 :       IUnknown* pTest = nullptr;
-; 2577 : 
-; 2578 :       if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device5,        (void **)&pTest))) {
+; 2402 :         default:
+; 2403 :           __SK_RBkEnd.api = SK_RenderAPI::D3D11;
+; 2404 :           break;
+; 2405 :       }
+; 2406 : 
+; 2407 :       IUnknown* pTest = nullptr;
+; 2408 : 
+; 2409 :       if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device5,        (void **)&pTest))) {
 
 	mov	eax, DWORD PTR [esi]
 	lea	ecx, DWORD PTR _pTest$8[ebp]
@@ -32661,14 +32642,14 @@ $LN2@SK_EndBuff:
 	test	eax, eax
 	js	SHORT $LN17@SK_EndBuff
 
-; 2579 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
+; 2410 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
 
 	push	8
-	push	OFFSET $SG431264
+	push	OFFSET $SG431278
 	push	OFFSET ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+4
 	call	DWORD PTR __imp__wcsncpy
 
-; 2580 :         pTest->Release ();
+; 2411 :         pTest->Release ();
 
 	mov	eax, DWORD PTR _pTest$8[ebp]
 	add	esp, 12					; 0000000cH
@@ -32678,7 +32659,7 @@ $LN2@SK_EndBuff:
 	jmp	$LN26@SK_EndBuff
 $LN17@SK_EndBuff:
 
-; 2581 :       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
+; 2412 :       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
 
 	mov	eax, DWORD PTR [esi]
 	lea	ecx, DWORD PTR _pTest$8[ebp]
@@ -32689,14 +32670,14 @@ $LN17@SK_EndBuff:
 	test	eax, eax
 	js	SHORT $LN19@SK_EndBuff
 
-; 2582 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
+; 2413 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
 
 	push	8
-	push	OFFSET $SG431267
+	push	OFFSET $SG431281
 	push	OFFSET ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+4
 	call	DWORD PTR __imp__wcsncpy
 
-; 2583 :         pTest->Release ();
+; 2414 :         pTest->Release ();
 
 	mov	eax, DWORD PTR _pTest$8[ebp]
 	add	esp, 12					; 0000000cH
@@ -32706,7 +32687,7 @@ $LN17@SK_EndBuff:
 	jmp	$LN26@SK_EndBuff
 $LN19@SK_EndBuff:
 
-; 2584 :       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
+; 2415 :       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
 
 	mov	eax, DWORD PTR [esi]
 	lea	ecx, DWORD PTR _pTest$8[ebp]
@@ -32717,14 +32698,14 @@ $LN19@SK_EndBuff:
 	test	eax, eax
 	js	SHORT $LN21@SK_EndBuff
 
-; 2585 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.3", 8);
+; 2416 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.3", 8);
 
 	push	8
-	push	OFFSET $SG431270
+	push	OFFSET $SG431284
 	push	OFFSET ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+4
 	call	DWORD PTR __imp__wcsncpy
 
-; 2586 :         pTest->Release ();
+; 2417 :         pTest->Release ();
 
 	mov	eax, DWORD PTR _pTest$8[ebp]
 	add	esp, 12					; 0000000cH
@@ -32734,7 +32715,7 @@ $LN19@SK_EndBuff:
 	jmp	SHORT $LN26@SK_EndBuff
 $LN21@SK_EndBuff:
 
-; 2587 :       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
+; 2418 :       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
 
 	mov	eax, DWORD PTR [esi]
 	lea	ecx, DWORD PTR _pTest$8[ebp]
@@ -32745,14 +32726,14 @@ $LN21@SK_EndBuff:
 	test	eax, eax
 	js	SHORT $LN23@SK_EndBuff
 
-; 2588 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.2", 8);
+; 2419 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.2", 8);
 
 	push	8
-	push	OFFSET $SG431273
+	push	OFFSET $SG431287
 	push	OFFSET ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+4
 	call	DWORD PTR __imp__wcsncpy
 
-; 2589 :         pTest->Release ();
+; 2420 :         pTest->Release ();
 
 	mov	eax, DWORD PTR _pTest$8[ebp]
 	add	esp, 12					; 0000000cH
@@ -32762,7 +32743,7 @@ $LN21@SK_EndBuff:
 	jmp	SHORT $LN26@SK_EndBuff
 $LN23@SK_EndBuff:
 
-; 2590 :       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
+; 2421 :       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
 
 	mov	eax, DWORD PTR [esi]
 	lea	ecx, DWORD PTR _pTest$8[ebp]
@@ -32771,16 +32752,16 @@ $LN23@SK_EndBuff:
 	push	esi
 	call	DWORD PTR [eax]
 
-; 2591 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.1", 8);
+; 2422 :         wcsncpy (__SK_RBkEnd.name, L"D3D11.1", 8);
 
 	push	8
 	test	eax, eax
 	js	SHORT $LN25@SK_EndBuff
-	push	OFFSET $SG431276
+	push	OFFSET $SG431290
 	push	OFFSET ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+4
 	call	DWORD PTR __imp__wcsncpy
 
-; 2592 :         pTest->Release ();
+; 2423 :         pTest->Release ();
 
 	mov	eax, DWORD PTR _pTest$8[ebp]
 	add	esp, 12					; 0000000cH
@@ -32788,57 +32769,57 @@ $LN23@SK_EndBuff:
 	push	eax
 	call	DWORD PTR [ecx+8]
 
-; 2593 :       } else {
+; 2424 :       } else {
 
 	jmp	SHORT $LN26@SK_EndBuff
 $LN25@SK_EndBuff:
 
-; 2594 :         wcsncpy (__SK_RBkEnd.name, L"D3D11 ", 8);
+; 2425 :         wcsncpy (__SK_RBkEnd.name, L"D3D11 ", 8);
 
-	push	OFFSET $SG431277
+	push	OFFSET $SG431291
 	push	OFFSET ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+4
 	call	DWORD PTR __imp__wcsncpy
 	add	esp, 12					; 0000000cH
 $LN26@SK_EndBuff:
 
-; 2595 :       }
-; 2596 : 
-; 2597 :       if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+; 2426 :       }
+; 2427 : 
+; 2428 :       if (SK_GetDLLRole () == DLL_ROLE::D3D8)
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	cmp	eax, -1073741808			; c0000010H
 	jne	SHORT $LN27@SK_EndBuff
 
-; 2598 :       {
-; 2599 :         wcscpy (__SK_RBkEnd.name, L"D3D8");
+; 2429 :       {
+; 2430 :         wcscpy (__SK_RBkEnd.name, L"D3D8");
 
-	mov	ax, WORD PTR $SG431280+8
-	movq	xmm0, QWORD PTR $SG431280
+	mov	ax, WORD PTR $SG431294+8
+	movq	xmm0, QWORD PTR $SG431294
 	mov	WORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+12, ax
 	jmp	SHORT $LN115@SK_EndBuff
 $LN27@SK_EndBuff:
 
-; 2600 :       }
-; 2601 : 
-; 2602 :       else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+; 2431 :       }
+; 2432 : 
+; 2433 :       else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
 
 	cmp	eax, -1073741792			; c0000020H
 	jne	SHORT $LN29@SK_EndBuff
 
-; 2603 :       {
-; 2604 :         wcscpy (__SK_RBkEnd.name, L"DDraw");
+; 2434 :       {
+; 2435 :         wcscpy (__SK_RBkEnd.name, L"DDraw");
 
-	mov	eax, DWORD PTR $SG431282+8
-	movq	xmm0, QWORD PTR $SG431282
+	mov	eax, DWORD PTR $SG431296+8
+	movq	xmm0, QWORD PTR $SG431296
 	mov	DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+12, eax
 $LN115@SK_EndBuff:
 	movq	QWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+4, xmm0
 $LN29@SK_EndBuff:
 
-; 2605 :       }
-; 2606 : 
-; 2607 : 
-; 2608 :       if ( static_cast <int> (__SK_RBkEnd.api)  &
+; 2436 :       }
+; 2437 : 
+; 2438 : 
+; 2439 :       if ( static_cast <int> (__SK_RBkEnd.api)  &
 
 	test	BYTE PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A, 64 ; 00000040H
 	je	SHORT $LN88@SK_EndBuff
@@ -32849,7 +32830,7 @@ $LN29@SK_EndBuff:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2611 :         BOOL fullscreen = FALSE;
+; 2442 :         BOOL fullscreen = FALSE;
 
 	mov	DWORD PTR _fullscreen$6[ebp], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -32859,7 +32840,7 @@ $LN29@SK_EndBuff:
 	mov	DWORD PTR _pSwapChain$7[ebp], eax
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2614 :         if (__SK_RBkEnd.swapchain)
+; 2445 :         if (__SK_RBkEnd.swapchain)
 
 	mov	ecx, DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+40
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
@@ -32877,7 +32858,7 @@ $LN29@SK_EndBuff:
 	call	DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2617 :         if ( pSwapChain &&
+; 2448 :         if ( pSwapChain &&
 
 	mov	eax, DWORD PTR _pSwapChain$7[ebp]
 	test	eax, eax
@@ -32890,33 +32871,33 @@ $LN29@SK_EndBuff:
 	call	DWORD PTR [ecx+44]
 	test	eax, eax
 
-; 2621 :         }
-; 2622 : 
-; 2623 :         else
+; 2452 :         }
+; 2453 : 
+; 2454 :         else
 
 	mov	eax, DWORD PTR _pSwapChain$7[ebp]
 	js	SHORT $LN32@SK_EndBuff
 
-; 2618 :   SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
-; 2619 :         {
-; 2620 :           __SK_RBkEnd.fullscreen_exclusive = fullscreen;
+; 2449 :   SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
+; 2450 :         {
+; 2451 :           __SK_RBkEnd.fullscreen_exclusive = fullscreen;
 
 	cmp	DWORD PTR _fullscreen$6[ebp], 0
 	setne	BYTE PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+48
 
-; 2621 :         }
-; 2622 : 
-; 2623 :         else
+; 2452 :         }
+; 2453 : 
+; 2454 :         else
 
 	jmp	SHORT $LN33@SK_EndBuff
 $LN32@SK_EndBuff:
 
-; 2624 :           __SK_RBkEnd.fullscreen_exclusive = false;
+; 2455 :           __SK_RBkEnd.fullscreen_exclusive = false;
 
 	mov	BYTE PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+48, 0
 $LN33@SK_EndBuff:
 
-; 2625 :       }
+; 2456 :       }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -32934,33 +32915,33 @@ $LN33@SK_EndBuff:
 $LN88@SK_EndBuff:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2628 :                   SK_D3D11_EndFrame ();
+; 2459 :                   SK_D3D11_EndFrame ();
 
 	call	?SK_D3D11_EndFrame@@YAXXZ		; SK_D3D11_EndFrame
 
-; 2629 : #ifdef _WIN64
-; 2630 :     }
-; 2631 : 
-; 2632 : 
-; 2633 :     else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12))))
-; 2634 :     {
-; 2635 :                __SK_RBkEnd.api  = SK_RenderAPI::D3D12;
-; 2636 :       wcsncpy (__SK_RBkEnd.name, L"D3D12 ", 8);
-; 2637 : #endif
-; 2638 :     }
-; 2639 : 
-; 2640 :     else
+; 2460 : #ifdef _WIN64
+; 2461 :     }
+; 2462 : 
+; 2463 : 
+; 2464 :     else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12))))
+; 2465 :     {
+; 2466 :                __SK_RBkEnd.api  = SK_RenderAPI::D3D12;
+; 2467 :       wcsncpy (__SK_RBkEnd.name, L"D3D12 ", 8);
+; 2468 : #endif
+; 2469 :     }
+; 2470 : 
+; 2471 :     else
 
 	jmp	SHORT $LN13@SK_EndBuff
 $LN12@SK_EndBuff:
 
-; 2641 :     {
-; 2642 :                __SK_RBkEnd.api  = SK_RenderAPI::Reserved;
-; 2643 :       wcsncpy (__SK_RBkEnd.name, L"UNKNOWN", 8);
+; 2472 :     {
+; 2473 :                __SK_RBkEnd.api  = SK_RenderAPI::Reserved;
+; 2474 :       wcsncpy (__SK_RBkEnd.name, L"UNKNOWN", 8);
 
 	push	8
 	mov	DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A, 1
-	push	OFFSET $SG431287
+	push	OFFSET $SG431301
 $LN114@SK_EndBuff:
 	push	OFFSET ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+4
 	call	DWORD PTR __imp__wcsncpy
@@ -32973,7 +32954,7 @@ $LN13@SK_EndBuff:
 	mov	eax, DWORD PTR _pDev11$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2645 :   }
+; 2476 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -32995,7 +32976,7 @@ $LN94@SK_EndBuff:
 	mov	eax, DWORD PTR _pDev9Ex$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2645 :   }
+; 2476 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -33017,7 +32998,7 @@ $LN100@SK_EndBuff:
 	mov	eax, DWORD PTR _pDev9$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2645 :   }
+; 2476 :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlcomcli.h
@@ -33034,33 +33015,33 @@ $LN100@SK_EndBuff:
 	call	DWORD PTR [ecx+8]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2647 :   else
+; 2478 :   else
 
 	jmp	SHORT $LN34@SK_EndBuff
 $LN6@SK_EndBuff:
 
-; 2648 :   {
-; 2649 :     if (config.apis.OpenGL.hook && SK_GetCurrentGLContext () != nullptr)
+; 2479 :   {
+; 2480 :     if (config.apis.OpenGL.hook && SK_GetCurrentGLContext () != nullptr)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+806, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+818, 0
 	je	SHORT $LN34@SK_EndBuff
 	call	?SK_GetCurrentGLContext@@YGPAUHGLRC__@@XZ ; SK_GetCurrentGLContext
 	test	eax, eax
 	je	SHORT $LN34@SK_EndBuff
 
-; 2650 :     {
-; 2651 :                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
-; 2652 :       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
+; 2481 :     {
+; 2482 :                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
+; 2483 :       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
 
 	push	8
-	push	OFFSET $SG431289
+	push	OFFSET $SG431303
 	push	OFFSET ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A+4
 	mov	DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A, 2
 	call	DWORD PTR __imp__wcsncpy
 	add	esp, 12					; 0000000cH
 $LN34@SK_EndBuff:
 
-; 2656 :   config.apis.last_known =
+; 2487 :   config.apis.last_known =
 
 	mov	eax, DWORD PTR ?__SK_RBkEnd@@3VSK_RenderBackend_V2@@A
 ; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
@@ -33070,9 +33051,9 @@ $LN34@SK_EndBuff:
 	mov	ecx, 1
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2656 :   config.apis.last_known =
+; 2487 :   config.apis.last_known =
 
-	mov	DWORD PTR ?config@@3Usk_config_t@@A+812, eax
+	mov	DWORD PTR ?config@@3Usk_config_t@@A+824, eax
 ; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
 
 ; 9003 :     return (unsigned long) _InterlockedCompareExchange((volatile long*) Destination, (long) Exchange, (long) Comperand);
@@ -33082,41 +33063,41 @@ $LN34@SK_EndBuff:
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2662 :   if (! InterlockedCompareExchange (&budget_init, TRUE, FALSE))
+; 2493 :   if (! InterlockedCompareExchange (&budget_init, TRUE, FALSE))
 
 	test	eax, eax
 	jne	SHORT $LN35@SK_EndBuff
 
-; 2663 :   {
-; 2664 :     SK::DXGI::StartBudgetThread_NoAdapter ();
+; 2494 :   {
+; 2495 :     SK::DXGI::StartBudgetThread_NoAdapter ();
 
 	call	?StartBudgetThread_NoAdapter@DXGI@SK@@YAJXZ ; SK::DXGI::StartBudgetThread_NoAdapter
 $LN35@SK_EndBuff:
 
-; 2665 :   }
-; 2666 : 
-; 2667 : 
-; 2668 :   DoKeyboard ();
+; 2496 :   }
+; 2497 : 
+; 2498 : 
+; 2499 :   DoKeyboard ();
 
 	call	?DoKeyboard@@YAXXZ			; DoKeyboard
 
-; 2669 : 
-; 2670 :   InterlockedIncrement (&frames_drawn);
+; 2500 : 
+; 2501 :   InterlockedIncrement (&frames_drawn);
 
 	lock	 inc	 DWORD PTR ?frames_drawn@@3JC
 
-; 2671 : 
-; 2672 :   if (config.sli.show && device != nullptr)
+; 2502 : 
+; 2503 :   if (config.sli.show && device != nullptr)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+40, 0
 	je	SHORT $LN37@SK_EndBuff
 	test	esi, esi
 	je	SHORT $LN37@SK_EndBuff
 
-; 2673 :   {
-; 2674 :     // Get SLI status for the frame we just displayed... this will show up
-; 2675 :     //   one frame late, but this is the safest approach.
-; 2676 :     if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
+; 2504 :   {
+; 2505 :     // Get SLI status for the frame we just displayed... this will show up
+; 2506 :     //   one frame late, but this is the safest approach.
+; 2507 :     if (nvapi_init && sk::NVAPI::CountSLIGPUs () > 0)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
 	je	SHORT $LN37@SK_EndBuff
@@ -33124,8 +33105,8 @@ $LN35@SK_EndBuff:
 	test	eax, eax
 	jle	SHORT $LN37@SK_EndBuff
 
-; 2677 :     {
-; 2678 :       sli_state = sk::NVAPI::GetSLIState (device);
+; 2508 :     {
+; 2509 :       sli_state = sk::NVAPI::GetSLIState (device);
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	esi
@@ -33138,10 +33119,10 @@ $LN35@SK_EndBuff:
 	movups	XMMWORD PTR ?sli_state@@3UNV_GET_CURRENT_SLI_STATE_V2@@A+16, xmm0
 $LN37@SK_EndBuff:
 
-; 2679 :     }
-; 2680 :   }
-; 2681 : 
-; 2682 :   static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
+; 2510 :     }
+; 2511 :   }
+; 2512 : 
+; 2513 :   static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -33155,12 +33136,12 @@ $LN37@SK_EndBuff:
 	cmp	DWORD PTR ?$TSS0@?1??SK_EndBufferSwap@@YGJJPAUIUnknown@@@Z@4HA, -1
 	jne	SHORT $LN4@SK_EndBuff
 	mov	esi, DWORD PTR __imp__GetModuleHandleW@4
-	push	OFFSET $SG431293
+	push	OFFSET $SG431307
 	call	esi
 
-; 2683 :   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+; 2514 :   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
-	push	OFFSET $SG431294
+	push	OFFSET $SG431308
 	mov	DWORD PTR ?hModTZFix@?1??SK_EndBufferSwap@@YGJJPAUIUnknown@@@Z@4PAUHINSTANCE__@@A, eax
 	call	esi
 	push	OFFSET ?$TSS0@?1??SK_EndBufferSwap@@YGJJPAUIUnknown@@@Z@4HA
@@ -33169,11 +33150,11 @@ $LN37@SK_EndBuff:
 	add	esp, 4
 $LN4@SK_EndBuff:
 
-; 2684 : 
-; 2685 :   //
-; 2686 :   // TZFix has its own limiter
-; 2687 :   //
-; 2688 :   if (! (hModTZFix || hModTBFix))
+; 2515 : 
+; 2516 :   //
+; 2517 :   // TZFix has its own limiter
+; 2518 :   //
+; 2519 :   if (! (hModTZFix || hModTBFix))
 
 	cmp	DWORD PTR ?hModTZFix@?1??SK_EndBufferSwap@@YGJJPAUIUnknown@@@Z@4PAUHINSTANCE__@@A, 0
 	pop	esi
@@ -33181,18 +33162,18 @@ $LN4@SK_EndBuff:
 	cmp	DWORD PTR ?hModTBFix@?1??SK_EndBufferSwap@@YGJJPAUIUnknown@@@Z@4PAUHINSTANCE__@@A, 0
 	jne	SHORT $LN110@SK_EndBuff
 
-; 2689 :   {
-; 2690 :     SK::Framerate::GetLimiter ()->wait ();
+; 2520 :   {
+; 2521 :     SK::Framerate::GetLimiter ()->wait ();
 
 	call	?GetLimiter@Framerate@SK@@YAPAVLimiter@12@XZ ; SK::Framerate::GetLimiter
 	mov	ecx, eax
 	call	?wait@Limiter@Framerate@SK@@QAEXXZ	; SK::Framerate::Limiter::wait
 $LN110@SK_EndBuff:
 
-; 2691 :   }
-; 2692 : 
-; 2693 :   return hr;
-; 2694 : }
+; 2522 :   }
+; 2523 : 
+; 2524 :   return hr;
+; 2525 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, DWORD PTR _hr$[ebp]
@@ -33248,94 +33229,95 @@ $T7 = -28						; size = 24
 _DelayLoadDLL$8 = -4					; size = 4
 ?SK_BeginBufferSwap@@YGXXZ PROC				; SK_BeginBufferSwap
 
-; 1958 : {
+; 1977 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
-; 8077 :     Value = *Source;
+; 8063 :     Value = *Source;
 
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1958 : {
+; 1977 : {
 
 	sub	esp, 2784				; 00000ae0H
 	push	ebx
 	push	esi
 	push	edi
 
-; 1960 :   while (ReadNoFence (&SK_bypass_dialog_active))
+; 1979 :   if ( ReadAcquire (&SK_bypass_dialog_active) &&
 
 	test	eax, eax
-	je	SHORT $LN3@SK_BeginBu
-	mov	esi, DWORD PTR __imp__MsgWaitForMultipleObjectsEx@20
-	npad	3
-$LL2@SK_BeginBu:
+	je	SHORT $LN6@SK_BeginBu
+; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
-; 1961 :     MsgWaitForMultipleObjectsEx (0, nullptr, 166, QS_ALLINPUT, MWMO_ALERTABLE);
+; 8063 :     Value = *Source;
+
+	mov	esi, DWORD PTR ?SK_bypass_dialog_tid@@3JC ; SK_bypass_dialog_tid
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1979 :   if ( ReadAcquire (&SK_bypass_dialog_active) &&
+
+	call	DWORD PTR __imp__GetCurrentThreadId@0
+	cmp	esi, eax
+	jne	SHORT $LN6@SK_BeginBu
+
+; 1980 :        ReadAcquire (&SK_bypass_dialog_tid) == static_cast <LONG> (GetCurrentThreadId ()) )
+; 1981 :   {
+; 1982 :     MsgWaitForMultipleObjectsEx (0, nullptr, 166, QS_ALLINPUT, MWMO_ALERTABLE);
 
 	push	2
 	push	1279					; 000004ffH
 	push	166					; 000000a6H
 	push	0
 	push	0
-	call	esi
-; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
+	call	DWORD PTR __imp__MsgWaitForMultipleObjectsEx@20
+$LN6@SK_BeginBu:
 
-; 8077 :     Value = *Source;
-
-	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1960 :   while (ReadNoFence (&SK_bypass_dialog_active))
-
-	test	eax, eax
-	jne	SHORT $LL2@SK_BeginBu
-$LN3@SK_BeginBu:
-
-; 1962 : 
-; 1963 :   // ^^^ Use condition variable instead
-; 1964 : 
-; 1965 : 
-; 1966 :   // Maybe make this into an option, but for now just get this the hell out of there
-; 1967 :   //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
-; 1968 :   _controlfp (MCW_EM, MCW_EM);
+; 1983 :   }
+; 1984 : 
+; 1985 :   // ^^^ Use condition variable instead
+; 1986 : 
+; 1987 : 
+; 1988 :   // Maybe make this into an option, but for now just get this the hell out of there
+; 1989 :   //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
+; 1990 :   _controlfp (MCW_EM, MCW_EM);
 
 	push	524319					; 0008001fH
 	push	524319					; 0008001fH
 	call	DWORD PTR __imp___controlfp
 	add	esp, 8
 
-; 1969 : 
-; 1970 :   ImGuiIO& io =
+; 1991 : 
+; 1992 :   ImGuiIO& io =
 
 	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
 
-; 1971 :     ImGui::GetIO ();
-; 1972 : 
-; 1973 :   if (io.Fonts == nullptr)
+; 1993 :     ImGui::GetIO ();
+; 1994 : 
+; 1995 :   if (io.Fonts == nullptr)
 
 	cmp	DWORD PTR [eax+128], 0
-	jne	SHORT $LN8@SK_BeginBu
+	jne	SHORT $LN7@SK_BeginBu
 
-; 1974 :   {
-; 1975 :     extern void
-; 1976 :     SK_ImGui_LoadFonts (void);
-; 1977 : 
-; 1978 :     SK_ImGui_LoadFonts ();
+; 1996 :   {
+; 1997 :     extern void
+; 1998 :     SK_ImGui_LoadFonts (void);
+; 1999 : 
+; 2000 :     SK_ImGui_LoadFonts ();
 
 	call	?SK_ImGui_LoadFonts@@YAXXZ		; SK_ImGui_LoadFonts
-$LN8@SK_BeginBu:
+$LN7@SK_BeginBu:
 
-; 1979 :   }
-; 1980 : 
-; 1981 : 
-; 1982 :   static int import_tries = 0;
-; 1983 : 
-; 1984 :   if (import_tries++ == 0)
+; 2001 :   }
+; 2002 : 
+; 2003 : 
+; 2004 :   static int import_tries = 0;
+; 2005 : 
+; 2006 :   if (import_tries++ == 0)
 
 	mov	eax, DWORD PTR ?import_tries@?1??SK_BeginBufferSwap@@YGXXZ@4HA
 	mov	ecx, eax
@@ -33343,14 +33325,14 @@ $LN8@SK_BeginBu:
 	inc	eax
 	mov	DWORD PTR ?import_tries@?1??SK_BeginBufferSwap@@YGXXZ@4HA, eax
 	test	ecx, ecx
-	jne	SHORT $LN11@SK_BeginBu
+	jne	SHORT $LN10@SK_BeginBu
 
-; 1985 :   {
-; 1986 :   // Load user-defined DLLs (Late)
-; 1987 : #ifdef _WIN64
-; 1988 :     SK_LoadLateImports64 ();
-; 1989 : #else
-; 1990 :     SK_LoadLateImports32 ();
+; 2007 :   {
+; 2008 :   // Load user-defined DLLs (Late)
+; 2009 : #ifdef _WIN64
+; 2010 :     SK_LoadLateImports64 ();
+; 2011 : #else
+; 2012 :     SK_LoadLateImports32 ();
 
 	call	?SK_LoadLateImports32@@YAXXZ		; SK_LoadLateImports32
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -33361,38 +33343,38 @@ $LN8@SK_BeginBu:
 	mov	eax, DWORD PTR ?SK_SteamAPI_CallbackRunCount@@3_JC+4
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1993 :     if (ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) < 1)
+; 2015 :     if (ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) < 1)
 
 	test	eax, eax
-	jg	SHORT $LN10@SK_BeginBu
-	jl	SHORT $LN96@SK_BeginBu
+	jg	SHORT $LN9@SK_BeginBu
+	jl	SHORT $LN93@SK_BeginBu
 	cmp	ecx, 1
-	jae	SHORT $LN10@SK_BeginBu
-$LN96@SK_BeginBu:
+	jae	SHORT $LN9@SK_BeginBu
+$LN93@SK_BeginBu:
 
-; 1994 :     {
-; 1995 :       // Steam Init: Better late than never
-; 1996 : 
-; 1997 :       SK_TestSteamImports (GetModuleHandle (nullptr));
+; 2016 :     {
+; 2017 :       // Steam Init: Better late than never
+; 2018 : 
+; 2019 :       SK_TestSteamImports (GetModuleHandle (nullptr));
 
 	push	0
 	call	edi
 	push	eax
 	call	?SK_TestSteamImports@@YAXPAUHINSTANCE__@@@Z ; SK_TestSteamImports
 	add	esp, 4
-$LN10@SK_BeginBu:
+$LN9@SK_BeginBu:
 
-; 1998 :     }
-; 1999 : 
-; 2000 :     if (config.system.handle_crashes)
+; 2020 :     }
+; 2021 : 
+; 2022 :     if (config.system.handle_crashes)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+828, 0
-	je	SHORT $LN11@SK_BeginBu
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+840, 0
+	je	SHORT $LN10@SK_BeginBu
 
-; 2001 :       SK::Diagnostics::CrashHandler::Reinstall ();
+; 2023 :       SK::Diagnostics::CrashHandler::Reinstall ();
 
 	call	?Reinstall@CrashHandler@Diagnostics@SK@@YAXXZ ; SK::Diagnostics::CrashHandler::Reinstall
-$LN11@SK_BeginBu:
+$LN10@SK_BeginBu:
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
 ; 8077 :     Value = *Source;
@@ -33400,89 +33382,89 @@ $LN11@SK_BeginBu:
 	mov	eax, DWORD PTR ?first@?1??SK_BeginBufferSwap@@YGXXZ@4JC
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2007 :   if (ReadNoFence (&first))
+; 2029 :   if (ReadNoFence (&first))
 
 	mov	ebx, 1
 	test	eax, eax
-	je	SHORT $LN14@SK_BeginBu
+	je	SHORT $LN13@SK_BeginBu
 
-; 2008 :   {
-; 2009 :     if (SK_GetGameWindow () != nullptr)
+; 2030 :   {
+; 2031 :     if (SK_GetGameWindow () != nullptr)
 
 	call	?SK_GetGameWindow@@YGPAUHWND__@@XZ	; SK_GetGameWindow
 	test	eax, eax
-	je	SHORT $LN14@SK_BeginBu
+	je	SHORT $LN13@SK_BeginBu
 
-; 2010 :     {
-; 2011 :       extern void SK_ResetWindow ();
-; 2012 : 
-; 2013 :       if (InterlockedCompareExchange (&first, FALSE, TRUE))
+; 2032 :     {
+; 2033 :       extern void SK_ResetWindow ();
+; 2034 : 
+; 2035 :       if (InterlockedCompareExchange (&first, FALSE, TRUE))
 
 	xor	ecx, ecx
 	mov	edx, OFFSET ?first@?1??SK_BeginBufferSwap@@YGXXZ@4JC
 	mov	eax, ebx
 	lock	 cmpxchg DWORD PTR [edx], ecx
 	test	eax, eax
-	je	SHORT $LN14@SK_BeginBu
+	je	SHORT $LN13@SK_BeginBu
 
-; 2014 :         SK_ResetWindow ();
+; 2036 :         SK_ResetWindow ();
 
 	call	?SK_ResetWindow@@YAXXZ			; SK_ResetWindow
-$LN14@SK_BeginBu:
+$LN13@SK_BeginBu:
 
-; 2015 :     }
-; 2016 :   }
-; 2017 : 
-; 2018 : 
-; 2019 :   static volatile LONG cegui_init = FALSE;
-; 2020 :   static SK_RenderAPI  last_api   = SK_RenderAPI::Reserved;
-; 2021 : 
-; 2022 :   if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
+; 2037 :     }
+; 2038 :   }
+; 2039 : 
+; 2040 : 
+; 2041 :   static volatile LONG cegui_init = FALSE;
+; 2042 :   static SK_RenderAPI  last_api   = SK_RenderAPI::Reserved;
+; 2043 : 
+; 2044 :   if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax], ebx
-	je	$LN17@SK_BeginBu
+	je	$LN16@SK_BeginBu
 	mov	ecx, ebx
 	mov	edx, OFFSET ?cegui_init@?1??SK_BeginBufferSwap@@YGXXZ@4JC
 	xor	eax, eax
 	lock	 cmpxchg DWORD PTR [edx], ecx
 	test	eax, eax
-	je	SHORT $LN16@SK_BeginBu
+	je	SHORT $LN15@SK_BeginBu
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	ecx, DWORD PTR ?last_api@?1??SK_BeginBufferSwap@@YGXXZ@4W4SK_RenderAPI@@A
 	cmp	ecx, DWORD PTR [eax]
-	je	$LN17@SK_BeginBu
-$LN16@SK_BeginBu:
+	je	$LN16@SK_BeginBu
+$LN15@SK_BeginBu:
 
-; 2023 :        ( (! InterlockedCompareExchange (&cegui_init, 1, 0)) ||
-; 2024 :           last_api != SK_GetCurrentRenderBackend ().api ) )
-; 2025 :   {
-; 2026 :     if (config.cegui.enable)
+; 2045 :        ( (! InterlockedCompareExchange (&cegui_init, 1, 0)) ||
+; 2046 :           last_api != SK_GetCurrentRenderBackend ().api ) )
+; 2047 :   {
+; 2048 :     if (config.cegui.enable)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+160, 0
-	je	$LN17@SK_BeginBu
+	je	$LN16@SK_BeginBu
 
-; 2027 :     {
-; 2028 :       // Brutally stupid hack for brutally stupid OS (Windows 7)
-; 2029 :       //
-; 2030 :       //   1. Lock the DLL loader + Suspend all Threads
-; 2031 :       //   2. Change Working Dir  + Delay-Load CEGUI DLLs
-; 2032 :       //   3. Restore Working Dir
-; 2033 :       //   4. Resume all Threads  + Unlock DLL Loader
-; 2034 :       //
-; 2035 :       //     >> Not necessary if the kernel supports altered DLL serarch
-; 2036 :       //          paths <<
-; 2037 :       //
-; 2038 : 
-; 2039 :       SK_LockDllLoader ();
+; 2049 :     {
+; 2050 :       // Brutally stupid hack for brutally stupid OS (Windows 7)
+; 2051 :       //
+; 2052 :       //   1. Lock the DLL loader + Suspend all Threads
+; 2053 :       //   2. Change Working Dir  + Delay-Load CEGUI DLLs
+; 2054 :       //   3. Restore Working Dir
+; 2055 :       //   4. Resume all Threads  + Unlock DLL Loader
+; 2056 :       //
+; 2057 :       //     >> Not necessary if the kernel supports altered DLL serarch
+; 2058 :       //          paths <<
+; 2059 :       //
+; 2060 : 
+; 2061 :       SK_LockDllLoader ();
 
 	call	?SK_LockDllLoader@@YGXXZ		; SK_LockDllLoader
 
-; 2040 : 
-; 2041 :       // Disable until we validate CEGUI's state
-; 2042 :       config.cegui.enable = false;
-; 2043 : 
-; 2044 :       wchar_t wszCEGUIModPath [MAX_PATH]        = { };
+; 2062 : 
+; 2063 :       // Disable until we validate CEGUI's state
+; 2064 :       config.cegui.enable = false;
+; 2065 : 
+; 2066 :       wchar_t wszCEGUIModPath [MAX_PATH]        = { };
 
 	push	520					; 00000208H
 	lea	eax, DWORD PTR _wszCEGUIModPath$5[ebp]
@@ -33491,7 +33473,7 @@ $LN16@SK_BeginBu:
 	push	eax
 	call	_memset
 
-; 2045 :       wchar_t wszCEGUITestDLL [MAX_PATH]        = { };
+; 2067 :       wchar_t wszCEGUITestDLL [MAX_PATH]        = { };
 
 	push	520					; 00000208H
 	lea	eax, DWORD PTR _wszCEGUITestDLL$4[ebp]
@@ -33499,7 +33481,7 @@ $LN16@SK_BeginBu:
 	push	eax
 	call	_memset
 
-; 2046 :       wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { };
+; 2068 :       wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { };
 
 	push	584					; 00000248H
 	lea	eax, DWORD PTR _wszEnvPath$3[ebp]
@@ -33508,45 +33490,45 @@ $LN16@SK_BeginBu:
 	call	_memset
 	add	esp, 36					; 00000024H
 
-; 2047 : 
-; 2048 : 
-; 2049 :   #ifdef _WIN64
-; 2050 :       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
-; 2051 : 
-; 2052 :       if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
-; 2053 :       {
-; 2054 :         _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\x64",
-; 2055 :                       SK_GetDocumentsDir ().c_str () );
-; 2056 : 
-; 2057 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
-; 2058 :       }
-; 2059 : 
-; 2060 :       else
-; 2061 :       {
-; 2062 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
-; 2063 :       }
-; 2064 :   #else
-; 2065 :       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
+; 2069 : 
+; 2070 : 
+; 2071 :   #ifdef _WIN64
+; 2072 :       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
+; 2073 : 
+; 2074 :       if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
+; 2075 :       {
+; 2076 :         _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\x64",
+; 2077 :                       SK_GetDocumentsDir ().c_str () );
+; 2078 : 
+; 2079 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
+; 2080 :       }
+; 2081 : 
+; 2082 :       else
+; 2083 :       {
+; 2084 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
+; 2085 :       }
+; 2086 :   #else
+; 2087 :       _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
 
 	call	?SK_GetRootPath@@YGPB_WXZ		; SK_GetRootPath
 	mov	esi, eax
 	lea	eax, DWORD PTR _wszCEGUIModPath$5[ebp]
 	push	esi
-	push	OFFSET $SG430740
+	push	OFFSET $SG430810
 	push	eax
 	call	__swprintf
 	add	esp, 12					; 0000000cH
 
-; 2066 : 
-; 2067 :       if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
+; 2088 : 
+; 2089 :       if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
 
 	lea	eax, DWORD PTR _wszCEGUIModPath$5[ebp]
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
-	jne	SHORT $LN18@SK_BeginBu
+	jne	SHORT $LN17@SK_BeginBu
 
-; 2069 :         _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\Win32",
+; 2091 :         _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\Win32",
 
 	lea	eax, DWORD PTR $T7[ebp]
 	push	eax
@@ -33560,27 +33542,27 @@ $LN16@SK_BeginBu:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN60@SK_BeginBu
+	jb	SHORT $LN61@SK_BeginBu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN60@SK_BeginBu:
+$LN61@SK_BeginBu:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2069 :         _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\Win32",
+; 2091 :         _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\Win32",
 
 	push	eax
 	lea	eax, DWORD PTR _wszCEGUIModPath$5[ebp]
-	push	OFFSET $SG430743
+	push	OFFSET $SG430813
 	push	eax
 	call	__swprintf
 	add	esp, 12					; 0000000cH
 	lea	ecx, DWORD PTR $T7[ebp]
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 2072 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
+; 2094 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
 
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
@@ -33594,52 +33576,52 @@ $LN60@SK_BeginBu:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN79@SK_BeginBu
+	jb	SHORT $LN80@SK_BeginBu
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN79@SK_BeginBu:
+$LN80@SK_BeginBu:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2072 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
+; 2094 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszEnvPath$3[ebp]
-	push	OFFSET $SG430744
+	push	OFFSET $SG430814
 	push	eax
 	call	__swprintf
 	add	esp, 12					; 0000000cH
 	lea	ecx, DWORD PTR $T6[ebp]
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 2073 :       }
-; 2074 :       else
+; 2095 :       }
+; 2096 :       else
 
-	jmp	SHORT $LN19@SK_BeginBu
-$LN18@SK_BeginBu:
+	jmp	SHORT $LN18@SK_BeginBu
+$LN17@SK_BeginBu:
 
-; 2075 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
+; 2097 :         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
 
 	push	esi
 	lea	eax, DWORD PTR _wszEnvPath$3[ebp]
-	push	OFFSET $SG430745
+	push	OFFSET $SG430815
 	push	eax
 	call	__swprintf
 	add	esp, 12					; 0000000cH
-$LN19@SK_BeginBu:
+$LN18@SK_BeginBu:
 
-; 2076 :   #endif
-; 2077 : 
-; 2078 :       _wputenv  (wszEnvPath);
+; 2098 :   #endif
+; 2099 : 
+; 2100 :       _wputenv  (wszEnvPath);
 
 	lea	eax, DWORD PTR _wszEnvPath$3[ebp]
 	push	eax
 	call	DWORD PTR __imp___wputenv
 
-; 2079 : 
-; 2080 :       lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
+; 2101 : 
+; 2102 :       lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
 
 	mov	esi, DWORD PTR __imp__lstrcatW@8
 	lea	eax, DWORD PTR _wszCEGUIModPath$5[ebp]
@@ -33649,15 +33631,15 @@ $LN19@SK_BeginBu:
 	push	eax
 	call	esi
 
-; 2081 :       lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
+; 2103 :       lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
 
-	push	OFFSET $SG430746
+	push	OFFSET $SG430816
 	lea	eax, DWORD PTR _wszCEGUITestDLL$4[ebp]
 	push	eax
 	call	esi
 
-; 2082 : 
-; 2083 :       wchar_t wszWorkingDir [MAX_PATH + 2] = { };
+; 2104 : 
+; 2105 :       wchar_t wszWorkingDir [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszWorkingDir$2[ebp]
@@ -33665,87 +33647,87 @@ $LN19@SK_BeginBu:
 	push	eax
 	call	_memset
 
-; 2084 : 
-; 2085 :       if (! config.cegui.safe_init)
+; 2106 : 
+; 2107 :       if (! config.cegui.safe_init)
 
 	mov	ebx, DWORD PTR __imp__SetCurrentDirectoryW@4
 	add	esp, 12					; 0000000cH
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+161, 0
-	jne	SHORT $LN20@SK_BeginBu
+	jne	SHORT $LN19@SK_BeginBu
 
-; 2086 :       {
-; 2087 :         //std::queue <DWORD> tids =
-; 2088 :         //  SK_SuspendAllOtherThreads ();
-; 2089 : 
-; 2090 :         GetCurrentDirectory    (MAX_PATH, wszWorkingDir);
+; 2108 :       {
+; 2109 :         //std::queue <DWORD> tids =
+; 2110 :         //  SK_SuspendAllOtherThreads ();
+; 2111 : 
+; 2112 :         GetCurrentDirectory    (MAX_PATH, wszWorkingDir);
 
 	lea	eax, DWORD PTR _wszWorkingDir$2[ebp]
 	push	eax
 	push	260					; 00000104H
 	call	DWORD PTR __imp__GetCurrentDirectoryW@8
 
-; 2091 :         SetCurrentDirectory    (        wszCEGUIModPath);
+; 2113 :         SetCurrentDirectory    (        wszCEGUIModPath);
 
 	lea	eax, DWORD PTR _wszCEGUIModPath$5[ebp]
 	push	eax
 	call	ebx
-$LN20@SK_BeginBu:
+$LN19@SK_BeginBu:
 
-; 2092 :       }
-; 2093 : 
-; 2094 :       // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
-; 2095 :       //   do support it if a certain Windows Update (KB2533623) is installed.
-; 2096 :       using AddDllDirectory_pfn          = DLL_DIRECTORY_COOKIE (WINAPI *)(_In_ PCWSTR               NewDirectory);
-; 2097 :       using RemoveDllDirectory_pfn       = BOOL                 (WINAPI *)(_In_ DLL_DIRECTORY_COOKIE Cookie);
-; 2098 :       using SetDefaultDllDirectories_pfn = BOOL                 (WINAPI *)(_In_ DWORD                DirectoryFlags);
-; 2099 : 
-; 2100 :       static auto k32_AddDllDirectory =
+; 2114 :       }
+; 2115 : 
+; 2116 :       // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
+; 2117 :       //   do support it if a certain Windows Update (KB2533623) is installed.
+; 2118 :       using AddDllDirectory_pfn          = DLL_DIRECTORY_COOKIE (WINAPI *)(_In_ PCWSTR               NewDirectory);
+; 2119 :       using RemoveDllDirectory_pfn       = BOOL                 (WINAPI *)(_In_ DLL_DIRECTORY_COOKIE Cookie);
+; 2120 :       using SetDefaultDllDirectories_pfn = BOOL                 (WINAPI *)(_In_ DWORD                DirectoryFlags);
+; 2121 : 
+; 2122 :       static auto k32_AddDllDirectory =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
 	mov	ecx, DWORD PTR [eax+ecx*4]
-	mov	eax, DWORD PTR ?$TSS0@?BM@??SK_BeginBufferSwap@@YGXXZ@4HA
+	mov	eax, DWORD PTR ?$TSS0@?BO@??SK_BeginBufferSwap@@YGXXZ@4HA
 	cmp	eax, DWORD PTR __Init_thread_epoch[ecx]
-	jg	$LN101@SK_BeginBu
-$LN97@SK_BeginBu:
+	jg	$LN98@SK_BeginBu
+$LN94@SK_BeginBu:
 
-; 2113 :                              "SetDefaultDllDirectories" );
-; 2114 : 
-; 2115 :       if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
-; 2116 :            k32_SetDefaultDllDirectories &&
+; 2135 :                              "SetDefaultDllDirectories" );
+; 2136 : 
+; 2137 :       if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
+; 2138 :            k32_SetDefaultDllDirectories &&
 
-	cmp	DWORD PTR ?k32_AddDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA, 0
-	je	$LN98@SK_BeginBu
-	cmp	DWORD PTR ?k32_RemoveDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA, 0
-	je	$LN98@SK_BeginBu
-	cmp	DWORD PTR ?k32_SetDefaultDllDirectories@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA, 0
-	je	$LN98@SK_BeginBu
+	cmp	DWORD PTR ?k32_AddDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA, 0
+	je	$LN95@SK_BeginBu
+	cmp	DWORD PTR ?k32_RemoveDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA, 0
+	je	$LN95@SK_BeginBu
+	cmp	DWORD PTR ?k32_SetDefaultDllDirectories@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA, 0
+	je	$LN95@SK_BeginBu
 	lea	eax, DWORD PTR _wszCEGUITestDLL$4[ebp]
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
-	je	$LN98@SK_BeginBu
+	je	$LN95@SK_BeginBu
 
-; 2117 : 
-; 2118 :              GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
-; 2119 :       {
-; 2120 :         SK_StripUserNameFromPathW (wszCEGUITestDLL);
+; 2139 : 
+; 2140 :              GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
+; 2141 :       {
+; 2142 :         SK_StripUserNameFromPathW (wszCEGUITestDLL);
 
 	lea	eax, DWORD PTR _wszCEGUITestDLL$4[ebp]
 	push	eax
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 2121 : 
-; 2122 :         dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
+; 2143 : 
+; 2144 :         dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
 
 	lea	eax, DWORD PTR _wszCEGUITestDLL$4[ebp]
 	push	eax
-	push	OFFSET $SG430755
+	push	OFFSET $SG430825
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 2123 : 
-; 2124 :         wchar_t wszEnvVar [ MAX_PATH + 32 ] = { };
+; 2145 : 
+; 2146 :         wchar_t wszEnvVar [ MAX_PATH + 32 ] = { };
 
 	push	584					; 00000248H
 	lea	eax, DWORD PTR _wszEnvVar$1[ebp]
@@ -33753,339 +33735,339 @@ $LN97@SK_BeginBu:
 	push	eax
 	call	_memset
 
-; 2125 : 
-; 2126 :         _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
+; 2147 : 
+; 2148 :         _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
 
 	lea	eax, DWORD PTR _wszCEGUIModPath$5[ebp]
 	push	eax
 	lea	eax, DWORD PTR _wszEnvVar$1[ebp]
-	push	OFFSET $SG430756
+	push	OFFSET $SG430826
 	push	eax
 	call	__swprintf
 
-; 2127 :         _wputenv  (wszEnvVar);
+; 2149 :         _wputenv  (wszEnvVar);
 
 	lea	eax, DWORD PTR _wszEnvVar$1[ebp]
 	push	eax
 	call	DWORD PTR __imp___wputenv
 	add	esp, 44					; 0000002cH
 
-; 2157 :             };
+; 2179 :             };
 
 	lea	eax, DWORD PTR _wszCEGUIModPath$5[ebp]
 
-; 2158 : 
-; 2159 :         if (DelayLoadDLL ("CEGUIBase-0.dll"))
+; 2180 : 
+; 2181 :         if (DelayLoadDLL ("CEGUIBase-0.dll"))
 
 	lea	ecx, DWORD PTR _DelayLoadDLL$8[ebp]
 
-; 2157 :             };
+; 2179 :             };
 
 	mov	DWORD PTR _DelayLoadDLL$8[ebp], eax
 
-; 2158 : 
-; 2159 :         if (DelayLoadDLL ("CEGUIBase-0.dll"))
+; 2180 : 
+; 2181 :         if (DelayLoadDLL ("CEGUIBase-0.dll"))
 
-	push	OFFSET $SG430758
-	call	??R<lambda_7e66bdca6ded84295017a42506a51330>@@QBE_NPBD@Z ; <lambda_7e66bdca6ded84295017a42506a51330>::operator()
+	push	OFFSET $SG430828
+	call	??R<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QBE_NPBD@Z ; <lambda_e90c1de77d7500ca5331d50c90c1ba3f>::operator()
 	test	al, al
-	je	$LN98@SK_BeginBu
+	je	$LN95@SK_BeginBu
 
-; 2160 :         {
-; 2161 :           if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
+; 2182 :         {
+; 2183 :           if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax], 2
-	jne	SHORT $LN100@SK_BeginBu
+	jne	SHORT $LN97@SK_BeginBu
 
-; 2162 :           {
-; 2163 :             if (config.apis.OpenGL.hook)
+; 2184 :           {
+; 2185 :             if (config.apis.OpenGL.hook)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+806, 0
-	je	SHORT $LN100@SK_BeginBu
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+818, 0
+	je	SHORT $LN97@SK_BeginBu
 
-; 2164 :             {
-; 2165 :               if (DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll"))
+; 2186 :             {
+; 2187 :               if (DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll"))
 
-	push	OFFSET $SG430762
+	push	OFFSET $SG430832
 	lea	ecx, DWORD PTR _DelayLoadDLL$8[ebp]
-	call	??R<lambda_7e66bdca6ded84295017a42506a51330>@@QBE_NPBD@Z ; <lambda_7e66bdca6ded84295017a42506a51330>::operator()
+	call	??R<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QBE_NPBD@Z ; <lambda_e90c1de77d7500ca5331d50c90c1ba3f>::operator()
 	movzx	ecx, BYTE PTR ?config@@3Usk_config_t@@A+160
 	test	al, al
 	mov	esi, 1
 	cmovne	ecx, esi
 	mov	BYTE PTR ?config@@3Usk_config_t@@A+160, cl
-	jmp	SHORT $LN25@SK_BeginBu
-$LN100@SK_BeginBu:
+	jmp	SHORT $LN24@SK_BeginBu
+$LN97@SK_BeginBu:
 	mov	esi, 1
-$LN25@SK_BeginBu:
+$LN24@SK_BeginBu:
 
-; 2166 :                 config.cegui.enable = true;
-; 2167 :             }
-; 2168 :           }
-; 2169 : 
-; 2170 :           if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
+; 2188 :                 config.cegui.enable = true;
+; 2189 :             }
+; 2190 :           }
+; 2191 : 
+; 2192 :           if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax], 8
-	je	SHORT $LN27@SK_BeginBu
+	je	SHORT $LN26@SK_BeginBu
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	DWORD PTR [eax], 24			; 00000018H
-	jne	SHORT $LN30@SK_BeginBu
-$LN27@SK_BeginBu:
-
-; 2171 :                SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
-; 2172 :           {
-; 2173 :             if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+803, 0
 	jne	SHORT $LN29@SK_BeginBu
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+804, 0
-	je	SHORT $LN30@SK_BeginBu
-$LN29@SK_BeginBu:
+$LN26@SK_BeginBu:
 
-; 2174 :             {
-; 2175 :               if (DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll"))
+; 2193 :                SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
+; 2194 :           {
+; 2195 :             if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
 
-	push	OFFSET $SG430768
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+815, 0
+	jne	SHORT $LN28@SK_BeginBu
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+816, 0
+	je	SHORT $LN29@SK_BeginBu
+$LN28@SK_BeginBu:
+
+; 2196 :             {
+; 2197 :               if (DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll"))
+
+	push	OFFSET $SG430838
 	lea	ecx, DWORD PTR _DelayLoadDLL$8[ebp]
-	call	??R<lambda_7e66bdca6ded84295017a42506a51330>@@QBE_NPBD@Z ; <lambda_7e66bdca6ded84295017a42506a51330>::operator()
+	call	??R<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QBE_NPBD@Z ; <lambda_e90c1de77d7500ca5331d50c90c1ba3f>::operator()
 	movzx	ecx, BYTE PTR ?config@@3Usk_config_t@@A+160
 	test	al, al
 	cmovne	ecx, esi
 	mov	BYTE PTR ?config@@3Usk_config_t@@A+160, cl
-$LN30@SK_BeginBu:
+$LN29@SK_BeginBu:
 
-; 2176 :                 config.cegui.enable = true;
-; 2177 :             }
-; 2178 :           }
-; 2179 : 
-; 2180 :           if (config.apis.dxgi.d3d11.hook)
+; 2198 :                 config.cegui.enable = true;
+; 2199 :             }
+; 2200 :           }
+; 2201 : 
+; 2202 :           if (config.apis.dxgi.d3d11.hook)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+805, 0
-	je	SHORT $LN98@SK_BeginBu
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+817, 0
+	je	SHORT $LN95@SK_BeginBu
 
-; 2181 :           {
-; 2182 :             if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+; 2203 :           {
+; 2204 :             if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	test	BYTE PTR [eax], 64			; 00000040H
-	je	SHORT $LN98@SK_BeginBu
+	je	SHORT $LN95@SK_BeginBu
 
-; 2183 :                  static_cast <int> (SK_RenderAPI::D3D11              ) )
-; 2184 :             {
-; 2185 :               if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
+; 2205 :                  static_cast <int> (SK_RenderAPI::D3D11              ) )
+; 2206 :             {
+; 2207 :               if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
 
-	push	OFFSET $SG430772
+	push	OFFSET $SG430842
 	lea	ecx, DWORD PTR _DelayLoadDLL$8[ebp]
-	call	??R<lambda_7e66bdca6ded84295017a42506a51330>@@QBE_NPBD@Z ; <lambda_7e66bdca6ded84295017a42506a51330>::operator()
+	call	??R<lambda_e90c1de77d7500ca5331d50c90c1ba3f>@@QBE_NPBD@Z ; <lambda_e90c1de77d7500ca5331d50c90c1ba3f>::operator()
 	movzx	ecx, BYTE PTR ?config@@3Usk_config_t@@A+160
 	test	al, al
 	cmovne	ecx, esi
 	mov	BYTE PTR ?config@@3Usk_config_t@@A+160, cl
-$LN98@SK_BeginBu:
+$LN95@SK_BeginBu:
 
-; 2186 :                 config.cegui.enable = true;
-; 2187 :             }
-; 2188 :           }
-; 2189 :         }
-; 2190 :       }
-; 2191 : 
-; 2192 :       if (! config.cegui.safe_init)
+; 2208 :                 config.cegui.enable = true;
+; 2209 :             }
+; 2210 :           }
+; 2211 :         }
+; 2212 :       }
+; 2213 : 
+; 2214 :       if (! config.cegui.safe_init)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+161, 0
-	jne	SHORT $LN34@SK_BeginBu
+	jne	SHORT $LN33@SK_BeginBu
 
-; 2193 :       {
-; 2194 :         SetCurrentDirectory (wszWorkingDir);
+; 2215 :       {
+; 2216 :         SetCurrentDirectory (wszWorkingDir);
 
 	lea	eax, DWORD PTR _wszWorkingDir$2[ebp]
 	push	eax
 	call	ebx
-$LN34@SK_BeginBu:
+$LN33@SK_BeginBu:
 
-; 2195 :         //SK_ResumeThreads  (tids);
-; 2196 :       }
-; 2197 : 
-; 2198 :       SK_UnlockDllLoader  ();
+; 2217 :       //SK_ResumeThreads    (tids);
+; 2218 :       }
+; 2219 : 
+; 2220 :       SK_UnlockDllLoader  ();
 
 	call	?SK_UnlockDllLoader@@YGXXZ		; SK_UnlockDllLoader
-$LN17@SK_BeginBu:
+$LN16@SK_BeginBu:
 
-; 2199 :     }
-; 2200 :   }
-; 2201 : 
-; 2202 :   last_api = SK_GetCurrentRenderBackend ().api;
+; 2221 :     }
+; 2222 :   }
+; 2223 : 
+; 2224 :   last_api = SK_GetCurrentRenderBackend ().api;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
 	mov	DWORD PTR ?last_api@?1??SK_BeginBufferSwap@@YGXXZ@4W4SK_RenderAPI@@A, eax
 
-; 2203 : 
-; 2204 : 
-; 2205 :   SK_DrawOSD         ();
+; 2225 : 
+; 2226 : 
+; 2227 :   SK_DrawOSD         ();
 
 	call	?SK_DrawOSD@@YGHXZ			; SK_DrawOSD
 
-; 2206 :   SK_DrawConsole     ();
+; 2228 :   SK_DrawConsole     ();
 
 	call	?SK_DrawConsole@@YAXXZ			; SK_DrawConsole
 
-; 2207 : 
-; 2208 :   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+; 2229 : 
+; 2230 :   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
 	mov	eax, DWORD PTR __tls_index
 	mov	edx, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR [edx+eax*4]
 	mov	eax, DWORD PTR ?$TSS3@?1??SK_BeginBufferSwap@@YGXXZ@4HA
 	cmp	eax, DWORD PTR __Init_thread_epoch[ecx]
-	jg	$LN103@SK_BeginBu
-$LN7@SK_BeginBu:
+	jg	$LN100@SK_BeginBu
+$LN5@SK_BeginBu:
 
-; 2209 : 
-; 2210 :   if (hModTBFix)
+; 2231 : 
+; 2232 :   if (hModTBFix)
 
 	cmp	DWORD PTR ?hModTBFix@?1??SK_BeginBufferSwap@@YGXXZ@4PAUHINSTANCE__@@A, 0
 	pop	edi
 	pop	esi
 	pop	ebx
-	je	SHORT $LN35@SK_BeginBu
+	je	SHORT $LN34@SK_BeginBu
 
-; 2211 :   {
-; 2212 :     const char* szFirst = "First-frame Done";
-; 2213 : 
-; 2214 :     if (SK_Steam_PiratesAhoy () != 0x00)
+; 2233 :   {
+; 2234 :     const char* szFirst = "First-frame Done";
+; 2235 : 
+; 2236 :     if (SK_Steam_PiratesAhoy () != 0x00)
 
 	call	?SK_Steam_PiratesAhoy@@YGIXZ		; SK_Steam_PiratesAhoy
 	test	eax, eax
-	je	SHORT $LN36@SK_BeginBu
+	je	SHORT $LN35@SK_BeginBu
 
-; 2215 :     {
-; 2216 :       extern float target_fps;
-; 2217 :       target_fps = static_cast <float> (*reinterpret_cast <const uint8_t *>(szFirst+5));
+; 2237 :     {
+; 2238 :       extern float target_fps;
+; 2239 :       target_fps = static_cast <float> (*reinterpret_cast <const uint8_t *>(szFirst+5));
 
 	mov	DWORD PTR ?target_fps@@3MA, 1110704128	; 42340000H
-$LN36@SK_BeginBu:
+$LN35@SK_BeginBu:
 
-; 2218 :     }
-; 2219 : 
-; 2220 :     SK::Framerate::GetLimiter ()->wait ();
+; 2240 :     }
+; 2241 : 
+; 2242 :     SK::Framerate::GetLimiter ()->wait ();
 
 	call	?GetLimiter@Framerate@SK@@YAPAVLimiter@12@XZ ; SK::Framerate::GetLimiter
 	mov	ecx, eax
 	call	?wait@Limiter@Framerate@SK@@QAEXXZ	; SK::Framerate::Limiter::wait
-$LN35@SK_BeginBu:
+$LN34@SK_BeginBu:
 
-; 2221 :   }
-; 2222 : 
-; 2223 :   extern uint32_t WINAPI SK_Steam_PiratesAhoy (void);
-; 2224 :   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
+; 2243 :   }
+; 2244 : 
+; 2245 :   extern uint32_t WINAPI SK_Steam_PiratesAhoy (void);
+; 2246 :   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
 
 	call	?SK_Steam_PiratesAhoy@@YGIXZ		; SK_Steam_PiratesAhoy
 	test	eax, eax
-	je	SHORT $LN37@SK_BeginBu
+	je	SHORT $LN36@SK_BeginBu
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 1466 : static inline bool SK_ImGui_Active (void) { return SK_ImGui_Visible || SK_ReShade_Visible; };
 
 	cmp	BYTE PTR ?SK_ImGui_Visible@@3_NA, 0	; SK_ImGui_Visible
-	jne	SHORT $LN37@SK_BeginBu
+	jne	SHORT $LN36@SK_BeginBu
 	cmp	BYTE PTR ?SK_ReShade_Visible@@3_NA, 0	; SK_ReShade_Visible
-	jne	SHORT $LN37@SK_BeginBu
+	jne	SHORT $LN36@SK_BeginBu
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 2227 :                 SK_ImGui_Toggle ();
+; 2249 :                 SK_ImGui_Toggle ();
 
 	call	?SK_ImGui_Toggle@@YAXXZ			; SK_ImGui_Toggle
-$LN37@SK_BeginBu:
+$LN36@SK_BeginBu:
 
-; 2228 :   }
-; 2229 : 
-; 2230 :   extern void SK_ImGui_PollGamepad_EndFrame (void);
-; 2231 :   SK_ImGui_PollGamepad_EndFrame ();
+; 2250 :   }
+; 2251 : 
+; 2252 :   extern void SK_ImGui_PollGamepad_EndFrame (void);
+; 2253 :   SK_ImGui_PollGamepad_EndFrame ();
 
 	call	?SK_ImGui_PollGamepad_EndFrame@@YAXXZ	; SK_ImGui_PollGamepad_EndFrame
 
-; 2232 : }
+; 2254 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
-$LN101@SK_BeginBu:
+$LN98@SK_BeginBu:
 
-; 2092 :       }
-; 2093 : 
-; 2094 :       // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
-; 2095 :       //   do support it if a certain Windows Update (KB2533623) is installed.
-; 2096 :       using AddDllDirectory_pfn          = DLL_DIRECTORY_COOKIE (WINAPI *)(_In_ PCWSTR               NewDirectory);
-; 2097 :       using RemoveDllDirectory_pfn       = BOOL                 (WINAPI *)(_In_ DLL_DIRECTORY_COOKIE Cookie);
-; 2098 :       using SetDefaultDllDirectories_pfn = BOOL                 (WINAPI *)(_In_ DWORD                DirectoryFlags);
-; 2099 : 
-; 2100 :       static auto k32_AddDllDirectory =
+; 2114 :       }
+; 2115 : 
+; 2116 :       // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
+; 2117 :       //   do support it if a certain Windows Update (KB2533623) is installed.
+; 2118 :       using AddDllDirectory_pfn          = DLL_DIRECTORY_COOKIE (WINAPI *)(_In_ PCWSTR               NewDirectory);
+; 2119 :       using RemoveDllDirectory_pfn       = BOOL                 (WINAPI *)(_In_ DLL_DIRECTORY_COOKIE Cookie);
+; 2120 :       using SetDefaultDllDirectories_pfn = BOOL                 (WINAPI *)(_In_ DWORD                DirectoryFlags);
+; 2121 : 
+; 2122 :       static auto k32_AddDllDirectory =
 
-	push	OFFSET ?$TSS0@?BM@??SK_BeginBufferSwap@@YGXXZ@4HA
+	push	OFFSET ?$TSS0@?BO@??SK_BeginBufferSwap@@YGXXZ@4HA
 	call	__Init_thread_header
 	add	esp, 4
-	cmp	DWORD PTR ?$TSS0@?BM@??SK_BeginBufferSwap@@YGXXZ@4HA, -1
-	jne	$LN97@SK_BeginBu
+	cmp	DWORD PTR ?$TSS0@?BO@??SK_BeginBufferSwap@@YGXXZ@4HA, -1
+	jne	$LN94@SK_BeginBu
 
-; 2101 :         (AddDllDirectory_pfn)
-; 2102 :           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+; 2123 :         (AddDllDirectory_pfn)
+; 2124 :           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
 
-	push	OFFSET $SG430748
-	push	OFFSET $SG430749
+	push	OFFSET $SG430818
+	push	OFFSET $SG430819
 	call	edi
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
 	push	eax
 	call	esi
 
-; 2103 :                              "AddDllDirectory" );
-; 2104 : 
-; 2105 :       static auto k32_RemoveDllDirectory =
-; 2106 :         (RemoveDllDirectory_pfn)
-; 2107 :           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+; 2125 :                              "AddDllDirectory" );
+; 2126 : 
+; 2127 :       static auto k32_RemoveDllDirectory =
+; 2128 :         (RemoveDllDirectory_pfn)
+; 2129 :           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
 
-	push	OFFSET $SG430750
-	push	OFFSET $SG430751
-	mov	DWORD PTR ?k32_AddDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA, eax
+	push	OFFSET $SG430820
+	push	OFFSET $SG430821
+	mov	DWORD PTR ?k32_AddDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GPAXPB_W@ZA, eax
 	call	edi
 	push	eax
 	call	esi
 
-; 2108 :                              "RemoveDllDirectory" );
-; 2109 : 
-; 2110 :       static auto k32_SetDefaultDllDirectories =
-; 2111 :         (SetDefaultDllDirectories_pfn)
-; 2112 :           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+; 2130 :                              "RemoveDllDirectory" );
+; 2131 : 
+; 2132 :       static auto k32_SetDefaultDllDirectories =
+; 2133 :         (SetDefaultDllDirectories_pfn)
+; 2134 :           GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
 
-	push	OFFSET $SG430752
-	push	OFFSET $SG430753
-	mov	DWORD PTR ?k32_RemoveDllDirectory@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA, eax
+	push	OFFSET $SG430822
+	push	OFFSET $SG430823
+	mov	DWORD PTR ?k32_RemoveDllDirectory@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHPAX@ZA, eax
 	call	edi
 	push	eax
 	call	esi
-	push	OFFSET ?$TSS0@?BM@??SK_BeginBufferSwap@@YGXXZ@4HA
-	mov	DWORD PTR ?k32_SetDefaultDllDirectories@?BM@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA, eax
+	push	OFFSET ?$TSS0@?BO@??SK_BeginBufferSwap@@YGXXZ@4HA
+	mov	DWORD PTR ?k32_SetDefaultDllDirectories@?BO@??SK_BeginBufferSwap@@YGXXZ@4P6GHK@ZA, eax
 	call	__Init_thread_footer
 	add	esp, 4
-	jmp	$LN97@SK_BeginBu
-$LN103@SK_BeginBu:
+	jmp	$LN94@SK_BeginBu
+$LN100@SK_BeginBu:
 
-; 2207 : 
-; 2208 :   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+; 2229 : 
+; 2230 :   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
 	push	OFFSET ?$TSS3@?1??SK_BeginBufferSwap@@YGXXZ@4HA
 	call	__Init_thread_header
 	add	esp, 4
 	cmp	DWORD PTR ?$TSS3@?1??SK_BeginBufferSwap@@YGXXZ@4HA, -1
-	jne	$LN7@SK_BeginBu
-	push	OFFSET $SG430774
+	jne	$LN5@SK_BeginBu
+	push	OFFSET $SG430844
 	call	edi
 	push	OFFSET ?$TSS3@?1??SK_BeginBufferSwap@@YGXXZ@4HA
 	mov	DWORD PTR ?hModTBFix@?1??SK_BeginBufferSwap@@YGXXZ@4PAUHINSTANCE__@@A, eax
 	call	__Init_thread_footer
 	add	esp, 4
-	jmp	$LN7@SK_BeginBu
+	jmp	$LN5@SK_BeginBu
 ?SK_BeginBufferSwap@@YGXXZ ENDP				; SK_BeginBufferSwap
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
@@ -34104,7 +34086,7 @@ __$EHRec$ = -12						; size = 12
 _backend$ = 8						; size = 4
 ?SK_ShutdownCore@@YG_NPB_W@Z PROC			; SK_ShutdownCore
 
-; 1813 : {
+; 1830 : {
 
 	npad	2
 	push	ebp
@@ -34116,10 +34098,10 @@ _backend$ = 8						; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 16					; 00000010H
 
-; 1814 :   // Fast path for DLLs that were never really attached.
-; 1815 :   extern __time64_t __SK_DLL_AttachTime;
-; 1816 : 
-; 1817 :   if (! __SK_DLL_AttachTime)
+; 1831 :   // Fast path for DLLs that were never really attached.
+; 1832 :   extern __time64_t __SK_DLL_AttachTime;
+; 1833 : 
+; 1834 :   if (! __SK_DLL_AttachTime)
 
 	mov	eax, DWORD PTR ?__SK_DLL_AttachTime@@3_JA
 	or	eax, DWORD PTR ?__SK_DLL_AttachTime@@3_JA+4
@@ -34128,77 +34110,77 @@ _backend$ = 8						; size = 4
 	push	edi
 	jne	SHORT $LN2@SK_Shutdow
 
-; 1818 :   {
-; 1819 :     SK_UnInit_MinHook ();
+; 1835 :   {
+; 1836 :     SK_UnInit_MinHook ();
 
 	call	?SK_UnInit_MinHook@@YG?AW4MH_STATUS@@XZ	; SK_UnInit_MinHook
 
-; 1820 :     return true;
+; 1837 :     return true;
 
 	jmp	$LN24@SK_Shutdow
 $LN2@SK_Shutdow:
 
-; 1821 :   }
-; 1822 : 
-; 1823 : 
-; 1824 :   dll_log.Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
+; 1838 :   }
+; 1839 : 
+; 1840 : 
+; 1841 :   dll_log.Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
 
-	push	OFFSET $SG430594
+	push	OFFSET $SG430664
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 1825 :   SK_Win32_CleanupDummyWindow ();
+; 1842 :   SK_Win32_CleanupDummyWindow ();
 
 	call	?SK_Win32_CleanupDummyWindow@@YAXXZ	; SK_Win32_CleanupDummyWindow
 
-; 1826 : 
-; 1827 : 
-; 1828 : 
-; 1829 :   if (config.window.background_mute)
+; 1843 : 
+; 1844 : 
+; 1845 : 
+; 1846 :   if (config.window.background_mute)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+765, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+769, 0
 	je	SHORT $LN3@SK_Shutdow
 
-; 1830 :     SK_SetGameMute (FALSE);
+; 1847 :     SK_SetGameMute (FALSE);
 
 	push	0
 	call	?SK_SetGameMute@@YGX_N@Z		; SK_SetGameMute
 $LN3@SK_Shutdow:
 
-; 1831 : 
-; 1832 :   // These games do not handle resolution correctly
-; 1833 :   if ( (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe")) ||
-; 1834 :        (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))     ||
-; 1835 :        (! lstrcmpW (SK_GetHostApp (), L"FFX.exe"))          ||
-; 1836 :        (! lstrcmpW (SK_GetHostApp (), L"FFX-2.exe"))        ||
+; 1848 : 
+; 1849 :   // These games do not handle resolution correctly
+; 1850 :   if ( (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe")) ||
+; 1851 :        (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))     ||
+; 1852 :        (! lstrcmpW (SK_GetHostApp (), L"FFX.exe"))          ||
+; 1853 :        (! lstrcmpW (SK_GetHostApp (), L"FFX-2.exe"))        ||
 
-	push	OFFSET $SG430598
+	push	OFFSET $SG430668
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	mov	esi, DWORD PTR __imp__lstrcmpW@8
 	push	eax
 	call	esi
 	test	eax, eax
 	je	SHORT $LN5@SK_Shutdow
-	push	OFFSET $SG430599
+	push	OFFSET $SG430669
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	esi
 	test	eax, eax
 	je	SHORT $LN5@SK_Shutdow
-	push	OFFSET $SG430600
+	push	OFFSET $SG430670
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	esi
 	test	eax, eax
 	je	SHORT $LN5@SK_Shutdow
-	push	OFFSET $SG430601
+	push	OFFSET $SG430671
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	esi
 	test	eax, eax
 	je	SHORT $LN5@SK_Shutdow
-	push	OFFSET $SG430602
+	push	OFFSET $SG430672
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	esi
@@ -34206,23 +34188,23 @@ $LN3@SK_Shutdow:
 	jne	SHORT $LN4@SK_Shutdow
 $LN5@SK_Shutdow:
 
-; 1837 :        (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe")) )
-; 1838 :     ChangeDisplaySettingsA (nullptr, CDS_RESET);
+; 1854 :        (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe")) )
+; 1855 :     ChangeDisplaySettingsA (nullptr, CDS_RESET);
 
 	push	1073741824				; 40000000H
 	push	0
 	call	DWORD PTR __imp__ChangeDisplaySettingsA@8
 $LN4@SK_Shutdow:
 
-; 1839 : 
-; 1840 :   SK_AutoClose_Log (game_debug);
+; 1856 : 
+; 1857 :   SK_AutoClose_Log (game_debug);
 
 	lea	eax, DWORD PTR _closeme_game_debug$[ebp]
 	mov	ecx, OFFSET ?game_debug@@3UiSK_Logger@@A ; game_debug
 	push	eax
 	call	?auto_close@iSK_Logger@@QAE?AVAutoClose@1@XZ ; iSK_Logger::auto_close
 
-; 1841 :   SK_AutoClose_Log (   dll_log);
+; 1858 :   SK_AutoClose_Log (   dll_log);
 
 	lea	eax, DWORD PTR _closeme_dll_log$[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -34231,77 +34213,77 @@ $LN4@SK_Shutdow:
 	call	?auto_close@iSK_Logger@@QAE?AVAutoClose@1@XZ ; iSK_Logger::auto_close
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 
-; 1842 : 
-; 1843 :   SK_Console::getInstance ()->End ();
+; 1859 : 
+; 1860 :   SK_Console::getInstance ()->End ();
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	mov	ecx, eax
 	call	?End@SK_Console@@QAEXXZ			; SK_Console::End
 
-; 1844 : 
-; 1845 :   SK::DXGI::ShutdownBudgetThread ();
+; 1861 : 
+; 1862 :   SK::DXGI::ShutdownBudgetThread ();
 
 	call	?ShutdownBudgetThread@DXGI@SK@@YAXXZ	; SK::DXGI::ShutdownBudgetThread
 
-; 1846 : 
-; 1847 :   dll_log.LogEx    (true, L"[ GPU Stat ] Shutting down Prognostics Thread...          ");
+; 1863 : 
+; 1864 :   dll_log.LogEx    (true, L"[ GPU Stat ] Shutting down Prognostics Thread...          ");
 
-	push	OFFSET $SG430603
+	push	OFFSET $SG430673
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 1848 : 
-; 1849 :   DWORD dwTime =
-; 1850 :        timeGetTime ();
+; 1865 : 
+; 1866 :   DWORD dwTime =
+; 1867 :        timeGetTime ();
 
 	mov	edi, DWORD PTR __imp__timeGetTime@0
 	add	esp, 12					; 0000000cH
 	call	edi
 	mov	esi, eax
 
-; 1851 :   SK_EndGPUPolling ();
+; 1868 :   SK_EndGPUPolling ();
 
 	call	?SK_EndGPUPolling@@YAXXZ		; SK_EndGPUPolling
 
-; 1852 : 
-; 1853 :   dll_log.LogEx    (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+; 1869 : 
+; 1870 :   dll_log.LogEx    (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
 	call	edi
 	sub	eax, esi
 	push	eax
-	push	OFFSET $SG430604
+	push	OFFSET $SG430674
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 1854 : 
-; 1855 :   if (hPumpThread != INVALID_HANDLE_VALUE)
+; 1871 : 
+; 1872 :   if (hPumpThread != INVALID_HANDLE_VALUE)
 
 	cmp	DWORD PTR ?hPumpThread@@3PAXA, -1	; hPumpThread
 	je	SHORT $LN6@SK_Shutdow
 
-; 1856 :   {
-; 1857 :     dll_log.LogEx   (true, L"[ Stat OSD ] Shutting down Pump Thread... ");
+; 1873 :   {
+; 1874 :     dll_log.LogEx   (true, L"[ Stat OSD ] Shutting down Pump Thread... ");
 
-	push	OFFSET $SG430606
+	push	OFFSET $SG430676
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 1858 : 
-; 1859 :     CloseHandle     (hPumpThread);
+; 1875 : 
+; 1876 :     CloseHandle     (hPumpThread);
 
 	push	DWORD PTR ?hPumpThread@@3PAXA		; hPumpThread
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 1860 :                      hPumpThread = INVALID_HANDLE_VALUE;
-; 1861 : 
-; 1862 :     dll_log.LogEx   (false, L"done!\n");
+; 1877 :                      hPumpThread = INVALID_HANDLE_VALUE;
+; 1878 : 
+; 1879 :     dll_log.LogEx   (false, L"done!\n");
 
-	push	OFFSET $SG430607
+	push	OFFSET $SG430677
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	DWORD PTR ?hPumpThread@@3PAXA, -1	; hPumpThread
@@ -34309,82 +34291,82 @@ $LN4@SK_Shutdow:
 	add	esp, 12					; 0000000cH
 $LN6@SK_Shutdow:
 
-; 1863 :   }
-; 1864 : 
-; 1865 :   auto ShutdownWMIThread =
-; 1866 :   []( volatile HANDLE&  hSignal,
-; 1867 :       volatile HANDLE&  hThread,
-; 1868 :                wchar_t* wszName )
-; 1869 :   {
-; 1870 :     wchar_t wszFmtName [32] = { };
-; 1871 : 
-; 1872 :     lstrcatW (wszFmtName, wszName);
-; 1873 :     lstrcatW (wszFmtName, L"...");
-; 1874 : 
-; 1875 :     dll_log.LogEx (true, L"[ WMI Perf ] Shutting down %-30s ", wszFmtName);
-; 1876 : 
-; 1877 :     DWORD dwTime = timeGetTime ();
-; 1878 : 
-; 1879 :     // Signal the thread to shutdown
-; 1880 :     SetEvent (hSignal);
+; 1880 :   }
 ; 1881 : 
-; 1882 :     if (SignalObjectAndWait (hSignal, hThread, 1000UL, TRUE) != WAIT_OBJECT_0) // Give 1 second, and
-; 1883 :     {                                                                          // then we're killing
-; 1884 :       TerminateThread (hThread, 0x00);                                         // the thing!
-; 1885 :     }
-; 1886 : 
-; 1887 :     CloseHandle (hThread);
-; 1888 :                  hThread  = INVALID_HANDLE_VALUE;
-; 1889 : 
-; 1890 :     dll_log.LogEx (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
-; 1891 :   };
-; 1892 : 
-; 1893 :   ShutdownWMIThread (process_stats.hShutdownSignal,  process_stats.hThread,  L"Process Monitor" );
+; 1882 :   auto ShutdownWMIThread =
+; 1883 :   []( volatile HANDLE&  hSignal,
+; 1884 :       volatile HANDLE&  hThread,
+; 1885 :                wchar_t* wszName )
+; 1886 :   {
+; 1887 :     wchar_t wszFmtName [32] = { };
+; 1888 : 
+; 1889 :     lstrcatW (wszFmtName, wszName);
+; 1890 :     lstrcatW (wszFmtName, L"...");
+; 1891 : 
+; 1892 :     dll_log.LogEx (true, L"[ WMI Perf ] Shutting down %-30s ", wszFmtName);
+; 1893 : 
+; 1894 :     DWORD dwTime = timeGetTime ();
+; 1895 : 
+; 1896 :     // Signal the thread to shutdown
+; 1897 :     SetEvent (hSignal);
+; 1898 : 
+; 1899 :     if (SignalObjectAndWait (hSignal, hThread, 1000UL, TRUE) != WAIT_OBJECT_0) // Give 1 second, and
+; 1900 :     {                                                                          // then we're killing
+; 1901 :       TerminateThread (hThread, 0x00);                                         // the thing!
+; 1902 :     }
+; 1903 : 
+; 1904 :     CloseHandle (hThread);
+; 1905 :                  hThread  = INVALID_HANDLE_VALUE;
+; 1906 : 
+; 1907 :     dll_log.LogEx (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+; 1908 :   };
+; 1909 : 
+; 1910 :   ShutdownWMIThread (process_stats.hShutdownSignal,  process_stats.hThread,  L"Process Monitor" );
 
-	push	OFFSET $SG430608
+	push	OFFSET $SG430678
 	push	OFFSET ?process_stats@@3Uprocess_stats_t@@A ; process_stats
 	push	OFFSET ?process_stats@@3Uprocess_stats_t@@A+4
 	lea	ecx, DWORD PTR _ShutdownWMIThread$[ebp]
 	call	??R<lambda_6ec963c1094b1d994a1eb4d638d667db>@@QBEXACRAX0PA_W@Z ; <lambda_6ec963c1094b1d994a1eb4d638d667db>::operator()
 
-; 1894 :   ShutdownWMIThread (cpu_stats.hShutdownSignal,      cpu_stats.hThread,      L"CPU Monitor"     );
+; 1911 :   ShutdownWMIThread (cpu_stats.hShutdownSignal,      cpu_stats.hThread,      L"CPU Monitor"     );
 
-	push	OFFSET $SG430609
+	push	OFFSET $SG430679
 	push	OFFSET ?cpu_stats@@3Ucpu_perf_t@@A	; cpu_stats
 	push	OFFSET ?cpu_stats@@3Ucpu_perf_t@@A+4
 	lea	ecx, DWORD PTR _ShutdownWMIThread$[ebp]
 	call	??R<lambda_6ec963c1094b1d994a1eb4d638d667db>@@QBEXACRAX0PA_W@Z ; <lambda_6ec963c1094b1d994a1eb4d638d667db>::operator()
 
-; 1895 :   ShutdownWMIThread (disk_stats.hShutdownSignal,     disk_stats.hThread,     L"Disk Monitor"    );
+; 1912 :   ShutdownWMIThread (disk_stats.hShutdownSignal,     disk_stats.hThread,     L"Disk Monitor"    );
 
-	push	OFFSET $SG430610
+	push	OFFSET $SG430680
 	push	OFFSET ?disk_stats@@3Udisk_perf_t@@A	; disk_stats
 	push	OFFSET ?disk_stats@@3Udisk_perf_t@@A+4
 	lea	ecx, DWORD PTR _ShutdownWMIThread$[ebp]
 	call	??R<lambda_6ec963c1094b1d994a1eb4d638d667db>@@QBEXACRAX0PA_W@Z ; <lambda_6ec963c1094b1d994a1eb4d638d667db>::operator()
 
-; 1896 :   ShutdownWMIThread (pagefile_stats.hShutdownSignal, pagefile_stats.hThread, L"Pagefile Monitor");
+; 1913 :   ShutdownWMIThread (pagefile_stats.hShutdownSignal, pagefile_stats.hThread, L"Pagefile Monitor");
 
-	push	OFFSET $SG430611
+	push	OFFSET $SG430681
 	push	OFFSET ?pagefile_stats@@3Upagefile_perf_t@@A ; pagefile_stats
 	push	OFFSET ?pagefile_stats@@3Upagefile_perf_t@@A+4
 	lea	ecx, DWORD PTR _ShutdownWMIThread$[ebp]
 	call	??R<lambda_6ec963c1094b1d994a1eb4d638d667db>@@QBEXACRAX0PA_W@Z ; <lambda_6ec963c1094b1d994a1eb4d638d667db>::operator()
 
-; 1900 :   if (SK_IsInjected ())
+; 1917 :   if (SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	mov	ebx, OFFSET $SG430613
+	mov	ebx, OFFSET $SG430683
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG430615
+	push	OFFSET $SG430685
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1900 :   if (SK_IsInjected ())
+; 1917 :   if (SK_IsInjected ())
 
 	cmove	ebx, DWORD PTR _backend$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -34399,28 +34381,28 @@ $LN6@SK_Shutdow:
 	test	al, al
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1903 :   if (sk::NVAPI::app_name != L"ds3t.exe" && SK_GetFramesDrawn () > 0)
+; 1920 :   if (sk::NVAPI::app_name != L"ds3t.exe" && SK_GetFramesDrawn () > 0)
 
 	jne	SHORT $LN8@SK_Shutdow
 	call	?SK_GetFramesDrawn@@YGKXZ		; SK_GetFramesDrawn
 	test	eax, eax
 	je	SHORT $LN8@SK_Shutdow
 
-; 1904 :   {
-; 1905 :     dll_log.LogEx        (true,  L"[ SpecialK ] Saving user preferences to %10s.ini... ", config_name);
+; 1921 :   {
+; 1922 :     dll_log.LogEx        (true,  L"[ SpecialK ] Saving user preferences to %10s.ini... ", config_name);
 
 	push	ebx
-	push	OFFSET $SG430616
+	push	OFFSET $SG430686
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 1906 :     dwTime = timeGetTime ();
+; 1923 :     dwTime = timeGetTime ();
 
 	call	edi
 
-; 1907 :     SK_SaveConfig        (config_name);
+; 1924 :     SK_SaveConfig        (config_name);
 
 	push	0
 	sub	esp, 24					; 00000018H
@@ -34431,126 +34413,126 @@ $LN6@SK_Shutdow:
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 1908 :     dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+; 1925 :     dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
 	call	edi
 	sub	eax, esi
 	push	eax
-	push	OFFSET $SG430617
+	push	OFFSET $SG430687
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 $LN8@SK_Shutdow:
 
-; 1909 :   }
-; 1910 : 
-; 1911 : 
-; 1912 :   SK_UnloadImports        ();
+; 1926 :   }
+; 1927 : 
+; 1928 : 
+; 1929 :   SK_UnloadImports        ();
 
 	call	?SK_UnloadImports@@YAXXZ		; SK_UnloadImports
 
-; 1913 :   SK::Framerate::Shutdown ();
+; 1930 :   SK::Framerate::Shutdown ();
 
 	call	?Shutdown@Framerate@SK@@YAXXZ		; SK::Framerate::Shutdown
 
-; 1914 : 
-; 1915 :   dll_log.LogEx        (true, L"[ SpecialK ] Shutting down MinHook...                     ");
+; 1931 : 
+; 1932 :   dll_log.LogEx        (true, L"[ SpecialK ] Shutting down MinHook...                     ");
 
-	push	OFFSET $SG430618
+	push	OFFSET $SG430688
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 1916 : 
-; 1917 :   dwTime = timeGetTime ();
+; 1933 : 
+; 1934 :   dwTime = timeGetTime ();
 
 	call	edi
 	mov	esi, eax
 
-; 1918 :   SK_UnInit_MinHook    ();
+; 1935 :   SK_UnInit_MinHook    ();
 
 	call	?SK_UnInit_MinHook@@YG?AW4MH_STATUS@@XZ	; SK_UnInit_MinHook
 
-; 1919 :   dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+; 1936 :   dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
 	call	edi
 	sub	eax, esi
 	push	eax
-	push	OFFSET $SG430619
+	push	OFFSET $SG430689
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 1920 : 
-; 1921 : 
-; 1922 :   dll_log.LogEx        (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
+; 1937 : 
+; 1938 : 
+; 1939 :   dll_log.LogEx        (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
 
-	push	OFFSET $SG430620
+	push	OFFSET $SG430690
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 28					; 0000001cH
 
-; 1923 :   dwTime = timeGetTime ();
+; 1940 :   dwTime = timeGetTime ();
 
 	call	edi
 	mov	esi, eax
 
-; 1924 :   SK_ShutdownWMI       ();
+; 1941 :   SK_ShutdownWMI       ();
 
 	call	?SK_ShutdownWMI@@YAXXZ			; SK_ShutdownWMI
 
-; 1925 :   dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
+; 1942 :   dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
 	call	edi
 	sub	eax, esi
 	push	eax
-	push	OFFSET $SG430621
+	push	OFFSET $SG430691
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 1926 : 
-; 1927 : 
-; 1928 :   SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+; 1943 : 
+; 1944 : 
+; 1945 :   SK_GetCurrentRenderBackend ().releaseOwnedResources ();
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	ecx, eax
 	call	?releaseOwnedResources@SK_RenderBackend_V2@@QAEXXZ ; SK_RenderBackend_V2::releaseOwnedResources
 
-; 1929 : 
-; 1930 : 
-; 1931 :   if (nvapi_init)
+; 1946 : 
+; 1947 : 
+; 1948 :   if (nvapi_init)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
 	je	SHORT $LN9@SK_Shutdow
 
-; 1932 :     sk::NVAPI::UnloadLibrary ();
+; 1949 :     sk::NVAPI::UnloadLibrary ();
 
 	call	?UnloadLibrary@NVAPI@sk@@YAHXZ		; sk::NVAPI::UnloadLibrary
 $LN9@SK_Shutdow:
 
-; 1933 : 
-; 1934 : 
-; 1935 :   dll_log.Log (L"[ SpecialK ] Custom %s.dll Detached (pid=0x%04x)",
+; 1950 : 
+; 1951 : 
+; 1952 :   dll_log.Log (L"[ SpecialK ] Custom %s.dll Detached (pid=0x%04x)",
 
 	call	DWORD PTR __imp__GetCurrentProcessId@0
 	push	eax
 	push	DWORD PTR _backend$[ebp]
-	push	OFFSET $SG430623
+	push	OFFSET $SG430693
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 1936 :     backend, GetCurrentProcessId ());
-; 1937 : 
-; 1938 :   //SymCleanup (GetCurrentProcess ());
-; 1939 : 
-; 1940 : 
-; 1941 :   // Breakpad Disable Disclaimer; pretend the log was empty :)
-; 1942 :   if (crash_log.lines == 1)
+; 1953 :     backend, GetCurrentProcessId ());
+; 1954 : 
+; 1955 :   //SymCleanup (GetCurrentProcess ());
+; 1956 : 
+; 1957 : 
+; 1958 :   // Breakpad Disable Disclaimer; pretend the log was empty :)
+; 1959 :   if (crash_log.lines == 1)
 
 	mov	eax, DWORD PTR ?crash_log@@3UiSK_Logger@@A+36
 	add	esp, 16					; 00000010H
@@ -34558,18 +34540,25 @@ $LN9@SK_Shutdow:
 	cmp	eax, 1
 	cmove	eax, ecx
 
-; 1943 :     crash_log.lines = 0;
-; 1944 : 
-; 1945 :   crash_log.close ();
+; 1960 :     crash_log.lines = 0;
+; 1961 : 
+; 1962 :   crash_log.close ();
 
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	mov	DWORD PTR ?crash_log@@3UiSK_Logger@@A+36, eax
 	call	?close@iSK_Logger@@UAGXXZ		; iSK_Logger::close
 
-; 1946 : 
-; 1947 :   config.system.handle_crashes = false;
+; 1963 : 
+; 1964 :   config.system.handle_crashes = false;
 
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+828, 0
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+840, 0
+
+; 1965 : 
+; 1966 :   InterlockedExchange (&__SK_Init, FALSE);
+
+	xor	eax, eax
+	mov	ecx, OFFSET ?__SK_Init@@3JC		; __SK_Init
+	xchg	DWORD PTR [ecx], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\log.h
 
 ; 158  :       if (log_ != nullptr)
@@ -34601,7 +34590,7 @@ $LN20@SK_Shutdow:
 $LN24@SK_Shutdow:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1950 : }
+; 1969 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	al, 1
@@ -34799,6 +34788,9 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\core.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
@@ -34848,6 +34840,8 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\core.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -34859,30 +34853,28 @@ text$x	ENDS
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlconv.h
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
-; File c:\users\andon\source\repos\specialk\src\core.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 _TEXT	SEGMENT
-_wszDLLPath$2 = -3264					; size = 1048
-_log_fname$ = -2216					; size = 524
-_wszWorkDir$ = -1692					; size = 524
-_wszProxyName$ = -1168					; size = 520
-_wszBackendDLL$ = -648					; size = 524
-_module_name$ = -124					; size = 24
-_wszModuleName$1$ = -100				; size = 4
-_bWOW64$ = -96						; size = 4
-$T3 = -92						; size = 4
-$T4 = -88						; size = 24
-$T5 = -88						; size = 24
-_default_name$6 = -88					; size = 24
-$T7 = -88						; size = 24
-$T8 = -88						; size = 24
-$T9 = -88						; size = 24
-$T10 = -64						; size = 24
-$T11 = -64						; size = 24
+_wszDLLPath$2 = -3288					; size = 1048
+_log_fname$ = -2240					; size = 524
+_wszWorkDir$ = -1716					; size = 524
+_wszProxyName$ = -1192					; size = 520
+_wszBackendDLL$ = -672					; size = 524
+_module_name$ = -148					; size = 24
+_bWOW64$ = -124						; size = 4
+_log_fnameW$3 = -116					; size = 24
+_default_name$4 = -116					; size = 24
+$T5 = -112						; size = 20
+$T6 = -92						; size = 24
+$T7 = -92						; size = 24
+$T8 = -92						; size = 24
+$T9 = -92						; size = 24
+$T10 = -92						; size = 24
+$T11 = -68						; size = 4
 $T12 = -64						; size = 24
 $T13 = -64						; size = 24
 $T14 = -64						; size = 24
@@ -34891,24 +34883,26 @@ $T16 = -64						; size = 24
 $T17 = -64						; size = 24
 $T18 = -64						; size = 24
 $T19 = -64						; size = 24
-_log_fnameW$20 = -40					; size = 24
-_default_ini$21 = -40					; size = 24
-_link$22 = -40						; size = 24
-$T23 = -40						; size = 24
-_link$24 = -40						; size = 24
-$T25 = -40						; size = 24
+$T20 = -64						; size = 24
+$T21 = -64						; size = 24
+_default_ini$22 = -40					; size = 24
+_link$23 = -40						; size = 24
+$T24 = -40						; size = 24
+_link$25 = -40						; size = 24
 $T26 = -40						; size = 24
-$T27 = -13						; size = 1
+$T27 = -40						; size = 24
+_skim$1$ = -13						; size = 1
 $T28 = -13						; size = 1
 $T29 = -13						; size = 1
+$T30 = -13						; size = 1
 __$EHRec$ = -12						; size = 12
 _backend$ = 8						; size = 4
-tv4098 = 12						; size = 4
+_wszModuleName$1$ = 12					; size = 4
 _callback$ = 12						; size = 4
 _load_proxy$1$ = 15					; size = 1
 ?SK_StartupCore@@YG_NPB_WPAX@Z PROC			; SK_StartupCore
 
-; 1307 : {
+; 1330 : {
 
 	npad	2
 	push	ebp
@@ -34918,25 +34912,25 @@ _load_proxy$1$ = 15					; size = 1
 	mov	eax, DWORD PTR fs:0
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 3252				; 00000cb4H
+	sub	esp, 3276				; 00000cccH
 
-; 1308 :   __SK_DLL_Backend = backend;
+; 1331 :   __SK_DLL_Backend = backend;
 
 	mov	eax, DWORD PTR _backend$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	lea	ecx, DWORD PTR $T9[ebp]
+	lea	ecx, DWORD PTR $T10[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1307 : {
+; 1330 : {
 
 	push	ebx
 	push	esi
 	push	edi
 
-; 1308 :   __SK_DLL_Backend = backend;
+; 1331 :   __SK_DLL_Backend = backend;
 
 	mov	DWORD PTR ?__SK_DLL_Backend@@3PB_WB, eax ; __SK_DLL_Backend
 	xor	ebx, ebx
@@ -34950,16 +34944,304 @@ _load_proxy$1$ = 15					; size = 1
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
-	mov	DWORD PTR $T3[ebp], ebx
+	mov	DWORD PTR $T11[ebp], ebx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG428661
+	push	OFFSET $SG428698
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T9[ebp+16], ebx
+	mov	DWORD PTR $T10[ebp+16], ebx
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T10[ebp+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T10[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1338 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+
+	mov	DWORD PTR __$EHRec$[ebp+8], ebx
+	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
+	mov	edx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T27[ebp+16], ebx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	mov	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T27[ebp+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+	mov	WORD PTR $T27[ebp], ax
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	lea	esi, DWORD PTR [ecx+2]
+	npad	2
+$LL1338@SK_Startup:
+	mov	ax, WORD PTR [ecx]
+	add	ecx, 2
+	test	ax, ax
+	jne	SHORT $LL1338@SK_Startup
+	sub	ecx, esi
+	sar	ecx, 1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	ecx
+	push	edx
+	lea	ecx, DWORD PTR $T27[ebp]
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1338 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+
+	lea	eax, DWORD PTR $T10[ebp]
+	mov	BYTE PTR __$EHRec$[ebp+8], 1
+	push	eax
+	lea	eax, DWORD PTR $T27[ebp]
+	push	eax
+	lea	eax, DWORD PTR $T21[ebp]
+	push	eax
+	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@0@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [eax+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN153@SK_Startup
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+$LN153@SK_Startup:
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1338 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+
+	mov	edi, DWORD PTR __imp__GetFileAttributesW@4
+	push	eax
+	call	edi
+	cmp	eax, -1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T21[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1338 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+
+	setne	BYTE PTR $T30[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN162@SK_Startup
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+	push	eax
+	push	DWORD PTR $T21[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN162@SK_Startup:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T21[ebp+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T21[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T27[ebp+20]
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T21[ebp+20], 7
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN192@SK_Startup
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+	push	eax
+	push	DWORD PTR $T27[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN192@SK_Startup:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T27[ebp+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T27[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T10[ebp+20]
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T27[ebp+20], 7
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1338 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN222@SK_Startup
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+	push	eax
+	push	DWORD PTR $T10[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN222@SK_Startup:
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1338 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+
+	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+844
+	mov	esi, 1
+	cmp	BYTE PTR $T30[ebp], 0
+
+; 1339 :     config.system.central_repository = true;
+; 1340 : 
+; 1341 :   if (SK_IsInjected ())
+
+	push	0
+	cmovne	eax, esi
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+844, al
+	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
+	movzx	ecx, BYTE PTR ?config@@3Usk_config_t@@A+844
+	test	al, al
+	cmovne	ecx, esi
+	mov	BYTE PTR ?config@@3Usk_config_t@@A+844, cl
+
+; 1342 :     config.system.central_repository = true;
+; 1343 : 
+; 1344 :   SK_EstablishRootPath ();
+
+	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
+
+; 1345 :   SK_CreateDirectories (SK_GetConfigPath ());
+
+	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
+	push	eax
+	call	?SK_CreateDirectories@@YG_NPB_W@Z	; SK_CreateDirectories
+
+; 1346 : 
+; 1347 : 
+; 1348 :   if (config.system.central_repository)
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+844, 0
+	je	$LN696@SK_Startup
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	10					; 0000000aH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T9[ebp+16], 0
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	OFFSET $SG428703
+	lea	ecx, DWORD PTR $T9[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
@@ -34976,16 +35258,16 @@ _load_proxy$1$ = 15					; size = 1
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1315 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+; 1354 :                            ) == INVALID_FILE_ATTRIBUTES )
 
-	mov	DWORD PTR __$EHRec$[ebp+8], ebx
+	mov	DWORD PTR __$EHRec$[ebp+8], 2
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	mov	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T26[ebp+16], ebx
+	mov	DWORD PTR $T26[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 289  : 		return (_CSTD wcslen(_First));
@@ -35006,12 +35288,11 @@ _load_proxy$1$ = 15					; size = 1
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	lea	esi, DWORD PTR [ecx+2]
-	npad	2
-$LL1283@SK_Startup:
+$LL1339@SK_Startup:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL1283@SK_Startup
+	jne	SHORT $LL1339@SK_Startup
 	sub	ecx, esi
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -35024,14 +35305,14 @@ $LL1283@SK_Startup:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1315 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+; 1354 :                            ) == INVALID_FILE_ATTRIBUTES )
 
 	lea	eax, DWORD PTR $T9[ebp]
-	mov	BYTE PTR __$EHRec$[ebp+8], 1
+	mov	BYTE PTR __$EHRec$[ebp+8], 3
 	push	eax
 	lea	eax, DWORD PTR $T26[ebp]
 	push	eax
-	lea	eax, DWORD PTR $T19[ebp]
+	lea	eax, DWORD PTR $T20[ebp]
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@0@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	add	esp, 12					; 0000000cH
@@ -35043,18 +35324,17 @@ $LL1283@SK_Startup:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN150@SK_Startup
+	jb	SHORT $LN310@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN150@SK_Startup:
+$LN310@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1315 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+; 1354 :                            ) == INVALID_FILE_ATTRIBUTES )
 
-	mov	edi, DWORD PTR __imp__GetFileAttributesW@4
 	push	eax
 	call	edi
 	cmp	eax, -1
@@ -35062,12 +35342,12 @@ $LN150@SK_Startup:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T19[ebp+20]
+	mov	eax, DWORD PTR $T20[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1315 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+; 1354 :                            ) == INVALID_FILE_ATTRIBUTES )
 
-	setne	BYTE PTR $T29[ebp]
+	sete	BYTE PTR $T28[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -35076,7 +35356,7 @@ $LN150@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN159@SK_Startup
+	jb	SHORT $LN319@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -35087,10 +35367,10 @@ $LN150@SK_Startup:
 
 	push	2
 	push	eax
-	push	DWORD PTR $T19[ebp]
+	push	DWORD PTR $T20[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN159@SK_Startup:
+$LN319@SK_Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -35100,12 +35380,12 @@ $LN159@SK_Startup:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T19[ebp+16], 0
+	mov	DWORD PTR $T20[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR $T19[ebp], ax
+	mov	WORD PTR $T20[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -35114,7 +35394,7 @@ $LN159@SK_Startup:
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR $T19[ebp+20], 7
+	mov	DWORD PTR $T20[ebp+20], 7
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
@@ -35122,7 +35402,7 @@ $LN159@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN189@SK_Startup
+	jb	SHORT $LN349@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -35136,7 +35416,7 @@ $LN159@SK_Startup:
 	push	DWORD PTR $T26[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN189@SK_Startup:
+$LN349@SK_Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -35163,7 +35443,7 @@ $LN189@SK_Startup:
 	mov	DWORD PTR $T26[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1315 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+; 1354 :                            ) == INVALID_FILE_ATTRIBUTES )
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -35174,7 +35454,7 @@ $LN189@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN219@SK_Startup
+	jb	SHORT $LN379@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -35188,51 +35468,140 @@ $LN189@SK_Startup:
 	push	DWORD PTR $T9[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN219@SK_Startup:
+$LN379@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1315 :                              std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+; 1354 :                            ) == INVALID_FILE_ATTRIBUTES )
 
-	movzx	eax, BYTE PTR ?config@@3Usk_config_t@@A+832
-	mov	esi, 1
-	cmp	BYTE PTR $T29[ebp], 0
+	cmp	BYTE PTR $T28[ebp], 0
+	mov	edi, DWORD PTR __imp__CreateSymbolicLinkW@12
+	je	$LN459@SK_Startup
 
-; 1316 :     config.system.central_repository = true;
-; 1317 : 
-; 1318 :   if (SK_IsInjected ())
+; 1356 :       std::wstring link (SK_GetHostPath ());
 
-	push	0
-	cmovne	eax, esi
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+832, al
-	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
-	movzx	ecx, BYTE PTR ?config@@3Usk_config_t@@A+832
-	test	al, al
-	cmovne	ecx, esi
-	mov	BYTE PTR ?config@@3Usk_config_t@@A+832, cl
+	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
+	mov	edx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 1319 :     config.system.central_repository = true;
-; 1320 : 
-; 1321 :   SK_EstablishRootPath ();
+; 3597 : 		_My_data._Mysize = 0;
 
-	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
+	mov	DWORD PTR _link$25[ebp+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
-; 1322 :   SK_CreateDirectories (SK_GetConfigPath ());
+; 289  : 		return (_CSTD wcslen(_First));
 
-	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
-	push	eax
-	call	?SK_CreateDirectories@@YG_NPB_W@Z	; SK_CreateDirectories
+	mov	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 1323 : 
-; 1324 : 
-; 1325 :   if (config.system.central_repository)
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+832, 0
-	je	$LN693@SK_Startup
+	mov	DWORD PTR _link$25[ebp+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+	mov	WORD PTR _link$25[ebp], ax
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	lea	esi, DWORD PTR [ecx+2]
+	npad	4
+$LL1340@SK_Startup:
+	mov	ax, WORD PTR [ecx]
+	add	ecx, 2
+	test	ax, ax
+	jne	SHORT $LL1340@SK_Startup
+	sub	ecx, esi
+	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
+	push	ecx
+	push	edx
+	lea	ecx, DWORD PTR _link$25[ebp]
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+
+; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
+
 	push	10					; 0000000aH
+	push	OFFSET $SG428704
+	lea	ecx, DWORD PTR _link$25[ebp]
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1356 :       std::wstring link (SK_GetHostPath ());
+
+	mov	DWORD PTR __$EHRec$[ebp+8], 4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
+
+	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _link$25[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	esi, DWORD PTR _link$25[ebp]
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1359 :       CreateSymbolicLink (
+
+	push	1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	cmovae	esi, DWORD PTR _link$25[ebp]
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1359 :       CreateSymbolicLink (
+
+	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
+	push	eax
+	push	esi
+	call	edi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _link$25[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1364 :     }
+
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN459@SK_Startup
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+	push	eax
+	push	DWORD PTR _link$25[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN459@SK_Startup:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -35246,7 +35615,7 @@ $LN219@SK_Startup:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG428666
+	push	OFFSET $SG428707
 	lea	ecx, DWORD PTR $T8[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -35264,16 +35633,16 @@ $LN219@SK_Startup:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1331 :                            ) == INVALID_FILE_ATTRIBUTES )
+; 1368 :                            ) == INVALID_FILE_ATTRIBUTES )
 
-	mov	DWORD PTR __$EHRec$[ebp+8], 2
-	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
+	mov	DWORD PTR __$EHRec$[ebp+8], 5
+	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
 	mov	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T25[ebp+16], 0
+	mov	DWORD PTR $T24[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 289  : 		return (_CSTD wcslen(_First));
@@ -35283,22 +35652,23 @@ $LN219@SK_Startup:
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR $T25[ebp+20], 7
+	mov	DWORD PTR $T24[ebp+20], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
-	mov	WORD PTR $T25[ebp], ax
+	mov	WORD PTR $T24[ebp], ax
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	lea	esi, DWORD PTR [ecx+2]
-$LL1284@SK_Startup:
+	npad	3
+$LL1341@SK_Startup:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL1284@SK_Startup
+	jne	SHORT $LL1341@SK_Startup
 	sub	ecx, esi
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -35307,18 +35677,18 @@ $LL1284@SK_Startup:
 
 	push	ecx
 	push	edx
-	lea	ecx, DWORD PTR $T25[ebp]
+	lea	ecx, DWORD PTR $T24[ebp]
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1331 :                            ) == INVALID_FILE_ATTRIBUTES )
+; 1368 :                            ) == INVALID_FILE_ATTRIBUTES )
 
 	lea	eax, DWORD PTR $T8[ebp]
-	mov	BYTE PTR __$EHRec$[ebp+8], 3
+	mov	BYTE PTR __$EHRec$[ebp+8], 6
 	push	eax
-	lea	eax, DWORD PTR $T25[ebp]
+	lea	eax, DWORD PTR $T24[ebp]
 	push	eax
-	lea	eax, DWORD PTR $T18[ebp]
+	lea	eax, DWORD PTR $T19[ebp]
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@0@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	add	esp, 12					; 0000000cH
@@ -35330,30 +35700,31 @@ $LL1284@SK_Startup:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN307@SK_Startup
+	jb	SHORT $LN547@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN307@SK_Startup:
+$LN547@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1331 :                            ) == INVALID_FILE_ATTRIBUTES )
+; 1368 :                            ) == INVALID_FILE_ATTRIBUTES )
 
 	push	eax
-	call	edi
+	mov	eax, DWORD PTR __imp__GetFileAttributesW@4
+	call	eax
 	cmp	eax, -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T18[ebp+20]
+	mov	eax, DWORD PTR $T19[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1331 :                            ) == INVALID_FILE_ATTRIBUTES )
+; 1368 :                            ) == INVALID_FILE_ATTRIBUTES )
 
-	sete	BYTE PTR $T27[ebp]
+	sete	BYTE PTR $T29[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -35362,7 +35733,7 @@ $LN307@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN316@SK_Startup
+	jb	SHORT $LN556@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -35373,10 +35744,10 @@ $LN307@SK_Startup:
 
 	push	2
 	push	eax
-	push	DWORD PTR $T18[ebp]
+	push	DWORD PTR $T19[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN316@SK_Startup:
+$LN556@SK_Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -35386,21 +35757,21 @@ $LN316@SK_Startup:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T18[ebp+16], 0
+	mov	DWORD PTR $T19[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR $T18[ebp], ax
+	mov	WORD PTR $T19[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T25[ebp+20]
+	mov	eax, DWORD PTR $T24[ebp+20]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR $T18[ebp+20], 7
+	mov	DWORD PTR $T19[ebp+20], 7
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
@@ -35408,7 +35779,7 @@ $LN316@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN346@SK_Startup
+	jb	SHORT $LN586@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -35419,10 +35790,10 @@ $LN316@SK_Startup:
 
 	push	2
 	push	eax
-	push	DWORD PTR $T25[ebp]
+	push	DWORD PTR $T24[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN346@SK_Startup:
+$LN586@SK_Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -35432,12 +35803,12 @@ $LN346@SK_Startup:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T25[ebp+16], 0
+	mov	DWORD PTR $T24[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR $T25[ebp], ax
+	mov	WORD PTR $T24[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -35446,10 +35817,10 @@ $LN346@SK_Startup:
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR $T25[ebp+20], 7
+	mov	DWORD PTR $T24[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1331 :                            ) == INVALID_FILE_ATTRIBUTES )
+; 1368 :                            ) == INVALID_FILE_ATTRIBUTES )
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -35460,7 +35831,7 @@ $LN346@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN376@SK_Startup
+	jb	SHORT $LN616@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -35474,23 +35845,23 @@ $LN346@SK_Startup:
 	push	DWORD PTR $T8[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN376@SK_Startup:
+$LN616@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1331 :                            ) == INVALID_FILE_ATTRIBUTES )
+; 1368 :                            ) == INVALID_FILE_ATTRIBUTES )
 
-	cmp	BYTE PTR $T27[ebp], 0
-	je	$LN456@SK_Startup
+	cmp	BYTE PTR $T29[ebp], 0
+	je	$LN1348@SK_Startup
 
-; 1333 :       std::wstring link (SK_GetHostPath ());
+; 1370 :       std::wstring link (SK_GetConfigPath ());
 
-	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
+	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
 	mov	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _link$24[ebp+16], 0
+	mov	DWORD PTR _link$23[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 289  : 		return (_CSTD wcslen(_First));
@@ -35500,22 +35871,22 @@ $LN376@SK_Startup:
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _link$24[ebp+20], 7
+	mov	DWORD PTR _link$23[ebp+20], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
-	mov	WORD PTR _link$24[ebp], ax
+	mov	WORD PTR _link$23[ebp], ax
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	lea	esi, DWORD PTR [ecx+2]
-$LL1285@SK_Startup:
+$LL1342@SK_Startup:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL1285@SK_Startup
+	jne	SHORT $LL1342@SK_Startup
 	sub	ecx, esi
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -35524,391 +35895,17 @@ $LL1285@SK_Startup:
 
 	push	ecx
 	push	edx
-	lea	ecx, DWORD PTR _link$24[ebp]
-	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
-
-; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
-
-	push	10					; 0000000aH
-	push	OFFSET $SG428667
-	lea	ecx, DWORD PTR _link$24[ebp]
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1333 :       std::wstring link (SK_GetHostPath ());
-
-	mov	DWORD PTR __$EHRec$[ebp+8], 4
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
-
-	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR _link$24[ebp+20], 8
-
-; 1621 : 		return (_Large_string_engaged()
-
-	lea	esi, DWORD PTR _link$24[ebp]
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1336 :       CreateSymbolicLink (
-
-	push	1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1621 : 		return (_Large_string_engaged()
-
-	cmovae	esi, DWORD PTR _link$24[ebp]
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1336 :       CreateSymbolicLink (
-
-	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
-	push	eax
-	push	esi
-	call	DWORD PTR __imp__CreateSymbolicLinkW@12
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR _link$24[ebp+20]
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1341 :     }
-
-	mov	DWORD PTR __$EHRec$[ebp+8], -1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN456@SK_Startup
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	2
-	push	eax
-	push	DWORD PTR _link$24[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN456@SK_Startup:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	5
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR $T7[ebp+16], 0
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	OFFSET $SG428670
-	lea	ecx, DWORD PTR $T7[ebp]
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR $T7[ebp+20], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR $T7[ebp], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1345 :                            ) == INVALID_FILE_ATTRIBUTES )
-
-	mov	DWORD PTR __$EHRec$[ebp+8], 5
-	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
-	mov	edx, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR $T23[ebp+16], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 289  : 		return (_CSTD wcslen(_First));
-
-	mov	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR $T23[ebp+20], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-	mov	WORD PTR $T23[ebp], ax
-
-; 289  : 		return (_CSTD wcslen(_First));
-
-	lea	esi, DWORD PTR [ecx+2]
-$LL1286@SK_Startup:
-	mov	ax, WORD PTR [ecx]
-	add	ecx, 2
-	test	ax, ax
-	jne	SHORT $LL1286@SK_Startup
-	sub	ecx, esi
-	sar	ecx, 1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	ecx
-	push	edx
-	lea	ecx, DWORD PTR $T23[ebp]
-	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1345 :                            ) == INVALID_FILE_ATTRIBUTES )
-
-	lea	eax, DWORD PTR $T7[ebp]
-	mov	BYTE PTR __$EHRec$[ebp+8], 6
-	push	eax
-	lea	eax, DWORD PTR $T23[ebp]
-	push	eax
-	lea	eax, DWORD PTR $T17[ebp]
-	push	eax
-	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@0@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-	add	esp, 12					; 0000000cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR [eax+20], 8
-
-; 1621 : 		return (_Large_string_engaged()
-
-	jb	SHORT $LN544@SK_Startup
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 643  : 	return (_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-$LN544@SK_Startup:
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1345 :                            ) == INVALID_FILE_ATTRIBUTES )
-
-	push	eax
-	call	edi
-	cmp	eax, -1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR $T17[ebp+20]
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1345 :                            ) == INVALID_FILE_ATTRIBUTES )
-
-	sete	BYTE PTR $T28[ebp]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN553@SK_Startup
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	2
-	push	eax
-	push	DWORD PTR $T17[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN553@SK_Startup:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3616 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR $T17[ebp+16], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR $T17[ebp], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR $T23[ebp+20]
-
-; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR $T17[ebp+20], 7
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN583@SK_Startup
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	2
-	push	eax
-	push	DWORD PTR $T23[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN583@SK_Startup:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3616 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR $T23[ebp+16], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR $T23[ebp], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR $T7[ebp+20]
-
-; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR $T23[ebp+20], 7
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1345 :                            ) == INVALID_FILE_ATTRIBUTES )
-
-	mov	DWORD PTR __$EHRec$[ebp+8], -1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN613@SK_Startup
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	2
-	push	eax
-	push	DWORD PTR $T7[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN613@SK_Startup:
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1345 :                            ) == INVALID_FILE_ATTRIBUTES )
-
-	cmp	BYTE PTR $T28[ebp], 0
-	je	$LN693@SK_Startup
-
-; 1347 :       std::wstring link (SK_GetConfigPath ());
-
-	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
-	mov	edx, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR _link$22[ebp+16], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 289  : 		return (_CSTD wcslen(_First));
-
-	mov	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR _link$22[ebp+20], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-	mov	WORD PTR _link$22[ebp], ax
-
-; 289  : 		return (_CSTD wcslen(_First));
-
-	lea	esi, DWORD PTR [ecx+2]
-	npad	8
-$LL1287@SK_Startup:
-	mov	ax, WORD PTR [ecx]
-	add	ecx, 2
-	test	ax, ax
-	jne	SHORT $LL1287@SK_Startup
-	sub	ecx, esi
-	sar	ecx, 1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	ecx
-	push	edx
-	lea	ecx, DWORD PTR _link$22[ebp]
+	lea	ecx, DWORD PTR _link$23[ebp]
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG428671
-	lea	ecx, DWORD PTR _link$22[ebp]
+	push	OFFSET $SG428708
+	lea	ecx, DWORD PTR _link$23[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1347 :       std::wstring link (SK_GetConfigPath ());
+; 1370 :       std::wstring link (SK_GetConfigPath ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -35919,37 +35916,37 @@ $LL1287@SK_Startup:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _link$22[ebp+20], 8
+	cmp	DWORD PTR _link$23[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	esi, DWORD PTR _link$22[ebp]
+	lea	esi, DWORD PTR _link$23[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1350 :       CreateSymbolicLink (
+; 1373 :       CreateSymbolicLink (
 
 	push	1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	esi, DWORD PTR _link$22[ebp]
+	cmovae	esi, DWORD PTR _link$23[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1350 :       CreateSymbolicLink (
+; 1373 :       CreateSymbolicLink (
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
 	push	esi
-	call	DWORD PTR __imp__CreateSymbolicLinkW@12
+	call	edi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _link$22[ebp+20]
+	mov	eax, DWORD PTR _link$23[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1355 :     }
+; 1378 :     }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -35960,7 +35957,7 @@ $LL1287@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN693@SK_Startup
+	jb	SHORT $LN1348@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -35971,15 +35968,48 @@ $LL1287@SK_Startup:
 
 	push	2
 	push	eax
-	push	DWORD PTR _link$22[ebp]
+	push	DWORD PTR _link$23[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN693@SK_Startup:
+$LN1348@SK_Startup:
+	mov	edi, DWORD PTR __imp__GetFileAttributesW@4
+$LN696@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1362 :   if ( (! bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
+; 1385 :     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
 
-	cmp	BYTE PTR ?bypass@?1??SK_StartupCore@@YG_NPB_WPAX@Z@4_NA, 0
+	push	OFFSET $SG428709
+	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
+	push	eax
+	call	DWORD PTR __imp__StrStrIW@8
+	test	eax, eax
+	setne	al
+
+; 1386 :   bool skim =
+; 1387 :     rundll_invoked || SK_IsSuperSpecialK () || __SK_RunDLL_Bypass;
+
+	test	al, al
+	jne	SHORT $LN55@SK_Startup
+	call	?SK_IsSuperSpecialK@@YA_NXZ		; SK_IsSuperSpecialK
+	test	al, al
+	jne	SHORT $LN55@SK_Startup
+	cmp	BYTE PTR ?__SK_RunDLL_Bypass@@3_NA, al	; __SK_RunDLL_Bypass
+	je	SHORT $LN1350@SK_Startup
+$LN55@SK_Startup:
+	mov	al, 1
+$LN1350@SK_Startup:
+
+; 1388 : 
+; 1389 :   static bool bypass  = false;
+; 1390 :               bypass |= skim;
+
+	or	BYTE PTR ?bypass@?1??SK_StartupCore@@YG_NPB_WPAX@Z@4_NA, al
+	mov	BYTE PTR _skim$1$[ebp], al
+
+; 1391 : 
+; 1392 :   // Injection Compatibility Menu
+; 1393 :   if ( (! bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
+
 	jne	SHORT $LN10@SK_Startup
 	mov	esi, DWORD PTR __imp__GetAsyncKeyState@4
 	push	16					; 00000010H
@@ -35993,13 +36023,13 @@ $LN693@SK_Startup:
 	test	ax, cx
 	je	SHORT $LN10@SK_Startup
 
-; 1363 :                      (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
-; 1364 :   {
-; 1365 :     bypass = true;
-; 1366 : 
-; 1367 :     SK_BypassInject ();
+; 1394 :                      (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
+; 1395 :   {
+; 1396 :     bypass = true;
+; 1397 : 
+; 1398 :     SK_BypassInject ();
 
-	lea	eax, DWORD PTR $T16[ebp]
+	lea	eax, DWORD PTR $T18[ebp]
 	mov	BYTE PTR ?bypass@?1??SK_StartupCore@@YG_NPB_WPAX@Z@4_NA, 1
 	push	eax
 	call	?SK_BypassInject@@YG?AU?$pair@V?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@H@std@@XZ ; SK_BypassInject
@@ -36007,7 +36037,7 @@ $LN693@SK_Startup:
 
 ; 1244 : 		_Tidy();
 
-	lea	ecx, DWORD PTR $T16[ebp]
+	lea	ecx, DWORD PTR $T18[ebp]
 	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
@@ -36015,26 +36045,26 @@ $LN693@SK_Startup:
 
 	push	8
 	push	1
-	push	DWORD PTR $T16[ebp]
+	push	DWORD PTR $T18[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1369 :     bypass = false;
+; 1400 :     bypass = false;
 
 	mov	BYTE PTR ?bypass@?1??SK_StartupCore@@YG_NPB_WPAX@Z@4_NA, 0
 
-; 1370 : 
-; 1371 :     return true;
+; 1401 : 
+; 1402 :     return true;
 
-	jmp	$LN1293@SK_Startup
+	jmp	$LN1351@SK_Startup
 $LN10@SK_Startup:
 
-; 1372 :   }
-; 1373 : 
-; 1374 :   else
-; 1375 :   {
-; 1376 :     bool blacklist =
-; 1377 :       SK_IsInjected () &&
+; 1403 :   }
+; 1404 : 
+; 1405 :   else
+; 1406 :   {
+; 1407 :     bool blacklist =
+; 1408 :       SK_IsInjected () &&
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
@@ -36046,20 +36076,20 @@ $LN10@SK_Startup:
 	cmp	eax, -1
 	je	SHORT $LN12@SK_Startup
 
-; 1378 :       (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
-; 1379 : 
-; 1380 :     //
-; 1381 :     // Internal blacklist, the user will have the ability to setup their
-; 1382 :     //   own later...
-; 1383 :     //
-; 1384 :     if ( blacklist )
-; 1385 :     {
-; 1386 :       //FreeLibrary_Original (SK_GetDLL ());
-; 1387 :       return false;
+; 1409 :       (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
+; 1410 : 
+; 1411 :     //
+; 1412 :     // Internal blacklist, the user will have the ability to setup their
+; 1413 :     //   own later...
+; 1414 :     //
+; 1415 :     if ( blacklist )
+; 1416 :     {
+; 1417 :       //FreeLibrary_Original (SK_GetDLL ());
+; 1418 :       return false;
 
 	xor	al, al
 
-; 1736 : }
+; 1752 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -36071,20 +36101,20 @@ $LN10@SK_Startup:
 	ret	8
 $LN12@SK_Startup:
 
-; 1388 :     }
-; 1389 : 
-; 1390 :     // Do this from the startup thread
-; 1391 :     SK_HookWinAPI  ();
+; 1419 :     }
+; 1420 : 
+; 1421 :     // Do this from the startup thread
+; 1422 :     SK_HookWinAPI  ();
 
 	call	?SK_HookWinAPI@@YAXXZ			; SK_HookWinAPI
 
-; 1392 :     MH_ApplyQueued ();
+; 1423 :     MH_ApplyQueued ();
 
 	call	_MH_ApplyQueued@0
 
-; 1393 : 
-; 1394 :     // For the global injector, when not started by SKIM, check its version
-; 1395 :     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+; 1424 : 
+; 1425 :     // For the global injector, when not started by SKIM, check its version
+; 1426 :     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
@@ -36094,7 +36124,7 @@ $LN12@SK_Startup:
 	test	al, al
 	jne	SHORT $LN13@SK_Startup
 
-; 1396 :       CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
+; 1427 :       CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
 	push	0
 	push	0
@@ -36105,54 +36135,54 @@ $LN12@SK_Startup:
 	call	DWORD PTR __imp__CreateThread@24
 $LN13@SK_Startup:
 
-; 1397 :   }
-; 1398 : 
-; 1399 :   // Don't let Steam prevent me from attaching a debugger at startup
-; 1400 :   game_debug.init                  (L"logs/game_output.log", L"w");
+; 1428 :   }
+; 1429 : 
+; 1430 :   // Don't let Steam prevent me from attaching a debugger at startup
+; 1431 :   game_debug.init                  (L"logs/game_output.log", L"w");
 
-	push	OFFSET $SG428676
-	push	OFFSET $SG428677
+	push	OFFSET $SG428714
+	push	OFFSET $SG428715
 	push	OFFSET ?game_debug@@3UiSK_Logger@@A	; game_debug
 	call	?init@iSK_Logger@@UAG_NQB_W0@Z		; iSK_Logger::init
 
-; 1402 :   SK::Diagnostics::Debugger::Allow ();
+; 1433 :   SK::Diagnostics::Debugger::Allow ();
 
 	push	1
 	mov	BYTE PTR ?game_debug@@3UiSK_Logger@@A+76, 1
 	call	?Allow@Debugger@Diagnostics@SK@@YA_N_N@Z ; SK::Diagnostics::Debugger::Allow
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 261  :     EnterCriticalSection (cs_);
+; 264  :     EnterCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A ; init_mutex
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1402 :   SK::Diagnostics::Debugger::Allow ();
+; 1433 :   SK::Diagnostics::Debugger::Allow ();
 
 	add	esp, 4
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 261  :     EnterCriticalSection (cs_);
+; 264  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1407 :   init_.backend  = _wcsdup (backend);
+; 1438 :   init_.backend  = _wcsdup (backend);
 
-	mov	esi, DWORD PTR _backend$[ebp]
-	push	esi
-	mov	DWORD PTR ?init_@@3Uinit_params_t@@A, OFFSET $SG428678
+	mov	edi, DWORD PTR _backend$[ebp]
+	push	edi
+	mov	DWORD PTR ?init_@@3Uinit_params_t@@A, OFFSET $SG428716
 	mov	DWORD PTR ?init_@@3Uinit_params_t@@A+4, 0
 	call	DWORD PTR __imp___wcsdup
 	mov	DWORD PTR ?init_@@3Uinit_params_t@@A, eax
 
-; 1408 :   init_.callback =          callback;
+; 1439 :   init_.callback =          callback;
 
 	mov	eax, DWORD PTR _callback$[ebp]
 
-; 1409 : 
-; 1410 :   wchar_t log_fname [MAX_PATH + 2] = { };
+; 1440 : 
+; 1441 :   wchar_t log_fname [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	mov	DWORD PTR ?init_@@3Uinit_params_t@@A+4, eax
@@ -36162,88 +36192,86 @@ $LN13@SK_Startup:
 	call	_memset
 	add	esp, 16					; 00000010H
 
-; 1411 : 
-; 1412 :   swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
+; 1442 : 
+; 1443 :   swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	mov	ecx, OFFSET $SG428679
+	mov	ecx, OFFSET $SG428717
 	lea	eax, DWORD PTR _log_fname$[ebp]
-	cmove	ecx, esi
+	cmove	ecx, edi
 	push	ecx
-	push	OFFSET $SG428680
+	push	OFFSET $SG428718
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 	add	esp, 12					; 0000000cH
 
-; 1413 : 
-; 1414 :   dll_log.init (log_fname, L"w");
+; 1444 : 
+; 1445 :   dll_log.init (log_fname, L"w");
 
 	lea	eax, DWORD PTR _log_fname$[ebp]
-	push	OFFSET $SG428681
+	push	OFFSET $SG428719
 	push	eax
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?init@iSK_Logger@@UAG_NQB_W0@Z		; iSK_Logger::init
 
-; 1415 :   dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
+; 1446 :   dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	mov	ecx, OFFSET $SG428682
-	cmove	ecx, esi
+	mov	ecx, OFFSET $SG428720
+	cmove	ecx, edi
 	push	ecx
-	push	OFFSET $SG428683
+	push	OFFSET $SG428721
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 1416 : 
-; 1417 : 
-; 1418 :   if (SK_IsSuperSpecialK ())
+; 1447 : 
+; 1448 :   if (skim)
 
-	call	?SK_IsSuperSpecialK@@YA_NXZ		; SK_IsSuperSpecialK
-	test	al, al
+	cmp	BYTE PTR _skim$1$[ebp], 0
 	je	SHORT $LN14@SK_Startup
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 266  :     LeaveCriticalSection (cs_);
+; 269  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A ; init_mutex
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1421 :     return TRUE;
+; 1451 :     return TRUE;
 
-	jmp	$LN1250@SK_Startup
+	jmp	$LN1305@SK_Startup
 $LN14@SK_Startup:
 
-; 1422 :   }
-; 1423 : 
-; 1424 :   extern bool SK_Steam_LoadOverlayEarly (void);
-; 1425 :   extern void SK_Input_PreInit          (void);
-; 1426 : 
-; 1427 :   budget_log.init ( L"logs\\dxgi_budget.log", L"w" );
+; 1452 :   }
+; 1453 : 
+; 1454 :   extern bool SK_Steam_LoadOverlayEarly (void);
+; 1455 :   extern void SK_Input_PreInit          (void);
+; 1456 : 
+; 1457 :   budget_log.init ( L"logs\\dxgi_budget.log", L"w" );
 
-	push	OFFSET $SG428685
-	push	OFFSET $SG428686
+	push	OFFSET $SG428723
+	push	OFFSET $SG428724
 	push	OFFSET ?budget_log@@3UiSK_Logger@@A	; budget_log
 	call	?init@iSK_Logger@@UAG_NQB_W0@Z		; iSK_Logger::init
 
-; 1428 : 
-; 1429 :   //dll_log.Log (L"LoadLibraryA Addres: %ph", GetProcAddress (GetModuleHandle (L"kernel32.dll"), "LoadLibraryA"));
-; 1430 : 
-; 1431 :   dll_log.LogEx (false,
+; 1458 : 
+; 1459 :   //dll_log.Log (L"LoadLibraryA Addres: %ph", GetProcAddress (GetModuleHandle (L"kernel32.dll"), "LoadLibraryA"));
+; 1460 : 
+; 1461 :   dll_log.LogEx (false,
 
-	push	OFFSET $SG428687
+	push	OFFSET $SG428725
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 1436 :   std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
+; 1466 :   std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -36262,7 +36290,7 @@ $LN14@SK_Startup:
 	lea	eax, DWORD PTR _module_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1436 :   std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
+; 1466 :   std::wstring   module_name   = SK_GetModuleName (SK_GetDLL ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36272,7 +36300,7 @@ $LN14@SK_Startup:
 	cmovae	eax, DWORD PTR _module_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1439 :   dll_log.Log   (      L">> (%s) [%s] <<",
+; 1469 :   dll_log.Log   (      L">> (%s) [%s] <<",
 
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36282,39 +36310,39 @@ $LN14@SK_Startup:
 	mov	DWORD PTR _wszModuleName$1$[ebp], eax
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1439 :   dll_log.Log   (      L">> (%s) [%s] <<",
+; 1469 :   dll_log.Log   (      L">> (%s) [%s] <<",
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
-	push	OFFSET $SG428688
+	push	OFFSET $SG428726
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
 
-; 1440 :                          SK_GetHostApp (),
-; 1441 :                            wszModuleName );
-; 1442 : 
-; 1443 :   const wchar_t* config_name = backend;
-; 1444 : 
-; 1445 :   if (SK_IsInjected ())
+; 1470 :                          SK_GetHostApp (),
+; 1471 :                            wszModuleName );
+; 1472 : 
+; 1473 :   const wchar_t* config_name = backend;
+; 1474 : 
+; 1475 :   if (SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	mov	esi, OFFSET $SG428690
-	cmove	esi, DWORD PTR _backend$[ebp]
+	mov	esi, OFFSET $SG428728
+	cmove	esi, edi
 
-; 1446 :     config_name = L"SpecialK";
-; 1447 : 
-; 1448 :   dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
+; 1476 :     config_name = L"SpecialK";
+; 1477 : 
+; 1478 :   dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
 
 	push	esi
-	push	OFFSET $SG428691
+	push	OFFSET $SG428729
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 1450 :   if (SK_LoadConfig (config_name))
+; 1480 :   if (SK_LoadConfig (config_name))
 
 	sub	esp, 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -36324,7 +36352,7 @@ $LN14@SK_Startup:
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1450 :   if (SK_LoadConfig (config_name))
+; 1480 :   if (SK_LoadConfig (config_name))
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -36332,6 +36360,10 @@ $LN14@SK_Startup:
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	lea	edi, DWORD PTR [ecx+2]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -36346,18 +36378,15 @@ $LN14@SK_Startup:
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR [edx], ax
+$LL1343@SK_Startup:
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
-	lea	eax, DWORD PTR [ecx+2]
-	mov	DWORD PTR tv4098[ebp], eax
-	npad	4
-$LL1288@SK_Startup:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL1288@SK_Startup
-	sub	ecx, DWORD PTR tv4098[ebp]
+	jne	SHORT $LL1343@SK_Startup
+	sub	ecx, edi
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -36369,39 +36398,39 @@ $LL1288@SK_Startup:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1450 :   if (SK_LoadConfig (config_name))
+; 1480 :   if (SK_LoadConfig (config_name))
 
 	call	?SK_LoadConfig@@YA_NV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; SK_LoadConfig
 	add	esp, 24					; 00000018H
 	test	al, al
 	je	SHORT $LN16@SK_Startup
 
-; 1451 :     dll_log.LogEx (false, L"done!\n");
+; 1481 :     dll_log.LogEx (false, L"done!\n");
 
-	push	OFFSET $SG428694
+	push	OFFSET $SG428732
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 1452 : 
-; 1453 :   else
+; 1482 : 
+; 1483 :   else
 
-	jmp	$LN1294@SK_Startup
+	jmp	$LN1352@SK_Startup
 $LN16@SK_Startup:
 
-; 1454 :   {
-; 1455 :     dll_log.LogEx (false, L"failed!\n");
+; 1484 :   {
+; 1485 :     dll_log.LogEx (false, L"failed!\n");
 
-	push	OFFSET $SG428695
+	push	OFFSET $SG428733
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 1457 :     std::wstring default_name (L"default_");
+; 1487 :     std::wstring default_name (L"default_");
 
-	lea	ecx, DWORD PTR _default_name$6[ebp]
-	push	OFFSET $SG428696
+	lea	ecx, DWORD PTR _default_name$4[ebp]
+	push	OFFSET $SG428734
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -36410,7 +36439,7 @@ $LN16@SK_Startup:
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1457 :     std::wstring default_name (L"default_");
+; 1487 :     std::wstring default_name (L"default_");
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 9
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -36418,11 +36447,12 @@ $LN16@SK_Startup:
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	lea	edx, DWORD PTR [ecx+2]
-$LL1289@SK_Startup:
+	npad	7
+$LL1344@SK_Startup:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL1289@SK_Startup
+	jne	SHORT $LL1344@SK_Startup
 	sub	ecx, edx
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36431,16 +36461,16 @@ $LL1289@SK_Startup:
 
 	push	ecx
 	push	esi
-	lea	ecx, DWORD PTR _default_name$6[ebp]
+	lea	ecx, DWORD PTR _default_name$4[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1460 :     std::wstring default_ini (default_name + L".ini");
+; 1490 :     std::wstring default_ini (default_name + L".ini");
 
-	push	OFFSET $SG428697
-	lea	eax, DWORD PTR _default_name$6[ebp]
+	push	OFFSET $SG428735
+	lea	eax, DWORD PTR _default_name$4[ebp]
 	push	eax
-	lea	eax, DWORD PTR _default_ini$21[ebp]
+	lea	eax, DWORD PTR _default_ini$22[ebp]
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	add	esp, 12					; 0000000cH
@@ -36448,54 +36478,55 @@ $LL1289@SK_Startup:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _default_ini$21[ebp+20], 8
+	cmp	DWORD PTR _default_ini$22[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	eax, DWORD PTR _default_ini$21[ebp]
+	lea	eax, DWORD PTR _default_ini$22[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1460 :     std::wstring default_ini (default_name + L".ini");
+; 1490 :     std::wstring default_ini (default_name + L".ini");
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 10		; 0000000aH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	eax, DWORD PTR _default_ini$21[ebp]
+	cmovae	eax, DWORD PTR _default_ini$22[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1462 :     if (GetFileAttributesW (default_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 1492 :     if (GetFileAttributesW (default_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	push	eax
-	call	edi
+	mov	eax, DWORD PTR __imp__GetFileAttributesW@4
+	call	eax
 	cmp	eax, -1
 	je	SHORT $LN20@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _default_name$6[ebp+20], 8
+	cmp	DWORD PTR _default_name$4[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	eax, DWORD PTR _default_name$6[ebp]
-	cmovae	eax, DWORD PTR _default_name$6[ebp]
+	lea	eax, DWORD PTR _default_name$4[ebp]
+	cmovae	eax, DWORD PTR _default_name$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1464 :       dll_log.LogEx (true, L"Loading default preferences from %s.ini... ", default_name.c_str ());
+; 1494 :       dll_log.LogEx (true, L"Loading default preferences from %s.ini... ", default_name.c_str ());
 
 	push	eax
-	push	OFFSET $SG428699
+	push	OFFSET $SG428737
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 1465 : 
-; 1466 :       if (! SK_LoadConfig (default_name))
+; 1495 : 
+; 1496 :       if (! SK_LoadConfig (default_name))
 
 	sub	esp, 8
-	lea	eax, DWORD PTR _default_name$6[ebp]
+	lea	eax, DWORD PTR _default_name$4[ebp]
 	mov	ecx, esp
 	push	eax
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@ABV01@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
@@ -36504,37 +36535,37 @@ $LL1289@SK_Startup:
 	test	al, al
 	jne	SHORT $LN19@SK_Startup
 
-; 1467 :         dll_log.LogEx (false, L"failed!\n");
+; 1497 :         dll_log.LogEx (false, L"failed!\n");
 
-	push	OFFSET $SG428702
+	push	OFFSET $SG428740
 
-; 1468 :       else
+; 1498 :       else
 
-	jmp	SHORT $LN1295@SK_Startup
+	jmp	SHORT $LN1353@SK_Startup
 $LN19@SK_Startup:
 
-; 1469 :         dll_log.LogEx (false, L"done!\n");
+; 1499 :         dll_log.LogEx (false, L"done!\n");
 
-	push	OFFSET $SG428703
-$LN1295@SK_Startup:
+	push	OFFSET $SG428741
+$LN1353@SK_Startup:
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 $LN20@SK_Startup:
 
-; 1470 :     }
-; 1471 : 
-; 1472 :     // If no INI file exists, write one immediately.
-; 1473 :     dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
+; 1500 :     }
+; 1501 : 
+; 1502 :     // If no INI file exists, write one immediately.
+; 1503 :     dll_log.LogEx (true, L"  >> Writing base INI file, because none existed... ");
 
-	push	OFFSET $SG428704
+	push	OFFSET $SG428742
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 1474 :     SK_SaveConfig (config_name);
+; 1504 :     SK_SaveConfig (config_name);
 
 	push	0
 	sub	esp, 24					; 00000018H
@@ -36543,9 +36574,9 @@ $LN20@SK_Startup:
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 
-; 1475 :     dll_log.LogEx (false, L"done!\n");
+; 1505 :     dll_log.LogEx (false, L"done!\n");
 
-	push	OFFSET $SG428705
+	push	OFFSET $SG428743
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -36553,10 +36584,10 @@ $LN20@SK_Startup:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _default_ini$21[ebp+20]
+	mov	eax, DWORD PTR _default_ini$22[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1475 :     dll_log.LogEx (false, L"done!\n");
+; 1505 :     dll_log.LogEx (false, L"done!\n");
 
 	add	esp, 40					; 00000028H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36567,7 +36598,7 @@ $LN20@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN873@SK_Startup
+	jb	SHORT $LN876@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -36578,10 +36609,10 @@ $LN20@SK_Startup:
 
 	push	2
 	push	eax
-	push	DWORD PTR _default_ini$21[ebp]
+	push	DWORD PTR _default_ini$22[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN873@SK_Startup:
+$LN876@SK_Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -36591,24 +36622,24 @@ $LN873@SK_Startup:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _default_ini$21[ebp+16], 0
+	mov	DWORD PTR _default_ini$22[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _default_ini$21[ebp], ax
+	mov	WORD PTR _default_ini$22[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _default_name$6[ebp+20]
+	mov	eax, DWORD PTR _default_name$4[ebp+20]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _default_ini$21[ebp+20], 7
+	mov	DWORD PTR _default_ini$22[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1476 :   }
+; 1506 :   }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36619,7 +36650,7 @@ $LN873@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN903@SK_Startup
+	jb	SHORT $LN906@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -36630,59 +36661,83 @@ $LN873@SK_Startup:
 
 	push	2
 	push	eax
-	push	DWORD PTR _default_name$6[ebp]
+	push	DWORD PTR _default_name$4[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-$LN1294@SK_Startup:
+$LN1352@SK_Startup:
 	add	esp, 12					; 0000000cH
-$LN903@SK_Startup:
+$LN906@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1479 :   if (bypass)
+; 1510 :   if (bypass)
 
 	cmp	BYTE PTR ?bypass@?1??SK_StartupCore@@YG_NPB_WPAX@Z@4_NA, 0
-	jne	$BACKEND_INIT$1299
+	jne	$BACKEND_INIT$1357
 
-; 1480 :     goto BACKEND_INIT;
-; 1481 : 
-; 1482 : 
-; 1483 : 
-; 1484 :   if (config.system.display_debug_out)
+; 1511 :     goto BACKEND_INIT;
+; 1512 : 
+; 1513 : 
+; 1514 :   init_tids = SK_SuspendAllOtherThreads ();
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+830, 0
+	lea	eax, DWORD PTR $T5[ebp]
+	push	eax
+	call	?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ ; SK_SuspendAllOtherThreads
+	add	esp, 4
+	mov	ecx, OFFSET ?init_tids@@3V?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@A ; init_tids
+	push	eax
+	call	??4?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@QAEAAV01@$$QAV01@@Z
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\deque
+
+; 1244 : 		_Tidy();
+
+	lea	ecx, DWORD PTR $T5[ebp]
+	call	?_Tidy@?$deque@KV?$allocator@K@std@@@std@@IAEXXZ ; std::deque<unsigned long,std::allocator<unsigned long> >::_Tidy
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	8
+	push	1
+	push	DWORD PTR $T5[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1517 :   if (config.system.display_debug_out)
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+842, 0
 	je	SHORT $LN23@SK_Startup
 
-; 1485 :     SK::Diagnostics::Debugger::SpawnConsole ();
+; 1518 :     SK::Diagnostics::Debugger::SpawnConsole ();
 
 	call	?SpawnConsole@Debugger@Diagnostics@SK@@YAXXZ ; SK::Diagnostics::Debugger::SpawnConsole
 $LN23@SK_Startup:
 
-; 1486 : 
-; 1487 :   if (config.system.handle_crashes)
+; 1519 : 
+; 1520 :   if (config.system.handle_crashes)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+828, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+840, 0
 	je	SHORT $LN24@SK_Startup
 
-; 1488 :     SK::Diagnostics::CrashHandler::Init ();
+; 1521 :     SK::Diagnostics::CrashHandler::Init ();
 
 	call	?Init@CrashHandler@Diagnostics@SK@@YAXXZ ; SK::Diagnostics::CrashHandler::Init
 $LN24@SK_Startup:
 
-; 1489 : 
-; 1490 : 
-; 1491 :   SK::Diagnostics::CrashHandler::InitSyms ();
+; 1522 : 
+; 1523 : 
+; 1524 :   SK::Diagnostics::CrashHandler::InitSyms ();
 
 	call	?InitSyms@CrashHandler@Diagnostics@SK@@YAXXZ ; SK::Diagnostics::CrashHandler::InitSyms
 
-; 1492 : 
-; 1493 : 
-; 1494 :   if (config.steam.preload_overlay)
+; 1525 : 
+; 1526 : 
+; 1527 :   if (config.steam.preload_overlay)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+389, 0
 	je	SHORT $LN25@SK_Startup
 
-; 1495 :   {
-; 1496 : 
-; 1497 :     CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD {
+; 1528 :   {
+; 1529 :     CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD {
 
 	push	0
 	push	0
@@ -36693,53 +36748,53 @@ $LN24@SK_Startup:
 	call	DWORD PTR __imp__CreateThread@24
 $LN25@SK_Startup:
 
-; 1498 :                                    SK_Steam_LoadOverlayEarly ();
-; 1499 :                                    SK_Input_Init             ();
-; 1500 : 
-; 1501 :                                    CloseHandle (GetCurrentThread ());
-; 1502 : 
-; 1503 :                                    return 0;
-; 1504 :                                  }, nullptr, 0x00, nullptr);
-; 1505 :   }
-; 1506 : 
-; 1507 :   SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
+; 1530 :                                    SK_Steam_LoadOverlayEarly ();
+; 1531 :                                    SK_Input_Init             ();
+; 1532 : 
+; 1533 :                                    CloseHandle (GetCurrentThread ());
+; 1534 : 
+; 1535 :                                    return 0;
+; 1536 :                                  }, nullptr, 0x00, nullptr);
+; 1537 :   }
+; 1538 : 
+; 1539 :   SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
 
 	call	?SK_Input_PreInit@@YAXXZ		; SK_Input_PreInit
 
-; 1508 : 
-; 1509 : 
-; 1510 :   if (config.compatibility.init_while_suspended)
-; 1511 :   {
-; 1512 :     //
-; 1513 :   }
-; 1514 : 
-; 1515 : 
-; 1516 :   // Lazy-load SteamAPI into a process that doesn't use it, this brings
-; 1517 :   //   a number of benefits.
-; 1518 :   if (config.steam.force_load_steamapi)
+; 1540 : 
+; 1541 : 
+; 1542 :   if (config.compatibility.init_while_suspended)
+; 1543 :   {
+; 1544 :     //
+; 1545 :   }
+; 1546 : 
+; 1547 : 
+; 1548 :   // Lazy-load SteamAPI into a process that doesn't use it, this brings
+; 1549 :   //   a number of benefits.
+; 1550 :   if (config.steam.force_load_steamapi)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+391, 0
 	mov	esi, DWORD PTR __imp__GetModuleHandleW@4
 	je	$LN34@SK_Startup
 
-; 1519 :   {
-; 1520 :     static bool tried = false;
-; 1521 : 
-; 1522 :     if (! tried)
+; 1551 :   {
+; 1552 :     static bool tried = false;
+; 1553 : 
+; 1554 :     if (! tried)
 
 	cmp	BYTE PTR ?tried@?DH@??SK_StartupCore@@YG_NPB_WPAX@Z@4_NA, 0
 	jne	$LN34@SK_Startup
 
-; 1523 :     {
-; 1524 :       tried = true;
-; 1525 : 
-; 1526 : #ifdef _WIN64
-; 1527 :       static const wchar_t* wszSteamDLL = L"steam_api64.dll";
-; 1528 : #else
-; 1529 :       static const wchar_t* wszSteamDLL = L"steam_api.dll";
-; 1530 : #endif
-; 1531 : 
-; 1532 :       if (! GetModuleHandle (wszSteamDLL))
+; 1555 :     {
+; 1556 :       tried = true;
+; 1557 : 
+; 1558 : #ifdef _WIN64
+; 1559 :       static const wchar_t* wszSteamDLL = L"steam_api64.dll";
+; 1560 : #else
+; 1561 :       static const wchar_t* wszSteamDLL = L"steam_api.dll";
+; 1562 : #endif
+; 1563 : 
+; 1564 :       if (! GetModuleHandle (wszSteamDLL))
 
 	push	DWORD PTR ?wszSteamDLL@?DK@??SK_StartupCore@@YG_NPB_WPAX@Z@4PB_WB
 	mov	BYTE PTR ?tried@?DH@??SK_StartupCore@@YG_NPB_WPAX@Z@4_NA, 1
@@ -36747,8 +36802,8 @@ $LN25@SK_Startup:
 	test	eax, eax
 	jne	$LN34@SK_Startup
 
-; 1533 :       {
-; 1534 :         wchar_t wszDLLPath [MAX_PATH * 2 + 4] = { };
+; 1565 :       {
+; 1566 :         wchar_t wszDLLPath [MAX_PATH * 2 + 4] = { };
 
 	push	1048					; 00000418H
 	push	eax
@@ -36757,19 +36812,19 @@ $LN25@SK_Startup:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1535 : 
-; 1536 :         if (SK_IsInjected ())
+; 1567 : 
+; 1568 :         if (SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN30@SK_Startup
 
-; 1537 :           wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+; 1569 :           wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
-	lea	eax, DWORD PTR $T15[ebp]
+	lea	eax, DWORD PTR $T17[ebp]
 	push	eax
 	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
 	add	esp, 8
@@ -36781,16 +36836,16 @@ $LN25@SK_Startup:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN946@SK_Startup
+	jb	SHORT $LN1004@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN946@SK_Startup:
+$LN1004@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1537 :           wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+; 1569 :           wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
 
 	push	520					; 00000208H
 	push	eax
@@ -36798,14 +36853,14 @@ $LN946@SK_Startup:
 	push	eax
 	call	DWORD PTR __imp__wcsncpy
 
-; 1538 :         else
+; 1570 :         else
 
-	jmp	SHORT $LN1296@SK_Startup
+	jmp	SHORT $LN1354@SK_Startup
 $LN30@SK_Startup:
 
-; 1540 :           _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
+; 1572 :           _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
 
-	lea	eax, DWORD PTR $T14[ebp]
+	lea	eax, DWORD PTR $T16[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
 	add	esp, 4
@@ -36817,31 +36872,31 @@ $LN30@SK_Startup:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN965@SK_Startup
+	jb	SHORT $LN1023@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN965@SK_Startup:
+$LN1023@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1540 :           _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
+; 1572 :           _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
 
 	push	eax
 	lea	eax, DWORD PTR _wszDLLPath$2[ebp]
-	push	OFFSET $SG428717
+	push	OFFSET $SG428755
 	push	eax
 	call	__swprintf
-$LN1296@SK_Startup:
+$LN1354@SK_Startup:
 	add	esp, 12					; 0000000cH
-	lea	ecx, DWORD PTR $T14[ebp]
+	lea	ecx, DWORD PTR $T16[ebp]
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 1541 :                         SK_GetDocumentsDir ().c_str () );
-; 1542 :         }
-; 1543 : 
-; 1544 :         if (PathRemoveFileSpec (wszDLLPath))
+; 1573 :                         SK_GetDocumentsDir ().c_str () );
+; 1574 :         }
+; 1575 : 
+; 1576 :         if (PathRemoveFileSpec (wszDLLPath))
 
 	lea	eax, DWORD PTR _wszDLLPath$2[ebp]
 	push	eax
@@ -36849,61 +36904,61 @@ $LN1296@SK_Startup:
 	test	eax, eax
 	je	SHORT $LN34@SK_Startup
 
-; 1545 :         {
-; 1546 :           PathAppendW (wszDLLPath, wszSteamDLL);
+; 1577 :         {
+; 1578 :           PathAppendW (wszDLLPath, wszSteamDLL);
 
 	push	DWORD PTR ?wszSteamDLL@?DK@??SK_StartupCore@@YG_NPB_WPAX@Z@4PB_WB
 	lea	eax, DWORD PTR _wszDLLPath$2[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathAppendW@8
 
-; 1547 : 
-; 1548 :           if (SK_GetFileSize (wszDLLPath) > 0)
+; 1579 : 
+; 1580 :           if (SK_GetFileSize (wszDLLPath) > 0)
 
 	lea	eax, DWORD PTR _wszDLLPath$2[ebp]
 	push	eax
 	call	?SK_GetFileSize@@YG_KPB_W@Z		; SK_GetFileSize
 	test	edx, edx
-	jne	SHORT $LN1290@SK_Startup
+	jne	SHORT $LN1345@SK_Startup
 	test	eax, eax
 	je	SHORT $LN34@SK_Startup
-$LN1290@SK_Startup:
+$LN1345@SK_Startup:
 
-; 1549 :           {
-; 1550 :             HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
+; 1581 :           {
+; 1582 :             HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
 
 	push	DWORD PTR ?wszSteamDLL@?DK@??SK_StartupCore@@YG_NPB_WPAX@Z@4PB_WB
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 
-; 1551 : 
-; 1552 :             if (hMod)
+; 1583 : 
+; 1584 :             if (hMod)
 
 	test	eax, eax
 	je	SHORT $LN34@SK_Startup
 
-; 1553 :             {
-; 1554 :               dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
+; 1585 :             {
+; 1586 :               dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
 
 	push	DWORD PTR ?wszSteamDLL@?DK@??SK_StartupCore@@YG_NPB_WPAX@Z@4PB_WB
-	push	OFFSET $SG428721
+	push	OFFSET $SG428759
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 $LN34@SK_Startup:
 
-; 1555 :                               wszSteamDLL );//wszDLLPath );
-; 1556 :             }
-; 1557 :           }
-; 1558 :         }
-; 1559 :       }
-; 1560 :     }
-; 1561 :   }
-; 1562 : 
-; 1563 :   SK_Steam_InitCommandConsoleVariables ();
+; 1587 :                               wszSteamDLL );//wszDLLPath );
+; 1588 :             }
+; 1589 :           }
+; 1590 :         }
+; 1591 :       }
+; 1592 :     }
+; 1593 :   }
+; 1594 : 
+; 1595 :   SK_Steam_InitCommandConsoleVariables ();
 
 	call	?SK_Steam_InitCommandConsoleVariables@@YAXXZ ; SK_Steam_InitCommandConsoleVariables
 
-; 1564 :   SK_TestSteamImports                  (GetModuleHandle (nullptr));
+; 1596 :   SK_TestSteamImports                  (GetModuleHandle (nullptr));
 
 	push	0
 	call	esi
@@ -36911,60 +36966,60 @@ $LN34@SK_Startup:
 	call	?SK_TestSteamImports@@YAXPAUHINSTANCE__@@@Z ; SK_TestSteamImports
 	add	esp, 4
 
-; 1565 : 
-; 1566 : 
-; 1567 :   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
+; 1597 : 
+; 1598 : 
+; 1599 :   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
 	push	0
 	call	?SK_EnumLoadedModules@@YGXW4SK_ModuleEnum@@@Z ; SK_EnumLoadedModules
-$BACKEND_INIT$1299:
+$BACKEND_INIT$1357:
 
-; 1568 : 
-; 1569 : 
-; 1570 : BACKEND_INIT:
-; 1571 :   dll_log.LogEx (false,
+; 1600 : 
+; 1601 : 
+; 1602 : BACKEND_INIT:
+; 1603 :   dll_log.LogEx (false,
 
-	push	OFFSET $SG428722
+	push	OFFSET $SG428760
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 1572 :     L"----------------------------------------------------------------------"
-; 1573 :     L"---------------------\n");
-; 1574 : 
-; 1575 :   // If the module name is this, then we need to load the system-wide DLL...
-; 1576 :   wchar_t   wszProxyName [MAX_PATH];
-; 1577 :   wsprintf (wszProxyName, L"%s.dll", backend);
+; 1604 :     L"----------------------------------------------------------------------"
+; 1605 :     L"---------------------\n");
+; 1606 : 
+; 1607 :   // If the module name is this, then we need to load the system-wide DLL...
+; 1608 :   wchar_t   wszProxyName [MAX_PATH];
+; 1609 :   wsprintf (wszProxyName, L"%s.dll", backend);
 
 	mov	edi, DWORD PTR _backend$[ebp]
 	lea	eax, DWORD PTR _wszProxyName$[ebp]
 	mov	esi, DWORD PTR __imp__wsprintfW
 	push	edi
-	push	OFFSET $SG428723
+	push	OFFSET $SG428761
 	push	eax
 	call	esi
 	add	esp, 24					; 00000018H
 
-; 1578 : 
-; 1579 : 
-; 1580 : #ifndef _WIN64
-; 1581 :   //
-; 1582 :   // TEMP HACK: dgVoodoo2
-; 1583 :   //
-; 1584 :   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+; 1610 : 
+; 1611 : 
+; 1612 : #ifndef _WIN64
+; 1613 :   //
+; 1614 :   // TEMP HACK: dgVoodoo2
+; 1615 :   //
+; 1616 :   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	cmp	eax, -1073741808			; c0000010H
 	jne	$LN35@SK_Startup
 
-; 1585 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
+; 1617 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
 
-	lea	eax, DWORD PTR $T5[ebp]
+	lea	eax, DWORD PTR $T7[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG428726
+	push	OFFSET $SG428764
 	push	eax
-	lea	eax, DWORD PTR $T13[ebp]
+	lea	eax, DWORD PTR $T15[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 11		; 0000000bH
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
@@ -36977,30 +37032,30 @@ $BACKEND_INIT$1299:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN984@SK_Startup
+	jb	SHORT $LN1042@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN984@SK_Startup:
+$LN1042@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1585 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
+; 1617 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
 
 	push	eax
 	lea	eax, DWORD PTR _wszProxyName$[ebp]
-	push	OFFSET $SG428727
+	push	OFFSET $SG428765
 	push	eax
 	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T13[ebp+20]
+	mov	eax, DWORD PTR $T15[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1585 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
+; 1617 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -37011,7 +37066,7 @@ $LN984@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN993@SK_Startup
+	jb	SHORT $LN1051@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -37022,10 +37077,10 @@ $LN984@SK_Startup:
 
 	push	2
 	push	eax
-	push	DWORD PTR $T13[ebp]
+	push	DWORD PTR $T15[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN993@SK_Startup:
+$LN1051@SK_Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -37035,24 +37090,24 @@ $LN993@SK_Startup:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T13[ebp+16], 0
+	mov	DWORD PTR $T15[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR $T13[ebp], ax
+	mov	WORD PTR $T15[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T5[ebp+20]
+	mov	eax, DWORD PTR $T7[ebp+20]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR $T13[ebp+20], 7
+	mov	DWORD PTR $T15[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1585 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
+; 1617 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll",
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -37074,26 +37129,26 @@ $LN993@SK_Startup:
 
 	push	2
 	push	eax
-	push	DWORD PTR $T5[ebp]
+	push	DWORD PTR $T7[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1588 :   else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+; 1620 :   else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
 
 	jmp	SHORT $LN37@SK_Startup
 $LN35@SK_Startup:
 	cmp	eax, -1073741792			; c0000020H
 	jne	SHORT $LN37@SK_Startup
 
-; 1589 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll",
+; 1621 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll",
 
-	lea	eax, DWORD PTR $T4[ebp]
+	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG428729
+	push	OFFSET $SG428767
 	push	eax
-	lea	eax, DWORD PTR $T12[ebp]
+	lea	eax, DWORD PTR $T14[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 12		; 0000000cH
 	push	eax
 	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
@@ -37106,35 +37161,35 @@ $LN35@SK_Startup:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN1063@SK_Startup
+	jb	SHORT $LN1121@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN1063@SK_Startup:
+$LN1121@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1589 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll",
+; 1621 :     wsprintf (wszProxyName, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\ddraw.dll",
 
 	push	eax
 	lea	eax, DWORD PTR _wszProxyName$[ebp]
-	push	OFFSET $SG428730
+	push	OFFSET $SG428768
 	push	eax
 	call	esi
 	add	esp, 12					; 0000000cH
-	lea	ecx, DWORD PTR $T12[ebp]
+	lea	ecx, DWORD PTR $T14[ebp]
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-	lea	ecx, DWORD PTR $T4[ebp]
+	lea	ecx, DWORD PTR $T6[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 8
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 $LN37@SK_Startup:
 
-; 1590 :                 std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-; 1591 : #endif
-; 1592 : 
-; 1593 : 
-; 1594 :   wchar_t wszBackendDLL [MAX_PATH + 2] = { };
+; 1622 :                 std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+; 1623 : #endif
+; 1624 : 
+; 1625 : 
+; 1626 :   wchar_t wszBackendDLL [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszBackendDLL$[ebp]
@@ -37143,28 +37198,28 @@ $LN37@SK_Startup:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1595 : #ifdef _WIN64
-; 1596 :   GetSystemDirectory (wszBackendDLL, MAX_PATH);
-; 1597 : #else
-; 1598 :   HANDLE hProc = GetCurrentProcess ();
+; 1627 : #ifdef _WIN64
+; 1628 :   GetSystemDirectory (wszBackendDLL, MAX_PATH);
+; 1629 : #else
+; 1630 :   HANDLE hProc = GetCurrentProcess ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 
-; 1599 : 
-; 1600 :   BOOL   bWOW64;
-; 1601 :   ::IsWow64Process (hProc, &bWOW64);
+; 1631 : 
+; 1632 :   BOOL   bWOW64;
+; 1633 :   ::IsWow64Process (hProc, &bWOW64);
 
 	lea	ecx, DWORD PTR _bWOW64$[ebp]
 	push	ecx
 	push	eax
 	call	DWORD PTR __imp__IsWow64Process@8
 
-; 1602 : 
-; 1603 :   if (bWOW64)
+; 1634 : 
+; 1635 :   if (bWOW64)
 
 	cmp	DWORD PTR _bWOW64$[ebp], 0
 
-; 1604 :     GetSystemWow64Directory (wszBackendDLL, MAX_PATH);
+; 1636 :     GetSystemWow64Directory (wszBackendDLL, MAX_PATH);
 
 	lea	eax, DWORD PTR _wszBackendDLL$[ebp]
 	push	260					; 00000104H
@@ -37172,19 +37227,19 @@ $LN37@SK_Startup:
 	je	SHORT $LN38@SK_Startup
 	call	DWORD PTR __imp__GetSystemWow64DirectoryW@8
 
-; 1605 :   else
+; 1637 :   else
 
 	jmp	SHORT $LN39@SK_Startup
 $LN38@SK_Startup:
 
-; 1606 :     GetSystemDirectory (wszBackendDLL, MAX_PATH);
+; 1638 :     GetSystemDirectory (wszBackendDLL, MAX_PATH);
 
 	call	DWORD PTR __imp__GetSystemDirectoryW@8
 $LN39@SK_Startup:
 
-; 1607 : #endif
-; 1608 : 
-; 1609 :   wchar_t wszWorkDir   [MAX_PATH + 2] = { };
+; 1639 : #endif
+; 1640 : 
+; 1641 :   wchar_t wszWorkDir   [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszWorkDir$[ebp]
@@ -37193,65 +37248,65 @@ $LN39@SK_Startup:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1610 :   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
+; 1642 :   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
 
 	lea	eax, DWORD PTR _wszWorkDir$[ebp]
 	push	eax
 	push	260					; 00000104H
 	call	DWORD PTR __imp__GetCurrentDirectoryW@8
 
-; 1611 :        SK_StripUserNameFromPathW (wszWorkDir);
+; 1643 :        SK_StripUserNameFromPathW (wszWorkDir);
 
 	lea	eax, DWORD PTR _wszWorkDir$[ebp]
 	push	eax
 	call	?SK_StripUserNameFromPathW@@YA_NPA_W@Z	; SK_StripUserNameFromPathW
 
-; 1612 : 
-; 1613 :   dll_log.Log (L" Working Directory:          %s", wszWorkDir);
+; 1644 : 
+; 1645 :   dll_log.Log (L" Working Directory:          %s", wszWorkDir);
 
 	lea	eax, DWORD PTR _wszWorkDir$[ebp]
 	push	eax
-	push	OFFSET $SG428733
+	push	OFFSET $SG428771
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 1614 :   dll_log.Log (L" System Directory:           %s", wszBackendDLL);
+; 1646 :   dll_log.Log (L" System Directory:           %s", wszBackendDLL);
 
 	lea	eax, DWORD PTR _wszBackendDLL$[ebp]
 	push	eax
-	push	OFFSET $SG428734
+	push	OFFSET $SG428772
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 1615 : 
-; 1616 :   lstrcatW (wszBackendDLL, L"\\");
+; 1647 : 
+; 1648 :   lstrcatW (wszBackendDLL, L"\\");
 
 	mov	esi, DWORD PTR __imp__lstrcatW@8
 	lea	eax, DWORD PTR _wszBackendDLL$[ebp]
 	add	esp, 28					; 0000001cH
-	push	OFFSET $SG428735
+	push	OFFSET $SG428773
 	push	eax
 	call	esi
 
-; 1617 :   lstrcatW (wszBackendDLL, backend);
+; 1649 :   lstrcatW (wszBackendDLL, backend);
 
 	push	edi
 	lea	eax, DWORD PTR _wszBackendDLL$[ebp]
 	push	eax
 	call	esi
 
-; 1618 :   lstrcatW (wszBackendDLL, L".dll");
+; 1650 :   lstrcatW (wszBackendDLL, L".dll");
 
-	push	OFFSET $SG428736
+	push	OFFSET $SG428774
 	lea	eax, DWORD PTR _wszBackendDLL$[ebp]
 	push	eax
 	call	esi
 
-; 1619 : 
-; 1620 :         bool     use_system_dll = true;
-; 1621 :   const wchar_t* dll_name       = wszBackendDLL;
-; 1622 : 
-; 1623 :   if (! SK_Path_wcsicmp (wszProxyName, wszModuleName))
+; 1651 : 
+; 1652 :         bool     use_system_dll = true;
+; 1653 :   const wchar_t* dll_name       = wszBackendDLL;
+; 1654 : 
+; 1655 :   if (! SK_Path_wcsicmp (wszProxyName, wszModuleName))
 
 	push	DWORD PTR _wszModuleName$1$[ebp]
 	lea	eax, DWORD PTR _wszProxyName$[ebp]
@@ -37259,14 +37314,14 @@ $LN39@SK_Startup:
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
 
-; 1624 :     dll_name = wszBackendDLL;
-; 1625 :   else
-; 1626 :   {
-; 1627 :     dll_name       = wszProxyName;
-; 1628 :     use_system_dll = false;
-; 1629 :   }
-; 1630 : 
-; 1631 :   bool load_proxy = false;
+; 1656 :     dll_name = wszBackendDLL;
+; 1657 :   else
+; 1658 :   {
+; 1659 :     dll_name       = wszProxyName;
+; 1660 :     use_system_dll = false;
+; 1661 :   }
+; 1662 : 
+; 1663 :   bool load_proxy = false;
 
 	mov	BYTE PTR _load_proxy$1$[ebp], 0
 	test	eax, eax
@@ -37274,28 +37329,28 @@ $LN39@SK_Startup:
 	lea	edi, DWORD PTR _wszBackendDLL$[ebp]
 	cmovne	edi, ecx
 
-; 1632 : 
-; 1633 :   if (! SK_IsInjected ())
+; 1664 : 
+; 1665 :   if (! SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
-	jne	SHORT $LN1282@SK_Startup
+	jne	SHORT $LN1337@SK_Startup
 
-; 1634 :   {
-; 1635 :     for (auto& import : imports)
+; 1666 :   {
+; 1667 :     for (auto& import : imports)
 
 	mov	esi, OFFSET ?imports@@3PAUimport_s@@A
-	npad	5
+	npad	7
 $LL4@SK_Startup:
 
-; 1637 :       if (import.role != nullptr && import.role->get_value () == backend)
+; 1669 :       if (import.role != nullptr && import.role->get_value () == backend)
 
 	mov	ecx, DWORD PTR [esi+64]
 	test	ecx, ecx
-	je	SHORT $LN57@SK_Startup
+	je	SHORT $LN59@SK_Startup
 	mov	eax, DWORD PTR [ecx]
-	lea	edx, DWORD PTR $T11[ebp]
+	lea	edx, DWORD PTR $T13[ebp]
 	push	edx
 	call	DWORD PTR [eax+8]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -37305,34 +37360,34 @@ $LL4@SK_Startup:
 	push	DWORD PTR _backend$[ebp]
 	or	ebx, 1
 	mov	ecx, eax
-	mov	DWORD PTR $T3[ebp], ebx
+	mov	DWORD PTR $T11[ebp], ebx
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1637 :       if (import.role != nullptr && import.role->get_value () == backend)
+; 1669 :       if (import.role != nullptr && import.role->get_value () == backend)
 
 	test	al, al
-	je	SHORT $LN57@SK_Startup
+	je	SHORT $LN59@SK_Startup
 	mov	bl, 1
-	jmp	SHORT $LN58@SK_Startup
-$LN57@SK_Startup:
+	jmp	SHORT $LN60@SK_Startup
+$LN59@SK_Startup:
 	xor	bl, bl
-$LN58@SK_Startup:
-	mov	eax, DWORD PTR $T3[ebp]
+$LN60@SK_Startup:
+	mov	eax, DWORD PTR $T11[ebp]
 	test	al, 1
-	je	SHORT $LN1074@SK_Startup
+	je	SHORT $LN1132@SK_Startup
 	and	eax, -2					; fffffffeH
-	mov	DWORD PTR $T3[ebp], eax
+	mov	DWORD PTR $T11[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T11[ebp+20]
+	mov	eax, DWORD PTR $T13[ebp+20]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN1074@SK_Startup
+	jb	SHORT $LN1132@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -37343,31 +37398,31 @@ $LN58@SK_Startup:
 
 	push	2
 	push	eax
-	push	DWORD PTR $T11[ebp]
+	push	DWORD PTR $T13[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN1074@SK_Startup:
+$LN1132@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1637 :       if (import.role != nullptr && import.role->get_value () == backend)
+; 1669 :       if (import.role != nullptr && import.role->get_value () == backend)
 
 	test	bl, bl
-	jne	SHORT $LN1277@SK_Startup
+	jne	SHORT $LN1332@SK_Startup
 
-; 1634 :   {
-; 1635 :     for (auto& import : imports)
+; 1666 :   {
+; 1667 :     for (auto& import : imports)
 
-	mov	ebx, DWORD PTR $T3[ebp]
+	mov	ebx, DWORD PTR $T11[ebp]
 	add	esi, 76					; 0000004cH
 	cmp	esi, OFFSET ?imports@@3PAUimport_s@@A+608
 	jne	SHORT $LL4@SK_Startup
-$LN1282@SK_Startup:
+$LN1337@SK_Startup:
 
-; 1648 :     dll_log.LogEx (true, L" Loading default %s.dll: ", backend);
+; 1680 :     dll_log.LogEx (true, L" Loading default %s.dll: ", backend);
 
 	mov	esi, DWORD PTR _backend$[ebp]
 	push	esi
-	push	OFFSET $SG428744
+	push	OFFSET $SG428782
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -37375,70 +37430,70 @@ $LN1282@SK_Startup:
 	add	esp, 16					; 00000010H
 $LN44@SK_Startup:
 
-; 1649 : 
-; 1650 :   // Pre-Load the original DLL into memory
-; 1651 :   if (dll_name != wszBackendDLL) {
+; 1681 : 
+; 1682 :   // Pre-Load the original DLL into memory
+; 1683 :   if (dll_name != wszBackendDLL) {
 
 	lea	eax, DWORD PTR _wszBackendDLL$[ebp]
 	cmp	edi, eax
 	je	SHORT $LN45@SK_Startup
 
-; 1652 :                   LoadLibraryW_Original (wszBackendDLL);
+; 1684 :                   LoadLibraryW_Original (wszBackendDLL);
 
 	push	eax
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 $LN45@SK_Startup:
 
-; 1653 :     backend_dll = LoadLibraryW_Original (dll_name);
-; 1654 :   }
-; 1655 : 
-; 1656 :   else
-; 1657 :     backend_dll = LoadLibraryW_Original (dll_name);
+; 1685 :     backend_dll = LoadLibraryW_Original (dll_name);
+; 1686 :   }
+; 1687 : 
+; 1688 :   else
+; 1689 :     backend_dll = LoadLibraryW_Original (dll_name);
 
 	push	edi
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	mov	DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A, eax ; backend_dll
 
-; 1658 : 
-; 1659 :   //// Pre-Load the original DLL into memory
-; 1660 :   //if (dll_name != wszBackendDLL)
-; 1661 :   //{
-; 1662 :   //                LoadLibraryExW_Original ( wszBackendDLL, nullptr, use_system_dll ?
-; 1663 :   //                                            LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00 );
-; 1664 :   //  backend_dll = LoadLibraryExW_Original (dll_name,      nullptr, 0x0);
-; 1665 :   //                GetModuleHandleExW      (GET_MODULE_HANDLE_EX_FLAG_PIN, wszBackendDLL, &backend_dll);
-; 1666 :   //}
-; 1667 :   //
-; 1668 :   //else
-; 1669 :   //  backend_dll = LoadLibraryExW_Original ( dll_name, nullptr, use_system_dll ?
-; 1670 :   //                                           LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00);
-; 1671 : 
-; 1672 :   if (backend_dll != nullptr)
-; 1673 :     dll_log.LogEx (false, L" (%s)\n", dll_name);
+; 1690 : 
+; 1691 :   //// Pre-Load the original DLL into memory
+; 1692 :   //if (dll_name != wszBackendDLL)
+; 1693 :   //{
+; 1694 :   //                LoadLibraryExW_Original ( wszBackendDLL, nullptr, use_system_dll ?
+; 1695 :   //                                            LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00 );
+; 1696 :   //  backend_dll = LoadLibraryExW_Original (dll_name,      nullptr, 0x0);
+; 1697 :   //                GetModuleHandleExW      (GET_MODULE_HANDLE_EX_FLAG_PIN, wszBackendDLL, &backend_dll);
+; 1698 :   //}
+; 1699 :   //
+; 1700 :   //else
+; 1701 :   //  backend_dll = LoadLibraryExW_Original ( dll_name, nullptr, use_system_dll ?
+; 1702 :   //                                           LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00);
+; 1703 : 
+; 1704 :   if (backend_dll != nullptr)
+; 1705 :     dll_log.LogEx (false, L" (%s)\n", dll_name);
 
 	push	edi
 	test	eax, eax
 	je	SHORT $LN47@SK_Startup
-	push	OFFSET $SG428749
+	push	OFFSET $SG428787
 
-; 1674 :   else
+; 1706 :   else
 
-	jmp	SHORT $LN1297@SK_Startup
-$LN1277@SK_Startup:
+	jmp	SHORT $LN1355@SK_Startup
+$LN1332@SK_Startup:
 
-; 1638 :       {
-; 1639 :         dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
+; 1670 :       {
+; 1671 :         dll_log.LogEx (true, L" Loading proxy %s.dll:    ", backend);
 
 	push	DWORD PTR _backend$[ebp]
-	push	OFFSET $SG428742
+	push	OFFSET $SG428780
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 1640 :         dll_name   = _wcsdup (import.filename->get_value ().c_str ());
+; 1672 :         dll_name   = _wcsdup (import.filename->get_value ().c_str ());
 
 	mov	ecx, DWORD PTR [esi+56]
-	lea	edx, DWORD PTR $T10[ebp]
+	lea	edx, DWORD PTR $T12[ebp]
 	add	esp, 16					; 00000010H
 	mov	eax, DWORD PTR [ecx]
 	push	edx
@@ -37451,16 +37506,16 @@ $LN1277@SK_Startup:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN1114@SK_Startup
+	jb	SHORT $LN1172@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN1114@SK_Startup:
+$LN1172@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1640 :         dll_name   = _wcsdup (import.filename->get_value ().c_str ());
+; 1672 :         dll_name   = _wcsdup (import.filename->get_value ().c_str ());
 
 	push	eax
 	call	DWORD PTR __imp___wcsdup
@@ -37468,10 +37523,10 @@ $LN1114@SK_Startup:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	ecx, DWORD PTR $T10[ebp+20]
+	mov	ecx, DWORD PTR $T12[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1640 :         dll_name   = _wcsdup (import.filename->get_value ().c_str ());
+; 1672 :         dll_name   = _wcsdup (import.filename->get_value ().c_str ());
 
 	add	esp, 4
 	mov	edi, eax
@@ -37483,7 +37538,7 @@ $LN1114@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN1123@SK_Startup
+	jb	SHORT $LN1181@SK_Startup
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -37494,13 +37549,13 @@ $LN1114@SK_Startup:
 
 	push	2
 	push	ecx
-	push	DWORD PTR $T10[ebp]
+	push	DWORD PTR $T12[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN1123@SK_Startup:
+$LN1181@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1647 :   if (! load_proxy)
+; 1679 :   if (! load_proxy)
 
 	mov	esi, DWORD PTR _backend$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -37512,67 +37567,67 @@ $LN1123@SK_Startup:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T10[ebp+16], 0
+	mov	DWORD PTR $T12[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1641 :         load_proxy = true;
+; 1673 :         load_proxy = true;
 
 	mov	bl, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR $T10[ebp+20], 7
+	mov	DWORD PTR $T12[ebp+20], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR $T10[ebp], ax
+	mov	WORD PTR $T12[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1647 :   if (! load_proxy)
+; 1679 :   if (! load_proxy)
 
 	jmp	$LN44@SK_Startup
 $LN47@SK_Startup:
 
-; 1675 :     dll_log.LogEx (false, L" FAILED (%s)!\n", dll_name);
+; 1707 :     dll_log.LogEx (false, L" FAILED (%s)!\n", dll_name);
 
-	push	OFFSET $SG428750
-$LN1297@SK_Startup:
+	push	OFFSET $SG428788
+$LN1355@SK_Startup:
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 1676 : 
-; 1677 :   // Free the temporary string storage
-; 1678 :   if (load_proxy)
+; 1708 : 
+; 1709 :   // Free the temporary string storage
+; 1710 :   if (load_proxy)
 
 	test	bl, bl
 	je	SHORT $LN49@SK_Startup
 
-; 1679 :     free ((void *)dll_name);
+; 1711 :     free ((void *)dll_name);
 
 	push	edi
 	call	DWORD PTR __imp__free
 	add	esp, 4
 $LN49@SK_Startup:
 
-; 1680 : 
-; 1681 :   dll_log.LogEx (false,
+; 1712 : 
+; 1713 :   dll_log.LogEx (false,
 
-	push	OFFSET $SG428752
+	push	OFFSET $SG428790
 	push	0
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 12					; 0000000cH
 
-; 1682 :     L"----------------------------------------------------------------------"
-; 1683 :     L"---------------------\n");
-; 1684 : 
-; 1685 :   if (config.system.silent)
+; 1714 :     L"----------------------------------------------------------------------"
+; 1715 :     L"---------------------\n");
+; 1716 : 
+; 1717 :   if (config.system.silent)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+820, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+832, 0
 	je	$LN50@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -37581,26 +37636,26 @@ $LN49@SK_Startup:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1687 :     dll_log.silent = true;
+; 1719 :     dll_log.silent = true;
 
 	mov	BYTE PTR ?dll_log@@3UiSK_Logger@@A+32, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR _log_fnameW$20[ebp+16], 0
+	mov	DWORD PTR _log_fnameW$3[ebp+16], 0
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR _log_fnameW$20[ebp+20], 7
+	mov	DWORD PTR _log_fnameW$3[ebp+20], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR _log_fnameW$20[ebp], ax
+	mov	WORD PTR _log_fnameW$3[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1691 :     if (! SK_IsInjected ())
+; 1723 :     if (! SK_IsInjected ())
 
 	push	eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 13		; 0000000dH
@@ -37613,11 +37668,11 @@ $LN49@SK_Startup:
 
 	mov	ecx, esi
 	lea	edx, DWORD PTR [ecx+2]
-$LL1291@SK_Startup:
+$LL1346@SK_Startup:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL1291@SK_Startup
+	jne	SHORT $LL1346@SK_Startup
 	sub	ecx, edx
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -37628,38 +37683,38 @@ $LL1291@SK_Startup:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1693 :     else
+; 1725 :     else
 
-	jmp	SHORT $LN1298@SK_Startup
+	jmp	SHORT $LN1356@SK_Startup
 $LN52@SK_Startup:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	8
-	push	OFFSET $SG428757
-$LN1298@SK_Startup:
-	lea	ecx, DWORD PTR _log_fnameW$20[ebp]
+	push	OFFSET $SG428795
+$LN1356@SK_Startup:
+	lea	ecx, DWORD PTR _log_fnameW$3[ebp]
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	4
-	push	OFFSET $SG428758
-	lea	ecx, DWORD PTR _log_fnameW$20[ebp]
+	push	OFFSET $SG428796
+	lea	ecx, DWORD PTR _log_fnameW$3[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _log_fnameW$20[ebp+20], 8
+	cmp	DWORD PTR _log_fnameW$3[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	eax, DWORD PTR _log_fnameW$20[ebp]
-	cmovae	eax, DWORD PTR _log_fnameW$20[ebp]
+	lea	eax, DWORD PTR _log_fnameW$3[ebp]
+	cmovae	eax, DWORD PTR _log_fnameW$3[ebp]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1698 :     DeleteFile (log_fnameW.c_str ());
+; 1730 :     DeleteFile (log_fnameW.c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__DeleteFileW@4
@@ -37667,7 +37722,16 @@ $LN1298@SK_Startup:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _log_fnameW$20[ebp+20]
+	mov	eax, DWORD PTR _log_fnameW$3[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1731 :   }
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
@@ -37688,35 +37752,37 @@ $LN1298@SK_Startup:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR _log_fnameW$20[ebp]
+	push	DWORD PTR _log_fnameW$3[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1701 :   else
+; 1733 :   else
 
 	jmp	SHORT $LN51@SK_Startup
 $LN50@SK_Startup:
 
-; 1702 :     dll_log.silent = false;
+; 1734 :     dll_log.silent = false;
 
 	mov	BYTE PTR ?dll_log@@3UiSK_Logger@@A+32, 0
 $LN51@SK_Startup:
 
-; 1703 : 
-; 1704 : 
-; 1705 :   //init_tids = SK_SuspendAllOtherThreads ();
-; 1706 : 
-; 1707 :   InterlockedExchangePointer (
+; 1735 : 
+; 1736 :   bool SK_InitWMI (void);
+; 1737 :     SK_InitWMI    (    );
 
-	mov	ebx, DWORD PTR __imp__CreateThread@24
+	call	?SK_InitWMI@@YA_NXZ			; SK_InitWMI
+
+; 1738 : 
+; 1739 :   InterlockedExchangePointer (
+
 	push	0
 	push	0
 	push	OFFSET ?init_@@3Uinit_params_t@@A	; init_
 	push	OFFSET ?DllThread@@YGKPAX@Z		; DllThread
 	push	0
 	push	0
-	call	ebx
+	call	DWORD PTR __imp__CreateThread@24
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlconv.h
 
 ; 92   : 	return( reinterpret_cast<void*>(static_cast<LONG_PTR>(
@@ -37725,22 +37791,11 @@ $LN51@SK_Startup:
 	xchg	DWORD PTR [ecx], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 266  :     LeaveCriticalSection (cs_);
+; 269  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A ; init_mutex
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1721 :   CreateThread ( nullptr, 0,
-
-	push	0
-	push	0
-	push	0
-	push	OFFSET ?<lambda_invoker_stdcall>@<lambda_a971d289a90ca512e40e4e11b4beac01>@@CGKPAX@Z ; <lambda_a971d289a90ca512e40e4e11b4beac01>::<lambda_invoker_stdcall>
-	push	0
-	push	0
-	call	ebx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -37750,7 +37805,7 @@ $LN51@SK_Startup:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN1250@SK_Startup
+	jb	SHORT $LN1305@SK_Startup
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -37768,12 +37823,12 @@ $LN51@SK_Startup:
 	push	eax
 	push	DWORD PTR _module_name$[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-$LN1293@SK_Startup:
+$LN1351@SK_Startup:
 	add	esp, 12					; 0000000cH
-$LN1250@SK_Startup:
+$LN1305@SK_Startup:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1736 : }
+; 1752 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	al, 1
@@ -37787,46 +37842,46 @@ $LN1250@SK_Startup:
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$1:
-	lea	ecx, DWORD PTR $T9[ebp]
+	lea	ecx, DWORD PTR $T10[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$2:
-	lea	ecx, DWORD PTR $T26[ebp]
+	lea	ecx, DWORD PTR $T27[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$4:
-	lea	ecx, DWORD PTR $T8[ebp]
+	lea	ecx, DWORD PTR $T9[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$5:
-	lea	ecx, DWORD PTR $T25[ebp]
+	lea	ecx, DWORD PTR $T26[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$7:
-	lea	ecx, DWORD PTR _link$24[ebp]
+	lea	ecx, DWORD PTR _link$25[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$8:
-	lea	ecx, DWORD PTR $T7[ebp]
+	lea	ecx, DWORD PTR $T8[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$9:
-	lea	ecx, DWORD PTR $T23[ebp]
+	lea	ecx, DWORD PTR $T24[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$11:
-	lea	ecx, DWORD PTR _link$22[ebp]
+	lea	ecx, DWORD PTR _link$23[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$13:
 	lea	ecx, DWORD PTR _module_name$[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$15:
-	lea	ecx, DWORD PTR _default_name$6[ebp]
+	lea	ecx, DWORD PTR _default_name$4[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$16:
-	lea	ecx, DWORD PTR _default_ini$21[ebp]
+	lea	ecx, DWORD PTR _default_ini$22[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$21:
-	lea	ecx, DWORD PTR $T5[ebp]
+__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$22:
+	lea	ecx, DWORD PTR $T7[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$23:
-	lea	ecx, DWORD PTR $T4[ebp]
+__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$24:
+	lea	ecx, DWORD PTR $T6[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$27:
-	lea	ecx, DWORD PTR _log_fnameW$20[ebp]
+__unwindfunclet$?SK_StartupCore@@YG_NPB_WPAX@Z$28:
+	lea	ecx, DWORD PTR _log_fnameW$3[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$?SK_StartupCore@@YG_NPB_WPAX@Z:
 	mov	eax, OFFSET __ehfuncinfo$?SK_StartupCore@@YG_NPB_WPAX@Z
@@ -37857,6 +37912,8 @@ text$x	ENDS
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
+; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
+; File c:\users\andon\source\repos\specialk\src\core.cpp
 _TEXT	SEGMENT
 $T1 = -24						; size = 24
 _this$ = 8						; size = 4
@@ -37864,19 +37921,19 @@ _backend$ = 8						; size = 4
 _callback$ = 12						; size = 4
 ?SK_InitCore@@YGXPB_WPAX@Z PROC				; SK_InitCore
 
-; 784  : {
+; 785  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 261  :     EnterCriticalSection (cs_);
+; 264  :     EnterCriticalSection (cs_);
 
 	mov	eax, DWORD PTR ?init_mutex@@3PAVSK_Thread_HybridSpinlock@@A ; init_mutex
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 784  : {
+; 785  : {
 
 	sub	esp, 24					; 00000018H
 	push	ebx
@@ -37884,13 +37941,13 @@ _callback$ = 12						; size = 4
 	push	edi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 261  :     EnterCriticalSection (cs_);
+; 264  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 787  :   wcscpy (SK_Backend, backend);
+; 788  :   wcscpy (SK_Backend, backend);
 
 	mov	ecx, DWORD PTR _backend$[ebp]
 	mov	edx, OFFSET ?SK_Backend@@3PA_WA		; SK_Backend
@@ -37902,74 +37959,74 @@ $LL21@SK_InitCor:
 	test	ax, ax
 	jne	SHORT $LL21@SK_InitCor
 
-; 788  : 
 ; 789  : 
-; 790  :   BOOL
-; 791  :   SK_Steam_PreHookCore (void);
-; 792  : 
-; 793  :   if (config.steam.spoof_BLoggedOn)
+; 790  : 
+; 791  :   BOOL
+; 792  :   SK_Steam_PreHookCore (void);
+; 793  : 
+; 794  :   if (config.steam.spoof_BLoggedOn)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+392, al
 	je	SHORT $LN4@SK_InitCor
 
-; 794  :   {
-; 795  :     SK_Steam_PreHookCore ();
+; 795  :   {
+; 796  :     SK_Steam_PreHookCore ();
 
 	call	?SK_Steam_PreHookCore@@YAHXZ		; SK_Steam_PreHookCore
 $LN4@SK_InitCor:
 
-; 796  :   }
-; 797  : 
-; 798  :   using finish_pfn   = void (WINAPI *)  (void);
-; 799  :   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
-; 800  : 
-; 801  :   auto callback_fn =
-; 802  :     (callback_pfn)callback;
-; 803  : 
-; 804  :   dll_log.Log (L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI)...");
+; 797  :   }
+; 798  : 
+; 799  :   using finish_pfn   = void (WINAPI *)  (void);
+; 800  :   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
+; 801  : 
+; 802  :   auto callback_fn =
+; 803  :     (callback_pfn)callback;
+; 804  : 
+; 805  :   dll_log.Log (L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI)...");
 
-	push	OFFSET $SG428021
+	push	OFFSET $SG428107
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 805  : 
-; 806  :   nvapi_init =
+; 806  : 
+; 807  :   nvapi_init =
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	?InitializeLibrary@NVAPI@sk@@YAHPB_W@Z	; sk::NVAPI::InitializeLibrary
 
-; 807  :     sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
-; 808  : 
-; 809  :   dll_log.Log (L"[  NvAPI   ]              NvAPI Init         { %s }",
+; 808  :     sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
+; 809  : 
+; 810  :   dll_log.Log (L"[  NvAPI   ]              NvAPI Init         { %s }",
 
 	test	eax, eax
 	mov	DWORD PTR ?nvapi_init@@3HA, eax		; nvapi_init
-	mov	edx, OFFSET $SG428023
-	mov	ecx, OFFSET $SG428022
+	mov	edx, OFFSET $SG428109
+	mov	ecx, OFFSET $SG428108
 	cmove	ecx, edx
 	push	ecx
-	push	OFFSET $SG428024
+	push	OFFSET $SG428110
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 24					; 00000018H
 
-; 810  :                                                      nvapi_init ? L"Success" :
-; 811  :                                                                   L"Failed ");
-; 812  : 
-; 813  :   if (nvapi_init)
+; 811  :                                                      nvapi_init ? L"Success" :
+; 812  :                                                                   L"Failed ");
+; 813  : 
+; 814  :   if (nvapi_init)
 
 	cmp	DWORD PTR ?nvapi_init@@3HA, 0		; nvapi_init
 	je	$LN5@SK_InitCor
 
-; 814  :   {
-; 815  :     int num_sli_gpus =
-; 816  :       sk::NVAPI::CountSLIGPUs ();
+; 815  :   {
+; 816  :     int num_sli_gpus =
+; 817  :       sk::NVAPI::CountSLIGPUs ();
 
 	call	?CountSLIGPUs@NVAPI@sk@@YAHXZ		; sk::NVAPI::CountSLIGPUs
 	mov	esi, eax
 
-; 818  :     dll_log.Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
+; 819  :     dll_log.Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
 
 	lea	eax, DWORD PTR $T1[ebp]
 	push	0
@@ -37993,10 +38050,10 @@ $LN4@SK_InitCor:
 $LN42@SK_InitCor:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 818  :     dll_log.Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
+; 819  :     dll_log.Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
 
 	push	eax
-	push	OFFSET $SG428027
+	push	OFFSET $SG428113
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -38006,7 +38063,7 @@ $LN42@SK_InitCor:
 	mov	eax, DWORD PTR $T1[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 818  :     dll_log.Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
+; 819  :     dll_log.Log ( L"[  NvAPI   ] >> NVIDIA Driver Version: %s",
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -38039,13 +38096,13 @@ $LN42@SK_InitCor:
 $LN51@SK_InitCor:
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 822  :       sk::NVAPI::CountPhysicalGPUs ();
+; 823  :       sk::NVAPI::CountPhysicalGPUs ();
 
 	call	?CountPhysicalGPUs@NVAPI@sk@@YAHXZ	; sk::NVAPI::CountPhysicalGPUs
 	mov	edi, eax
 
-; 823  : 
-; 824  :     dll_log.Log ( gpu_count > 1 ? L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  "
+; 824  : 
+; 825  :     dll_log.Log ( gpu_count > 1 ? L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  "
 
 	mov	ebx, esi
 	cmp	edi, 1
@@ -38054,9 +38111,9 @@ $LN51@SK_InitCor:
 $LN23@SK_InitCor:
 	call	?EnumGPUs_DXGI@NVAPI@sk@@YAPAUDXGI_ADAPTER_DESC@@XZ ; sk::NVAPI::EnumGPUs_DXGI
 	push	eax
-	mov	ecx, OFFSET $SG428029
+	mov	ecx, OFFSET $SG428115
 	cmp	edi, 1
-	mov	eax, OFFSET $SG428028
+	mov	eax, OFFSET $SG428114
 	push	ebx
 	cmovle	eax, ecx
 	push	eax
@@ -38064,44 +38121,44 @@ $LN23@SK_InitCor:
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
 
-; 825  :                                   L"{ SLI: '%s' }"
-; 826  :                                 :
-; 827  :                                   L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  { '%s' }",
-; 828  :                                     gpu_count > 1 ? num_sli_gpus :
-; 829  :                                                     num_sli_gpus + 1,
-; 830  :                                       sk::NVAPI::EnumGPUs_DXGI ()[0].Description );
-; 831  : 
-; 832  :     if (num_sli_gpus > 0)
+; 826  :                                   L"{ SLI: '%s' }"
+; 827  :                                 :
+; 828  :                                   L"[  NvAPI   ]  * Number of Installed NVIDIA GPUs: %i  { '%s' }",
+; 829  :                                     gpu_count > 1 ? num_sli_gpus :
+; 830  :                                                     num_sli_gpus + 1,
+; 831  :                                       sk::NVAPI::EnumGPUs_DXGI ()[0].Description );
+; 832  : 
+; 833  :     if (num_sli_gpus > 0)
 
 	test	esi, esi
 	jle	SHORT $LN3@SK_InitCor
 
-; 833  :     {
-; 834  :       DXGI_ADAPTER_DESC* sli_adapters =
-; 835  :         sk::NVAPI::EnumSLIGPUs ();
+; 834  :     {
+; 835  :       DXGI_ADAPTER_DESC* sli_adapters =
+; 836  :         sk::NVAPI::EnumSLIGPUs ();
 
 	call	?EnumSLIGPUs@NVAPI@sk@@YAPAUDXGI_ADAPTER_DESC@@XZ ; sk::NVAPI::EnumSLIGPUs
 	mov	esi, eax
 
-; 836  : 
-; 837  :       int sli_gpu_idx = 0;
+; 837  : 
+; 838  :       int sli_gpu_idx = 0;
 
 	xor	edi, edi
 
-; 838  : 
-; 839  :       while (*sli_adapters->Description != L'\0')
+; 839  : 
+; 840  :       while (*sli_adapters->Description != L'\0')
 
 	cmp	WORD PTR [esi], di
 	je	SHORT $LN3@SK_InitCor
 	npad	4
 $LL2@SK_InitCor:
 
-; 840  :       {
-; 841  :         dll_log.Log ( L"[  NvAPI   ]   + SLI GPU %d: %s",
+; 841  :       {
+; 842  :         dll_log.Log ( L"[  NvAPI   ]   + SLI GPU %d: %s",
 
 	push	esi
 	push	edi
-	push	OFFSET $SG428031
+	push	OFFSET $SG428117
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esi, 292				; 00000124H
@@ -38111,15 +38168,15 @@ $LL2@SK_InitCor:
 	jne	SHORT $LL2@SK_InitCor
 $LN3@SK_InitCor:
 
-; 842  :                         sli_gpu_idx++,
-; 843  :                           (sli_adapters++)->Description );
-; 844  :       }
-; 845  :     }
-; 846  : 
-; 847  :     //
-; 848  :     // Setup a framerate limiter and (if necessary) restart
-; 849  :     //
-; 850  :     bool restart = (! sk::NVAPI::SetFramerateLimit (0));
+; 843  :                         sli_gpu_idx++,
+; 844  :                           (sli_adapters++)->Description );
+; 845  :       }
+; 846  :     }
+; 847  : 
+; 848  :     //
+; 849  :     // Setup a framerate limiter and (if necessary) restart
+; 850  :     //
+; 851  :     bool restart = (! sk::NVAPI::SetFramerateLimit (0));
 
 	push	0
 	call	?SetFramerateLimit@NVAPI@sk@@YAHI@Z	; sk::NVAPI::SetFramerateLimit
@@ -38127,60 +38184,60 @@ $LN3@SK_InitCor:
 	test	eax, eax
 	sete	bl
 
-; 851  : 
-; 852  :     //
-; 853  :     // Install SLI Override Settings
-; 854  :     //
-; 855  :     if (sk::NVAPI::CountSLIGPUs () && config.nvidia.sli.override)
+; 852  : 
+; 853  :     //
+; 854  :     // Install SLI Override Settings
+; 855  :     //
+; 856  :     if (sk::NVAPI::CountSLIGPUs () && config.nvidia.sli.override)
 
 	call	?CountSLIGPUs@NVAPI@sk@@YAHXZ		; sk::NVAPI::CountSLIGPUs
 	test	eax, eax
 	je	SHORT $LN9@SK_InitCor
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+664, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+668, 0
 	je	SHORT $LN9@SK_InitCor
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+612, 8
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+616, 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	mov	edx, OFFSET ?config@@3Usk_config_t@@A+592
-	mov	ecx, OFFSET ?config@@3Usk_config_t@@A+640
-	mov	eax, OFFSET ?config@@3Usk_config_t@@A+616
-	cmovae	edx, DWORD PTR ?config@@3Usk_config_t@@A+592
+	mov	edx, OFFSET ?config@@3Usk_config_t@@A+596
+	mov	ecx, OFFSET ?config@@3Usk_config_t@@A+644
+	mov	eax, OFFSET ?config@@3Usk_config_t@@A+620
+	cmovae	edx, DWORD PTR ?config@@3Usk_config_t@@A+596
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+660, 8
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+664, 8
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 857  :       if (! sk::NVAPI::SetSLIOverride
+; 858  :       if (! sk::NVAPI::SetSLIOverride
 
 	push	edx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	ecx, DWORD PTR ?config@@3Usk_config_t@@A+640
+	cmovae	ecx, DWORD PTR ?config@@3Usk_config_t@@A+644
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+636, 8
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+640, 8
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 857  :       if (! sk::NVAPI::SetSLIOverride
+; 858  :       if (! sk::NVAPI::SetSLIOverride
 
 	push	ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	eax, DWORD PTR ?config@@3Usk_config_t@@A+616
+	cmovae	eax, DWORD PTR ?config@@3Usk_config_t@@A+620
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 857  :       if (! sk::NVAPI::SetSLIOverride
+; 858  :       if (! sk::NVAPI::SetSLIOverride
 
 	push	eax
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
@@ -38188,256 +38245,272 @@ $LN3@SK_InitCor:
 	call	?SetSLIOverride@NVAPI@sk@@YAHW4DLL_ROLE@@PB_W11@Z ; sk::NVAPI::SetSLIOverride
 	add	esp, 16					; 00000010H
 	test	eax, eax
-	je	SHORT $LN146@SK_InitCor
+	je	SHORT $LN148@SK_InitCor
 $LN9@SK_InitCor:
 
-; 858  :               ( SK_GetDLLRole (),
-; 859  :                   config.nvidia.sli.mode.c_str (),
-; 860  :                     config.nvidia.sli.num_gpus.c_str (),
-; 861  :                       config.nvidia.sli.compatibility.c_str ()
-; 862  :               )
-; 863  :          )
-; 864  :       {
-; 865  :         restart = true;
-; 866  :       }
-; 867  :     }
-; 868  : 
-; 869  :     if (restart)
+; 859  :               ( SK_GetDLLRole (),
+; 860  :                   config.nvidia.sli.mode.c_str (),
+; 861  :                     config.nvidia.sli.num_gpus.c_str (),
+; 862  :                       config.nvidia.sli.compatibility.c_str ()
+; 863  :               )
+; 864  :          )
+; 865  :       {
+; 866  :         restart = true;
+; 867  :       }
+; 868  :     }
+; 869  : 
+; 870  :     if (restart)
 
 	test	bl, bl
 	je	$LN11@SK_InitCor
-$LN146@SK_InitCor:
+$LN148@SK_InitCor:
 
-; 870  :     {
-; 871  :       dll_log.Log (L"[  NvAPI   ] >> Restarting to apply NVIDIA driver settings <<");
+; 871  :     {
+; 872  :       dll_log.Log (L"[  NvAPI   ] >> Restarting to apply NVIDIA driver settings <<");
 
-	push	OFFSET $SG428035
+	push	OFFSET $SG428121
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 872  : 
-; 873  :       ShellExecute ( GetDesktopWindow (),
+; 873  : 
+; 874  :       ShellExecute ( GetDesktopWindow (),
 
 	push	10					; 0000000aH
 	push	0
 	push	0
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
-	push	OFFSET $SG428036
+	push	OFFSET $SG428122
 	call	DWORD PTR __imp__GetDesktopWindow@0
 	push	eax
 	call	DWORD PTR __imp__ShellExecuteW@24
 
-; 874  :                        L"OPEN",
-; 875  :                          SK_GetHostApp (),
-; 876  :                            nullptr,
-; 877  :                              nullptr,
-; 878  :                                SW_SHOWDEFAULT );
-; 879  :       exit (0);
+; 875  :                        L"OPEN",
+; 876  :                          SK_GetHostApp (),
+; 877  :                            nullptr,
+; 878  :                              nullptr,
+; 879  :                                SW_SHOWDEFAULT );
+; 880  :       exit (0);
 
 	push	0
 	call	DWORD PTR __imp__exit
-$LN149@SK_InitCor:
+$LN151@SK_InitCor:
 $LN5@SK_InitCor:
 
-; 880  :     }
-; 881  :   }
-; 882  : 
-; 883  :   // Not NVIDIA, maybe AMD?
-; 884  :   else
-; 885  :   {
-; 886  :     dll_log.Log (L"[DisplayLib] Initializing AMD Display Library (ADL)...");
+; 881  :     }
+; 882  :   }
+; 883  : 
+; 884  :   // Not NVIDIA, maybe AMD?
+; 885  :   else
+; 886  :   {
+; 887  :     dll_log.Log (L"[DisplayLib] Initializing AMD Display Library (ADL)...");
 
-	push	OFFSET $SG428037
+	push	OFFSET $SG428123
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 887  : 
-; 888  :     BOOL adl_init =
-; 889  :       SK_InitADL ();
+; 888  : 
+; 889  :     BOOL adl_init =
+; 890  :       SK_InitADL ();
 
 	call	?SK_InitADL@@YAHXZ			; SK_InitADL
 	mov	esi, eax
 
-; 890  : 
-; 891  :     dll_log.Log   (L"[DisplayLib]              ADL   Init         { %s }",
+; 891  : 
+; 892  :     dll_log.Log   (L"[DisplayLib]              ADL   Init         { %s }",
 
-	mov	ecx, OFFSET $SG428038
-	mov	eax, OFFSET $SG428039
+	mov	ecx, OFFSET $SG428124
+	mov	eax, OFFSET $SG428125
 	test	esi, esi
 	cmove	ecx, eax
 	push	ecx
-	push	OFFSET $SG428040
+	push	OFFSET $SG428126
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 20					; 00000014H
 
-; 892  :                                                      adl_init ? L"Success" :
-; 893  :                                                                 L"Failed ");
-; 894  : 
-; 895  :     // Yes, AMD driver is in working order ...
-; 896  :     if (adl_init)
+; 893  :                                                      adl_init ? L"Success" :
+; 894  :                                                                 L"Failed ");
+; 895  : 
+; 896  :     // Yes, AMD driver is in working order ...
+; 897  :     if (adl_init > 0)
 
 	test	esi, esi
-	je	SHORT $LN11@SK_InitCor
+	jle	SHORT $LN11@SK_InitCor
 
-; 897  :     {
-; 898  :       dll_log.Log ( L"[DisplayLib]  * Number of Reported AMD Adapters: %i (%i active)",
+; 898  :     {
+; 899  :       dll_log.Log ( L"[DisplayLib]  * Number of Reported AMD Adapters: %i (%i active)",
 
 	call	?SK_ADL_CountActiveGPUs@@YAHXZ		; SK_ADL_CountActiveGPUs
 	push	eax
 	call	?SK_ADL_CountPhysicalGPUs@@YAHXZ	; SK_ADL_CountPhysicalGPUs
 	push	eax
-	push	OFFSET $SG428042
+	push	OFFSET $SG428128
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
 $LN11@SK_InitCor:
 
-; 899  :                       SK_ADL_CountPhysicalGPUs (),
-; 900  :                         SK_ADL_CountActiveGPUs () );
-; 901  :     }
-; 902  :   }
-; 903  : 
-; 904  :   HMODULE hMod =
-; 905  :     GetModuleHandle (SK_GetHostApp ());
+; 900  :                       SK_ADL_CountPhysicalGPUs (),
+; 901  :                         SK_ADL_CountActiveGPUs () );
+; 902  :     }
+; 903  :   }
+; 904  : 
+; 905  :   HMODULE hMod =
+; 906  :     GetModuleHandle (SK_GetHostApp ());
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	esi, eax
 
-; 906  : 
-; 907  :   if (hMod != nullptr)
+; 907  : 
+; 908  :   if (hMod != nullptr)
 
 	test	esi, esi
 	je	$LN16@SK_InitCor
 
-; 908  :   {
-; 909  :     auto* dwOptimus =
-; 910  :       reinterpret_cast <DWORD *> (
-; 911  :         GetProcAddress ( hMod,
+; 909  :   {
+; 910  :     auto* dwOptimus =
+; 911  :       reinterpret_cast <DWORD *> (
+; 912  :         GetProcAddress ( hMod,
 
 	mov	edi, DWORD PTR __imp__GetProcAddress@8
-	push	OFFSET $SG428044
+	push	OFFSET $SG428130
 	push	esi
 	call	edi
 
-; 912  :                            "NvOptimusEnablement" )
-; 913  :       );
-; 914  : 
-; 915  :     if (dwOptimus != nullptr)
+; 913  :                            "NvOptimusEnablement" )
+; 914  :       );
+; 915  : 
+; 916  :     if (dwOptimus != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN13@SK_InitCor
 
-; 916  :     {
-; 917  :       dll_log.Log ( L"[Hybrid GPU]  NvOptimusEnablement..................: 0x%02X (%s)",
+; 917  :     {
+; 918  :       dll_log.Log ( L"[Hybrid GPU]  NvOptimusEnablement..................: 0x%02X (%s)",
 
 	mov	ecx, DWORD PTR [eax]
-	mov	edx, OFFSET $SG428048
+	mov	edx, OFFSET $SG428134
 	test	cl, 1
-	mov	eax, OFFSET $SG428047
+	mov	eax, OFFSET $SG428133
 	cmove	eax, edx
 	push	eax
 	push	ecx
-	push	OFFSET $SG428049
+	push	OFFSET $SG428135
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
 
-; 918  :                       *dwOptimus,
-; 919  :                     ((*dwOptimus) & 0x1) ? L"Max Perf." :
-; 920  :                                            L"Don't Care" );
-; 921  :     }
-; 922  : 
-; 923  :     else
+; 919  :                       *dwOptimus,
+; 920  :                     ((*dwOptimus) & 0x1) ? L"Max Perf." :
+; 921  :                                            L"Don't Care" );
+; 922  :     }
+; 923  : 
+; 924  :     else
 
 	jmp	SHORT $LN14@SK_InitCor
 $LN13@SK_InitCor:
 
-; 924  :     {
-; 925  :       dll_log.Log (L"[Hybrid GPU]  NvOptimusEnablement..................: UNDEFINED");
+; 925  :     {
+; 926  :       dll_log.Log (L"[Hybrid GPU]  NvOptimusEnablement..................: UNDEFINED");
 
-	push	OFFSET $SG428050
+	push	OFFSET $SG428136
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN14@SK_InitCor:
 
-; 926  :     }
-; 927  : 
-; 928  :     auto* dwPowerXpress =
-; 929  :       reinterpret_cast <DWORD *> (
-; 930  :         GetProcAddress ( hMod,
+; 927  :     }
+; 928  : 
+; 929  :     auto* dwPowerXpress =
+; 930  :       reinterpret_cast <DWORD *> (
+; 931  :         GetProcAddress ( hMod,
 
-	push	OFFSET $SG428051
+	push	OFFSET $SG428137
 	push	esi
 	call	edi
 
-; 931  :                            "AmdPowerXpressRequestHighPerformance" )
-; 932  :       );
-; 933  : 
-; 934  :     if (dwPowerXpress != nullptr)
+; 932  :                            "AmdPowerXpressRequestHighPerformance" )
+; 933  :       );
+; 934  : 
+; 935  :     if (dwPowerXpress != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN15@SK_InitCor
 
-; 935  :     {
-; 936  :       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: 0x%02X (%s)",
+; 936  :     {
+; 937  :       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: 0x%02X (%s)",
 
 	mov	ecx, DWORD PTR [eax]
-	mov	edx, OFFSET $SG428055
+	mov	edx, OFFSET $SG428141
 	test	cl, 1
-	mov	eax, OFFSET $SG428054
+	mov	eax, OFFSET $SG428140
 	cmove	eax, edx
 	push	eax
 	push	ecx
-	push	OFFSET $SG428056
+	push	OFFSET $SG428142
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
 
-; 937  :         *dwPowerXpress,
-; 938  :         (*dwPowerXpress & 0x1) ? L"High Perf." :
-; 939  :                                  L"Don't Care" );
-; 940  :     }
-; 941  : 
-; 942  :     else
+; 938  :         *dwPowerXpress,
+; 939  :         (*dwPowerXpress & 0x1) ? L"High Perf." :
+; 940  :                                  L"Don't Care" );
+; 941  :     }
+; 942  : 
+; 943  :     else
 
 	jmp	SHORT $LN16@SK_InitCor
 $LN15@SK_InitCor:
 
-; 943  :       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
+; 944  :       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
 
-	push	OFFSET $SG428057
+	push	OFFSET $SG428143
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN16@SK_InitCor:
 
-; 944  :   }
-; 945  : 
+; 945  :   }
 ; 946  : 
-; 947  : #ifdef _WIN64
-; 948  :   if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
-; 949  :     SK_FAR_InitPlugin ();
-; 950  : 
-; 951  :   if (SK_GetCurrentGameID () == SK_GAME_ID::BlueReflection)
-; 952  :   {
-; 953  :     extern void
-; 954  :     SK_IT_InitPlugin (void);
-; 955  : 
-; 956  :     SK_IT_InitPlugin ();
-; 957  :   }
-; 958  : #endif
+; 947  : 
+; 948  : #ifdef _WIN64
+; 949  :   if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
+; 950  :     SK_FAR_InitPlugin ();
+; 951  : 
+; 952  :   if (SK_GetCurrentGameID () == SK_GAME_ID::BlueReflection)
+; 953  :   {
+; 954  :     extern void
+; 955  :     SK_IT_InitPlugin (void);
+; 956  : 
+; 957  :     SK_IT_InitPlugin ();
+; 958  :   }
 ; 959  : 
-; 960  : 
-; 961  :   //
-; 962  :   // NOT-SO-TEMP HACK: dgVoodoo2
-; 963  :   //
-; 964  :   if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
+; 960  :   else if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+; 961  :   {
+; 962  :     extern void
+; 963  :     SK_DGPU_InitPlugin (void);
+; 964  : 
+; 965  :     SK_DGPU_InitPlugin ();
+; 966  :   }
+; 967  : 
+; 968  :   //else if (SK_GetCurrentGameID () == SK_GAME_ID::LEGOMarvelSuperheroes2)
+; 969  :   //{
+; 970  :   //  extern void
+; 971  :   //  SK_MSS_InitPlugin (void);
+; 972  :   //
+; 973  :   //  SK_MSS_InitPlugin ();
+; 974  :   //}
+; 975  : #endif
+; 976  : 
+; 977  : 
+; 978  :   //
+; 979  :   // NOT-SO-TEMP HACK: dgVoodoo2
+; 980  :   //
+; 981  :   if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	cmp	eax, -1073741808			; c0000010H
@@ -38446,18 +38519,18 @@ $LN16@SK_InitCor:
 	jne	SHORT $LN17@SK_InitCor
 $LN18@SK_InitCor:
 
-; 965  :        SK_GetDLLRole () == DLL_ROLE::DDraw  )
-; 966  :     SK_BootDXGI ();
+; 982  :        SK_GetDLLRole () == DLL_ROLE::DDraw  )
+; 983  :     SK_BootDXGI ();
 
 	call	?SK_BootDXGI@@YAXXZ			; SK_BootDXGI
 $LN17@SK_InitCor:
 
-; 967  : 
-; 968  :   void
-; 969  :   __stdcall
-; 970  :   SK_InitFinishCallback (void);
-; 971  : 
-; 972  :   SK_ResumeThreads (__SK_Init_Suspended_tids);
+; 984  : 
+; 985  :   void
+; 986  :   __stdcall
+; 987  :   SK_InitFinishCallback (void);
+; 988  : 
+; 989  :   SK_ResumeThreads (__SK_Init_Suspended_tids);
 
 	sub	esp, 20					; 00000014H
 	mov	ecx, esp
@@ -38467,7 +38540,7 @@ $LN17@SK_InitCor:
 	call	?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z ; SK_ResumeThreads
 	add	esp, 20					; 00000014H
 
-; 973  :          callback_fn (SK_InitFinishCallback);
+; 990  :          callback_fn (SK_InitFinishCallback);
 
 	push	OFFSET ?SK_InitFinishCallback@@YGXXZ	; SK_InitFinishCallback
 	call	DWORD PTR _callback$[ebp]
@@ -38478,22 +38551,35 @@ $LN17@SK_InitCor:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 976  :   if (! ReadAcquire (&SK_bypass_dialog_active))
+; 993  :   if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
 
 	test	eax, eax
 	jne	SHORT $LN19@SK_InitCor
+; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
-; 977  :   {
-; 978  :     // Setup the compatibility backend, which monitors loaded libraries,
-; 979  :     //   blacklists bad DLLs and detects render APIs...
-; 980  :     SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+; 8063 :     Value = *Source;
+
+	mov	esi, DWORD PTR ?SK_bypass_dialog_tid@@3JC ; SK_bypass_dialog_tid
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 993  :   if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
+
+	call	DWORD PTR __imp__GetCurrentThreadId@0
+	cmp	esi, eax
+	je	SHORT $LN19@SK_InitCor
+
+; 994  :           ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+; 995  :   {
+; 996  :     // Setup the compatibility backend, which monitors loaded libraries,
+; 997  :     //   blacklists bad DLLs and detects render APIs...
+; 998  :     SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 
 	push	1
 	call	?SK_EnumLoadedModules@@YGXW4SK_ModuleEnum@@@Z ; SK_EnumLoadedModules
 $LN19@SK_InitCor:
 
-; 981  :   }
-; 982  : }
+; 999  :   }
+; 1000 : }
 
 	pop	edi
 	pop	esi
@@ -38501,7 +38587,7 @@ $LN19@SK_InitCor:
 	mov	esp, ebp
 	pop	ebp
 	ret	8
-$LN148@SK_InitCor:
+$LN150@SK_InitCor:
 ?SK_InitCore@@YGXPB_WPAX@Z ENDP				; SK_InitCore
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
@@ -38533,10 +38619,10 @@ _TEXT	SEGMENT
 	mov	eax, DWORD PTR ?__SK_Init@@3JC		; __SK_Init
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 988  :   if (ReadNoFence (&__SK_Init))
+; 1006 :   if (ReadNoFence (&__SK_Init))
 
 	test	eax, eax
-	jne	$LN11@WaitForIni
+	jne	$LN10@WaitForIni
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
 ; 8063 :     Value = *Source;
@@ -38545,15 +38631,15 @@ _TEXT	SEGMENT
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 991  :   while (ReadPointerAcquire ((LPVOID *)&hInitThread) == nullptr)
+; 1009 :   while (ReadPointerAcquire ((LPVOID *)&hInitThread) == nullptr)
 
 	test	eax, eax
-	jne	SHORT $LN32@WaitForIni
+	jne	SHORT $LN33@WaitForIni
 	mov	esi, DWORD PTR __imp__SleepEx@8
 	npad	3
 $LL2@WaitForIni:
 
-; 992  :     SleepEx (150, TRUE);
+; 1010 :     SleepEx (150, TRUE);
 
 	push	1
 	push	150					; 00000096H
@@ -38565,11 +38651,11 @@ $LL2@WaitForIni:
 	mov	eax, DWORD PTR ?hInitThread@@3RAXA	; hInitThread
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 991  :   while (ReadPointerAcquire ((LPVOID *)&hInitThread) == nullptr)
+; 1009 :   while (ReadPointerAcquire ((LPVOID *)&hInitThread) == nullptr)
 
 	test	eax, eax
 	je	SHORT $LL2@WaitForIni
-$LN32@WaitForIni:
+$LN33@WaitForIni:
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
 ; 8063 :     Value = *Source;
@@ -38577,10 +38663,10 @@ $LN32@WaitForIni:
 	mov	eax, DWORD PTR ?hInitThread@@3RAXA	; hInitThread
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 994  :   while (ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
+; 1012 :   while (ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
 
 	cmp	eax, -1
-	je	SHORT $LN43@WaitForIni
+	je	SHORT $LN40@WaitForIni
 	mov	esi, DWORD PTR __imp__WaitForSingleObject@8
 $LL4@WaitForIni:
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -38590,13 +38676,13 @@ $LL4@WaitForIni:
 	mov	eax, DWORD PTR ?hInitThread@@3RAXA	; hInitThread
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 996  :     if ( WAIT_OBJECT_0 == WaitForSingleObject (
+; 1014 :     if ( WAIT_OBJECT_0 == WaitForSingleObject (
 
 	push	150					; 00000096H
 	push	eax
 	call	esi
 	test	eax, eax
-	je	SHORT $LN43@WaitForIni
+	je	SHORT $LN40@WaitForIni
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
 ; 8063 :     Value = *Source;
@@ -38604,11 +38690,11 @@ $LL4@WaitForIni:
 	mov	eax, DWORD PTR ?hInitThread@@3RAXA	; hInitThread
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 994  :   while (ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
+; 1012 :   while (ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
 
 	cmp	eax, -1
 	jne	SHORT $LL4@WaitForIni
-$LN43@WaitForIni:
+$LN40@WaitForIni:
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
 ; 8063 :     Value = *Source;
@@ -38616,62 +38702,59 @@ $LN43@WaitForIni:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1002 :   while (ReadAcquire (&SK_bypass_dialog_active))
+; 1020 :   if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
 
 	test	eax, eax
-	je	SHORT $LN7@WaitForIni
-	mov	esi, DWORD PTR __imp__GetCurrentThreadId@0
-	push	edi
-	mov	edi, DWORD PTR __imp__MsgWaitForMultipleObjectsEx@20
-$LL6@WaitForIni:
+	jne	SHORT $LN8@WaitForIni
+; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
 
-; 1003 :   {
-; 1004 :     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
+; 8063 :     Value = *Source;
 
-	call	esi
+	mov	esi, DWORD PTR ?SK_bypass_dialog_tid@@3JC ; SK_bypass_dialog_tid
+; File c:\users\andon\source\repos\specialk\src\core.cpp
+
+; 1020 :   if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
+
+	call	DWORD PTR __imp__GetCurrentThreadId@0
+	cmp	esi, eax
+	je	SHORT $LN8@WaitForIni
+
+; 1021 :           ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+; 1022 :   {
+; 1023 :     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
+
+	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
-	push	OFFSET $SG428084
+	push	OFFSET $SG428170
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 
-; 1005 :                       GetCurrentThreadId () );
-; 1006 :     MsgWaitForMultipleObjectsEx (0, nullptr, 150, QS_ALLINPUT, MWMO_ALERTABLE);
+; 1024 :                       GetCurrentThreadId () );
+; 1025 :     MsgWaitForMultipleObjectsEx (0, nullptr, 150, QS_ALLINPUT, MWMO_ALERTABLE);
 
 	push	2
 	push	1279					; 000004ffH
 	push	150					; 00000096H
 	push	0
 	push	0
-	call	edi
-; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
+	call	DWORD PTR __imp__MsgWaitForMultipleObjectsEx@20
+$LN8@WaitForIni:
 
-; 8063 :     Value = *Source;
-
-	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
-; File c:\users\andon\source\repos\specialk\src\core.cpp
-
-; 1002 :   while (ReadAcquire (&SK_bypass_dialog_active))
-
-	test	eax, eax
-	jne	SHORT $LL6@WaitForIni
-	pop	edi
-$LN7@WaitForIni:
-
-; 1007 :   }
-; 1008 : 
-; 1009 :   // First thread to reach this point wins ... a shiny new car and
-; 1010 :   //   various other initialization tasks.
-; 1011 :   //
-; 1012 :   // This is important because if this DLL is loaded at application start,
-; 1013 :   //   there are potentially other threads queued up waiting to make calls
-; 1014 :   //     to this one.
-; 1015 :   //
-; 1016 :   //   These other threads start out life suspended but Windows will resume
-; 1017 :   //     them as soon as all DLL code is loaded. Then it becomes a sloppy race
-; 1018 :   //       for each attached thread to finish its DllMain (...) function.
-; 1019 :   //
-; 1020 :   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
+; 1026 :   }
+; 1027 : 
+; 1028 :   // First thread to reach this point wins ... a shiny new car and
+; 1029 :   //   various other initialization tasks.
+; 1030 :   //
+; 1031 :   // This is important because if this DLL is loaded at application start,
+; 1032 :   //   there are potentially other threads queued up waiting to make calls
+; 1033 :   //     to this one.
+; 1034 :   //
+; 1035 :   //   These other threads start out life suspended but Windows will resume
+; 1036 :   //     them as soon as all DLL code is loaded. Then it becomes a sloppy race
+; 1037 :   //       for each attached thread to finish its DllMain (...) function.
+; 1038 :   //
+; 1039 :   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
 
 	mov	ecx, 1
 	mov	edx, OFFSET ?__SK_Init@@3JC		; __SK_Init
@@ -38679,10 +38762,10 @@ $LN7@WaitForIni:
 	lock	 cmpxchg DWORD PTR [edx], ecx
 	pop	esi
 	test	eax, eax
-	jne	SHORT $LN11@WaitForIni
+	jne	SHORT $LN10@WaitForIni
 
-; 1021 :   {
-; 1022 :     SK_ApplyQueuedHooks ();
+; 1040 :   {
+; 1041 :     SK_ApplyQueuedHooks ();
 
 	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlconv.h
@@ -38694,34 +38777,34 @@ $LN7@WaitForIni:
 	xchg	DWORD PTR [ecx], eax
 ; File c:\users\andon\source\repos\specialk\src\core.cpp
 
-; 1024 :     CloseHandle (
+; 1043 :     CloseHandle (
 
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 1025 :       InterlockedExchangePointer ( const_cast <LPVOID *> (&hInitThread),
-; 1026 :                                      INVALID_HANDLE_VALUE )
-; 1027 :     );
-; 1028 : 
-; 1029 :     // Load user-defined DLLs (Lazy)
-; 1030 : #ifdef _WIN64
-; 1031 :     SK_LoadLazyImports64 ();
-; 1032 : #else
-; 1033 :     SK_LoadLazyImports32 ();
+; 1044 :       InterlockedExchangePointer ( const_cast <LPVOID *> (&hInitThread),
+; 1045 :                                      INVALID_HANDLE_VALUE )
+; 1046 :     );
+; 1047 : 
+; 1048 :     // Load user-defined DLLs (Lazy)
+; 1049 : #ifdef _WIN64
+; 1050 :     SK_LoadLazyImports64 ();
+; 1051 : #else
+; 1052 :     SK_LoadLazyImports32 ();
 
 	call	?SK_LoadLazyImports32@@YAXXZ		; SK_LoadLazyImports32
 
-; 1034 : #endif
-; 1035 : 
-; 1036 :     if (config.system.handle_crashes)
+; 1053 : #endif
+; 1054 : 
+; 1055 :     if (config.system.handle_crashes)
 
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+828, 0
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+840, 0
 	jne	?Reinstall@CrashHandler@Diagnostics@SK@@YAXXZ ; SK::Diagnostics::CrashHandler::Reinstall
-$LN11@WaitForIni:
+$LN10@WaitForIni:
 
-; 1037 :       SK::Diagnostics::CrashHandler::Reinstall ();
-; 1038 :   }
-; 1039 : }
+; 1056 :       SK::Diagnostics::CrashHandler::Reinstall ();
+; 1057 :   }
+; 1058 : }
 
 	ret	0
 ?WaitForInit@@YAXXZ ENDP				; WaitForInit
@@ -38841,6 +38924,69 @@ _TEXT	SEGMENT
 	mov	DWORD PTR [ecx+4], 0
 	ret	0
 ??0_Iterator_base12@std@@QAE@XZ ENDP			; std::_Iterator_base12::_Iterator_base12
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ?_Swap_all@_Container_base12@std@@QAEXAAU12@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+?_Swap_all@_Container_base12@std@@QAEXAAU12@@Z PROC	; std::_Container_base12::_Swap_all, COMDAT
+; _this$ = ecx
+
+; 253  : 	{	// swap all iterators
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 254  :  #if _ITERATOR_DEBUG_LEVEL == 2
+; 255  : 	_Lockit _Lock(_LOCK_DEBUG);
+; 256  :  #endif /* _ITERATOR_DEBUG_LEVEL == 2 */
+; 257  : 
+; 258  : 	_Container_proxy *_Temp = _Myproxy;
+
+	mov	edx, DWORD PTR [ecx]
+	push	esi
+
+; 259  : 	_Myproxy = _Right._Myproxy;
+
+	mov	esi, DWORD PTR __Right$[ebp]
+	mov	eax, DWORD PTR [esi]
+	mov	DWORD PTR [ecx], eax
+
+; 260  : 	_Right._Myproxy = _Temp;
+
+	mov	DWORD PTR [esi], edx
+
+; 261  : 
+; 262  : 	if (_Myproxy != 0)
+
+	mov	eax, DWORD PTR [ecx]
+	test	eax, eax
+	je	SHORT $LN2@Swap_all
+
+; 263  : 		_Myproxy->_Mycont = (_Container_base12 *)this;
+
+	mov	DWORD PTR [eax], ecx
+$LN2@Swap_all:
+
+; 264  : 	if (_Right._Myproxy != 0)
+
+	mov	eax, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN3@Swap_all
+
+; 265  : 		_Right._Myproxy->_Mycont = (_Container_base12 *)&_Right;
+
+	mov	DWORD PTR [eax], esi
+$LN3@Swap_all:
+	pop	esi
+
+; 266  : 	}
+
+	pop	ebp
+	ret	4
+?_Swap_all@_Container_base12@std@@QAEXAAU12@@Z ENDP	; std::_Container_base12::_Swap_all
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -39662,8 +39808,6 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 2738 : SK_ImGui_WidgetRegistry SK_ImGui_Widgets;
-
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
 _TEXT	ENDS
@@ -39674,7 +39818,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 2738 : SK_ImGui_WidgetRegistry SK_ImGui_Widgets;
+; 2569 : SK_ImGui_WidgetRegistry SK_ImGui_Widgets;
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete
