@@ -432,8 +432,6 @@ SK_GetConfigPath (void)
   static std::wstring path =
     app_cache_mgr.getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());
 
-  dll_log.Log (L"Config Path: %ws", path.c_str ());
-
   return path.c_str ();
 }
 

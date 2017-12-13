@@ -105,7 +105,7 @@ SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry (void)
     );
 
     DWORD dwWritten = 0;
-    WriteFile (hLockFile, "Locked", strlen ("Locked"), &dwWritten, nullptr);
+    WriteFile (hLockFile, "Locked", (DWORD)strlen ("Locked"), &dwWritten, nullptr);
   }
 
   address_ini_ =

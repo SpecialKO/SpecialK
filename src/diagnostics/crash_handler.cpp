@@ -110,7 +110,8 @@ CrashHandler::Init (void)
   {
     crash_log.flush_freq = 0;
     crash_log.lockless   = true;
-    crash_log.init (L"logs/crash.log", L"w");
+    crash_log.init    (           L"logs/crash.log",  L"w");
+    SK_File_SetHidden (SK_Log_GetPath (L"crash.log"), true);
   }
 
   SK_CreateDLLHook  (       L"kernel32.dll",
@@ -128,7 +129,7 @@ CrashHandler::Init (void)
   //    NULL,
   //      TRUE );
 
-Reinstall ();
+  Reinstall ();
 }
 
 void
@@ -217,6 +218,7 @@ iSK_Logger crash_log;
 extern iSK_Logger steam_log;
 extern iSK_Logger budget_log;
 extern iSK_Logger game_debug;
+extern iSK_Logger tex_log;
 
 extern volatile LONG __SK_DLL_Ending;
 extern volatile LONG __SK_DLL_Attached;
@@ -681,7 +683,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       lstrcatW (wszBaseDir, SK_GetConfigPath ( ));
       lstrcatW (wszBaseDir, L"logs\\");
 
-      wcscpy (wszOutDir, wszBaseDir);
+      wcscpy   (wszOutDir, wszBaseDir);
       lstrcatW (wszOutDir, L"crash\\");
 
              time_t now = { };
@@ -720,25 +722,26 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
               dll_log.close ();
             }
 
-            //if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
-            //{
-            //  crash_log.close ();
-            //}
-
-            if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
+            else if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
             {
               steam_log.close ();
             }
 
-            if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
+            else if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
             {
               game_debug.close ();
             }
 
-            if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
+            else if (tex_log.name.find (fd.cFileName) != std::wstring::npos)
+            {
+              tex_log.close ();
+            }
+
+            else if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
             {
               budget_log.close ();
             }
+
 
             // There's a small chance that we may crash prior to loading CEGUI's DLLs, in which case
             //   trying to grab a static reference to the Logger Singleton would blow stuff up.
@@ -746,15 +749,31 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
             //   Avoid this by counting the number of frames actually drawn.
             if (StrStrW (fd.cFileName, L"CEGUI.log") && SK_GetFramesDrawn () > 120)
             {
-              CopyFileExW ( L"CEGUI.log", wszDestPath,
-                              nullptr, nullptr, nullptr,
-                                0x00 );
+              const wchar_t* wszLogFile = L"CEGUI.log";
+
+              // File has been relocated yet
+              if (GetFileAttributesW (L"CEGUI.log") == INVALID_FILE_ATTRIBUTES)
+              {
+                wszLogFile = wszOrigPath;
+              }
+
+              SK_FullCopy (wszLogFile, wszDestPath);
+
               CEGUI::Logger::getDllSingleton ().
-                setLogFilename (SK_WideCharToUTF8 (wszDestPath).c_str (), true);
+                setLogFilename (
+                  reinterpret_cast <const CEGUI::utf8 *> (
+                    SK_WideCharToUTF8 (wszDestPath).c_str ()
+                  ),
+                    true
+                );
+
+              DeleteFileW (wszLogFile);
             }
 
-            else if (CopyFileExW (wszOrigPath, wszDestPath, nullptr, nullptr,nullptr, 0x00))
+            else
             {
+              SK_FullCopy (wszOrigPath, wszDestPath);
+
               ++files;
 
               if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
@@ -762,17 +781,27 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                 dll_log.init  (wszDestPath, L"a");
               }
 
-              if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
+              else if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
               {
-                steam_log.init  (wszDestPath, L"a");
+                SK_SetNormalFileAttribs (wszDestPath);
               }
 
-              if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
+              else if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
+              {
+                steam_log.init (wszDestPath, L"a");
+              }
+
+              else if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
               {
                 game_debug.init  (wszDestPath, L"a");
               }
 
-              if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
+              else if (tex_log.name.find (fd.cFileName) != std::wstring::npos)
+              {
+                tex_log.init  (wszDestPath, L"a");
+              }
+
+              else if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
               {
                 budget_log.init  (wszDestPath, L"a");
               }
@@ -786,11 +815,14 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       FindClose (hFind);
     }
 
-    if (crash_log.fLog && (! crash_log.silent))
+    if (! (crash_log.initialized && crash_log.silent))
       PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound.buf),
                     nullptr,
                       SND_SYNC |
                       SND_MEMORY );
+
+    crash_log.silent = true;
+    crash_log.lines  = 0;
 
 
     // Shutdown the module gracefully

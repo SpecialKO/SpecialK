@@ -336,6 +336,23 @@ SK_SetNormalFileAttribs (std::wstring file)
   SetFileAttributes (file.c_str (), FILE_ATTRIBUTE_NORMAL);
 }
 
+void
+SK_File_SetHidden (std::wstring file, bool hide)
+{
+  DWORD dwMask =
+    GetFileAttributesW (file.c_str ());
+
+  if (hide)
+    dwMask |= FILE_ATTRIBUTE_HIDDEN;
+
+  else
+    dwMask &= ~FILE_ATTRIBUTE_HIDDEN;
+
+  SetFileAttributesW (
+    file.c_str (),
+       dwMask );
+}
+
 
 bool
 SK_IsAdmin (void)
@@ -1213,6 +1230,7 @@ extern BOOL APIENTRY DllMain (HMODULE hModule,
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/d3d9_backend.h>
 #include <SpecialK/opengl_backend.h>
+#include <SpecialK/input/dinput8_backend.h>
 
 extern
 const wchar_t*
@@ -1232,6 +1250,8 @@ SK_SelfDestruct (void)
       SK::D3D9::Shutdown ();
     else if (! _wcsicmp (wszBackend, L"dxgi"))
       SK::DXGI::Shutdown ();
+    else if (! _wcsicmp (wszBackend, L"dinput8"))
+      SK::DI8::Shutdown ();
 #ifndef SK_BUILD__INSTALLER
     else if (! _wcsicmp (wszBackend, L"OpenGL32"))
       SK::OpenGL::Shutdown ();

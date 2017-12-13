@@ -24,6 +24,7 @@
 
 #include <Windows.h>
 #include <stdio.h>
+#include <Shlwapi.h>
 #include <SpecialK/log.h>
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
@@ -112,6 +113,7 @@ iSK_Logger::close (void)
   {
     fflush (fLog);
     fclose (fLog);
+    fLog = nullptr;
   }
 
   if (lines == 0)
@@ -120,6 +122,9 @@ iSK_Logger::close (void)
       SK_GetConfigPath ();
 
     full_name += name;
+
+    if (StrStrIW (name.c_str (), L"crash\\"))
+      full_name = name;
 
     DeleteFileW (full_name.c_str ());
   }
@@ -141,8 +146,10 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   if (initialized)
     return true;
 
-  lines = 0;
-  name  = wszFileName;
+  if (name.empty ())
+    lines = 0;
+
+  name = wszFileName;
 
   std::wstring full_name =
     SK_GetConfigPath ();
@@ -153,7 +160,13 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
 
   full_name += wszFileName;
 
-  fLog = _wfopen (full_name.c_str (), wszMode);
+  if (StrStrIW (wszFileName, L"crash\\"))
+  {
+    full_name = wszFileName;
+  }
+
+  fLog   = _wfopen (full_name.c_str (), wszMode);
+  silent = false;
 
   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 250000);
    lockless = true;
@@ -344,4 +357,22 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
   }
 
   return wszSummary;
+}
+
+std::wstring
+__stdcall
+SK_Log_GetPath (const wchar_t* wszFileName)
+{
+  std::wstring full_name =
+    SK_GetConfigPath ();
+
+  full_name += L"logs\\";
+
+  SK_CreateDirectories (
+    std::wstring (full_name).c_str ()
+  );
+
+  full_name += wszFileName;
+
+  return full_name;
 }

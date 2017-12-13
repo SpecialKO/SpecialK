@@ -225,6 +225,10 @@ interface iSK_Logger*
 __stdcall
 SK_CreateLog (const wchar_t* const wszName);
 
+std::wstring
+__stdcall
+SK_Log_GetPath (const wchar_t* wszFileName);
+
 #include <SpecialK/diagnostics/crash_handler.h>
 
 std::wstring

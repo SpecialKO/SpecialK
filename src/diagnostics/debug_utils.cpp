@@ -591,12 +591,12 @@ SymLoadModule (
   _In_     DWORD  SizeOfDll
 )
 {
-  typedef DWORD64 (IMAGEAPI *SymLoadModule_pfn)( _In_     HANDLE hProcess,
-                                                 _In_opt_ HANDLE hFile,
-                                                 _In_opt_ PCSTR  ImageName,
-                                                 _In_opt_ PCSTR  ModuleName,
-                                                 _In_     DWORD  BaseOfDll,
-                                                 _In_     DWORD  SizeOfDll );
+  typedef DWORD (IMAGEAPI *SymLoadModule_pfn)( _In_     HANDLE hProcess,
+                                               _In_opt_ HANDLE hFile,
+                                               _In_opt_ PCSTR  ImageName,
+                                               _In_opt_ PCSTR  ModuleName,
+                                               _In_     DWORD  BaseOfDll,
+                                               _In_     DWORD  SizeOfDll );
 
   static SymLoadModule_pfn SymLoadModule_Imp =
     (SymLoadModule_pfn)

@@ -94,6 +94,7 @@ void           SK_FixSlashesA            (char*     szInOut);
 void           SK_SetNormalFileAttribs   (std::wstring   file);
 void           SK_MoveFileNoFail         (const wchar_t* wszOld, const wchar_t* wszNew);
 void           SK_FullCopy               (std::wstring   from,   std::wstring   to);
+void           SK_File_SetHidden         (std::wstring   file,   bool           hidden);
 std::wstring   SK_SYS_GetInstallPath     (void);
 
 const wchar_t* SK_GetHostApp             (void);
