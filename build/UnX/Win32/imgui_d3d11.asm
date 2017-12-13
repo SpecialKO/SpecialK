@@ -4190,7 +4190,7 @@ _SwapChainFlags$ = 28					; size = 4
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 138  :     bOrig_ = *pBool;
+; 139  :     bOrig_ = *pBool;
 
 	mov	esi, DWORD PTR [eax+48]
 	mov	DWORD PTR _auto_bool$1$[ebp], esi
@@ -4202,7 +4202,7 @@ _SwapChainFlags$ = 28					; size = 4
 	lea	edi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 137  :     pBool_ =  pBool;
+; 138  :     pBool_ =  pBool;
 
 	mov	DWORD PTR _auto_bool$[ebp], edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
@@ -4323,7 +4323,7 @@ $LN33@ImGui_Impl:
 $LN39@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	DWORD PTR [edi], esi
 	pop	edi
@@ -10381,7 +10381,7 @@ __$EHRec$ = -12						; size = 12
 	lea	esi, DWORD PTR [eax+16]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 138  :     bOrig_ = *pBool;
+; 139  :     bOrig_ = *pBool;
 
 	mov	eax, DWORD PTR [esi]
 	mov	DWORD PTR _auto_bool0$[ebp], esi
@@ -10399,7 +10399,7 @@ __$EHRec$ = -12						; size = 12
 	lea	edi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 138  :     bOrig_ = *pBool;
+; 139  :     bOrig_ = *pBool;
 
 	mov	eax, DWORD PTR [edi]
 	mov	DWORD PTR _auto_bool1$[ebp], edi
@@ -10680,7 +10680,7 @@ $LN2@ImGui_Impl:
 $LN38@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	eax, DWORD PTR _auto_bool1$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
@@ -10690,7 +10690,7 @@ $LN38@ImGui_Impl:
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	DWORD PTR [edi], eax
 	mov	eax, DWORD PTR _auto_bool0$1$[ebp]
@@ -11878,7 +11878,7 @@ _draw_data$ = 8						; size = 4
 	lea	edi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 138  :     bOrig_ = *pBool;
+; 139  :     bOrig_ = *pBool;
 
 	mov	eax, DWORD PTR [edi]
 	mov	DWORD PTR _auto_bool$[ebp], edi
@@ -13158,7 +13158,7 @@ $LN347@ImGui_Impl:
 $LN395@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	eax, DWORD PTR _auto_bool$[ebp]
 	mov	ecx, DWORD PTR _auto_bool$1$[ebp]
@@ -13177,7 +13177,7 @@ $LN395@ImGui_Impl:
 $LN396@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	ecx, DWORD PTR _auto_bool$1$[ebp]
 	mov	DWORD PTR [edi], ecx
@@ -13313,13 +13313,13 @@ _TEXT	SEGMENT
 ??1SK_ScopedBool@@QAE@XZ PROC				; SK_ScopedBool::~SK_ScopedBool, COMDAT
 ; _this$ = ecx
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	edx, DWORD PTR [ecx]
 	mov	eax, DWORD PTR [ecx+4]
 	mov	DWORD PTR [edx], eax
 
-; 144  :   }
+; 145  :   }
 
 	ret	0
 ??1SK_ScopedBool@@QAE@XZ ENDP				; SK_ScopedBool::~SK_ScopedBool
@@ -13332,24 +13332,24 @@ _pBool$ = 8						; size = 4
 ??0SK_ScopedBool@@QAE@PAH@Z PROC			; SK_ScopedBool::SK_ScopedBool, COMDAT
 ; _this$ = ecx
 
-; 135  :   SK_ScopedBool (BOOL* pBool)
+; 136  :   SK_ScopedBool (BOOL* pBool)
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 136  :   {
-; 137  :     pBool_ =  pBool;
+; 137  :   {
+; 138  :     pBool_ =  pBool;
 
 	mov	eax, DWORD PTR _pBool$[ebp]
 	mov	DWORD PTR [ecx], eax
 
-; 138  :     bOrig_ = *pBool;
+; 139  :     bOrig_ = *pBool;
 
 	mov	eax, DWORD PTR [eax]
 	mov	DWORD PTR [ecx+4], eax
 
-; 139  :   }
+; 140  :   }
 
 	mov	eax, ecx
 	pop	ebp
@@ -15477,7 +15477,7 @@ __$EHRec$ = -12						; size = 12
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 138  :     bOrig_ = *pBool;
+; 139  :     bOrig_ = *pBool;
 
 	mov	edi, DWORD PTR [eax+48]
 	mov	DWORD PTR _auto_bool$1$[ebp], edi
@@ -15489,7 +15489,7 @@ __$EHRec$ = -12						; size = 12
 	lea	esi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 137  :     pBool_ =  pBool;
+; 138  :     pBool_ =  pBool;
 
 	mov	DWORD PTR _auto_bool$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
@@ -15970,7 +15970,7 @@ $LN114@ImGui_Impl:
 	call	DWORD PTR [edx+8]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	eax, DWORD PTR _auto_bool$[ebp]
 	mov	ecx, DWORD PTR _auto_bool$1$[ebp]
@@ -15993,7 +15993,7 @@ $LN114@ImGui_Impl:
 $LN112@ImGui_Impl:
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	eax, DWORD PTR _auto_bool$[ebp]
 	mov	ecx, DWORD PTR _auto_bool$1$[ebp]
@@ -16018,7 +16018,7 @@ $LN15@ImGui_Impl:
 	xor	al, al
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	DWORD PTR [esi], edi
 	pop	edi
@@ -16076,7 +16076,7 @@ __$EHRec$ = -12						; size = 12
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 138  :     bOrig_ = *pBool;
+; 139  :     bOrig_ = *pBool;
 
 	mov	edi, DWORD PTR [eax+48]
 	mov	DWORD PTR _auto_bool$[ebp+4], edi
@@ -16087,7 +16087,7 @@ __$EHRec$ = -12						; size = 12
 	lea	esi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 137  :     pBool_ =  pBool;
+; 138  :     pBool_ =  pBool;
 
 	mov	DWORD PTR _auto_bool$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
@@ -16261,7 +16261,7 @@ $LN22@ImGui_Impl:
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	DWORD PTR [esi], edi
 	pop	edi
@@ -16454,7 +16454,7 @@ __$EHRec$ = -12						; size = 12
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 138  :     bOrig_ = *pBool;
+; 139  :     bOrig_ = *pBool;
 
 	mov	esi, DWORD PTR [eax+48]
 	mov	DWORD PTR _auto_bool$[ebp+4], esi
@@ -16465,7 +16465,7 @@ __$EHRec$ = -12						; size = 12
 	lea	edi, DWORD PTR [eax+48]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 137  :     pBool_ =  pBool;
+; 138  :     pBool_ =  pBool;
 
 	mov	DWORD PTR _auto_bool$[ebp], edi
 ; File c:\users\andon\source\repos\specialk\src\imgui\backends\imgui_d3d11.cpp
@@ -16495,7 +16495,7 @@ __$EHRec$ = -12						; size = 12
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 ; File c:\users\andon\source\repos\specialk\include\specialk\tls.h
 
-; 143  :     *pBool_ = bOrig_;
+; 144  :     *pBool_ = bOrig_;
 
 	mov	DWORD PTR [edi], esi
 	pop	edi

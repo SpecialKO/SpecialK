@@ -564,17 +564,17 @@ EXTRN	__imp___time64:PROC
 EXTRN	?SK_CreateDirectories@@YG_NPB_W@Z:PROC		; SK_CreateDirectories
 EXTRN	?SK_WideCharToUTF8@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@@Z:PROC ; SK_WideCharToUTF8
 EXTRN	?SK_SelfDestruct@@YGXXZ:PROC			; SK_SelfDestruct
-EXTRN	__imp__StackWalk@36:PROC
-EXTRN	__imp__SymSetOptions@4:PROC
-EXTRN	__imp__SymGetModuleBase64@12:PROC
-EXTRN	__imp__SymGetModuleBase@8:PROC
-EXTRN	__imp__SymGetLineFromAddr@16:PROC
-EXTRN	__imp__SymInitialize@12:PROC
-EXTRN	__imp__SymUnloadModule@8:PROC
-EXTRN	__imp__SymFromAddr@20:PROC
-EXTRN	__imp__SymRefreshModuleList@4:PROC
-EXTRN	__imp__SymLoadModule64@28:PROC
-EXTRN	__imp__SymLoadModule@24:PROC
+EXTRN	_StackWalk@36:PROC
+EXTRN	_SymSetOptions@4:PROC
+EXTRN	_SymGetModuleBase64@12:PROC
+EXTRN	_SymGetModuleBase@8:PROC
+EXTRN	_SymGetLineFromAddr@16:PROC
+EXTRN	_SymInitialize@12:PROC
+EXTRN	_SymUnloadModule@8:PROC
+EXTRN	_SymFromAddr@20:PROC
+EXTRN	_SymRefreshModuleList@4:PROC
+EXTRN	_SymLoadModule64@28:PROC
+EXTRN	_SymLoadModule@24:PROC
 EXTRN	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ:PROC		; SK_TLS_Bottom
 EXTRN	__imp__StrStrW@8:PROC
 EXTRN	__imp__StrStrIA@8:PROC
@@ -1886,7 +1886,7 @@ _hProc$ = 8						; size = 4
 ; 896  :   SymRefreshModuleList (hProc);
 
 	push	DWORD PTR _hProc$[ebp]
-	call	DWORD PTR __imp__SymRefreshModuleList@4
+	call	_SymRefreshModuleList@4
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
 ; 269  :     LeaveCriticalSection (cs_);
@@ -2290,7 +2290,7 @@ _addr$ = 16						; size = 4
 	push	DWORD PTR _addr$[ebp]
 	mov	ebx, eax
 	push	ebx
-	call	DWORD PTR __imp__SymGetModuleBase@8
+	call	_SymGetModuleBase@8
 	push	262					; 00000106H
 	mov	DWORD PTR _BaseAddr$1$[ebp], eax
 	lea	eax, DWORD PTR _szModName$[ebp]
@@ -2313,6 +2313,7 @@ _addr$ = 16						; size = 4
 	add	eax, esi
 	cmp	eax, esi
 	jbe	SHORT $LN52@SK_GetSymb
+	npad	1
 $LL2@SK_GetSymb:
 
 ; 145  :   std::string ret = "";
@@ -2371,7 +2372,7 @@ $LN52@SK_GetSymb:
 	push	eax
 	push	0
 	push	ebx
-	call	DWORD PTR __imp__SymLoadModule@24
+	call	_SymLoadModule@24
 
 ; 184  :                     nullptr,
 ; 185  :                       pszShortName,
@@ -2399,7 +2400,7 @@ $LN52@SK_GetSymb:
 	xorps	xmm0, xmm0
 	push	ebx
 	movlpd	QWORD PTR _Displacement$[ebp], xmm0
-	call	DWORD PTR __imp__SymFromAddr@20
+	call	_SymFromAddr@20
 	test	eax, eax
 	je	SHORT $LN4@SK_GetSymb
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -2408,7 +2409,7 @@ $LN52@SK_GetSymb:
 
 	lea	ecx, DWORD PTR _sip$[ebp+84]
 	lea	edx, DWORD PTR [ecx+1]
-	npad	4
+	npad	6
 $LL51@SK_GetSymb:
 	mov	al, BYTE PTR [ecx]
 	inc	ecx
@@ -2627,7 +2628,7 @@ _top_func$ = -96					; size = 24
 _last_chance$1$ = -72					; size = 4
 _last_exc$1$ = -68					; size = 4
 _last_ctx$1$ = -64					; size = 4
-tv1372 = -60						; size = 4
+tv1389 = -60						; size = 4
 _desc$ = -56						; size = 24
 _hModSource$ = -32					; size = 4
 _BaseAddr$2$ = -28					; size = 4
@@ -2660,12 +2661,12 @@ _ExceptionInfo$ = 8					; size = 4
 
 	mov	eax, DWORD PTR ?__SK_DLL_Ending@@3JC	; __SK_DLL_Ending
 	push	esi
-	push	edi
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\crash_handler.cpp
 
 ; 230  :   if ( ReadAcquire (&__SK_DLL_Ending)   != 0 ||
 
-	mov	edi, DWORD PTR __imp__GetCurrentProcess@0
+	mov	esi, DWORD PTR __imp__GetCurrentProcess@0
+	push	edi
 	test	eax, eax
 	jne	SHORT $LN15@SK_TopLeve
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -2686,7 +2687,7 @@ $LN15@SK_TopLeve:
 ; 233  :     TerminateProcess (GetCurrentProcess (), (UINT)-1);
 
 	push	-1
-	call	edi
+	call	esi
 	push	eax
 	call	DWORD PTR __imp__TerminateProcess@8
 $LN14@SK_TopLeve:
@@ -2703,8 +2704,8 @@ $LN14@SK_TopLeve:
 ; 240  :   SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
 
 	push	524311					; 00080017H
-	mov	DWORD PTR tv1372[ebp], eax
-	call	DWORD PTR __imp__SymSetOptions@4
+	mov	DWORD PTR tv1389[ebp], eax
+	call	_SymSetOptions@4
 
 ; 241  :                   SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
 ; 242  : #else
@@ -2716,9 +2717,9 @@ $LN14@SK_TopLeve:
 ; 248  : 
 ; 249  :   SymRefreshModuleList (GetCurrentProcess ());
 
-	call	edi
+	call	esi
 	push	eax
-	call	DWORD PTR __imp__SymRefreshModuleList@4
+	call	_SymRefreshModuleList@4
 
 ; 250  :   //SymInitialize (
 ; 251  :   //  GetCurrentProcess (),
@@ -2771,9 +2772,9 @@ $LN14@SK_TopLeve:
 
 ; 262  :   switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
 
-	mov	esi, DWORD PTR _ExceptionInfo$[ebp]
+	mov	edi, DWORD PTR _ExceptionInfo$[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], eax
-	mov	eax, DWORD PTR [esi]
+	mov	eax, DWORD PTR [edi]
 	mov	eax, DWORD PTR [eax]
 	cmp	eax, -1073741819			; c0000005H
 	ja	SHORT $LN65@SK_TopLeve
@@ -3067,15 +3068,15 @@ $LN2@SK_TopLeve:
 
 ; 381  :   HANDLE  hProc                    = GetCurrentProcess ();
 
-	call	edi
-	mov	edi, eax
+	call	esi
+	mov	esi, eax
 
 ; 382  : 
 ; 383  :   SymRefreshModuleList ( hProc );
 
-	push	edi
-	mov	DWORD PTR _hProc$1$[ebp], edi
-	call	DWORD PTR __imp__SymRefreshModuleList@4
+	push	esi
+	mov	DWORD PTR _hProc$1$[ebp], esi
+	call	_SymRefreshModuleList@4
 
 ; 384  : 
 ; 385  : #ifdef _WIN64
@@ -3083,7 +3084,7 @@ $LN2@SK_TopLeve:
 ; 387  : #else
 ; 388  :   DWORD    ip = ExceptionInfo->ContextRecord->Eip;
 
-	mov	ecx, DWORD PTR [esi+4]
+	mov	ecx, DWORD PTR [edi+4]
 
 ; 389  : #endif
 ; 390  : 
@@ -3091,10 +3092,10 @@ $LN2@SK_TopLeve:
 
 	lea	eax, DWORD PTR _hModSource$[ebp]
 	push	eax
-	mov	esi, DWORD PTR [ecx+184]
-	push	esi
+	mov	edi, DWORD PTR [ecx+184]
+	push	edi
 	push	4
-	mov	DWORD PTR _ip$1$[ebp], esi
+	mov	DWORD PTR _ip$1$[ebp], edi
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 	test	eax, eax
 	je	SHORT $LN36@SK_TopLeve
@@ -3119,9 +3120,9 @@ $LN36@SK_TopLeve:
 ; 401  :   DWORD BaseAddr =
 ; 402  :     SymGetModuleBase   ( hProc, ip );
 
-	push	esi
 	push	edi
-	call	DWORD PTR __imp__SymGetModuleBase@8
+	push	esi
+	call	_SymGetModuleBase@8
 	mov	DWORD PTR _BaseAddr$1$[ebp], eax
 
 ; 403  : #endif
@@ -3139,23 +3140,23 @@ $LN36@SK_TopLeve:
 	push	eax
 	call	DWORD PTR __imp__lstrlenA@4
 	mov	ecx, DWORD PTR _szDupName$1$[ebp]
-	lea	esi, DWORD PTR [ecx+eax]
+	lea	edi, DWORD PTR [ecx+eax]
 
 ; 407  : 
 ; 408  :   while (  pszShortName      >  szDupName &&
 
-	cmp	esi, ecx
+	cmp	edi, ecx
 	jbe	SHORT $LN507@SK_TopLeve
-	npad	3
+	npad	7
 $LL4@SK_TopLeve:
-	cmp	BYTE PTR [esi-1], 92			; 0000005cH
+	cmp	BYTE PTR [edi-1], 92			; 0000005cH
 	je	SHORT $LN507@SK_TopLeve
 
 ; 409  :          *(pszShortName - 1) != '\\')
 ; 410  :     --pszShortName;
 
-	dec	esi
-	cmp	esi, ecx
+	dec	edi
+	cmp	edi, ecx
 	ja	SHORT $LL4@SK_TopLeve
 $LN507@SK_TopLeve:
 
@@ -3204,7 +3205,7 @@ $LN507@SK_TopLeve:
 	mov	eax, DWORD PTR _ip$1$[ebp]
 	sub	eax, DWORD PTR _BaseAddr$1$[ebp]
 	push	eax
-	push	esi
+	push	edi
 	push	OFFSET $SG250282
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -3212,8 +3213,8 @@ $LN507@SK_TopLeve:
 ; 418  : 
 ; 419  :   crash_log.Log ( L"[StackFrame] <-> Eip=%08xh, Esp=%08xh, Ebp=%08xh",
 
-	mov	esi, DWORD PTR _ExceptionInfo$[ebp]
-	mov	eax, DWORD PTR [esi+4]
+	mov	edi, DWORD PTR _ExceptionInfo$[ebp]
+	mov	eax, DWORD PTR [edi+4]
 	push	DWORD PTR [eax+180]
 	push	DWORD PTR [eax+196]
 	push	DWORD PTR _ip$1$[ebp]
@@ -3226,7 +3227,7 @@ $LN507@SK_TopLeve:
 ; 422  :                       ExceptionInfo->ContextRecord->Ebp );
 ; 423  :   crash_log.Log ( L"[StackFrame] >-< Esi=%08xh, Edi=%08xh",
 
-	mov	eax, DWORD PTR [esi+4]
+	mov	eax, DWORD PTR [edi+4]
 	add	esp, 76					; 0000004cH
 	push	DWORD PTR [eax+156]
 	push	DWORD PTR [eax+160]
@@ -3239,7 +3240,7 @@ $LN507@SK_TopLeve:
 ; 426  : 
 ; 427  :   crash_log.Log ( L"[  GP Reg  ]       eax:     0x%08x",
 
-	mov	eax, DWORD PTR [esi+4]
+	mov	eax, DWORD PTR [edi+4]
 	push	DWORD PTR [eax+176]
 	push	OFFSET $SG250285
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
@@ -3248,7 +3249,7 @@ $LN507@SK_TopLeve:
 ; 428  :                   ExceptionInfo->ContextRecord->Eax );
 ; 429  :   crash_log.Log ( L"[  GP Reg  ]       ebx:     0x%08x",
 
-	mov	eax, DWORD PTR [esi+4]
+	mov	eax, DWORD PTR [edi+4]
 	push	DWORD PTR [eax+164]
 	push	OFFSET $SG250286
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
@@ -3257,7 +3258,7 @@ $LN507@SK_TopLeve:
 ; 430  :                   ExceptionInfo->ContextRecord->Ebx );
 ; 431  :   crash_log.Log ( L"[  GP Reg  ]       ecx:     0x%08x",
 
-	mov	eax, DWORD PTR [esi+4]
+	mov	eax, DWORD PTR [edi+4]
 	push	DWORD PTR [eax+172]
 	push	OFFSET $SG250287
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
@@ -3266,7 +3267,7 @@ $LN507@SK_TopLeve:
 ; 432  :                   ExceptionInfo->ContextRecord->Ecx );
 ; 433  :   crash_log.Log ( L"[  GP Reg  ]       edx:     0x%08x",
 
-	mov	eax, DWORD PTR [esi+4]
+	mov	eax, DWORD PTR [edi+4]
 	push	DWORD PTR [eax+168]
 	push	OFFSET $SG250288
 	push	OFFSET ?crash_log@@3UiSK_Logger@@A	; crash_log
@@ -3275,7 +3276,7 @@ $LN507@SK_TopLeve:
 ; 434  :                   ExceptionInfo->ContextRecord->Edx );
 ; 435  :   crash_log.Log ( L"[ GP Flags ]       EFlags:  0x%08x",
 
-	mov	eax, DWORD PTR [esi+4]
+	mov	eax, DWORD PTR [edi+4]
 	add	esp, 64					; 00000040H
 	push	DWORD PTR [eax+192]
 	push	OFFSET $SG250289
@@ -3333,8 +3334,8 @@ $LN507@SK_TopLeve:
 ; 478  :   SymUnloadModule   (hProc, BaseAddr);
 
 	push	DWORD PTR _BaseAddr$1$[ebp]
-	push	edi
-	call	DWORD PTR __imp__SymUnloadModule@8
+	push	esi
+	call	_SymUnloadModule@8
 
 ; 479  : #endif
 ; 480  : 
@@ -3347,9 +3348,9 @@ $LN507@SK_TopLeve:
 ; 482  : 
 ; 483  :   CONTEXT ctx (*ExceptionInfo->ContextRecord);
 
-	mov	esi, DWORD PTR [esi+4]
-	lea	edi, DWORD PTR _ctx$[ebp]
+	mov	esi, DWORD PTR [edi+4]
 	mov	ecx, 179				; 000000b3H
+	lea	edi, DWORD PTR _ctx$[ebp]
 	rep movsd
 
 ; 488  :   STACKFRAME   stackframe = { };
@@ -3456,7 +3457,7 @@ $LL8@SK_TopLeve:
 ; 514  :     SymRefreshModuleList ( hProc );
 
 	push	esi
-	call	DWORD PTR __imp__SymRefreshModuleList@4
+	call	_SymRefreshModuleList@4
 
 ; 515  : 
 ; 516  :     ip = stackframe.AddrPC.Offset;
@@ -3497,7 +3498,7 @@ $LN37@SK_TopLeve:
 
 	push	edi
 	push	esi
-	call	DWORD PTR __imp__SymGetModuleBase@8
+	call	_SymGetModuleBase@8
 	mov	DWORD PTR _BaseAddr$2$[ebp], eax
 
 ; 530  :       SymGetModuleBase   ( hProc, ip );
@@ -3551,7 +3552,7 @@ $LN508@SK_TopLeve:
 	push	esi
 	push	0
 	push	DWORD PTR _hProc$1$[ebp]
-	call	DWORD PTR __imp__SymLoadModule@24
+	call	_SymLoadModule@24
 
 ; 549  :                       nullptr,
 ; 550  :                         pszShortName,
@@ -3590,7 +3591,7 @@ $LN508@SK_TopLeve:
 	push	0
 	push	DWORD PTR _ip$2$[ebp]
 	push	DWORD PTR _hProc$1$[ebp]
-	call	DWORD PTR __imp__SymFromAddr@20
+	call	_SymFromAddr@20
 	test	eax, eax
 	je	$LN38@SK_TopLeve
 
@@ -3631,7 +3632,7 @@ $LN508@SK_TopLeve:
 	push	DWORD PTR _hProc$1$[ebp]
 	movups	XMMWORD PTR _ihl$13[ebp], xmm0
 	mov	DWORD PTR _ihl$13[ebp], 20		; 00000014H
-	call	DWORD PTR __imp__SymGetLineFromAddr@16
+	call	_SymGetLineFromAddr@16
 
 ; 589  : 
 ; 590  :       if (bFileAndLine)
@@ -3681,7 +3682,7 @@ $LN40@SK_TopLeve:
 	lea	eax, DWORD PTR _sip$3[ebp+84]
 	push	eax
 	call	DWORD PTR __imp__StrStrIA@8
-	mov	ecx, DWORD PTR tv1372[ebp]
+	mov	ecx, DWORD PTR tv1389[ebp]
 	test	eax, eax
 	movzx	ecx, cl
 	mov	eax, 1
@@ -3695,7 +3696,7 @@ $LN40@SK_TopLeve:
 
 ; 607  :       if (StrStrIA (sip.si.Name, "Scaleform"))
 
-	mov	DWORD PTR tv1372[ebp], ecx
+	mov	DWORD PTR tv1389[ebp], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 25   : 	return (_Left_size == _Right_size && _Traits::compare(_Left, _Right, _Left_size) == 0);
@@ -3717,7 +3718,6 @@ $LN40@SK_TopLeve:
 
 	lea	ecx, DWORD PTR _sip$3[ebp+84]
 	lea	edx, DWORD PTR [ecx+1]
-	npad	2
 $LL496@SK_TopLeve:
 	mov	al, BYTE PTR [ecx]
 	inc	ecx
@@ -3753,7 +3753,7 @@ $LN38@SK_TopLeve:
 	push	DWORD PTR _BaseAddr$2$[ebp]
 	mov	esi, DWORD PTR _hProc$1$[ebp]
 	push	esi
-	call	DWORD PTR __imp__SymUnloadModule@8
+	call	_SymUnloadModule@8
 
 ; 620  : #endif
 ; 621  : 
@@ -3781,7 +3781,7 @@ $LN38@SK_TopLeve:
 	push	eax
 	push	esi
 	push	332					; 0000014cH
-	call	DWORD PTR __imp__StackWalk@36
+	call	_StackWalk@36
 
 ; 633  :       StackWalk ( IMAGE_FILE_MACHINE_I386,
 ; 634  :                     hProc,
@@ -3816,6 +3816,7 @@ $LN38@SK_TopLeve:
 	mov	esi, 712				; 000002c8H
 	mov	edi, DWORD PTR [edi+4]
 	mov	edx, edi
+	npad	6
 $LL498@SK_TopLeve:
 	mov	eax, DWORD PTR [ecx]
 	cmp	eax, DWORD PTR [edx]
@@ -3828,6 +3829,7 @@ $LL498@SK_TopLeve:
 	mov	esi, 76					; 0000004cH
 	mov	ecx, DWORD PTR _last_exc$1$[ebp]
 	mov	edx, DWORD PTR [eax]
+	npad	2
 $LL500@SK_TopLeve:
 	mov	eax, DWORD PTR [ecx]
 	cmp	eax, DWORD PTR [edx]
@@ -3858,7 +3860,7 @@ $LN67@SK_TopLeve:
 	test	al, al
 	je	$LN43@SK_TopLeve
 $LN44@SK_TopLeve:
-	mov	eax, DWORD PTR tv1372[ebp]
+	mov	eax, DWORD PTR tv1389[ebp]
 	test	al, al
 	jne	$LN43@SK_TopLeve
 	cmp	DWORD PTR _desc$[ebp+16], 0
@@ -3995,7 +3997,7 @@ $LN45@SK_TopLeve:
 ; 684  :       wcscpy (wszOutDir, wszBaseDir);
 
 	xor	ecx, ecx
-	npad	3
+	npad	5
 $LL68@SK_TopLeve:
 	movzx	eax, WORD PTR _wszBaseDir$5[ebp+ecx]
 	lea	ecx, DWORD PTR [ecx+2]
@@ -12435,7 +12437,7 @@ _ulLen$ = 20						; size = 4
 	push	DWORD PTR _addr$[ebp]
 	mov	esi, eax
 	push	esi
-	call	DWORD PTR __imp__SymGetModuleBase64@12
+	call	_SymGetModuleBase64@12
 
 ; 837  : 
 ; 838  :   char szModName [MAX_PATH + 2] = {  };
@@ -12497,7 +12499,7 @@ $LN21@SK_GetSymb:
 	push	eax
 	push	0
 	push	esi
-	call	DWORD PTR __imp__SymLoadModule64@28
+	call	_SymLoadModule64@28
 
 ; 852  :                       nullptr,
 ; 853  :                         pszShortName,
@@ -12534,7 +12536,7 @@ $LN21@SK_GetSymb:
 	push	0
 	push	DWORD PTR _addr$[ebp]
 	push	esi
-	call	DWORD PTR __imp__SymFromAddr@20
+	call	_SymFromAddr@20
 	test	eax, eax
 	je	SHORT $LN4@SK_GetSymb
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -12577,7 +12579,7 @@ $LN21@SK_GetSymb:
 ; 873  :     ret =
 
 	lea	ecx, DWORD PTR [esi+1]
-	npad	4
+	npad	7
 $LL20@SK_GetSymb:
 	mov	al, BYTE PTR [esi]
 	inc	esi
@@ -12810,7 +12812,7 @@ $LN5@InitSyms:
 ; 1006 :     SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
 
 	push	524311					; 00080017H
-	call	DWORD PTR __imp__SymSetOptions@4
+	call	_SymSetOptions@4
 
 ; 1007 :                     SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
 ; 1008 : 
@@ -12820,7 +12822,7 @@ $LN5@InitSyms:
 	push	0
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
-	call	DWORD PTR __imp__SymInitialize@12
+	call	_SymInitialize@12
 $LN2@InitSyms:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
@@ -12920,7 +12922,7 @@ $LN4@Init:
 ; 121  :   SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
 
 	push	524311					; 00080017H
-	call	DWORD PTR __imp__SymSetOptions@4
+	call	_SymSetOptions@4
 
 ; 122  :                   SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
 ; 123  : 
@@ -12928,7 +12930,7 @@ $LN4@Init:
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
-	call	DWORD PTR __imp__SymRefreshModuleList@4
+	call	_SymRefreshModuleList@4
 
 ; 125  : 
 ; 126  :   //SymInitialize (

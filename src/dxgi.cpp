@@ -175,10 +175,10 @@ SK_CEGUI_RelocateLog (void)
   if (GetFileAttributesW (L"CEGUI.log") != INVALID_FILE_ATTRIBUTES)
   {
     char     szNewLogPath [MAX_PATH * 4] = { };
-    wchar_t wszNewLogPath [MAX_PATH]     = { };
+    wchar_t wszNewLogPath [MAX_PATH + 1] = { };
 
     wcscpy   (wszNewLogPath, SK_GetConfigPath ());
-    wcstombs ( szNewLogPath, SK_GetConfigPath (), MAX_PATH * 4 - 1);
+    strcpy   ( szNewLogPath, SK_WideCharToUTF8 (wszNewLogPath).c_str ());
 
     lstrcatA ( szNewLogPath, R"(logs\CEGUI.log)");
     lstrcatW (wszNewLogPath, L"logs\\CEGUI.log" );
@@ -187,7 +187,7 @@ SK_CEGUI_RelocateLog (void)
                     nullptr, nullptr, nullptr,
                       0x00 );
 
-    CEGUI::Logger::getDllSingleton ().setLogFilename (szNewLogPath, true);
+    CEGUI::Logger::getDllSingleton ().setLogFilename (reinterpret_cast <const CEGUI::utf8 *> (szNewLogPath), true);
 
     CEGUI::Logger::getDllSingleton ().logEvent       ("[Special K] ---- Log File Moved ----");
     CEGUI::Logger::getDllSingleton ().logEvent       ("");
@@ -4660,7 +4660,8 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
                       iname.c_str (), ppFactory );
 
   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
-       ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+       ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) &&
+       SK_GetCallingDLL () != GetModuleHandle (L"d3d11.dll") )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -4690,7 +4691,8 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
                       iname.c_str (), ppFactory );
 
   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
-       ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+       ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) &&
+       SK_GetCallingDLL () != GetModuleHandle (L"d3d11.dll") )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -4723,7 +4725,8 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
                       Flags, iname.c_str (), ppFactory );
 
   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
-       ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+       ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) &&
+       SK_GetCallingDLL () != GetModuleHandle (L"d3d11.dll") )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;

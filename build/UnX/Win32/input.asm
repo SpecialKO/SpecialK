@@ -19,6 +19,7 @@ PUBLIC	?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA ; GetRawInput
 PUBLIC	?GetRawInputBuffer_Original@@3P6GIPAUtagRAWINPUT@@PAII@ZA ; GetRawInputBuffer_Original
 PUBLIC	?RegisterRawInputDevices_Original@@3P6GHPBUtagRAWINPUTDEVICE@@II@ZA ; RegisterRawInputDevices_Original
 PUBLIC	?GetMouseMovePointsEx_Original@@3P6GHIPAUtagMOUSEMOVEPOINT@@0HK@ZA ; GetMouseMovePointsEx_Original
+PUBLIC	?SK_SO4_MouseScale@@3MA				; SK_SO4_MouseScale
 PUBLIC	?SK_HID_PreparsedDataP@@3PAPAU_HIDP_PREPARSED_DATA@@A ; SK_HID_PreparsedDataP
 PUBLIC	?SK_HID_PreparsedData@@3PAU_HIDP_PREPARSED_DATA@@A ; SK_HID_PreparsedData
 PUBLIC	?HidP_GetCaps_Original@@3P6GJPAU_HIDP_PREPARSED_DATA@@PAU_HIDP_CAPS@@@ZA ; HidP_GetCaps_Original
@@ -53,9 +54,12 @@ _BSS	SEGMENT
 ?SK_HID_Backend@@3Usk_input_api_context_s@@A DB 044H DUP (?) ; SK_HID_Backend
 ?SK_RawInput_Backend@@3Usk_input_api_context_s@@A DB 044H DUP (?) ; SK_RawInput_Backend
 _BSS	ENDS
+_DATA	SEGMENT
+?SK_SO4_MouseScale@@3MA DD 0401de354r		; 2.467	; SK_SO4_MouseScale
+_DATA	ENDS
 CONST	SEGMENT
 $SG162819 DB	'GetRegisteredRawInputDevices_Detour', 00H
-$SG163888 DB	'GetAsyncKeyState', 00H
+$SG163917 DB	'GetAsyncKeyState', 00H
 	ORG $+3
 $SG162820 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
@@ -64,83 +68,53 @@ $SG162820 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163886 DB	'GetRawInputData', 00H
-$SG163887 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163915 DB	'GetRawInputData', 00H
+$SG163916 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163889 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163918 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163890 DB	'GetKeyState', 00H
-$SG163891 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163919 DB	'GetKeyState', 00H
+$SG163920 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163892 DB	'GetKeyboardState', 00H
+$SG163921 DB	'GetKeyboardState', 00H
 	ORG $+3
-$SG163893 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163922 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163894 DB	'GetCursorPos', 00H
+$SG163923 DB	'GetCursorPos', 00H
 	ORG $+3
-$SG163895 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163924 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163896 DB	'GetCursorInfo', 00H
+$SG163925 DB	'GetCursorInfo', 00H
 	ORG $+2
-$SG163897 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163926 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163898 DB	'GetMouseMovePointsEx', 00H
+$SG163927 DB	'GetMouseMovePointsEx', 00H
 	ORG $+3
-$SG163899 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG163900 DB	'SetCursor', 00H
-	ORG $+2
-$SG163901 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG163902 DB	'SetCursorPos', 00H
-	ORG $+3
-$SG163903 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG163904 DB	'SendInput', 00H
-	ORG $+2
-$SG163905 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG163906 DB	'mouse_event', 00H
-$SG163907 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG163908 DB	'keybd_event', 00H
-$SG163909 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG163910 DB	'RegisterRawInputDevices', 00H
-$SG163911 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG163912 DB	'GetRegisteredRawInputDevices', 00H
-	ORG $+3
-$SG163913 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG163914 DB	'GetRawInputBuffer', 00H
-	ORG $+2
-$SG163915 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG163928 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
 $SG162904 DB	'RegisterRawInputDevices_Detour', 00H
 	ORG $+1
+$SG163929 DB	'SetCursor', 00H
+	ORG $+2
 $SG162905 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+6
+	ORG $+2
+$SG163930 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG163931 DB	'SetCursorPos', 00H
+	ORG $+7
 $SG162907 DB	'[', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H
 	DB	'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's', 00H, 't', 00H
@@ -155,6 +129,36 @@ $SG162907 DB	'[', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H
 	DB	's', 00H, ')', 00H, ',', 00H, ' ', 00H, 'e', 00H, 'x', 00H, 'p'
 	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
 	DB	' ', 00H, '%', 00H, 'z', 00H, 'u', 00H, 00H, 00H
+	ORG $+2
+$SG163932 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG163933 DB	'SendInput', 00H
+	ORG $+2
+$SG163934 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG163935 DB	'mouse_event', 00H
+$SG163936 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG163937 DB	'keybd_event', 00H
+$SG163938 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG163939 DB	'RegisterRawInputDevices', 00H
+$SG163940 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG163941 DB	'GetRegisteredRawInputDevices', 00H
+	ORG $+3
+$SG163942 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG163943 DB	'GetRawInputBuffer', 00H
+	ORG $+2
+$SG163944 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
 $SG162946 DB	'GetRawInputBuffer_Detour', 00H
 	ORG $+3
@@ -200,70 +204,70 @@ $SG163312 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163331 DB	'GetCursorPos_Detour', 00H
-$SG163332 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163355 DB	'GetCursorPos_Detour', 00H
+$SG163356 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163349 DB	'SetCursorPos_Detour', 00H
-$SG163350 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163378 DB	'SetCursorPos_Detour', 00H
+$SG163379 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163367 DB	'SendInput_Detour', 00H
+$SG163396 DB	'SendInput_Detour', 00H
 	ORG $+3
-$SG163368 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163397 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163380 DB	'keybd_event_Detour', 00H
+$SG163409 DB	'keybd_event_Detour', 00H
 	ORG $+1
-$SG163381 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163410 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163394 DB	'mouse_event_Detour', 00H
+$SG163423 DB	'mouse_event_Detour', 00H
 	ORG $+1
-$SG163395 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163424 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163404 DB	'GetAsyncKeyState_Detour', 00H
+$SG163433 DB	'GetAsyncKeyState_Detour', 00H
 	ORG $+4
-$SG163405 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163434 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163420 DB	'GetKeyState_Detour', 00H
+$SG163449 DB	'GetKeyState_Detour', 00H
 	ORG $+1
-$SG163421 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163450 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163437 DB	'GetKeyboardState_Detour', 00H
+$SG163466 DB	'GetKeyboardState_Detour', 00H
 	ORG $+4
-$SG163438 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163467 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
@@ -513,6 +517,7 @@ PUBLIC	?raw_overrides@@3U<unnamed-type-raw_overrides>@@A ; raw_overrides
 PUBLIC	??_C@_0BD@OLBABOEK@vector?$DMT?$DO?5too?5long?$AA@ ; `string'
 PUBLIC	__real@3f000000
 PUBLIC	__real@3f800000
+PUBLIC	__real@40800000
 EXTRN	??2@YAPAXI@Z:PROC				; operator new
 EXTRN	??3@YAXPAX@Z:PROC				; operator delete
 EXTRN	??_U@YAPAXI@Z:PROC				; operator new[]
@@ -527,6 +532,7 @@ EXTRN	__imp__GetLastError@0:PROC
 EXTRN	__imp__SetLastError@4:PROC
 EXTRN	__imp__GetModuleHandleW@4:PROC
 EXTRN	__imp__GetProcAddress@8:PROC
+EXTRN	__imp__GetForegroundWindow@0:PROC
 EXTRN	__imp__GetClientRect@8:PROC
 EXTRN	__imp__GetCursor@0:PROC
 EXTRN	__imp__ClientToScreen@8:PROC
@@ -535,13 +541,17 @@ EXTRN	__imp__LoadCursorW@8:PROC
 EXTRN	?SK_Input_PreHookXInput@@YAXXZ:PROC		; SK_Input_PreHookXInput
 EXTRN	?SK_ImGui_CenterCursorOnWindow@@YAXXZ:PROC	; SK_ImGui_CenterCursorOnWindow
 EXTRN	?SK_Input_PreHookDI8@@YAXXZ:PROC		; SK_Input_PreHookDI8
+EXTRN	?SK_GetGameWindow@@YGPAUHWND__@@XZ:PROC		; SK_GetGameWindow
 EXTRN	__imp_?_Xbad_alloc@std@@YAXXZ:PROC
 EXTRN	__imp_?_Xlength_error@std@@YAXPBD@Z:PROC
 EXTRN	?getInstance@SK_Console@@SAPAV1@XZ:PROC		; SK_Console::getInstance
+EXTRN	?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z:PROC	; SK_GetCallingDLL
 EXTRN	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ:PROC		; SK_GetDLL
 EXTRN	?SK_TestImports@@YGXPAUHINSTANCE__@@PAUsk_import_test_s@@H@Z:PROC ; SK_TestImports
 EXTRN	?Log@iSK_Logger@@UAAXQB_WZZ:PROC		; iSK_Logger::Log
 EXTRN	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ:PROC ; SK_GetCurrentRenderBackend
+EXTRN	?SK_GetCurrentGameID@@YG?AW4SK_GAME_ID@@XZ:PROC	; SK_GetCurrentGameID
+EXTRN	?SK_GetFramesDrawn@@YGKXZ:PROC			; SK_GetFramesDrawn
 EXTRN	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z:PROC ; SK_CreateDLLHook2
 EXTRN	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ:PROC	; SK_ApplyQueuedHooks
 EXTRN	?GetIO@ImGui@@YAAAUImGuiIO@@XZ:PROC		; ImGui::GetIO
@@ -665,6 +675,22 @@ _BSS	ENDS
 _BSS	SEGMENT
 ?called@?2??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4_NA DB 01H DUP (?) ; `GetCursorPos_Detour'::`3'::called
 _BSS	ENDS
+;	COMDAT ?last_frame@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4KA
+_BSS	SEGMENT
+?last_frame@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4KA DD 01H DUP (?) ; `GetCursorPos_Detour'::`24'::last_frame
+_BSS	ENDS
+;	COMDAT ?$TSS0@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA
+_BSS	SEGMENT
+?$TSS0@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA DD 01H DUP (?) ; TSS0<`template-parameter-24',tCursorPos_Detour,GHPAUtagPOINT>
+_BSS	ENDS
+;	COMDAT ?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A
+_BSS	SEGMENT
+?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A DQ 01H DUP (?) ; `GetCursorPos_Detour'::`24'::last_pos
+_BSS	ENDS
+;	COMDAT ?calls@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA
+_BSS	SEGMENT
+?calls@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA DD 01H DUP (?) ; `GetCursorPos_Detour'::`24'::calls
+_BSS	ENDS
 ;	COMDAT ?called@?2??SetCursorPos_Detour@@YGHHH@Z@4_NA
 _BSS	SEGMENT
 ?called@?2??SetCursorPos_Detour@@YGHHH@Z@4_NA DB 01H DUP (?) ; `SetCursorPos_Detour'::`3'::called
@@ -696,6 +722,10 @@ _BSS	ENDS
 CRT$XCU	SEGMENT
 ?raw_devices$initializer$@@3P6AXXZA DD FLAT:??__Eraw_devices@@YAXXZ ; raw_devices$initializer$
 CRT$XCU	ENDS
+;	COMDAT __real@40800000
+CONST	SEGMENT
+__real@40800000 DD 040800000r			; 4
+CONST	ENDS
 ;	COMDAT __real@3f800000
 CONST	SEGMENT
 __real@3f800000 DD 03f800000r			; 1
@@ -723,6 +753,8 @@ _DATA	SEGMENT
 	DB	01H
 _DATA	ENDS
 xdata$x	SEGMENT
+__unwindtable$?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z$0
 __unwindtable$?SK_RawInput_GetKeyboards@@YA?AV?$vector@UtagRAWINPUTDEVICE@@V?$allocator@UtagRAWINPUTDEVICE@@@std@@@std@@PA_N@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_RawInput_GetKeyboards@@YA?AV?$vector@UtagRAWINPUTDEVICE@@V?$allocator@UtagRAWINPUTDEVICE@@@std@@@std@@PA_N@Z$0
 __unwindtable$?SK_RawInput_GetMice@@YA?AV?$vector@UtagRAWINPUTDEVICE@@V?$allocator@UtagRAWINPUTDEVICE@@@std@@@std@@PA_N@Z DD 0ffffffffH
@@ -747,6 +779,13 @@ __unwindtable$?RegisterRawInputDevices_Detour@@YGHPBUtagRAWINPUTDEVICE@@II@Z DD 
 	DD	FLAT:__unwindfunclet$?RegisterRawInputDevices_Detour@@YGHPBUtagRAWINPUTDEVICE@@II@Z$2
 	DD	02H
 	DD	FLAT:__unwindfunclet$?RegisterRawInputDevices_Detour@@YGHPBUtagRAWINPUTDEVICE@@II@Z$3
+__ehfuncinfo$?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z DD 019930522H
+	DD	01H
+	DD	FLAT:__unwindtable$?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
 __ehfuncinfo$?GetGameCursor@@YAPAUHICON__@@XZ DD 019930522H
 	DD	02H
 	DD	FLAT:__unwindtable$?GetGameCursor@@YAPAUHICON__@@XZ
@@ -2489,213 +2528,213 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_Input_PreInit@@YAXXZ PROC				; SK_Input_PreInit
 
-; 1742 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1785 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA ; GetRawInputData_Original
 	push	OFFSET ?GetRawInputData_Detour@@YGIPAUHRAWINPUT__@@IPAXPAII@Z ; GetRawInputData_Detour
-	push	OFFSET $SG163886
-	push	OFFSET $SG163887
+	push	OFFSET $SG163915
+	push	OFFSET $SG163916
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1743 :                              "GetRawInputData",
-; 1744 :                               GetRawInputData_Detour,
-; 1745 :      static_cast_p2p <void> (&GetRawInputData_Original) );
-; 1746 : 
-; 1747 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1786 :                              "GetRawInputData",
+; 1787 :                               GetRawInputData_Detour,
+; 1788 :      static_cast_p2p <void> (&GetRawInputData_Original) );
+; 1789 : 
+; 1790 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetAsyncKeyState_Original@@3P6GFH@ZA ; GetAsyncKeyState_Original
 	push	OFFSET ?GetAsyncKeyState_Detour@@YGFH@Z	; GetAsyncKeyState_Detour
-	push	OFFSET $SG163888
-	push	OFFSET $SG163889
+	push	OFFSET $SG163917
+	push	OFFSET $SG163918
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1748 :                              "GetAsyncKeyState",
-; 1749 :                               GetAsyncKeyState_Detour,
-; 1750 :      static_cast_p2p <void> (&GetAsyncKeyState_Original) );
-; 1751 : 
-; 1752 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1791 :                              "GetAsyncKeyState",
+; 1792 :                               GetAsyncKeyState_Detour,
+; 1793 :      static_cast_p2p <void> (&GetAsyncKeyState_Original) );
+; 1794 : 
+; 1795 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetKeyState_Original@@3P6GFH@ZA	; GetKeyState_Original
 	push	OFFSET ?GetKeyState_Detour@@YGFH@Z	; GetKeyState_Detour
-	push	OFFSET $SG163890
-	push	OFFSET $SG163891
+	push	OFFSET $SG163919
+	push	OFFSET $SG163920
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1753 :                              "GetKeyState",
-; 1754 :                               GetKeyState_Detour,
-; 1755 :      static_cast_p2p <void> (&GetKeyState_Original) );
-; 1756 : 
-; 1757 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1796 :                              "GetKeyState",
+; 1797 :                               GetKeyState_Detour,
+; 1798 :      static_cast_p2p <void> (&GetKeyState_Original) );
+; 1799 : 
+; 1800 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetKeyboardState_Original@@3P6GHPAE@ZA ; GetKeyboardState_Original
 	push	OFFSET ?GetKeyboardState_Detour@@YGHPAE@Z ; GetKeyboardState_Detour
-	push	OFFSET $SG163892
-	push	OFFSET $SG163893
+	push	OFFSET $SG163921
+	push	OFFSET $SG163922
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1758 :                              "GetKeyboardState",
-; 1759 :                               GetKeyboardState_Detour,
-; 1760 :      static_cast_p2p <void> (&GetKeyboardState_Original) );
-; 1761 : 
-; 1762 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1801 :                              "GetKeyboardState",
+; 1802 :                               GetKeyboardState_Detour,
+; 1803 :      static_cast_p2p <void> (&GetKeyboardState_Original) );
+; 1804 : 
+; 1805 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
 	push	OFFSET ?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z ; GetCursorPos_Detour
-	push	OFFSET $SG163894
-	push	OFFSET $SG163895
+	push	OFFSET $SG163923
+	push	OFFSET $SG163924
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1763 :                              "GetCursorPos",
-; 1764 :                               GetCursorPos_Detour,
-; 1765 :      static_cast_p2p <void> (&GetCursorPos_Original) );
-; 1766 : 
-; 1767 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1806 :                              "GetCursorPos",
+; 1807 :                               GetCursorPos_Detour,
+; 1808 :      static_cast_p2p <void> (&GetCursorPos_Original) );
+; 1809 : 
+; 1810 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetCursorInfo_Original@@3P6GHPAUtagCURSORINFO@@@ZA ; GetCursorInfo_Original
 	push	OFFSET ?GetCursorInfo_Detour@@YGHPAUtagCURSORINFO@@@Z ; GetCursorInfo_Detour
-	push	OFFSET $SG163896
-	push	OFFSET $SG163897
+	push	OFFSET $SG163925
+	push	OFFSET $SG163926
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1768 :                              "GetCursorInfo",
-; 1769 :                               GetCursorInfo_Detour,
-; 1770 :      static_cast_p2p <void> (&GetCursorInfo_Original) );
-; 1771 : 
-; 1772 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1811 :                              "GetCursorInfo",
+; 1812 :                               GetCursorInfo_Detour,
+; 1813 :      static_cast_p2p <void> (&GetCursorInfo_Original) );
+; 1814 : 
+; 1815 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetMouseMovePointsEx_Original@@3P6GHIPAUtagMOUSEMOVEPOINT@@0HK@ZA ; GetMouseMovePointsEx_Original
 	push	OFFSET ?GetMouseMovePointsEx_Detour@@YGHIPAUtagMOUSEMOVEPOINT@@0HK@Z ; GetMouseMovePointsEx_Detour
-	push	OFFSET $SG163898
-	push	OFFSET $SG163899
+	push	OFFSET $SG163927
+	push	OFFSET $SG163928
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1773 :                              "GetMouseMovePointsEx",
-; 1774 :                               GetMouseMovePointsEx_Detour,
-; 1775 :      static_cast_p2p <void> (&GetMouseMovePointsEx_Original) );
-; 1776 : 
-; 1777 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1816 :                              "GetMouseMovePointsEx",
+; 1817 :                               GetMouseMovePointsEx_Detour,
+; 1818 :      static_cast_p2p <void> (&GetMouseMovePointsEx_Original) );
+; 1819 : 
+; 1820 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?SetCursor_Original@@3P6GPAUHICON__@@PAU1@@ZA ; SetCursor_Original
 	push	OFFSET ?SetCursor_Detour@@YGPAUHICON__@@PAU1@@Z ; SetCursor_Detour
-	push	OFFSET $SG163900
-	push	OFFSET $SG163901
+	push	OFFSET $SG163929
+	push	OFFSET $SG163930
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1778 :                              "SetCursor",
-; 1779 :                               SetCursor_Detour,
-; 1780 :      static_cast_p2p <void> (&SetCursor_Original) );
-; 1781 : 
-; 1782 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1821 :                              "SetCursor",
+; 1822 :                               SetCursor_Detour,
+; 1823 :      static_cast_p2p <void> (&SetCursor_Original) );
+; 1824 : 
+; 1825 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?SetCursorPos_Original@@3P6GHHH@ZA ; SetCursorPos_Original
 	push	OFFSET ?SetCursorPos_Detour@@YGHHH@Z	; SetCursorPos_Detour
-	push	OFFSET $SG163902
-	push	OFFSET $SG163903
+	push	OFFSET $SG163931
+	push	OFFSET $SG163932
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1783 :                              "SetCursorPos",
-; 1784 :                               SetCursorPos_Detour,
-; 1785 :      static_cast_p2p <void> (&SetCursorPos_Original) );
-; 1786 : 
-; 1787 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1826 :                              "SetCursorPos",
+; 1827 :                               SetCursorPos_Detour,
+; 1828 :      static_cast_p2p <void> (&SetCursorPos_Original) );
+; 1829 : 
+; 1830 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?SendInput_Original@@3P6GIIPAUtagINPUT@@H@ZA ; SendInput_Original
 	push	OFFSET ?SendInput_Detour@@YGIIPAUtagINPUT@@H@Z ; SendInput_Detour
-	push	OFFSET $SG163904
-	push	OFFSET $SG163905
+	push	OFFSET $SG163933
+	push	OFFSET $SG163934
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1788 :                              "SendInput",
-; 1789 :                               SendInput_Detour,
-; 1790 :      static_cast_p2p <void> (&SendInput_Original) );
-; 1791 : 
-; 1792 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1831 :                              "SendInput",
+; 1832 :                               SendInput_Detour,
+; 1833 :      static_cast_p2p <void> (&SendInput_Original) );
+; 1834 : 
+; 1835 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?mouse_event_Original@@3P6GXKKKKK@ZA ; mouse_event_Original
 	push	OFFSET ?mouse_event_Detour@@YGXKKKKK@Z	; mouse_event_Detour
-	push	OFFSET $SG163906
-	push	OFFSET $SG163907
+	push	OFFSET $SG163935
+	push	OFFSET $SG163936
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1793 :                              "mouse_event",
-; 1794 :                               mouse_event_Detour,
-; 1795 :      static_cast_p2p <void> (&mouse_event_Original) );
-; 1796 : 
-; 1797 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1836 :                              "mouse_event",
+; 1837 :                               mouse_event_Detour,
+; 1838 :      static_cast_p2p <void> (&mouse_event_Original) );
+; 1839 : 
+; 1840 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?keybd_event_Original@@3P6GXEEKK@ZA ; keybd_event_Original
 	push	OFFSET ?keybd_event_Detour@@YGXEEKK@Z	; keybd_event_Detour
-	push	OFFSET $SG163908
-	push	OFFSET $SG163909
+	push	OFFSET $SG163937
+	push	OFFSET $SG163938
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1798 :                              "keybd_event",
-; 1799 :                               keybd_event_Detour,
-; 1800 :      static_cast_p2p <void> (&keybd_event_Original) );
-; 1801 : 
-; 1802 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1841 :                              "keybd_event",
+; 1842 :                               keybd_event_Detour,
+; 1843 :      static_cast_p2p <void> (&keybd_event_Original) );
+; 1844 : 
+; 1845 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?RegisterRawInputDevices_Original@@3P6GHPBUtagRAWINPUTDEVICE@@II@ZA ; RegisterRawInputDevices_Original
 	push	OFFSET ?RegisterRawInputDevices_Detour@@YGHPBUtagRAWINPUTDEVICE@@II@Z ; RegisterRawInputDevices_Detour
-	push	OFFSET $SG163910
-	push	OFFSET $SG163911
+	push	OFFSET $SG163939
+	push	OFFSET $SG163940
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1803 :                              "RegisterRawInputDevices",
-; 1804 :                               RegisterRawInputDevices_Detour,
-; 1805 :      static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
-; 1806 : 
-; 1807 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1846 :                              "RegisterRawInputDevices",
+; 1847 :                               RegisterRawInputDevices_Detour,
+; 1848 :      static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
+; 1849 : 
+; 1850 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetRegisteredRawInputDevices_Original@@3P6GIPAUtagRAWINPUTDEVICE@@PAII@ZA ; GetRegisteredRawInputDevices_Original
 	push	OFFSET ?GetRegisteredRawInputDevices_Detour@@YGIPAUtagRAWINPUTDEVICE@@PAII@Z ; GetRegisteredRawInputDevices_Detour
-	push	OFFSET $SG163912
-	push	OFFSET $SG163913
+	push	OFFSET $SG163941
+	push	OFFSET $SG163942
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1808 :                              "GetRegisteredRawInputDevices",
-; 1809 :                               GetRegisteredRawInputDevices_Detour,
-; 1810 :      static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
-; 1811 : 
-; 1812 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 1851 :                              "GetRegisteredRawInputDevices",
+; 1852 :                               GetRegisteredRawInputDevices_Detour,
+; 1853 :      static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
+; 1854 : 
+; 1855 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetRawInputBuffer_Original@@3P6GIPAUtagRAWINPUT@@PAII@ZA ; GetRawInputBuffer_Original
 	push	OFFSET ?GetRawInputBuffer_Detour@@YGIPAUtagRAWINPUT@@PAII@Z ; GetRawInputBuffer_Detour
-	push	OFFSET $SG163914
-	push	OFFSET $SG163915
+	push	OFFSET $SG163943
+	push	OFFSET $SG163944
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 1813 :                              "GetRawInputBuffer",
-; 1814 :                               GetRawInputBuffer_Detour,
-; 1815 :      static_cast_p2p <void> (&GetRawInputBuffer_Original) );
-; 1816 : 
-; 1817 :   if (config.input.gamepad.hook_xinput)
+; 1856 :                              "GetRawInputBuffer",
+; 1857 :                               GetRawInputBuffer_Detour,
+; 1858 :      static_cast_p2p <void> (&GetRawInputBuffer_Original) );
+; 1859 : 
+; 1860 :   if (config.input.gamepad.hook_xinput)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+693, 0
 	je	SHORT $LN2@SK_Input_P
 
-; 1818 :     SK_XInput_InitHotPlugHooks ();
+; 1861 :     SK_XInput_InitHotPlugHooks ();
 
 	call	?SK_XInput_InitHotPlugHooks@@YAXXZ	; SK_XInput_InitHotPlugHooks
 $LN2@SK_Input_P:
 
-; 1819 : 
-; 1820 :   SK_ApplyQueuedHooks ();
+; 1862 : 
+; 1863 :   SK_ApplyQueuedHooks ();
 
 	jmp	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
 ?SK_Input_PreInit@@YAXXZ ENDP				; SK_Input_PreInit
@@ -2706,20 +2745,20 @@ _TEXT	SEGMENT
 _lpKeyState$ = 8					; size = 4
 ?GetKeyboardState_Detour@@YGHPAE@Z PROC			; GetKeyboardState_Detour
 
-; 1627 : {
+; 1670 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1628 :   SK_LOG_FIRST_CALL
+; 1671 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??GetKeyboardState_Detour@@YGHPAE@Z@4_NA, 0
 	jne	SHORT $LN2@GetKeyboar
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetKeyboar
-	push	OFFSET $SG163437
-	push	OFFSET $SG163438
+	push	OFFSET $SG163466
+	push	OFFSET $SG163467
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2728,9 +2767,9 @@ $LN3@GetKeyboar:
 $LN2@GetKeyboar:
 	push	esi
 
-; 1629 : 
-; 1630 :   BOOL bRet =
-; 1631 :     GetKeyboardState_Original (lpKeyState);
+; 1672 : 
+; 1673 :   BOOL bRet =
+; 1674 :     GetKeyboardState_Original (lpKeyState);
 
 	mov	esi, DWORD PTR _lpKeyState$[ebp]
 	push	edi
@@ -2738,20 +2777,20 @@ $LN2@GetKeyboar:
 	call	DWORD PTR ?GetKeyboardState_Original@@3P6GHPAE@ZA ; GetKeyboardState_Original
 	mov	edi, eax
 
-; 1632 : 
-; 1633 :   if (bRet)
+; 1675 : 
+; 1676 :   if (bRet)
 
 	test	edi, edi
 	je	SHORT $LN9@GetKeyboar
 
-; 1634 :   {
-; 1635 :     if (SK_ImGui_WantKeyboardCapture ())
+; 1677 :   {
+; 1678 :     if (SK_ImGui_WantKeyboardCapture ())
 
 	call	?SK_ImGui_WantKeyboardCapture@@YA_NXZ	; SK_ImGui_WantKeyboardCapture
 	test	al, al
 	je	SHORT $LN5@GetKeyboar
 
-; 1636 :       memset (&lpKeyState [7], 0, 247);
+; 1679 :       memset (&lpKeyState [7], 0, 247);
 
 	push	247					; 000000f7H
 	lea	eax, DWORD PTR [esi+7]
@@ -2761,15 +2800,15 @@ $LN2@GetKeyboar:
 	add	esp, 12					; 0000000cH
 $LN5@GetKeyboar:
 
-; 1637 : 
-; 1638 :     // Some games use this API for mouse buttons, for reasons that are beyond me...
-; 1639 :     if (SK_ImGui_WantMouseCapture ())
+; 1680 : 
+; 1681 :     // Some games use this API for mouse buttons, for reasons that are beyond me...
+; 1682 :     if (SK_ImGui_WantMouseCapture ())
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
 	je	SHORT $LN9@GetKeyboar
 
-; 1640 :       memset (  lpKeyState,    0, 7);
+; 1683 :       memset (  lpKeyState,    0, 7);
 
 	xor	eax, eax
 	mov	DWORD PTR [esi], eax
@@ -2777,15 +2816,15 @@ $LN5@GetKeyboar:
 	mov	BYTE PTR [esi+6], al
 $LN9@GetKeyboar:
 
-; 1641 :   }
-; 1642 : 
-; 1643 :   return bRet;
+; 1684 :   }
+; 1685 : 
+; 1686 :   return bRet;
 
 	mov	eax, edi
 	pop	edi
 	pop	esi
 
-; 1644 : }
+; 1687 : }
 
 	pop	ebp
 	ret	4
@@ -2797,20 +2836,20 @@ _TEXT	SEGMENT
 _nVirtKey$ = 8						; size = 4
 ?GetKeyState_Detour@@YGFH@Z PROC			; GetKeyState_Detour
 
-; 1592 : {
+; 1635 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1593 :   SK_LOG_FIRST_CALL
+; 1636 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??GetKeyState_Detour@@YGFH@Z@4_NA, 0
 	jne	SHORT $LN2@GetKeyStat
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetKeyStat
-	push	OFFSET $SG163420
-	push	OFFSET $SG163421
+	push	OFFSET $SG163449
+	push	OFFSET $SG163450
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2818,33 +2857,33 @@ $LN3@GetKeyStat:
 	mov	BYTE PTR ?called@?2??GetKeyState_Detour@@YGFH@Z@4_NA, 1
 $LN2@GetKeyStat:
 
-; 1594 : 
-; 1595 : #define SK_ConsumeVirtKey(nVirtKey) { GetKeyState_Original(nVirtKey); return 0; }
-; 1596 : 
-; 1597 :   // Block keyboard input to the game while the console is active
-; 1598 :   if (SK_Console::getInstance ()->isVisible ())
+; 1637 : 
+; 1638 : #define SK_ConsumeVirtKey(nVirtKey) { GetKeyState_Original(nVirtKey); return 0; }
+; 1639 : 
+; 1640 :   // Block keyboard input to the game while the console is active
+; 1641 :   if (SK_Console::getInstance ()->isVisible ())
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	cmp	BYTE PTR [eax+4356], 0
 	je	SHORT $LN4@GetKeyStat
 $LN16@GetKeyStat:
 
-; 1599 :     SK_ConsumeVirtKey (nVirtKey);
+; 1642 :     SK_ConsumeVirtKey (nVirtKey);
 
 	push	DWORD PTR _nVirtKey$[ebp]
 	call	DWORD PTR ?GetKeyState_Original@@3P6GFH@ZA ; GetKeyState_Original
 	xor	eax, eax
 
-; 1620 : }
+; 1663 : }
 
 	pop	ebp
 	ret	4
 $LN4@GetKeyStat:
 
-; 1600 : 
-; 1601 :   // Block keyboard input to the game while it's in the background
-; 1602 :   if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
-; 1603 :       config.window.background_render && (! game_window.active))
+; 1643 : 
+; 1644 :   // Block keyboard input to the game while it's in the background
+; 1645 :   if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+; 1646 :       config.window.background_render && (! game_window.active))
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
@@ -2856,62 +2895,62 @@ $LN4@GetKeyStat:
 $LN5@GetKeyStat:
 	push	ebx
 
-; 1604 :     SK_ConsumeVirtKey (nVirtKey);
-; 1605 : 
-; 1606 :   if (nVirtKey & 0xF8) // Valid Keys:  8 - 255
+; 1647 :     SK_ConsumeVirtKey (nVirtKey);
+; 1648 : 
+; 1649 :   if (nVirtKey & 0xF8) // Valid Keys:  8 - 255
 
 	mov	ebx, DWORD PTR _nVirtKey$[ebp]
 	test	bl, 248					; 000000f8H
 	je	SHORT $LN6@GetKeyStat
 
-; 1607 :   {
-; 1608 :     if (SK_ImGui_WantKeyboardCapture ())
+; 1650 :   {
+; 1651 :     if (SK_ImGui_WantKeyboardCapture ())
 
 	call	?SK_ImGui_WantKeyboardCapture@@YA_NXZ	; SK_ImGui_WantKeyboardCapture
 
-; 1609 :       SK_ConsumeVirtKey (nVirtKey);
+; 1652 :       SK_ConsumeVirtKey (nVirtKey);
 
 	jmp	SHORT $LN15@GetKeyStat
 $LN6@GetKeyStat:
 
-; 1610 :   }
-; 1611 : 
-; 1612 :   else if (nVirtKey < 8)
+; 1653 :   }
+; 1654 : 
+; 1655 :   else if (nVirtKey < 8)
 
 	cmp	ebx, 8
 	jge	SHORT $LN10@GetKeyStat
 
-; 1613 :   {
-; 1614 :     // Some games use this API for mouse buttons, for reasons that are beyond me...
-; 1615 :     if (SK_ImGui_WantMouseCapture ())
+; 1656 :   {
+; 1657 :     // Some games use this API for mouse buttons, for reasons that are beyond me...
+; 1658 :     if (SK_ImGui_WantMouseCapture ())
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 $LN15@GetKeyStat:
 	test	al, al
 	je	SHORT $LN10@GetKeyStat
 
-; 1616 :       SK_ConsumeVirtKey (nVirtKey);
+; 1659 :       SK_ConsumeVirtKey (nVirtKey);
 
 	push	ebx
 	call	DWORD PTR ?GetKeyState_Original@@3P6GFH@ZA ; GetKeyState_Original
 	xor	eax, eax
 	pop	ebx
 
-; 1620 : }
+; 1663 : }
 
 	pop	ebp
 	ret	4
 $LN10@GetKeyStat:
 
-; 1617 :   }
-; 1618 : 
-; 1619 :   return GetKeyState_Original (nVirtKey);
+; 1660 :   }
+; 1661 : 
+; 1662 :   return GetKeyState_Original (nVirtKey);
 
 	push	ebx
 	call	DWORD PTR ?GetKeyState_Original@@3P6GFH@ZA ; GetKeyState_Original
 	pop	ebx
 
-; 1620 : }
+; 1663 : }
 
 	pop	ebp
 	ret	4
@@ -2923,20 +2962,20 @@ _TEXT	SEGMENT
 _vKey$ = 8						; size = 4
 ?GetAsyncKeyState_Detour@@YGFH@Z PROC			; GetAsyncKeyState_Detour
 
-; 1559 : {
+; 1602 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1560 :   SK_LOG_FIRST_CALL
+; 1603 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??GetAsyncKeyState_Detour@@YGFH@Z@4_NA, 0
 	jne	SHORT $LN2@GetAsyncKe
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetAsyncKe
-	push	OFFSET $SG163404
-	push	OFFSET $SG163405
+	push	OFFSET $SG163433
+	push	OFFSET $SG163434
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2944,33 +2983,33 @@ $LN3@GetAsyncKe:
 	mov	BYTE PTR ?called@?2??GetAsyncKeyState_Detour@@YGFH@Z@4_NA, 1
 $LN2@GetAsyncKe:
 
-; 1561 : 
-; 1562 : #define SK_ConsumeVKey(vKey) { GetAsyncKeyState_Original(vKey); return 0; }
-; 1563 : 
-; 1564 :   // Block keyboard input to the game while the console is active
-; 1565 :   if (SK_Console::getInstance ()->isVisible ())
+; 1604 : 
+; 1605 : #define SK_ConsumeVKey(vKey) { GetAsyncKeyState_Original(vKey); return 0; }
+; 1606 : 
+; 1607 :   // Block keyboard input to the game while the console is active
+; 1608 :   if (SK_Console::getInstance ()->isVisible ())
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	cmp	BYTE PTR [eax+4356], 0
 	je	SHORT $LN4@GetAsyncKe
 $LN16@GetAsyncKe:
 
-; 1566 :     SK_ConsumeVKey (vKey);
+; 1609 :     SK_ConsumeVKey (vKey);
 
 	push	DWORD PTR _vKey$[ebp]
 	call	DWORD PTR ?GetAsyncKeyState_Original@@3P6GFH@ZA ; GetAsyncKeyState_Original
 	xor	eax, eax
 
-; 1587 : }
+; 1630 : }
 
 	pop	ebp
 	ret	4
 $LN4@GetAsyncKe:
 
-; 1567 : 
-; 1568 :   // Block keyboard input to the game while it's in the background
-; 1569 :   if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
-; 1570 :       config.window.background_render && (! game_window.active))
+; 1610 : 
+; 1611 :   // Block keyboard input to the game while it's in the background
+; 1612 :   if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+; 1613 :       config.window.background_render && (! game_window.active))
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
@@ -2982,62 +3021,62 @@ $LN4@GetAsyncKe:
 $LN5@GetAsyncKe:
 	push	ebx
 
-; 1571 :     SK_ConsumeVKey (vKey);
-; 1572 : 
-; 1573 :   if (vKey & 0xF8) // Valid Keys:  8 - 255
+; 1614 :     SK_ConsumeVKey (vKey);
+; 1615 : 
+; 1616 :   if (vKey & 0xF8) // Valid Keys:  8 - 255
 
 	mov	ebx, DWORD PTR _vKey$[ebp]
 	test	bl, 248					; 000000f8H
 	je	SHORT $LN6@GetAsyncKe
 
-; 1574 :   {
-; 1575 :     if (SK_ImGui_WantKeyboardCapture ())
+; 1617 :   {
+; 1618 :     if (SK_ImGui_WantKeyboardCapture ())
 
 	call	?SK_ImGui_WantKeyboardCapture@@YA_NXZ	; SK_ImGui_WantKeyboardCapture
 
-; 1576 :       SK_ConsumeVKey (vKey);
+; 1619 :       SK_ConsumeVKey (vKey);
 
 	jmp	SHORT $LN15@GetAsyncKe
 $LN6@GetAsyncKe:
 
-; 1577 :   }
-; 1578 : 
-; 1579 :   else if (vKey < 8)
+; 1620 :   }
+; 1621 : 
+; 1622 :   else if (vKey < 8)
 
 	cmp	ebx, 8
 	jge	SHORT $LN10@GetAsyncKe
 
-; 1580 :   {
-; 1581 :     // Some games use this API for mouse buttons, for reasons that are beyond me...
-; 1582 :     if (SK_ImGui_WantMouseCapture ())
+; 1623 :   {
+; 1624 :     // Some games use this API for mouse buttons, for reasons that are beyond me...
+; 1625 :     if (SK_ImGui_WantMouseCapture ())
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 $LN15@GetAsyncKe:
 	test	al, al
 	je	SHORT $LN10@GetAsyncKe
 
-; 1583 :       SK_ConsumeVKey (vKey);
+; 1626 :       SK_ConsumeVKey (vKey);
 
 	push	ebx
 	call	DWORD PTR ?GetAsyncKeyState_Original@@3P6GFH@ZA ; GetAsyncKeyState_Original
 	xor	eax, eax
 	pop	ebx
 
-; 1587 : }
+; 1630 : }
 
 	pop	ebp
 	ret	4
 $LN10@GetAsyncKe:
 
-; 1584 :   }
-; 1585 : 
-; 1586 :   return GetAsyncKeyState_Original (vKey);
+; 1627 :   }
+; 1628 : 
+; 1629 :   return GetAsyncKeyState_Original (vKey);
 
 	push	ebx
 	call	DWORD PTR ?GetAsyncKeyState_Original@@3P6GFH@ZA ; GetAsyncKeyState_Original
 	pop	ebx
 
-; 1587 : }
+; 1630 : }
 
 	pop	ebp
 	ret	4
@@ -3055,20 +3094,20 @@ _dwData$ = 20						; size = 4
 _dwExtraInfo$ = 24					; size = 4
 ?mouse_event_Detour@@YGXKKKKK@Z PROC			; mouse_event_Detour
 
-; 1538 : {
+; 1581 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1539 :   SK_LOG_FIRST_CALL
+; 1582 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??mouse_event_Detour@@YGXKKKKK@Z@4_NA, 0
 	jne	SHORT $LN2@mouse_even
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@mouse_even
-	push	OFFSET $SG163394
-	push	OFFSET $SG163395
+	push	OFFSET $SG163423
+	push	OFFSET $SG163424
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3098,24 +3137,24 @@ $LN13@mouse_even:
 	test	al, al
 	jne	SHORT $LN1@mouse_even
 
-; 1549 : }
+; 1592 : }
 
 	pop	ebp
 
-; 1540 : 
-; 1541 : // TODO: Process this the right way...
-; 1542 : 
-; 1543 :   if (SK_ImGui_IsMouseRelevant ())
-; 1544 :   {
-; 1545 :     return;
-; 1546 :   }
-; 1547 : 
-; 1548 :   mouse_event_Original (dwFlags, dx, dy, dwData, dwExtraInfo);
+; 1583 : 
+; 1584 : // TODO: Process this the right way...
+; 1585 : 
+; 1586 :   if (SK_ImGui_IsMouseRelevant ())
+; 1587 :   {
+; 1588 :     return;
+; 1589 :   }
+; 1590 : 
+; 1591 :   mouse_event_Original (dwFlags, dx, dy, dwData, dwExtraInfo);
 
 	jmp	DWORD PTR ?mouse_event_Original@@3P6GXKKKKK@ZA ; mouse_event_Original
 $LN1@mouse_even:
 
-; 1549 : }
+; 1592 : }
 
 	pop	ebp
 	ret	20					; 00000014H
@@ -3132,20 +3171,20 @@ _dwFlags$ = 16						; size = 4
 _dwExtraInfo$ = 20					; size = 4
 ?keybd_event_Detour@@YGXEEKK@Z PROC			; keybd_event_Detour
 
-; 1516 : {
+; 1559 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1517 :   SK_LOG_FIRST_CALL
+; 1560 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??keybd_event_Detour@@YGXEEKK@Z@4_NA, 0
 	jne	SHORT $LN2@keybd_even
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@keybd_even
-	push	OFFSET $SG163380
-	push	OFFSET $SG163381
+	push	OFFSET $SG163409
+	push	OFFSET $SG163410
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3162,24 +3201,24 @@ $LN2@keybd_even:
 	jne	SHORT $LN1@keybd_even
 ; File c:\users\andon\source\repos\specialk\src\input\input.cpp
 
-; 1527 : }
+; 1570 : }
 
 	pop	ebp
 
-; 1518 : 
-; 1519 : // TODO: Process this the right way...
-; 1520 : 
-; 1521 :   if (SK_ImGui_Active ())
-; 1522 :   {
-; 1523 :     return;
-; 1524 :   }
-; 1525 : 
-; 1526 :   keybd_event_Original (bVk, bScan, dwFlags, dwExtraInfo);
+; 1561 : 
+; 1562 : // TODO: Process this the right way...
+; 1563 : 
+; 1564 :   if (SK_ImGui_Active ())
+; 1565 :   {
+; 1566 :     return;
+; 1567 :   }
+; 1568 : 
+; 1569 :   keybd_event_Original (bVk, bScan, dwFlags, dwExtraInfo);
 
 	jmp	DWORD PTR ?keybd_event_Original@@3P6GXEEKK@ZA ; keybd_event_Original
 $LN1@keybd_even:
 
-; 1527 : }
+; 1570 : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -3195,20 +3234,20 @@ _pInputs$ = 12						; size = 4
 _cbSize$ = 16						; size = 4
 ?SendInput_Detour@@YGIIPAUtagINPUT@@H@Z PROC		; SendInput_Detour
 
-; 1493 : {
+; 1536 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1494 :   SK_LOG_FIRST_CALL
+; 1537 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??SendInput_Detour@@YGIIPAUtagINPUT@@H@Z@4_NA, 0
 	jne	SHORT $LN2@SendInput_
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SendInput_
-	push	OFFSET $SG163367
-	push	OFFSET $SG163368
+	push	OFFSET $SG163396
+	push	OFFSET $SG163397
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3225,27 +3264,27 @@ $LN2@SendInput_:
 	jne	SHORT $LN8@SendInput_
 ; File c:\users\andon\source\repos\specialk\src\input\input.cpp
 
-; 1504 : }
+; 1547 : }
 
 	pop	ebp
 
-; 1501 :   }
-; 1502 : 
-; 1503 :   return SendInput_Original (nInputs, pInputs, cbSize);
+; 1544 :   }
+; 1545 : 
+; 1546 :   return SendInput_Original (nInputs, pInputs, cbSize);
 
 	jmp	DWORD PTR ?SendInput_Original@@3P6GIIPAUtagINPUT@@H@ZA ; SendInput_Original
 $LN8@SendInput_:
 
-; 1495 : 
-; 1496 :   // TODO: Process this the right way...
-; 1497 : 
-; 1498 :   if (SK_ImGui_Active ())
-; 1499 :   {
-; 1500 :     return 0;
+; 1538 : 
+; 1539 :   // TODO: Process this the right way...
+; 1540 : 
+; 1541 :   if (SK_ImGui_Active ())
+; 1542 :   {
+; 1543 :     return 0;
 
 	xor	eax, eax
 
-; 1504 : }
+; 1547 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -3260,20 +3299,20 @@ _x$ = 8							; size = 4
 _y$ = 12						; size = 4
 ?SetCursorPos_Detour@@YGHHH@Z PROC			; SetCursorPos_Detour
 
-; 1453 : {
+; 1496 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1454 :   SK_LOG_FIRST_CALL
+; 1497 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??SetCursorPos_Detour@@YGHHH@Z@4_NA, 0
 	jne	SHORT $LN2@SetCursorP
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SetCursorP
-	push	OFFSET $SG163349
-	push	OFFSET $SG163350
+	push	OFFSET $SG163378
+	push	OFFSET $SG163379
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3282,14 +3321,14 @@ $LN3@SetCursorP:
 $LN2@SetCursorP:
 	push	esi
 
-; 1455 : 
-; 1456 :   // Game WANTED to change its position, so remember that.
-; 1457 :   SK_ImGui_Cursor.orig_pos.x = x;
+; 1498 : 
+; 1499 :   // Game WANTED to change its position, so remember that.
+; 1500 :   SK_ImGui_Cursor.orig_pos.x = x;
 
 	mov	esi, DWORD PTR _x$[ebp]
 	push	edi
 
-; 1458 :   SK_ImGui_Cursor.orig_pos.y = y;
+; 1501 :   SK_ImGui_Cursor.orig_pos.y = y;
 
 	mov	edi, DWORD PTR _y$[ebp]
 
@@ -3298,13 +3337,13 @@ $LN2@SetCursorP:
 	push	OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+4
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 
-; 1455 : 
-; 1456 :   // Game WANTED to change its position, so remember that.
-; 1457 :   SK_ImGui_Cursor.orig_pos.x = x;
+; 1498 : 
+; 1499 :   // Game WANTED to change its position, so remember that.
+; 1500 :   SK_ImGui_Cursor.orig_pos.x = x;
 
 	mov	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+4, esi
 
-; 1458 :   SK_ImGui_Cursor.orig_pos.y = y;
+; 1501 :   SK_ImGui_Cursor.orig_pos.y = y;
 
 	mov	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+8, edi
 
@@ -3318,13 +3357,13 @@ $LN2@SetCursorP:
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
 	call	?ClientToLocal@sk_imgui_cursor_s@@QAEXPAUtagPOINT@@@Z ; sk_imgui_cursor_s::ClientToLocal
 
-; 1459 : 
-; 1460 :   SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
-; 1461 : 
-; 1462 :   // Don't let the game continue moving the cursor while
-; 1463 :   //   Alt+Tabbed out
-; 1464 :   if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
-; 1465 :       config.window.background_render && (! game_window.active))
+; 1502 : 
+; 1503 :   SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
+; 1504 : 
+; 1505 :   // Don't let the game continue moving the cursor while
+; 1506 :   //   Alt+Tabbed out
+; 1507 :   if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+; 1508 :       config.window.background_render && (! game_window.active))
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
@@ -3335,17 +3374,17 @@ $LN2@SetCursorP:
 	je	SHORT $LN10@SetCursorP
 $LN4@SetCursorP:
 
-; 1466 :     return TRUE;
-; 1467 : 
-; 1468 :   // Prevent Mouse Look while Drag Locked
-; 1469 :   if (config.window.drag_lock)
+; 1509 :     return TRUE;
+; 1510 : 
+; 1511 :   // Prevent Mouse Look while Drag Locked
+; 1512 :   if (config.window.drag_lock)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+773, 0
 	jne	SHORT $LN10@SetCursorP
 
-; 1470 :     return TRUE;
-; 1471 : 
-; 1472 :   if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
+; 1513 :     return TRUE;
+; 1514 : 
+; 1515 :   if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
 
 	cmp	BYTE PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+38, 0
 	je	SHORT $LN9@SetCursorP
@@ -3373,9 +3412,9 @@ $LN21@SetCursorP:
 	jne	SHORT $LN10@SetCursorP
 $LN9@SetCursorP:
 
-; 1470 :     return TRUE;
-; 1471 : 
-; 1472 :   if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
+; 1513 :     return TRUE;
+; 1514 : 
+; 1515 :   if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
 
 	cmp	BYTE PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+36, 0
 	je	SHORT $LN6@SetCursorP
@@ -3384,19 +3423,19 @@ $LN9@SetCursorP:
 	jne	SHORT $LN10@SetCursorP
 $LN6@SetCursorP:
 
-; 1473 :        ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
-; 1474 :   {
-; 1475 :     //game_mouselook = SK_GetFramesDrawn ();
-; 1476 :   }
-; 1477 : 
-; 1478 :   else if (! SK_ImGui_WantMouseCapture ())
+; 1516 :        ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+; 1517 :   {
+; 1518 :     //game_mouselook = SK_GetFramesDrawn ();
+; 1519 :   }
+; 1520 : 
+; 1521 :   else if (! SK_ImGui_WantMouseCapture ())
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
 	jne	SHORT $LN10@SetCursorP
 
-; 1479 :   {
-; 1480 :     return SetCursorPos_Original (x, y);
+; 1522 :   {
+; 1523 :     return SetCursorPos_Original (x, y);
 
 	push	edi
 	push	esi
@@ -3404,21 +3443,21 @@ $LN6@SetCursorP:
 	pop	edi
 	pop	esi
 
-; 1484 : }
+; 1527 : }
 
 	pop	ebp
 	ret	8
 $LN10@SetCursorP:
 	pop	edi
 
-; 1481 :   }
-; 1482 : 
-; 1483 :   return TRUE;
+; 1524 :   }
+; 1525 : 
+; 1526 :   return TRUE;
 
 	mov	eax, 1
 	pop	esi
 
-; 1484 : }
+; 1527 : }
 
 	pop	ebp
 	ret	8
@@ -3431,32 +3470,49 @@ _TEXT	ENDS
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 ; File c:\users\andon\source\repos\specialk\src\input\input.cpp
 _TEXT	SEGMENT
-_client$1 = -8						; size = 8
-_client$2 = -8						; size = 8
+_get_pos$2 = -40					; size = 8
+_bRet$1$ = -32						; size = 4
+_new_pos$3 = -28					; size = 8
+_client$4 = -28						; size = 8
+_ndc_y$1$ = -24						; size = 4
+tv452 = -24						; size = 4
+_client$5 = -20						; size = 8
+_ndc_x$1$ = -16						; size = 4
+tv451 = -16						; size = 4
+__$EHRec$ = -12						; size = 12
+__$ReturnAddr$ = 4					; size = 4
+_get_pos$2$ = 8						; size = 4
+_get_pos$1$ = 8						; size = 4
 _lpPoint$ = 8						; size = 4
+_new_frame$1$ = 11					; size = 1
 ?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z PROC		; GetCursorPos_Detour
 
-; 1396 : {
+; 1398 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
-	sub	esp, 8
+	mov	eax, DWORD PTR fs:0
+	push	-1
+	push	__ehhandler$?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 28					; 0000001cH
 
-; 1397 :   SK_LOG_FIRST_CALL
+; 1399 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4_NA, 0
-	jne	SHORT $LN2@GetCursorP
+	jne	SHORT $LN4@GetCursorP
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
-	jl	SHORT $LN3@GetCursorP
-	push	OFFSET $SG163331
-	push	OFFSET $SG163332
+	jl	SHORT $LN5@GetCursorP
+	push	OFFSET $SG163355
+	push	OFFSET $SG163356
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
-$LN3@GetCursorP:
+$LN5@GetCursorP:
 	mov	BYTE PTR ?called@?2??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4_NA, 1
-$LN2@GetCursorP:
+$LN4@GetCursorP:
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 1466 : static inline bool SK_ImGui_Active (void) { return SK_ImGui_Visible || SK_ReShade_Visible; };
@@ -3464,14 +3520,14 @@ $LN2@GetCursorP:
 	mov	dl, BYTE PTR ?SK_ImGui_Visible@@3_NA	; SK_ImGui_Visible
 	mov	cl, BYTE PTR ?SK_ReShade_Visible@@3_NA	; SK_ReShade_Visible
 	test	dl, dl
-	jne	SHORT $LN19@GetCursorP
+	jne	SHORT $LN27@GetCursorP
 	test	cl, cl
-	jne	SHORT $LN19@GetCursorP
+	jne	SHORT $LN27@GetCursorP
 	xor	eax, eax
-	jmp	SHORT $LN20@GetCursorP
-$LN19@GetCursorP:
+	jmp	SHORT $LN28@GetCursorP
+$LN27@GetCursorP:
 	mov	eax, 1
-$LN20@GetCursorP:
+$LN28@GetCursorP:
 	push	ebx
 ; File c:\users\andon\source\repos\specialk\src\input\input.cpp
 
@@ -3479,57 +3535,58 @@ $LN20@GetCursorP:
 
 	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+740
 	or	al, bl
-	jne	$LN15@GetCursorP
+	jne	$LN23@GetCursorP
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
-	jne	SHORT $LN38@GetCursorP
+	jne	$LN46@GetCursorP
 
-; 1433 :   }
-; 1434 : 
-; 1435 : 
-; 1436 :   BOOL bRet = GetCursorPos_Original (lpPoint);
-
-	push	esi
-	mov	esi, DWORD PTR _lpPoint$[ebp]
-	push	edi
-	push	esi
-	call	DWORD PTR ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
-	mov	edi, eax
-
+; 1435 :   }
+; 1436 : 
 ; 1437 : 
-; 1438 :   if (bRet)
+; 1438 :   BOOL bRet = GetCursorPos_Original (lpPoint);
 
-	test	edi, edi
-	je	SHORT $LN11@GetCursorP
+	push	esi
+	push	edi
+	mov	edi, DWORD PTR _lpPoint$[ebp]
+	push	edi
+	call	DWORD PTR ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
+	mov	DWORD PTR _bRet$1$[ebp], eax
 
-; 1439 :   {
-; 1440 :     SK_ImGui_Cursor.orig_pos = *lpPoint;
+; 1439 : 
+; 1440 :   if (bRet)
 
-	mov	ecx, DWORD PTR [esi]
+	test	eax, eax
+	je	SHORT $LN13@GetCursorP
+
+; 1441 :   {
+; 1442 :     SK_ImGui_Cursor.orig_pos = *lpPoint;
+
+	mov	ecx, DWORD PTR [edi]
+
+; 974  :   ScreenToClient (game_window.hWnd, lpPoint);
+
+	mov	esi, DWORD PTR __imp__ScreenToClient@8
+
+; 1441 :   {
+; 1442 :     SK_ImGui_Cursor.orig_pos = *lpPoint;
+
 	mov	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+4, ecx
-	mov	ecx, DWORD PTR [esi+4]
+	mov	ecx, DWORD PTR [edi+4]
 	mov	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+8, ecx
 
-; 1441 :     SK_ImGui_Cursor.pos      = *lpPoint;
+; 1443 :     SK_ImGui_Cursor.pos      = *lpPoint;
 
-	mov	ecx, DWORD PTR [esi]
+	mov	ecx, DWORD PTR [edi]
 
 ; 974  :   ScreenToClient (game_window.hWnd, lpPoint);
 
 	push	OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+4
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 
-; 1441 :     SK_ImGui_Cursor.pos      = *lpPoint;
+; 1443 :     SK_ImGui_Cursor.pos      = *lpPoint;
 
 	mov	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+20, ecx
-	mov	eax, DWORD PTR [esi+4]
-
-; 974  :   ScreenToClient (game_window.hWnd, lpPoint);
-
-	mov	esi, DWORD PTR __imp__ScreenToClient@8
-
-; 1441 :     SK_ImGui_Cursor.pos      = *lpPoint;
-
+	mov	eax, DWORD PTR [edi+4]
 	mov	DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+24, eax
 
 ; 974  :   ScreenToClient (game_window.hWnd, lpPoint);
@@ -3553,180 +3610,478 @@ $LN20@GetCursorP:
 	push	OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+20
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
 	call	?ClientToLocal@sk_imgui_cursor_s@@QAEXPAUtagPOINT@@@Z ; sk_imgui_cursor_s::ClientToLocal
-$LN11@GetCursorP:
+$LN13@GetCursorP:
 
-; 1442 : 
-; 1443 :     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
-; 1444 :     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
-; 1445 :   }
-; 1446 : 
-; 1447 :   return bRet;
+; 1444 : 
+; 1445 :     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
+; 1446 :     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
+; 1447 :   }
+; 1448 : 
+; 1449 : 
+; 1450 : 
+; 1451 :   if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4 && GetForegroundWindow () == SK_GetGameWindow () && SK_GetCallingDLL () == GetModuleHandle (nullptr))
 
-	mov	eax, edi
+	call	?SK_GetCurrentGameID@@YG?AW4SK_GAME_ID@@XZ ; SK_GetCurrentGameID
+	cmp	eax, 35					; 00000023H
+	jne	$LN16@GetCursorP
+	call	?SK_GetGameWindow@@YGPAUHWND__@@XZ	; SK_GetGameWindow
+	mov	esi, eax
+	call	DWORD PTR __imp__GetForegroundWindow@0
+	cmp	eax, esi
+	jne	$LN16@GetCursorP
+	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
+	push	eax
+	call	?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z ; SK_GetCallingDLL
+	add	esp, 4
+	mov	esi, eax
+	push	0
+	call	DWORD PTR __imp__GetModuleHandleW@4
+	cmp	esi, eax
+	jne	$LN16@GetCursorP
+
+; 1452 :   {
+; 1453 :     static ULONG last_frame = SK_GetFramesDrawn ();
+
+	mov	eax, DWORD PTR fs:__tls_array
+	mov	ecx, DWORD PTR __tls_index
+	mov	ecx, DWORD PTR [eax+ecx*4]
+	mov	eax, DWORD PTR ?$TSS0@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA
+	cmp	eax, DWORD PTR __Init_thread_epoch[ecx]
+	jle	SHORT $LN2@GetCursorP
+	push	OFFSET ?$TSS0@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA
+	call	__Init_thread_header
+	add	esp, 4
+	cmp	DWORD PTR ?$TSS0@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA, -1
+	jne	SHORT $LN2@GetCursorP
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	call	?SK_GetFramesDrawn@@YGKXZ		; SK_GetFramesDrawn
+	mov	DWORD PTR ?last_frame@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4KA, eax
+
+; 1454 :     static POINT last_pos   = *lpPoint;
+
+	mov	eax, DWORD PTR [edi]
+	mov	DWORD PTR ?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A, eax
+	mov	eax, DWORD PTR [edi+4]
+	push	OFFSET ?$TSS0@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA
+	mov	DWORD PTR __$EHRec$[ebp+8], -1
+	mov	DWORD PTR ?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A+4, eax
+	call	__Init_thread_footer
+	add	esp, 4
+$LN2@GetCursorP:
+
+; 1455 : 
+; 1456 :     POINT new_pos = *lpPoint;
+
+	mov	eax, DWORD PTR [edi+4]
+	mov	DWORD PTR _new_pos$3[ebp+4], eax
+
+; 1457 : 
+; 1458 :     new_pos.x = (LONG)(ImGui::GetIO ().DisplayFramebufferScale.x * 0.5f);
+
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+	movss	xmm0, DWORD PTR [eax+144]
+	mulss	xmm0, DWORD PTR __real@3f000000
+	cvttss2si esi, xmm0
+
+; 1459 :     new_pos.y = (LONG)(ImGui::GetIO ().DisplayFramebufferScale.y * 0.5f);
+
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+	movss	xmm0, DWORD PTR [eax+148]
+	mulss	xmm0, DWORD PTR __real@3f000000
+
+; 1460 : 
+; 1461 :     float ndc_x = 2.0f * (((float)(lpPoint->x - last_pos.x) + new_pos.x) / ImGui::GetIO ().DisplayFramebufferScale.x) - 1.0f;
+
+	mov	eax, DWORD PTR [edi]
+	sub	eax, DWORD PTR ?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A
+	cvttss2si ebx, xmm0
+	movd	xmm1, eax
+	movd	xmm0, esi
+	cvtdq2ps xmm1, xmm1
+	cvtdq2ps xmm0, xmm0
+	addss	xmm1, xmm0
+	movss	DWORD PTR _ndc_x$1$[ebp], xmm1
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+	movss	xmm0, DWORD PTR _ndc_x$1$[ebp]
+	divss	xmm0, DWORD PTR [eax+144]
+
+; 1462 :     float ndc_y = 2.0f * (((float)(lpPoint->y - last_pos.y) + new_pos.y) / ImGui::GetIO ().DisplayFramebufferScale.y) - 1.0f;
+
+	mov	eax, DWORD PTR [edi+4]
+	sub	eax, DWORD PTR ?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A+4
+	movd	xmm1, eax
+	addss	xmm0, xmm0
+	cvtdq2ps xmm1, xmm1
+	subss	xmm0, DWORD PTR __real@3f800000
+	movss	DWORD PTR _ndc_x$1$[ebp], xmm0
+	movd	xmm0, ebx
+	cvtdq2ps xmm0, xmm0
+	addss	xmm1, xmm0
+	movss	DWORD PTR _ndc_y$1$[ebp], xmm1
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+	movss	xmm0, DWORD PTR _ndc_y$1$[ebp]
+
+; 1463 : 
+; 1464 :     bool new_frame = false;
+
+	mov	BYTE PTR _new_frame$1$[ebp], 0
+	divss	xmm0, DWORD PTR [eax+148]
+	addss	xmm0, xmm0
+	subss	xmm0, DWORD PTR __real@3f800000
+	movss	DWORD PTR _ndc_y$1$[ebp], xmm0
+
+; 1465 : 
+; 1466 :     if (last_frame != SK_GetFramesDrawn ())
+
+	call	?SK_GetFramesDrawn@@YGKXZ		; SK_GetFramesDrawn
+	cmp	DWORD PTR ?last_frame@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4KA, eax
+	je	SHORT $LN15@GetCursorP
+
+; 1467 :     {
+; 1468 :       last_pos   = *lpPoint;
+
+	mov	eax, DWORD PTR [edi]
+	mov	DWORD PTR ?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A, eax
+	mov	eax, DWORD PTR [edi+4]
+	mov	DWORD PTR ?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A+4, eax
+
+; 1469 :       last_frame = SK_GetFramesDrawn ();
+
+	call	?SK_GetFramesDrawn@@YGKXZ		; SK_GetFramesDrawn
+	mov	DWORD PTR ?last_frame@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4KA, eax
+
+; 1470 :       new_frame  = true;
+
+	mov	BYTE PTR _new_frame$1$[ebp], 1
+$LN15@GetCursorP:
+
+; 1471 :     }
+; 1472 : 
+; 1473 :     lpPoint->x = (LONG)((ndc_x * SK_SO4_MouseScale * ImGui::GetIO ().DisplayFramebufferScale.x + ImGui::GetIO ().DisplayFramebufferScale.x) / 2.0f);
+
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+	movss	xmm0, DWORD PTR ?SK_SO4_MouseScale@@3MA
+	mulss	xmm0, DWORD PTR _ndc_x$1$[ebp]
+	mulss	xmm0, DWORD PTR [eax+144]
+	mulss	xmm0, DWORD PTR __real@3f000000
+	movss	DWORD PTR tv451[ebp], xmm0
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+	movss	xmm0, DWORD PTR [eax+144]
+	mulss	xmm0, DWORD PTR __real@3f000000
+	addss	xmm0, DWORD PTR tv451[ebp]
+	cvttss2si eax, xmm0
+	mov	DWORD PTR [edi], eax
+
+; 1474 :     lpPoint->y = (LONG)((ndc_y * SK_SO4_MouseScale * ImGui::GetIO ().DisplayFramebufferScale.y + ImGui::GetIO ().DisplayFramebufferScale.y) / 2.0f);
+
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+	movss	xmm0, DWORD PTR ?SK_SO4_MouseScale@@3MA
+	mulss	xmm0, DWORD PTR _ndc_y$1$[ebp]
+	mulss	xmm0, DWORD PTR [eax+148]
+	mulss	xmm0, DWORD PTR __real@3f000000
+	movss	DWORD PTR tv452[ebp], xmm0
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+
+; 1475 : 
+; 1476 :     static int calls = 0;
+; 1477 : 
+; 1478 :     POINT get_pos; // 4 pixel cushion to avoid showing the cursor
+; 1479 :     if (new_frame && ( (calls++ % 8) == 0 || ( GetCursorPos_Original (&get_pos) && (get_pos.x <= 4 || get_pos.x >= (ImGui::GetIO ().DisplayFramebufferScale.x - 4) ||
+
+	cmp	BYTE PTR _new_frame$1$[ebp], 0
+	movss	xmm0, DWORD PTR [eax+148]
+	mulss	xmm0, DWORD PTR __real@3f000000
+	addss	xmm0, DWORD PTR tv452[ebp]
+	cvttss2si eax, xmm0
+	mov	DWORD PTR [edi+4], eax
+	je	$LN16@GetCursorP
+	mov	eax, DWORD PTR ?calls@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA
+	mov	ecx, eax
+	and	ecx, -2147483641			; 80000007H
+	jns	SHORT $LN48@GetCursorP
+	dec	ecx
+	or	ecx, -8					; fffffff8H
+	inc	ecx
+$LN48@GetCursorP:
+	inc	eax
+	mov	DWORD PTR ?calls@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA, eax
+	test	ecx, ecx
+	je	SHORT $LN18@GetCursorP
+	lea	eax, DWORD PTR _get_pos$2[ebp]
+	push	eax
+	call	DWORD PTR ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
+	test	eax, eax
+	je	SHORT $LN16@GetCursorP
+	mov	eax, DWORD PTR _get_pos$2[ebp]
+	mov	DWORD PTR _get_pos$1$[ebp], eax
+	cmp	eax, 4
+	jle	SHORT $LN18@GetCursorP
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+	movss	xmm0, DWORD PTR [eax+144]
+	mov	eax, DWORD PTR _get_pos$1$[ebp]
+	subss	xmm0, DWORD PTR __real@40800000
+	movd	xmm1, eax
+	cvtdq2ps xmm1, xmm1
+	comiss	xmm1, xmm0
+	jae	SHORT $LN18@GetCursorP
+	mov	eax, DWORD PTR _get_pos$2[ebp+4]
+	mov	DWORD PTR _get_pos$2$[ebp], eax
+	cmp	eax, 4
+	jle	SHORT $LN18@GetCursorP
+	call	?GetIO@ImGui@@YAAAUImGuiIO@@XZ		; ImGui::GetIO
+	movss	xmm0, DWORD PTR [eax+148]
+	mov	eax, DWORD PTR _get_pos$2$[ebp]
+	subss	xmm0, DWORD PTR __real@40800000
+	movd	xmm1, eax
+	cvtdq2ps xmm1, xmm1
+	comiss	xmm1, xmm0
+	jb	SHORT $LN16@GetCursorP
+$LN18@GetCursorP:
+
+; 1480 :                                                                                     get_pos.y <= 4 || get_pos.y >= (ImGui::GetIO ().DisplayFramebufferScale.y - 4)) ) ))
+; 1481 :     {
+; 1482 :       last_pos = new_pos;
+; 1483 :       SetCursorPos_Original (new_pos.x, new_pos.y);
+
+	push	ebx
+	push	esi
+	mov	DWORD PTR ?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A, esi
+	mov	DWORD PTR ?last_pos@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4U2@A+4, ebx
+	call	DWORD PTR ?SetCursorPos_Original@@3P6GHHH@ZA ; SetCursorPos_Original
+
+; 1484 :       lpPoint->x = new_pos.x;
+
+	mov	DWORD PTR [edi], esi
+
+; 1485 :       lpPoint->y = new_pos.y;
+
+	mov	DWORD PTR [edi+4], ebx
+$LN16@GetCursorP:
+
+; 1486 :     }
+; 1487 :   }
+; 1488 : 
+; 1489 : 
+; 1490 :   return bRet;
+
+	mov	eax, DWORD PTR _bRet$1$[ebp]
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 1448 : }
+; 1491 : }
 
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	4
-$LN38@GetCursorP:
+$LN46@GetCursorP:
 
-; 1442 : 
-; 1443 :     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
-; 1444 :     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
-; 1445 :   }
-; 1446 : 
-; 1447 :   return bRet;
+; 1486 :     }
+; 1487 :   }
+; 1488 : 
+; 1489 : 
+; 1490 :   return bRet;
 
 	mov	bl, BYTE PTR ?config@@3Usk_config_t@@A+740
 	mov	dl, BYTE PTR ?SK_ImGui_Visible@@3_NA	; SK_ImGui_Visible
 	mov	cl, BYTE PTR ?SK_ReShade_Visible@@3_NA	; SK_ReShade_Visible
-$LN15@GetCursorP:
+$LN23@GetCursorP:
 
-; 1398 : 
-; 1399 : 
-; 1400 :   if (SK_ImGui_IsMouseRelevant ())
-; 1401 :   {
-; 1402 :     bool implicit_capture = false;
-; 1403 : 
-; 1404 :     // Depending on warp prefs, we may not allow the game to know about mouse movement
-; 1405 :     //   (even if ImGui doesn't want mouse capture)
-; 1406 :     if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
+; 1400 : 
+; 1401 : 
+; 1402 :   if (SK_ImGui_IsMouseRelevant ())
+; 1403 :   {
+; 1404 :     bool implicit_capture = false;
+; 1405 : 
+; 1406 :     // Depending on warp prefs, we may not allow the game to know about mouse movement
+; 1407 :     //   (even if ImGui doesn't want mouse capture)
+; 1408 :     if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
 
 	xor	bh, bh
 	cmp	BYTE PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+38, bh
-	je	SHORT $LN7@GetCursorP
+	je	SHORT $LN9@GetCursorP
 ; File c:\users\andon\source\repos\specialk\include\imgui\imgui.h
 
 ; 1466 : static inline bool SK_ImGui_Active (void) { return SK_ImGui_Visible || SK_ReShade_Visible; };
 
 	test	dl, dl
-	jne	SHORT $LN27@GetCursorP
+	jne	SHORT $LN35@GetCursorP
 	test	cl, cl
-	jne	SHORT $LN27@GetCursorP
+	jne	SHORT $LN35@GetCursorP
 	xor	eax, eax
-	jmp	SHORT $LN28@GetCursorP
-$LN27@GetCursorP:
+	jmp	SHORT $LN36@GetCursorP
+$LN35@GetCursorP:
 	mov	eax, 1
-$LN28@GetCursorP:
+$LN36@GetCursorP:
 ; File c:\users\andon\source\repos\specialk\src\input\input.cpp
 
 ; 877  :   return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
 
 	or	al, bl
-	jne	SHORT $LN6@GetCursorP
+	jne	SHORT $LN8@GetCursorP
 	call	?IsAnyWindowHovered@ImGui@@YA_NXZ	; ImGui::IsAnyWindowHovered
 	test	al, al
-	jne	SHORT $LN6@GetCursorP
-$LN7@GetCursorP:
+	jne	SHORT $LN8@GetCursorP
+$LN9@GetCursorP:
 
-; 1398 : 
-; 1399 : 
-; 1400 :   if (SK_ImGui_IsMouseRelevant ())
-; 1401 :   {
-; 1402 :     bool implicit_capture = false;
-; 1403 : 
-; 1404 :     // Depending on warp prefs, we may not allow the game to know about mouse movement
-; 1405 :     //   (even if ImGui doesn't want mouse capture)
-; 1406 :     if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
+; 1400 : 
+; 1401 : 
+; 1402 :   if (SK_ImGui_IsMouseRelevant ())
+; 1403 :   {
+; 1404 :     bool implicit_capture = false;
+; 1405 : 
+; 1406 :     // Depending on warp prefs, we may not allow the game to know about mouse movement
+; 1407 :     //   (even if ImGui doesn't want mouse capture)
+; 1408 :     if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
 
 	cmp	BYTE PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+36, 0
-	je	SHORT $LN5@GetCursorP
+	je	SHORT $LN7@GetCursorP
 	call	?SK_InputUtil_IsHWCursorVisible@@YA_NXZ	; SK_InputUtil_IsHWCursorVisible
 	test	al, al
-	je	SHORT $LN5@GetCursorP
-$LN6@GetCursorP:
+	je	SHORT $LN7@GetCursorP
+$LN8@GetCursorP:
 
-; 1407 :          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
-; 1408 :       implicit_capture = true;
+; 1409 :          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+; 1410 :       implicit_capture = true;
 
 	mov	bh, 1
-$LN5@GetCursorP:
+$LN7@GetCursorP:
 
-; 1409 : 
-; 1410 :     if (SK_ImGui_WantMouseCapture () || implicit_capture)
+; 1411 : 
+; 1412 :     if (SK_ImGui_WantMouseCapture () || implicit_capture)
 
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
-	jne	SHORT $LN10@GetCursorP
+	jne	SHORT $LN12@GetCursorP
 	test	bh, bh
-	jne	SHORT $LN10@GetCursorP
+	jne	SHORT $LN12@GetCursorP
 
-; 1419 :     }
-; 1420 : 
-; 1421 :     else
-; 1422 :     {
-; 1423 :       POINT client =
-; 1424 :         SK_ImGui_Cursor.pos;
+; 1421 :     }
+; 1422 : 
+; 1423 :     else
+; 1424 :     {
+; 1425 :       POINT client =
+; 1426 :         SK_ImGui_Cursor.pos;
 
 	mov	eax, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+20
-	mov	DWORD PTR _client$1[ebp], eax
-	mov	eax, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+24
-
-; 1425 : 
-; 1426 :       SK_ImGui_Cursor.LocalToScreen (&client);
-; 1427 : 
-; 1428 :       lpPoint->x = client.x;
-; 1429 :       lpPoint->y = client.y;
-
-	jmp	SHORT $LN39@GetCursorP
-$LN10@GetCursorP:
-
-; 1411 :     {
-; 1412 :       POINT client =
-; 1413 :         SK_ImGui_Cursor.orig_pos;
-
-	mov	eax, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+4
-	mov	DWORD PTR _client$2[ebp], eax
-	mov	eax, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+8
-$LN39@GetCursorP:
-	mov	DWORD PTR _client$2[ebp+4], eax
 
 ; 910  :   LocalToClient  (lpPoint);
 
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
-	lea	eax, DWORD PTR _client$2[ebp]
+
+; 1421 :     }
+; 1422 : 
+; 1423 :     else
+; 1424 :     {
+; 1425 :       POINT client =
+; 1426 :         SK_ImGui_Cursor.pos;
+
+	mov	DWORD PTR _client$4[ebp], eax
+	mov	eax, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+24
+	mov	DWORD PTR _client$4[ebp+4], eax
+
+; 910  :   LocalToClient  (lpPoint);
+
+	lea	eax, DWORD PTR _client$4[ebp]
 	push	eax
 	call	?LocalToClient@sk_imgui_cursor_s@@QAEXPAUtagPOINT@@@Z ; sk_imgui_cursor_s::LocalToClient
 
 ; 911  :   ClientToScreen (game_window.hWnd, lpPoint);
 
-	lea	eax, DWORD PTR _client$2[ebp]
+	lea	eax, DWORD PTR _client$4[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__ClientToScreen@8
 
-; 1414 : 
-; 1415 :       SK_ImGui_Cursor.LocalToScreen (&client);
-; 1416 : 
-; 1417 :       lpPoint->x = client.x;
+; 1427 : 
+; 1428 :       SK_ImGui_Cursor.LocalToScreen (&client);
+; 1429 : 
+; 1430 :       lpPoint->x = client.x;
 
 	mov	ecx, DWORD PTR _lpPoint$[ebp]
-	mov	eax, DWORD PTR _client$2[ebp]
-	pop	ebx
+	mov	eax, DWORD PTR _client$4[ebp]
 	mov	DWORD PTR [ecx], eax
 
-; 1418 :       lpPoint->y = client.y;
+; 1431 :       lpPoint->y = client.y;
 
-	mov	eax, DWORD PTR _client$2[ebp+4]
+	mov	eax, DWORD PTR _client$4[ebp+4]
+	jmp	SHORT $LN49@GetCursorP
+$LN12@GetCursorP:
+
+; 1413 :     {
+; 1414 :       POINT client =
+; 1415 :         SK_ImGui_Cursor.orig_pos;
+
+	mov	eax, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+4
+
+; 910  :   LocalToClient  (lpPoint);
+
+	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
+
+; 1413 :     {
+; 1414 :       POINT client =
+; 1415 :         SK_ImGui_Cursor.orig_pos;
+
+	mov	DWORD PTR _client$5[ebp], eax
+	mov	eax, DWORD PTR ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A+8
+	mov	DWORD PTR _client$5[ebp+4], eax
+
+; 910  :   LocalToClient  (lpPoint);
+
+	lea	eax, DWORD PTR _client$5[ebp]
+	push	eax
+	call	?LocalToClient@sk_imgui_cursor_s@@QAEXPAUtagPOINT@@@Z ; sk_imgui_cursor_s::LocalToClient
+
+; 911  :   ClientToScreen (game_window.hWnd, lpPoint);
+
+	lea	eax, DWORD PTR _client$5[ebp]
+	push	eax
+	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
+	call	DWORD PTR __imp__ClientToScreen@8
+
+; 1416 : 
+; 1417 :       SK_ImGui_Cursor.LocalToScreen (&client);
+; 1418 : 
+; 1419 :       lpPoint->x = client.x;
+
+	mov	ecx, DWORD PTR _lpPoint$[ebp]
+	mov	eax, DWORD PTR _client$5[ebp]
+	mov	DWORD PTR [ecx], eax
+
+; 1420 :       lpPoint->y = client.y;
+
+	mov	eax, DWORD PTR _client$5[ebp+4]
+$LN49@GetCursorP:
 	mov	DWORD PTR [ecx+4], eax
 
-; 1430 :     }
-; 1431 : 
-; 1432 :     return TRUE;
+; 1432 :     }
+; 1433 : 
+; 1434 :     return TRUE;
 
 	mov	eax, 1
 
-; 1448 : }
+; 1491 : }
 
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	pop	ebx
+	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	4
-?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z ENDP		; GetCursorPos_Detour
 _TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z$0:
+	push	OFFSET ?$TSS0@?BI@??GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z@4HA
+	call	__Init_thread_abort
+	pop	ecx
+	ret	0
+__ehhandler$?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z:
+	mov	eax, OFFSET __ehfuncinfo$?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z ENDP		; GetCursorPos_Detour
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\input\input.cpp
 ;	COMDAT ??0state_backup@?1??GetCursorInfo_Detour@@YGHPAUtagCURSORINFO@@@Z@QAE@0@Z
@@ -12006,17 +12361,17 @@ ___formal$ = 12						; size = 1
 ___formal$ = 16						; size = 1
 ?SK_ImGui_HandlesMessage@@YA_NPAUtagMSG@@_N1@Z PROC	; SK_ImGui_HandlesMessage
 
-; 1655 : {
+; 1698 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1656 :   assert (lpMsg->hwnd == game_window.hWnd);
-; 1657 : 
-; 1658 :   bool handled = false;
-; 1659 : 
-; 1660 :   switch (lpMsg->message)
+; 1699 :   assert (lpMsg->hwnd == game_window.hWnd);
+; 1700 : 
+; 1701 :   bool handled = false;
+; 1702 : 
+; 1703 :   switch (lpMsg->message)
 
 	mov	ecx, DWORD PTR _lpMsg$[ebp]
 	push	ebx
@@ -12033,15 +12388,15 @@ ___formal$ = 16						; size = 1
 	jmp	DWORD PTR $LN23@SK_ImGui_H[eax*4]
 $LN7@SK_ImGui_H:
 
-; 1670 :       break;
-; 1671 : 
-; 1672 :     // Fix for Melody's Escape, which attempts to remove these messages!
-; 1673 :     case WM_KEYDOWN:
-; 1674 :     case WM_KEYUP:
-; 1675 :     case WM_SYSKEYDOWN:
-; 1676 :     case WM_SYSKEYUP:
-; 1677 :     {
-; 1678 :       if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
+; 1713 :       break;
+; 1714 : 
+; 1715 :     // Fix for Melody's Escape, which attempts to remove these messages!
+; 1716 :     case WM_KEYDOWN:
+; 1717 :     case WM_KEYUP:
+; 1718 :     case WM_SYSKEYDOWN:
+; 1719 :     case WM_SYSKEYUP:
+; 1720 :     {
+; 1721 :       if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
 
 	push	DWORD PTR [ecx+12]
 	push	DWORD PTR [ecx+8]
@@ -12051,29 +12406,29 @@ $LN7@SK_ImGui_H:
 	test	eax, eax
 	je	$LN2@SK_ImGui_H
 
-; 1679 :         handled = true;
+; 1722 :         handled = true;
 
 	mov	bl, 1
 
-; 1727 :     } break;
-; 1728 :   }
-; 1729 : 
-; 1730 :   return handled;
+; 1770 :     } break;
+; 1771 :   }
+; 1772 : 
+; 1773 :   return handled;
 
 	mov	al, bl
 	pop	ebx
 
-; 1731 : }
+; 1774 : }
 
 	pop	ebp
 	ret	0
 $LN9@SK_ImGui_H:
 
-; 1680 :     } break;
-; 1681 : 
-; 1682 :     case WM_SETCURSOR:
-; 1683 :     {
-; 1684 :       if (lpMsg->hwnd == game_window.hWnd && game_window.hWnd != nullptr)
+; 1723 :     } break;
+; 1724 : 
+; 1725 :     case WM_SETCURSOR:
+; 1726 :     {
+; 1727 :       if (lpMsg->hwnd == game_window.hWnd && game_window.hWnd != nullptr)
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	cmp	DWORD PTR [ecx], eax
@@ -12081,28 +12436,28 @@ $LN9@SK_ImGui_H:
 	test	eax, eax
 	je	$LN2@SK_ImGui_H
 
-; 1685 :         SK_ImGui_Cursor.update ();
+; 1728 :         SK_ImGui_Cursor.update ();
 
 	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
 	call	?update@sk_imgui_cursor_s@@QAEXXZ	; sk_imgui_cursor_s::update
 
-; 1727 :     } break;
-; 1728 :   }
-; 1729 : 
-; 1730 :   return handled;
+; 1770 :     } break;
+; 1771 :   }
+; 1772 : 
+; 1773 :   return handled;
 
 	mov	al, bl
 	pop	ebx
 
-; 1731 : }
+; 1774 : }
 
 	pop	ebp
 	ret	0
 $LN4@SK_ImGui_H:
 
-; 1661 :   {
-; 1662 :     case WM_SYSCOMMAND:
-; 1663 :       if ((lpMsg->wParam & 0xfff0) == SC_KEYMENU && lpMsg->lParam == 0) // Disable ALT application menu
+; 1704 :   {
+; 1705 :     case WM_SYSCOMMAND:
+; 1706 :       if ((lpMsg->wParam & 0xfff0) == SC_KEYMENU && lpMsg->lParam == 0) // Disable ALT application menu
 
 	mov	eax, DWORD PTR [ecx+8]
 	and	eax, 65520				; 0000fff0H
@@ -12112,29 +12467,29 @@ $LN4@SK_ImGui_H:
 	jne	SHORT $LN2@SK_ImGui_H
 $LN21@SK_ImGui_H:
 
-; 1664 :         handled = true;
+; 1707 :         handled = true;
 
 	mov	bl, 1
 
-; 1727 :     } break;
-; 1728 :   }
-; 1729 : 
-; 1730 :   return handled;
+; 1770 :     } break;
+; 1771 :   }
+; 1772 : 
+; 1773 :   return handled;
 
 	mov	al, bl
 	pop	ebx
 
-; 1731 : }
+; 1774 : }
 
 	pop	ebp
 	ret	0
 $LN18@SK_ImGui_H:
 
-; 1656 :   assert (lpMsg->hwnd == game_window.hWnd);
-; 1657 : 
-; 1658 :   bool handled = false;
-; 1659 : 
-; 1660 :   switch (lpMsg->message)
+; 1699 :   assert (lpMsg->hwnd == game_window.hWnd);
+; 1700 : 
+; 1701 :   bool handled = false;
+; 1702 : 
+; 1703 :   switch (lpMsg->message)
 
 	sub	eax, 288				; 00000120H
 	cmp	eax, 249				; 000000f9H
@@ -12143,28 +12498,28 @@ $LN18@SK_ImGui_H:
 	jmp	DWORD PTR $LN24@SK_ImGui_H[eax*4]
 $LN6@SK_ImGui_H:
 
-; 1665 :       break;
-; 1666 : 
-; 1667 :     case WM_CHAR:
-; 1668 :     case WM_MENUCHAR:
-; 1669 :       handled = SK_ImGui_WantTextCapture ();
+; 1708 :       break;
+; 1709 : 
+; 1710 :     case WM_CHAR:
+; 1711 :     case WM_MENUCHAR:
+; 1712 :       handled = SK_ImGui_WantTextCapture ();
 
 	call	?SK_ImGui_WantTextCapture@@YA_NXZ	; SK_ImGui_WantTextCapture
 	mov	bl, al
 	pop	ebx
 
-; 1731 : }
+; 1774 : }
 
 	pop	ebp
 	ret	0
 $LN11@SK_ImGui_H:
 
-; 1686 :     } break;
-; 1687 : 
-; 1688 :     // TODO: Does this message have an HWND always?
-; 1689 :     case WM_DEVICECHANGE:
-; 1690 :     {
-; 1691 :       handled =
+; 1729 :     } break;
+; 1730 : 
+; 1731 :     // TODO: Does this message have an HWND always?
+; 1732 :     case WM_DEVICECHANGE:
+; 1733 :     {
+; 1734 :       handled =
 
 	push	DWORD PTR [ecx+12]
 	push	DWORD PTR [ecx+8]
@@ -12174,43 +12529,43 @@ $LN11@SK_ImGui_H:
 	test	eax, eax
 	setne	bl
 
-; 1727 :     } break;
-; 1728 :   }
-; 1729 : 
-; 1730 :   return handled;
+; 1770 :     } break;
+; 1771 :   }
+; 1772 : 
+; 1773 :   return handled;
 
 	mov	al, bl
 	pop	ebx
 
-; 1731 : }
+; 1774 : }
 
 	pop	ebp
 	ret	0
 $LN12@SK_ImGui_H:
 
-; 1692 :         ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-; 1693 :     } break;
-; 1694 : 
-; 1695 :     // Pre-Dispose These Mesages (fixes The Witness)
-; 1696 :     case WM_LBUTTONDBLCLK:
-; 1697 :     case WM_LBUTTONDOWN:
-; 1698 :     case WM_LBUTTONUP:
-; 1699 :     case WM_MBUTTONDBLCLK:
-; 1700 :     case WM_MBUTTONDOWN:
-; 1701 :     case WM_MBUTTONUP:
-; 1702 :     case WM_RBUTTONDBLCLK:
-; 1703 :     case WM_RBUTTONDOWN:
-; 1704 :     case WM_RBUTTONUP:
-; 1705 :     case WM_XBUTTONDBLCLK:
-; 1706 :     case WM_XBUTTONDOWN:
-; 1707 :     case WM_XBUTTONUP:
-; 1708 : 
-; 1709 :     case WM_CAPTURECHANGED:
-; 1710 :     case WM_MOUSEMOVE:
-; 1711 :     case WM_MOUSEWHEEL:
-; 1712 :     case WM_MOUSEHWHEEL:
-; 1713 :     {
-; 1714 :       handled =
+; 1735 :         ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+; 1736 :     } break;
+; 1737 : 
+; 1738 :     // Pre-Dispose These Mesages (fixes The Witness)
+; 1739 :     case WM_LBUTTONDBLCLK:
+; 1740 :     case WM_LBUTTONDOWN:
+; 1741 :     case WM_LBUTTONUP:
+; 1742 :     case WM_MBUTTONDBLCLK:
+; 1743 :     case WM_MBUTTONDOWN:
+; 1744 :     case WM_MBUTTONUP:
+; 1745 :     case WM_RBUTTONDBLCLK:
+; 1746 :     case WM_RBUTTONDOWN:
+; 1747 :     case WM_RBUTTONUP:
+; 1748 :     case WM_XBUTTONDBLCLK:
+; 1749 :     case WM_XBUTTONDOWN:
+; 1750 :     case WM_XBUTTONUP:
+; 1751 : 
+; 1752 :     case WM_CAPTURECHANGED:
+; 1753 :     case WM_MOUSEMOVE:
+; 1754 :     case WM_MOUSEWHEEL:
+; 1755 :     case WM_MOUSEHWHEEL:
+; 1756 :     {
+; 1757 :       handled =
 
 	push	DWORD PTR [ecx+12]
 	push	DWORD PTR [ecx+8]
@@ -12225,32 +12580,32 @@ $LN12@SK_ImGui_H:
 $LN16@SK_ImGui_H:
 	xor	bl, bl
 
-; 1727 :     } break;
-; 1728 :   }
-; 1729 : 
-; 1730 :   return handled;
+; 1770 :     } break;
+; 1771 :   }
+; 1772 : 
+; 1773 :   return handled;
 
 	mov	al, bl
 	pop	ebx
 
-; 1731 : }
+; 1774 : }
 
 	pop	ebp
 	ret	0
 $LN14@SK_ImGui_H:
 
-; 1715 :         ( ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0 ) &&
-; 1716 :        SK_ImGui_WantMouseCapture ();
-; 1717 :     } break;
-; 1718 : 
-; 1719 :     case WM_INPUT:
-; 1720 :     {
-; 1721 :       ////handled = (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0);
-; 1722 :     } break;
-; 1723 : 
-; 1724 :     default:
-; 1725 :     {
-; 1726 :       ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+; 1758 :         ( ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0 ) &&
+; 1759 :        SK_ImGui_WantMouseCapture ();
+; 1760 :     } break;
+; 1761 : 
+; 1762 :     case WM_INPUT:
+; 1763 :     {
+; 1764 :       ////handled = (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0);
+; 1765 :     } break;
+; 1766 : 
+; 1767 :     default:
+; 1768 :     {
+; 1769 :       ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
 	push	DWORD PTR [ecx+12]
 	push	DWORD PTR [ecx+8]
@@ -12259,15 +12614,15 @@ $LN14@SK_ImGui_H:
 	call	?ImGui_WndProcHandler@@YGJPAUHWND__@@IIJ@Z ; ImGui_WndProcHandler
 $LN2@SK_ImGui_H:
 
-; 1727 :     } break;
-; 1728 :   }
-; 1729 : 
-; 1730 :   return handled;
+; 1770 :     } break;
+; 1771 :   }
+; 1772 : 
+; 1773 :   return handled;
 
 	mov	al, bl
 	pop	ebx
 
-; 1731 : }
+; 1774 : }
 
 	pop	ebp
 	ret	0
@@ -13462,15 +13817,15 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_Input_Init@@YAXXZ PROC				; SK_Input_Init
 
-; 1827 :   SK_Input_PreHookHID    ();
+; 1870 :   SK_Input_PreHookHID    ();
 
 	call	?SK_Input_PreHookHID@@YAXXZ		; SK_Input_PreHookHID
 
-; 1828 :   SK_Input_PreHookDI8    ();
+; 1871 :   SK_Input_PreHookDI8    ();
 
 	call	?SK_Input_PreHookDI8@@YAXXZ		; SK_Input_PreHookDI8
 
-; 1829 :   SK_Input_PreHookXInput ();
+; 1872 :   SK_Input_PreHookXInput ();
 
 	jmp	?SK_Input_PreHookXInput@@YAXXZ		; SK_Input_PreHookXInput
 ?SK_Input_Init@@YAXXZ ENDP				; SK_Input_Init

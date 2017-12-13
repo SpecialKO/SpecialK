@@ -432,6 +432,8 @@ SK_GetConfigPath (void)
   static std::wstring path =
     app_cache_mgr.getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());
 
+  dll_log.Log (L"Config Path: %ws", path.c_str ());
+
   return path.c_str ();
 }
 
@@ -3286,19 +3288,34 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                                       const std::unordered_set <wchar_t>
                                         invalid_file_char =
                                         {
-                                          L'\\', L'/', L':',L'©',
-                                          L'*',  L'?', L'\"',L'®',
-                                          L'<',  L'>', L'|',L'™',L'℠'
+                                          L'\\', L'/', L':',
+                                          L'*',  L'?', L'\"',
+                                          L'<',  L'>', L'|'
                                         };
 
-                                      return invalid_file_char.count (tval) > 0;
+                                      if (invalid_file_char.count (tval) > 0)
+                                        return true;
+
+                                      return false;
                                     }
                                 ),
 
                      name.end ()
                );
 
-    path += name;
+    // Strip any trailing spaces
+    for (auto it = name.rbegin (); it != name.rend (); it++)
+    {
+      if (isspace (*it) || (! isprint (*it)))
+        *it = L'\0';
+
+      else
+        break;
+    }
+
+    // Truncating a std::wstring by inserting L'\0' actually does nothing,
+    //   so construct path by treating name as a C-String.
+    path += name.c_str ();
     path += L"\\";
 
     SK_StripTrailingSlashesW (path.data ());
@@ -3308,7 +3325,7 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                       MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
   }
 
-  return path;
+  return path.c_str ();
 }
 
 bool

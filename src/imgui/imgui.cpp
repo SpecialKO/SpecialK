@@ -11079,7 +11079,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   HWND hWndActive =
     GetActiveWindow ();
 
-  if ( ( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
+  if ( (! self) && ( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
     return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
 
@@ -11231,13 +11231,13 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     {
       case RIM_TYPEMOUSE:
       {
-        if (self)
+        if (! already_processed)
         {
           if (SK_ImGui_IsMouseRelevant () && config.input.mouse.add_relative_motion)
           {
             // 99% of games don't need this, and if we use relative motion to update the cursor position that
             //   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
-            //     Raw Input does not include cursor accelleration, etc.
+            //     Raw Input does not include cursor acceleration, etc.
             POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX, ((RAWINPUT *)pData)->data.mouse.lLastY };
 
             ////SK_ImGui_Cursor.ClientToLocal (&client);
@@ -11879,7 +11879,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           switch (data.header.dwType)
           {
             case RIM_TYPEMOUSE:
-              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header),  true) != 0;
+              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
               cap &= SK_ImGui_WantMouseCapture ();
               break;
 

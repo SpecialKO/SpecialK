@@ -1,10 +1,18 @@
 0.8.53
 
+ (.6): Fixed CEGUI to support Unicode file paths for log files
+
+   >> Configuration for some Steam games may be reset because profile names with
+        non-Latin characters will be stored in a different location.
+
+ (.5): RawInput mouse fixes for Okami
+ (.4): HOTFIX for Okami's non-Latin characters in filesystem when storing config
+
  + Changed debug code to run-time load dbghelp.dll instead of link-time
- + Added SteamAPI DLL SHA1 Verification for diagnostic purposes since CodexAPI is
-     a stability problem... pirates just opt-out of SteamAPI enhancements please.
  + Added option to disable screensaver
  + Added texture format types to typeless DXGI formats when generating mipmaps
+ + Added SteamAPI DLL SHA1 Verification for diagnostic purposes since CodexAPI is
+     a stability problem... pirates just opt-out of SteamAPI enhancements please.
 
 
 0.8.52
