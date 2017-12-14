@@ -36,26 +36,26 @@ _BSS	SEGMENT
 ?ADL_Overdrive5_CurrentActivity_Get@@3P6AHHPAUADLPMActivity@@@ZA DD 01H DUP (?) ; ADL_Overdrive5_CurrentActivity_Get
 _BSS	ENDS
 CONST	SEGMENT
-$SG115869 DB	'a', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'd', 00H, 'l', 00H
+$SG115871 DB	'a', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'd', 00H, 'l', 00H
 	DB	'x', 00H, 'x', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG115871 DB	'a', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'd', 00H, 'l', 00H
+$SG115873 DB	'a', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'd', 00H, 'l', 00H
 	DB	'x', 00H, 'y', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG115874 DB	'ADL_Main_Control_Create', 00H
-$SG115875 DB	'ADL_Main_Control_Destroy', 00H
+$SG115876 DB	'ADL_Main_Control_Create', 00H
+$SG115877 DB	'ADL_Main_Control_Destroy', 00H
 	ORG $+3
-$SG115876 DB	'ADL_Adapter_NumberOfAdapters_Get', 00H
+$SG115878 DB	'ADL_Adapter_NumberOfAdapters_Get', 00H
 	ORG $+3
-$SG115877 DB	'ADL_Adapter_AdapterInfo_Get', 00H
-$SG115878 DB	'ADL_Adapter_Active_Get', 00H
+$SG115879 DB	'ADL_Adapter_AdapterInfo_Get', 00H
+$SG115880 DB	'ADL_Adapter_Active_Get', 00H
 	ORG $+1
-$SG115879 DB	'ADL_Overdrive5_Temperature_Get', 00H
+$SG115881 DB	'ADL_Overdrive5_Temperature_Get', 00H
 	ORG $+1
-$SG115880 DB	'ADL_Overdrive5_FanSpeed_Get', 00H
-$SG115881 DB	'ADL_Overdrive5_CurrentActivity_Get', 00H
+$SG115882 DB	'ADL_Overdrive5_FanSpeed_Get', 00H
+$SG115883 DB	'ADL_Overdrive5_CurrentActivity_Get', 00H
 CONST	ENDS
 PUBLIC	?SK_InitADL@@YAHXZ				; SK_InitADL
 PUBLIC	?SK_ADL_CountPhysicalGPUs@@YAHXZ		; SK_ADL_CountPhysicalGPUs
@@ -369,7 +369,7 @@ $LL4@SK_InitADL:
 ; 53   : 
 ; 54   :   hADL_DLL = LoadLibraryW_Original (L"atiadlxx.dll");
 
-	push	OFFSET $SG115869
+	push	OFFSET $SG115871
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	mov	DWORD PTR ?hADL_DLL@@3PAUHINSTANCE__@@A, eax ; hADL_DLL
 
@@ -382,7 +382,7 @@ $LL4@SK_InitADL:
 ; 57   :     // Try to load the 32 bit library (atiadlxy.dll) instead
 ; 58   :     hADL_DLL = LoadLibraryW_Original (L"atiadlxy.dll");
 
-	push	OFFSET $SG115871
+	push	OFFSET $SG115873
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 	mov	DWORD PTR ?hADL_DLL@@3PAUHINSTANCE__@@A, eax ; hADL_DLL
 
@@ -402,7 +402,7 @@ $LN7@SK_InitADL:
 ; 66   :     ADL_Main_Control_Create            =
 
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
-	push	OFFSET $SG115874
+	push	OFFSET $SG115876
 	push	eax
 	call	esi
 
@@ -411,7 +411,7 @@ $LN7@SK_InitADL:
 ; 69   :       );
 ; 70   :     ADL_Main_Control_Destroy           =
 
-	push	OFFSET $SG115875
+	push	OFFSET $SG115877
 	push	DWORD PTR ?hADL_DLL@@3PAUHINSTANCE__@@A	; hADL_DLL
 	mov	DWORD PTR ?ADL_Main_Control_Create@@3P6AHP6GPAXH@ZH@ZA, eax ; ADL_Main_Control_Create
 	call	esi
@@ -422,7 +422,7 @@ $LN7@SK_InitADL:
 ; 74   : 
 ; 75   :     ADL_Adapter_NumberOfAdapters_Get   =
 
-	push	OFFSET $SG115876
+	push	OFFSET $SG115878
 	push	DWORD PTR ?hADL_DLL@@3PAUHINSTANCE__@@A	; hADL_DLL
 	mov	DWORD PTR ?ADL_Main_Control_Destroy@@3P6AHXZA, eax ; ADL_Main_Control_Destroy
 	call	esi
@@ -433,7 +433,7 @@ $LN7@SK_InitADL:
 ; 79   : 
 ; 80   :     ADL_Adapter_AdapterInfo_Get        =
 
-	push	OFFSET $SG115877
+	push	OFFSET $SG115879
 	push	DWORD PTR ?hADL_DLL@@3PAUHINSTANCE__@@A	; hADL_DLL
 	mov	DWORD PTR ?ADL_Adapter_NumberOfAdapters_Get@@3P6AHPAH@ZA, eax ; ADL_Adapter_NumberOfAdapters_Get
 	call	esi
@@ -444,7 +444,7 @@ $LN7@SK_InitADL:
 ; 84   : 
 ; 85   :     ADL_Adapter_Active_Get        =
 
-	push	OFFSET $SG115878
+	push	OFFSET $SG115880
 	push	DWORD PTR ?hADL_DLL@@3PAUHINSTANCE__@@A	; hADL_DLL
 	mov	DWORD PTR ?ADL_Adapter_AdapterInfo_Get@@3P6AHPAUAdapterInfo@@H@ZA, eax ; ADL_Adapter_AdapterInfo_Get
 	call	esi
@@ -455,7 +455,7 @@ $LN7@SK_InitADL:
 ; 89   : 
 ; 90   :     ADL_Overdrive5_Temperature_Get     =
 
-	push	OFFSET $SG115879
+	push	OFFSET $SG115881
 	push	DWORD PTR ?hADL_DLL@@3PAUHINSTANCE__@@A	; hADL_DLL
 	mov	DWORD PTR ?ADL_Adapter_Active_Get@@3P6AHHPAH@ZA, eax ; ADL_Adapter_Active_Get
 	call	esi
@@ -466,7 +466,7 @@ $LN7@SK_InitADL:
 ; 94   : 
 ; 95   :     ADL_Overdrive5_FanSpeed_Get        =
 
-	push	OFFSET $SG115880
+	push	OFFSET $SG115882
 	push	DWORD PTR ?hADL_DLL@@3PAUHINSTANCE__@@A	; hADL_DLL
 	mov	DWORD PTR ?ADL_Overdrive5_Temperature_Get@@3P6AHHHPAUADLTemperature@@@ZA, eax ; ADL_Overdrive5_Temperature_Get
 	call	esi
@@ -477,7 +477,7 @@ $LN7@SK_InitADL:
 ; 99   : 
 ; 100  :     ADL_Overdrive5_CurrentActivity_Get =
 
-	push	OFFSET $SG115881
+	push	OFFSET $SG115883
 	push	DWORD PTR ?hADL_DLL@@3PAUHINSTANCE__@@A	; hADL_DLL
 	mov	DWORD PTR ?ADL_Overdrive5_FanSpeed_Get@@3P6AHHHPAUADLFanSpeedValue@@@ZA, eax ; ADL_Overdrive5_FanSpeed_Get
 	call	esi

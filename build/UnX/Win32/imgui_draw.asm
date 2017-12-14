@@ -22,7 +22,7 @@ $SG15931 DB	'rb', 00H
 	ORG $+1
 $SG15934 DB	'%s, %.0fpx', 00H
 	ORG $+1
-$SG128598 DB	'[', 00H, 'I', 00H, 'm', 00H, 'G', 00H, 'u', 00H, 'i', 00H
+$SG128600 DB	'[', 00H, 'I', 00H, 'm', 00H, 'G', 00H, 'u', 00H, 'i', 00H
 	DB	' ', 00H, 'F', 00H, 'o', 00H, 'n', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'p', 00H, 'r', 00H, 'i', 00H, 'n', 00H
 	DB	't', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H, ' ', 00H, 'C'
@@ -33674,7 +33674,7 @@ $LN124@RenderText:
 	movzx	eax, WORD PTR _c$7[ebp]
 	push	eax
 	push	eax
-	push	OFFSET $SG128598
+	push	OFFSET $SG128600
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	mov	edi, DWORD PTR _c$7[ebp]

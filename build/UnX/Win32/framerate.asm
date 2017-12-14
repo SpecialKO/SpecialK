@@ -211,35 +211,35 @@ _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG179294			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG179297			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG179292		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG179295		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG179290		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG179293		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG179288		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG179291		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG179286		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG179289		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG179284		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG179287		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG179282		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG179285		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG179280		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG179283		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -276,82 +276,82 @@ _IID_IRegistrar DD 044ec053bH
 	DB	0d3H
 CONST	ENDS
 CONST	SEGMENT
-$SG167938 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167941 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG167985 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167988 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG179280 DB	'S', 00H, 00H, 00H
-$SG179282 DB	'M', 00H, 00H, 00H
-$SG179284 DB	'D', 00H, 00H, 00H
-$SG179286 DB	'B', 00H, 00H, 00H
-$SG179288 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG179290 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG179283 DB	'S', 00H, 00H, 00H
+$SG179285 DB	'M', 00H, 00H, 00H
+$SG179287 DB	'D', 00H, 00H, 00H
+$SG179289 DB	'B', 00H, 00H, 00H
+$SG179291 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG179293 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG179292 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG179295 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG179294 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG179297 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG168032 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168035 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG168079 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168082 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG168126 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168129 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG168173 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168176 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG168220 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168223 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG168267 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168270 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG168272 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168275 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG168319 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168322 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG168366 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168369 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG168413 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG168416 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, 00H, 00H
-$SG167397 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167400 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG167468 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167471 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG167515 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167518 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG167562 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167565 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG167609 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167612 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG167656 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167659 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG198392 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG198398 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'a', 00H, 'p', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG198397 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG198403 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'L', 00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'l', 00H, 'e', 00H, 'e', 00H, 'p', 00H, ' ', 00H
 	DB	'c', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ' '
@@ -360,8 +360,19 @@ $SG198397 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	00H, 'h', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 'd', 00H, ':', 00H
 	DB	' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ' ', 00H, 'm', 00H, 's'
 	DB	00H, '!', 00H, 00H, 00H
-$SG179970 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG198403 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG179973 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG179974 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG179975 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG179976 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG179977 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG198409 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'L', 00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'S', 00H, 'l', 00H, 'e', 00H, 'e', 00H, 'p', 00H, ' ', 00H
 	DB	'c', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, ' '
@@ -370,46 +381,35 @@ $SG198403 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	00H, 'a', 00H, 'd', 00H, ':', 00H, ' ', 00H, '%', 00H, 'l', 00H
 	DB	'u', 00H, ' ', 00H, 'm', 00H, 's', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG179971 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG179972 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
-	ORG $+2
-$SG179973 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG179974 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG179975 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+$SG179978 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG179976 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+$SG179979 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG179977 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG179978 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+$SG179980 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG179981 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
 	DB	'T', 00H, 'Y', 00H, 00H, 00H
 	ORG $+2
-$SG179979 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+$SG179982 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG179980 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG179983 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG179981 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG179984 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG167703 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167706 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG167750 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167753 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG167797 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167800 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG200478 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG200484 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'L', 00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'r', 00H
 	DB	'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 'l', 00H, 'i', 00H, 'm'
@@ -421,45 +421,45 @@ $SG200478 DB	'[', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'c', 00H, 'l', 00H, 'o', 00H, 'c', 00H, 'k', 00H, ')', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG167844 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167847 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG198570 DB	'A', 00H, 'g', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'g', 00H
+$SG198576 DB	'A', 00H, 'g', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'g', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG198572 DB	't', 00H, 's', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
+$SG198578 DB	't', 00H, 's', 00H, 'f', 00H, 'i', 00H, 'x', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG198574 DB	'WaitForVBLANK', 00H
+$SG198580 DB	'WaitForVBLANK', 00H
 	ORG $+2
-$SG198576 DB	'MaxDeltaTime', 00H
+$SG198582 DB	'MaxDeltaTime', 00H
 	ORG $+3
-$SG198578 DB	'LimiterTolerance', 00H
+$SG198584 DB	'LimiterTolerance', 00H
 	ORG $+3
-$SG198580 DB	'TargetFPS', 00H
+$SG198586 DB	'TargetFPS', 00H
 	ORG $+2
-$SG198582 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
+$SG198588 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
 	DB	'P', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'n', 00H, 'y', 00H, '.'
 	DB	00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG198583 DB	'Sleep', 00H
+$SG198589 DB	'Sleep', 00H
 	ORG $+2
-$SG198584 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG198590 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG198585 DB	'QueryPerformanceCounter', 00H
-$SG198586 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG198591 DB	'QueryPerformanceCounter', 00H
+$SG198592 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG198588 DB	'n', 00H, 't', 00H, 'd', 00H, 'l', 00H, 'l', 00H, '.', 00H
+$SG198594 DB	'n', 00H, 't', 00H, 'd', 00H, 'l', 00H, 'l', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG198589 DB	'NtQueryTimerResolution', 00H
+$SG198595 DB	'NtQueryTimerResolution', 00H
 	ORG $+1
-$SG198590 DB	'NtSetTimerResolution', 00H
+$SG198596 DB	'NtSetTimerResolution', 00H
 	ORG $+3
-$SG198592 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
+$SG198598 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'K', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	' ', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'o', 00H, 'l', 00H, 'u'
@@ -467,7 +467,7 @@ $SG198592 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
 	DB	' ', 00H, '%', 00H, 'f', 00H, ' ', 00H, 'm', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG198593 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
+$SG198599 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'N', 00H, 'e', 00H, 'w', 00H, ' ', 00H, 'r', 00H, 'e', 00H
 	DB	's', 00H, 'o', 00H, 'l', 00H, 'u', 00H, 't', 00H, 'i', 00H, 'o'
@@ -475,7 +475,7 @@ $SG198593 DB	'[', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'i', 00H, 'm', 00H
 	DB	' ', 00H, '%', 00H, 'f', 00H, ' ', 00H, 'm', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG167891 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG167894 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 CONST	ENDS
@@ -2649,7 +2649,7 @@ $LN2@Sleep_Deto:
 ; 100  :     {
 ; 101  :       hModSteamAPI = 
 
-	push	OFFSET $SG198392
+	push	OFFSET $SG198398
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	DWORD PTR ?hModSteamAPI@@3PAXA, eax	; hModSteamAPI
 $LN4@Sleep_Deto:
@@ -2727,7 +2727,7 @@ $LN5@Sleep_Deto:
 ; 124  :               dll_log.Log (L"[FrameLimit] Sleep called from render thread: %lu ms!", dwMilliseconds);
 
 	push	esi
-	push	OFFSET $SG198397
+	push	OFFSET $SG198403
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2817,7 +2817,7 @@ $LN6@Sleep_Deto:
 ; 149  :               dll_log.Log (L"[FrameLimit] Sleep called from GUI thread: %lu ms!", dwMilliseconds);
 
 	push	esi
-	push	OFFSET $SG198403
+	push	OFFSET $SG198409
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -6728,7 +6728,7 @@ $LN10@wait:
 ; 687  :   {
 ; 688  :     dll_log.Log (L"[FrameLimit] Framerate limiter lost time?! (non-monotonic clock)");
 
-	push	OFFSET $SG200478
+	push	OFFSET $SG200484
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -7801,7 +7801,7 @@ __$EHRec$ = -12						; size = 12
 
 	mov	edi, DWORD PTR __imp__GetModuleHandleW@4
 	mov	esi, eax
-	push	OFFSET $SG198570
+	push	OFFSET $SG198576
 	call	edi
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+416
 	test	eax, eax
@@ -7812,7 +7812,7 @@ __$EHRec$ = -12						; size = 12
 ; 226  : 
 ; 227  :   if (GetModuleHandle (L"tsfix.dll"))
 
-	push	OFFSET $SG198572
+	push	OFFSET $SG198578
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+416, ecx
 	call	edi
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+416
@@ -7843,7 +7843,7 @@ $LN8@Init:
 $LN9@Init:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG198574
+	push	OFFSET $SG198580
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -7869,7 +7869,7 @@ $LN10@Init:
 $LN11@Init:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG198576
+	push	OFFSET $SG198582
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -7896,7 +7896,7 @@ $LN12@Init:
 $LN13@Init:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG198578
+	push	OFFSET $SG198584
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -7922,7 +7922,7 @@ $LN14@Init:
 $LN15@Init:
 	mov	eax, DWORD PTR [esi]
 	push	ecx
-	push	OFFSET $SG198580
+	push	OFFSET $SG198586
 	mov	ecx, esi
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	DWORD PTR [eax+20]
@@ -7940,7 +7940,7 @@ $LN15@Init:
 ; 248  : 
 ; 249  :   if (! GetModuleHandle (L"PrettyPrinny.dll"))
 
-	push	OFFSET $SG198582
+	push	OFFSET $SG198588
 	call	edi
 	test	eax, eax
 	jne	SHORT $LN4@Init
@@ -7951,8 +7951,8 @@ $LN15@Init:
 	push	OFFSET ?pfnSleep@@3PAXA			; pfnSleep
 	push	OFFSET ?Sleep_Original@@3P6GXK@ZA	; Sleep_Original
 	push	OFFSET ?Sleep_Detour@@YGXK@Z		; Sleep_Detour
-	push	OFFSET $SG198583
-	push	OFFSET $SG198584
+	push	OFFSET $SG198589
+	push	OFFSET $SG198590
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN4@Init:
 
@@ -7965,8 +7965,8 @@ $LN4@Init:
 ; 258  : #ifdef NO_HOOK_QPC
 ; 259  :     QueryPerformanceCounter_Original =
 
-	push	OFFSET $SG198585
-	push	OFFSET $SG198586
+	push	OFFSET $SG198591
+	push	OFFSET $SG198592
 	call	edi
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
 	push	eax
@@ -7987,13 +7987,13 @@ $LN4@Init:
 ; 267  :   {
 ; 268  :     NtDll = LoadLibrary (L"ntdll.dll");
 
-	push	OFFSET $SG198588
+	push	OFFSET $SG198594
 	call	DWORD PTR __imp__LoadLibraryW@4
 
 ; 269  : 
 ; 270  :     NtQueryTimerResolution =
 
-	push	OFFSET $SG198589
+	push	OFFSET $SG198595
 	push	eax
 	mov	DWORD PTR ?NtDll@@3PAUHINSTANCE__@@A, eax ; NtDll
 	call	esi
@@ -8004,7 +8004,7 @@ $LN4@Init:
 ; 274  : 
 ; 275  :     NtSetTimerResolution =
 
-	push	OFFSET $SG198590
+	push	OFFSET $SG198596
 	push	DWORD PTR ?NtDll@@3PAUHINSTANCE__@@A	; NtDll
 	mov	DWORD PTR ?NtQueryTimerResolution@@3P6GJPAK00@ZA, eax ; NtQueryTimerResolution
 	call	esi
@@ -8047,7 +8047,7 @@ $LN4@Init:
 	mulss	xmm0, DWORD PTR __real@358637bd
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG198592
+	push	OFFSET $SG198598
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -8073,7 +8073,7 @@ $LN4@Init:
 	mulss	xmm0, DWORD PTR __real@358637bd
 	cvtps2pd xmm0, xmm0
 	movsd	QWORD PTR [esp], xmm0
-	push	OFFSET $SG198593
+	push	OFFSET $SG198599
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H

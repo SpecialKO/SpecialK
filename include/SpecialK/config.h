@@ -639,6 +639,7 @@ enum class SK_GAME_ID
   WorldOfFinalFantasy,          // WOFF.exe
   StarOcean4,                   // StarOceanTheLastHope.exe
   LEGOMarvelSuperheroes2,       // LEGOMARVEL2_DX11.exe
+  Okami,                        // okami.exe
   UNKNOWN_GAME               = 0xffff
 };
 

@@ -99,7 +99,7 @@ static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
 static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01, 0xe8, 0x37, 0x80, 0x1b, 0x5e, 0xa0 } };
 
-volatile HANDLE  hInitThread   = { nullptr };
+volatile HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
          HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
 
 NV_GET_CURRENT_SLI_STATE sli_state;
@@ -1011,6 +1011,9 @@ WaitForInit (void)
 
   while (ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
   {
+    if (ReadPointerAcquire ((LPVOID *)&hInitThread) == GetCurrentThread ())
+      break;
+
     if ( WAIT_OBJECT_0 == WaitForSingleObject (
       ReadPointerAcquire ((LPVOID *)&hInitThread),
         150 ) )
@@ -1038,12 +1041,16 @@ WaitForInit (void)
   //
   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
   {
-    SK_ApplyQueuedHooks ();
+    if (ReadPointerAcquire ((LPVOID *)&hInitThread) != GetCurrentThread () &&
+        ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
+    {
+      SK_ApplyQueuedHooks ();
 
-    CloseHandle (
-      InterlockedExchangePointer ( const_cast <LPVOID *> (&hInitThread),
-                                     INVALID_HANDLE_VALUE )
-    );
+      CloseHandle (
+        InterlockedExchangePointer ( const_cast <LPVOID *> (&hInitThread),
+                                       INVALID_HANDLE_VALUE )
+      );
+    }
 
     // Load user-defined DLLs (Lazy)
 #ifdef _WIN64
@@ -1211,7 +1218,7 @@ DllThread (LPVOID user)
 {
   auto* params =
     static_cast <init_params_t *> (user);
-
+  
   reentrant_core = *params;
 
   SK_InitCore (params->backend, params->callback);
@@ -1511,7 +1518,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     goto BACKEND_INIT;
 
 
-  init_tids = SK_SuspendAllOtherThreads ();
 
 
   if (config.system.display_debug_out)
@@ -1736,6 +1742,20 @@ BACKEND_INIT:
   bool SK_InitWMI (void);
     SK_InitWMI    (    );
 
+#if 0
+  auto* params =
+    static_cast <init_params_t *> (&init_);
+
+  reentrant_core = *params;
+
+  init_mutex->unlock ();
+
+  SK_InitCore (params->backend, params->callback);
+#else
+  init_mutex->unlock ();
+
+  init_tids = SK_SuspendAllOtherThreads ();
+
   InterlockedExchangePointer (
     (LPVOID *)&hInitThread,
       CreateThread ( nullptr,
@@ -1745,8 +1765,7 @@ BACKEND_INIT:
                              0x00,
                                nullptr )
   ); // Avoid the temptation to wait on this thread
-
-  init_mutex->unlock ();
+#endif
 
   return true;
 }

@@ -14,7 +14,7 @@ _DATA	SEGMENT
 ?xinput_enabled@@3HA DD 01H				; xinput_enabled
 _DATA	ENDS
 CONST	SEGMENT
-$SG132136 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132142 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, 'W', 00H, 'A', 00H, 'R', 00H, 'N', 00H, 'I', 00H, 'N', 00H
 	DB	'G', 00H, ':', 00H, ' ', 00H, 'T', 00H, 'h', 00H, 'i', 00H, 'r'
@@ -41,173 +41,173 @@ $SG132136 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'l', 00H, 'y', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG132169 DB	'XInputGetState1_3_Detour', 00H
+$SG132175 DB	'XInputGetState1_3_Detour', 00H
 	ORG $+7
-$SG132170 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132176 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132194 DB	'XInputGetStateEx1_3_Detour', 00H
+$SG132200 DB	'XInputGetStateEx1_3_Detour', 00H
 	ORG $+1
-$SG132195 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132201 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132219 DB	'XInputGetCapabilities1_3_Detour', 00H
+$SG132225 DB	'XInputGetCapabilities1_3_Detour', 00H
 	ORG $+4
-$SG132220 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132226 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132243 DB	'XInputGetBatteryInformation1_3_Detour', 00H
+$SG132249 DB	'XInputGetBatteryInformation1_3_Detour', 00H
 	ORG $+6
-$SG132244 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132250 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132267 DB	'XInputSetState1_3_Detour', 00H
+$SG132273 DB	'XInputSetState1_3_Detour', 00H
 	ORG $+3
-$SG132268 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132274 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132296 DB	'XInputGetState1_4_Detour', 00H
+$SG132302 DB	'XInputGetState1_4_Detour', 00H
 	ORG $+3
-$SG132297 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132303 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132321 DB	'XInputGetStateEx1_4_Detour', 00H
+$SG132327 DB	'XInputGetStateEx1_4_Detour', 00H
 	ORG $+1
-$SG132322 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132328 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132347 DB	'XInputGetCapabilities1_4_Detour', 00H
+$SG132353 DB	'XInputGetCapabilities1_4_Detour', 00H
 	ORG $+4
-$SG132348 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132354 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132372 DB	'XInputGetBatteryInformation1_4_Detour', 00H
+$SG132378 DB	'XInputGetBatteryInformation1_4_Detour', 00H
 	ORG $+6
-$SG132373 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132379 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132396 DB	'XInputSetState1_4_Detour', 00H
+$SG132402 DB	'XInputSetState1_4_Detour', 00H
 	ORG $+3
-$SG132397 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132403 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132420 DB	'XInputGetState9_1_0_Detour', 00H
+$SG132426 DB	'XInputGetState9_1_0_Detour', 00H
 	ORG $+1
-$SG132421 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132427 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132447 DB	'XInputGetCapabilities9_1_0_Detour', 00H
+$SG132453 DB	'XInputGetCapabilities9_1_0_Detour', 00H
 	ORG $+2
-$SG132448 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132454 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132471 DB	'XInputSetState9_1_0_Detour', 00H
+$SG132477 DB	'XInputSetState9_1_0_Detour', 00H
 	ORG $+1
-$SG132472 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132478 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG132519 DB	'XInputGetState', 00H
+$SG132525 DB	'XInputGetState', 00H
 	ORG $+1
-$SG132520 DB	'XInputGetState', 00H
+$SG132526 DB	'XInputGetState', 00H
 	ORG $+1
-$SG132521 DB	'XInputGetCapabilities', 00H
+$SG132527 DB	'XInputGetCapabilities', 00H
 	ORG $+2
-$SG132522 DB	'XInputGetCapabilities', 00H
+$SG132528 DB	'XInputGetCapabilities', 00H
 	ORG $+2
-$SG132523 DB	'XInputSetState', 00H
+$SG132529 DB	'XInputSetState', 00H
 	ORG $+1
-$SG132524 DB	'XInputSetState', 00H
+$SG132530 DB	'XInputSetState', 00H
 	ORG $+1
-$SG132525 DB	'XInputGetBatteryInformation', 00H
-$SG132527 DB	'XInputGetBatteryInformation', 00H
-$SG132529 DB	'XInputEnable', 00H
+$SG132531 DB	'XInputGetBatteryInformation', 00H
+$SG132533 DB	'XInputGetBatteryInformation', 00H
+$SG132535 DB	'XInputEnable', 00H
 	ORG $+3
-$SG132531 DB	'XInputEnable', 00H
+$SG132537 DB	'XInputEnable', 00H
 	ORG $+7
-$SG132550 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132556 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '4', 00H, 00H, 00H
 	ORG $+2
-$SG132551 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132557 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132565 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132571 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, '1', 00H, '.', 00H, '3', 00H, 00H, 00H
 	ORG $+2
-$SG132566 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132572 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132580 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132586 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, 00H, 00H
-$SG132581 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132587 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG132608 DB	'XInputGetState', 00H
+$SG132614 DB	'XInputGetState', 00H
 	ORG $+5
-$SG132610 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132616 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -215,7 +215,7 @@ $SG132610 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%'
 	DB	00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+6
-$SG132615 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132621 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -225,7 +225,7 @@ $SG132615 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, 00H, 00H
 	ORG $+6
-$SG132617 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132623 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -234,9 +234,9 @@ $SG132617 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'o', 00H, 'o', 00H, 'k', 00H, ' ', 00H, 'f', 00H, 'r', 00H
 	DB	'o', 00H, 'm', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, ''''
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG132625 DB	'XInputSetState', 00H
+$SG132631 DB	'XInputSetState', 00H
 	ORG $+1
-$SG132627 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132633 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -245,7 +245,7 @@ $SG132627 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H
 	DB	's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132632 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132638 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -256,7 +256,7 @@ $SG132632 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG132634 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132640 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -266,11 +266,11 @@ $SG132634 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'o', 00H, 'o', 00H, 'k', 00H, ' ', 00H, 'f', 00H, 'r', 00H, 'o'
 	DB	00H, 'm', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
-$SG132635 DB	'XInputSetState', 00H
+$SG132641 DB	'XInputSetState', 00H
 	ORG $+1
-$SG132643 DB	'XInputGetCapabilities', 00H
+$SG132649 DB	'XInputGetCapabilities', 00H
 	ORG $+6
-$SG132645 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132651 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -279,7 +279,7 @@ $SG132645 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H
 	DB	00H
-$SG132650 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132656 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -289,7 +289,7 @@ $SG132650 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'u', 00H, 's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H
 	DB	'.', 00H, 00H, 00H
-$SG132652 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132658 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -300,9 +300,9 @@ $SG132652 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'o', 00H, 'm', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
 	DB	'''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132661 DB	'XInputGetBatteryInformation', 00H
+$SG132667 DB	'XInputGetBatteryInformation', 00H
 	ORG $+4
-$SG132663 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132669 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -312,7 +312,7 @@ $SG132663 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132667 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132673 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -323,7 +323,7 @@ $SG132667 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
 	DB	'''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132669 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132675 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -335,7 +335,7 @@ $SG132669 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, 00H, 00H
 	ORG $+4
-$SG132679 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132685 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -344,7 +344,7 @@ $SG132679 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H
 	DB	'''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132683 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132689 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -354,7 +354,7 @@ $SG132683 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	's', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, '''', 00H, '%'
 	DB	00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132685 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132691 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -365,9 +365,9 @@ $SG132685 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H
 	DB	'.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132694 DB	'XInputEnable', 00H
+$SG132700 DB	'XInputEnable', 00H
 	ORG $+7
-$SG132696 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132702 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'R', 00H, 'e', 00H, '-', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'X', 00H, 'I'
@@ -377,7 +377,7 @@ $SG132696 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, '.', 00H, '.'
 	DB	00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132700 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132706 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -388,7 +388,7 @@ $SG132700 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'g', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+4
-$SG132702 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132708 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'r', 00H, 'e'
@@ -400,7 +400,7 @@ $SG132702 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'%', 00H, 's', 00H, '''', 00H, '.', 00H, '.', 00H, '.', 00H, 00H
 	DB	00H
 	ORG $+6
-$SG132793 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132799 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o'
@@ -419,26 +419,26 @@ $SG132793 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, ' ', 00H, 'a', 00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H
 	DB	't', 00H, 'e', 00H, 'n', 00H, 'd', 00H, 'e', 00H, 'd', 00H, '.'
 	DB	00H, 00H, 00H
-$SG132794 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132800 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132796 DB	'XInputGetState', 00H
+$SG132802 DB	'XInputGetState', 00H
 	ORG $+1
-$SG132799 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132805 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132801 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132807 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132803 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132809 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG132827 DB	'XInput1_3.dll', 00H
+$SG132833 DB	'XInput1_3.dll', 00H
 	ORG $+2
-$SG132828 DB	'XInput1_4.dll', 00H
+$SG132834 DB	'XInput1_4.dll', 00H
 	ORG $+2
-$SG132829 DB	'XInput9_1_0.dll', 00H
-$SG132835 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG132835 DB	'XInput9_1_0.dll', 00H
+$SG132841 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'u', 00H
 	DB	's', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'X', 00H, 'I', 00H, 'n'
@@ -448,13 +448,13 @@ $SG132835 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'u', 00H, 't', 00H, ' ', 00H, 'h', 00H, 'o', 00H, 'o', 00H, 'k'
 	DB	00H, 's', 00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG132840 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132846 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132842 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132848 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'1', 00H, '_', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG132844 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG132850 DB	'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'9', 00H, '_', 00H, '1', 00H, '_', 00H, '0', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
 CONST	ENDS
@@ -954,13 +954,13 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A
 _DATA	SEGMENT
-?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG132827 ; `SK_Input_PreHookXInput'::`7'::tests
+?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG132833 ; `SK_Input_PreHookXInput'::`7'::tests
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG132828
+	DD	FLAT:$SG132834
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG132829
+	DD	FLAT:$SG132835
 	DB	00H
 	ORG $+3
 _DATA	ENDS
@@ -4895,7 +4895,7 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	mov	esi, DWORD PTR __imp__EnterCriticalSection@4
@@ -4906,7 +4906,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_lock0$[ebp], OFFSET ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	esi
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+676
@@ -4922,7 +4922,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_lock1$[ebp], OFFSET ?xinput_ctx@@3USK_XInputContext@@A+676
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	esi
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+680
@@ -4933,7 +4933,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_lock2$[ebp], OFFSET ?xinput_ctx@@3USK_XInputContext@@A+680
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	esi
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+684
@@ -4944,7 +4944,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_lock3$[ebp], OFFSET ?xinput_ctx@@3USK_XInputContext@@A+684
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	esi
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -5003,7 +5003,7 @@ $LN147@SK_XInput_:
 	lea	eax, DWORD PTR [edi+12]
 	push	eax
 	push	DWORD PTR [edi+8]
-	push	OFFSET $SG132608
+	push	OFFSET $SG132614
 	push	DWORD PTR [edi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -5020,7 +5020,7 @@ $LN147@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN12@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132610
+	push	OFFSET $SG132616
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5086,7 +5086,7 @@ $LN10@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN17@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132615
+	push	OFFSET $SG132621
 
 ; 1081 :                pCtx->wszModuleName ),
 ; 1082 :             L"Input Mgr." );
@@ -5104,7 +5104,7 @@ $LN8@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN17@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132617
+	push	OFFSET $SG132623
 $LN166@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -5171,7 +5171,7 @@ $LN150@SK_XInput_:
 	lea	eax, DWORD PTR [edi+120]
 	push	eax
 	push	DWORD PTR [edi+116]
-	push	OFFSET $SG132625
+	push	OFFSET $SG132631
 	push	DWORD PTR [edi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -5188,7 +5188,7 @@ $LN150@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN25@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132627
+	push	OFFSET $SG132633
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5254,7 +5254,7 @@ $LN23@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN30@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132632
+	push	OFFSET $SG132638
 
 ; 1130 :                pCtx->wszModuleName ),
 ; 1131 :             L"Input Mgr." );
@@ -5272,7 +5272,7 @@ $LN21@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN30@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132634
+	push	OFFSET $SG132640
 $LN167@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -5285,7 +5285,7 @@ $LN30@SK_XInput_:
 ; 1141 :   }
 ; 1142 :   pCtx->XInputSetState_Original =
 
-	push	OFFSET $SG132635
+	push	OFFSET $SG132641
 	push	DWORD PTR [edi+4]
 	call	DWORD PTR __imp__GetProcAddress@8
 
@@ -5347,7 +5347,7 @@ $LN153@SK_XInput_:
 	lea	eax, DWORD PTR [edi+48]
 	push	eax
 	push	DWORD PTR [edi+44]
-	push	OFFSET $SG132643
+	push	OFFSET $SG132649
 	push	DWORD PTR [edi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -5364,7 +5364,7 @@ $LN153@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN38@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132645
+	push	OFFSET $SG132651
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5430,7 +5430,7 @@ $LN36@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN43@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132650
+	push	OFFSET $SG132656
 
 ; 1181 :                pCtx->wszModuleName ),
 ; 1182 :             L"Input Mgr." );
@@ -5448,7 +5448,7 @@ $LN34@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN43@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132652
+	push	OFFSET $SG132658
 $LN168@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -5522,7 +5522,7 @@ $LN156@SK_XInput_:
 	lea	eax, DWORD PTR [edi+84]
 	push	eax
 	push	DWORD PTR [edi+80]
-	push	OFFSET $SG132661
+	push	OFFSET $SG132667
 	push	DWORD PTR [edi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -5539,7 +5539,7 @@ $LN156@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN52@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132663
+	push	OFFSET $SG132669
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5590,7 +5590,7 @@ $LN50@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN56@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132667
+	push	OFFSET $SG132673
 
 ; 1231 :                  pCtx->wszModuleName ),
 ; 1232 :               L"Input Mgr." );
@@ -5608,7 +5608,7 @@ $LN48@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN56@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132669
+	push	OFFSET $SG132675
 $LN169@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -5699,7 +5699,7 @@ $LN159@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN65@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132679
+	push	OFFSET $SG132685
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5750,7 +5750,7 @@ $LN63@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN69@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132683
+	push	OFFSET $SG132689
 
 ; 1281 :                  pCtx->wszModuleName ),
 ; 1282 :               L"Input Mgr." );
@@ -5768,7 +5768,7 @@ $LN61@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN69@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132685
+	push	OFFSET $SG132691
 $LN170@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -5843,7 +5843,7 @@ $LN162@SK_XInput_:
 	lea	eax, DWORD PTR [edi+156]
 	push	eax
 	push	DWORD PTR [edi+152]
-	push	OFFSET $SG132694
+	push	OFFSET $SG132700
 	push	DWORD PTR [edi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -5860,7 +5860,7 @@ $LN162@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN78@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132696
+	push	OFFSET $SG132702
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5911,7 +5911,7 @@ $LN76@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN82@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132700
+	push	OFFSET $SG132706
 
 ; 1331 :                  pCtx->wszModuleName ),
 ; 1332 :               L"Input Mgr." );
@@ -5929,7 +5929,7 @@ $LN74@SK_XInput_:
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN82@SK_XInput_
 	push	DWORD PTR [edi]
-	push	OFFSET $SG132702
+	push	OFFSET $SG132708
 $LN171@SK_XInput_:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -6052,7 +6052,7 @@ $LN87@SK_XInput_:
 $LN88@SK_XInput_:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+684
 	mov	esi, DWORD PTR __imp__LeaveCriticalSection@4
@@ -6261,7 +6261,7 @@ _pCtx$ = 8						; size = 4
 ; 829  :   pCtx->XInputGetState_Target =
 
 	mov	esi, DWORD PTR _pCtx$[ebp]
-	push	OFFSET $SG132519
+	push	OFFSET $SG132525
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -6276,7 +6276,7 @@ _pCtx$ = 8						; size = 4
 	push	0
 	push	eax
 	push	DWORD PTR [esi+8]
-	push	OFFSET $SG132520
+	push	OFFSET $SG132526
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -6286,7 +6286,7 @@ _pCtx$ = 8						; size = 4
 ; 837  : 
 ; 838  :   pCtx->XInputGetCapabilities_Target =
 
-	push	OFFSET $SG132521
+	push	OFFSET $SG132527
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -6301,7 +6301,7 @@ _pCtx$ = 8						; size = 4
 	push	0
 	push	eax
 	push	DWORD PTR [esi+44]
-	push	OFFSET $SG132522
+	push	OFFSET $SG132528
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -6311,7 +6311,7 @@ _pCtx$ = 8						; size = 4
 ; 846  : 
 ; 847  :   pCtx->XInputSetState_Target =
 
-	push	OFFSET $SG132523
+	push	OFFSET $SG132529
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -6326,7 +6326,7 @@ _pCtx$ = 8						; size = 4
 	push	0
 	push	eax
 	push	DWORD PTR [esi+116]
-	push	OFFSET $SG132524
+	push	OFFSET $SG132530
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -6336,7 +6336,7 @@ _pCtx$ = 8						; size = 4
 ; 855  : 
 ; 856  :   pCtx->XInputGetBatteryInformation_Target =
 
-	push	OFFSET $SG132525
+	push	OFFSET $SG132531
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -6359,7 +6359,7 @@ _pCtx$ = 8						; size = 4
 	lea	eax, DWORD PTR [esi+84]
 	push	eax
 	push	DWORD PTR [esi+80]
-	push	OFFSET $SG132527
+	push	OFFSET $SG132533
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN2@SK_Input_H:
@@ -6406,7 +6406,7 @@ $LN3@SK_Input_H:
 ; 883  : 
 ; 884  :   pCtx->XInputEnable_Target =
 
-	push	OFFSET $SG132529
+	push	OFFSET $SG132535
 	push	DWORD PTR [esi]
 	call	?SK_GetProcAddress@@YAPAXPB_WPBD@Z	; SK_GetProcAddress
 	add	esp, 8
@@ -6429,7 +6429,7 @@ $LN3@SK_Input_H:
 	lea	eax, DWORD PTR [esi+156]
 	push	eax
 	push	DWORD PTR [esi+152]
-	push	OFFSET $SG132531
+	push	OFFSET $SG132537
 	push	DWORD PTR [esi]
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 $LN4@SK_Input_H:
@@ -6732,7 +6732,7 @@ $LN2@XInputSetS:
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[edi*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -6747,7 +6747,7 @@ $LN2@XInputSetS:
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -6759,8 +6759,8 @@ $LN2@XInputSetS:
 	jne	SHORT $LN3@XInputSetS
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN4@XInputSetS
-	push	OFFSET $SG132471
-	push	OFFSET $SG132472
+	push	OFFSET $SG132477
+	push	OFFSET $SG132478
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -6904,7 +6904,7 @@ $LN13@XInputSetS:
 $LN19@XInputSetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -7004,7 +7004,7 @@ _pCapabilities$ = 16					; size = 4
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[eax*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7020,7 +7020,7 @@ _pCapabilities$ = 16					; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7032,8 +7032,8 @@ _pCapabilities$ = 16					; size = 4
 	jne	SHORT $LN2@XInputGetC
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetC
-	push	OFFSET $SG132447
-	push	OFFSET $SG132448
+	push	OFFSET $SG132453
+	push	OFFSET $SG132454
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7115,7 +7115,7 @@ $LN8@XInputGetC:
 $LN11@XInputGetC:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -7214,7 +7214,7 @@ _pState$ = 12						; size = 4
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[ebx*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7229,7 +7229,7 @@ _pState$ = 12						; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7241,8 +7241,8 @@ _pState$ = 12						; size = 4
 	jne	SHORT $LN2@XInputGetS
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132420
-	push	OFFSET $SG132421
+	push	OFFSET $SG132426
+	push	OFFSET $SG132427
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7351,7 +7351,7 @@ $LN11@XInputGetS:
 $LN12@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -7558,7 +7558,7 @@ $LN2@XInputSetS:
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[edi*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7573,7 +7573,7 @@ $LN2@XInputSetS:
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7585,8 +7585,8 @@ $LN2@XInputSetS:
 	jne	SHORT $LN3@XInputSetS
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN4@XInputSetS
-	push	OFFSET $SG132396
-	push	OFFSET $SG132397
+	push	OFFSET $SG132402
+	push	OFFSET $SG132403
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7730,7 +7730,7 @@ $LN13@XInputSetS:
 $LN19@XInputSetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -7830,7 +7830,7 @@ _pBatteryInformation$ = 16				; size = 4
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[ebx*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7845,7 +7845,7 @@ _pBatteryInformation$ = 16				; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -7857,8 +7857,8 @@ _pBatteryInformation$ = 16				; size = 4
 	jne	SHORT $LN2@XInputGetB
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetB
-	push	OFFSET $SG132372
-	push	OFFSET $SG132373
+	push	OFFSET $SG132378
+	push	OFFSET $SG132379
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -7940,7 +7940,7 @@ $LN8@XInputGetB:
 $LN11@XInputGetB:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -8040,7 +8040,7 @@ _pCapabilities$ = 16					; size = 4
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[eax*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8056,7 +8056,7 @@ _pCapabilities$ = 16					; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8068,8 +8068,8 @@ _pCapabilities$ = 16					; size = 4
 	jne	SHORT $LN2@XInputGetC
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetC
-	push	OFFSET $SG132347
-	push	OFFSET $SG132348
+	push	OFFSET $SG132353
+	push	OFFSET $SG132354
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -8151,7 +8151,7 @@ $LN8@XInputGetC:
 $LN11@XInputGetC:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -8250,7 +8250,7 @@ _pState$ = 12						; size = 4
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[ebx*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8265,7 +8265,7 @@ _pState$ = 12						; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8277,8 +8277,8 @@ _pState$ = 12						; size = 4
 	jne	SHORT $LN2@XInputGetS
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132321
-	push	OFFSET $SG132322
+	push	OFFSET $SG132327
+	push	OFFSET $SG132328
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -8387,7 +8387,7 @@ $LN11@XInputGetS:
 $LN12@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -8487,7 +8487,7 @@ _pState$ = 12						; size = 4
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[ebx*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8502,7 +8502,7 @@ _pState$ = 12						; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8514,8 +8514,8 @@ _pState$ = 12						; size = 4
 	jne	SHORT $LN2@XInputGetS
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132296
-	push	OFFSET $SG132297
+	push	OFFSET $SG132302
+	push	OFFSET $SG132303
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -8624,7 +8624,7 @@ $LN11@XInputGetS:
 $LN12@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -8697,7 +8697,7 @@ _enable$ = 8						; size = 4
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	call	DWORD PTR __imp__EnterCriticalSection@4
@@ -8720,7 +8720,7 @@ _enable$ = 8						; size = 4
 	add	esp, 8
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -8924,7 +8924,7 @@ $LN2@XInputSetS:
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[edi*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8939,7 +8939,7 @@ $LN2@XInputSetS:
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -8951,8 +8951,8 @@ $LN2@XInputSetS:
 	jne	SHORT $LN3@XInputSetS
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN4@XInputSetS
-	push	OFFSET $SG132267
-	push	OFFSET $SG132268
+	push	OFFSET $SG132273
+	push	OFFSET $SG132274
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -9096,7 +9096,7 @@ $LN13@XInputSetS:
 $LN19@XInputSetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -9196,7 +9196,7 @@ _pBatteryInformation$ = 16				; size = 4
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[ebx*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -9211,7 +9211,7 @@ _pBatteryInformation$ = 16				; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -9223,8 +9223,8 @@ _pBatteryInformation$ = 16				; size = 4
 	jne	SHORT $LN2@XInputGetB
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetB
-	push	OFFSET $SG132243
-	push	OFFSET $SG132244
+	push	OFFSET $SG132249
+	push	OFFSET $SG132250
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -9306,7 +9306,7 @@ $LN8@XInputGetB:
 $LN11@XInputGetB:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -9406,7 +9406,7 @@ _pCapabilities$ = 16					; size = 4
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[eax*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -9422,7 +9422,7 @@ _pCapabilities$ = 16					; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -9434,8 +9434,8 @@ _pCapabilities$ = 16					; size = 4
 	jne	SHORT $LN2@XInputGetC
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetC
-	push	OFFSET $SG132219
-	push	OFFSET $SG132220
+	push	OFFSET $SG132225
+	push	OFFSET $SG132226
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -9517,7 +9517,7 @@ $LN8@XInputGetC:
 $LN11@XInputGetC:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -9616,7 +9616,7 @@ _pState$ = 12						; size = 4
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[ebx*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -9631,7 +9631,7 @@ _pState$ = 12						; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -9643,8 +9643,8 @@ _pState$ = 12						; size = 4
 	jne	SHORT $LN2@XInputGetS
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132194
-	push	OFFSET $SG132195
+	push	OFFSET $SG132200
+	push	OFFSET $SG132201
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -9753,7 +9753,7 @@ $LN11@XInputGetS:
 $LN12@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -9881,7 +9881,7 @@ _pState$ = 12						; size = 4
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A[ecx*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[ebx*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -9896,7 +9896,7 @@ _pState$ = 12						; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -9908,8 +9908,8 @@ _pState$ = 12						; size = 4
 	jne	SHORT $LN2@XInputGetS
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@XInputGetS
-	push	OFFSET $SG132169
-	push	OFFSET $SG132170
+	push	OFFSET $SG132175
+	push	OFFSET $SG132176
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -10018,7 +10018,7 @@ $LN11@XInputGetS:
 $LN12@XInputGetS:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -10073,7 +10073,7 @@ _enable$ = 8						; size = 4
 	push	ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -10083,7 +10083,7 @@ _enable$ = 8						; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], OFFSET ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -10116,7 +10116,7 @@ _enable$ = 8						; size = 4
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -16860,7 +16860,7 @@ _TEXT	SEGMENT
 ; _this$ = ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [eax]
@@ -16899,7 +16899,7 @@ __Mtx$ = 8						; size = 4
 	mov	DWORD PTR [esi], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__EnterCriticalSection@4
@@ -17131,7 +17131,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR [edi+500], 0
 	movups	XMMWORD PTR [edi+504], xmm0
 
-; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 281  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	movq	QWORD PTR [edi+520], xmm0
@@ -17157,65 +17157,65 @@ __$EHRec$ = -12						; size = 12
 	movq	QWORD PTR [edi+664], xmm0
 	call	??2@YAPAXI@Z				; operator new
 
-; 281  :   {
-; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 282  :   {
+; 283  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	mov	esi, DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 	add	esp, 4
 
-; 258  :     cs_ = pCS;
+; 259  :     cs_ = pCS;
 
 	mov	DWORD PTR [edi+672], eax
 
-; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 283  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	9000					; 00002328H
 	push	eax
 	call	esi
 
-; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 281  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 258  :     cs_ = pCS;
+; 259  :     cs_ = pCS;
 
 	mov	DWORD PTR [edi+676], eax
 
-; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 283  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	9000					; 00002328H
 	push	eax
 	call	esi
 
-; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 281  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 258  :     cs_ = pCS;
+; 259  :     cs_ = pCS;
 
 	mov	DWORD PTR [edi+680], eax
 
-; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 283  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	9000					; 00002328H
 	push	eax
 	call	esi
 
-; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 281  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 258  :     cs_ = pCS;
+; 259  :     cs_ = pCS;
 
 	mov	DWORD PTR [edi+684], eax
 
-; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 283  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	9000					; 00002328H
 	push	eax
@@ -17396,18 +17396,18 @@ _TEXT	SEGMENT
 ??1SK_Thread_HybridSpinlock@@QAE@XZ PROC		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 286  :   {
+; 287  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 287  :     DeleteCriticalSection (cs_);
+; 288  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 288  :     delete cs_;
+; 289  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [esi]
@@ -17415,7 +17415,7 @@ _TEXT	SEGMENT
 	add	esp, 8
 	pop	esi
 
-; 289  :   }
+; 290  :   }
 
 	ret	0
 ??1SK_Thread_HybridSpinlock@@QAE@XZ ENDP		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock
@@ -17428,55 +17428,55 @@ _spin_count$ = 8					; size = 4
 ??0SK_Thread_HybridSpinlock@@QAE@H@Z PROC		; SK_Thread_HybridSpinlock::SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 281  :   {
+; 282  :   {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 259  :   };
-; 260  : 
-; 261  :   ~SK_Thread_CriticalSection (void) = default;
-; 262  : 
-; 263  :   void lock (void) {
-; 264  :     EnterCriticalSection (cs_);
-; 265  :   }
-; 266  : 
-; 267  :   void unlock (void)
-; 268  :   {
-; 269  :     LeaveCriticalSection (cs_);
-; 270  :   }
-; 271  : 
-; 272  : protected:
-; 273  :   CRITICAL_SECTION* cs_;
-; 274  : };
-; 275  : 
-; 276  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
-; 277  : {
-; 278  : public:
-; 279  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
-; 280  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 260  :   };
+; 261  : 
+; 262  :   ~SK_Thread_CriticalSection (void) = default;
+; 263  : 
+; 264  :   void lock (void) {
+; 265  :     EnterCriticalSection (cs_);
+; 266  :   }
+; 267  : 
+; 268  :   void unlock (void)
+; 269  :   {
+; 270  :     LeaveCriticalSection (cs_);
+; 271  :   }
+; 272  : 
+; 273  : protected:
+; 274  :   CRITICAL_SECTION* cs_;
+; 275  : };
+; 276  : 
+; 277  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
+; 278  : {
+; 279  : public:
+; 280  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
+; 281  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 
-; 281  :   {
+; 282  :   {
 
 	mov	esi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 258  :     cs_ = pCS;
+; 259  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 282  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 283  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	DWORD PTR _spin_count$[ebp]
 	push	eax
 	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 
-; 283  :   }
+; 284  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -17491,12 +17491,12 @@ _TEXT	SEGMENT
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::unlock, COMDAT
 ; _this$ = ecx
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 270  :   }
+; 271  :   }
 
 	ret	0
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::unlock
@@ -17508,12 +17508,12 @@ _TEXT	SEGMENT
 ?lock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::lock, COMDAT
 ; _this$ = ecx
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 265  :   }
+; 266  :   }
 
 	ret	0
 ?lock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::lock
@@ -17526,19 +17526,19 @@ _pCS$ = 8						; size = 4
 ??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z PROC ; SK_Thread_CriticalSection::SK_Thread_CriticalSection, COMDAT
 ; _this$ = ecx
 
-; 256  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+; 257  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 257  :   {
-; 258  :     cs_ = pCS;
+; 258  :   {
+; 259  :     cs_ = pCS;
 
 	mov	eax, DWORD PTR _pCS$[ebp]
 	mov	DWORD PTR [ecx], eax
 
-; 259  :   };
+; 260  :   };
 
 	mov	eax, ecx
 	pop	ebp
@@ -18510,7 +18510,7 @@ _iJoyID$ = 8						; size = 4
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[eax*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -18531,7 +18531,7 @@ _iJoyID$ = 8						; size = 4
 	mov	DWORD PTR _auto_lock$[ebp], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -18593,7 +18593,7 @@ $LN5@SK_XInput_:
 $LN3@SK_XInput_:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR _auto_lock$[ebp]
 	push	DWORD PTR [eax]
@@ -18712,7 +18712,7 @@ $LN2@SK_XInput_:
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A[eax*4+708]
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A[eax*4+672]
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -18733,7 +18733,7 @@ $LN2@SK_XInput_:
 	mov	DWORD PTR _auto_lock$[ebp], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -18820,7 +18820,7 @@ $LN6@SK_XInput_:
 $LN11@SK_XInput_:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	mov	ecx, DWORD PTR _auto_lock$[ebp]
 	push	DWORD PTR [ecx]
@@ -18946,7 +18946,7 @@ $LN2@SK_XInput_:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -18956,7 +18956,7 @@ $LN2@SK_XInput_:
 	mov	DWORD PTR _auto_lock$[ebp], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -19065,7 +19065,7 @@ $LN11@SK_XInput_:
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN12@SK_XInput_
-	push	OFFSET $SG132793
+	push	OFFSET $SG132799
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -19089,7 +19089,7 @@ $LN12@SK_XInput_:
 ; 1478 :       HMODULE hModXInput1_3 =
 ; 1479 :         LoadLibraryW_Original (L"XInput1_3.dll");
 
-	push	OFFSET $SG132794
+	push	OFFSET $SG132800
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 
 ; 1480 : 
@@ -19101,7 +19101,7 @@ $LN12@SK_XInput_:
 ; 1482 :       {
 ; 1483 :         pCtx->XInputGetState_Original =
 
-	push	OFFSET $SG132796
+	push	OFFSET $SG132802
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR [esi+12], eax
@@ -19130,7 +19130,7 @@ $LN3@SK_XInput_:
 ; 1496 :   {
 ; 1497 :     if (GetModuleHandle (L"XInput1_3.dll"))
 
-	push	OFFSET $SG132799
+	push	OFFSET $SG132805
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	test	eax, eax
 	je	SHORT $LN15@SK_XInput_
@@ -19143,7 +19143,7 @@ $LN15@SK_XInput_:
 ; 1499 : 
 ; 1500 :     if (GetModuleHandle (L"XInput1_4.dll"))
 
-	push	OFFSET $SG132801
+	push	OFFSET $SG132807
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	test	eax, eax
 	je	SHORT $LN16@SK_XInput_
@@ -19156,7 +19156,7 @@ $LN16@SK_XInput_:
 ; 1502 : 
 ; 1503 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
 
-	push	OFFSET $SG132803
+	push	OFFSET $SG132809
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	test	eax, eax
 	je	SHORT $LN17@SK_XInput_
@@ -19316,7 +19316,7 @@ $LN20@SK_XInput_:
 $LN31@SK_XInput_:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	mov	ecx, DWORD PTR _auto_lock$[ebp]
 	push	DWORD PTR [ecx]
@@ -19485,7 +19485,7 @@ __$EHRec$ = -12						; size = 12
 	je	$LN24@SK_Input_P
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -19495,7 +19495,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_lock$[ebp], OFFSET ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -19544,7 +19544,7 @@ $LN5@SK_Input_P:
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN6@SK_Input_P
-	push	OFFSET $SG132835
+	push	OFFSET $SG132841
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	mov	al, BYTE PTR ?tests@?6??SK_Input_PreHookXInput@@YAXXZ@4PAUsk_import_test_s@@A+4
@@ -19577,7 +19577,7 @@ $LN9@SK_Input_P:
 ; 1598 : 
 ; 1599 :     if (GetModuleHandle (L"XInput1_3.dll"))
 
-	push	OFFSET $SG132840
+	push	OFFSET $SG132846
 	call	esi
 	test	eax, eax
 	je	SHORT $LN10@SK_Input_P
@@ -19590,7 +19590,7 @@ $LN10@SK_Input_P:
 ; 1601 : 
 ; 1602 :     if (GetModuleHandle (L"XInput1_4.dll"))
 
-	push	OFFSET $SG132842
+	push	OFFSET $SG132848
 	call	esi
 	test	eax, eax
 	je	SHORT $LN11@SK_Input_P
@@ -19603,7 +19603,7 @@ $LN11@SK_Input_P:
 ; 1604 :     
 ; 1605 :     if (GetModuleHandle (L"XInput9_1_0.dll"))
 
-	push	OFFSET $SG132844
+	push	OFFSET $SG132850
 	call	esi
 	pop	esi
 	test	eax, eax
@@ -19615,7 +19615,7 @@ $LN11@SK_Input_P:
 $LN12@SK_Input_P:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -19673,7 +19673,7 @@ __$EHRec$ = -12						; size = 12
 	je	$LN19@SK_Input_H
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -19683,7 +19683,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_lock$[ebp], OFFSET ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -19712,7 +19712,7 @@ __$EHRec$ = -12						; size = 12
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG132580
+	push	OFFSET $SG132586
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -19723,8 +19723,8 @@ $LN4@SK_Input_H:
 ; 1006 :     pCtx->wszModuleName                      = L"XInput9_1_0.dll";
 ; 1007 :     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
 
-	push	OFFSET $SG132581
-	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+448, OFFSET $SG132581
+	push	OFFSET $SG132587
+	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+448, OFFSET $SG132587
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
 ; 1014 :     SK_Input_HookXInputContext (pCtx);
@@ -19763,7 +19763,7 @@ $LN4@SK_Input_H:
 $LN5@SK_Input_H:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -19821,7 +19821,7 @@ __$EHRec$ = -12						; size = 12
 	je	$LN19@SK_Input_H
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -19831,7 +19831,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_lock$[ebp], OFFSET ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -19860,7 +19860,7 @@ __$EHRec$ = -12						; size = 12
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG132550
+	push	OFFSET $SG132556
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -19871,8 +19871,8 @@ $LN4@SK_Input_H:
 ; 937  :     pCtx->wszModuleName                      = L"XInput1_4.dll";
 ; 938  :     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
 
-	push	OFFSET $SG132551
-	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+224, OFFSET $SG132551
+	push	OFFSET $SG132557
+	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+224, OFFSET $SG132557
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
 ; 946  :     SK_Input_HookXInputContext (pCtx);
@@ -19912,7 +19912,7 @@ $LN4@SK_Input_H:
 $LN5@SK_Input_H:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -19970,7 +19970,7 @@ __$EHRec$ = -12						; size = 12
 	je	$LN19@SK_Input_H
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -19980,7 +19980,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _auto_lock$[ebp], OFFSET ?xinput_ctx@@3USK_XInputContext@@A+672
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 264  :     EnterCriticalSection (cs_);
+; 265  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\input\xinput_core.cpp
@@ -20009,7 +20009,7 @@ __$EHRec$ = -12						; size = 12
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG132565
+	push	OFFSET $SG132571
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -20020,8 +20020,8 @@ $LN4@SK_Input_H:
 ; 972  :     pCtx->wszModuleName                      = L"XInput1_3.dll";
 ; 973  :     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
 
-	push	OFFSET $SG132566
-	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A, OFFSET $SG132566
+	push	OFFSET $SG132572
+	mov	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A, OFFSET $SG132572
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
 ; 981  :     SK_Input_HookXInputContext (pCtx);
@@ -20061,7 +20061,7 @@ $LN4@SK_Input_H:
 $LN5@SK_Input_H:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     LeaveCriticalSection (cs_);
+; 270  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?xinput_ctx@@3USK_XInputContext@@A+672
 	call	DWORD PTR __imp__LeaveCriticalSection@4

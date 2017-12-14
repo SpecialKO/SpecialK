@@ -11,6 +11,7 @@ INCLUDELIB OLDNAMES
 
 PUBLIC	_IID_IAxWinAmbientDispatchEx
 PUBLIC	_IID_IInternalConnection
+PUBLIC	?__SK_RunDLL_Bypass@@3_NA			; __SK_RunDLL_Bypass
 PUBLIC	?chDirSep@ATL@@3_WB				; ATL::chDirSep
 PUBLIC	?chRightBracket@ATL@@3_WB			; ATL::chRightBracket
 PUBLIC	?chLeftBracket@ATL@@3_WB			; ATL::chLeftBracket
@@ -26,16 +27,15 @@ PUBLIC	?szNoRemove@ATL@@3QB_WB				; ATL::szNoRemove
 PUBLIC	?szDelete@ATL@@3QB_WB				; ATL::szDelete
 PUBLIC	_CLSID_Registrar
 PUBLIC	_IID_IRegistrar
-PUBLIC	?__SK_base_img_addr@@3PAXA			; __SK_base_img_addr
-PUBLIC	?__SK_end_img_addr@@3PAXA			; __SK_end_img_addr
 PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
 PUBLIC	_IID_IDocHostUIHandlerDispatch
 PUBLIC	_IID_IAxWinHostWindow
-PUBLIC	?__SK_RunDLL_Bypass@@3_NA			; __SK_RunDLL_Bypass
 PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
 PUBLIC	_IID_IAxWinHostWindowLic
 PUBLIC	_IID_IAxWinAmbientDispatch
 PUBLIC	_LIBID_ATLLib
+PUBLIC	?__SK_base_img_addr@@3PAXA			; __SK_base_img_addr
+PUBLIC	?__SK_end_img_addr@@3PAXA			; __SK_end_img_addr
 PUBLIC	___pobjMapEntryFirst
 PUBLIC	___pobjMapEntryLast
 PUBLIC	?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA	; ATL::_pPerfRegFunc
@@ -43,15 +43,11 @@ PUBLIC	?_pPerfUnRegFunc@ATL@@3P6AJXZA			; ATL::_pPerfUnRegFunc
 PUBLIC	?_AtlRegisterPerUser@ATL@@3_NA			; ATL::_AtlRegisterPerUser
 PUBLIC	?_pModule@ATL@@3PAVCComModule@1@A		; ATL::_pModule
 _BSS	SEGMENT
-?__SK_base_img_addr@@3PAXA DD 01H DUP (?)		; __SK_base_img_addr
-?__SK_end_img_addr@@3PAXA DD 01H DUP (?)		; __SK_end_img_addr
+?__SK_RunDLL_Bypass@@3_NA DB 01H DUP (?)		; __SK_RunDLL_Bypass
 _BSS	ENDS
 ;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
 _BSS	SEGMENT
 ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A DD 01H DUP (?) ; ATL::_pAtlAutoThreadModule
-_BSS	ENDS
-_BSS	SEGMENT
-?__SK_RunDLL_Bypass@@3_NA DB 01H DUP (?)		; __SK_RunDLL_Bypass
 _BSS	ENDS
 ;	COMDAT ?_pAtlModule@ATL@@3PAVCAtlModule@1@A
 _BSS	SEGMENT
@@ -63,7 +59,8 @@ _BSS	SEGMENT
 ?_tableInitialized@@3_NA DB 01H DUP (?)			; _tableInitialized
 	ALIGN	4
 
-?append_func@@3P6AIIPBXI@ZA DD 01H DUP (?)		; append_func
+?__SK_base_img_addr@@3PAXA DD 01H DUP (?)		; __SK_base_img_addr
+?__SK_end_img_addr@@3PAXA DD 01H DUP (?)		; __SK_end_img_addr
 _BSS	ENDS
 ;	COMDAT ?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA
 _BSS	SEGMENT
@@ -76,6 +73,9 @@ _BSS	ENDS
 ;	COMDAT ?_AtlRegisterPerUser@ATL@@3_NA
 _BSS	SEGMENT
 ?_AtlRegisterPerUser@ATL@@3_NA DB 01H DUP (?)		; ATL::_AtlRegisterPerUser
+_BSS	ENDS
+_BSS	SEGMENT
+?append_func@@3P6AIIPBXI@ZA DD 01H DUP (?)		; append_func
 _BSS	ENDS
 ;	COMDAT ?_pModule@ATL@@3PAVCComModule@1@A
 _BSS	SEGMENT
@@ -189,35 +189,35 @@ _CLSID_Registrar DD 044ec053aH
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG180375			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG180378			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG180373		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG180376		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG180371		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG180374		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG180369		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG180372		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG180367		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG180370		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG180365		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG180368		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG180363		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG180366		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG180361		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG180364		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -526,215 +526,57 @@ _IID_IAxWinAmbientDispatchEx DD 0b2d0778bH
 	DB	0b5H
 CONST	ENDS
 CONST	SEGMENT
-$SG183301 DB	'O', 00H, 'U', 00H, 'T', 00H, '_', 00H, 'O', 00H, 'F', 00H
+$SG183304 DB	'O', 00H, 'U', 00H, 'T', 00H, '_', 00H, 'O', 00H, 'F', 00H
 	DB	'_', 00H, 'M', 00H, 'E', 00H, 'M', 00H, 'O', 00H, 'R', 00H, 'Y'
 	DB	00H, 00H, 00H
-$SG183329 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
-$SG171050 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG183332 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
+$SG171053 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG171097 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+$SG301144 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, 00H, 00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 	ORG $+1
-$SG185439 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, '.', 00H, 'e', 00H
+$SG171100 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+	ORG $+2
+$SG301151 DB	'R', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG301154 DB	'R', 00H, 'u', 00H, 'n', 00H, 'D', 00H, 'L', 00H, 'L', 00H
+	DB	'_', 00H, 00H, 00H
+$SG185451 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG185441 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, '.', 00H, 'e', 00H
+$SG185453 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG185442 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, '.', 00H, 'e', 00H
+$SG185454 DB	'R', 00H, 'T', 00H, 'S', 00H, 'S', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG171144 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG301175 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, 'e', 00H, 'n'
+	DB	00H, 'y', 00H, '.', 00H, 00H, 00H
+$SG171147 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG180361 DB	'S', 00H, 00H, 00H
-$SG180363 DB	'M', 00H, 00H, 00H
-$SG180365 DB	'D', 00H, 00H, 00H
-$SG180367 DB	'B', 00H, 00H, 00H
-$SG180369 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG180371 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG180364 DB	'S', 00H, 00H, 00H
+$SG180366 DB	'M', 00H, 00H, 00H
+$SG180368 DB	'D', 00H, 00H, 00H
+$SG180370 DB	'B', 00H, 00H, 00H
+$SG180372 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG180374 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG180373 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG180376 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG180375 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG180378 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG171191 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG171194 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG171238 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
-	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG298223 DB	'[', 00H, 'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H
-	DB	't', 00H, ' ', 00H, 'T', 00H, 'b', 00H, 'l', 00H, ']', 00H, ' '
-	DB	00H, 'A', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H, 's', 00H
-	DB	' ', 00H, 'V', 00H, 'i', 00H, 'o', 00H, 'l', 00H, 'a', 00H, 't'
-	DB	00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'A', 00H, 't', 00H
-	DB	't', 00H, 'e', 00H, 'm', 00H, 'p', 00H, 't', 00H, 'i', 00H, 'n'
-	DB	00H, 'g', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'W', 00H
-	DB	'a', 00H, 'l', 00H, 'k', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
-	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'T', 00H, 'a', 00H
-	DB	'b', 00H, 'l', 00H, 'e', 00H, '.', 00H, 00H, 00H
-	ORG $+2
-$SG298239 DB	'OpenGL32.dll', 00H
-	ORG $+3
-$SG298240 DB	'vulkan-1.dll', 00H
-	ORG $+3
-$SG298241 DB	'd3d9.dll', 00H
-	ORG $+3
-$SG298242 DB	'd3d11.dll', 00H
-	ORG $+2
-$SG298243 DB	'd3d8.dll', 00H
-	ORG $+3
-$SG298244 DB	'ddraw.dll', 00H
-	ORG $+2
-$SG298245 DB	'd3dx11_43.dll', 00H
-	ORG $+2
-$SG298246 DB	'glide.dll', 00H
-	ORG $+2
-$SG171285 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
-	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG171332 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
-	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG298311 DB	'\', 00H, 00H, 00H
-$SG298314 DB	'\', 00H, 'V', 00H, 'a', 00H, 'r', 00H, 'F', 00H, 'i', 00H
-	DB	'l', 00H, 'e', 00H, 'I', 00H, 'n', 00H, 'f', 00H, 'o', 00H, '\'
-	DB	00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's', 00H, 'l', 00H
-	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG298315 DB	'\', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'I', 00H, 'n'
-	DB	00H, 'f', 00H, 'o', 00H, '\', 00H, '%', 00H, '0', 00H, '4', 00H
-	DB	'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'x', 00H, '\', 00H, 'P'
-	DB	00H, 'r', 00H, 'o', 00H, 'd', 00H, 'u', 00H, 'c', 00H, 't', 00H
-	DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG298316 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, ' ', 00H, 'K', 00H, 00H, 00H
-$SG298350 DB	'N', 00H, '/', 00H, 'A', 00H, 00H, 00H
-$SG298352 DB	'\', 00H, 'V', 00H, 'a', 00H, 'r', 00H, 'F', 00H, 'i', 00H
-	DB	'l', 00H, 'e', 00H, 'I', 00H, 'n', 00H, 'f', 00H, 'o', 00H, '\'
-	DB	00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's', 00H, 'l', 00H
-	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG171379 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
-	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG298353 DB	'\', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'I', 00H, 'n'
-	DB	00H, 'f', 00H, 'o', 00H, '\', 00H, '%', 00H, '0', 00H, '4', 00H
-	DB	'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'x', 00H, '\', 00H, 'F'
-	DB	00H, 'i', 00H, 'l', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 's', 00H
-	DB	'c', 00H, 'r', 00H, 'i', 00H, 'p', 00H, 't', 00H, 'i', 00H, 'o'
-	DB	00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG298358 DB	00H, 00H
-	ORG $+2
-$SG298354 DB	'\', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'I', 00H, 'n'
-	DB	00H, 'f', 00H, 'o', 00H, '\', 00H, '%', 00H, '0', 00H, '4', 00H
-	DB	'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'x', 00H, '\', 00H, 'F'
-	DB	00H, 'i', 00H, 'l', 00H, 'e', 00H, 'V', 00H, 'e', 00H, 'r', 00H
-	DB	's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG298357 DB	' ', 00H, ' ', 00H, 00H, 00H
-	ORG $+2
-$SG298360 DB	' ', 00H, ' ', 00H, 00H, 00H
-	ORG $+2
-$SG171426 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
-	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG299488 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, 00H, 00H
-	ORG $+2
-$SG298421 DB	'[', 00H, ' ', 00H, 'S', 00H, 'i', 00H, 'g', 00H, ' ', 00H
-	DB	'S', 00H, 'c', 00H, 'a', 00H, 'n', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'M', 00H, 'o', 00H, 'd', 00H, 'u', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 'p', 00H, 'a', 00H, 'g', 00H, 'e', 00H, ' ', 00H, 'w'
-	DB	00H, 'a', 00H, 'l', 00H, 'k', 00H, ' ', 00H, 'r', 00H, 'e', 00H
-	DB	's', 00H, 'u', 00H, 'l', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' '
-	DB	00H, 'i', 00H, 'n', 00H, ' ', 00H, 'e', 00H, 'n', 00H, 'd', 00H
-	DB	' ', 00H, 'a', 00H, 'd', 00H, 'd', 00H, 'r', 00H, '.', 00H, ' '
-	DB	00H, 'o', 00H, 'u', 00H, 't', 00H, '-', 00H, 'o', 00H, 'f', 00H
-	DB	'-', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'g', 00H, 'e', 00H, ':'
-	DB	00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H, 00H
-$SG299489 DB	'R', 00H, 'u', 00H, 'n', 00H, 'D', 00H, 'L', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG298422 DB	'[', 00H, ' ', 00H, 'S', 00H, 'i', 00H, 'g', 00H, ' ', 00H
-	DB	'S', 00H, 'c', 00H, 'a', 00H, 'n', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'R', 00H, 'e', 00H
-	DB	's', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'c', 00H, 't', 00H, 'i'
-	DB	00H, 'n', 00H, 'g', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H
-	DB	'%', 00H, 'p', 00H, 'h', 00H, 00H, 00H
-$SG171473 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
-	DB	00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG299499 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG299501 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG299503 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG299505 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG299507 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG299509 DB	'v', 00H, 'k', 00H, '-', 00H, '1', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG299511 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG299513 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG299514 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '6', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG171520 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
-	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG171567 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG171614 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
-	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG298615 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, 00H, 00H
-	ORG $+2
-$SG298622 DB	'R', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG298625 DB	'R', 00H, 'u', 00H, 'n', 00H, 'D', 00H, 'L', 00H, 'L', 00H
-	DB	'_', 00H, 00H, 00H
-$SG171661 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG298646 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, 'e', 00H, 'n'
-	DB	00H, 'y', 00H, '.', 00H, 00H, 00H
-$SG171708 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG298727 DB	'\', 00H, 00H, 00H
-$SG298729 DB	'[', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 'n', 00H
+$SG301256 DB	'\', 00H, 00H, 00H
+$SG301258 DB	'[', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 'n', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 'n', 00H, 'i', 00H
 	DB	'n', 00H, 'g', 00H, ' ', 00H, 't', 00H, 'e', 00H, 'm', 00H, 'p'
@@ -744,72 +586,37 @@ $SG298729 DB	'[', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 'n', 00H
 	DB	'.', 00H, '.', 00H, '.', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG298731 DB	'\', 00H, 00H, 00H
-$SG171755 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
-	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG298733 DB	'%', 00H, 'z', 00H, 'u', 00H, ' ', 00H, 'f', 00H, 'i', 00H
+$SG301260 DB	'\', 00H, 00H, 00H
+$SG301262 DB	'%', 00H, 'z', 00H, 'u', 00H, ' ', 00H, 'f', 00H, 'i', 00H
 	DB	'l', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'd', 00H, 'e', 00H, 'l'
 	DB	00H, 'e', 00H, 't', 00H, 'e', 00H, 'd', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG298737 DB	' ', 00H, 00H, 00H
-$SG298745 DB	' ', 00H, 00H, 00H
-$SG298778 DB	'S', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 's', 00H, 't', 00H
+$SG301266 DB	' ', 00H, 00H, 00H
+$SG301274 DB	' ', 00H, 00H, 00H
+$SG171241 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
+	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG301307 DB	'S', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 's', 00H, 't', 00H
 	DB	'o', 00H, 'r', 00H, 'e', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'v'
 	DB	00H, 'i', 00H, 'l', 00H, 'e', 00H, 'g', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG171802 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
-	DB	00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG298779 DB	'S', 00H, 'e', 00H, 'B', 00H, 'a', 00H, 'c', 00H, 'k', 00H
+$SG301308 DB	'S', 00H, 'e', 00H, 'B', 00H, 'a', 00H, 'c', 00H, 'k', 00H
 	DB	'u', 00H, 'p', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'v', 00H, 'i'
 	DB	00H, 'l', 00H, 'e', 00H, 'g', 00H, 'e', 00H, 00H, 00H
-$SG298792 DB	'%', 00H, 's', 00H, 00H, 00H
+$SG301321 DB	'%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG298793 DB	'%', 00H, 's', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG298794 DB	'%', 00H, 's', 00H, 00H, 00H
+$SG301322 DB	'%', 00H, 's', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG301323 DB	'%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG298795 DB	'%', 00H, 's', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG298796 DB	'%', 00H, 's', 00H, 00H, 00H
+$SG301324 DB	'%', 00H, 's', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG301325 DB	'%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG298797 DB	'%', 00H, 's', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG181051 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG181052 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG181053 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
+$SG301326 DB	'%', 00H, 's', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
+$SG171288 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
+	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG181054 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG181055 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG181056 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG181057 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG181058 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG181059 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
-	ORG $+2
-$SG181060 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG181061 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG181062 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
-	DB	'b', 00H, 00H, 00H
-$SG171849 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG171854 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG298832 DB	'C', 00H, 'a', 00H, 'n', 00H, 'n', 00H, 'o', 00H, 't', 00H
+$SG301361 DB	'C', 00H, 'a', 00H, 'n', 00H, 'n', 00H, 'o', 00H, 't', 00H
 	DB	' ', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'm', 00H, 'a'
 	DB	00H, 't', 00H, 'i', 00H, 'c', 00H, 'a', 00H, 'l', 00H, 'l', 00H
 	DB	'y', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 's', 00H, 't', 00H, 'a'
@@ -821,11 +628,14 @@ $SG298832 DB	'C', 00H, 'a', 00H, 'n', 00H, 'n', 00H, 'o', 00H, 't', 00H
 	DB	'e', 00H, 'm', 00H, ' ', 00H, 'P', 00H, 'o', 00H, 'l', 00H, 'i'
 	DB	00H, 'c', 00H, 'y', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG171901 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
-	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
+$SG171335 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
+	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG171382 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
+	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG298833 DB	'Y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'c', 00H
+$SG301362 DB	'Y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'c', 00H
 	DB	'o', 00H, 'm', 00H, 'p', 00H, 'u', 00H, 't', 00H, 'e', 00H, 'r'
 	DB	00H, ' ', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'm', 00H, 'i', 00H
 	DB	's', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g'
@@ -864,26 +674,26 @@ $SG298833 DB	'Y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'c', 00H
 	DB	00H, 'l', 00H, ' ', 00H, 't', 00H, 'h', 00H, 'e', 00H, ' ', 00H
 	DB	'm', 00H, 'o', 00H, 'd', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG298835 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG301364 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 'S', 00H
 	DB	'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG298836 DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+$SG301365 DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG292773 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
+$SG295299 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
 	ORG $+2
-$SG298839 DB	'R', 00H, 'u', 00H, 'n', 00H, 'D', 00H, 'l', 00H, 'l', 00H
+$SG301368 DB	'R', 00H, 'u', 00H, 'n', 00H, 'D', 00H, 'l', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, ' '
 	DB	00H, '%', 00H, 's', 00H, ',', 00H, 'R', 00H, 'u', 00H, 'n', 00H
 	DB	'D', 00H, 'L', 00H, 'L', 00H, '_', 00H, 'R', 00H, 'e', 00H, 's'
 	DB	00H, 't', 00H, 'a', 00H, 'r', 00H, 't', 00H, 'G', 00H, 'a', 00H
 	DB	'm', 00H, 'e', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG292776 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+$SG295302 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG298862 DB	'C', 00H, 'a', 00H, 'n', 00H, 'n', 00H, 'o', 00H, 't', 00H
+$SG301391 DB	'C', 00H, 'a', 00H, 'n', 00H, 'n', 00H, 'o', 00H, 't', 00H
 	DB	' ', 00H, 'E', 00H, 'l', 00H, 'e', 00H, 'v', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, ' ', 00H, 'T', 00H, 'o', 00H, ' ', 00H, 'A', 00H
 	DB	'd', 00H, 'm', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'B', 00H, 'e'
@@ -894,7 +704,7 @@ $SG298862 DB	'C', 00H, 'a', 00H, 'n', 00H, 'n', 00H, 'o', 00H, 't', 00H
 	DB	00H, 'o', 00H, 'l', 00H, 'i', 00H, 'c', 00H, 'y', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG298863 DB	'Y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'c', 00H
+$SG301392 DB	'Y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'c', 00H
 	DB	'o', 00H, 'm', 00H, 'p', 00H, 'u', 00H, 't', 00H, 'e', 00H, 'r'
 	DB	00H, ' ', 00H, 'i', 00H, 's', 00H, ' ', 00H, 'm', 00H, 'i', 00H
 	DB	's', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g'
@@ -933,29 +743,221 @@ $SG298863 DB	'Y', 00H, 'o', 00H, 'u', 00H, 'r', 00H, ' ', 00H, 'c', 00H
 	DB	00H, 'l', 00H, ' ', 00H, 't', 00H, 'h', 00H, 'e', 00H, ' ', 00H
 	DB	'm', 00H, 'o', 00H, 'd', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG292778 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG295305 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, 00H, 00H
+$SG295307 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, 00H, 00H
 	ORG $+2
-$SG298864 DB	'R', 00H, 'u', 00H, 'n', 00H, 'D', 00H, 'l', 00H, 'l', 00H
+$SG301393 DB	'R', 00H, 'u', 00H, 'n', 00H, 'D', 00H, 'l', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, ' '
 	DB	00H, '%', 00H, 's', 00H, ',', 00H, 'R', 00H, 'u', 00H, 'n', 00H
 	DB	'D', 00H, 'L', 00H, 'L', 00H, '_', 00H, 'E', 00H, 'l', 00H, 'e'
 	DB	00H, 'v', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'M', 00H, 'e', 00H
 	DB	' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG183183 DB	'(', 00H, 'n', 00H, 'u', 00H, 'l', 00H, 'l', 00H, ')', 00H
+$SG171429 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
+	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+	ORG $+2
+$SG171476 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
+	DB	00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG171523 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
+	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
+$SG171570 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG171617 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
+	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+$SG171664 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG171711 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG300770 DB	'd3d9.dll', 00H
+	ORG $+3
+$SG300752 DB	'[', 00H, 'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H
+	DB	't', 00H, ' ', 00H, 'T', 00H, 'b', 00H, 'l', 00H, ']', 00H, ' '
+	DB	00H, 'A', 00H, 'c', 00H, 'c', 00H, 'e', 00H, 's', 00H, 's', 00H
+	DB	' ', 00H, 'V', 00H, 'i', 00H, 'o', 00H, 'l', 00H, 'a', 00H, 't'
+	DB	00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'A', 00H, 't', 00H
+	DB	't', 00H, 'e', 00H, 'm', 00H, 'p', 00H, 't', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'W', 00H
+	DB	'a', 00H, 'l', 00H, 'k', 00H, ' ', 00H, 'I', 00H, 'm', 00H, 'p'
+	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'T', 00H, 'a', 00H
+	DB	'b', 00H, 'l', 00H, 'e', 00H, '.', 00H, 00H, 00H
+	ORG $+2
+$SG300768 DB	'OpenGL32.dll', 00H
+	ORG $+3
+$SG300769 DB	'vulkan-1.dll', 00H
+	ORG $+3
+$SG300771 DB	'd3d11.dll', 00H
+	ORG $+2
+$SG300772 DB	'd3d8.dll', 00H
+	ORG $+3
+$SG300773 DB	'ddraw.dll', 00H
+	ORG $+2
+$SG300774 DB	'd3dx11_43.dll', 00H
+	ORG $+2
+$SG300775 DB	'glide.dll', 00H
+	ORG $+2
+$SG171758 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
+$SG171805 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG300840 DB	'\', 00H, 00H, 00H
+$SG300843 DB	'\', 00H, 'V', 00H, 'a', 00H, 'r', 00H, 'F', 00H, 'i', 00H
+	DB	'l', 00H, 'e', 00H, 'I', 00H, 'n', 00H, 'f', 00H, 'o', 00H, '\'
+	DB	00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's', 00H, 'l', 00H
+	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG300844 DB	'\', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'I', 00H, 'n'
+	DB	00H, 'f', 00H, 'o', 00H, '\', 00H, '%', 00H, '0', 00H, '4', 00H
+	DB	'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'x', 00H, '\', 00H, 'P'
+	DB	00H, 'r', 00H, 'o', 00H, 'd', 00H, 'u', 00H, 'c', 00H, 't', 00H
+	DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG300845 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, ' ', 00H, 'K', 00H, 00H, 00H
+$SG181054 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG181055 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG181056 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG181057 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG181058 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG181059 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG181060 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG181061 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG181062 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG181063 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG183196 DB	'(', 00H, 'n', 00H, 'u', 00H, 'l', 00H, 'l', 00H, ')', 00H
+$SG181064 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG181065 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+	DB	'b', 00H, 00H, 00H
+$SG171852 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG300879 DB	'N', 00H, '/', 00H, 'A', 00H, 00H, 00H
+$SG300881 DB	'\', 00H, 'V', 00H, 'a', 00H, 'r', 00H, 'F', 00H, 'i', 00H
+	DB	'l', 00H, 'e', 00H, 'I', 00H, 'n', 00H, 'f', 00H, 'o', 00H, '\'
+	DB	00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's', 00H, 'l', 00H
+	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG171857 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG300887 DB	00H, 00H
+	ORG $+2
+$SG300882 DB	'\', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'I', 00H, 'n'
+	DB	00H, 'f', 00H, 'o', 00H, '\', 00H, '%', 00H, '0', 00H, '4', 00H
+	DB	'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'x', 00H, '\', 00H, 'F'
+	DB	00H, 'i', 00H, 'l', 00H, 'e', 00H, 'D', 00H, 'e', 00H, 's', 00H
+	DB	'c', 00H, 'r', 00H, 'i', 00H, 'p', 00H, 't', 00H, 'i', 00H, 'o'
+	DB	00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG171904 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG300883 DB	'\', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'I', 00H, 'n'
+	DB	00H, 'f', 00H, 'o', 00H, '\', 00H, '%', 00H, '0', 00H, '4', 00H
+	DB	'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'x', 00H, '\', 00H, 'F'
+	DB	00H, 'i', 00H, 'l', 00H, 'e', 00H, 'V', 00H, 'e', 00H, 'r', 00H
+	DB	's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG300886 DB	' ', 00H, ' ', 00H, 00H, 00H
+	ORG $+2
+$SG300889 DB	' ', 00H, ' ', 00H, 00H, 00H
+	ORG $+2
+$SG183186 DB	'(', 00H, 'n', 00H, 'u', 00H, 'l', 00H, 'l', 00H, ')', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG171948 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG171951 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG171995 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG300950 DB	'[', 00H, ' ', 00H, 'S', 00H, 'i', 00H, 'g', 00H, ' ', 00H
+	DB	'S', 00H, 'c', 00H, 'a', 00H, 'n', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'M', 00H, 'o', 00H, 'd', 00H, 'u', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 'p', 00H, 'a', 00H, 'g', 00H, 'e', 00H, ' ', 00H, 'w'
+	DB	00H, 'a', 00H, 'l', 00H, 'k', 00H, ' ', 00H, 'r', 00H, 'e', 00H
+	DB	's', 00H, 'u', 00H, 'l', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' '
+	DB	00H, 'i', 00H, 'n', 00H, ' ', 00H, 'e', 00H, 'n', 00H, 'd', 00H
+	DB	' ', 00H, 'a', 00H, 'd', 00H, 'd', 00H, 'r', 00H, '.', 00H, ' '
+	DB	00H, 'o', 00H, 'u', 00H, 't', 00H, '-', 00H, 'o', 00H, 'f', 00H
+	DB	'-', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'g', 00H, 'e', 00H, ':'
+	DB	00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H, 00H
+$SG302017 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, 00H, 00H
+	ORG $+2
+$SG300951 DB	'[', 00H, ' ', 00H, 'S', 00H, 'i', 00H, 'g', 00H, ' ', 00H
+	DB	'S', 00H, 'c', 00H, 'a', 00H, 'n', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'R', 00H, 'e', 00H
+	DB	's', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'c', 00H, 't', 00H, 'i'
+	DB	00H, 'n', 00H, 'g', 00H, ' ', 00H, 't', 00H, 'o', 00H, ' ', 00H
+	DB	'%', 00H, 'p', 00H, 'h', 00H, 00H, 00H
+$SG183199 DB	'(', 00H, 'n', 00H, 'u', 00H, 'l', 00H, 'l', 00H, ')', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG302018 DB	'R', 00H, 'u', 00H, 'n', 00H, 'D', 00H, 'L', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG302028 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG302030 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG302032 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG302034 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG302036 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG302038 DB	'v', 00H, 'k', 00H, '-', 00H, '1', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG302040 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG302042 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG302043 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '6', 00H, '4', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG171998 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, 00H, 00H
-$SG170979 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG170982 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
 CONST	ENDS
@@ -1167,6 +1169,7 @@ PUBLIC	?SK_FixSlashesA@@YAXPAD@Z			; SK_FixSlashesA
 PUBLIC	?SK_SetNormalFileAttribs@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; SK_SetNormalFileAttribs
 PUBLIC	?SK_MoveFileNoFail@@YAXPB_W0@Z			; SK_MoveFileNoFail
 PUBLIC	?SK_FullCopy@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0@Z ; SK_FullCopy
+PUBLIC	?SK_File_SetHidden@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_File_SetHidden
 PUBLIC	?SK_GetSystemDirectory@@YAPB_WXZ		; SK_GetSystemDirectory
 PUBLIC	?SK_GetDLLConfig@@YAPAUiSK_INI@@XZ		; SK_GetDLLConfig
 PUBLIC	?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z	; SK_GetCallingDLL
@@ -1724,6 +1727,7 @@ EXTRN	?Log@iSK_Logger@@UAAXQB_WZZ:PROC		; iSK_Logger::Log
 EXTRN	?Shutdown@DXGI@SK@@YA_NXZ:PROC			; SK::DXGI::Shutdown
 EXTRN	?Shutdown@D3D9@SK@@YA_NXZ:PROC			; SK::D3D9::Shutdown
 EXTRN	?Shutdown@OpenGL@SK@@YA_NXZ:PROC		; SK::OpenGL::Shutdown
+EXTRN	?Shutdown@DI8@SK@@YA_NXZ:PROC			; SK::DI8::Shutdown
 EXTRN	?SK_GetBackend@@YGPB_WXZ:PROC			; SK_GetBackend
 EXTRN	?contains@SK_ModuleAddrMap@@QAE_NPAXPAPAUHINSTANCE__@@@Z:PROC ; SK_ModuleAddrMap::contains
 EXTRN	?insert@SK_ModuleAddrMap@@QAEXPAXPAUHINSTANCE__@@@Z:PROC ; SK_ModuleAddrMap::insert
@@ -1911,28 +1915,28 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A
 _DATA	SEGMENT
-?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A DD FLAT:$SG298239 ; `SK_TestRenderImports'::`2'::tests
+?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A DD FLAT:$SG300768 ; `SK_TestRenderImports'::`2'::tests
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG298240
+	DD	FLAT:$SG300769
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG298241
+	DD	FLAT:$SG300770
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG298242
+	DD	FLAT:$SG300771
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG298243
+	DD	FLAT:$SG300772
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG298244
+	DD	FLAT:$SG300773
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG298245
+	DD	FLAT:$SG300774
 	DB	00H
 	ORG $+3
-	DD	FLAT:$SG298246
+	DD	FLAT:$SG300775
 	DB	00H
 	ORG $+3
 _DATA	ENDS
@@ -3910,7 +3914,7 @@ $LL2@Unique_unc:
 	mov	dl, BYTE PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2936 :         return (a == '\\' || a == '/');
+; 2956 :         return (a == '\\' || a == '/');
 
 	cmp	bl, 92					; 0000005cH
 	je	SHORT $LN18@Unique_unc
@@ -3969,7 +3973,7 @@ $LL5@Unique_unc:
 	mov	al, BYTE PTR [esi]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2936 :         return (a == '\\' || a == '/');
+; 2956 :         return (a == '\\' || a == '/');
 
 	cmp	bl, 92					; 0000005cH
 	je	SHORT $LN30@Unique_unc
@@ -4110,7 +4114,7 @@ $LL2@Unique_unc:
 	movzx	edx, WORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2898 :         return (a == L'\\' || a == L'/');
+; 2918 :         return (a == L'\\' || a == L'/');
 
 	cmp	esi, 92					; 0000005cH
 	je	SHORT $LN18@Unique_unc
@@ -4171,7 +4175,7 @@ $LL5@Unique_unc:
 	mov	esi, ebx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2898 :         return (a == L'\\' || a == L'/');
+; 2918 :         return (a == L'\\' || a == L'/');
 
 	cmp	edi, 92					; 0000005cH
 	je	SHORT $LN30@Unique_unc
@@ -6345,7 +6349,7 @@ _TEXT	ENDS
 text$di	SEGMENT
 ??__ESK_HostApp@@YAXXZ PROC				; `dynamic initializer for 'SK_HostApp'', COMDAT
 
-; 3037 : SK_HostAppUtil SK_HostApp;
+; 3057 : SK_HostAppUtil SK_HostApp;
 
 	mov	ecx, OFFSET ?SK_HostApp@@3VSK_HostAppUtil@@A ; SK_HostApp
 	jmp	??0SK_HostAppUtil@@QAE@XZ		; SK_HostAppUtil::SK_HostAppUtil
@@ -6809,13 +6813,13 @@ _a$ = 8							; size = 1
 ??R<lambda_63de45287bdf6a0ff4eac60dbe8f57ba>@@QBE_ND@Z PROC ; <lambda_63de45287bdf6a0ff4eac60dbe8f57ba>::operator(), COMDAT
 ; _this$ = ecx
 
-; 2935 :       auto IsSlash = [](char a) -> bool {
+; 2955 :       auto IsSlash = [](char a) -> bool {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2936 :         return (a == '\\' || a == '/');
+; 2956 :         return (a == '\\' || a == '/');
 
 	mov	al, BYTE PTR _a$[ebp]
 	cmp	al, 92					; 0000005cH
@@ -6824,17 +6828,17 @@ _a$ = 8							; size = 1
 	je	SHORT $LN3@operator
 	xor	al, al
 
-; 2937 :       };
+; 2957 :       };
 
 	pop	ebp
 	ret	4
 $LN3@operator:
 
-; 2936 :         return (a == '\\' || a == '/');
+; 2956 :         return (a == '\\' || a == '/');
 
 	mov	al, 1
 
-; 2937 :       };
+; 2957 :       };
 
 	pop	ebp
 	ret	4
@@ -6849,13 +6853,13 @@ _b$ = 12						; size = 1
 ??Rtest_slashes@?1??SK_StripTrailingSlashesA@@YAXPAD@Z@QBE_NDD@Z PROC ; `SK_StripTrailingSlashesA'::`2'::test_slashes::operator(), COMDAT
 ; _this$ = ecx
 
-; 2934 :     {
+; 2954 :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2936 :         return (a == '\\' || a == '/');
+; 2956 :         return (a == '\\' || a == '/');
 
 	mov	al, BYTE PTR _a$[ebp]
 	cmp	al, 92					; 0000005cH
@@ -6870,25 +6874,25 @@ $LN7@operator:
 	je	SHORT $LN11@operator
 $LN3@operator:
 
-; 2937 :       };
-; 2938 : 
-; 2939 :       return IsSlash (a) && IsSlash (b);
+; 2957 :       };
+; 2958 : 
+; 2959 :       return IsSlash (a) && IsSlash (b);
 
 	xor	al, al
 
-; 2940 :     }
+; 2960 :     }
 
 	pop	ebp
 	ret	8
 $LN11@operator:
 
-; 2937 :       };
-; 2938 : 
-; 2939 :       return IsSlash (a) && IsSlash (b);
+; 2957 :       };
+; 2958 : 
+; 2959 :       return IsSlash (a) && IsSlash (b);
 
 	mov	al, 1
 
-; 2940 :     }
+; 2960 :     }
 
 	pop	ebp
 	ret	8
@@ -7352,13 +7356,13 @@ _a$ = 8							; size = 2
 ??R<lambda_ea44f988a9b60e4ff8e024aa6e86941e>@@QBE_N_W@Z PROC ; <lambda_ea44f988a9b60e4ff8e024aa6e86941e>::operator(), COMDAT
 ; _this$ = ecx
 
-; 2897 :       auto IsSlash = [](wchar_t a) -> bool {
+; 2917 :       auto IsSlash = [](wchar_t a) -> bool {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2898 :         return (a == L'\\' || a == L'/');
+; 2918 :         return (a == L'\\' || a == L'/');
 
 	mov	ax, WORD PTR _a$[ebp]
 	cmp	ax, 92					; 0000005cH
@@ -7367,17 +7371,17 @@ _a$ = 8							; size = 2
 	je	SHORT $LN3@operator
 	xor	al, al
 
-; 2899 :       };
+; 2919 :       };
 
 	pop	ebp
 	ret	4
 $LN3@operator:
 
-; 2898 :         return (a == L'\\' || a == L'/');
+; 2918 :         return (a == L'\\' || a == L'/');
 
 	mov	al, 1
 
-; 2899 :       };
+; 2919 :       };
 
 	pop	ebp
 	ret	4
@@ -7392,13 +7396,13 @@ _b$ = 12						; size = 2
 ??Rtest_slashes@?1??SK_StripTrailingSlashesW@@YAXPA_W@Z@QBE_N_W1@Z PROC ; `SK_StripTrailingSlashesW'::`2'::test_slashes::operator(), COMDAT
 ; _this$ = ecx
 
-; 2896 :     {
+; 2916 :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2898 :         return (a == L'\\' || a == L'/');
+; 2918 :         return (a == L'\\' || a == L'/');
 
 	mov	ax, WORD PTR _a$[ebp]
 	cmp	ax, 92					; 0000005cH
@@ -7413,25 +7417,25 @@ $LN7@operator:
 	je	SHORT $LN11@operator
 $LN3@operator:
 
-; 2899 :       };
-; 2900 : 
-; 2901 :       return IsSlash (a) && IsSlash (b);
+; 2919 :       };
+; 2920 : 
+; 2921 :       return IsSlash (a) && IsSlash (b);
 
 	xor	al, al
 
-; 2902 :     }
+; 2922 :     }
 
 	pop	ebp
 	ret	8
 $LN11@operator:
 
-; 2899 :       };
-; 2900 : 
-; 2901 :       return IsSlash (a) && IsSlash (b);
+; 2919 :       };
+; 2920 : 
+; 2921 :       return IsSlash (a) && IsSlash (b);
 
 	mov	al, 1
 
-; 2902 :     }
+; 2922 :     }
 
 	pop	ebp
 	ret	8
@@ -7577,7 +7581,7 @@ _dir$1$ = -1						; size = 1
 _wszLongFileName$ = 8					; size = 4
 ?SK_Generate8Dot3@@YA_NPB_W@Z PROC			; SK_Generate8Dot3
 
-; 2574 : {
+; 2594 : {
 
 	npad	2
 	push	ebp
@@ -7586,7 +7590,7 @@ _wszLongFileName$ = 8					; size = 4
 	push	ebx
 	push	esi
 
-; 2575 :   wchar_t* wszFileName  = _wcsdup (wszLongFileName);
+; 2595 :   wchar_t* wszFileName  = _wcsdup (wszLongFileName);
 
 	mov	esi, DWORD PTR __imp___wcsdup
 	push	edi
@@ -7595,21 +7599,21 @@ _wszLongFileName$ = 8					; size = 4
 	call	esi
 	mov	ebx, eax
 
-; 2576 :   wchar_t* wszFileName1 = _wcsdup (wszLongFileName);
+; 2596 :   wchar_t* wszFileName1 = _wcsdup (wszLongFileName);
 
 	push	edi
 	mov	DWORD PTR _wszFileName$1$[ebp], ebx
 	call	esi
 	xorps	xmm0, xmm0
 
-; 2577 : 
-; 2578 :   wchar_t  wsz8     [11] = { }; // One non-nul for overflow
+; 2597 : 
+; 2598 :   wchar_t  wsz8     [11] = { }; // One non-nul for overflow
 
 	mov	DWORD PTR _wsz8$[ebp+16], 0
 	mov	edi, eax
 	mov	WORD PTR _wsz8$[ebp+20], 0
 
-; 2582 :   while (SK_FileHasSpaces (wszFileName))
+; 2602 :   while (SK_FileHasSpaces (wszFileName))
 
 	push	ebx
 	mov	DWORD PTR _wszFileName1$1$[ebp], edi
@@ -7625,22 +7629,22 @@ $LN59@SK_Generat:
 	je	$LN3@SK_Generat
 	mov	edi, DWORD PTR __imp__GetFileAttributesW@4
 
-; 2583 :   {
-; 2584 :     ModifyPrivilege (SE_RESTORE_NAME, TRUE);
+; 2603 :   {
+; 2604 :     ModifyPrivilege (SE_RESTORE_NAME, TRUE);
 
 	push	1
-	push	OFFSET $SG298778
+	push	OFFSET $SG301307
 	call	?ModifyPrivilege@@YAJPB_WH@Z		; ModifyPrivilege
 
-; 2585 :     ModifyPrivilege (SE_BACKUP_NAME,  TRUE);
+; 2605 :     ModifyPrivilege (SE_BACKUP_NAME,  TRUE);
 
 	push	1
-	push	OFFSET $SG298779
+	push	OFFSET $SG301308
 	call	?ModifyPrivilege@@YAJPB_WH@Z		; ModifyPrivilege
 	add	esp, 16					; 00000010H
 
-; 2586 : 
-; 2587 :     CHandle hFile (
+; 2606 : 
+; 2607 :     CHandle hFile (
 
 	push	0
 	push	ebx
@@ -7660,69 +7664,69 @@ $LN59@SK_Generat:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2606 :       GetFileAttributes (wszFileName);
+; 2626 :       GetFileAttributes (wszFileName);
 
 	push	ebx
 	cmp	esi, -1
 	je	$LN43@SK_Generat
 	call	edi
 
-; 2607 : 
-; 2608 :     if (dwAttrib == INVALID_FILE_ATTRIBUTES)
+; 2627 : 
+; 2628 :     if (dwAttrib == INVALID_FILE_ATTRIBUTES)
 
 	cmp	eax, -1
 	je	$LN44@SK_Generat
 
-; 2612 : 
-; 2613 :       return false;
-; 2614 :     }
-; 2615 : 
-; 2616 :     bool dir = false;
-; 2617 : 
-; 2618 :     if (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)
+; 2632 : 
+; 2633 :       return false;
+; 2634 :     }
+; 2635 : 
+; 2636 :     bool dir = false;
+; 2637 : 
+; 2638 :     if (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)
 
 	test	al, 16					; 00000010H
 	je	SHORT $LN8@SK_Generat
 
-; 2619 :     {
-; 2620 :       dir = true;
+; 2639 :     {
+; 2640 :       dir = true;
 
 	mov	BYTE PTR _dir$1$[ebp], 1
 
-; 2621 :     }
-; 2622 : 
-; 2623 :     else
+; 2641 :     }
+; 2642 : 
+; 2643 :     else
 
 	jmp	$LN9@SK_Generat
 $LN8@SK_Generat:
 
-; 2624 :     {
-; 2625 :       dir = false;
-; 2626 : 
-; 2627 :       const wchar_t* pwszExt =
-; 2628 :         PathFindExtension (wszFileName);
+; 2644 :     {
+; 2645 :       dir = false;
+; 2646 : 
+; 2647 :       const wchar_t* pwszExt =
+; 2648 :         PathFindExtension (wszFileName);
 
 	push	ebx
 	mov	BYTE PTR _dir$1$[ebp], 0
 	call	DWORD PTR __imp__PathFindExtensionW@4
 	mov	edi, eax
 
-; 2629 : 
-; 2630 :       if (*pwszExt == L'.')
+; 2649 : 
+; 2650 :       if (*pwszExt == L'.')
 
 	cmp	WORD PTR [edi], 46			; 0000002eH
 	jne	SHORT $LN13@SK_Generat
 
-; 2631 :       {
-; 2632 :         if (*CharNextW (pwszExt) != L'\0')
+; 2651 :       {
+; 2652 :         if (*CharNextW (pwszExt) != L'\0')
 
 	push	edi
 	call	DWORD PTR __imp__CharNextW@4
 	cmp	WORD PTR [eax], 0
 	je	SHORT $LN13@SK_Generat
 
-; 2633 :         {
-; 2634 :           if (*CharNextW (CharNextW (pwszExt)) != L'\0')
+; 2653 :         {
+; 2654 :           if (*CharNextW (CharNextW (pwszExt)) != L'\0')
 
 	push	edi
 	call	DWORD PTR __imp__CharNextW@4
@@ -7731,8 +7735,8 @@ $LN8@SK_Generat:
 	cmp	WORD PTR [eax], 0
 	je	SHORT $LN13@SK_Generat
 
-; 2635 :           {
-; 2636 :             if (*CharNextW (CharNextW (CharNextW (pwszExt))) != L'\0')
+; 2655 :           {
+; 2656 :             if (*CharNextW (CharNextW (CharNextW (pwszExt))) != L'\0')
 
 	push	edi
 	call	DWORD PTR __imp__CharNextW@4
@@ -7743,9 +7747,9 @@ $LN8@SK_Generat:
 	cmp	WORD PTR [eax], 0
 	je	SHORT $LN13@SK_Generat
 
-; 2637 :             {
-; 2638 :               // DOT3 Satisfied
-; 2639 :               *CharNextW (CharNextW (CharNextW (CharNextW (pwszExt)))) = L'\0';
+; 2657 :             {
+; 2658 :               // DOT3 Satisfied
+; 2659 :               *CharNextW (CharNextW (CharNextW (CharNextW (pwszExt)))) = L'\0';
 
 	push	edi
 	call	DWORD PTR __imp__CharNextW@4
@@ -7756,8 +7760,8 @@ $LN8@SK_Generat:
 	push	eax
 	call	DWORD PTR __imp__CharNextW@4
 
-; 2640 : 
-; 2641 :               wcsncpy (wszDot3, CharNextW (pwszExt), 3);
+; 2660 : 
+; 2661 :               wcsncpy (wszDot3, CharNextW (pwszExt), 3);
 
 	push	3
 	xor	ecx, ecx
@@ -7771,36 +7775,36 @@ $LN8@SK_Generat:
 	add	esp, 12					; 0000000cH
 $LN13@SK_Generat:
 
-; 2642 :             }
-; 2643 :           }
-; 2644 :         }
-; 2645 :       }
-; 2646 : 
-; 2647 :       PathRemoveExtension (wszFileName);
+; 2662 :             }
+; 2663 :           }
+; 2664 :         }
+; 2665 :       }
+; 2666 : 
+; 2667 :       PathRemoveExtension (wszFileName);
 
 	push	ebx
 	call	DWORD PTR __imp__PathRemoveExtensionW@4
 $LN9@SK_Generat:
 
-; 2648 :     }
-; 2649 : 
-; 2650 :     PathStripPath       (wszFileName);
+; 2668 :     }
+; 2669 : 
+; 2670 :     PathStripPath       (wszFileName);
 
 	push	ebx
 	call	DWORD PTR __imp__PathStripPathW@4
 
-; 2651 :     PathRemoveBackslash (wszFileName);
+; 2671 :     PathRemoveBackslash (wszFileName);
 
 	push	ebx
 	call	DWORD PTR __imp__PathRemoveBackslashW@4
 
-; 2652 :     PathRemoveBlanks    (wszFileName);
+; 2672 :     PathRemoveBlanks    (wszFileName);
 
 	push	ebx
 	call	DWORD PTR __imp__PathRemoveBlanksW@4
 
-; 2653 : 
-; 2654 :     wcsncpy (wsz8, wszFileName, 10);
+; 2673 : 
+; 2674 :     wcsncpy (wsz8, wszFileName, 10);
 
 	push	10					; 0000000aH
 	lea	eax, DWORD PTR _wsz8$[ebp]
@@ -7808,10 +7812,10 @@ $LN9@SK_Generat:
 	push	eax
 	call	DWORD PTR __imp__wcsncpy
 
-; 2655 : 
-; 2656 :     wchar_t idx = 0;
-; 2657 : 
-; 2658 :     if (wcslen (wsz8) > 8)
+; 2675 : 
+; 2676 :     wchar_t idx = 0;
+; 2677 : 
+; 2678 :     if (wcslen (wsz8) > 8)
 
 	lea	ecx, DWORD PTR _wsz8$[ebp]
 	add	esp, 12					; 0000000cH
@@ -7828,25 +7832,25 @@ $LL56@SK_Generat:
 	cmp	ecx, 8
 	jbe	$LN14@SK_Generat
 
-; 2659 :     {
-; 2660 :       wsz8 [6] = L'~';
-; 2661 :       wsz8 [7] = L'0';
-; 2662 :       wsz8 [8] = L'\0';
+; 2679 :     {
+; 2680 :       wsz8 [6] = L'~';
+; 2681 :       wsz8 [7] = L'0';
+; 2682 :       wsz8 [8] = L'\0';
 
 	xor	eax, eax
 	mov	DWORD PTR _wsz8$[ebp+12], 3145854	; 0030007eH
 
-; 2663 : 
-; 2664 :       _swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
+; 2683 : 
+; 2684 :       _swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
 
 	cmp	BYTE PTR _dir$1$[ebp], 0
-	mov	ecx, OFFSET $SG298793
+	mov	ecx, OFFSET $SG301322
 	mov	WORD PTR _wsz8$[ebp+16], ax
 	lea	eax, DWORD PTR _wszDot3$[ebp]
 	push	eax
 	lea	eax, DWORD PTR _wsz8$[ebp]
 	push	eax
-	mov	eax, OFFSET $SG298792
+	mov	eax, OFFSET $SG301321
 	cmove	eax, ecx
 	push	eax
 	lea	eax, DWORD PTR _wsz8Dot3$[ebp]
@@ -7854,8 +7858,8 @@ $LL56@SK_Generat:
 	call	__swprintf
 	add	esp, 16					; 00000010H
 
-; 2665 : 
-; 2666 :       while ((! SetFileShortNameW (hFile, wsz8Dot3)) && idx < 9)
+; 2685 : 
+; 2686 :       while ((! SetFileShortNameW (hFile, wsz8Dot3)) && idx < 9)
 
 	lea	eax, DWORD PTR _wsz8Dot3$[ebp]
 	push	eax
@@ -7868,17 +7872,17 @@ $LL4@SK_Generat:
 	cmp	di, 9
 	jae	SHORT $LN57@SK_Generat
 
-; 2667 :       {
-; 2668 :         wsz8 [6] = L'~';
+; 2687 :       {
+; 2688 :         wsz8 [6] = L'~';
 
 	mov	eax, 126				; 0000007eH
 
-; 2669 :         wsz8 [7] = L'0' + idx++;
-; 2670 :         wsz8 [8] = L'\0';
-; 2671 : 
-; 2672 :         _swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
+; 2689 :         wsz8 [7] = L'0' + idx++;
+; 2690 :         wsz8 [8] = L'\0';
+; 2691 : 
+; 2692 :         _swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
 
-	mov	ecx, OFFSET $SG298795
+	mov	ecx, OFFSET $SG301324
 	mov	WORD PTR _wsz8$[ebp+12], ax
 	lea	eax, DWORD PTR [edi+48]
 	mov	WORD PTR _wsz8$[ebp+14], ax
@@ -7890,7 +7894,7 @@ $LL4@SK_Generat:
 	push	eax
 	lea	eax, DWORD PTR _wsz8$[ebp]
 	push	eax
-	mov	eax, OFFSET $SG298794
+	mov	eax, OFFSET $SG301323
 	cmove	eax, ecx
 	push	eax
 	lea	eax, DWORD PTR _wsz8Dot3$[ebp]
@@ -7904,9 +7908,9 @@ $LL4@SK_Generat:
 	test	eax, eax
 	je	SHORT $LL4@SK_Generat
 
-; 2679 :     }
-; 2680 : 
-; 2681 :     if (idx == 9)
+; 2699 :     }
+; 2700 : 
+; 2701 :     if (idx == 9)
 
 	cmp	di, 9
 $LN57@SK_Generat:
@@ -7914,14 +7918,14 @@ $LN57@SK_Generat:
 	jne	SHORT $LN53@SK_Generat
 $LN44@SK_Generat:
 
-; 2609 :     {
-; 2610 :       free (wszFileName);
+; 2629 :     {
+; 2630 :       free (wszFileName);
 
 	mov	edi, DWORD PTR __imp__free
 	push	ebx
 	call	edi
 
-; 2611 :       free (wszFileName1);
+; 2631 :       free (wszFileName1);
 
 	push	DWORD PTR _wszFileName1$1$[ebp]
 	call	edi
@@ -7941,32 +7945,32 @@ $LN44@SK_Generat:
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2686 :       return false;
+; 2706 :       return false;
 
 	xor	al, al
 	pop	ebx
 
-; 2697 : }
+; 2717 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN14@SK_Generat:
 
-; 2673 :       }
-; 2674 :     }
-; 2675 : 
-; 2676 :     else
-; 2677 :     {
-; 2678 :       _swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
+; 2693 :       }
+; 2694 :     }
+; 2695 : 
+; 2696 :     else
+; 2697 :     {
+; 2698 :       _swprintf (wsz8Dot3, dir ? L"%s" : L"%s.%s", wsz8, wszDot3);
 
 	cmp	BYTE PTR _dir$1$[ebp], 0
 	lea	eax, DWORD PTR _wszDot3$[ebp]
 	push	eax
 	lea	eax, DWORD PTR _wsz8$[ebp]
-	mov	ecx, OFFSET $SG298797
+	mov	ecx, OFFSET $SG301326
 	push	eax
-	mov	eax, OFFSET $SG298796
+	mov	eax, OFFSET $SG301325
 	cmove	eax, ecx
 	push	eax
 	lea	eax, DWORD PTR _wsz8Dot3$[ebp]
@@ -7975,15 +7979,15 @@ $LN14@SK_Generat:
 	add	esp, 16					; 00000010H
 $LN53@SK_Generat:
 
-; 2687 :     }
-; 2688 : 
-; 2689 :     PathRemoveFileSpec  (wszFileName1);
+; 2707 :     }
+; 2708 : 
+; 2709 :     PathRemoveFileSpec  (wszFileName1);
 
 	mov	edi, DWORD PTR _wszFileName1$1$[ebp]
 	push	edi
 	call	DWORD PTR __imp__PathRemoveFileSpecW@4
 
-; 2690 :     wcscpy (wszFileName, wszFileName1);
+; 2710 :     wcscpy (wszFileName, wszFileName1);
 
 	mov	edx, ebx
 	mov	eax, edi
@@ -8009,7 +8013,7 @@ $LL18@SK_Generat:
 $LN38@SK_Generat:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2582 :   while (SK_FileHasSpaces (wszFileName))
+; 2602 :   while (SK_FileHasSpaces (wszFileName))
 
 	push	ebx
 	call	?SK_FileHasSpaces@@YA_NPB_W@Z		; SK_FileHasSpaces
@@ -8017,23 +8021,23 @@ $LN38@SK_Generat:
 	jmp	$LN59@SK_Generat
 $LN43@SK_Generat:
 
-; 2588 :       CreateFileW ( wszFileName,
-; 2589 :                       GENERIC_WRITE      | DELETE,
-; 2590 :                         FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-; 2591 :                           nullptr,
-; 2592 :                             OPEN_EXISTING,
-; 2593 :                               GetFileAttributes (wszFileName) |
-; 2594 :                               FILE_FLAG_BACKUP_SEMANTICS,
-; 2595 :                                 nullptr ) );
-; 2596 : 
-; 2597 :     if (hFile == INVALID_HANDLE_VALUE)
-; 2598 :     {
-; 2599 :       free (wszFileName);
+; 2608 :       CreateFileW ( wszFileName,
+; 2609 :                       GENERIC_WRITE      | DELETE,
+; 2610 :                         FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+; 2611 :                           nullptr,
+; 2612 :                             OPEN_EXISTING,
+; 2613 :                               GetFileAttributes (wszFileName) |
+; 2614 :                               FILE_FLAG_BACKUP_SEMANTICS,
+; 2615 :                                 nullptr ) );
+; 2616 : 
+; 2617 :     if (hFile == INVALID_HANDLE_VALUE)
+; 2618 :     {
+; 2619 :       free (wszFileName);
 
 	mov	edi, DWORD PTR __imp__free
 	call	edi
 
-; 2600 :       free (wszFileName1);
+; 2620 :       free (wszFileName1);
 
 	push	DWORD PTR _wszFileName1$1$[ebp]
 	call	edi
@@ -8049,41 +8053,41 @@ $LN32@SK_Generat:
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2686 :       return false;
+; 2706 :       return false;
 
 	xor	al, al
 	pop	ebx
 
-; 2697 : }
+; 2717 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN3@SK_Generat:
 
-; 2691 :   }
-; 2692 : 
-; 2693 :   free (wszFileName);
+; 2711 :   }
+; 2712 : 
+; 2713 :   free (wszFileName);
 
 	mov	esi, DWORD PTR __imp__free
 	push	ebx
 	call	esi
 
-; 2694 :   free (wszFileName1);
+; 2714 :   free (wszFileName1);
 
 	push	edi
 	call	esi
 	add	esp, 8
 
-; 2695 : 
-; 2696 :   return true;
+; 2715 : 
+; 2716 :   return true;
 
 	mov	al, 1
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 2697 : }
+; 2717 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -8100,7 +8104,7 @@ _szPrivilege$ = 8					; size = 4
 _fEnable$ = 12						; size = 4
 ?ModifyPrivilege@@YAJPB_WH@Z PROC			; ModifyPrivilege
 
-; 2525 : {
+; 2545 : {
 
 	npad	2
 	push	ebp
@@ -8108,13 +8112,13 @@ _fEnable$ = 12						; size = 4
 	sub	esp, 28					; 0000001cH
 	push	esi
 
-; 2526 :     HRESULT hr = S_OK;
-; 2527 :     TOKEN_PRIVILEGES NewState;
-; 2528 :     LUID             luid;
-; 2529 :     HANDLE hToken    = nullptr;
-; 2530 : 
-; 2531 :     // Open the process token for this process.
-; 2532 :     if (!OpenProcessToken(GetCurrentProcess(),
+; 2546 :     HRESULT hr = S_OK;
+; 2547 :     TOKEN_PRIVILEGES NewState;
+; 2548 :     LUID             luid;
+; 2549 :     HANDLE hToken    = nullptr;
+; 2550 : 
+; 2551 :     // Open the process token for this process.
+; 2552 :     if (!OpenProcessToken(GetCurrentProcess(),
 
 	lea	eax, DWORD PTR _hToken$[ebp]
 	xor	esi, esi
@@ -8127,14 +8131,14 @@ _fEnable$ = 12						; size = 4
 	test	eax, eax
 	je	SHORT $LN6@ModifyPriv
 
-; 2533 :                           TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
-; 2534 :                           &hToken ))
-; 2535 :     {
-; 2536 :         return ERROR_FUNCTION_FAILED;
-; 2537 :     }
-; 2538 : 
-; 2539 :     // Get the local unique ID for the privilege.
-; 2540 :     if ( !LookupPrivilegeValue( nullptr,
+; 2553 :                           TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
+; 2554 :                           &hToken ))
+; 2555 :     {
+; 2556 :         return ERROR_FUNCTION_FAILED;
+; 2557 :     }
+; 2558 : 
+; 2559 :     // Get the local unique ID for the privilege.
+; 2560 :     if ( !LookupPrivilegeValue( nullptr,
 
 	lea	eax, DWORD PTR _luid$[ebp]
 	push	eax
@@ -8144,48 +8148,48 @@ _fEnable$ = 12						; size = 4
 	test	eax, eax
 	jne	SHORT $LN3@ModifyPriv
 
-; 2541 :                                 szPrivilege,
-; 2542 :                                 &luid ))
-; 2543 :     {
-; 2544 :         CloseHandle( hToken );
+; 2561 :                                 szPrivilege,
+; 2562 :                                 &luid ))
+; 2563 :     {
+; 2564 :         CloseHandle( hToken );
 
 	push	DWORD PTR _hToken$[ebp]
 	call	DWORD PTR __imp__CloseHandle@4
 $LN6@ModifyPriv:
 
-; 2545 :         return ERROR_FUNCTION_FAILED;
+; 2565 :         return ERROR_FUNCTION_FAILED;
 
 	mov	eax, 1627				; 0000065bH
 	pop	esi
 
-; 2569 : }
+; 2589 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN3@ModifyPriv:
 
-; 2546 :     }
-; 2547 : 
-; 2548 :     // Assign values to the TOKEN_PRIVILEGE structure.
-; 2549 :     NewState.PrivilegeCount            = 1;
-; 2550 :     NewState.Privileges [0].Luid       = luid;
+; 2566 :     }
+; 2567 : 
+; 2568 :     // Assign values to the TOKEN_PRIVILEGE structure.
+; 2569 :     NewState.PrivilegeCount            = 1;
+; 2570 :     NewState.Privileges [0].Luid       = luid;
 
 	mov	eax, DWORD PTR _luid$[ebp]
 	mov	DWORD PTR _NewState$[ebp+4], eax
 	mov	eax, DWORD PTR _luid$[ebp+4]
 	mov	DWORD PTR _NewState$[ebp+8], eax
 
-; 2551 :     NewState.Privileges [0].Attributes = 
+; 2571 :     NewState.Privileges [0].Attributes = 
 
 	mov	eax, DWORD PTR _fEnable$[ebp]
 	neg	eax
 	mov	DWORD PTR _NewState$[ebp], 1
 
-; 2552 :               (fEnable ? SE_PRIVILEGE_ENABLED : 0);
-; 2553 : 
-; 2554 :     // Adjust the token privilege.
-; 2555 :     if (!AdjustTokenPrivileges(hToken,
+; 2572 :               (fEnable ? SE_PRIVILEGE_ENABLED : 0);
+; 2573 : 
+; 2574 :     // Adjust the token privilege.
+; 2575 :     if (!AdjustTokenPrivileges(hToken,
 
 	push	0
 	sbb	eax, eax
@@ -8199,17 +8203,17 @@ $LN3@ModifyPriv:
 	push	DWORD PTR _hToken$[ebp]
 	call	DWORD PTR __imp__AdjustTokenPrivileges@24
 
-; 2556 :                                FALSE,
-; 2557 :                                &NewState,
-; 2558 :                                0,
-; 2559 :                                nullptr,
-; 2560 :                                nullptr))
-; 2561 :     {
-; 2562 :         hr = ERROR_FUNCTION_FAILED;
-; 2563 :     }
-; 2564 : 
-; 2565 :     // Close the handle.
-; 2566 :     CloseHandle(hToken);
+; 2576 :                                FALSE,
+; 2577 :                                &NewState,
+; 2578 :                                0,
+; 2579 :                                nullptr,
+; 2580 :                                nullptr))
+; 2581 :     {
+; 2582 :         hr = ERROR_FUNCTION_FAILED;
+; 2583 :     }
+; 2584 : 
+; 2585 :     // Close the handle.
+; 2586 :     CloseHandle(hToken);
 
 	push	DWORD PTR _hToken$[ebp]
 	test	eax, eax
@@ -8217,13 +8221,13 @@ $LN3@ModifyPriv:
 	cmove	esi, ecx
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 2567 : 
-; 2568 :     return hr;
+; 2587 : 
+; 2588 :     return hr;
 
 	mov	eax, esi
 	pop	esi
 
-; 2569 : }
+; 2589 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -8237,14 +8241,14 @@ _wszShortPath$ = -524					; size = 524
 _wszLongFileName$ = 8					; size = 4
 ?SK_FileHas8Dot3Name@@YAHPB_W@Z PROC			; SK_FileHas8Dot3Name
 
-; 2509 : {
+; 2529 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 524				; 0000020cH
 
-; 2510 :   wchar_t wszShortPath [MAX_PATH + 2] = { };
+; 2530 :   wchar_t wszShortPath [MAX_PATH + 2] = { };
 
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
 	push	524					; 0000020cH
@@ -8253,9 +8257,9 @@ _wszLongFileName$ = 8					; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 2511 :  
-; 2512 :   if ((! GetShortPathName   (wszLongFileName, wszShortPath, MAX_PATH )) ||
-; 2513 :          GetFileAttributesW (wszShortPath) == INVALID_FILE_ATTRIBUTES   ||
+; 2531 :  
+; 2532 :   if ((! GetShortPathName   (wszLongFileName, wszShortPath, MAX_PATH )) ||
+; 2533 :          GetFileAttributesW (wszShortPath) == INVALID_FILE_ATTRIBUTES   ||
 
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
 	push	260					; 00000104H
@@ -8269,32 +8273,32 @@ _wszLongFileName$ = 8					; size = 4
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
 	je	SHORT $LN3@SK_FileHas
-	push	OFFSET $SG298745
+	push	OFFSET $SG301274
 	push	DWORD PTR _wszLongFileName$[ebp]
 	call	DWORD PTR __imp__StrStrIW@8
 	test	eax, eax
 	jne	SHORT $LN3@SK_FileHas
 
-; 2517 :   }
-; 2518 : 
-; 2519 :   return TRUE;
+; 2537 :   }
+; 2538 : 
+; 2539 :   return TRUE;
 
 	mov	eax, 1
 
-; 2520 : }
+; 2540 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN3@SK_FileHas:
 
-; 2514 :          StrStrIW           (wszLongFileName, L" "))
-; 2515 :   {
-; 2516 :     return FALSE;
+; 2534 :          StrStrIW           (wszLongFileName, L" "))
+; 2535 :   {
+; 2536 :     return FALSE;
 
 	xor	eax, eax
 
-; 2520 : }
+; 2540 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -8307,22 +8311,22 @@ _TEXT	SEGMENT
 _wszLongFileName$ = 8					; size = 4
 ?SK_FileHasSpaces@@YA_NPB_W@Z PROC			; SK_FileHasSpaces
 
-; 2503 : {
+; 2523 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2504 :   return StrStrIW (wszLongFileName, L" ") != nullptr;
+; 2524 :   return StrStrIW (wszLongFileName, L" ") != nullptr;
 
-	push	OFFSET $SG298737
+	push	OFFSET $SG301266
 	push	DWORD PTR _wszLongFileName$[ebp]
 	call	DWORD PTR __imp__StrStrIW@8
 	neg	eax
 	sbb	eax, eax
 	neg	eax
 
-; 2505 : }
+; 2525 : }
 
 	pop	ebp
 	ret	0
@@ -8334,17 +8338,17 @@ _TEXT	SEGMENT
 _wszInOut$ = 8						; size = 4
 ?SK_PathRemoveExtension@@YAXPA_W@Z PROC			; SK_PathRemoveExtension
 
-; 2242 : {
+; 2262 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ebx
 
-; 2243 :   wchar_t *wszEnd  = wszInOut,
-; 2244 :           *wszPrev = nullptr;
-; 2245 : 
-; 2246 :   while (*CharNextW (wszEnd) != L'\0')
+; 2263 :   wchar_t *wszEnd  = wszInOut,
+; 2264 :           *wszPrev = nullptr;
+; 2265 : 
+; 2266 :   while (*CharNextW (wszEnd) != L'\0')
 
 	mov	ebx, DWORD PTR __imp__CharNextW@4
 	push	esi
@@ -8358,7 +8362,7 @@ _wszInOut$ = 8						; size = 4
 	npad	4
 $LL2@SK_PathRem:
 
-; 2247 :     wszEnd = CharNextW (wszEnd);
+; 2267 :     wszEnd = CharNextW (wszEnd);
 
 	push	esi
 	call	ebx
@@ -8369,10 +8373,10 @@ $LL2@SK_PathRem:
 	jne	SHORT $LL2@SK_PathRem
 $LN3@SK_PathRem:
 
-; 2248 : 
-; 2249 :   wszPrev = wszEnd;
-; 2250 : 
-; 2251 :   while (  CharPrevW (wszInOut, wszPrev) > wszInOut &&
+; 2268 : 
+; 2269 :   wszPrev = wszEnd;
+; 2270 : 
+; 2271 :   while (  CharPrevW (wszInOut, wszPrev) > wszInOut &&
 
 	mov	ebx, DWORD PTR __imp__CharPrevW@8
 	push	esi
@@ -8388,8 +8392,8 @@ $LL4@SK_PathRem:
 	cmp	WORD PTR [eax], 46			; 0000002eH
 	je	SHORT $LN17@SK_PathRem
 
-; 2252 :           *CharPrevW (wszInOut, wszPrev) != L'.' )
-; 2253 :     wszPrev = CharPrevW (wszInOut, wszPrev);
+; 2272 :           *CharPrevW (wszInOut, wszPrev) != L'.' )
+; 2273 :     wszPrev = CharPrevW (wszInOut, wszPrev);
 
 	push	esi
 	push	edi
@@ -8402,8 +8406,8 @@ $LL4@SK_PathRem:
 	ja	SHORT $LL4@SK_PathRem
 $LN17@SK_PathRem:
 
-; 2254 : 
-; 2255 :   if (CharPrevW (wszInOut, wszPrev) > wszInOut)
+; 2274 : 
+; 2275 :   if (CharPrevW (wszInOut, wszPrev) > wszInOut)
 
 	push	esi
 	push	edi
@@ -8411,8 +8415,8 @@ $LN17@SK_PathRem:
 	cmp	eax, edi
 	jbe	SHORT $LN7@SK_PathRem
 
-; 2256 :   {
-; 2257 :     if (*CharPrevW (wszInOut, wszPrev) == L'.')
+; 2276 :   {
+; 2277 :     if (*CharPrevW (wszInOut, wszPrev) == L'.')
 
 	push	esi
 	push	edi
@@ -8420,7 +8424,7 @@ $LN17@SK_PathRem:
 	cmp	WORD PTR [eax], 46			; 0000002eH
 	jne	SHORT $LN7@SK_PathRem
 
-; 2258 :         *CharPrevW (wszInOut, wszPrev)  = L'\0';
+; 2278 :         *CharPrevW (wszInOut, wszPrev)  = L'\0';
 
 	push	esi
 	push	edi
@@ -8432,8 +8436,8 @@ $LN7@SK_PathRem:
 	pop	esi
 	pop	ebx
 
-; 2259 :   }
-; 2260 : }
+; 2279 :   }
+; 2280 : }
 
 	pop	ebp
 	ret	0
@@ -8774,7 +8778,7 @@ _wszFile$ = 12						; size = 4
 _callback$ = 16						; size = 4
 ?SK_GetFileHash_32@@YGIW4sk_hash_algo@@PB_WP6GX_K2@Z@Z PROC ; SK_GetFileHash_32
 
-; 1985 : {
+; 2005 : {
 
 	npad	2
 	push	ebp
@@ -8788,10 +8792,10 @@ _callback$ = 16						; size = 4
 	push	ebx
 	push	esi
 
-; 1986 :   uint32_t _hash32 = 0UL;
-; 1987 : 
-; 1988 :   uint64_t size =
-; 1989 :     SK_GetFileSize (wszFile);
+; 2006 :   uint32_t _hash32 = 0UL;
+; 2007 : 
+; 2008 :   uint64_t size =
+; 2009 :     SK_GetFileSize (wszFile);
 
 	mov	esi, DWORD PTR _wszFile$[ebp]
 	push	esi
@@ -8800,9 +8804,9 @@ _callback$ = 16						; size = 4
 	mov	ebx, eax
 	mov	eax, edx
 
-; 1990 : 
-; 1991 :   // Invalid file
-; 1992 :   if (size == 0)
+; 2010 : 
+; 2011 :   // Invalid file
+; 2012 :   if (size == 0)
 
 	mov	ecx, ebx
 	mov	DWORD PTR _size$1$[ebp], ebx
@@ -8810,28 +8814,28 @@ _callback$ = 16						; size = 4
 	mov	DWORD PTR _size$2$[ebp], eax
 	je	$LN16@SK_GetFile
 
-; 1993 :     return _hash32;
-; 1994 : 
-; 1995 :   switch (algorithm)
+; 2013 :     return _hash32;
+; 2014 : 
+; 2015 :   switch (algorithm)
 
 	mov	eax, DWORD PTR _algorithm$[ebp]
 	dec	eax
 	cmp	eax, 1
 	ja	$LN16@SK_GetFile
 
-; 1996 :   {
-; 1997 :     // Traditional CRC32 (but XOR operands swapped)
-; 1998 :     case SK_CRC32_KAL:
-; 1999 :     case SK_CRC32C:
-; 2000 :     {
-; 2001 :       DWORD dwFileAttribs =
-; 2002 :         GetFileAttributes (wszFile);
+; 2016 :   {
+; 2017 :     // Traditional CRC32 (but XOR operands swapped)
+; 2018 :     case SK_CRC32_KAL:
+; 2019 :     case SK_CRC32C:
+; 2020 :     {
+; 2021 :       DWORD dwFileAttribs =
+; 2022 :         GetFileAttributes (wszFile);
 
 	push	edi
 	push	esi
 	call	DWORD PTR __imp__GetFileAttributesW@4
 
-; 2004 :       CHandle hFile (
+; 2024 :       CHandle hFile (
 
 	push	0
 	push	eax
@@ -8849,21 +8853,21 @@ _callback$ = 16						; size = 4
 	mov	DWORD PTR _hFile$2[ebp], edi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2004 :       CHandle hFile (
+; 2024 :       CHandle hFile (
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 
-; 2005 :         CreateFile ( wszFile,
-; 2006 :                        GENERIC_READ,
-; 2007 :                          FILE_SHARE_READ |
-; 2008 :                          FILE_SHARE_WRITE,
-; 2009 :                            nullptr,
-; 2010 :                              OPEN_EXISTING,
-; 2011 :                                dwFileAttribs,
-; 2012 :         nullptr)
-; 2013 :       );
-; 2014 : 
-; 2015 :       if (hFile == INVALID_HANDLE_VALUE)
+; 2025 :         CreateFile ( wszFile,
+; 2026 :                        GENERIC_READ,
+; 2027 :                          FILE_SHARE_READ |
+; 2028 :                          FILE_SHARE_WRITE,
+; 2029 :                            nullptr,
+; 2030 :                              OPEN_EXISTING,
+; 2031 :                                dwFileAttribs,
+; 2032 :         nullptr)
+; 2033 :       );
+; 2034 : 
+; 2035 :       if (hFile == INVALID_HANDLE_VALUE)
 
 	cmp	edi, -1
 	jne	SHORT $LN11@SK_GetFile
@@ -8876,21 +8880,21 @@ _callback$ = 16						; size = 4
 	call	DWORD PTR __imp__CloseHandle@4
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2057 :       return _hash32;
+; 2077 :       return _hash32;
 
 	mov	eax, DWORD PTR $T7[ebp]
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 2058 :     }
-; 2059 :     break;
-; 2060 : 
-; 2061 :     // Invalid Algorithm
-; 2062 :     default:
-; 2063 :       return _hash32;
-; 2064 :   }
-; 2065 : }
+; 2078 :     }
+; 2079 :     break;
+; 2080 : 
+; 2081 :     // Invalid Algorithm
+; 2082 :     default:
+; 2083 :       return _hash32;
+; 2084 :   }
+; 2085 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -8899,7 +8903,7 @@ _callback$ = 16						; size = 4
 	ret	12					; 0000000cH
 $LN11@SK_GetFile:
 
-; 2023 :         size <= std::numeric_limits <uint32_t>::max () ?
+; 2043 :         size <= std::numeric_limits <uint32_t>::max () ?
 
 	cmp	DWORD PTR _size$2$[ebp], 0
 	mov	DWORD PTR _MAX_CHUNK$6[ebp], 16777216	; 01000000H
@@ -8915,7 +8919,7 @@ $LN80@SK_GetFile:
 	cmp	ebx, 16777216				; 01000000H
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2023 :         size <= std::numeric_limits <uint32_t>::max () ?
+; 2043 :         size <= std::numeric_limits <uint32_t>::max () ?
 
 	mov	DWORD PTR $T4[ebp], ebx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -8927,7 +8931,7 @@ $LN80@SK_GetFile:
 	cmovae	eax, ecx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2023 :         size <= std::numeric_limits <uint32_t>::max () ?
+; 2043 :         size <= std::numeric_limits <uint32_t>::max () ?
 
 	mov	eax, DWORD PTR [eax]
 	jmp	SHORT $LN85@SK_GetFile
@@ -8941,7 +8945,7 @@ $LN85@SK_GetFile:
 	xor	esi, esi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2023 :         size <= std::numeric_limits <uint32_t>::max () ?
+; 2043 :         size <= std::numeric_limits <uint32_t>::max () ?
 
 	mov	DWORD PTR _i64Result$1$[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -8955,7 +8959,7 @@ $LN85@SK_GetFile:
 	xor	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2027 :       CHeapPtr <uint8_t> buf;
+; 2047 :       CHeapPtr <uint8_t> buf;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -8988,11 +8992,11 @@ $LN48@SK_GetFile:
 	xorps	xmm0, xmm0
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2030 :       DWORD    dwReadChunk = 0UL;
+; 2050 :       DWORD    dwReadChunk = 0UL;
 
 	mov	DWORD PTR _dwReadChunk$8[ebp], 0
 
-; 2031 :       uint64_t qwReadTotal = 0ULL;
+; 2051 :       uint64_t qwReadTotal = 0ULL;
 
 	movlpd	QWORD PTR _qwReadTotal$5[ebp], xmm0
 	mov	ebx, DWORD PTR _qwReadTotal$5[ebp+4]
@@ -9001,10 +9005,10 @@ $LN48@SK_GetFile:
 	npad	1
 $LL6@SK_GetFile:
 
-; 2032 : 
-; 2033 :       do
-; 2034 :       {
-; 2035 :         ReadFile ( hFile,
+; 2052 : 
+; 2053 :       do
+; 2054 :       {
+; 2055 :         ReadFile ( hFile,
 
 	push	0
 	lea	eax, DWORD PTR _dwReadChunk$8[ebp]
@@ -9014,12 +9018,12 @@ $LL6@SK_GetFile:
 	push	edi
 	call	DWORD PTR __imp__ReadFile@20
 
-; 2036 :                      buf,
-; 2037 :                        read_size,
-; 2038 :                          &dwReadChunk,
-; 2039 :                            nullptr );
-; 2040 : 
-; 2041 :         switch (algorithm)
+; 2056 :                      buf,
+; 2057 :                        read_size,
+; 2058 :                          &dwReadChunk,
+; 2059 :                            nullptr );
+; 2060 : 
+; 2061 :         switch (algorithm)
 
 	mov	eax, DWORD PTR _algorithm$[ebp]
 	sub	eax, 1
@@ -9027,10 +9031,10 @@ $LL6@SK_GetFile:
 	sub	eax, 1
 	jne	SHORT $LN7@SK_GetFile
 
-; 2045 :             break;
-; 2046 : 
-; 2047 :           case SK_CRC32C:
-; 2048 :             _hash32 = crc32c ( _hash32, buf, dwReadChunk );
+; 2065 :             break;
+; 2066 : 
+; 2067 :           case SK_CRC32C:
+; 2068 :             _hash32 = crc32c ( _hash32, buf, dwReadChunk );
 
 	push	DWORD PTR _dwReadChunk$8[ebp]
 	push	esi
@@ -9039,9 +9043,9 @@ $LL6@SK_GetFile:
 	jmp	SHORT $LN86@SK_GetFile
 $LN12@SK_GetFile:
 
-; 2042 :         {
-; 2043 :           case SK_CRC32_KAL:
-; 2044 :             _hash32 = crc32 ( _hash32, buf, dwReadChunk );
+; 2062 :         {
+; 2063 :           case SK_CRC32_KAL:
+; 2064 :             _hash32 = crc32 ( _hash32, buf, dwReadChunk );
 
 	push	DWORD PTR _dwReadChunk$8[ebp]
 	push	esi
@@ -9052,15 +9056,15 @@ $LN86@SK_GetFile:
 	add	esp, 12					; 0000000cH
 $LN7@SK_GetFile:
 
-; 2049 :             break;
-; 2050 :         }
-; 2051 :         qwReadTotal += dwReadChunk;
+; 2069 :             break;
+; 2070 :         }
+; 2071 :         qwReadTotal += dwReadChunk;
 
 	mov	eax, DWORD PTR _qwReadTotal$1$[ebp]
 	add	eax, DWORD PTR _dwReadChunk$8[ebp]
 
-; 2052 : 
-; 2053 :         if (callback != nullptr)
+; 2072 : 
+; 2073 :         if (callback != nullptr)
 
 	mov	ecx, DWORD PTR _callback$[ebp]
 	adc	ebx, 0
@@ -9068,7 +9072,7 @@ $LN7@SK_GetFile:
 	test	ecx, ecx
 	je	SHORT $LN4@SK_GetFile
 
-; 2054 :           callback (qwReadTotal, size);
+; 2074 :           callback (qwReadTotal, size);
 
 	push	DWORD PTR _size$2$[ebp]
 	push	DWORD PTR _size$1$[ebp]
@@ -9078,7 +9082,7 @@ $LN7@SK_GetFile:
 	mov	eax, DWORD PTR _qwReadTotal$1$[ebp]
 $LN4@SK_GetFile:
 
-; 2055 :       } while ( qwReadTotal < size && dwReadChunk > 0 );
+; 2075 :       } while ( qwReadTotal < size && dwReadChunk > 0 );
 
 	cmp	ebx, DWORD PTR _size$2$[ebp]
 	ja	SHORT $LN15@SK_GetFile
@@ -9110,21 +9114,21 @@ $LN15@SK_GetFile:
 $LN73@SK_GetFile:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2057 :       return _hash32;
+; 2077 :       return _hash32;
 
 	mov	eax, DWORD PTR $T7[ebp]
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 2058 :     }
-; 2059 :     break;
-; 2060 : 
-; 2061 :     // Invalid Algorithm
-; 2062 :     default:
-; 2063 :       return _hash32;
-; 2064 :   }
-; 2065 : }
+; 2078 :     }
+; 2079 :     break;
+; 2080 : 
+; 2081 :     // Invalid Algorithm
+; 2082 :     default:
+; 2083 :       return _hash32;
+; 2084 :   }
+; 2085 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -12035,7 +12039,7 @@ $T4 = 8							; size = 4
 _wszName$ = 12						; size = 4
 ?FindProcessByName@@YA?AUtagPROCESSENTRY32W@@PB_W@Z PROC ; FindProcessByName
 
-; 1146 : {
+; 1163 : {
 
 	npad	2
 	push	ebp
@@ -12044,7 +12048,7 @@ _wszName$ = 12						; size = 4
 	push	esi
 	push	edi
 
-; 1147 :   PROCESSENTRY32 pe32 = { };
+; 1164 :   PROCESSENTRY32 pe32 = { };
 
 	push	556					; 0000022cH
 	lea	eax, DWORD PTR _pe32$[ebp]
@@ -12053,8 +12057,8 @@ _wszName$ = 12						; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1148 : 
-; 1149 :   CHandle hProcessSnap (
+; 1165 : 
+; 1166 :   CHandle hProcessSnap (
 
 	push	0
 	push	2
@@ -12067,12 +12071,12 @@ _wszName$ = 12						; size = 4
 	mov	DWORD PTR _hProcessSnap$1$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1153 :   if (hProcessSnap == INVALID_HANDLE_VALUE)
+; 1170 :   if (hProcessSnap == INVALID_HANDLE_VALUE)
 
 	cmp	esi, -1
 	jne	SHORT $LN5@FindProces
 
-; 1154 :     return pe32;
+; 1171 :     return pe32;
 
 	mov	ecx, 139				; 0000008bH
 	lea	esi, DWORD PTR _pe32$[ebp]
@@ -12086,15 +12090,15 @@ _wszName$ = 12						; size = 4
 	call	DWORD PTR __imp__CloseHandle@4
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1154 :     return pe32;
+; 1171 :     return pe32;
 
 	jmp	$LN26@FindProces
 $LN5@FindProces:
 
-; 1155 : 
-; 1156 :   pe32.dwSize = sizeof (PROCESSENTRY32);
-; 1157 : 
-; 1158 :   if (! Process32First (hProcessSnap, &pe32))
+; 1172 : 
+; 1173 :   pe32.dwSize = sizeof (PROCESSENTRY32);
+; 1174 : 
+; 1175 :   if (! Process32First (hProcessSnap, &pe32))
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	mov	DWORD PTR _pe32$[ebp], 556		; 0000022cH
@@ -12110,7 +12114,7 @@ $LN5@FindProces:
 	mov	eax, DWORD PTR _hProcessSnap$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1160 :     return pe32;
+; 1177 :     return pe32;
 
 	lea	esi, DWORD PTR _pe32$[ebp]
 	lea	edi, DWORD PTR $T2[ebp]
@@ -12129,12 +12133,12 @@ $LN5@FindProces:
 	call	DWORD PTR __imp__CloseHandle@4
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1154 :     return pe32;
+; 1171 :     return pe32;
 
 	jmp	SHORT $LN26@FindProces
 $LN56@FindProces:
 
-; 1160 :     return pe32;
+; 1177 :     return pe32;
 
 	mov	edi, DWORD PTR _wszName$[ebp]
 	push	ebx
@@ -12152,12 +12156,12 @@ $LL4@FindProces:
 	add	esp, 8
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1165 :     if (wcsstr (pe32.szExeFile, wszName))
+; 1182 :     if (wcsstr (pe32.szExeFile, wszName))
 
 	test	eax, eax
 	jne	SHORT $LN45@FindProces
 
-; 1167 :   } while (Process32Next (hProcessSnap, &pe32));
+; 1184 :   } while (Process32Next (hProcessSnap, &pe32));
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	push	eax
@@ -12173,7 +12177,7 @@ $LN45@FindProces:
 	mov	eax, DWORD PTR _hProcessSnap$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1166 :       return pe32;
+; 1183 :       return pe32;
 
 	lea	edi, DWORD PTR $T1[ebp]
 	lea	esi, DWORD PTR _pe32$[ebp]
@@ -12195,7 +12199,7 @@ $LN34@FindProces:
 $LN26@FindProces:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1166 :       return pe32;
+; 1183 :       return pe32;
 
 	mov	eax, DWORD PTR $T4[ebp]
 	lea	esi, DWORD PTR $T1[ebp]
@@ -12205,9 +12209,9 @@ $LN26@FindProces:
 	pop	edi
 	pop	esi
 
-; 1168 : 
-; 1169 :   return pe32;
-; 1170 : }
+; 1185 : 
+; 1186 :   return pe32;
+; 1187 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -12219,27 +12223,27 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 _calculate_table_hw PROC
 
-; 1019 : {
+; 1036 : {
 
 	npad	2
 	push	esi
 
-; 1020 :   for (int i = 0; i < 256; i++) 
+; 1037 :   for (int i = 0; i < 256; i++) 
 
 	xor	esi, esi
 $LL4@calculate_:
 
-; 1021 :   {
-; 1022 :     auto res =
-; 1023 :       static_cast <uint32_t> (i);
+; 1038 :   {
+; 1039 :     auto res =
+; 1040 :       static_cast <uint32_t> (i);
 
 	mov	eax, esi
 	mov	ecx, 2016				; 000007e0H
 	npad	4
 $LL7@calculate_:
 
-; 1026 :     {
-; 1027 :       res = (res & 1) == 1 ? POLY ^ (res >> 1) :
+; 1043 :     {
+; 1044 :       res = (res & 1) == 1 ? POLY ^ (res >> 1) :
 
 	test	al, 1
 	je	SHORT $LN24@calculate_
@@ -12250,25 +12254,25 @@ $LN24@calculate_:
 	shr	eax, 1
 $LN25@calculate_:
 
-; 1024 : 
-; 1025 :     for (int k = 0; k < 8 * (SHORT_SHIFT - 4); k++)
+; 1041 : 
+; 1042 :     for (int k = 0; k < 8 * (SHORT_SHIFT - 4); k++)
 
 	sub	ecx, 1
 	jne	SHORT $LL7@calculate_
 
-; 1028 :                                     (res >> 1);
-; 1029 :     }
-; 1030 : 
-; 1031 :     for (int t = 0; t < 4; t++)
+; 1045 :                                     (res >> 1);
+; 1046 :     }
+; 1047 : 
+; 1048 :     for (int t = 0; t < 4; t++)
 
 	lea	ecx, DWORD PTR ?short_shifts@@3PAY0BAA@IA[esi*4+3072]
 	mov	edx, 4
 $LL10@calculate_:
 
-; 1032 :     {
-; 1033 :       for (int k = 0; k < 8; k++)
-; 1034 :       {
-; 1035 :         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
+; 1049 :     {
+; 1050 :       for (int k = 0; k < 8; k++)
+; 1051 :       {
+; 1052 :         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
 
 	test	al, 1
 	je	SHORT $LN26@calculate_
@@ -12335,26 +12339,26 @@ $LN76@calculate_:
 	shr	eax, 1
 $LN77@calculate_:
 
-; 1036 :                                       (res >> 1);
-; 1037 :       }
-; 1038 : 
-; 1039 :       short_shifts [3 - t][i] = res;
+; 1053 :                                       (res >> 1);
+; 1054 :       }
+; 1055 : 
+; 1056 :       short_shifts [3 - t][i] = res;
 
 	mov	DWORD PTR [ecx], eax
 	sub	ecx, 1024				; 00000400H
 	sub	edx, 1
 	jne	$LL10@calculate_
 
-; 1040 :     }
-; 1041 : 
-; 1042 :     for (int k = 0; k < 8 * (LONG_SHIFT - 4 - SHORT_SHIFT); k++)
+; 1057 :     }
+; 1058 : 
+; 1059 :     for (int k = 0; k < 8 * (LONG_SHIFT - 4 - SHORT_SHIFT); k++)
 
 	mov	ecx, 63456				; 0000f7e0H
 	npad	2
 $LL16@calculate_:
 
-; 1043 :     {
-; 1044 :       res = (res & 1) == 1 ? POLY ^ (res >> 1) :
+; 1060 :     {
+; 1061 :       res = (res & 1) == 1 ? POLY ^ (res >> 1) :
 
 	test	al, 1
 	je	SHORT $LN28@calculate_
@@ -12365,26 +12369,26 @@ $LN28@calculate_:
 	shr	eax, 1
 $LN29@calculate_:
 
-; 1040 :     }
-; 1041 : 
-; 1042 :     for (int k = 0; k < 8 * (LONG_SHIFT - 4 - SHORT_SHIFT); k++)
+; 1057 :     }
+; 1058 : 
+; 1059 :     for (int k = 0; k < 8 * (LONG_SHIFT - 4 - SHORT_SHIFT); k++)
 
 	sub	ecx, 1
 	jne	SHORT $LL16@calculate_
 
-; 1045 :                                     (res >> 1);
-; 1046 :     }
-; 1047 : 
-; 1048 :     for (int t = 0; t < 4; t++)
+; 1062 :                                     (res >> 1);
+; 1063 :     }
+; 1064 : 
+; 1065 :     for (int t = 0; t < 4; t++)
 
 	lea	ecx, DWORD PTR ?long_shifts@@3PAY0BAA@IA[esi*4+3072]
 	mov	edx, 4
 $LL19@calculate_:
 
-; 1049 :     {
-; 1050 :       for (int k = 0; k < 8; k++)
-; 1051 :       {
-; 1052 :         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
+; 1066 :     {
+; 1067 :       for (int k = 0; k < 8; k++)
+; 1068 :       {
+; 1069 :         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
 
 	test	al, 1
 	je	SHORT $LN30@calculate_
@@ -12451,26 +12455,26 @@ $LN101@calculate_:
 	shr	eax, 1
 $LN102@calculate_:
 
-; 1053 :                                       (res >> 1);
-; 1054 :       }
-; 1055 : 
-; 1056 :       long_shifts [3 - t][i] = res;
+; 1070 :                                       (res >> 1);
+; 1071 :       }
+; 1072 : 
+; 1073 :       long_shifts [3 - t][i] = res;
 
 	mov	DWORD PTR [ecx], eax
 	sub	ecx, 1024				; 00000400H
 	sub	edx, 1
 	jne	$LL19@calculate_
 
-; 1020 :   for (int i = 0; i < 256; i++) 
+; 1037 :   for (int i = 0; i < 256; i++) 
 
 	inc	esi
 	cmp	esi, 256				; 00000100H
 	jl	$LL4@calculate_
 	pop	esi
 
-; 1057 :     }
-; 1058 :   }
-; 1059 : }
+; 1074 :     }
+; 1075 :   }
+; 1076 : }
 
 	ret	0
 _calculate_table_hw ENDP
@@ -12482,14 +12486,14 @@ _shift_table$ = 8					; size = 4
 _crc$ = 12						; size = 4
 ?shift_crc@@YAIQAY0BAA@II@Z PROC			; shift_crc
 
-; 818  : {
+; 835  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ebx
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	mov	ebx, DWORD PTR _crc$[ebp]
 	mov	eax, ebx
@@ -12510,10 +12514,10 @@ _crc$ = 12						; size = 4
 	pop	esi
 	pop	ebx
 
-; 820  :        ^ shift_table [1][(crc >> 8)  & 0xff]
-; 821  :        ^ shift_table [2][(crc >> 16) & 0xff]
-; 822  :        ^ shift_table [3][ crc >> 24];
-; 823  : }
+; 837  :        ^ shift_table [1][(crc >> 8)  & 0xff]
+; 838  :        ^ shift_table [2][(crc >> 16) & 0xff]
+; 839  :        ^ shift_table [3][ crc >> 24];
+; 840  : }
 
 	pop	ebp
 	ret	0
@@ -12524,27 +12528,27 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 _calculate_table PROC
 
-; 998  :   for (int i = 0; i < 256; i++)
+; 1015 :   for (int i = 0; i < 256; i++)
 
 	xor	edx, edx
 $LL4@calculate_:
 
-; 999  :   {
-; 1000 :     auto res =
-; 1001 :       static_cast <uint32_t> (i);
+; 1016 :   {
+; 1017 :     auto res =
+; 1018 :       static_cast <uint32_t> (i);
 
 	mov	eax, edx
 
-; 1002 : 
-; 1003 :     for (auto& t : table)
+; 1019 : 
+; 1020 :     for (auto& t : table)
 
 	mov	ecx, OFFSET ?table@@3PAY0BAA@IA
 	npad	7
 $LL7@calculate_:
 
-; 1004 :     {
-; 1005 :       for (int k = 0; k < 8; k++)
-; 1006 :         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
+; 1021 :     {
+; 1022 :       for (int k = 0; k < 8; k++)
+; 1023 :         res = (res & 1) == 1 ? POLY ^ (res >> 1) :
 
 	test	al, 1
 	je	SHORT $LN12@calculate_
@@ -12611,28 +12615,28 @@ $LN46@calculate_:
 	shr	eax, 1
 $LN47@calculate_:
 
-; 1007 :                                       (res >> 1);
-; 1008 :       t [i] = res;
+; 1024 :                                       (res >> 1);
+; 1025 :       t [i] = res;
 
 	mov	DWORD PTR [ecx+edx*4], eax
 	add	ecx, 1024				; 00000400H
 	cmp	ecx, OFFSET ?table@@3PAY0BAA@IA+16384
 	jne	$LL7@calculate_
 
-; 998  :   for (int i = 0; i < 256; i++)
+; 1015 :   for (int i = 0; i < 256; i++)
 
 	inc	edx
 	cmp	edx, 256				; 00000100H
 	jl	$LL4@calculate_
 
-; 1009 :     }
-; 1010 :   }
-; 1011 : 
-; 1012 :   _tableInitialized = true;
+; 1026 :     }
+; 1027 :   }
+; 1028 : 
+; 1029 :   _tableInitialized = true;
 
 	mov	BYTE PTR ?_tableInitialized@@3_NA, 1
 
-; 1013 : }
+; 1030 : }
 
 	ret	0
 _calculate_table ENDP
@@ -12651,7 +12655,7 @@ text$yd	ENDS
 text$di	SEGMENT
 ??__E?CPU_Rep@InstructionSet@@0VInstructionSet_Internal@1@B@@YAXXZ PROC ; `dynamic initializer for 'InstructionSet::CPU_Rep'', COMDAT
 
-; 661  :       InstructionSet::CPU_Rep;
+; 678  :       InstructionSet::CPU_Rep;
 
 	mov	ecx, OFFSET ?CPU_Rep@InstructionSet@@0VInstructionSet_Internal@1@B ; InstructionSet::CPU_Rep
 	call	??0InstructionSet_Internal@InstructionSet@@QAE@XZ ; InstructionSet::InstructionSet_Internal::InstructionSet_Internal
@@ -14251,7 +14255,7 @@ __$EHRec$ = -12						; size = 12
 ??0InstructionSet_Internal@InstructionSet@@QAE@XZ PROC	; InstructionSet::InstructionSet_Internal::InstructionSet_Internal, COMDAT
 ; _this$ = ecx
 
-; 560  :     {
+; 577  :     {
 
 	npad	2
 	push	ebp
@@ -14280,7 +14284,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR [edi+20], 15			; 0000000fH
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 560  :     {
+; 577  :     {
 
 	mov	DWORD PTR $T2[ebp], edi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -14299,7 +14303,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR [eax+52], 15			; 0000000fH
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 560  :     {
+; 577  :     {
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -14309,7 +14313,7 @@ __$EHRec$ = -12						; size = 12
 	mov	BYTE PTR [eax+32], 0
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 560  :     {
+; 577  :     {
 
 	mov	WORD PTR [eax+56], 0
 	lea	ecx, DWORD PTR [eax+84]
@@ -14325,7 +14329,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR [eax+80], 0
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 559  :                                      data_     {       }, extdata_  {       } 
+; 576  :                                      data_     {       }, extdata_  {       } 
 
 	mov	DWORD PTR _this$1$[ebp], ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -14355,7 +14359,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR [eax+104], 0
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 567  :       __cpuid (cpui.data (), 0);
+; 584  :       __cpuid (cpui.data (), 0);
 
 	xor	eax, eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
@@ -14368,7 +14372,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR [edi], eax
 	mov	eax, edi
 
-; 570  :       for (int i = 0; i <= nIds_; ++i)
+; 587  :       for (int i = 0; i <= nIds_; ++i)
 
 	mov	edi, DWORD PTR $T2[ebp]
 	mov	DWORD PTR [eax+4], esi
@@ -14383,7 +14387,7 @@ __$EHRec$ = -12						; size = 12
 	js	SHORT $LN3@Instructio
 $LL4@Instructio:
 
-; 572  :         __cpuidex       (cpui.data (), i, 0);
+; 589  :         __cpuidex       (cpui.data (), i, 0);
 
 	mov	eax, ecx
 	xor	ecx, ecx
@@ -14402,7 +14406,7 @@ $LL4@Instructio:
 	push	eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 572  :         __cpuidex       (cpui.data (), i, 0);
+; 589  :         __cpuidex       (cpui.data (), i, 0);
 
 	mov	DWORD PTR [eax+4], esi
 	mov	DWORD PTR [eax+8], ecx
@@ -14413,7 +14417,7 @@ $LL4@Instructio:
 	lea	ecx, DWORD PTR [edi+84]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 572  :         __cpuidex       (cpui.data (), i, 0);
+; 589  :         __cpuidex       (cpui.data (), i, 0);
 
 	mov	DWORD PTR [eax+12], edx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -14423,7 +14427,7 @@ $LL4@Instructio:
 	call	??$emplace_back@ABV?$array@H$03@std@@@?$vector@V?$array@H$03@std@@V?$allocator@V?$array@H$03@std@@@2@@std@@QAEXABV?$array@H$03@1@@Z ; std::vector<std::array<int,4>,std::allocator<std::array<int,4> > >::emplace_back<std::array<int,4> const &>
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 570  :       for (int i = 0; i <= nIds_; ++i)
+; 587  :       for (int i = 0; i <= nIds_; ++i)
 
 	mov	ecx, DWORD PTR _i$1$[ebp]
 	inc	ecx
@@ -14440,7 +14444,7 @@ $LN3@Instructio:
 	xorps	xmm0, xmm0
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 578  :       char vendor [0x20] = { };
+; 595  :       char vendor [0x20] = { };
 
 	movups	XMMWORD PTR _vendor$[ebp], xmm0
 	movups	XMMWORD PTR _vendor$[ebp+16], xmm0
@@ -14451,17 +14455,17 @@ $LN3@Instructio:
 	mov	ecx, DWORD PTR [eax]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 580  :       *reinterpret_cast <int *>(vendor    ) = data_ [0][1];
+; 597  :       *reinterpret_cast <int *>(vendor    ) = data_ [0][1];
 
 	mov	eax, DWORD PTR [ecx+4]
 	mov	DWORD PTR _vendor$[ebp], eax
 
-; 581  :       *reinterpret_cast <int *>(vendor + 4) = data_ [0][3];
+; 598  :       *reinterpret_cast <int *>(vendor + 4) = data_ [0][3];
 
 	mov	eax, DWORD PTR [ecx+12]
 	mov	DWORD PTR _vendor$[ebp+4], eax
 
-; 582  :       *reinterpret_cast <int *>(vendor + 8) = data_ [0][2];
+; 599  :       *reinterpret_cast <int *>(vendor + 8) = data_ [0][2];
 
 	mov	eax, DWORD PTR [ecx+8]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -14471,7 +14475,7 @@ $LN3@Instructio:
 	lea	ecx, DWORD PTR _vendor$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 582  :       *reinterpret_cast <int *>(vendor + 8) = data_ [0][2];
+; 599  :       *reinterpret_cast <int *>(vendor + 8) = data_ [0][2];
 
 	mov	DWORD PTR _vendor$[ebp+8], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -14563,7 +14567,7 @@ $LN428@Instructio:
 	jne	SHORT $LN8@Instructio
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 586  :            if  (vendor_ == "GenuineIntel")  isIntel_ = true;
+; 603  :            if  (vendor_ == "GenuineIntel")  isIntel_ = true;
 
 	mov	edi, DWORD PTR _this$[ebp]
 	mov	BYTE PTR [edi+56], 1
@@ -14630,7 +14634,7 @@ $LN432@Instructio:
 $LN433@Instructio:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 587  :       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;
+; 604  :       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;
 
 	mov	edi, DWORD PTR _this$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -14641,7 +14645,7 @@ $LN433@Instructio:
 	jne	SHORT $LN10@Instructio
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 587  :       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;
+; 604  :       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;
 
 	mov	BYTE PTR [edi+57], 1
 	jmp	SHORT $LN10@Instructio
@@ -14649,15 +14653,15 @@ $LN437@Instructio:
 	mov	edi, DWORD PTR _this$[ebp]
 $LN10@Instructio:
 
-; 588  : 
-; 589  :       // Load Bitset with Flags for Function 0x00000001
-; 590  :       //
-; 591  :       if (nIds_ >= 1)
+; 605  : 
+; 606  :       // Load Bitset with Flags for Function 0x00000001
+; 607  :       //
+; 608  :       if (nIds_ >= 1)
 
 	mov	ecx, DWORD PTR [edi]
 
-; 592  :       {
-; 593  :         f_1_ECX_ = data_ [1][2];
+; 609  :       {
+; 610  :         f_1_ECX_ = data_ [1][2];
 
 	lea	edx, DWORD PTR [edi+84]
 	cmp	ecx, 1
@@ -14666,42 +14670,42 @@ $LN10@Instructio:
 	mov	eax, DWORD PTR [eax+24]
 	mov	DWORD PTR [edi+60], eax
 
-; 594  :         f_1_EDX_ = data_ [1][3];
+; 611  :         f_1_EDX_ = data_ [1][3];
 
 	mov	eax, DWORD PTR [edx]
 	mov	eax, DWORD PTR [eax+28]
 	mov	DWORD PTR [edi+64], eax
 $LN11@Instructio:
 
-; 595  :       }
-; 596  : 
-; 597  :       // Load Bitset with Flags for Function 0x00000007
-; 598  :       //
-; 599  :       if (nIds_ >= 7)
+; 612  :       }
+; 613  : 
+; 614  :       // Load Bitset with Flags for Function 0x00000007
+; 615  :       //
+; 616  :       if (nIds_ >= 7)
 
 	cmp	ecx, 7
 	jl	SHORT $LN12@Instructio
 
-; 600  :       {
-; 601  :         f_7_EBX_ = data_ [7][1];
+; 617  :       {
+; 618  :         f_7_EBX_ = data_ [7][1];
 
 	mov	eax, DWORD PTR [edx]
 	mov	eax, DWORD PTR [eax+116]
 	mov	DWORD PTR [edi+68], eax
 
-; 602  :         f_7_ECX_ = data_ [7][2];
+; 619  :         f_7_ECX_ = data_ [7][2];
 
 	mov	eax, DWORD PTR [edx]
 	mov	eax, DWORD PTR [eax+120]
 	mov	DWORD PTR [edi+72], eax
 $LN12@Instructio:
 
-; 603  :       }
-; 604  : 
-; 605  :       // Calling __cpuid with 0x80000000 as the function_id argument
-; 606  :       // gets the number of the highest valid extended ID.
-; 607  :       //
-; 608  :        __cpuid (cpui.data ( ), 0x80000000);
+; 620  :       }
+; 621  : 
+; 622  :       // Calling __cpuid with 0x80000000 as the function_id argument
+; 623  :       // gets the number of the highest valid extended ID.
+; 624  :       //
+; 625  :        __cpuid (cpui.data ( ), 0x80000000);
 
 	mov	eax, -2147483648			; 80000000H
 	xor	ecx, ecx
@@ -14714,9 +14718,9 @@ $LN12@Instructio:
 	mov	eax, edi
 	mov	edi, DWORD PTR _this$[ebp]
 
-; 609  :       nExIds_ = cpui      [0];
-; 610  : 
-; 611  :       char brand [0x40] = { };
+; 626  :       nExIds_ = cpui      [0];
+; 627  : 
+; 628  :       char brand [0x40] = { };
 
 	push	64					; 00000040H
 	push	0
@@ -14729,7 +14733,7 @@ $LN12@Instructio:
 	push	eax
 	call	_memset
 
-; 613  :       for (int i = 0x80000000; i <= nExIds_; ++i)
+; 630  :       for (int i = 0x80000000; i <= nExIds_; ++i)
 
 	mov	eax, -2147483648			; 80000000H
 	add	esp, 12					; 0000000cH
@@ -14737,7 +14741,7 @@ $LN12@Instructio:
 	npad	4
 $LL7@Instructio:
 
-; 615  :         __cpuidex          (cpui.data (), i, 0);
+; 632  :         __cpuidex          (cpui.data (), i, 0);
 
 	xor	ecx, ecx
 	push	ebx
@@ -14755,7 +14759,7 @@ $LL7@Instructio:
 	push	eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 615  :         __cpuidex          (cpui.data (), i, 0);
+; 632  :         __cpuidex          (cpui.data (), i, 0);
 
 	mov	DWORD PTR [eax+4], esi
 	mov	DWORD PTR [eax+8], ecx
@@ -14766,7 +14770,7 @@ $LL7@Instructio:
 	lea	ecx, DWORD PTR [edi+96]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 615  :         __cpuidex          (cpui.data (), i, 0);
+; 632  :         __cpuidex          (cpui.data (), i, 0);
 
 	mov	DWORD PTR [eax+12], edx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -14776,7 +14780,7 @@ $LL7@Instructio:
 	call	??$emplace_back@ABV?$array@H$03@std@@@?$vector@V?$array@H$03@std@@V?$allocator@V?$array@H$03@std@@@2@@std@@QAEXABV?$array@H$03@1@@Z ; std::vector<std::array<int,4>,std::allocator<std::array<int,4> > >::emplace_back<std::array<int,4> const &>
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 613  :       for (int i = 0x80000000; i <= nExIds_; ++i)
+; 630  :       for (int i = 0x80000000; i <= nExIds_; ++i)
 
 	mov	eax, DWORD PTR _i$1$[ebp]
 	inc	eax
@@ -14784,34 +14788,34 @@ $LL7@Instructio:
 	cmp	eax, DWORD PTR [edi+4]
 	jle	SHORT $LL7@Instructio
 
-; 616  :         extdata_.push_back (cpui);
-; 617  :       }
-; 618  : 
-; 619  :       // Load Bitset with Flags for Function 0x80000001
-; 620  :       //
-; 621  :       if (nExIds_ >= 0x80000001)
+; 633  :         extdata_.push_back (cpui);
+; 634  :       }
+; 635  : 
+; 636  :       // Load Bitset with Flags for Function 0x80000001
+; 637  :       //
+; 638  :       if (nExIds_ >= 0x80000001)
 
 	cmp	DWORD PTR [edi+4], -2147483647		; 80000001H
 	jb	SHORT $LN13@Instructio
 
-; 622  :       {
-; 623  :         f_81_ECX_ = extdata_ [1][2];
+; 639  :       {
+; 640  :         f_81_ECX_ = extdata_ [1][2];
 
 	mov	eax, DWORD PTR [edi+96]
 	mov	eax, DWORD PTR [eax+24]
 	mov	DWORD PTR [edi+76], eax
 
-; 624  :         f_81_EDX_ = extdata_ [1][3];
+; 641  :         f_81_EDX_ = extdata_ [1][3];
 
 	mov	eax, DWORD PTR [edi+96]
 	mov	eax, DWORD PTR [eax+28]
 	mov	DWORD PTR [edi+80], eax
 $LN13@Instructio:
 
-; 625  :       }
-; 626  : 
-; 627  :       // Interpret CPU Brand String if Reported
-; 628  :       if (nExIds_ >= 0x80000004)
+; 642  :       }
+; 643  : 
+; 644  :       // Interpret CPU Brand String if Reported
+; 645  :       if (nExIds_ >= 0x80000004)
 
 	cmp	DWORD PTR [edi+4], -2147483644		; 80000004H
 	jb	SHORT $LN435@Instructio
@@ -14828,17 +14832,17 @@ $LN13@Instructio:
 	lea	esi, DWORD PTR [edx+1]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 630  :         memcpy (brand,      extdata_ [2].data (), sizeof cpui);
+; 647  :         memcpy (brand,      extdata_ [2].data (), sizeof cpui);
 
 	movups	xmm0, XMMWORD PTR [eax+32]
 	movups	XMMWORD PTR _brand$[ebp], xmm0
 
-; 631  :         memcpy (brand + 16, extdata_ [3].data (), sizeof cpui);
+; 648  :         memcpy (brand + 16, extdata_ [3].data (), sizeof cpui);
 
 	movups	xmm0, XMMWORD PTR [eax+48]
 	movups	XMMWORD PTR _brand$[ebp+16], xmm0
 
-; 632  :         memcpy (brand + 32, extdata_ [4].data (), sizeof cpui);
+; 649  :         memcpy (brand + 32, extdata_ [4].data (), sizeof cpui);
 
 	movups	xmm0, XMMWORD PTR [eax+64]
 	movups	XMMWORD PTR _brand$[ebp+32], xmm0
@@ -14865,7 +14869,7 @@ $LL434@Instructio:
 $LN435@Instructio:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 636  :     };
+; 653  :     };
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, edi
@@ -15419,7 +15423,7 @@ _wszProcessName$1 = -1044				; size = 1040
 _dwProcessSize$2 = -4					; size = 4
 ?SK_GetFullyQualifiedApp@@YAPB_WXZ PROC			; SK_GetFullyQualifiedApp
 
-; 2336 : {
+; 2356 : {
 
 	npad	2
 	push	ebp
@@ -15435,14 +15439,14 @@ _dwProcessSize$2 = -4					; size = 4
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2340 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+; 2360 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
 
 	test	eax, eax
 	jne	SHORT $LN6@SK_GetFull
 
-; 2341 :   {
-; 2342 :     DWORD   dwProcessSize = MAX_PATH * 2;
-; 2343 :     wchar_t wszProcessName [MAX_PATH * 2] = { };
+; 2361 :   {
+; 2362 :     DWORD   dwProcessSize = MAX_PATH * 2;
+; 2363 :     wchar_t wszProcessName [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	push	eax
@@ -15452,14 +15456,14 @@ _dwProcessSize$2 = -4					; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 2344 : 
-; 2345 :     HANDLE hProc =
-; 2346 :       GetCurrentProcess ();
+; 2364 : 
+; 2365 :     HANDLE hProc =
+; 2366 :       GetCurrentProcess ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 
-; 2347 : 
-; 2348 :     QueryFullProcessImageName (
+; 2367 : 
+; 2368 :     QueryFullProcessImageName (
 
 	lea	ecx, DWORD PTR _dwProcessSize$2[ebp]
 	push	ecx
@@ -15469,12 +15473,12 @@ _dwProcessSize$2 = -4					; size = 4
 	push	eax
 	call	DWORD PTR __imp__QueryFullProcessImageNameW@16
 
-; 2349 :       hProc,
-; 2350 :         0,
-; 2351 :           wszProcessName,
-; 2352 :             &dwProcessSize );
-; 2353 : 
-; 2354 :     lstrcpynW (
+; 2369 :       hProc,
+; 2370 :         0,
+; 2371 :           wszProcessName,
+; 2372 :             &dwProcessSize );
+; 2373 : 
+; 2374 :     lstrcpynW (
 
 	push	519					; 00000207H
 	lea	eax, DWORD PTR _wszProcessName$1[ebp]
@@ -15483,17 +15487,17 @@ _dwProcessSize$2 = -4					; size = 4
 	call	DWORD PTR __imp__lstrcpynW@12
 $LN6@SK_GetFull:
 
-; 2355 :       host_proc.wszFullName,
-; 2356 :         wszProcessName,
-; 2357 :           MAX_PATH * 2 - 1
-; 2358 :     );
-; 2359 :   }
-; 2360 : 
-; 2361 :   return host_proc.wszFullName;
+; 2375 :       host_proc.wszFullName,
+; 2376 :         wszProcessName,
+; 2377 :           MAX_PATH * 2 - 1
+; 2378 :     );
+; 2379 :   }
+; 2380 : 
+; 2381 :   return host_proc.wszFullName;
 
 	mov	eax, OFFSET ?host_proc@@3Usk_host_process_s@@A+2080
 
-; 2362 : }
+; 2382 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -17482,11 +17486,11 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsHostAppSKIM@@YA_NXZ PROC				; SK_IsHostAppSKIM
 
-; 2196 :   return ((! __SK_RunDLL_Bypass) && StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
+; 2216 :   return ((! __SK_RunDLL_Bypass) && StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
 
 	cmp	BYTE PTR ?__SK_RunDLL_Bypass@@3_NA, 0	; __SK_RunDLL_Bypass
 	jne	SHORT $LN3@SK_IsHostA
-	push	OFFSET $SG298615
+	push	OFFSET $SG301144
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	DWORD PTR __imp__StrStrIW@8
@@ -17494,16 +17498,16 @@ _TEXT	SEGMENT
 	je	SHORT $LN3@SK_IsHostA
 	mov	al, 1
 
-; 2197 : }
+; 2217 : }
 
 	ret	0
 $LN3@SK_IsHostA:
 
-; 2196 :   return ((! __SK_RunDLL_Bypass) && StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
+; 2216 :   return ((! __SK_RunDLL_Bypass) && StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
 
 	xor	al, al
 
-; 2197 : }
+; 2217 : }
 
 	ret	0
 ?SK_IsHostAppSKIM@@YA_NXZ ENDP				; SK_IsHostAppSKIM
@@ -17514,7 +17518,7 @@ _TEXT	SEGMENT
 _info$ = -16						; size = 16
 _crc32c_hw_available PROC
 
-; 986  : {
+; 1003 : {
 
 	npad	2
 	push	ebp
@@ -17524,8 +17528,8 @@ _crc32c_hw_available PROC
 	push	esi
 	push	edi
 
-; 987  :   int info [4];
-; 988  :   __cpuid (info, 1);
+; 1004 :   int info [4];
+; 1005 :   __cpuid (info, 1);
 
 	mov	eax, 1
 	lea	edi, DWORD PTR _info$[ebp]
@@ -17539,7 +17543,7 @@ _crc32c_hw_available PROC
 	mov	DWORD PTR [edi+8], ecx
 	mov	DWORD PTR [edi+12], edx
 
-; 989  :   return (info [2] & (1 << 20)) != 0;
+; 1006 :   return (info [2] & (1 << 20)) != 0;
 
 	mov	eax, DWORD PTR _info$[ebp+8]
 	pop	edi
@@ -17548,8 +17552,8 @@ _crc32c_hw_available PROC
 	and	eax, 1
 	pop	ebx
 
-; 990  : 
-; 991  : }
+; 1007 : 
+; 1008 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -17567,36 +17571,36 @@ _buf$ = 12						; size = 4
 _len$ = 16						; size = 4
 _crc32c_append_hw PROC
 
-; 830  : {
+; 847  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 831  :   auto next =
-; 832  :     static_cast <buffer> (buf);
+; 848  :   auto next =
+; 849  :     static_cast <buffer> (buf);
 
 	mov	ecx, DWORD PTR _buf$[ebp]
 	xor	edx, edx
 
-; 833  : 
-; 834  :   buffer end;
-; 835  : #ifdef _M_X64
-; 836  :   uint64_t crc0, crc1, crc2;      /* need to be 64 bits for crc32q */
-; 837  : #else
-; 838  :   uint32_t crc0, crc1, crc2;
-; 839  : #endif
-; 840  : 
-; 841  :   /* pre-process the crc */
-; 842  :   crc0 = crc ^ 0xffffffff;
+; 850  : 
+; 851  :   buffer end;
+; 852  : #ifdef _M_X64
+; 853  :   uint64_t crc0, crc1, crc2;      /* need to be 64 bits for crc32q */
+; 854  : #else
+; 855  :   uint32_t crc0, crc1, crc2;
+; 856  : #endif
+; 857  : 
+; 858  :   /* pre-process the crc */
+; 859  :   crc0 = crc ^ 0xffffffff;
 
 	mov	edx, DWORD PTR _crc$[ebp]
 	push	ebx
 
-; 843  : 
-; 844  :   /* compute the crc for up to seven leading bytes to bring the data pointer
-; 845  :      to an eight-byte boundary */
-; 846  :   while (len && (reinterpret_cast <uintptr_t> (next) & 7) != 0)
+; 860  : 
+; 861  :   /* compute the crc for up to seven leading bytes to bring the data pointer
+; 862  :      to an eight-byte boundary */
+; 863  :   while (len && (reinterpret_cast <uintptr_t> (next) & 7) != 0)
 
 	mov	ebx, DWORD PTR _len$[ebp]
 	not	edx
@@ -17610,16 +17614,16 @@ $LL2@crc32c_app:
 	test	cl, 7
 	je	SHORT $LN55@crc32c_app
 
-; 847  :   {
-; 848  :     crc0 = _mm_crc32_u8 (static_cast <uint32_t> (crc0), *next);
+; 864  :   {
+; 865  :     crc0 = _mm_crc32_u8 (static_cast <uint32_t> (crc0), *next);
 
 	crc32	edx, BYTE PTR [ecx]
 
-; 849  :     ++next;
+; 866  :     ++next;
 
 	inc	ecx
 
-; 850  :     --len;
+; 867  :     --len;
 
 	sub	ebx, 1
 	jne	SHORT $LL2@crc32c_app
@@ -17628,71 +17632,71 @@ $LN55@crc32c_app:
 	mov	DWORD PTR _crc$[ebp], edx
 $LN28@crc32c_app:
 
-; 851  :   }
-; 852  : 
-; 853  : #ifdef _M_X64
-; 854  :   /* compute the crc on sets of LONG_SHIFT*3 bytes, executing three independent crc
-; 855  :      instructions, each on LONG_SHIFT bytes -- this is optimized for the Nehalem,
-; 856  :      Westmere, Sandy Bridge, and Ivy Bridge architectures, which have a
-; 857  :      throughput of one crc per cycle, but a latency of three cycles */
-; 858  :   while (len >= 3 * LONG_SHIFT)
-; 859  :   {
-; 860  :     crc1 = 0;
-; 861  :     crc2 = 0;
-; 862  :     end  = next + LONG_SHIFT;
-; 863  : 
-; 864  :     do
-; 865  :     {
-; 866  :       crc0 = _mm_crc32_u64 (crc0, *reinterpret_cast <const uint64_t *>(next));
-; 867  :       crc1 = _mm_crc32_u64 (crc1, *reinterpret_cast <const uint64_t *>(next     + LONG_SHIFT));
-; 868  :       crc2 = _mm_crc32_u64 (crc2, *reinterpret_cast <const uint64_t *>(next + 2 * LONG_SHIFT));
-; 869  :       next += 8;
-; 870  :     } while (next < end);
-; 871  : 
-; 872  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
-; 873  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
-; 874  : 
-; 875  :     next += 2 * LONG_SHIFT;
-; 876  :     len  -= 3 * LONG_SHIFT;
-; 877  :   }
-; 878  : 
-; 879  :   /* do the same thing, but now on SHORT_SHIFT*3 blocks for the remaining data less
-; 880  :      than a LONG_SHIFT*3 block */
-; 881  :   while (len >= 3 * SHORT_SHIFT)
-; 882  :   {
-; 883  :     crc1 = 0;
-; 884  :     crc2 = 0;
-; 885  :     end  = next + SHORT_SHIFT;
-; 886  : 
-; 887  :     do
-; 888  :     {
-; 889  :       crc0 = _mm_crc32_u64 (crc0, *reinterpret_cast <const uint64_t *>(next));
-; 890  :       crc1 = _mm_crc32_u64 (crc1, *reinterpret_cast <const uint64_t *>(next     + SHORT_SHIFT));
-; 891  :       crc2 = _mm_crc32_u64 (crc2, *reinterpret_cast <const uint64_t *>(next + 2 * SHORT_SHIFT));
-; 892  :       next += 8;
-; 893  :     } while (next < end);
-; 894  : 
-; 895  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
-; 896  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
-; 897  : 
-; 898  :     next += 2 * SHORT_SHIFT;
-; 899  :     len  -= 3 * SHORT_SHIFT;
-; 900  :   }
-; 901  : 
-; 902  :   /* compute the crc on the remaining eight-byte units less than a SHORT_SHIFT*3
-; 903  :   block */
-; 904  :   end = next + (len - (len & 7));
-; 905  :   while (next < end)
-; 906  :   {
-; 907  :     crc0 = _mm_crc32_u64 (crc0, *reinterpret_cast <const uint64_t *> (next));
-; 908  :     next += 8;
-; 909  :   }
-; 910  : #else
-; 911  :   /* compute the crc on sets of LONG_SHIFT*3 bytes, executing three independent crc
-; 912  :   instructions, each on LONG_SHIFT bytes -- this is optimized for the Nehalem,
-; 913  :   Westmere, Sandy Bridge, and Ivy Bridge architectures, which have a
-; 914  :   throughput of one crc per cycle, but a latency of three cycles */
-; 915  :   while (len >= 3 * LONG_SHIFT)
+; 868  :   }
+; 869  : 
+; 870  : #ifdef _M_X64
+; 871  :   /* compute the crc on sets of LONG_SHIFT*3 bytes, executing three independent crc
+; 872  :      instructions, each on LONG_SHIFT bytes -- this is optimized for the Nehalem,
+; 873  :      Westmere, Sandy Bridge, and Ivy Bridge architectures, which have a
+; 874  :      throughput of one crc per cycle, but a latency of three cycles */
+; 875  :   while (len >= 3 * LONG_SHIFT)
+; 876  :   {
+; 877  :     crc1 = 0;
+; 878  :     crc2 = 0;
+; 879  :     end  = next + LONG_SHIFT;
+; 880  : 
+; 881  :     do
+; 882  :     {
+; 883  :       crc0 = _mm_crc32_u64 (crc0, *reinterpret_cast <const uint64_t *>(next));
+; 884  :       crc1 = _mm_crc32_u64 (crc1, *reinterpret_cast <const uint64_t *>(next     + LONG_SHIFT));
+; 885  :       crc2 = _mm_crc32_u64 (crc2, *reinterpret_cast <const uint64_t *>(next + 2 * LONG_SHIFT));
+; 886  :       next += 8;
+; 887  :     } while (next < end);
+; 888  : 
+; 889  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 890  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 891  : 
+; 892  :     next += 2 * LONG_SHIFT;
+; 893  :     len  -= 3 * LONG_SHIFT;
+; 894  :   }
+; 895  : 
+; 896  :   /* do the same thing, but now on SHORT_SHIFT*3 blocks for the remaining data less
+; 897  :      than a LONG_SHIFT*3 block */
+; 898  :   while (len >= 3 * SHORT_SHIFT)
+; 899  :   {
+; 900  :     crc1 = 0;
+; 901  :     crc2 = 0;
+; 902  :     end  = next + SHORT_SHIFT;
+; 903  : 
+; 904  :     do
+; 905  :     {
+; 906  :       crc0 = _mm_crc32_u64 (crc0, *reinterpret_cast <const uint64_t *>(next));
+; 907  :       crc1 = _mm_crc32_u64 (crc1, *reinterpret_cast <const uint64_t *>(next     + SHORT_SHIFT));
+; 908  :       crc2 = _mm_crc32_u64 (crc2, *reinterpret_cast <const uint64_t *>(next + 2 * SHORT_SHIFT));
+; 909  :       next += 8;
+; 910  :     } while (next < end);
+; 911  : 
+; 912  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 913  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 914  : 
+; 915  :     next += 2 * SHORT_SHIFT;
+; 916  :     len  -= 3 * SHORT_SHIFT;
+; 917  :   }
+; 918  : 
+; 919  :   /* compute the crc on the remaining eight-byte units less than a SHORT_SHIFT*3
+; 920  :   block */
+; 921  :   end = next + (len - (len & 7));
+; 922  :   while (next < end)
+; 923  :   {
+; 924  :     crc0 = _mm_crc32_u64 (crc0, *reinterpret_cast <const uint64_t *> (next));
+; 925  :     next += 8;
+; 926  :   }
+; 927  : #else
+; 928  :   /* compute the crc on sets of LONG_SHIFT*3 bytes, executing three independent crc
+; 929  :   instructions, each on LONG_SHIFT bytes -- this is optimized for the Nehalem,
+; 930  :   Westmere, Sandy Bridge, and Ivy Bridge architectures, which have a
+; 931  :   throughput of one crc per cycle, but a latency of three cycles */
+; 932  :   while (len >= 3 * LONG_SHIFT)
 
 	cmp	ebx, 24576				; 00006000H
 	jb	$LN30@crc32c_app
@@ -17703,140 +17707,140 @@ $LN28@crc32c_app:
 	mov	edx, DWORD PTR _crc$[ebp]
 $LL4@crc32c_app:
 
-; 916  :   {
-; 917  :     crc1 = 0;
+; 933  :   {
+; 934  :     crc1 = 0;
 
 	xor	esi, esi
 
-; 918  :     crc2 = 0;
-; 919  :     end  = next + LONG_SHIFT;
+; 935  :     crc2 = 0;
+; 936  :     end  = next + LONG_SHIFT;
 
 	lea	eax, DWORD PTR [ecx+8192]
 	xor	edi, edi
 	npad	4
 $LL8@crc32c_app:
 
-; 920  : 
-; 921  :     do
-; 922  :     {
-; 923  :       crc0 = _mm_crc32_u32 (crc0, *reinterpret_cast <const uint32_t *>(next));
+; 937  : 
+; 938  :     do
+; 939  :     {
+; 940  :       crc0 = _mm_crc32_u32 (crc0, *reinterpret_cast <const uint32_t *>(next));
 
 	crc32	edx, DWORD PTR [ecx]
 
-; 924  :       crc1 = _mm_crc32_u32 (crc1, *reinterpret_cast <const uint32_t *>(next     + LONG_SHIFT));
+; 941  :       crc1 = _mm_crc32_u32 (crc1, *reinterpret_cast <const uint32_t *>(next     + LONG_SHIFT));
 
 	crc32	esi, DWORD PTR [ecx+8192]
 
-; 925  :       crc2 = _mm_crc32_u32 (crc2, *reinterpret_cast <const uint32_t *>(next + 2 * LONG_SHIFT));
+; 942  :       crc2 = _mm_crc32_u32 (crc2, *reinterpret_cast <const uint32_t *>(next + 2 * LONG_SHIFT));
 
 	crc32	edi, DWORD PTR [ecx+16384]
 
-; 926  :       next += 4;
+; 943  :       next += 4;
 
 	add	ecx, 4
 
-; 927  :     } while (next < end);
+; 944  :     } while (next < end);
 
 	cmp	ecx, eax
 	jb	SHORT $LL8@crc32c_app
 
-; 928  : 
-; 929  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 945  : 
+; 946  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	mov	eax, edx
 	mov	DWORD PTR _crc$[ebp], edx
 	shr	eax, 16					; 00000010H
 
-; 931  : 
-; 932  :     next += 2 * LONG_SHIFT;
+; 948  : 
+; 949  :     next += 2 * LONG_SHIFT;
 
 	add	ecx, 16384				; 00004000H
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	edx, al
 
-; 928  : 
-; 929  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 945  : 
+; 946  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	mov	eax, DWORD PTR _crc$[ebp]
 	shr	eax, 8
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	eax, al
 
-; 928  : 
-; 929  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 945  : 
+; 946  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	mov	ebx, DWORD PTR ?long_shifts@@3PAY0BAA@IA[edx*4+2048]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	mov	edx, DWORD PTR _crc$[ebp]
 
-; 928  : 
-; 929  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 945  : 
+; 946  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	xor	ebx, DWORD PTR ?long_shifts@@3PAY0BAA@IA[eax*4+1024]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	mov	eax, edx
 	shr	eax, 24					; 00000018H
 
-; 928  : 
-; 929  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 945  : 
+; 946  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	xor	ebx, DWORD PTR ?long_shifts@@3PAY0BAA@IA[eax*4+3072]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	eax, dl
 
-; 928  : 
-; 929  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 945  : 
+; 946  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	xor	ebx, DWORD PTR ?long_shifts@@3PAY0BAA@IA[eax*4]
 	xor	ebx, esi
 
-; 930  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 947  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
 
 	mov	eax, ebx
 	shr	eax, 16					; 00000010H
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	edx, al
 
-; 930  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 947  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
 
 	mov	eax, ebx
 	shr	eax, 8
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	eax, al
 
-; 930  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 947  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
 
 	mov	edx, DWORD PTR ?long_shifts@@3PAY0BAA@IA[edx*4+2048]
 	xor	edx, DWORD PTR ?long_shifts@@3PAY0BAA@IA[eax*4+1024]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	mov	eax, ebx
 	shr	eax, 24					; 00000018H
 
-; 930  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 947  :     crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
 
 	xor	edx, DWORD PTR ?long_shifts@@3PAY0BAA@IA[eax*4+3072]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	eax, bl
 
-; 933  :     len  -= 3 * LONG_SHIFT;
+; 950  :     len  -= 3 * LONG_SHIFT;
 
 	mov	ebx, DWORD PTR _len$[ebp]
 	sub	ebx, 24576				; 00006000H
@@ -17848,11 +17852,11 @@ $LL8@crc32c_app:
 	jne	$LL4@crc32c_app
 $LN30@crc32c_app:
 
-; 934  :   }
-; 935  : 
-; 936  :   /* do the same thing, but now on SHORT_SHIFT*3 blocks for the remaining data less
-; 937  :   than a LONG_SHIFT*3 block */
-; 938  :   while (len >= 3 * SHORT_SHIFT)
+; 951  :   }
+; 952  : 
+; 953  :   /* do the same thing, but now on SHORT_SHIFT*3 blocks for the remaining data less
+; 954  :   than a LONG_SHIFT*3 block */
+; 955  :   while (len >= 3 * SHORT_SHIFT)
 
 	cmp	ebx, 768				; 00000300H
 	jb	$LN10@crc32c_app
@@ -17864,140 +17868,140 @@ $LN30@crc32c_app:
 	npad	4
 $LL9@crc32c_app:
 
-; 939  :   {
-; 940  :     crc1 = 0;
+; 956  :   {
+; 957  :     crc1 = 0;
 
 	xor	esi, esi
 
-; 941  :     crc2 = 0;
-; 942  :     end  = next + SHORT_SHIFT;
+; 958  :     crc2 = 0;
+; 959  :     end  = next + SHORT_SHIFT;
 
 	lea	eax, DWORD PTR [ecx+256]
 	xor	edi, edi
 	npad	6
 $LL13@crc32c_app:
 
-; 943  : 
-; 944  :     do
-; 945  :     {
-; 946  :       crc0 = _mm_crc32_u32 (crc0, *reinterpret_cast <const uint32_t *>(next));
+; 960  : 
+; 961  :     do
+; 962  :     {
+; 963  :       crc0 = _mm_crc32_u32 (crc0, *reinterpret_cast <const uint32_t *>(next));
 
 	crc32	edx, DWORD PTR [ecx]
 
-; 947  :       crc1 = _mm_crc32_u32 (crc1, *reinterpret_cast <const uint32_t *>(next     + SHORT_SHIFT));
+; 964  :       crc1 = _mm_crc32_u32 (crc1, *reinterpret_cast <const uint32_t *>(next     + SHORT_SHIFT));
 
 	crc32	esi, DWORD PTR [ecx+256]
 
-; 948  :       crc2 = _mm_crc32_u32 (crc2, *reinterpret_cast <const uint32_t *>(next + 2 * SHORT_SHIFT));
+; 965  :       crc2 = _mm_crc32_u32 (crc2, *reinterpret_cast <const uint32_t *>(next + 2 * SHORT_SHIFT));
 
 	crc32	edi, DWORD PTR [ecx+512]
 
-; 949  :       next += 4;
+; 966  :       next += 4;
 
 	add	ecx, 4
 
-; 950  :     } while (next < end);
+; 967  :     } while (next < end);
 
 	cmp	ecx, eax
 	jb	SHORT $LL13@crc32c_app
 
-; 951  : 
-; 952  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 968  : 
+; 969  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	mov	eax, edx
 	mov	DWORD PTR _crc$[ebp], edx
 	shr	eax, 16					; 00000010H
 
-; 954  : 
-; 955  :     next += 2 * SHORT_SHIFT;
+; 971  : 
+; 972  :     next += 2 * SHORT_SHIFT;
 
 	add	ecx, 512				; 00000200H
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	edx, al
 
-; 951  : 
-; 952  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 968  : 
+; 969  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	mov	eax, DWORD PTR _crc$[ebp]
 	shr	eax, 8
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	eax, al
 
-; 951  : 
-; 952  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 968  : 
+; 969  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	mov	ebx, DWORD PTR ?short_shifts@@3PAY0BAA@IA[edx*4+2048]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	mov	edx, DWORD PTR _crc$[ebp]
 
-; 951  : 
-; 952  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 968  : 
+; 969  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	xor	ebx, DWORD PTR ?short_shifts@@3PAY0BAA@IA[eax*4+1024]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	mov	eax, edx
 	shr	eax, 24					; 00000018H
 
-; 951  : 
-; 952  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 968  : 
+; 969  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	xor	ebx, DWORD PTR ?short_shifts@@3PAY0BAA@IA[eax*4+3072]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	eax, dl
 
-; 951  : 
-; 952  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
+; 968  : 
+; 969  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
 
 	xor	ebx, DWORD PTR ?short_shifts@@3PAY0BAA@IA[eax*4]
 	xor	ebx, esi
 
-; 953  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 970  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
 
 	mov	eax, ebx
 	shr	eax, 16					; 00000010H
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	edx, al
 
-; 953  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 970  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
 
 	mov	eax, ebx
 	shr	eax, 8
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	eax, al
 
-; 953  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 970  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
 
 	mov	edx, DWORD PTR ?short_shifts@@3PAY0BAA@IA[edx*4+2048]
 	xor	edx, DWORD PTR ?short_shifts@@3PAY0BAA@IA[eax*4+1024]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	mov	eax, ebx
 	shr	eax, 24					; 00000018H
 
-; 953  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+; 970  :     crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
 
 	xor	edx, DWORD PTR ?short_shifts@@3PAY0BAA@IA[eax*4+3072]
 
-; 819  :   return shift_table [0][ crc        & 0xff]
+; 836  :   return shift_table [0][ crc        & 0xff]
 
 	movzx	eax, bl
 
-; 956  :     len  -= 3 * SHORT_SHIFT;
+; 973  :     len  -= 3 * SHORT_SHIFT;
 
 	mov	ebx, DWORD PTR _len$[ebp]
 	sub	ebx, 768				; 00000300H
@@ -18008,11 +18012,11 @@ $LL13@crc32c_app:
 	jne	$LL9@crc32c_app
 $LN10@crc32c_app:
 
-; 957  :   }
-; 958  : 
-; 959  :   /* compute the crc on the remaining eight-byte units less than a SHORT_SHIFT*3
-; 960  :   block */
-; 961  :   end = next + (len - (len & 7));
+; 974  :   }
+; 975  : 
+; 976  :   /* compute the crc on the remaining eight-byte units less than a SHORT_SHIFT*3
+; 977  :   block */
+; 978  :   end = next + (len - (len & 7));
 
 	mov	esi, ebx
 	mov	eax, ecx
@@ -18027,19 +18031,19 @@ $LN10@crc32c_app:
 	cmp	ecx, eax
 	cmova	ebx, edi
 
-; 962  :   while (next < end)
+; 979  :   while (next < end)
 
 	test	ebx, ebx
 	je	SHORT $LN15@crc32c_app
 	npad	3
 $LL14@crc32c_app:
 
-; 963  :   {
-; 964  :     crc0 = _mm_crc32_u32(crc0, *reinterpret_cast<const uint32_t *>(next));
+; 980  :   {
+; 981  :     crc0 = _mm_crc32_u32(crc0, *reinterpret_cast<const uint32_t *>(next));
 
 	crc32	edx, DWORD PTR [ecx]
 
-; 965  :     next += 4;
+; 982  :     next += 4;
 
 	inc	edi
 	add	ecx, 4
@@ -18047,42 +18051,42 @@ $LL14@crc32c_app:
 	jb	SHORT $LL14@crc32c_app
 $LN15@crc32c_app:
 
-; 966  :   }
-; 967  : #endif
-; 968  :   len &= 7;
-; 969  : 
-; 970  :   /* compute the crc for up to seven trailing bytes */
-; 971  :   while (len)
+; 983  :   }
+; 984  : #endif
+; 985  :   len &= 7;
+; 986  : 
+; 987  :   /* compute the crc for up to seven trailing bytes */
+; 988  :   while (len)
 
 	test	esi, esi
 	je	SHORT $LN17@crc32c_app
 $LL16@crc32c_app:
 
-; 972  :   {
-; 973  :     crc0 = _mm_crc32_u8 (static_cast <uint32_t> (crc0), *next);
-; 974  :     ++next;
+; 989  :   {
+; 990  :     crc0 = _mm_crc32_u8 (static_cast <uint32_t> (crc0), *next);
+; 991  :     ++next;
 
 	lea	ecx, DWORD PTR [ecx+1]
 	crc32	edx, BYTE PTR [ecx-1]
 
-; 975  :     --len;
+; 992  :     --len;
 
 	sub	esi, 1
 	jne	SHORT $LL16@crc32c_app
 $LN17@crc32c_app:
 	pop	edi
 
-; 976  :   }
-; 977  : 
-; 978  :   /* return a post-processed crc */
-; 979  :   return static_cast <uint32_t> (crc0) ^ 0xffffffff;
+; 993  :   }
+; 994  : 
+; 995  :   /* return a post-processed crc */
+; 996  :   return static_cast <uint32_t> (crc0) ^ 0xffffffff;
 
 	not	edx
 	pop	esi
 	mov	eax, edx
 	pop	ebx
 
-; 980  : }
+; 997  : }
 
 	pop	ebp
 	ret	0
@@ -18097,22 +18101,22 @@ _input$ = 12						; size = 4
 _length$ = 16						; size = 4
 _crc32c_append_sw PROC
 
-; 734  : {
+; 751  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 735  :   auto next =
-; 736  :     static_cast <buffer> (input);
-; 737  : 
-; 738  : #ifdef _M_X64
-; 739  :   uint64_t crc;
-; 740  : #else
-; 741  :   uint32_t crc;
-; 742  : #endif
-; 743  : 
-; 744  :   crc = crci ^ 0xffffffff;
+; 752  :   auto next =
+; 753  :     static_cast <buffer> (input);
+; 754  : 
+; 755  : #ifdef _M_X64
+; 756  :   uint64_t crc;
+; 757  : #else
+; 758  :   uint32_t crc;
+; 759  : #endif
+; 760  : 
+; 761  :   crc = crci ^ 0xffffffff;
 
 	mov	ecx, DWORD PTR _crci$[ebp]
 	push	ebx
@@ -18120,39 +18124,39 @@ _crc32c_append_sw PROC
 	not	ecx
 	push	edi
 
-; 745  : #ifdef _M_X64
-; 746  :   while (length && ((uintptr_t)next & 7) != 0)
-; 747  :   {
-; 748  :     crc = table [0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
-; 749  :     --length;
-; 750  :   }
-; 751  :   while (length >= 16)
-; 752  :   {
-; 753  :              crc ^= *(uint64_t *)next;
-; 754  :     uint64_t high = *(uint64_t *)(next + 8);
-; 755  : 
-; 756  :     crc = table[15][ crc         & 0xff]
-; 757  :         ^ table[14][(crc >> 8)   & 0xff]
-; 758  :         ^ table[13][(crc >> 16)  & 0xff]
-; 759  :         ^ table[12][(crc >> 24)  & 0xff]
-; 760  :         ^ table[11][(crc >> 32)  & 0xff]
-; 761  :         ^ table[10][(crc >> 40)  & 0xff]
-; 762  :         ^ table[ 9][(crc >> 48)  & 0xff]
-; 763  :         ^ table[ 8][ crc >> 56         ]
-; 764  :         ^ table[ 7][ high        & 0xff]
-; 765  :         ^ table[ 6][(high >> 8)  & 0xff]
-; 766  :         ^ table[ 5][(high >> 16) & 0xff]
-; 767  :         ^ table[ 4][(high >> 24) & 0xff]
-; 768  :         ^ table[ 3][(high >> 32) & 0xff]
-; 769  :         ^ table[ 2][(high >> 40) & 0xff]
-; 770  :         ^ table[ 1][(high >> 48) & 0xff]
-; 771  :         ^ table[ 0][ high >> 56        ];
+; 762  : #ifdef _M_X64
+; 763  :   while (length && ((uintptr_t)next & 7) != 0)
+; 764  :   {
+; 765  :     crc = table [0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
+; 766  :     --length;
+; 767  :   }
+; 768  :   while (length >= 16)
+; 769  :   {
+; 770  :              crc ^= *(uint64_t *)next;
+; 771  :     uint64_t high = *(uint64_t *)(next + 8);
 ; 772  : 
-; 773  :     next   += 16;
-; 774  :     length -= 16;
-; 775  :   }
-; 776  : #else
-; 777  :   while (length && ((uintptr_t)next & 3) != 0)
+; 773  :     crc = table[15][ crc         & 0xff]
+; 774  :         ^ table[14][(crc >> 8)   & 0xff]
+; 775  :         ^ table[13][(crc >> 16)  & 0xff]
+; 776  :         ^ table[12][(crc >> 24)  & 0xff]
+; 777  :         ^ table[11][(crc >> 32)  & 0xff]
+; 778  :         ^ table[10][(crc >> 40)  & 0xff]
+; 779  :         ^ table[ 9][(crc >> 48)  & 0xff]
+; 780  :         ^ table[ 8][ crc >> 56         ]
+; 781  :         ^ table[ 7][ high        & 0xff]
+; 782  :         ^ table[ 6][(high >> 8)  & 0xff]
+; 783  :         ^ table[ 5][(high >> 16) & 0xff]
+; 784  :         ^ table[ 4][(high >> 24) & 0xff]
+; 785  :         ^ table[ 3][(high >> 32) & 0xff]
+; 786  :         ^ table[ 2][(high >> 40) & 0xff]
+; 787  :         ^ table[ 1][(high >> 48) & 0xff]
+; 788  :         ^ table[ 0][ high >> 56        ];
+; 789  : 
+; 790  :     next   += 16;
+; 791  :     length -= 16;
+; 792  :   }
+; 793  : #else
+; 794  :   while (length && ((uintptr_t)next & 3) != 0)
 
 	mov	edi, DWORD PTR _length$[ebp]
 	test	edi, edi
@@ -18161,8 +18165,8 @@ $LL2@crc32c_app:
 	test	bl, 3
 	je	SHORT $LN21@crc32c_app
 
-; 778  :   {
-; 779  :       crc = table[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
+; 795  :   {
+; 796  :       crc = table[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
 
 	movzx	eax, BYTE PTR [ebx]
 	inc	ebx
@@ -18171,7 +18175,7 @@ $LL2@crc32c_app:
 	movzx	eax, al
 	xor	ecx, DWORD PTR ?table@@3PAY0BAA@IA[eax*4]
 
-; 780  :       --length;
+; 797  :       --length;
 
 	sub	edi, 1
 	jne	SHORT $LL2@crc32c_app
@@ -18179,8 +18183,8 @@ $LN21@crc32c_app:
 	mov	DWORD PTR _input$[ebp], ebx
 $LN10@crc32c_app:
 
-; 781  :   }
-; 782  :   while (length >= 12)
+; 798  :   }
+; 799  :   while (length >= 12)
 
 	cmp	edi, 12					; 0000000cH
 	jb	$LN11@crc32c_app
@@ -18192,29 +18196,29 @@ $LN10@crc32c_app:
 	npad	3
 $LL4@crc32c_app:
 
-; 783  :   {
-; 784  :               crc ^= *(uint32_t *)next;
+; 800  :   {
+; 801  :               crc ^= *(uint32_t *)next;
 
 	xor	ecx, DWORD PTR [ebx]
 
-; 785  :     uint32_t high  = *(uint32_t *)(next + 4);
-; 786  :     uint32_t high2 = *(uint32_t *)(next + 8);
-; 787  : 
-; 788  :     crc = table[11][ crc          & 0xff]
-; 789  :         ^ table[10][(crc >>  8)   & 0xff]
-; 790  :         ^ table[ 9][(crc >> 16)   & 0xff]
-; 791  :         ^ table[ 8][ crc >> 24          ]
-; 792  :         ^ table[ 7][ high         & 0xff]
-; 793  :         ^ table[ 6][(high >>  8)  & 0xff]
-; 794  :         ^ table[ 5][(high >> 16)  & 0xff]
-; 795  :         ^ table[ 4][ high >> 24         ]
-; 796  :         ^ table[ 3][ high2        & 0xff]
-; 797  :         ^ table[ 2][(high2 >>  8) & 0xff]
-; 798  :         ^ table[ 1][(high2 >> 16) & 0xff]
-; 799  :         ^ table[ 0][ high2 >> 24        ];
-; 800  : 
-; 801  :     next   += 12;
-; 802  :     length -= 12;
+; 802  :     uint32_t high  = *(uint32_t *)(next + 4);
+; 803  :     uint32_t high2 = *(uint32_t *)(next + 8);
+; 804  : 
+; 805  :     crc = table[11][ crc          & 0xff]
+; 806  :         ^ table[10][(crc >>  8)   & 0xff]
+; 807  :         ^ table[ 9][(crc >> 16)   & 0xff]
+; 808  :         ^ table[ 8][ crc >> 24          ]
+; 809  :         ^ table[ 7][ high         & 0xff]
+; 810  :         ^ table[ 6][(high >>  8)  & 0xff]
+; 811  :         ^ table[ 5][(high >> 16)  & 0xff]
+; 812  :         ^ table[ 4][ high >> 24         ]
+; 813  :         ^ table[ 3][ high2        & 0xff]
+; 814  :         ^ table[ 2][(high2 >>  8) & 0xff]
+; 815  :         ^ table[ 1][(high2 >> 16) & 0xff]
+; 816  :         ^ table[ 0][ high2 >> 24        ];
+; 817  : 
+; 818  :     next   += 12;
+; 819  :     length -= 12;
 
 	sub	edi, 12					; 0000000cH
 	mov	ebx, DWORD PTR [ebx+8]
@@ -18269,16 +18273,16 @@ $LL4@crc32c_app:
 	pop	esi
 $LN11@crc32c_app:
 
-; 803  :   }
-; 804  : #endif
-; 805  :   while (length)
+; 820  :   }
+; 821  : #endif
+; 822  :   while (length)
 
 	test	edi, edi
 	je	SHORT $LN7@crc32c_app
 $LL6@crc32c_app:
 
-; 806  :   {
-; 807  :     crc = table [0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
+; 823  :   {
+; 824  :     crc = table [0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
 
 	movzx	eax, BYTE PTR [ebx]
 	lea	ebx, DWORD PTR [ebx+1]
@@ -18287,21 +18291,21 @@ $LL6@crc32c_app:
 	movzx	eax, al
 	xor	ecx, DWORD PTR ?table@@3PAY0BAA@IA[eax*4]
 
-; 808  :     --length;
+; 825  :     --length;
 
 	sub	edi, 1
 	jne	SHORT $LL6@crc32c_app
 $LN7@crc32c_app:
 
-; 809  :   }
-; 810  :   return (uint32_t)crc ^ 0xffffffff;
+; 826  :   }
+; 827  :   return (uint32_t)crc ^ 0xffffffff;
 
 	not	ecx
 	pop	edi
 	mov	eax, ecx
 	pop	ebx
 
-; 811  : }
+; 828  : }
 
 	pop	ebp
 	ret	0
@@ -18312,44 +18316,44 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ___crc32_init PROC
 
-; 1070 :   // somebody can call sw version directly, so, precalculate table for this version
-; 1071 :   calculate_table ();
+; 1087 :   // somebody can call sw version directly, so, precalculate table for this version
+; 1088 :   calculate_table ();
 
 	call	_calculate_table
 
-; 1072 : 
-; 1073 :   if (crc32c_hw_available ())
+; 1089 : 
+; 1090 :   if (crc32c_hw_available ())
 
 	call	_crc32c_hw_available
 	test	eax, eax
 	je	SHORT $LN2@crc32_init
 
-; 1074 :   {
-; 1075 :     //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
-; 1076 :     calculate_table_hw ();
+; 1091 :   {
+; 1092 :     //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
+; 1093 :     calculate_table_hw ();
 
 	call	_calculate_table_hw
 
-; 1077 :     append_func = crc32c_append_hw;
+; 1094 :     append_func = crc32c_append_hw;
 
 	mov	DWORD PTR ?append_func@@3P6AIIPBXI@ZA, OFFSET _crc32c_append_hw
 
-; 1083 :   }
-; 1084 : }
+; 1100 :   }
+; 1101 : }
 
 	ret	0
 $LN2@crc32_init:
 
-; 1078 :   }
-; 1079 : 
-; 1080 :   else {
-; 1081 :     //dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
-; 1082 :     append_func = crc32c_append_sw;
+; 1095 :   }
+; 1096 : 
+; 1097 :   else {
+; 1098 :     //dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
+; 1099 :     append_func = crc32c_append_sw;
 
 	mov	DWORD PTR ?append_func@@3P6AIIPBXI@ZA, OFFSET _crc32c_append_sw
 
-; 1083 :   }
-; 1084 : }
+; 1100 :   }
+; 1101 : }
 
 	ret	0
 ___crc32_init ENDP
@@ -18362,26 +18366,26 @@ _input$ = 12						; size = 4
 _length$ = 16						; size = 4
 _crc32c	PROC
 
-; 1090 : {
+; 1107 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1091 :   if (append_func == nullptr)
+; 1108 :   if (append_func == nullptr)
 
 	mov	eax, DWORD PTR ?append_func@@3P6AIIPBXI@ZA
 	test	eax, eax
 	jne	SHORT $LN2@crc32c
 
-; 1092 :     __crc32_init ();
+; 1109 :     __crc32_init ();
 
 	call	___crc32_init
 	mov	eax, DWORD PTR ?append_func@@3P6AIIPBXI@ZA
 $LN2@crc32c:
 
-; 1093 : 
-; 1094 :   if (input != nullptr && length > 0 && append_func != nullptr)
+; 1110 : 
+; 1111 :   if (input != nullptr && length > 0 && append_func != nullptr)
 
 	mov	ecx, DWORD PTR _input$[ebp]
 	test	ecx, ecx
@@ -18392,26 +18396,26 @@ $LN2@crc32c:
 	test	eax, eax
 	je	SHORT $LN3@crc32c
 
-; 1095 :     return append_func (crc, input, length);
+; 1112 :     return append_func (crc, input, length);
 
 	mov	DWORD PTR _length$[ebp], edx
 	mov	DWORD PTR _input$[ebp], ecx
 
-; 1098 : }
+; 1115 : }
 
 	pop	ebp
 
-; 1095 :     return append_func (crc, input, length);
+; 1112 :     return append_func (crc, input, length);
 
 	jmp	eax
 $LN3@crc32c:
 
-; 1096 : 
-; 1097 :   return crc;
+; 1113 : 
+; 1114 :   return crc;
 
 	mov	eax, DWORD PTR _crc$[ebp]
 
-; 1098 : }
+; 1115 : }
 
 	pop	ebp
 	ret	0
@@ -18425,21 +18429,21 @@ _buf$ = 12						; size = 4
 _size$ = 16						; size = 4
 _crc32	PROC
 
-; 667  : {
+; 684  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 668  :   const auto *p =
-; 669  :        reinterpret_cast <const uint8_t *> (buf);
-; 670  : 
-; 671  :   crc = crc ^ ~0U;
+; 685  :   const auto *p =
+; 686  :        reinterpret_cast <const uint8_t *> (buf);
+; 687  : 
+; 688  :   crc = crc ^ ~0U;
 
 	mov	eax, DWORD PTR _crc$[ebp]
 
-; 672  : 
-; 673  :   while (size--)
+; 689  : 
+; 690  :   while (size--)
 
 	mov	edx, DWORD PTR _size$[ebp]
 	not	eax
@@ -18449,8 +18453,8 @@ _crc32	PROC
 	je	SHORT $LN6@crc32
 $LL2@crc32:
 
-; 674  :   {
-; 675  :     crc =
+; 691  :   {
+; 692  :     crc =
 
 	movzx	ecx, BYTE PTR [esi]
 	lea	esi, DWORD PTR [esi+1]
@@ -18462,15 +18466,15 @@ $LL2@crc32:
 	jne	SHORT $LL2@crc32
 $LN6@crc32:
 
-; 676  :       crc32_tab [ (crc ^ *p++) & 0xFF ] ^ (crc >> 8);
-; 677  :   }
-; 678  : 
-; 679  :   return crc ^ ~0U;
+; 693  :       crc32_tab [ (crc ^ *p++) & 0xFF ] ^ (crc >> 8);
+; 694  :   }
+; 695  : 
+; 696  :   return crc ^ ~0U;
 
 	not	eax
 	pop	esi
 
-; 680  : }
+; 697  : }
 
 	pop	ebp
 	ret	0
@@ -18487,14 +18491,14 @@ _pe32$ = -556						; size = 556
 _wszProcName$ = 8					; size = 4
 ?SK_IsProcessRunning@@YA_NPB_W@Z PROC			; SK_IsProcessRunning
 
-; 373  : {
+; 390  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 556				; 0000022cH
 
-; 374  :   PROCESSENTRY32 pe32 = { };
+; 391  :   PROCESSENTRY32 pe32 = { };
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	push	ebx
@@ -18506,8 +18510,8 @@ _wszProcName$ = 8					; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 375  : 
-; 376  :   CHandle hProcSnap (
+; 392  : 
+; 393  :   CHandle hProcSnap (
 
 	push	0
 	push	2
@@ -18519,17 +18523,17 @@ _wszProcName$ = 8					; size = 4
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 381  :   if (hProcSnap == INVALID_HANDLE_VALUE)
+; 398  :   if (hProcSnap == INVALID_HANDLE_VALUE)
 
 	cmp	esi, -1
 	je	SHORT $LN10@SK_IsProce
 
-; 382  :     return false;
-; 383  : 
-; 384  :   pe32.dwSize =
-; 385  :     sizeof PROCESSENTRY32;
-; 386  : 
-; 387  :   if (! Process32First ( hProcSnap,
+; 399  :     return false;
+; 400  : 
+; 401  :   pe32.dwSize =
+; 402  :     sizeof PROCESSENTRY32;
+; 403  : 
+; 404  :   if (! Process32First ( hProcSnap,
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	mov	DWORD PTR _pe32$[ebp], 556		; 0000022cH
@@ -18541,15 +18545,15 @@ _wszProcName$ = 8					; size = 4
 	mov	edi, DWORD PTR _wszProcName$[ebp]
 $LL4@SK_IsProce:
 
-; 388  :                            &pe32    )
-; 389  :      )
-; 390  :   {
-; 391  :     return false;
-; 392  :   }
-; 393  : 
-; 394  :   do
-; 395  :   {
-; 396  :     if (! SK_Path_wcsicmp ( wszProcName,
+; 405  :                            &pe32    )
+; 406  :      )
+; 407  :   {
+; 408  :     return false;
+; 409  :   }
+; 410  : 
+; 411  :   do
+; 412  :   {
+; 413  :     if (! SK_Path_wcsicmp ( wszProcName,
 
 	lea	eax, DWORD PTR _pe32$[ebp+36]
 	push	eax
@@ -18559,8 +18563,8 @@ $LL4@SK_IsProce:
 	test	eax, eax
 	je	SHORT $LN28@SK_IsProce
 
-; 401  :     }
-; 402  :   } while ( Process32Next ( hProcSnap,
+; 418  :     }
+; 419  :   } while ( Process32Next ( hProcSnap,
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	push	eax
@@ -18587,22 +18591,22 @@ $LN37@SK_IsProce:
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 406  :   return false;
+; 423  :   return false;
 
 	mov	al, bl
 	pop	ebx
 
-; 407  : }
+; 424  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN28@SK_IsProce:
 
-; 397  :                               pe32.szExeFile )
-; 398  :        )
-; 399  :     {
-; 400  :       return true;
+; 414  :                               pe32.szExeFile )
+; 415  :        )
+; 416  :     {
+; 417  :       return true;
 
 	mov	bl, 1
 	jmp	SHORT $LN11@SK_IsProce
@@ -18620,7 +18624,7 @@ _permissions$ = 20					; size = 4
 _old_data$ = 24						; size = 4
 ?SK_InjectMemory@@YGHPAX0IK0@Z PROC			; SK_InjectMemory
 
-; 1910 : {
+; 1930 : {
 
 	npad	2
 	push	ebp
@@ -18637,17 +18641,17 @@ _old_data$ = 24						; size = 4
 	push	edi
 	mov	DWORD PTR __$SEHRec$[ebp], esp
 
-; 1911 :   __try {
+; 1931 :   __try {
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], 0
 
-; 1912 :     DWORD dwOld =
-; 1913 :       PAGE_NOACCESS;
+; 1932 :     DWORD dwOld =
+; 1933 :       PAGE_NOACCESS;
 
 	mov	DWORD PTR _dwOld$2[ebp], 1
 
-; 1914 : 
-; 1915 :     if ( VirtualProtect ( base_addr,   data_size,
+; 1934 : 
+; 1935 :     if ( VirtualProtect ( base_addr,   data_size,
 
 	lea	eax, DWORD PTR _dwOld$2[ebp]
 	push	eax
@@ -18660,9 +18664,9 @@ _old_data$ = 24						; size = 4
 	test	eax, eax
 	je	SHORT $LN3@SK_InjectM
 
-; 1916 :                           permissions, &dwOld )   )
-; 1917 :     {
-; 1918 :       if (old_data != nullptr) memcpy (old_data, base_addr, data_size);
+; 1936 :                           permissions, &dwOld )   )
+; 1937 :     {
+; 1938 :       if (old_data != nullptr) memcpy (old_data, base_addr, data_size);
 
 	mov	eax, DWORD PTR _old_data$[ebp]
 	test	eax, eax
@@ -18674,7 +18678,7 @@ _old_data$ = 24						; size = 4
 	add	esp, 12					; 0000000cH
 $LN4@SK_InjectM:
 
-; 1919 :                                memcpy (base_addr, new_data, data_size);
+; 1939 :                                memcpy (base_addr, new_data, data_size);
 
 	push	esi
 	push	DWORD PTR _new_data$[ebp]
@@ -18682,8 +18686,8 @@ $LN4@SK_InjectM:
 	call	_memcpy
 	add	esp, 12					; 0000000cH
 
-; 1920 : 
-; 1921 :       VirtualProtect ( base_addr, data_size,
+; 1940 : 
+; 1941 :       VirtualProtect ( base_addr, data_size,
 
 	lea	eax, DWORD PTR _dwOld$2[ebp]
 	push	eax
@@ -18692,17 +18696,17 @@ $LN4@SK_InjectM:
 	push	edi
 	call	DWORD PTR __imp__VirtualProtect@16
 
-; 1922 :                        dwOld,     &dwOld );
-; 1923 : 
-; 1924 :       return TRUE;
+; 1942 :                        dwOld,     &dwOld );
+; 1943 : 
+; 1944 :       return TRUE;
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], -1
 	mov	eax, 1
 
-; 1939 :   }
-; 1940 : 
-; 1941 :   return FALSE;
-; 1942 : }
+; 1959 :   }
+; 1960 : 
+; 1961 :   return FALSE;
+; 1962 : }
 
 	mov	ecx, DWORD PTR __$SEHRec$[ebp+8]
 	mov	DWORD PTR fs:0, ecx
@@ -18715,10 +18719,10 @@ $LN4@SK_InjectM:
 $LN7@SK_InjectM:
 $LN12@SK_InjectM:
 
-; 1925 :     }
-; 1926 :   }
-; 1927 : 
-; 1928 :   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+; 1945 :     }
+; 1946 :   }
+; 1947 : 
+; 1948 :   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
 
 	mov	eax, DWORD PTR __$SEHRec$[ebp+4]
 	mov	eax, DWORD PTR [eax]
@@ -18733,24 +18737,24 @@ $LN8@SK_InjectM:
 	mov	esp, DWORD PTR __$SEHRec$[ebp]
 $LN3@SK_InjectM:
 
-; 1929 :                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
-; 1930 :   {
-; 1931 :     //assert (false);
-; 1932 : 
-; 1933 :     // Bad memory address, just discard the write attempt
-; 1934 :     //
-; 1935 :     //   This isn't atomic; if we fail, it's possible we wrote part
-; 1936 :     //     of the data successfully - consider an undo mechanism.
-; 1937 :     //
-; 1938 :     return FALSE;
+; 1949 :                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+; 1950 :   {
+; 1951 :     //assert (false);
+; 1952 : 
+; 1953 :     // Bad memory address, just discard the write attempt
+; 1954 :     //
+; 1955 :     //   This isn't atomic; if we fail, it's possible we wrote part
+; 1956 :     //     of the data successfully - consider an undo mechanism.
+; 1957 :     //
+; 1958 :     return FALSE;
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], -1
 	xor	eax, eax
 
-; 1939 :   }
-; 1940 : 
-; 1941 :   return FALSE;
-; 1942 : }
+; 1959 :   }
+; 1960 : 
+; 1961 :   return FALSE;
+; 1962 : }
 
 	mov	ecx, DWORD PTR __$SEHRec$[ebp+8]
 	mov	DWORD PTR fs:0, ecx
@@ -18780,7 +18784,7 @@ _after$ = 20						; size = 4
 _align$ = 24						; size = 4
 ?SK_ScanAlignedEx@@YGPAXPBXI0PAXH@Z PROC		; SK_ScanAlignedEx
 
-; 1722 : {
+; 1742 : {
 
 	npad	2
 	push	ebp
@@ -18790,15 +18794,15 @@ _align$ = 24						; size = 4
 	push	esi
 	push	edi
 
-; 1723 :   uint8_t* base_addr =
-; 1724 :     reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
+; 1743 :   uint8_t* base_addr =
+; 1744 :     reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
 
 	push	0
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
-; 1725 : 
-; 1726 :   MEMORY_BASIC_INFORMATION minfo;
-; 1727 :   VirtualQuery (base_addr, &minfo, sizeof minfo);
+; 1745 : 
+; 1746 :   MEMORY_BASIC_INFORMATION minfo;
+; 1747 :   VirtualQuery (base_addr, &minfo, sizeof minfo);
 
 	push	28					; 0000001cH
 	lea	ecx, DWORD PTR _minfo$[ebp]
@@ -18806,61 +18810,61 @@ _align$ = 24						; size = 4
 	push	eax
 	call	DWORD PTR __imp__VirtualQuery@12
 
-; 1728 : 
-; 1729 :   //
-; 1730 :   // VMProtect kills this, so let's do something else...
-; 1731 :   //
-; 1732 : #ifdef VMPROTECT_IS_NOT_A_FACTOR
-; 1733 :   IMAGE_DOS_HEADER* pDOS =
-; 1734 :     (IMAGE_DOS_HEADER *)minfo.AllocationBase;
-; 1735 :   IMAGE_NT_HEADERS* pNT  =
-; 1736 :     (IMAGE_NT_HEADERS *)((uintptr_t)(pDOS + pDOS->e_lfanew));
-; 1737 : 
-; 1738 :   uint8_t* end_addr = base_addr + pNT->OptionalHeader.SizeOfImage;
-; 1739 : #else
-; 1740 :            base_addr = static_cast <uint8_t *> (minfo.BaseAddress);//AllocationBase;
+; 1748 : 
+; 1749 :   //
+; 1750 :   // VMProtect kills this, so let's do something else...
+; 1751 :   //
+; 1752 : #ifdef VMPROTECT_IS_NOT_A_FACTOR
+; 1753 :   IMAGE_DOS_HEADER* pDOS =
+; 1754 :     (IMAGE_DOS_HEADER *)minfo.AllocationBase;
+; 1755 :   IMAGE_NT_HEADERS* pNT  =
+; 1756 :     (IMAGE_NT_HEADERS *)((uintptr_t)(pDOS + pDOS->e_lfanew));
+; 1757 : 
+; 1758 :   uint8_t* end_addr = base_addr + pNT->OptionalHeader.SizeOfImage;
+; 1759 : #else
+; 1760 :            base_addr = static_cast <uint8_t *> (minfo.BaseAddress);//AllocationBase;
 
 	mov	edi, DWORD PTR _minfo$[ebp]
 
-; 1741 :   uint8_t* end_addr  = static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
-; 1742 : 
-; 1743 :   ///if (base_addr != (uint8_t *)0x400000)
-; 1744 :   ///{
-; 1745 :   ///  static bool warned = false;
-; 1746 :   ///  if (! warned)
-; 1747 :   ///  {
-; 1748 :   ///    dll_log.Log ( L"[ Sig Scan ] Expected module base addr. 40000h, but got: %ph",
-; 1749 :   ///                    base_addr );
-; 1750 :   ///    warned = true;
-; 1751 :   ///  }
-; 1752 :   ///}
-; 1753 : 
-; 1754 :   size_t pages = 0;
-; 1755 : 
-; 1756 : #ifndef _WIN64
-; 1757 :   // Account for possible overflow in 32-bit address space in very rare (address randomization) cases
-; 1758 : uint8_t* const PAGE_WALK_LIMIT = 
-; 1759 :   base_addr + static_cast <uintptr_t>(1UL << 27) > base_addr ?
+; 1761 :   uint8_t* end_addr  = static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
+; 1762 : 
+; 1763 :   ///if (base_addr != (uint8_t *)0x400000)
+; 1764 :   ///{
+; 1765 :   ///  static bool warned = false;
+; 1766 :   ///  if (! warned)
+; 1767 :   ///  {
+; 1768 :   ///    dll_log.Log ( L"[ Sig Scan ] Expected module base addr. 40000h, but got: %ph",
+; 1769 :   ///                    base_addr );
+; 1770 :   ///    warned = true;
+; 1771 :   ///  }
+; 1772 :   ///}
+; 1773 : 
+; 1774 :   size_t pages = 0;
+; 1775 : 
+; 1776 : #ifndef _WIN64
+; 1777 :   // Account for possible overflow in 32-bit address space in very rare (address randomization) cases
+; 1778 : uint8_t* const PAGE_WALK_LIMIT = 
+; 1779 :   base_addr + static_cast <uintptr_t>(1UL << 27) > base_addr ?
 
 	or	esi, -1
 	mov	ebx, DWORD PTR _minfo$[ebp+12]
 	add	ebx, edi
 	mov	DWORD PTR _base_addr$2$[ebp], edi
 
-; 1760 :                                                    base_addr + static_cast      <uintptr_t>( 1UL << 27) :
-; 1761 :                                                                reinterpret_cast <uint8_t *>(~0UL      );
-; 1762 : #else
-; 1763 :   // Dark Souls 3 needs this, its address space is completely random to the point
-; 1764 :   //   where it may be occupying a range well in excess of 36 bits. Probably a stupid
-; 1765 :   //     anti-cheat attempt.
-; 1766 : uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36));
-; 1767 : #endif
-; 1768 : 
-; 1769 :   //
-; 1770 :   // For practical purposes, let's just assume that all valid games have less than 256 MiB of
-; 1771 :   //   committed executable image data.
-; 1772 :   //
-; 1773 :   while (VirtualQuery (end_addr, &minfo, sizeof minfo) && end_addr < PAGE_WALK_LIMIT)
+; 1780 :                                                    base_addr + static_cast      <uintptr_t>( 1UL << 27) :
+; 1781 :                                                                reinterpret_cast <uint8_t *>(~0UL      );
+; 1782 : #else
+; 1783 :   // Dark Souls 3 needs this, its address space is completely random to the point
+; 1784 :   //   where it may be occupying a range well in excess of 36 bits. Probably a stupid
+; 1785 :   //     anti-cheat attempt.
+; 1786 : uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36));
+; 1787 : #endif
+; 1788 : 
+; 1789 :   //
+; 1790 :   // For practical purposes, let's just assume that all valid games have less than 256 MiB of
+; 1791 :   //   committed executable image data.
+; 1792 :   //
+; 1793 :   while (VirtualQuery (end_addr, &minfo, sizeof minfo) && end_addr < PAGE_WALK_LIMIT)
 
 	push	28					; 0000001cH
 	lea	eax, DWORD PTR [edi+134217728]
@@ -18878,17 +18882,17 @@ $LL2@SK_ScanAli:
 	cmp	ebx, esi
 	jae	SHORT $LN52@SK_ScanAli
 
-; 1774 :   {
-; 1775 :     if (minfo.Protect & PAGE_NOACCESS || (! (minfo.Type & MEM_IMAGE)))
+; 1794 :   {
+; 1795 :     if (minfo.Protect & PAGE_NOACCESS || (! (minfo.Type & MEM_IMAGE)))
 
 	test	BYTE PTR _minfo$[ebp+20], 1
 	jne	SHORT $LN52@SK_ScanAli
 	test	DWORD PTR _minfo$[ebp+24], 16777216	; 01000000H
 	je	SHORT $LN52@SK_ScanAli
 
-; 1776 :       break;
-; 1777 : 
-; 1778 :     pages += VirtualQuery (end_addr, &minfo, sizeof minfo);
+; 1796 :       break;
+; 1797 : 
+; 1798 :     pages += VirtualQuery (end_addr, &minfo, sizeof minfo);
 
 	push	28					; 0000001cH
 	lea	eax, DWORD PTR _minfo$[ebp]
@@ -18896,8 +18900,8 @@ $LL2@SK_ScanAli:
 	push	ebx
 	call	DWORD PTR __imp__VirtualQuery@12
 
-; 1779 : 
-; 1780 :     end_addr =
+; 1799 : 
+; 1800 :     end_addr =
 
 	mov	ebx, DWORD PTR _minfo$[ebp+12]
 	lea	eax, DWORD PTR _minfo$[ebp]
@@ -18912,70 +18916,70 @@ $LN52@SK_ScanAli:
 	mov	DWORD PTR _end_addr$1$[ebp], ebx
 $LN34@SK_ScanAli:
 
-; 1781 :       static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
-; 1782 :   } 
-; 1783 : 
-; 1784 :   if (end_addr > PAGE_WALK_LIMIT)
+; 1801 :       static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
+; 1802 :   } 
+; 1803 : 
+; 1804 :   if (end_addr > PAGE_WALK_LIMIT)
 
 	cmp	ebx, esi
 	jbe	SHORT $LN10@SK_ScanAli
 
-; 1785 :   {
-; 1786 :     static bool warned = false;
-; 1787 : 
-; 1788 :     if (! warned)
+; 1805 :   {
+; 1806 :     static bool warned = false;
+; 1807 : 
+; 1808 :     if (! warned)
 
 	cmp	BYTE PTR ?warned@?8??SK_ScanAlignedEx@@YGPAXPBXI0PAXH@Z@4_NA, 0
 	jne	SHORT $LN11@SK_ScanAli
 
-; 1789 :     {
-; 1790 :       dll_log.Log ( L"[ Sig Scan ] Module page walk resulted in end addr. out-of-range: %ph",
+; 1809 :     {
+; 1810 :       dll_log.Log ( L"[ Sig Scan ] Module page walk resulted in end addr. out-of-range: %ph",
 
 	push	ebx
-	push	OFFSET $SG298421
+	push	OFFSET $SG300950
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 1791 :                       end_addr );
-; 1792 :       dll_log.Log ( L"[ Sig Scan ]  >> Restricting to %ph",
+; 1811 :                       end_addr );
+; 1812 :       dll_log.Log ( L"[ Sig Scan ]  >> Restricting to %ph",
 
 	push	esi
-	push	OFFSET $SG298422
+	push	OFFSET $SG300951
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 24					; 00000018H
 
-; 1793 :                       PAGE_WALK_LIMIT );
-; 1794 :       warned = true;
+; 1813 :                       PAGE_WALK_LIMIT );
+; 1814 :       warned = true;
 
 	mov	BYTE PTR ?warned@?8??SK_ScanAlignedEx@@YGPAXPBXI0PAXH@Z@4_NA, 1
 $LN11@SK_ScanAli:
 
-; 1795 :     }
-; 1796 : 
-; 1797 :     end_addr =
+; 1815 :     }
+; 1816 : 
+; 1817 :     end_addr =
 
 	mov	ebx, esi
 	mov	DWORD PTR _end_addr$1$[ebp], ebx
 $LN10@SK_ScanAli:
 
-; 1798 :       static_cast <uint8_t *> (PAGE_WALK_LIMIT);
-; 1799 :   }
-; 1800 : 
-; 1801 : #if 0
-; 1802 :   dll_log->Log ( L"[ Sig Scan ] Module image consists of %zu pages, from %ph to %ph",
-; 1803 :                   pages,
-; 1804 :                     base_addr,
-; 1805 :                       end_addr );
-; 1806 : #endif
-; 1807 : #endif
-; 1808 : 
-; 1809 :   __SK_base_img_addr = base_addr;
+; 1818 :       static_cast <uint8_t *> (PAGE_WALK_LIMIT);
+; 1819 :   }
+; 1820 : 
+; 1821 : #if 0
+; 1822 :   dll_log->Log ( L"[ Sig Scan ] Module image consists of %zu pages, from %ph to %ph",
+; 1823 :                   pages,
+; 1824 :                     base_addr,
+; 1825 :                       end_addr );
+; 1826 : #endif
+; 1827 : #endif
+; 1828 : 
+; 1829 :   __SK_base_img_addr = base_addr;
 
 	mov	DWORD PTR ?__SK_base_img_addr@@3PAXA, edi ; __SK_base_img_addr
 
-; 1811 : 
-; 1812 :   uint8_t* begin = std::max (static_cast <uint8_t *> (after) + align, base_addr);
+; 1831 : 
+; 1832 :   uint8_t* begin = std::max (static_cast <uint8_t *> (after) + align, base_addr);
 
 	mov	edi, DWORD PTR _after$[ebp]
 	add	edi, DWORD PTR _align$[ebp]
@@ -18986,7 +18990,7 @@ $LN10@SK_ScanAli:
 	cmp	edi, DWORD PTR _base_addr$2$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1810 :   __SK_end_img_addr  = end_addr;
+; 1830 :   __SK_end_img_addr  = end_addr;
 
 	mov	DWORD PTR ?__SK_end_img_addr@@3PAXA, ebx ; __SK_end_img_addr
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -18996,21 +19000,21 @@ $LN10@SK_ScanAli:
 	cmovb	edi, DWORD PTR _base_addr$2$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1814 :   size_t   idx   = 0;
+; 1834 :   size_t   idx   = 0;
 
 	xor	ebx, ebx
 	mov	esi, edi
 
-; 1815 : 
-; 1816 :   while (it < end_addr)
+; 1835 : 
+; 1836 :   while (it < end_addr)
 
 	cmp	edi, DWORD PTR _end_addr$1$[ebp]
 	jae	$LN49@SK_ScanAli
 	npad	4
 $LL4@SK_ScanAli:
 
-; 1817 :   {
-; 1818 :     VirtualQuery (it, &minfo, sizeof minfo);
+; 1837 :   {
+; 1838 :     VirtualQuery (it, &minfo, sizeof minfo);
 
 	push	28					; 0000001cH
 	lea	eax, DWORD PTR _minfo$[ebp]
@@ -19018,26 +19022,26 @@ $LL4@SK_ScanAli:
 	push	esi
 	call	DWORD PTR __imp__VirtualQuery@12
 
-; 1819 : 
-; 1820 :     // Bail-out once we walk into an address range that is not resident, because
-; 1821 :     //   it does not belong to the original executable.
-; 1822 :     if (minfo.RegionSize == 0)
+; 1839 : 
+; 1840 :     // Bail-out once we walk into an address range that is not resident, because
+; 1841 :     //   it does not belong to the original executable.
+; 1842 :     if (minfo.RegionSize == 0)
 
 	mov	ecx, DWORD PTR _minfo$[ebp+12]
 	test	ecx, ecx
 	je	$LN49@SK_ScanAli
 
-; 1823 :       break;
-; 1824 : 
-; 1825 :     uint8_t* next_rgn =
-; 1826 :      (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
+; 1843 :       break;
+; 1844 : 
+; 1845 :     uint8_t* next_rgn =
+; 1846 :      (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
 
 	mov	eax, DWORD PTR _minfo$[ebp]
 	add	eax, ecx
 
-; 1827 : 
-; 1828 :     if ( (! (minfo.Type    & MEM_IMAGE))  ||
-; 1829 :          (! (minfo.State   & MEM_COMMIT)) ||
+; 1847 : 
+; 1848 :     if ( (! (minfo.Type    & MEM_IMAGE))  ||
+; 1849 :          (! (minfo.State   & MEM_COMMIT)) ||
 
 	test	DWORD PTR _minfo$[ebp+24], 16777216	; 01000000H
 	mov	DWORD PTR _next_rgn$1$[ebp], eax
@@ -19047,38 +19051,38 @@ $LL4@SK_ScanAli:
 	test	BYTE PTR _minfo$[ebp+20], 1
 	jne	SHORT $LN14@SK_ScanAli
 
-; 1835 : 
-; 1836 :       continue;
-; 1837 :     }
-; 1838 : 
-; 1839 :     // Do not search past the end of the module image!
-; 1840 :     if (next_rgn >= end_addr)
+; 1855 : 
+; 1856 :       continue;
+; 1857 :     }
+; 1858 : 
+; 1859 :     // Do not search past the end of the module image!
+; 1860 :     if (next_rgn >= end_addr)
 
 	cmp	eax, DWORD PTR _end_addr$1$[ebp]
 	jae	SHORT $LN49@SK_ScanAli
 
-; 1841 :       break;
-; 1842 : 
-; 1843 :     while (it < next_rgn)
+; 1861 :       break;
+; 1862 : 
+; 1863 :     while (it < next_rgn)
 
 	cmp	esi, eax
 	jae	SHORT $LN40@SK_ScanAli
 	mov	edx, DWORD PTR _mask$[ebp]
 $LL6@SK_ScanAli:
 
-; 1844 :     {
-; 1845 :       uint8_t* scan_addr = it;
-; 1846 : 
-; 1847 :       bool match = (*scan_addr == static_cast <const uint8_t *> (pattern) [idx]);
+; 1864 :     {
+; 1865 :       uint8_t* scan_addr = it;
+; 1866 : 
+; 1867 :       bool match = (*scan_addr == static_cast <const uint8_t *> (pattern) [idx]);
 
 	mov	ecx, DWORD PTR _pattern$[ebp]
 	mov	al, BYTE PTR [esi]
 	cmp	al, BYTE PTR [ebx+ecx]
 
-; 1848 : 
-; 1849 :       // For portions we do not care about... treat them
-; 1850 :       //   as matching.
-; 1851 :       if (mask != nullptr && (! static_cast <const uint8_t *> (mask) [idx]))
+; 1868 : 
+; 1869 :       // For portions we do not care about... treat them
+; 1870 :       //   as matching.
+; 1871 :       if (mask != nullptr && (! static_cast <const uint8_t *> (mask) [idx]))
 
 	mov	ecx, DWORD PTR _end_addr$1$[ebp]
 	sete	al
@@ -19088,23 +19092,23 @@ $LL6@SK_ScanAli:
 	je	SHORT $LN47@SK_ScanAli
 $LN16@SK_ScanAli:
 
-; 1852 :         match = true;
-; 1853 : 
-; 1854 :       if (match)
+; 1872 :         match = true;
+; 1873 : 
+; 1874 :       if (match)
 
 	test	al, al
 	je	SHORT $LN17@SK_ScanAli
 $LN47@SK_ScanAli:
 
-; 1855 :       {
-; 1856 :         if (++idx == len)
+; 1875 :       {
+; 1876 :         if (++idx == len)
 
 	inc	ebx
 	cmp	ebx, DWORD PTR _len$[ebp]
 	jne	SHORT $LN19@SK_ScanAli
 
-; 1857 :         {
-; 1858 :           if ((reinterpret_cast <uintptr_t> (begin) % align) == 0)
+; 1877 :         {
+; 1878 :           if ((reinterpret_cast <uintptr_t> (begin) % align) == 0)
 
 	mov	ecx, DWORD PTR _align$[ebp]
 	xor	edx, edx
@@ -19113,60 +19117,60 @@ $LN47@SK_ScanAli:
 	test	edx, edx
 	je	SHORT $LN35@SK_ScanAli
 
-; 1861 :               static_cast <void *> (begin);
-; 1862 :           }
-; 1863 : 
-; 1864 :           else
-; 1865 :           {
-; 1866 :             begin += idx;
+; 1881 :               static_cast <void *> (begin);
+; 1882 :           }
+; 1883 : 
+; 1884 :           else
+; 1885 :           {
+; 1886 :             begin += idx;
 
 	add	edi, ebx
 
-; 1867 :             begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
+; 1887 :             begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
 
 	xor	edx, edx
 	mov	eax, edi
 	div	ecx
 	mov	eax, ecx
 
-; 1868 : 
-; 1869 :             it     = begin;
-; 1870 :             idx    = 0;
-; 1871 :           }
-; 1872 :         }
-; 1873 : 
-; 1874 :         else
+; 1888 : 
+; 1889 :             it     = begin;
+; 1890 :             idx    = 0;
+; 1891 :           }
+; 1892 :         }
+; 1893 : 
+; 1894 :         else
 
 	jmp	SHORT $LN53@SK_ScanAli
 $LN19@SK_ScanAli:
 
-; 1875 :           ++it;
+; 1895 :           ++it;
 
 	inc	esi
 
-; 1876 :       }
-; 1877 : 
-; 1878 :       else
+; 1896 :       }
+; 1897 : 
+; 1898 :       else
 
 	jmp	SHORT $LN18@SK_ScanAli
 $LN17@SK_ScanAli:
 
-; 1879 :       {
-; 1880 :         // No match?!
-; 1881 :         if (it > end_addr - len)
+; 1899 :       {
+; 1900 :         // No match?!
+; 1901 :         if (it > end_addr - len)
 
 	mov	eax, ecx
 	sub	eax, DWORD PTR _len$[ebp]
 	cmp	esi, eax
 	ja	SHORT $LN40@SK_ScanAli
 
-; 1882 :           break;
-; 1883 : 
-; 1884 :         begin += idx;
+; 1902 :           break;
+; 1903 : 
+; 1904 :         begin += idx;
 
 	add	edi, ebx
 
-; 1885 :         begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
+; 1905 :         begin += align - (reinterpret_cast <uintptr_t> (begin) % align);
 
 	xor	edx, edx
 	mov	eax, edi
@@ -19177,45 +19181,45 @@ $LN53@SK_ScanAli:
 	mov	edx, DWORD PTR _mask$[ebp]
 	add	edi, eax
 
-; 1886 : 
-; 1887 :         it  = begin;
-; 1888 :         idx = 0;
+; 1906 : 
+; 1907 :         it  = begin;
+; 1908 :         idx = 0;
 
 	xor	ebx, ebx
 	mov	esi, edi
 $LN18@SK_ScanAli:
 
-; 1841 :       break;
-; 1842 : 
-; 1843 :     while (it < next_rgn)
+; 1861 :       break;
+; 1862 : 
+; 1863 :     while (it < next_rgn)
 
 	cmp	esi, DWORD PTR _next_rgn$1$[ebp]
 	jb	SHORT $LL6@SK_ScanAli
 
-; 1889 :       }
-; 1890 :     }
-; 1891 :   }
+; 1909 :       }
+; 1910 :     }
+; 1911 :   }
 
 	jmp	SHORT $LN40@SK_ScanAli
 $LN14@SK_ScanAli:
 
-; 1830 :              minfo.Protect & PAGE_NOACCESS )
-; 1831 :     {
-; 1832 :       it    = next_rgn;
+; 1850 :              minfo.Protect & PAGE_NOACCESS )
+; 1851 :     {
+; 1852 :       it    = next_rgn;
 
 	mov	esi, eax
 
-; 1833 :       idx   = 0;
+; 1853 :       idx   = 0;
 
 	xor	ebx, ebx
 
-; 1834 :       begin = it;
+; 1854 :       begin = it;
 
 	mov	edi, eax
 $LN40@SK_ScanAli:
 
-; 1815 : 
-; 1816 :   while (it < end_addr)
+; 1835 : 
+; 1836 :   while (it < end_addr)
 
 	cmp	esi, DWORD PTR _end_addr$1$[ebp]
 	jb	$LL4@SK_ScanAli
@@ -19223,28 +19227,28 @@ $LN49@SK_ScanAli:
 	pop	edi
 	pop	esi
 
-; 1892 : 
-; 1893 :   return nullptr;
+; 1912 : 
+; 1913 :   return nullptr;
 
 	xor	eax, eax
 	pop	ebx
 
-; 1894 : }
+; 1914 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	20					; 00000014H
 $LN35@SK_ScanAli:
 
-; 1859 :           {
-; 1860 :             return
+; 1879 :           {
+; 1880 :             return
 
 	mov	eax, edi
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 1894 : }
+; 1914 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -19260,13 +19264,13 @@ _mask$ = 16						; size = 4
 _align$ = 20						; size = 4
 ?SK_ScanAligned@@YGPAXPBXI0H@Z PROC			; SK_ScanAligned
 
-; 1899 : {
+; 1919 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1900 :   return SK_ScanAlignedEx (pattern, len, mask, nullptr, align);
+; 1920 :   return SK_ScanAlignedEx (pattern, len, mask, nullptr, align);
 
 	push	DWORD PTR _align$[ebp]
 	push	0
@@ -19275,7 +19279,7 @@ _align$ = 20						; size = 4
 	push	DWORD PTR _pattern$[ebp]
 	call	?SK_ScanAlignedEx@@YGPAXPBXI0PAXH@Z	; SK_ScanAlignedEx
 
-; 1901 : }
+; 1921 : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -19289,13 +19293,13 @@ _len$ = 12						; size = 4
 _mask$ = 16						; size = 4
 ?SK_Scan@@YGPAXPBXI0@Z PROC				; SK_Scan
 
-; 1715 : {
+; 1735 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1716 :   return SK_ScanAligned (pattern, len, mask);
+; 1736 :   return SK_ScanAligned (pattern, len, mask);
 
 	push	1
 	push	DWORD PTR _mask$[ebp]
@@ -19303,7 +19307,7 @@ _mask$ = 16						; size = 4
 	push	DWORD PTR _pattern$[ebp]
 	call	?SK_ScanAligned@@YGPAXPBXI0H@Z		; SK_ScanAligned
 
-; 1717 : }
+; 1737 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -19318,14 +19322,14 @@ _szNum$ = 8						; size = 4
 _bufLen$ = 12						; size = 4
 ?SK_RemoveTrailingDecimalZeros@@YAIPADI@Z PROC		; SK_RemoveTrailingDecimalZeros
 
-; 2160 : {
+; 2180 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2161 :   // Remove trailing 0's after the .
-; 2162 :   size_t len = bufLen == 0 ?
+; 2181 :   // Remove trailing 0's after the .
+; 2182 :   size_t len = bufLen == 0 ?
 
 	mov	edx, DWORD PTR _bufLen$[ebp]
 	push	esi
@@ -19360,7 +19364,7 @@ $LL19@SK_RemoveT:
 $LN9@SK_RemoveT:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2166 :   for (size_t i = (len - 1); i > 1; i--)
+; 2186 :   for (size_t i = (len - 1); i > 1; i--)
 
 	lea	ecx, DWORD PTR [eax-1]
 	cmp	ecx, 1
@@ -19368,8 +19372,8 @@ $LN9@SK_RemoveT:
 	npad	5
 $LL4@SK_RemoveT:
 
-; 2167 :   {
-; 2168 :     if (szNum [i] == '0' && szNum [i - 1] != '.')
+; 2187 :   {
+; 2188 :     if (szNum [i] == '0' && szNum [i - 1] != '.')
 
 	mov	dl, BYTE PTR [ecx+esi]
 	cmp	dl, 48					; 00000030H
@@ -19377,13 +19381,13 @@ $LL4@SK_RemoveT:
 	cmp	BYTE PTR [ecx+esi-1], 46		; 0000002eH
 	je	SHORT $LN5@SK_RemoveT
 
-; 2169 :       len--;
+; 2189 :       len--;
 
 	dec	eax
 $LN5@SK_RemoveT:
 
-; 2170 : 
-; 2171 :     if (szNum [i] != '0' && szNum [i] != '\0')
+; 2190 : 
+; 2191 :     if (szNum [i] != '0' && szNum [i] != '\0')
 
 	cmp	dl, 48					; 00000030H
 	je	SHORT $LN2@SK_RemoveT
@@ -19392,24 +19396,24 @@ $LN24@SK_RemoveT:
 	jne	SHORT $LN21@SK_RemoveT
 $LN2@SK_RemoveT:
 
-; 2166 :   for (size_t i = (len - 1); i > 1; i--)
+; 2186 :   for (size_t i = (len - 1); i > 1; i--)
 
 	dec	ecx
 	cmp	ecx, 1
 	ja	SHORT $LL4@SK_RemoveT
 $LN21@SK_RemoveT:
 
-; 2172 :       break;
-; 2173 :   }
-; 2174 : 
-; 2175 :   szNum [len] = '\0';
+; 2192 :       break;
+; 2193 :   }
+; 2194 : 
+; 2195 :   szNum [len] = '\0';
 
 	mov	BYTE PTR [eax+esi], 0
 	pop	esi
 
-; 2176 : 
-; 2177 :   return len;
-; 2178 : }
+; 2196 : 
+; 2197 :   return len;
+; 2198 : }
 
 	pop	ebp
 	ret	0
@@ -19424,14 +19428,14 @@ _wszNum$ = 8						; size = 4
 _bufLen$ = 12						; size = 4
 ?SK_RemoveTrailingDecimalZeros@@YAIPA_WI@Z PROC		; SK_RemoveTrailingDecimalZeros
 
-; 2140 : {
+; 2160 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2141 :   // Remove trailing 0's after the .
-; 2142 :   size_t len = bufLen == 0 ?
+; 2161 :   // Remove trailing 0's after the .
+; 2162 :   size_t len = bufLen == 0 ?
 
 	mov	edx, DWORD PTR _bufLen$[ebp]
 	push	esi
@@ -19469,7 +19473,7 @@ $LL19@SK_RemoveT:
 $LN9@SK_RemoveT:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2146 :   for (size_t i = (len - 1); i > 1; i--) {
+; 2166 :   for (size_t i = (len - 1); i > 1; i--) {
 
 	lea	ecx, DWORD PTR [eax-1]
 	cmp	ecx, 1
@@ -19477,7 +19481,7 @@ $LN9@SK_RemoveT:
 	npad	3
 $LL4@SK_RemoveT:
 
-; 2147 :     if (wszNum [i] == L'0' && wszNum [i - 1] != L'.')
+; 2167 :     if (wszNum [i] == L'0' && wszNum [i - 1] != L'.')
 
 	movzx	edx, WORD PTR [esi+ecx*2]
 	cmp	edx, 48					; 00000030H
@@ -19485,12 +19489,12 @@ $LL4@SK_RemoveT:
 	cmp	WORD PTR [esi+ecx*2-2], 46		; 0000002eH
 	je	SHORT $LN5@SK_RemoveT
 
-; 2148 :       len--;
+; 2168 :       len--;
 
 	dec	eax
 $LN5@SK_RemoveT:
 
-; 2149 :     if (wszNum [i] != L'0' && wszNum [i] != L'\0')
+; 2169 :     if (wszNum [i] != L'0' && wszNum [i] != L'\0')
 
 	cmp	edx, 48					; 00000030H
 	je	SHORT $LN2@SK_RemoveT
@@ -19499,25 +19503,25 @@ $LN22@SK_RemoveT:
 	jne	SHORT $LN20@SK_RemoveT
 $LN2@SK_RemoveT:
 
-; 2146 :   for (size_t i = (len - 1); i > 1; i--) {
+; 2166 :   for (size_t i = (len - 1); i > 1; i--) {
 
 	dec	ecx
 	cmp	ecx, 1
 	ja	SHORT $LL4@SK_RemoveT
 $LN20@SK_RemoveT:
 
-; 2150 :       break;
-; 2151 :   }
-; 2152 : 
-; 2153 :   wszNum [len] = L'\0';
+; 2170 :       break;
+; 2171 :   }
+; 2172 : 
+; 2173 :   wszNum [len] = L'\0';
 
 	xor	ecx, ecx
 	mov	WORD PTR [esi+eax*2], cx
 	pop	esi
 
-; 2154 : 
-; 2155 :   return len;
-; 2156 : }
+; 2174 : 
+; 2175 :   return len;
+; 2176 : }
 
 	pop	ebp
 	ret	0
@@ -19530,15 +19534,15 @@ _wszStr1$ = 8						; size = 4
 _wszStr2$ = 12						; size = 4
 ?SK_Path_wcsicmp@@YAHPB_W0@Z PROC			; SK_Path_wcsicmp
 
-; 1492 : {
+; 1512 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 1493 :   int ret =
-; 1494 :     CompareString ( LOCALE_INVARIANT,
+; 1513 :   int ret =
+; 1514 :     CompareString ( LOCALE_INVARIANT,
 
 	mov	esi, DWORD PTR _wszStr2$[ebp]
 	push	esi
@@ -19555,39 +19559,39 @@ _wszStr2$ = 12						; size = 4
 	call	DWORD PTR __imp__CompareStringW@24
 	pop	esi
 
-; 1495 :                       NORM_IGNORECASE | NORM_IGNOREWIDTH |
-; 1496 :                       NORM_IGNORENONSPACE,
-; 1497 :                         wszStr1, lstrlenW (wszStr1),
-; 1498 :                           wszStr2, lstrlenW (wszStr2) );
-; 1499 : 
-; 1500 :   // To make this a drop-in replacement for wcsicmp, subtract
-; 1501 :   //   2 from non-zero return values
-; 1502 :   return (ret != 0) ?
+; 1515 :                       NORM_IGNORECASE | NORM_IGNOREWIDTH |
+; 1516 :                       NORM_IGNORENONSPACE,
+; 1517 :                         wszStr1, lstrlenW (wszStr1),
+; 1518 :                           wszStr2, lstrlenW (wszStr2) );
+; 1519 : 
+; 1520 :   // To make this a drop-in replacement for wcsicmp, subtract
+; 1521 :   //   2 from non-zero return values
+; 1522 :   return (ret != 0) ?
 
 	test	eax, eax
 	je	SHORT $LN3@SK_Path_wc
 	add	eax, -2					; fffffffeH
 
-; 1503 :     (ret - 2) : 0;
-; 1504 : }
+; 1523 :     (ret - 2) : 0;
+; 1524 : }
 
 	pop	ebp
 	ret	0
 $LN3@SK_Path_wc:
 
-; 1495 :                       NORM_IGNORECASE | NORM_IGNOREWIDTH |
-; 1496 :                       NORM_IGNORENONSPACE,
-; 1497 :                         wszStr1, lstrlenW (wszStr1),
-; 1498 :                           wszStr2, lstrlenW (wszStr2) );
-; 1499 : 
-; 1500 :   // To make this a drop-in replacement for wcsicmp, subtract
-; 1501 :   //   2 from non-zero return values
-; 1502 :   return (ret != 0) ?
+; 1515 :                       NORM_IGNORECASE | NORM_IGNOREWIDTH |
+; 1516 :                       NORM_IGNORENONSPACE,
+; 1517 :                         wszStr1, lstrlenW (wszStr1),
+; 1518 :                           wszStr2, lstrlenW (wszStr2) );
+; 1519 : 
+; 1520 :   // To make this a drop-in replacement for wcsicmp, subtract
+; 1521 :   //   2 from non-zero return values
+; 1522 :   return (ret != 0) ?
 
 	xor	eax, eax
 
-; 1503 :     (ret - 2) : 0;
-; 1504 : }
+; 1523 :     (ret - 2) : 0;
+; 1524 : }
 
 	pop	ebp
 	ret	0
@@ -19600,52 +19604,52 @@ _wszStr$ = 8						; size = 4
 _wszSubStr$ = 12					; size = 4
 ?SK_Path_wcsstr@@YAPB_WPB_W0@Z PROC			; SK_Path_wcsstr
 
-; 1534 : {
+; 1554 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1535 : #if 0
-; 1536 :   int            len     =
-; 1537 :     min (lstrlenW (wszSubStr), MAX_PATH);
-; 1538 : 
-; 1539 :   const wchar_t* it       = wszStr;
-; 1540 :   const wchar_t* wszScan  = it;
-; 1541 :   const wchar_t* wszBegin = it;
-; 1542 : 
-; 1543 :   int            idx     = 0;
-; 1544 : 
-; 1545 :   while (it < (wszStr + MAX_PATH)) {
-; 1546 :     bool match = (*wszScan == wszSubStr [idx]);
-; 1547 : 
-; 1548 :     if (match) {
-; 1549 :       if (++idx == len)
-; 1550 :         return wszBegin;
-; 1551 : 
-; 1552 :       ++it;
-; 1553 :     }
-; 1554 : 
-; 1555 :     else {
-; 1556 :       if (it > (wszStr + MAX_PATH - len))
-; 1557 :         break;
+; 1555 : #if 0
+; 1556 :   int            len     =
+; 1557 :     min (lstrlenW (wszSubStr), MAX_PATH);
 ; 1558 : 
-; 1559 :       it  = ++wszBegin;
-; 1560 :       idx = 0;
-; 1561 :     }
-; 1562 :   }
-; 1563 : 
-; 1564 :   return (it <= (wszStr + MAX_PATH - len)) ?
-; 1565 :            wszBegin : nullptr;
-; 1566 : #else
-; 1567 :   return StrStrIW (wszStr, wszSubStr);
+; 1559 :   const wchar_t* it       = wszStr;
+; 1560 :   const wchar_t* wszScan  = it;
+; 1561 :   const wchar_t* wszBegin = it;
+; 1562 : 
+; 1563 :   int            idx     = 0;
+; 1564 : 
+; 1565 :   while (it < (wszStr + MAX_PATH)) {
+; 1566 :     bool match = (*wszScan == wszSubStr [idx]);
+; 1567 : 
+; 1568 :     if (match) {
+; 1569 :       if (++idx == len)
+; 1570 :         return wszBegin;
+; 1571 : 
+; 1572 :       ++it;
+; 1573 :     }
+; 1574 : 
+; 1575 :     else {
+; 1576 :       if (it > (wszStr + MAX_PATH - len))
+; 1577 :         break;
+; 1578 : 
+; 1579 :       it  = ++wszBegin;
+; 1580 :       idx = 0;
+; 1581 :     }
+; 1582 :   }
+; 1583 : 
+; 1584 :   return (it <= (wszStr + MAX_PATH - len)) ?
+; 1585 :            wszBegin : nullptr;
+; 1586 : #else
+; 1587 :   return StrStrIW (wszStr, wszSubStr);
 
 	push	DWORD PTR _wszSubStr$[ebp]
 	push	DWORD PTR _wszStr$[ebp]
 	call	DWORD PTR __imp__StrStrIW@8
 
-; 1568 : #endif
-; 1569 : }
+; 1588 : #endif
+; 1589 : }
 
 	pop	ebp
 	ret	0
@@ -19658,17 +19662,17 @@ _wszStr$ = 8						; size = 4
 _wchr$ = 12						; size = 2
 ?SK_Path_wcsrchr@@YAPB_WPB_W_W@Z PROC			; SK_Path_wcsrchr
 
-; 1508 : {
+; 1528 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ebx
 
-; 1509 :              int len     = 0;
-; 1510 :   const wchar_t* pwszStr = wszStr;
-; 1511 : 
-; 1512 :   for (len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr))
+; 1529 :              int len     = 0;
+; 1530 :   const wchar_t* pwszStr = wszStr;
+; 1531 : 
+; 1532 :   for (len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr))
 
 	mov	ebx, DWORD PTR __imp__CharNextW@4
 	push	esi
@@ -19678,16 +19682,16 @@ _wchr$ = 12						; size = 2
 	mov	eax, edi
 $LL4@SK_Path_wc:
 
-; 1513 :   {
-; 1514 :     if (*pwszStr == L'\0')
+; 1533 :   {
+; 1534 :     if (*pwszStr == L'\0')
 
 	cmp	WORD PTR [eax], 0
 	je	SHORT $LN12@SK_Path_wc
 
-; 1509 :              int len     = 0;
-; 1510 :   const wchar_t* pwszStr = wszStr;
-; 1511 : 
-; 1512 :   for (len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr))
+; 1529 :              int len     = 0;
+; 1530 :   const wchar_t* pwszStr = wszStr;
+; 1531 : 
+; 1532 :   for (len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr))
 
 	push	eax
 	inc	esi
@@ -19696,12 +19700,12 @@ $LL4@SK_Path_wc:
 	jl	SHORT $LL4@SK_Path_wc
 $LN12@SK_Path_wc:
 
-; 1515 :       break;
-; 1516 :   }
-; 1517 : 
-; 1518 :   const wchar_t* wszSearch = pwszStr;
-; 1519 : 
-; 1520 :   while (wszSearch >= wszStr)
+; 1535 :       break;
+; 1536 :   }
+; 1537 : 
+; 1538 :   const wchar_t* wszSearch = pwszStr;
+; 1539 : 
+; 1540 :   while (wszSearch >= wszStr)
 
 	cmp	eax, edi
 	jb	SHORT $LN20@SK_Path_wc
@@ -19709,15 +19713,15 @@ $LN12@SK_Path_wc:
 	mov	ebx, DWORD PTR __imp__CharPrevW@8
 $LL5@SK_Path_wc:
 
-; 1521 :   {
-; 1522 :     if (*wszSearch == wchr)
+; 1541 :   {
+; 1542 :     if (*wszSearch == wchr)
 
 	cmp	WORD PTR [eax], si
 	je	SHORT $LN20@SK_Path_wc
 
-; 1523 :       break;
-; 1524 : 
-; 1525 :     wszSearch = CharPrevW (wszStr, wszSearch);
+; 1543 :       break;
+; 1544 : 
+; 1545 :     wszSearch = CharPrevW (wszStr, wszSearch);
 
 	push	eax
 	push	edi
@@ -19726,9 +19730,9 @@ $LL5@SK_Path_wc:
 	jae	SHORT $LL5@SK_Path_wc
 $LN20@SK_Path_wc:
 
-; 1526 :   }
-; 1527 : 
-; 1528 :   return (wszSearch < wszStr) ?
+; 1546 :   }
+; 1547 : 
+; 1548 :   return (wszSearch < wszStr) ?
 
 	xor	ecx, ecx
 	cmp	eax, edi
@@ -19737,8 +19741,8 @@ $LN20@SK_Path_wc:
 	cmovb	eax, ecx
 	pop	ebx
 
-; 1529 :            nullptr : wszSearch;
-; 1530 : }
+; 1549 :            nullptr : wszSearch;
+; 1550 : }
 
 	pop	ebp
 	ret	0
@@ -19751,25 +19755,25 @@ _wszFile$ = 8						; size = 4
 _callback$ = 12						; size = 4
 ?SK_GetFileCRC32C@@YGIPB_WP6GX_K1@Z@Z PROC		; SK_GetFileCRC32C
 
-; 2077 : {
+; 2097 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2078 :   __crc32_init ();
+; 2098 :   __crc32_init ();
 
 	call	___crc32_init
 
-; 2079 : 
-; 2080 :   return SK_GetFileHash_32 (SK_CRC32C, wszFile, callback);
+; 2099 : 
+; 2100 :   return SK_GetFileHash_32 (SK_CRC32C, wszFile, callback);
 
 	push	DWORD PTR _callback$[ebp]
 	push	DWORD PTR _wszFile$[ebp]
 	push	2
 	call	?SK_GetFileHash_32@@YGIW4sk_hash_algo@@PB_WP6GX_K2@Z@Z ; SK_GetFileHash_32
 
-; 2081 : }
+; 2101 : }
 
 	pop	ebp
 	ret	8
@@ -19782,20 +19786,20 @@ _wszFile$ = 8						; size = 4
 _callback$ = 12						; size = 4
 ?SK_GetFileCRC32@@YGIPB_WP6GX_K1@Z@Z PROC		; SK_GetFileCRC32
 
-; 2070 : {
+; 2090 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2071 :   return SK_GetFileHash_32 (SK_CRC32_KAL, wszFile, callback);
+; 2091 :   return SK_GetFileHash_32 (SK_CRC32_KAL, wszFile, callback);
 
 	push	DWORD PTR _callback$[ebp]
 	push	DWORD PTR _wszFile$[ebp]
 	push	1
 	call	?SK_GetFileHash_32@@YGIW4sk_hash_algo@@PB_WP6GX_K2@Z@Z ; SK_GetFileHash_32
 
-; 2072 : }
+; 2092 : }
 
 	pop	ebp
 	ret	8
@@ -19808,17 +19812,17 @@ _file_attrib_data$ = -36				; size = 36
 _wszFile$ = 8						; size = 4
 ?SK_GetFileSize@@YG_KPB_W@Z PROC			; SK_GetFileSize
 
-; 1947 : {
+; 1967 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 36					; 00000024H
 
-; 1948 :   WIN32_FILE_ATTRIBUTE_DATA
-; 1949 :     file_attrib_data = { };
-; 1950 : 
-; 1951 :   if ( GetFileAttributesEx ( wszFile,
+; 1968 :   WIN32_FILE_ATTRIBUTE_DATA
+; 1969 :     file_attrib_data = { };
+; 1970 : 
+; 1971 :   if ( GetFileAttributesEx ( wszFile,
 
 	lea	eax, DWORD PTR _file_attrib_data$[ebp]
 	mov	DWORD PTR _file_attrib_data$[ebp+32], 0
@@ -19832,30 +19836,30 @@ _wszFile$ = 8						; size = 4
 	test	eax, eax
 	je	SHORT $LN2@SK_GetFile
 
-; 1952 :                                GetFileExInfoStandard,
-; 1953 :                                  &file_attrib_data ) )
-; 1954 :   {
-; 1955 :     return ULARGE_INTEGER { file_attrib_data.nFileSizeLow,
+; 1972 :                                GetFileExInfoStandard,
+; 1973 :                                  &file_attrib_data ) )
+; 1974 :   {
+; 1975 :     return ULARGE_INTEGER { file_attrib_data.nFileSizeLow,
 
 	mov	eax, DWORD PTR _file_attrib_data$[ebp+32]
 	mov	edx, DWORD PTR _file_attrib_data$[ebp+28]
 
-; 1960 : }
+; 1980 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN2@SK_GetFile:
 
-; 1956 :                             file_attrib_data.nFileSizeHigh }.QuadPart;
-; 1957 :   }
-; 1958 : 
-; 1959 :   return 0ULL;
+; 1976 :                             file_attrib_data.nFileSizeHigh }.QuadPart;
+; 1977 :   }
+; 1978 : 
+; 1979 :   return 0ULL;
 
 	xor	eax, eax
 	xor	edx, edx
 
-; 1960 : }
+; 1980 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -19876,46 +19880,46 @@ _ddraw$ = 36						; size = 4
 _glide$ = 40						; size = 4
 ?SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z PROC ; SK_TestRenderImports
 
-; 1462 : {
+; 1482 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 1463 :   static sk_import_test_s tests [] = { { "OpenGL32.dll",  false },
-; 1464 :                                        { "vulkan-1.dll",  false },
-; 1465 :                                        { "d3d9.dll",      false },
-; 1466 :                                        //{ "dxgi.dll",     false },
-; 1467 :                                        { "d3d11.dll",     false },
-; 1468 :                                        { "d3d8.dll",      false },
-; 1469 :                                        { "ddraw.dll",     false },
-; 1470 :                                        { "d3dx11_43.dll", false },
-; 1471 : 
-; 1472 :                                        // 32-bit only
-; 1473 :                                        { "glide.dll",     false } };
-; 1474 : 
-; 1475 :   SK_TestImports (hMod, tests, sizeof (tests) / sizeof sk_import_test_s);
+; 1483 :   static sk_import_test_s tests [] = { { "OpenGL32.dll",  false },
+; 1484 :                                        { "vulkan-1.dll",  false },
+; 1485 :                                        { "d3d9.dll",      false },
+; 1486 :                                        //{ "dxgi.dll",     false },
+; 1487 :                                        { "d3d11.dll",     false },
+; 1488 :                                        { "d3d8.dll",      false },
+; 1489 :                                        { "ddraw.dll",     false },
+; 1490 :                                        { "d3dx11_43.dll", false },
+; 1491 : 
+; 1492 :                                        // 32-bit only
+; 1493 :                                        { "glide.dll",     false } };
+; 1494 : 
+; 1495 :   SK_TestImports (hMod, tests, sizeof (tests) / sizeof sk_import_test_s);
 
 	push	8
 	push	OFFSET ?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A
 	push	DWORD PTR _hMod$[ebp]
 	call	?SK_TestImports@@YGXPAUHINSTANCE__@@PAUsk_import_test_s@@H@Z ; SK_TestImports
 
-; 1476 : 
-; 1477 :   *gl     = tests [0].used;
+; 1496 : 
+; 1497 :   *gl     = tests [0].used;
 
 	movzx	eax, BYTE PTR ?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A+4
 	mov	ecx, DWORD PTR _gl$[ebp]
 
-; 1478 :   *vulkan = tests [1].used;
-; 1479 :   *d3d9   = tests [2].used;
-; 1480 :   *dxgi   = false;
+; 1498 :   *vulkan = tests [1].used;
+; 1499 :   *d3d9   = tests [2].used;
+; 1500 :   *dxgi   = false;
 
 	mov	esi, DWORD PTR _dxgi$[ebp]
 
-; 1481 : //*dxgi   = tests [3].used;
-; 1482 :   *d3d11  = tests [3].used;
+; 1501 : //*dxgi   = tests [3].used;
+; 1502 :   *d3d11  = tests [3].used;
 
 	mov	edx, DWORD PTR _d3d11$[ebp]
 	mov	BYTE PTR [ecx], al
@@ -19926,7 +19930,7 @@ _glide$ = 40						; size = 4
 	mov	ecx, DWORD PTR _d3d9$[ebp]
 	mov	BYTE PTR [ecx], al
 
-; 1483 :   *d3d8   = tests [4].used;
+; 1503 :   *d3d8   = tests [4].used;
 
 	mov	ecx, DWORD PTR _d3d8$[ebp]
 	mov	BYTE PTR [esi], 0
@@ -19935,30 +19939,30 @@ _glide$ = 40						; size = 4
 	movzx	eax, BYTE PTR ?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A+36
 	mov	BYTE PTR [ecx], al
 
-; 1484 :   *ddraw  = tests [5].used;
+; 1504 :   *ddraw  = tests [5].used;
 
 	mov	ecx, DWORD PTR _ddraw$[ebp]
 	movzx	eax, BYTE PTR ?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A+44
 	mov	BYTE PTR [ecx], al
 
-; 1485 :   *d3d11 |= tests [6].used;
+; 1505 :   *d3d11 |= tests [6].used;
 
 	movzx	eax, BYTE PTR ?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A+52
 	or	BYTE PTR [edx], al
 
-; 1486 :   *dxgi  |= tests [6].used;
+; 1506 :   *dxgi  |= tests [6].used;
 
 	movzx	eax, BYTE PTR ?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A+52
 	or	BYTE PTR [esi], al
 
-; 1487 :   *glide  = tests [7].used;
+; 1507 :   *glide  = tests [7].used;
 
 	mov	ecx, DWORD PTR _glide$[ebp]
 	movzx	eax, BYTE PTR ?tests@?1??SK_TestRenderImports@@YAXPAUHINSTANCE__@@PA_N1111111@Z@4PAUsk_import_test_s@@A+60
 	pop	esi
 	mov	BYTE PTR [ecx], al
 
-; 1488 : }
+; 1508 : }
 
 	pop	ebp
 	ret	0
@@ -19980,7 +19984,7 @@ _pTests$ = 12						; size = 4
 _nCount$ = 16						; size = 4
 ?SK_TestImports@@YGXPAUHINSTANCE__@@PAUsk_import_test_s@@H@Z PROC ; SK_TestImports
 
-; 1356 : {
+; 1376 : {
 
 	npad	2
 	push	ebp
@@ -19997,29 +20001,29 @@ _nCount$ = 16						; size = 4
 	push	edi
 	mov	DWORD PTR __$SEHRec$[ebp], esp
 
-; 1357 :   DBG_UNREFERENCED_PARAMETER (hMod);
-; 1358 : 
-; 1359 :   int hits = 0;
+; 1377 :   DBG_UNREFERENCED_PARAMETER (hMod);
+; 1378 : 
+; 1379 :   int hits = 0;
 
 	xor	edi, edi
 	mov	DWORD PTR _hits$[ebp], edi
 
-; 1360 : 
-; 1361 :   __try
+; 1380 : 
+; 1381 :   __try
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], edi
 
-; 1362 :   {
-; 1363 :     uintptr_t                pImgBase =
-; 1364 :       (uintptr_t)GetModuleHandle (nullptr);
+; 1382 :   {
+; 1383 :     uintptr_t                pImgBase =
+; 1384 :       (uintptr_t)GetModuleHandle (nullptr);
 
 	push	edi
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	DWORD PTR _pImgBase$6[ebp], eax
 
-; 1365 : 
-; 1366 :              MEMORY_BASIC_INFORMATION minfo;
-; 1367 :     VirtualQuery ((LPCVOID)pImgBase, &minfo, sizeof minfo);
+; 1385 : 
+; 1386 :              MEMORY_BASIC_INFORMATION minfo;
+; 1387 :     VirtualQuery ((LPCVOID)pImgBase, &minfo, sizeof minfo);
 
 	push	28					; 0000001cH
 	lea	ecx, DWORD PTR _minfo$2[ebp]
@@ -20027,99 +20031,99 @@ _nCount$ = 16						; size = 4
 	push	eax
 	call	DWORD PTR __imp__VirtualQuery@12
 
-; 1368 : 
-; 1369 :     pImgBase =
+; 1388 : 
+; 1389 :     pImgBase =
 
 	mov	ecx, DWORD PTR _minfo$2[ebp]
 	mov	DWORD PTR _pImgBase$6[ebp], ecx
 
-; 1370 :       (uintptr_t)minfo.BaseAddress;
-; 1371 : 
-; 1372 :     PIMAGE_NT_HEADERS        pNtHdr   =
-; 1373 :       PIMAGE_NT_HEADERS ( pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew );
+; 1390 :       (uintptr_t)minfo.BaseAddress;
+; 1391 : 
+; 1392 :     PIMAGE_NT_HEADERS        pNtHdr   =
+; 1393 :       PIMAGE_NT_HEADERS ( pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew );
 
 	mov	eax, DWORD PTR [ecx+60]
 
-; 1374 : 
-; 1375 :     PIMAGE_DATA_DIRECTORY    pImgDir  =
-; 1376 :         &pNtHdr->OptionalHeader.DataDirectory [IMAGE_DIRECTORY_ENTRY_IMPORT];
-; 1377 : 
-; 1378 :     PIMAGE_IMPORT_DESCRIPTOR pImpDesc =
-; 1379 :       PIMAGE_IMPORT_DESCRIPTOR (
+; 1394 : 
+; 1395 :     PIMAGE_DATA_DIRECTORY    pImgDir  =
+; 1396 :         &pNtHdr->OptionalHeader.DataDirectory [IMAGE_DIRECTORY_ENTRY_IMPORT];
+; 1397 : 
+; 1398 :     PIMAGE_IMPORT_DESCRIPTOR pImpDesc =
+; 1399 :       PIMAGE_IMPORT_DESCRIPTOR (
 
 	mov	ebx, DWORD PTR [eax+ecx+128]
 	add	ebx, ecx
 	mov	DWORD PTR _pImpDesc$5[ebp], ebx
 
-; 1380 :         pImgBase + pImgDir->VirtualAddress
-; 1381 :       );
-; 1382 : 
-; 1383 :     //dll_log.Log (L"[Import Tbl] Size=%lu", pImgDir->Size);
-; 1384 : 
-; 1385 :     if (pImgDir->Size < (1024 * 8192))
+; 1400 :         pImgBase + pImgDir->VirtualAddress
+; 1401 :       );
+; 1402 : 
+; 1403 :     //dll_log.Log (L"[Import Tbl] Size=%lu", pImgDir->Size);
+; 1404 : 
+; 1405 :     if (pImgDir->Size < (1024 * 8192))
 
 	mov	eax, DWORD PTR [eax+ecx+132]
 	cmp	eax, 8388608				; 00800000H
 	jae	SHORT $LN3@SK_TestImp
 
-; 1386 :     {
-; 1387 :       auto end =
-; 1388 :         reinterpret_cast <uintptr_t> (pImpDesc) + pImgDir->Size;
+; 1406 :     {
+; 1407 :       auto end =
+; 1408 :         reinterpret_cast <uintptr_t> (pImpDesc) + pImgDir->Size;
 
 	add	eax, ebx
 	mov	DWORD PTR _end$4[ebp], eax
 	npad	1
 $LL2@SK_TestImp:
 
-; 1389 : 
-; 1390 :       while (reinterpret_cast <uintptr_t> (pImpDesc) < end)
+; 1409 : 
+; 1410 :       while (reinterpret_cast <uintptr_t> (pImpDesc) < end)
 
 	cmp	ebx, eax
 	jae	SHORT $LN3@SK_TestImp
 
-; 1391 :       {
-; 1392 :         __try
+; 1411 :       {
+; 1412 :         __try
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], 1
 
-; 1393 :         {
-; 1394 :           if (pImpDesc->Name == 0x00)
+; 1413 :         {
+; 1414 :           if (pImpDesc->Name == 0x00)
 
 	mov	eax, DWORD PTR [ebx+12]
 
-; 1395 :           {
-; 1396 :             ++pImpDesc;
+; 1415 :           {
+; 1416 :             ++pImpDesc;
 
 	add	ebx, 20					; 00000014H
 	mov	DWORD PTR _pImpDesc$5[ebp], ebx
 
-; 1393 :         {
-; 1394 :           if (pImpDesc->Name == 0x00)
+; 1413 :         {
+; 1414 :           if (pImpDesc->Name == 0x00)
 
 	test	eax, eax
 	jne	SHORT $LN13@SK_TestImp
 
-; 1397 :             continue;
+; 1417 :             continue;
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], eax
 	mov	eax, DWORD PTR _end$4[ebp]
 	jmp	SHORT $LL2@SK_TestImp
 $LN13@SK_TestImp:
 
-; 1398 :           }
-; 1399 : 
-; 1400 :           const char* szImport =
-; 1401 :             reinterpret_cast <const char *> (
-; 1402 :               pImgBase + (pImpDesc++)->Name
+; 1418 :           }
+; 1419 : 
+; 1420 :           const char* szImport =
+; 1421 :             reinterpret_cast <const char *> (
+; 1422 :               pImgBase + (pImpDesc++)->Name
 
 	lea	edx, DWORD PTR [eax+ecx]
 	mov	DWORD PTR _szImport$1$[ebp], edx
 
-; 1403 :             );
-; 1404 : 
-; 1405 :           //dll_log.Log (L"%hs", szImport);
-; 1406 : 
-; 1407 :           for (int i = 0; i < nCount; i++)
+; 1423 :             );
+; 1424 : 
+; 1425 :           //dll_log.Log (L"%hs", szImport);
+; 1426 : 
+; 1427 :           for (int i = 0; i < nCount; i++)
 
 	xor	esi, esi
 	mov	eax, DWORD PTR _nCount$[ebp]
@@ -20128,8 +20132,8 @@ $LN42@SK_TestImp:
 	cmp	esi, eax
 	jge	SHORT $LN5@SK_TestImp
 
-; 1408 :           {
-; 1409 :             if ((! pTests [i].used) && (! StrCmpIA (szImport, pTests [i].szModuleName)))
+; 1428 :           {
+; 1429 :             if ((! pTests [i].used) && (! StrCmpIA (szImport, pTests [i].szModuleName)))
 
 	mov	ecx, DWORD PTR _pTests$[ebp]
 	cmp	BYTE PTR [ecx+esi*8+4], 0
@@ -20141,13 +20145,13 @@ $LN42@SK_TestImp:
 	test	eax, eax
 	jne	SHORT $LN39@SK_TestImp
 
-; 1410 :             {
-; 1411 :               pTests [i].used = true;
+; 1430 :             {
+; 1431 :               pTests [i].used = true;
 
 	mov	eax, DWORD PTR _pTests$[ebp]
 	mov	BYTE PTR [eax+esi*8+4], 1
 
-; 1412 :                        ++hits;
+; 1432 :                        ++hits;
 
 	inc	edi
 	mov	DWORD PTR _hits$[ebp], edi
@@ -20155,53 +20159,53 @@ $LN39@SK_TestImp:
 	mov	eax, DWORD PTR _nCount$[ebp]
 $LN14@SK_TestImp:
 
-; 1403 :             );
-; 1404 : 
-; 1405 :           //dll_log.Log (L"%hs", szImport);
-; 1406 : 
-; 1407 :           for (int i = 0; i < nCount; i++)
+; 1423 :             );
+; 1424 : 
+; 1425 :           //dll_log.Log (L"%hs", szImport);
+; 1426 : 
+; 1427 :           for (int i = 0; i < nCount; i++)
 
 	inc	esi
 	jmp	SHORT $LN42@SK_TestImp
 $LN5@SK_TestImp:
 
-; 1413 :             }
-; 1414 :           }
-; 1415 : 
-; 1416 :           if (hits == nCount)
+; 1433 :             }
+; 1434 :           }
+; 1435 : 
+; 1436 :           if (hits == nCount)
 
 	cmp	edi, eax
 	jne	SHORT $LN15@SK_TestImp
 
-; 1417 :             break;
+; 1437 :             break;
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], 0
 $LN3@SK_TestImp:
 
-; 1425 :     }
-; 1426 :   }
+; 1445 :     }
+; 1446 :   }
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], -1
 	jmp	SHORT $LN23@SK_TestImp
 $LN15@SK_TestImp:
 
-; 1418 :         }
+; 1438 :         }
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], 0
 	mov	ecx, DWORD PTR _pImgBase$6[ebp]
 
-; 1421 :                      EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
-; 1422 :         {
-; 1423 :         }
-; 1424 :       }
+; 1441 :                      EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+; 1442 :         {
+; 1443 :         }
+; 1444 :       }
 
 	mov	eax, DWORD PTR _end$4[ebp]
 	jmp	$LL2@SK_TestImp
 $LN24@SK_TestImp:
 $LN44@SK_TestImp:
 
-; 1419 : 
-; 1420 :         __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+; 1439 : 
+; 1440 :         __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
 
 	mov	eax, DWORD PTR __$SEHRec$[ebp+4]
 	mov	eax, DWORD PTR [eax]
@@ -20215,25 +20219,25 @@ $LN26@SK_TestImp:
 $LN25@SK_TestImp:
 	mov	esp, DWORD PTR __$SEHRec$[ebp]
 
-; 1418 :         }
+; 1438 :         }
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], 0
 	mov	edi, DWORD PTR _hits$[ebp]
 	mov	ebx, DWORD PTR _pImpDesc$5[ebp]
 	mov	ecx, DWORD PTR _pImgBase$6[ebp]
 
-; 1421 :                      EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
-; 1422 :         {
-; 1423 :         }
-; 1424 :       }
+; 1441 :                      EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+; 1442 :         {
+; 1443 :         }
+; 1444 :       }
 
 	mov	eax, DWORD PTR _end$4[ebp]
 	jmp	$LL2@SK_TestImp
 $LN20@SK_TestImp:
 $LN45@SK_TestImp:
 
-; 1427 : 
-; 1428 :   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+; 1447 : 
+; 1448 :   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
 
 	mov	eax, DWORD PTR __$SEHRec$[ebp+4]
 	mov	eax, DWORD PTR [eax]
@@ -20247,33 +20251,33 @@ $LN22@SK_TestImp:
 $LN21@SK_TestImp:
 	mov	esp, DWORD PTR __$SEHRec$[ebp]
 
-; 1429 :                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
-; 1430 :     dll_log.Log ( L"[Import Tbl] Access Violation Attempting to "
+; 1449 :                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH ) {
+; 1450 :     dll_log.Log ( L"[Import Tbl] Access Violation Attempting to "
 
-	push	OFFSET $SG298223
+	push	OFFSET $SG300752
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 
-; 1425 :     }
-; 1426 :   }
+; 1445 :     }
+; 1446 :   }
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], -1
 	mov	edi, DWORD PTR _hits$[ebp]
 $LN23@SK_TestImp:
 
-; 1431 :                   L"Walk Import Table." );
-; 1432 :   }
-; 1433 : 
-; 1434 :   if (hits == 0)
+; 1451 :                   L"Walk Import Table." );
+; 1452 :   }
+; 1453 : 
+; 1454 :   if (hits == 0)
 
 	test	edi, edi
 	jne	SHORT $LN8@SK_TestImp
 
-; 1435 :   {
-; 1436 :     // Supplement the import table test with a check for residency,
-; 1437 :     //   this may catch games that load graphics APIs dynamically.
-; 1438 :     for (int i = 0; i < nCount; i++)
+; 1455 :   {
+; 1456 :     // Supplement the import table test with a check for residency,
+; 1457 :     //   this may catch games that load graphics APIs dynamically.
+; 1458 :     for (int i = 0; i < nCount; i++)
 
 	xor	esi, esi
 	mov	edi, DWORD PTR _nCount$[ebp]
@@ -20282,8 +20286,8 @@ $LN23@SK_TestImp:
 	mov	ebx, DWORD PTR _pTests$[ebp]
 $LL9@SK_TestImp:
 
-; 1439 :     {
-; 1440 :       if ( GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+; 1459 :     {
+; 1460 :       if ( GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 
 	lea	eax, DWORD PTR _hMod$[ebp]
 	push	eax
@@ -20293,26 +20297,26 @@ $LL9@SK_TestImp:
 	test	eax, eax
 	je	SHORT $LN7@SK_TestImp
 
-; 1441 :                                   pTests [i].szModuleName,
-; 1442 :                                     &hMod ) )
-; 1443 :         pTests [i].used = true;
+; 1461 :                                   pTests [i].szModuleName,
+; 1462 :                                     &hMod ) )
+; 1463 :         pTests [i].used = true;
 
 	mov	BYTE PTR [ebx+esi*8+4], 1
 $LN7@SK_TestImp:
 
-; 1435 :   {
-; 1436 :     // Supplement the import table test with a check for residency,
-; 1437 :     //   this may catch games that load graphics APIs dynamically.
-; 1438 :     for (int i = 0; i < nCount; i++)
+; 1455 :   {
+; 1456 :     // Supplement the import table test with a check for residency,
+; 1457 :     //   this may catch games that load graphics APIs dynamically.
+; 1458 :     for (int i = 0; i < nCount; i++)
 
 	inc	esi
 	cmp	esi, edi
 	jl	SHORT $LL9@SK_TestImp
 $LN8@SK_TestImp:
 
-; 1444 :     }
-; 1445 :   }
-; 1446 : }
+; 1464 :     }
+; 1465 :   }
+; 1466 : }
 
 	mov	ecx, DWORD PTR __$SEHRec$[ebp+8]
 	mov	DWORD PTR fs:0, ecx
@@ -20329,29 +20333,29 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_SelfDestruct@@YGXXZ PROC				; SK_SelfDestruct
 
-; 1226 :   if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
+; 1244 :   if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
 
 	mov	ecx, 1
 	mov	edx, OFFSET ?__SK_DLL_Ending@@3JC	; __SK_DLL_Ending
 	xor	eax, eax
 	lock	 cmpxchg DWORD PTR [edx], ecx
 	test	eax, eax
-	jne	SHORT $LN7@SK_SelfDes
+	jne	SHORT $LN9@SK_SelfDes
 
-; 1227 :   {
-; 1228 :     //FreeLibrary (SK_GetDLL ());
-; 1229 :     const wchar_t* wszBackend = SK_GetBackend ();
+; 1245 :   {
+; 1246 :     //FreeLibrary (SK_GetDLL ());
+; 1247 :     const wchar_t* wszBackend = SK_GetBackend ();
 
 	push	esi
 	push	edi
 	call	?SK_GetBackend@@YGPB_WXZ		; SK_GetBackend
 
-; 1230 : 
-; 1231 :     if (     ! _wcsicmp (wszBackend, L"d3d9"))
+; 1248 : 
+; 1249 :     if (     ! _wcsicmp (wszBackend, L"d3d9"))
 
 	mov	edi, DWORD PTR __imp___wcsicmp
 	mov	esi, eax
-	push	OFFSET $SG292773
+	push	OFFSET $SG295299
 	push	esi
 	call	edi
 	add	esp, 8
@@ -20360,14 +20364,14 @@ _TEXT	SEGMENT
 	pop	edi
 	pop	esi
 
-; 1232 :       SK::D3D9::Shutdown ();
+; 1250 :       SK::D3D9::Shutdown ();
 
 	jmp	?Shutdown@D3D9@SK@@YA_NXZ		; SK::D3D9::Shutdown
 $LN3@SK_SelfDes:
 
-; 1233 :     else if (! _wcsicmp (wszBackend, L"dxgi"))
+; 1251 :     else if (! _wcsicmp (wszBackend, L"dxgi"))
 
-	push	OFFSET $SG292776
+	push	OFFSET $SG295302
 	push	esi
 	call	edi
 	add	esp, 8
@@ -20376,15 +20380,31 @@ $LN3@SK_SelfDes:
 	pop	edi
 	pop	esi
 
-; 1234 :       SK::DXGI::Shutdown ();
+; 1252 :       SK::DXGI::Shutdown ();
 
 	jmp	?Shutdown@DXGI@SK@@YA_NXZ		; SK::DXGI::Shutdown
 $LN5@SK_SelfDes:
 
-; 1235 : #ifndef SK_BUILD__INSTALLER
-; 1236 :     else if (! _wcsicmp (wszBackend, L"OpenGL32"))
+; 1253 :     else if (! _wcsicmp (wszBackend, L"dinput8"))
 
-	push	OFFSET $SG292778
+	push	OFFSET $SG295305
+	push	esi
+	call	edi
+	add	esp, 8
+	test	eax, eax
+	jne	SHORT $LN7@SK_SelfDes
+	pop	edi
+	pop	esi
+
+; 1254 :       SK::DI8::Shutdown ();
+
+	jmp	?Shutdown@DI8@SK@@YA_NXZ		; SK::DI8::Shutdown
+$LN7@SK_SelfDes:
+
+; 1255 : #ifndef SK_BUILD__INSTALLER
+; 1256 :     else if (! _wcsicmp (wszBackend, L"OpenGL32"))
+
+	push	OFFSET $SG295307
 	push	esi
 	call	edi
 	add	esp, 8
@@ -20392,12 +20412,12 @@ $LN5@SK_SelfDes:
 	pop	esi
 	test	eax, eax
 	je	?Shutdown@OpenGL@SK@@YA_NXZ		; SK::OpenGL::Shutdown
-$LN7@SK_SelfDes:
+$LN9@SK_SelfDes:
 
-; 1237 :       SK::OpenGL::Shutdown ();
-; 1238 : #endif
-; 1239 :   }
-; 1240 : }
+; 1257 :       SK::OpenGL::Shutdown ();
+; 1258 : #endif
+; 1259 :   }
+; 1260 : }
 
 	ret	0
 ?SK_SelfDestruct@@YGXXZ ENDP				; SK_SelfDestruct
@@ -20415,7 +20435,7 @@ _cbTranslatedBytes$ = -4				; size = 4
 _wszName$ = 8						; size = 4
 ?SK_IsDLLSpecialK@@YG_NPB_W@Z PROC			; SK_IsDLLSpecialK
 
-; 1579 : {
+; 1599 : {
 
 	npad	2
 	push	ebp
@@ -20424,10 +20444,10 @@ _wszName$ = 8						; size = 4
 	call	__chkstk
 	push	esi
 
-; 1580 :   UINT     cbTranslatedBytes = 0,
-; 1581 :            cbProductBytes    = 0;
-; 1582 : 
-; 1583 :   uint8_t  cbData     [4096] = { };
+; 1600 :   UINT     cbTranslatedBytes = 0,
+; 1601 :            cbProductBytes    = 0;
+; 1602 : 
+; 1603 :   uint8_t  cbData     [4096] = { };
 
 	push	4096					; 00001000H
 	lea	eax, DWORD PTR _cbData$[ebp]
@@ -20437,15 +20457,15 @@ _wszName$ = 8						; size = 4
 	mov	DWORD PTR _cbProductBytes$[ebp], 0
 	call	_memset
 
-; 1584 : 
-; 1585 :   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
-; 1586 : 
-; 1587 :   struct LANGANDCODEPAGE {
-; 1588 :     WORD wLanguage;
-; 1589 :     WORD wCodePage;
-; 1590 :   } *lpTranslate = nullptr;
-; 1591 : 
-; 1592 :   wchar_t wszFullyQualifiedName [MAX_PATH * 2] = { };
+; 1604 : 
+; 1605 :   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
+; 1606 : 
+; 1607 :   struct LANGANDCODEPAGE {
+; 1608 :     WORD wLanguage;
+; 1609 :     WORD wCodePage;
+; 1610 :   } *lpTranslate = nullptr;
+; 1611 : 
+; 1612 :   wchar_t wszFullyQualifiedName [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	lea	eax, DWORD PTR _wszFullyQualifiedName$[ebp]
@@ -20456,8 +20476,8 @@ _wszName$ = 8						; size = 4
 	call	_memset
 	add	esp, 24					; 00000018H
 
-; 1593 : 
-; 1594 :   lstrcatW (wszFullyQualifiedName, SK_GetHostPath ());
+; 1613 : 
+; 1614 :   lstrcatW (wszFullyQualifiedName, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	mov	esi, DWORD PTR __imp__lstrcatW@8
@@ -20466,22 +20486,22 @@ _wszName$ = 8						; size = 4
 	push	eax
 	call	esi
 
-; 1595 :   lstrcatW (wszFullyQualifiedName, L"\\");
+; 1615 :   lstrcatW (wszFullyQualifiedName, L"\\");
 
-	push	OFFSET $SG298311
+	push	OFFSET $SG300840
 	lea	eax, DWORD PTR _wszFullyQualifiedName$[ebp]
 	push	eax
 	call	esi
 
-; 1596 :   lstrcatW (wszFullyQualifiedName, wszName);
+; 1616 :   lstrcatW (wszFullyQualifiedName, wszName);
 
 	push	DWORD PTR _wszName$[ebp]
 	lea	eax, DWORD PTR _wszFullyQualifiedName$[ebp]
 	push	eax
 	call	esi
 
-; 1597 : 
-; 1598 :   if (GetFileAttributes (wszFullyQualifiedName) == INVALID_FILE_ATTRIBUTES)
+; 1617 : 
+; 1618 :   if (GetFileAttributes (wszFullyQualifiedName) == INVALID_FILE_ATTRIBUTES)
 
 	lea	eax, DWORD PTR _wszFullyQualifiedName$[ebp]
 	push	eax
@@ -20489,9 +20509,9 @@ _wszName$ = 8						; size = 4
 	cmp	eax, -1
 	je	$LN3@SK_IsDLLSp
 
-; 1599 :     return false;
-; 1600 : 
-; 1601 :   GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL |
+; 1619 :     return false;
+; 1620 : 
+; 1621 :   GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL |
 
 	lea	eax, DWORD PTR _cbData$[ebp]
 	push	eax
@@ -20502,22 +20522,22 @@ _wszName$ = 8						; size = 4
 	push	6
 	call	_GetFileVersionInfoExW@20
 
-; 1602 :                          FILE_VER_GET_PREFETCHED,
-; 1603 :                            wszFullyQualifiedName,
-; 1604 :                              0x00,
-; 1605 :                                4096,
-; 1606 :                                  cbData );
-; 1607 : 
-; 1608 :   if ( VerQueryValue ( cbData,
-; 1609 :                        TEXT ("\\VarFileInfo\\Translation"),
-; 1610 :            static_cast_p2p <void> (&lpTranslate),
-; 1611 :                                    &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
+; 1622 :                          FILE_VER_GET_PREFETCHED,
+; 1623 :                            wszFullyQualifiedName,
+; 1624 :                              0x00,
+; 1625 :                                4096,
+; 1626 :                                  cbData );
+; 1627 : 
+; 1628 :   if ( VerQueryValue ( cbData,
+; 1629 :                        TEXT ("\\VarFileInfo\\Translation"),
+; 1630 :            static_cast_p2p <void> (&lpTranslate),
+; 1631 :                                    &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
 
 	lea	eax, DWORD PTR _cbTranslatedBytes$[ebp]
 	push	eax
 	lea	eax, DWORD PTR _lpTranslate$[ebp]
 	push	eax
-	push	OFFSET $SG298314
+	push	OFFSET $SG300843
 	lea	eax, DWORD PTR _cbData$[ebp]
 	push	eax
 	call	_VerQueryValueW@16
@@ -20529,8 +20549,8 @@ _wszName$ = 8						; size = 4
 	test	esi, esi
 	je	SHORT $LN3@SK_IsDLLSp
 
-; 1612 :   {
-; 1613 :     wchar_t wszPropName [64] = { };
+; 1632 :   {
+; 1633 :     wchar_t wszPropName [64] = { };
 
 	push	128					; 00000080H
 	lea	eax, DWORD PTR _wszPropName$1[ebp]
@@ -20538,24 +20558,24 @@ _wszName$ = 8						; size = 4
 	push	eax
 	call	_memset
 
-; 1614 : 
-; 1615 :     wsprintfW ( wszPropName,
+; 1634 : 
+; 1635 :     wsprintfW ( wszPropName,
 
 	movzx	eax, WORD PTR [esi+2]
 	push	eax
 	movzx	eax, WORD PTR [esi]
 	push	eax
 	lea	eax, DWORD PTR _wszPropName$1[ebp]
-	push	OFFSET $SG298315
+	push	OFFSET $SG300844
 	push	eax
 	call	DWORD PTR __imp__wsprintfW
 	add	esp, 28					; 0000001cH
 
-; 1616 :                   L"\\StringFileInfo\\%04x%04x\\ProductName",
-; 1617 :                     lpTranslate   [0].wLanguage,
-; 1618 :                       lpTranslate [0].wCodePage );
-; 1619 : 
-; 1620 :     VerQueryValue ( cbData,
+; 1636 :                   L"\\StringFileInfo\\%04x%04x\\ProductName",
+; 1637 :                     lpTranslate   [0].wLanguage,
+; 1638 :                       lpTranslate [0].wCodePage );
+; 1639 : 
+; 1640 :     VerQueryValue ( cbData,
 
 	lea	eax, DWORD PTR _cbProductBytes$[ebp]
 	push	eax
@@ -20567,15 +20587,15 @@ _wszName$ = 8						; size = 4
 	push	eax
 	call	_VerQueryValueW@16
 
-; 1621 :                       wszPropName,
-; 1622 :           static_cast_p2p <void> (&wszProduct),
-; 1623 :                                   &cbProductBytes );
-; 1624 : 
-; 1625 :     return (cbProductBytes && (StrStrIW (wszProduct, L"Special K")));
+; 1641 :                       wszPropName,
+; 1642 :           static_cast_p2p <void> (&wszProduct),
+; 1643 :                                   &cbProductBytes );
+; 1644 : 
+; 1645 :     return (cbProductBytes && (StrStrIW (wszProduct, L"Special K")));
 
 	cmp	DWORD PTR _cbProductBytes$[ebp], 0
 	je	SHORT $LN5@SK_IsDLLSp
-	push	OFFSET $SG298316
+	push	OFFSET $SG300845
 	push	DWORD PTR _wszProduct$[ebp]
 	call	DWORD PTR __imp__StrStrIW@8
 	test	eax, eax
@@ -20583,37 +20603,37 @@ _wszName$ = 8						; size = 4
 	mov	eax, 1
 	pop	esi
 
-; 1629 : }
+; 1649 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN5@SK_IsDLLSp:
 
-; 1621 :                       wszPropName,
-; 1622 :           static_cast_p2p <void> (&wszProduct),
-; 1623 :                                   &cbProductBytes );
-; 1624 : 
-; 1625 :     return (cbProductBytes && (StrStrIW (wszProduct, L"Special K")));
+; 1641 :                       wszPropName,
+; 1642 :           static_cast_p2p <void> (&wszProduct),
+; 1643 :                                   &cbProductBytes );
+; 1644 : 
+; 1645 :     return (cbProductBytes && (StrStrIW (wszProduct, L"Special K")));
 
 	xor	eax, eax
 	pop	esi
 
-; 1629 : }
+; 1649 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN3@SK_IsDLLSp:
 
-; 1626 :   }
-; 1627 : 
-; 1628 :   return false;
+; 1646 :   }
+; 1647 : 
+; 1648 :   return false;
 
 	xor	al, al
 	pop	esi
 
-; 1629 : }
+; 1649 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -20626,24 +20646,24 @@ _TEXT	SEGMENT
 ??0SK_HostAppUtil@@QAE@XZ PROC				; SK_HostAppUtil::SK_HostAppUtil
 ; _this$ = ecx
 
-; 3032 : {
+; 3052 : {
 
 	npad	2
 	push	edi
 	mov	edi, ecx
 
-; 3033 :   SKIM     = StrStrIW (SK_GetHostApp (), L"SKIM")     != nullptr;
+; 3053 :   SKIM     = StrStrIW (SK_GetHostApp (), L"SKIM")     != nullptr;
 
-	push	OFFSET $SG299488
+	push	OFFSET $SG302017
 	mov	WORD PTR [edi], 0
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	DWORD PTR __imp__StrStrIW@8
 	test	eax, eax
 
-; 3034 :   RunDll32 = StrStrIW (SK_GetHostApp (), L"RunDLL32") != nullptr;
+; 3054 :   RunDll32 = StrStrIW (SK_GetHostApp (), L"RunDLL32") != nullptr;
 
-	push	OFFSET $SG299489
+	push	OFFSET $SG302018
 	setne	al
 	mov	BYTE PTR [edi], al
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
@@ -20653,7 +20673,7 @@ _TEXT	SEGMENT
 	setne	al
 	mov	BYTE PTR [edi+1], al
 
-; 3035 : }
+; 3055 : }
 
 	mov	eax, edi
 	pop	edi
@@ -20665,7 +20685,7 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsSuperSpecialK@@YA_NXZ PROC			; SK_IsSuperSpecialK
 
-; 2234 :   return (SK_IsRunDLLInvocation () || SK_IsHostAppSKIM ());
+; 2254 :   return (SK_IsRunDLLInvocation () || SK_IsHostAppSKIM ());
 
 	call	?SK_IsRunDLLInvocation@@YA_NXZ		; SK_IsRunDLLInvocation
 	test	al, al
@@ -20674,16 +20694,16 @@ _TEXT	SEGMENT
 	test	al, al
 	jne	SHORT $LN3@SK_IsSuper
 
-; 2235 : }
+; 2255 : }
 
 	ret	0
 $LN3@SK_IsSuper:
 
-; 2234 :   return (SK_IsRunDLLInvocation () || SK_IsHostAppSKIM ());
+; 2254 :   return (SK_IsRunDLLInvocation () || SK_IsHostAppSKIM ());
 
 	mov	al, 1
 
-; 2235 : }
+; 2255 : }
 
 	ret	0
 ?SK_IsSuperSpecialK@@YA_NXZ ENDP			; SK_IsSuperSpecialK
@@ -20693,47 +20713,47 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsRunDLLInvocation@@YA_NXZ PROC			; SK_IsRunDLLInvocation
 
-; 2203 :   // Allow some commands invoked by RunDLL to function as a normal DLL
-; 2204 :   if (__SK_RunDLL_Bypass)
+; 2223 :   // Allow some commands invoked by RunDLL to function as a normal DLL
+; 2224 :   if (__SK_RunDLL_Bypass)
 
 	cmp	BYTE PTR ?__SK_RunDLL_Bypass@@3_NA, 0	; __SK_RunDLL_Bypass
 	je	SHORT $LN2@SK_IsRunDL
 
-; 2205 :     return false;
+; 2225 :     return false;
 
 	xor	al, al
 
-; 2228 : }
+; 2248 : }
 
 	ret	0
 $LN2@SK_IsRunDL:
 	push	ebx
 
-; 2206 : 
-; 2207 :   bool rundll_invoked =
-; 2208 :     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
+; 2226 : 
+; 2227 :   bool rundll_invoked =
+; 2228 :     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
 
-	push	OFFSET $SG298622
+	push	OFFSET $SG301151
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	call	DWORD PTR __imp__StrStrIW@8
 	test	eax, eax
 	setne	bl
 
-; 2209 : 
-; 2210 :   if (rundll_invoked)
+; 2229 : 
+; 2230 :   if (rundll_invoked)
 
 	test	bl, bl
 	je	SHORT $LN3@SK_IsRunDL
 
-; 2211 :   {
-; 2212 :     // Not all instances of RunDLL32 that load this DLL are Special K ...
-; 2213 :     //
-; 2214 :     //  The CBT hook may have been triggered by some other software that used
-; 2215 :     //    rundll32 and then launched a Win32 application with it.
-; 2216 :     //
-; 2217 :     wchar_t* wszArgs =
-; 2218 :       _wcsdup (PathGetArgsW (GetCommandLineW ()));
+; 2231 :   {
+; 2232 :     // Not all instances of RunDLL32 that load this DLL are Special K ...
+; 2233 :     //
+; 2234 :     //  The CBT hook may have been triggered by some other software that used
+; 2235 :     //    rundll32 and then launched a Win32 application with it.
+; 2236 :     //
+; 2237 :     wchar_t* wszArgs =
+; 2238 :       _wcsdup (PathGetArgsW (GetCommandLineW ()));
 
 	push	esi
 	call	DWORD PTR __imp__GetCommandLineW@0
@@ -20744,18 +20764,18 @@ $LN2@SK_IsRunDL:
 	add	esp, 4
 	mov	esi, eax
 
-; 2219 : 
-; 2220 :     // If the command line does not reference our DLL
-; 2221 :     if (! StrStrW (wszArgs, L"RunDLL_"))
+; 2239 : 
+; 2240 :     // If the command line does not reference our DLL
+; 2241 :     if (! StrStrW (wszArgs, L"RunDLL_"))
 
-	push	OFFSET $SG298625
+	push	OFFSET $SG301154
 	push	esi
 	call	DWORD PTR __imp__StrStrW@8
 	neg	eax
 
-; 2222 :       rundll_invoked = false;
-; 2223 : 
-; 2224 :     free (wszArgs);
+; 2242 :       rundll_invoked = false;
+; 2243 : 
+; 2244 :     free (wszArgs);
 
 	push	esi
 	sbb	al, al
@@ -20765,14 +20785,14 @@ $LN2@SK_IsRunDL:
 	pop	esi
 $LN3@SK_IsRunDL:
 
-; 2225 :   }
-; 2226 : 
-; 2227 :   return rundll_invoked;
+; 2245 :   }
+; 2246 : 
+; 2247 :   return rundll_invoked;
 
 	mov	al, bl
 	pop	ebx
 
-; 2228 : }
+; 2248 : }
 
 	ret	0
 ?SK_IsRunDLLInvocation@@YA_NXZ ENDP			; SK_IsRunDLLInvocation
@@ -20799,7 +20819,7 @@ $T1 = -12						; size = 12
 _threads$ = 8						; size = 20
 ?SK_ResumeThreads@@YAXV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@@Z PROC ; SK_ResumeThreads
 
-; 1333 : {
+; 1353 : {
 
 	npad	2
 	push	ebp
@@ -20812,7 +20832,7 @@ _threads$ = 8						; size = 20
 	cmp	DWORD PTR _threads$[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1334 :   while (! threads.empty ())
+; 1354 :   while (! threads.empty ())
 
 	je	SHORT $LN3@SK_ResumeT
 	push	ebx
@@ -20859,13 +20879,13 @@ $LN33@SK_ResumeT:
 	and	ecx, eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1336 :     DWORD tid = threads.front ();
+; 1356 :     DWORD tid = threads.front ();
 
 	mov	eax, DWORD PTR [esi+4]
 	mov	eax, DWORD PTR [eax+ecx*4]
 
-; 1337 : 
-; 1338 :     CHandle hThread (
+; 1357 : 
+; 1358 :     CHandle hThread (
 
 	push	DWORD PTR [eax+edx*4]
 	push	0
@@ -20878,13 +20898,13 @@ $LN33@SK_ResumeT:
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1342 :     if (hThread != nullptr)
+; 1362 :     if (hThread != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN4@SK_ResumeT
 
-; 1343 :     {
-; 1344 :       ResumeThread (hThread);
+; 1363 :     {
+; 1364 :       ResumeThread (hThread);
 
 	push	esi
 	call	edi
@@ -20931,7 +20951,7 @@ $LN124@SK_ResumeT:
 	test	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1334 :   while (! threads.empty ())
+; 1354 :   while (! threads.empty ())
 
 	jne	SHORT $LL2@SK_ResumeT
 	pop	edi
@@ -20955,7 +20975,7 @@ $LN3@SK_ResumeT:
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1349 : }
+; 1369 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -20993,7 +21013,7 @@ __$EHRec$ = -12						; size = 12
 ___$ReturnUdt$ = 8					; size = 4
 ?SK_SuspendAllOtherThreads@@YA?AV?$queue@KV?$deque@KV?$allocator@K@std@@@std@@@std@@XZ PROC ; SK_SuspendAllOtherThreads
 
-; 1282 : {
+; 1302 : {
 
 	npad	2
 	push	ebp
@@ -21019,7 +21039,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	push	8
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1282 : {
+; 1302 : {
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -21077,7 +21097,7 @@ $LN48@SK_Suspend:
 	mov	DWORD PTR [eax], esi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1328 :   return threads;
+; 1348 :   return threads;
 
 	push	0
 	push	4
@@ -21091,23 +21111,23 @@ $LN48@SK_Suspend:
 	mov	DWORD PTR _hSnap$[ebp], edi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1285 :   CHandle hSnap (
+; 1305 :   CHandle hSnap (
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 
-; 1286 :     CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
-; 1287 :   );
-; 1288 : 
-; 1289 :   if (hSnap != INVALID_HANDLE_VALUE)
+; 1306 :     CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
+; 1307 :   );
+; 1308 : 
+; 1309 :   if (hSnap != INVALID_HANDLE_VALUE)
 
 	cmp	edi, -1
 	je	$LN3@SK_Suspend
 
-; 1290 :   {
-; 1291 :     THREADENTRY32 tent        = {                  };
-; 1292 :                   tent.dwSize = sizeof THREADENTRY32;
-; 1293 : 
-; 1294 :     if (Thread32First (hSnap, &tent))
+; 1310 :   {
+; 1311 :     THREADENTRY32 tent        = {                  };
+; 1312 :                   tent.dwSize = sizeof THREADENTRY32;
+; 1313 : 
+; 1314 :     if (Thread32First (hSnap, &tent))
 
 	lea	eax, DWORD PTR _tent$2[ebp]
 	mov	DWORD PTR _tent$2[ebp+24], 0
@@ -21122,20 +21142,20 @@ $LN48@SK_Suspend:
 	je	SHORT $LN3@SK_Suspend
 $LL4@SK_Suspend:
 
-; 1295 :     {
-; 1296 :       //bool locked = 
-; 1297 :       //  dll_log.lock ();
-; 1298 : 
-; 1299 :       do
-; 1300 :       {
-; 1301 :         if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
+; 1315 :     {
+; 1316 :       //bool locked = 
+; 1317 :       //  dll_log.lock ();
+; 1318 : 
+; 1319 :       do
+; 1320 :       {
+; 1321 :         if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
 
 	cmp	DWORD PTR _tent$2[ebp], 16		; 00000010H
 	jb	SHORT $LN134@SK_Suspend
 
-; 1302 :                                   sizeof (tent.th32OwnerProcessID) )
-; 1303 :         {
-; 1304 :           if ( tent.th32ThreadID       != GetCurrentThreadId  () &&
+; 1322 :                                   sizeof (tent.th32OwnerProcessID) )
+; 1323 :         {
+; 1324 :           if ( tent.th32ThreadID       != GetCurrentThreadId  () &&
 
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	cmp	DWORD PTR _tent$2[ebp+8], eax
@@ -21144,7 +21164,7 @@ $LL4@SK_Suspend:
 	cmp	DWORD PTR _tent$2[ebp+12], eax
 	jne	SHORT $LN134@SK_Suspend
 
-; 1307 :             CHandle hThread (
+; 1327 :             CHandle hThread (
 
 	push	DWORD PTR _tent$2[ebp+8]
 	push	0
@@ -21158,14 +21178,14 @@ $LL4@SK_Suspend:
 	mov	DWORD PTR _hThread$3[ebp], esi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1307 :             CHandle hThread (
+; 1327 :             CHandle hThread (
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 
-; 1308 :               OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
-; 1309 :             );
-; 1310 : 
-; 1311 :             if (hThread != nullptr)
+; 1328 :               OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
+; 1329 :             );
+; 1330 : 
+; 1331 :             if (hThread != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN9@SK_Suspend
@@ -21179,14 +21199,14 @@ $LL4@SK_Suspend:
 	call	?push_back@?$deque@KV?$allocator@K@std@@@std@@QAEXABK@Z ; std::deque<unsigned long,std::allocator<unsigned long> >::push_back
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1315 :               SuspendThread (hThread);
+; 1335 :               SuspendThread (hThread);
 
 	push	esi
 	call	DWORD PTR __imp__SuspendThread@4
 $LN9@SK_Suspend:
 
-; 1316 :             }
-; 1317 :           }
+; 1336 :             }
+; 1337 :           }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
@@ -21203,7 +21223,7 @@ $LN9@SK_Suspend:
 $LN134@SK_Suspend:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1321 :       } while (Thread32Next (hSnap, &tent));
+; 1341 :       } while (Thread32Next (hSnap, &tent));
 
 	lea	eax, DWORD PTR _tent$2[ebp]
 	mov	DWORD PTR _tent$2[ebp], 28		; 0000001cH
@@ -21228,7 +21248,7 @@ $LN3@SK_Suspend:
 $LN142@SK_Suspend:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1329 : }
+; 1349 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -21267,14 +21287,14 @@ text$x	ENDS
 _TEXT	SEGMENT
 ?SK_GetBitness@@YGEXZ PROC				; SK_GetBitness, COMDAT
 
-; 131  : #ifdef _WIN64
-; 132  :   return 64;
-; 133  : #endif
-; 134  :   return 32;
+; 132  : #ifdef _WIN64
+; 133  :   return 64;
+; 134  : #endif
+; 135  :   return 32;
 
 	mov	al, 32					; 00000020H
 
-; 135  : }
+; 136  : }
 
 	ret	0
 ?SK_GetBitness@@YGEXZ ENDP				; SK_GetBitness
@@ -21285,13 +21305,13 @@ _TEXT	SEGMENT
 _role$ = 8						; size = 4
 ?SK_GetCanonicalDLLForRole@@YGPB_WW4DLL_ROLE@@@Z PROC	; SK_GetCanonicalDLLForRole
 
-; 3042 : {
+; 3062 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 3043 :   switch (role)
+; 3063 :   switch (role)
 
 	mov	eax, DWORD PTR _role$[ebp]
 	cmp	eax, 2
@@ -21304,60 +21324,60 @@ _role$ = 8						; size = 4
 	cmp	eax, 1
 	jne	SHORT $LN11@SK_GetCano
 
-; 3044 :   {
-; 3045 :     case DLL_ROLE::DXGI:
-; 3046 :       return L"dxgi.dll";
+; 3064 :   {
+; 3065 :     case DLL_ROLE::DXGI:
+; 3066 :       return L"dxgi.dll";
 
-	mov	eax, OFFSET $SG299499
+	mov	eax, OFFSET $SG302028
 
-; 3061 :                L"SpecialK32.dll" : L"SpecialK64.dll";
-; 3062 :   }
-; 3063 : }
+; 3081 :                L"SpecialK32.dll" : L"SpecialK64.dll";
+; 3082 :   }
+; 3083 : }
 
 	pop	ebp
 	ret	4
 $LN7@SK_GetCano:
 
-; 3051 :     case DLL_ROLE::DDraw:
-; 3052 :       return L"ddraw.dll";
+; 3071 :     case DLL_ROLE::DDraw:
+; 3072 :       return L"ddraw.dll";
 
-	mov	eax, OFFSET $SG299505
+	mov	eax, OFFSET $SG302034
 
-; 3061 :                L"SpecialK32.dll" : L"SpecialK64.dll";
-; 3062 :   }
-; 3063 : }
+; 3081 :                L"SpecialK32.dll" : L"SpecialK64.dll";
+; 3082 :   }
+; 3083 : }
 
 	pop	ebp
 	ret	4
 $LN6@SK_GetCano:
 
-; 3049 :     case DLL_ROLE::D3D8:
-; 3050 :       return L"d3d8.dll";
+; 3069 :     case DLL_ROLE::D3D8:
+; 3070 :       return L"d3d8.dll";
 
-	mov	eax, OFFSET $SG299503
+	mov	eax, OFFSET $SG302032
 
-; 3061 :                L"SpecialK32.dll" : L"SpecialK64.dll";
-; 3062 :   }
-; 3063 : }
+; 3081 :                L"SpecialK32.dll" : L"SpecialK64.dll";
+; 3082 :   }
+; 3083 : }
 
 	pop	ebp
 	ret	4
 $LN5@SK_GetCano:
 
-; 3047 :     case DLL_ROLE::D3D9:
-; 3048 :       return L"d3d9.dll";
+; 3067 :     case DLL_ROLE::D3D9:
+; 3068 :       return L"d3d9.dll";
 
-	mov	eax, OFFSET $SG299501
+	mov	eax, OFFSET $SG302030
 
-; 3061 :                L"SpecialK32.dll" : L"SpecialK64.dll";
-; 3062 :   }
-; 3063 : }
+; 3081 :                L"SpecialK32.dll" : L"SpecialK64.dll";
+; 3082 :   }
+; 3083 : }
 
 	pop	ebp
 	ret	4
 $LN13@SK_GetCano:
 
-; 3043 :   switch (role)
+; 3063 :   switch (role)
 
 	cmp	eax, 4
 	je	SHORT $LN8@SK_GetCano
@@ -21367,53 +21387,53 @@ $LN13@SK_GetCano:
 	je	SHORT $LN10@SK_GetCano
 $LN11@SK_GetCano:
 
-; 3059 :     default:
-; 3060 :       return SK_GetBitness () == 32 ?
+; 3079 :     default:
+; 3080 :       return SK_GetBitness () == 32 ?
 
-	mov	eax, OFFSET $SG299513
+	mov	eax, OFFSET $SG302042
 
-; 3061 :                L"SpecialK32.dll" : L"SpecialK64.dll";
-; 3062 :   }
-; 3063 : }
+; 3081 :                L"SpecialK32.dll" : L"SpecialK64.dll";
+; 3082 :   }
+; 3083 : }
 
 	pop	ebp
 	ret	4
 $LN10@SK_GetCano:
 
-; 3057 :     case DLL_ROLE::DInput8:
-; 3058 :       return L"dinput8.dll";
+; 3077 :     case DLL_ROLE::DInput8:
+; 3078 :       return L"dinput8.dll";
 
-	mov	eax, OFFSET $SG299511
+	mov	eax, OFFSET $SG302040
 
-; 3061 :                L"SpecialK32.dll" : L"SpecialK64.dll";
-; 3062 :   }
-; 3063 : }
+; 3081 :                L"SpecialK32.dll" : L"SpecialK64.dll";
+; 3082 :   }
+; 3083 : }
 
 	pop	ebp
 	ret	4
 $LN9@SK_GetCano:
 
-; 3055 :     case DLL_ROLE::Vulkan:
-; 3056 :       return L"vk-1.dll";
+; 3075 :     case DLL_ROLE::Vulkan:
+; 3076 :       return L"vk-1.dll";
 
-	mov	eax, OFFSET $SG299509
+	mov	eax, OFFSET $SG302038
 
-; 3061 :                L"SpecialK32.dll" : L"SpecialK64.dll";
-; 3062 :   }
-; 3063 : }
+; 3081 :                L"SpecialK32.dll" : L"SpecialK64.dll";
+; 3082 :   }
+; 3083 : }
 
 	pop	ebp
 	ret	4
 $LN8@SK_GetCano:
 
-; 3053 :     case DLL_ROLE::OpenGL:
-; 3054 :       return L"OpenGL32.dll";
+; 3073 :     case DLL_ROLE::OpenGL:
+; 3074 :       return L"OpenGL32.dll";
 
-	mov	eax, OFFSET $SG299507
+	mov	eax, OFFSET $SG302036
 
-; 3061 :                L"SpecialK32.dll" : L"SpecialK64.dll";
-; 3062 :   }
-; 3063 : }
+; 3081 :                L"SpecialK32.dll" : L"SpecialK64.dll";
+; 3082 :   }
+; 3083 : }
 
 	pop	ebp
 	ret	4
@@ -21456,7 +21476,7 @@ ___$ReturnUdt$ = 8					; size = 4
 _wszName$ = 12						; size = 4
 ?SK_GetDLLVersionStr@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z PROC ; SK_GetDLLVersionStr
 
-; 1634 : {
+; 1654 : {
 
 	npad	2
 	push	ebp
@@ -21470,11 +21490,11 @@ _wszName$ = 12						; size = 4
 	call	__chkstk
 	push	esi
 
-; 1635 :   UINT     cbTranslatedBytes = 0,
-; 1636 :            cbProductBytes    = 0,
-; 1637 :            cbVersionBytes    = 0;
-; 1638 : 
-; 1639 :   uint8_t  cbData     [4096] = { };
+; 1655 :   UINT     cbTranslatedBytes = 0,
+; 1656 :            cbProductBytes    = 0,
+; 1657 :            cbVersionBytes    = 0;
+; 1658 : 
+; 1659 :   uint8_t  cbData     [4096] = { };
 
 	push	4096					; 00001000H
 	lea	eax, DWORD PTR _cbData$[ebp]
@@ -21486,16 +21506,16 @@ _wszName$ = 12						; size = 4
 	mov	DWORD PTR _cbVersionBytes$[ebp], 0
 	call	_memset
 
-; 1640 : 
-; 1641 :   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
-; 1642 :   wchar_t* wszFileVersion = nullptr; // "
-; 1643 : 
-; 1644 :   struct LANGANDCODEPAGE {
-; 1645 :     WORD wLanguage;
-; 1646 :     WORD wCodePage;
-; 1647 :   } *lpTranslate = nullptr;
-; 1648 : 
-; 1649 :   if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
+; 1660 : 
+; 1661 :   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
+; 1662 :   wchar_t* wszFileVersion = nullptr; // "
+; 1663 : 
+; 1664 :   struct LANGANDCODEPAGE {
+; 1665 :     WORD wLanguage;
+; 1666 :     WORD wCodePage;
+; 1667 :   } *lpTranslate = nullptr;
+; 1668 : 
+; 1669 :   if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
 
 	mov	esi, DWORD PTR _wszName$[ebp]
 	add	esp, 12					; 0000000cH
@@ -21511,16 +21531,16 @@ _wszName$ = 12						; size = 4
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	3
-	push	OFFSET $SG298350
+	push	OFFSET $SG300879
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1650 :     return L"N/A";
+; 1670 :     return L"N/A";
 
 	jmp	$LN203@SK_GetDLLV
 $LN2@SK_GetDLLV:
 
-; 1651 : 
-; 1652 :   GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL |
+; 1671 : 
+; 1672 :   GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL |
 
 	lea	eax, DWORD PTR _cbData$[ebp]
 	push	eax
@@ -21530,22 +21550,22 @@ $LN2@SK_GetDLLV:
 	push	6
 	call	_GetFileVersionInfoExW@20
 
-; 1653 :                          FILE_VER_GET_PREFETCHED,
-; 1654 :                            wszName,
-; 1655 :                              0x00,
-; 1656 :                                4096,
-; 1657 :                                  cbData );
-; 1658 : 
-; 1659 :   if ( VerQueryValue ( cbData,
-; 1660 :                          TEXT ("\\VarFileInfo\\Translation"),
-; 1661 :              static_cast_p2p <void> (&lpTranslate),
-; 1662 :                                      &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
+; 1673 :                          FILE_VER_GET_PREFETCHED,
+; 1674 :                            wszName,
+; 1675 :                              0x00,
+; 1676 :                                4096,
+; 1677 :                                  cbData );
+; 1678 : 
+; 1679 :   if ( VerQueryValue ( cbData,
+; 1680 :                          TEXT ("\\VarFileInfo\\Translation"),
+; 1681 :              static_cast_p2p <void> (&lpTranslate),
+; 1682 :                                      &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
 
 	lea	eax, DWORD PTR _cbTranslatedBytes$[ebp]
 	push	eax
 	lea	eax, DWORD PTR _lpTranslate$[ebp]
 	push	eax
-	push	OFFSET $SG298352
+	push	OFFSET $SG300881
 	lea	eax, DWORD PTR _cbData$[ebp]
 	push	eax
 	call	_VerQueryValueW@16
@@ -21557,8 +21577,8 @@ $LN2@SK_GetDLLV:
 	test	esi, esi
 	je	$LN201@SK_GetDLLV
 
-; 1663 :   {
-; 1664 :     wchar_t wszPropName [64] = { };
+; 1683 :   {
+; 1684 :     wchar_t wszPropName [64] = { };
 
 	push	128					; 00000080H
 	lea	eax, DWORD PTR _wszPropName$2[ebp]
@@ -21566,8 +21586,8 @@ $LN2@SK_GetDLLV:
 	push	eax
 	call	_memset
 
-; 1665 : 
-; 1666 :     wsprintfW ( wszPropName,
+; 1685 : 
+; 1686 :     wsprintfW ( wszPropName,
 
 	movzx	eax, WORD PTR [esi+2]
 	push	eax
@@ -21575,16 +21595,16 @@ $LN2@SK_GetDLLV:
 	mov	esi, DWORD PTR __imp__wsprintfW
 	push	eax
 	lea	eax, DWORD PTR _wszPropName$2[ebp]
-	push	OFFSET $SG298353
+	push	OFFSET $SG300882
 	push	eax
 	call	esi
 	add	esp, 28					; 0000001cH
 
-; 1667 :                   L"\\StringFileInfo\\%04x%04x\\FileDescription",
-; 1668 :                     lpTranslate   [0].wLanguage,
-; 1669 :                       lpTranslate [0].wCodePage );
-; 1670 : 
-; 1671 :     VerQueryValue ( cbData,
+; 1687 :                   L"\\StringFileInfo\\%04x%04x\\FileDescription",
+; 1688 :                     lpTranslate   [0].wLanguage,
+; 1689 :                       lpTranslate [0].wCodePage );
+; 1690 : 
+; 1691 :     VerQueryValue ( cbData,
 
 	lea	eax, DWORD PTR _cbProductBytes$[ebp]
 	push	eax
@@ -21596,11 +21616,11 @@ $LN2@SK_GetDLLV:
 	push	eax
 	call	_VerQueryValueW@16
 
-; 1672 :                       wszPropName,
-; 1673 :           static_cast_p2p <void> (&wszFileDescrip),
-; 1674 :                                   &cbProductBytes );
-; 1675 : 
-; 1676 :     wsprintfW ( wszPropName,
+; 1692 :                       wszPropName,
+; 1693 :           static_cast_p2p <void> (&wszFileDescrip),
+; 1694 :                                   &cbProductBytes );
+; 1695 : 
+; 1696 :     wsprintfW ( wszPropName,
 
 	mov	ecx, DWORD PTR _lpTranslate$[ebp]
 	movzx	eax, WORD PTR [ecx+2]
@@ -21608,16 +21628,16 @@ $LN2@SK_GetDLLV:
 	movzx	eax, WORD PTR [ecx]
 	push	eax
 	lea	eax, DWORD PTR _wszPropName$2[ebp]
-	push	OFFSET $SG298354
+	push	OFFSET $SG300883
 	push	eax
 	call	esi
 	add	esp, 16					; 00000010H
 
-; 1677 :                   L"\\StringFileInfo\\%04x%04x\\FileVersion",
-; 1678 :                     lpTranslate   [0].wLanguage,
-; 1679 :                       lpTranslate [0].wCodePage );
-; 1680 : 
-; 1681 :     VerQueryValue ( cbData,
+; 1697 :                   L"\\StringFileInfo\\%04x%04x\\FileVersion",
+; 1698 :                     lpTranslate   [0].wLanguage,
+; 1699 :                       lpTranslate [0].wCodePage );
+; 1700 : 
+; 1701 :     VerQueryValue ( cbData,
 
 	lea	eax, DWORD PTR _cbVersionBytes$[ebp]
 	push	eax
@@ -21630,12 +21650,12 @@ $LN2@SK_GetDLLV:
 	call	_VerQueryValueW@16
 $LN201@SK_GetDLLV:
 
-; 1682 :                       wszPropName,
-; 1683 :           static_cast_p2p <void> (&wszFileVersion),
-; 1684 :                                   &cbVersionBytes );
-; 1685 :   }
-; 1686 : 
-; 1687 :   if ( cbTranslatedBytes == 0 ||
+; 1702 :                       wszPropName,
+; 1703 :           static_cast_p2p <void> (&wszFileVersion),
+; 1704 :                                   &cbVersionBytes );
+; 1705 :   }
+; 1706 : 
+; 1707 :   if ( cbTranslatedBytes == 0 ||
 
 	cmp	DWORD PTR _cbTranslatedBytes$[ebp], 0
 	je	$LN5@SK_GetDLLV
@@ -21658,7 +21678,7 @@ $LN4@SK_GetDLLV:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG298358
+	push	OFFSET $SG300887
 	lea	ecx, DWORD PTR _ret$[ebp]
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -21676,7 +21696,7 @@ $LN4@SK_GetDLLV:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1695 :   if (cbProductBytes)
+; 1715 :   if (cbProductBytes)
 
 	cmp	DWORD PTR _cbProductBytes$[ebp], 0
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -21705,13 +21725,13 @@ $LL199@SK_GetDLLV:
 	lea	ecx, DWORD PTR _ret$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 	push	2
-	push	OFFSET $SG298360
+	push	OFFSET $SG300889
 	lea	ecx, DWORD PTR _ret$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 $LN6@SK_GetDLLV:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1701 :   if (cbVersionBytes)
+; 1721 :   if (cbVersionBytes)
 
 	cmp	DWORD PTR _cbVersionBytes$[ebp], 0
 	je	SHORT $LN7@SK_GetDLLV
@@ -21763,7 +21783,7 @@ $LN7@SK_GetDLLV:
 	movq	QWORD PTR [eax+16], xmm0
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1705 : }
+; 1725 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -21776,7 +21796,7 @@ $LN5@SK_GetDLLV:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	2
-	push	OFFSET $SG298357
+	push	OFFSET $SG300886
 $LN203@SK_GetDLLV:
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -21812,7 +21832,7 @@ $LN203@SK_GetDLLV:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1705 : }
+; 1725 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -21838,42 +21858,42 @@ _wszModule$ = 8						; size = 4
 _szFunc$ = 12						; size = 4
 ?SK_GetProcAddress@@YAPAXPB_WPBD@Z PROC			; SK_GetProcAddress
 
-; 1102 : {
+; 1119 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1103 :   HMODULE hMod = 
-; 1104 :     GetModuleHandle (wszModule);
+; 1120 :   HMODULE hMod = 
+; 1121 :     GetModuleHandle (wszModule);
 
 	push	DWORD PTR _wszModule$[ebp]
 	call	DWORD PTR __imp__GetModuleHandleW@4
 
-; 1105 : 
-; 1106 :   if (hMod != nullptr)
+; 1122 : 
+; 1123 :   if (hMod != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN2@SK_GetProc
 
-; 1107 :    return GetProcAddress (hMod, szFunc);
+; 1124 :    return GetProcAddress (hMod, szFunc);
 
 	push	DWORD PTR _szFunc$[ebp]
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 
-; 1110 : }
+; 1127 : }
 
 	pop	ebp
 	ret	0
 $LN2@SK_GetProc:
 
-; 1108 : 
-; 1109 :   return nullptr;
+; 1125 : 
+; 1126 :   return nullptr;
 
 	xor	eax, eax
 
-; 1110 : }
+; 1127 : }
 
 	pop	ebp
 	ret	0
@@ -21890,23 +21910,23 @@ _dwLen$1 = -4						; size = 4
 _wszInOut$ = 8						; size = 4
 ?SK_StripUserNameFromPathW@@YA_NPA_W@Z PROC		; SK_StripUserNameFromPathW
 
-; 3000 : {
+; 3020 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ecx
 
-; 3001 :   static wchar_t wszUserName [MAX_PATH + 2] = { };
-; 3002 : 
-; 3003 :   if (*wszUserName == L'\0')
+; 3021 :   static wchar_t wszUserName [MAX_PATH + 2] = { };
+; 3022 : 
+; 3023 :   if (*wszUserName == L'\0')
 
 	cmp	WORD PTR ?wszUserName@?1??SK_StripUserNameFromPathW@@YA_NPA_W@Z@4PA_WA, 0
 	jne	SHORT $LN5@SK_StripUs
 
-; 3004 :   {
-; 3005 :                           DWORD dwLen = MAX_PATH;
-; 3006 :     GetUserNameW (wszUserName, &dwLen);
+; 3024 :   {
+; 3025 :                           DWORD dwLen = MAX_PATH;
+; 3026 :     GetUserNameW (wszUserName, &dwLen);
 
 	lea	eax, DWORD PTR _dwLen$1[ebp]
 	mov	DWORD PTR _dwLen$1[ebp], 260		; 00000104H
@@ -21923,7 +21943,7 @@ $LN5@SK_StripUs:
 	call	DWORD PTR __imp__wcsstr
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 3010 :     wcsstr (wszInOut, wszUserName);
+; 3030 :     wcsstr (wszInOut, wszUserName);
 
 	mov	ecx, eax
 ; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_wstring.h
@@ -21933,14 +21953,14 @@ $LN5@SK_StripUs:
 	add	esp, 8
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 3012 :   if (pwszUserNameSubstr != nullptr)
+; 3032 :   if (pwszUserNameSubstr != nullptr)
 
 	test	ecx, ecx
 	je	SHORT $LN6@SK_StripUs
 
-; 3013 :   {
-; 3014 :     const size_t user_name_len =
-; 3015 :       wcslen (wszUserName);
+; 3033 :   {
+; 3034 :     const size_t user_name_len =
+; 3035 :       wcslen (wszUserName);
 
 	push	esi
 	mov	esi, OFFSET ?wszUserName@?1??SK_StripUserNameFromPathW@@YA_NPA_W@Z@4PA_WA
@@ -21953,14 +21973,14 @@ $LL14@SK_StripUs:
 	sub	esi, edx
 	sar	esi, 1
 
-; 3016 : 
-; 3017 :     for (size_t i = 0; i < user_name_len; i++)
+; 3036 : 
+; 3037 :     for (size_t i = 0; i < user_name_len; i++)
 
 	je	SHORT $LN3@SK_StripUs
 
-; 3013 :   {
-; 3014 :     const size_t user_name_len =
-; 3015 :       wcslen (wszUserName);
+; 3033 :   {
+; 3034 :     const size_t user_name_len =
+; 3035 :       wcslen (wszUserName);
 
 	push	ebx
 	push	edi
@@ -21968,9 +21988,9 @@ $LL14@SK_StripUs:
 	mov	ebx, 42					; 0000002aH
 $LL4@SK_StripUs:
 
-; 3018 :     {
-; 3019 :       *pwszUserNameSubstr = L'*';
-; 3020 :        pwszUserNameSubstr = CharNextW (pwszUserNameSubstr);
+; 3038 :     {
+; 3039 :       *pwszUserNameSubstr = L'*';
+; 3040 :        pwszUserNameSubstr = CharNextW (pwszUserNameSubstr);
 
 	push	ecx
 	mov	WORD PTR [ecx], bx
@@ -21982,27 +22002,27 @@ $LL4@SK_StripUs:
 	pop	ebx
 $LN3@SK_StripUs:
 
-; 3021 :     }
-; 3022 : 
-; 3023 :     return true;
+; 3041 :     }
+; 3042 : 
+; 3043 :     return true;
 
 	mov	al, 1
 	pop	esi
 
-; 3027 : }
+; 3047 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN6@SK_StripUs:
 
-; 3024 :   }
-; 3025 : 
-; 3026 :   return false;
+; 3044 :   }
+; 3045 : 
+; 3046 :   return false;
 
 	xor	al, al
 
-; 3027 : }
+; 3047 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -22020,23 +22040,23 @@ _dwLen$1 = -4						; size = 4
 _szInOut$ = 8						; size = 4
 ?SK_StripUserNameFromPathA@@YA_NPAD@Z PROC		; SK_StripUserNameFromPathA
 
-; 2969 : {
+; 2989 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ecx
 
-; 2970 :   static char szUserName [MAX_PATH + 2] = { };
-; 2971 : 
-; 2972 :   if (*szUserName == '\0')
+; 2990 :   static char szUserName [MAX_PATH + 2] = { };
+; 2991 : 
+; 2992 :   if (*szUserName == '\0')
 
 	cmp	BYTE PTR ?szUserName@?1??SK_StripUserNameFromPathA@@YA_NPAD@Z@4PADA, 0
 	jne	SHORT $LN5@SK_StripUs
 
-; 2973 :   {
-; 2974 :                          DWORD dwLen = MAX_PATH;
-; 2975 :     GetUserNameA (szUserName, &dwLen);
+; 2993 :   {
+; 2994 :                          DWORD dwLen = MAX_PATH;
+; 2995 :     GetUserNameA (szUserName, &dwLen);
 
 	lea	eax, DWORD PTR _dwLen$1[ebp]
 	mov	DWORD PTR _dwLen$1[ebp], 260		; 00000104H
@@ -22053,7 +22073,7 @@ $LN5@SK_StripUs:
 	call	DWORD PTR __imp__strstr
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2979 :     strstr (szInOut, szUserName);
+; 2999 :     strstr (szInOut, szUserName);
 
 	mov	ecx, eax
 ; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h
@@ -22063,14 +22083,14 @@ $LN5@SK_StripUs:
 	add	esp, 8
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2981 :   if (pszUserNameSubstr != nullptr)
+; 3001 :   if (pszUserNameSubstr != nullptr)
 
 	test	ecx, ecx
 	je	SHORT $LN6@SK_StripUs
 
-; 2982 :   {
-; 2983 :     const size_t user_name_len =
-; 2984 :       strlen (szUserName);
+; 3002 :   {
+; 3003 :     const size_t user_name_len =
+; 3004 :       strlen (szUserName);
 
 	push	esi
 	mov	esi, OFFSET ?szUserName@?1??SK_StripUserNameFromPathA@@YA_NPAD@Z@4PADA
@@ -22082,22 +22102,22 @@ $LL14@SK_StripUs:
 	jne	SHORT $LL14@SK_StripUs
 	sub	esi, edx
 
-; 2985 : 
-; 2986 :     for (size_t i = 0; i < user_name_len; i++)
+; 3005 : 
+; 3006 :     for (size_t i = 0; i < user_name_len; i++)
 
 	je	SHORT $LN3@SK_StripUs
 
-; 2982 :   {
-; 2983 :     const size_t user_name_len =
-; 2984 :       strlen (szUserName);
+; 3002 :   {
+; 3003 :     const size_t user_name_len =
+; 3004 :       strlen (szUserName);
 
 	push	edi
 	mov	edi, DWORD PTR __imp__CharNextA@4
 $LL4@SK_StripUs:
 
-; 2987 :     {
-; 2988 :       *pszUserNameSubstr = '*';
-; 2989 :        pszUserNameSubstr = CharNextA (pszUserNameSubstr);
+; 3007 :     {
+; 3008 :       *pszUserNameSubstr = '*';
+; 3009 :        pszUserNameSubstr = CharNextA (pszUserNameSubstr);
 
 	push	ecx
 	mov	BYTE PTR [ecx], 42			; 0000002aH
@@ -22108,27 +22128,27 @@ $LL4@SK_StripUs:
 	pop	edi
 $LN3@SK_StripUs:
 
-; 2990 :     }
-; 2991 : 
-; 2992 :     return true;
+; 3010 :     }
+; 3011 : 
+; 3012 :     return true;
 
 	mov	al, 1
 	pop	esi
 
-; 2996 : }
+; 3016 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN6@SK_StripUs:
 
-; 2993 :   }
-; 2994 : 
-; 2995 :   return false;
+; 3013 :   }
+; 3014 : 
+; 3015 :   return false;
 
 	xor	al, al
 
-; 2996 : }
+; 3016 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -22152,7 +22172,7 @@ ___$ReturnUdt$ = 8					; size = 4
 _hDll$ = 12						; size = 4
 ?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z PROC ; SK_GetModuleFullName
 
-; 1114 : {
+; 1131 : {
 
 	npad	2
 	push	ebp
@@ -22160,7 +22180,7 @@ _hDll$ = 12						; size = 4
 	sub	esp, 528				; 00000210H
 	push	esi
 
-; 1115 :   wchar_t wszDllFullName [MAX_PATH + 2] = { };
+; 1132 :   wchar_t wszDllFullName [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszDllFullName$[ebp]
@@ -22170,8 +22190,8 @@ _hDll$ = 12						; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1116 : 
-; 1117 :   GetModuleFileName ( hDll,
+; 1133 : 
+; 1134 :   GetModuleFileName ( hDll,
 
 	lea	eax, DWORD PTR _wszDllFullName$[ebp]
 	push	260					; 00000104H
@@ -22240,12 +22260,12 @@ $LL29@SK_GetModu:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1121 :   return wszDllFullName;
+; 1138 :   return wszDllFullName;
 
 	mov	eax, esi
 	pop	esi
 
-; 1122 : }
+; 1139 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -22271,14 +22291,14 @@ ___$ReturnUdt$ = 8					; size = 4
 _hDll$ = 12						; size = 4
 ?SK_GetModuleName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z PROC ; SK_GetModuleName
 
-; 1126 : {
+; 1143 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 528				; 00000210H
 
-; 1127 :   wchar_t wszDllFullName [MAX_PATH + 2] = { };
+; 1144 :   wchar_t wszDllFullName [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszDllFullName$[ebp]
@@ -22288,8 +22308,8 @@ _hDll$ = 12						; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1128 : 
-; 1129 :   GetModuleFileName ( hDll,
+; 1145 : 
+; 1146 :   GetModuleFileName ( hDll,
 
 	lea	eax, DWORD PTR _wszDllFullName$[ebp]
 	push	260					; 00000104H
@@ -22307,21 +22327,21 @@ _hDll$ = 12						; size = 4
 	add	esp, 8
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1136 :   if (wszShort == nullptr)
+; 1153 :   if (wszShort == nullptr)
 
 	test	eax, eax
 	jne	SHORT $LN2@SK_GetModu
 
-; 1137 :     wszShort = wszDllFullName;
+; 1154 :     wszShort = wszDllFullName;
 
 	lea	edx, DWORD PTR _wszDllFullName$[ebp]
 
-; 1138 :   else
+; 1155 :   else
 
 	jmp	SHORT $LN3@SK_GetModu
 $LN2@SK_GetModu:
 
-; 1139 :     wszShort = CharNextW (wszShort);
+; 1156 :     wszShort = CharNextW (wszShort);
 
 	push	eax
 	call	DWORD PTR __imp__CharNextW@4
@@ -22384,12 +22404,12 @@ $LL33@SK_GetModu:
 	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1141 :   return wszShort;
+; 1158 :   return wszShort;
 
 	mov	eax, esi
 	pop	esi
 
-; 1142 : }
+; 1159 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -22404,14 +22424,14 @@ ___$ReturnUdt$ = 8					; size = 4
 _pReturn$ = 12						; size = 4
 ?SK_GetCallerName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@Z PROC ; SK_GetCallerName
 
-; 1269 : {
+; 1289 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ecx
 
-; 1270 :   return SK_GetModuleName (SK_GetCallingDLL (pReturn));
+; 1290 :   return SK_GetModuleName (SK_GetCallingDLL (pReturn));
 
 	push	DWORD PTR _pReturn$[ebp]
 	mov	DWORD PTR $T1[ebp], 0
@@ -22422,7 +22442,7 @@ _pReturn$ = 12						; size = 4
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	add	esp, 12					; 0000000cH
 
-; 1271 : }
+; 1291 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -22436,7 +22456,7 @@ _hCallingMod$ = -4					; size = 4
 _pReturn$ = 8						; size = 4
 ?SK_GetCallingDLL@@YAPAUHINSTANCE__@@PAX@Z PROC		; SK_GetCallingDLL
 
-; 1249 : {
+; 1269 : {
 
 	npad	2
 	push	ebp
@@ -22444,9 +22464,9 @@ _pReturn$ = 8						; size = 4
 	push	ecx
 	push	esi
 
-; 1250 :   HMODULE hCallingMod = nullptr;
-; 1251 : 
-; 1252 :   if (SK_TLS_Bottom ()->known_modules.contains (pReturn, &hCallingMod))
+; 1270 :   HMODULE hCallingMod = nullptr;
+; 1271 : 
+; 1272 :   if (SK_TLS_Bottom ()->known_modules.contains (pReturn, &hCallingMod))
 
 	mov	esi, DWORD PTR _pReturn$[ebp]
 	lea	eax, DWORD PTR _hCallingMod$[ebp]
@@ -22459,11 +22479,11 @@ _pReturn$ = 8						; size = 4
 	test	al, al
 	jne	SHORT $LN4@SK_GetCall
 
-; 1253 :   {
-; 1254 :     return hCallingMod;
-; 1255 :   }
-; 1256 : 
-; 1257 :   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
+; 1273 :   {
+; 1274 :     return hCallingMod;
+; 1275 :   }
+; 1276 : 
+; 1277 :   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
 
 	lea	eax, DWORD PTR _hCallingMod$[ebp]
 	push	eax
@@ -22471,11 +22491,11 @@ _pReturn$ = 8						; size = 4
 	push	6
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 
-; 1258 :                       GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-; 1259 :                         static_cast <const wchar_t *> (pReturn),
-; 1260 :                           &hCallingMod );
-; 1261 : 
-; 1262 :   SK_TLS_Bottom ()->known_modules.insert (pReturn, hCallingMod);
+; 1278 :                       GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+; 1279 :                         static_cast <const wchar_t *> (pReturn),
+; 1280 :                           &hCallingMod );
+; 1281 : 
+; 1282 :   SK_TLS_Bottom ()->known_modules.insert (pReturn, hCallingMod);
 
 	push	DWORD PTR _hCallingMod$[ebp]
 	push	esi
@@ -22484,13 +22504,13 @@ _pReturn$ = 8						; size = 4
 	call	?insert@SK_ModuleAddrMap@@QAEXPAXPAUHINSTANCE__@@@Z ; SK_ModuleAddrMap::insert
 $LN4@SK_GetCall:
 
-; 1263 : 
-; 1264 :   return hCallingMod;
+; 1283 : 
+; 1284 :   return hCallingMod;
 
 	mov	eax, DWORD PTR _hCallingMod$[ebp]
 	pop	esi
 
-; 1265 : }
+; 1285 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -22502,12 +22522,12 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_GetDLLConfig@@YAPAUiSK_INI@@XZ PROC			; SK_GetDLLConfig
 
-; 1204 :   extern iSK_INI* dll_ini;
-; 1205 :   return dll_ini;
+; 1221 :   extern iSK_INI* dll_ini;
+; 1222 :   return dll_ini;
 
 	mov	eax, DWORD PTR ?dll_ini@@3PAUiSK_INI@@A	; dll_ini
 
-; 1206 : }
+; 1223 : }
 
 	ret	0
 ?SK_GetDLLConfig@@YAPAUiSK_INI@@XZ ENDP			; SK_GetDLLConfig
@@ -22520,7 +22540,7 @@ _TEXT	SEGMENT
 _bWOW64$1 = -4						; size = 4
 ?SK_GetSystemDirectory@@YAPB_WXZ PROC			; SK_GetSystemDirectory
 
-; 2428 : {
+; 2448 : {
 
 	npad	2
 	push	ebp
@@ -22536,73 +22556,187 @@ _bWOW64$1 = -4						; size = 4
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2432 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+; 2452 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
 
 	test	eax, eax
 	jne	SHORT $LN8@SK_GetSyst
 
-; 2433 :   {
-; 2434 : #ifdef _WIN64
-; 2435 :     GetSystemDirectory (host_proc.wszSystemDir, MAX_PATH);
-; 2436 : #else
-; 2437 :     HANDLE hProc = GetCurrentProcess ();
+; 2453 :   {
+; 2454 : #ifdef _WIN64
+; 2455 :     GetSystemDirectory (host_proc.wszSystemDir, MAX_PATH);
+; 2456 : #else
+; 2457 :     HANDLE hProc = GetCurrentProcess ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 
-; 2438 : 
-; 2439 :     BOOL   bWOW64;
-; 2440 :     ::IsWow64Process (hProc, &bWOW64);
+; 2458 : 
+; 2459 :     BOOL   bWOW64;
+; 2460 :     ::IsWow64Process (hProc, &bWOW64);
 
 	lea	ecx, DWORD PTR _bWOW64$1[ebp]
 	push	ecx
 	push	eax
 	call	DWORD PTR __imp__IsWow64Process@8
 
-; 2441 : 
-; 2442 :     if (bWOW64)
+; 2461 : 
+; 2462 :     if (bWOW64)
 
 	cmp	DWORD PTR _bWOW64$1[ebp], 0
 
-; 2443 :       GetSystemWow64Directory (host_proc.wszSystemDir, MAX_PATH);
+; 2463 :       GetSystemWow64Directory (host_proc.wszSystemDir, MAX_PATH);
 
 	push	260					; 00000104H
 	push	OFFSET ?host_proc@@3Usk_host_process_s@@A+4160
 	je	SHORT $LN3@SK_GetSyst
 	call	DWORD PTR __imp__GetSystemWow64DirectoryW@8
 
-; 2446 : #endif
-; 2447 :   }
-; 2448 : 
-; 2449 :   return host_proc.wszSystemDir;
+; 2466 : #endif
+; 2467 :   }
+; 2468 : 
+; 2469 :   return host_proc.wszSystemDir;
 
 	mov	eax, OFFSET ?host_proc@@3Usk_host_process_s@@A+4160
 
-; 2450 : }
+; 2470 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN3@SK_GetSyst:
 
-; 2444 :     else
-; 2445 :       GetSystemDirectory      (host_proc.wszSystemDir, MAX_PATH);
+; 2464 :     else
+; 2465 :       GetSystemDirectory      (host_proc.wszSystemDir, MAX_PATH);
 
 	call	DWORD PTR __imp__GetSystemDirectoryW@8
 $LN8@SK_GetSyst:
 
-; 2446 : #endif
-; 2447 :   }
-; 2448 : 
-; 2449 :   return host_proc.wszSystemDir;
+; 2466 : #endif
+; 2467 :   }
+; 2468 : 
+; 2469 :   return host_proc.wszSystemDir;
 
 	mov	eax, OFFSET ?host_proc@@3Usk_host_process_s@@A+4160
 
-; 2450 : }
+; 2470 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 ?SK_GetSystemDirectory@@YAPB_WXZ ENDP			; SK_GetSystemDirectory
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+_TEXT	SEGMENT
+_file$ = 8						; size = 24
+_hide$ = 32						; size = 1
+?SK_File_SetHidden@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z PROC ; SK_File_SetHidden
+
+; 341  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _file$[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _file$[ebp]
+	cmovae	eax, DWORD PTR _file$[ebp]
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+
+; 343  :     GetFileAttributesW (file.c_str ());
+
+	push	eax
+	call	DWORD PTR __imp__GetFileAttributesW@4
+	mov	edx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _file$[ebp]
+	mov	ecx, edx
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+
+; 349  :     dwMask &= ~FILE_ATTRIBUTE_HIDDEN;
+
+	and	edx, -3					; fffffffdH
+	or	ecx, 2
+	cmp	BYTE PTR _hide$[ebp], 0
+	cmovne	edx, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _file$[ebp+20], 8
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+
+; 351  :   SetFileAttributesW (
+
+	push	edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	cmovae	eax, DWORD PTR _file$[ebp]
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+
+; 351  :   SetFileAttributesW (
+
+	push	eax
+	call	DWORD PTR __imp__SetFileAttributesW@8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR _file$[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN48@SK_File_Se
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR _file$[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN48@SK_File_Se:
+; File c:\users\andon\source\repos\specialk\src\utility.cpp
+
+; 354  : }
+
+	pop	ebp
+	ret	0
+?SK_File_SetHidden@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ENDP ; SK_File_SetHidden
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
@@ -23146,7 +23280,7 @@ $LN46@SK_MoveFil:
 	push	eax
 	call	DWORD PTR __imp__timeGetTime@0
 	push	eax
-	push	OFFSET $SG183329
+	push	OFFSET $SG183332
 	push	esi
 	call	DWORD PTR __imp__GetTempFileNameW@16
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -23377,7 +23511,7 @@ _str$ = -24						; size = 24
 _szInOut$ = 8						; size = 4
 ?SK_FixSlashesA@@YAXPAD@Z PROC				; SK_FixSlashesA
 
-; 2954 : { 
+; 2974 : { 
 
 	npad	2
 	push	ebp
@@ -23453,19 +23587,19 @@ $LL194@SK_FixSlas:
 	add	ecx, edx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2957 :   for ( auto&& it : str )
+; 2977 :   for ( auto&& it : str )
 
 	cmp	eax, ecx
 	je	SHORT $LN3@SK_FixSlas
 $LL4@SK_FixSlas:
 
-; 2958 :   {
-; 2959 :     if (it == '/')
+; 2978 :   {
+; 2979 :     if (it == '/')
 
 	cmp	BYTE PTR [eax], 47			; 0000002fH
 	jne	SHORT $LN2@SK_FixSlas
 
-; 2960 :       it = '\\';
+; 2980 :       it = '\\';
 
 	mov	BYTE PTR [eax], 92			; 0000005cH
 $LN2@SK_FixSlas:
@@ -23476,7 +23610,7 @@ $LN2@SK_FixSlas:
 	inc	eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2957 :   for ( auto&& it : str )
+; 2977 :   for ( auto&& it : str )
 
 	cmp	eax, ecx
 	jne	SHORT $LL4@SK_FixSlas
@@ -23496,7 +23630,7 @@ $LN3@SK_FixSlas:
 $LL7@SK_FixSlas:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2963 :   strcpy (szInOut, str.c_str ());
+; 2983 :   strcpy (szInOut, str.c_str ());
 
 	mov	al, BYTE PTR [ecx]
 	lea	ecx, DWORD PTR [ecx+1]
@@ -23614,7 +23748,7 @@ $LN178@SK_FixSlas:
 	pop	ebx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2964 : }
+; 2984 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -23645,7 +23779,7 @@ __Pred$ = 8						; size = 1
 _szInOut$ = 8						; size = 4
 ?SK_StripTrailingSlashesA@@YAXPAD@Z PROC		; SK_StripTrailingSlashesA
 
-; 2930 : {
+; 2950 : {
 
 	npad	2
 	push	ebp
@@ -23714,7 +23848,7 @@ $LL310@SK_StripTr:
 	cmp	ebx, 16					; 00000010H
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2943 :   std::string str (szInOut);
+; 2963 :   std::string str (szInOut);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -23802,7 +23936,7 @@ $LL310@SK_StripTr:
 $LL3@SK_StripTr:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2949 :   strcpy (szInOut, str.c_str ());
+; 2969 :   strcpy (szInOut, str.c_str ());
 
 	mov	al, BYTE PTR [ecx]
 	lea	ecx, DWORD PTR [ecx+1]
@@ -23840,7 +23974,7 @@ $LL3@SK_StripTr:
 $LN281@SK_StripTr:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2950 : }
+; 2970 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -23879,7 +24013,7 @@ _wstr$ = -24						; size = 24
 _wszInOut$ = 8						; size = 4
 ?SK_FixSlashesW@@YAXPA_W@Z PROC				; SK_FixSlashesW
 
-; 2916 : { 
+; 2936 : { 
 
 	npad	2
 	push	ebp
@@ -23963,20 +24097,20 @@ $LL194@SK_FixSlas:
 	lea	ecx, DWORD PTR [edx+ecx*2]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2919 :   for ( auto&& it : wstr )
+; 2939 :   for ( auto&& it : wstr )
 
 	cmp	eax, ecx
 	je	SHORT $LN3@SK_FixSlas
 	mov	edx, 92					; 0000005cH
 $LL4@SK_FixSlas:
 
-; 2920 :   {
-; 2921 :     if (it == L'/')
+; 2940 :   {
+; 2941 :     if (it == L'/')
 
 	cmp	WORD PTR [eax], 47			; 0000002fH
 	jne	SHORT $LN2@SK_FixSlas
 
-; 2922 :       it = L'\\';
+; 2942 :       it = L'\\';
 
 	mov	WORD PTR [eax], dx
 $LN2@SK_FixSlas:
@@ -23987,7 +24121,7 @@ $LN2@SK_FixSlas:
 	add	eax, 2
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2919 :   for ( auto&& it : wstr )
+; 2939 :   for ( auto&& it : wstr )
 
 	cmp	eax, ecx
 	jne	SHORT $LL4@SK_FixSlas
@@ -24007,7 +24141,7 @@ $LN3@SK_FixSlas:
 $LL7@SK_FixSlas:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2925 :   wcscpy (wszInOut, wstr.c_str ());
+; 2945 :   wcscpy (wszInOut, wstr.c_str ());
 
 	movzx	eax, WORD PTR [ecx]
 	lea	ecx, DWORD PTR [ecx+2]
@@ -24137,7 +24271,7 @@ $LN178@SK_FixSlas:
 	pop	ebx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2926 : }
+; 2946 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -24174,7 +24308,7 @@ __$EHRec$ = -12						; size = 12
 _wszInOut$ = 8						; size = 4
 ?SK_StripTrailingSlashesW@@YAXPA_W@Z PROC		; SK_StripTrailingSlashesW
 
-; 2892 : {
+; 2912 : {
 
 	npad	2
 	push	ebp
@@ -24278,7 +24412,7 @@ $LL310@SK_StripTr:
 	cmovae	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2905 :   std::wstring wstr (wszInOut);
+; 2925 :   std::wstring wstr (wszInOut);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -24376,7 +24510,7 @@ $LL310@SK_StripTr:
 $LL3@SK_StripTr:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2911 :   wcscpy (wszInOut, wstr.c_str ());
+; 2931 :   wcscpy (wszInOut, wstr.c_str ());
 
 	movzx	eax, WORD PTR [edx]
 	lea	edx, DWORD PTR [edx+2]
@@ -24414,7 +24548,7 @@ $LL3@SK_StripTr:
 $LN281@SK_StripTr:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2912 : }
+; 2932 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -24451,7 +24585,7 @@ ___$ReturnUdt$ = 8					; size = 4
 __Format$ = 12						; size = 4
 ?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ PROC ; SK_FormatStringW
 
-; 2864 : {
+; 2884 : {
 
 	npad	2
 	push	ebp
@@ -24461,12 +24595,12 @@ __Format$ = 12						; size = 4
 	push	esi
 	push	edi
 
-; 2865 :   int len = 0;
-; 2866 : 
-; 2867 :   va_list   _ArgList;
-; 2868 :   va_start (_ArgList, _Format);
-; 2869 :   {
-; 2870 :     len = _vsnwprintf (nullptr, 0, _Format, _ArgList);
+; 2885 :   int len = 0;
+; 2886 : 
+; 2887 :   va_list   _ArgList;
+; 2888 :   va_start (_ArgList, _Format);
+; 2889 :   {
+; 2890 :     len = _vsnwprintf (nullptr, 0, _Format, _ArgList);
 
 	lea	eax, DWORD PTR __Format$[ebp+4]
 	mov	DWORD PTR $T1[ebp], 0
@@ -24476,10 +24610,10 @@ __Format$ = 12						; size = 4
 	push	0
 	call	__vsnwprintf
 
-; 2871 :   }
-; 2872 :   va_end (_ArgList);
-; 2873 : 
-; 2874 :   auto* out = new wchar_t [len + 1] { };
+; 2891 :   }
+; 2892 :   va_end (_ArgList);
+; 2893 : 
+; 2894 :   auto* out = new wchar_t [len + 1] { };
 
 	xor	ebx, ebx
 	inc	eax
@@ -24504,7 +24638,7 @@ $LN3@SK_FormatS:
 	xor	esi, esi
 $LN4@SK_FormatS:
 
-; 2878 :     len = _vswprintf (out, _Format, _ArgList);
+; 2898 :     len = _vswprintf (out, _Format, _ArgList);
 
 	lea	eax, DWORD PTR __Format$[ebp+4]
 	push	eax
@@ -24523,7 +24657,7 @@ $LN4@SK_FormatS:
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2878 :     len = _vswprintf (out, _Format, _ArgList);
+; 2898 :     len = _vswprintf (out, _Format, _ArgList);
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -24572,21 +24706,21 @@ $LL31@SK_FormatS:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2884 :   delete [] out;
+; 2904 :   delete [] out;
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 
-; 2885 : 
-; 2886 :   return wstr_out;
+; 2905 : 
+; 2906 :   return wstr_out;
 
 	mov	eax, edi
 	pop	edi
 	pop	esi
 	pop	ebx
 
-; 2887 : }
+; 2907 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -24610,7 +24744,7 @@ ___$ReturnUdt$ = 8					; size = 4
 __Format$ = 12						; size = 4
 ?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ PROC ; SK_FormatString
 
-; 2836 : {
+; 2856 : {
 
 	npad	2
 	push	ebp
@@ -24619,12 +24753,12 @@ __Format$ = 12						; size = 4
 	push	esi
 	push	edi
 
-; 2837 :   int len = 0;
-; 2838 : 
-; 2839 :   va_list   _ArgList;
-; 2840 :   va_start (_ArgList, _Format);
-; 2841 :   {
-; 2842 :     len = vsnprintf (nullptr, 0, _Format, _ArgList);
+; 2857 :   int len = 0;
+; 2858 : 
+; 2859 :   va_list   _ArgList;
+; 2860 :   va_start (_ArgList, _Format);
+; 2861 :   {
+; 2862 :     len = vsnprintf (nullptr, 0, _Format, _ArgList);
 
 	lea	eax, DWORD PTR __Format$[ebp+4]
 	mov	DWORD PTR $T1[ebp], 0
@@ -24634,10 +24768,10 @@ __Format$ = 12						; size = 4
 	push	0
 	call	_vsnprintf
 
-; 2843 :   }
-; 2844 :   va_end (_ArgList);
-; 2845 : 
-; 2846 :   auto* out = new char [len + 1] { };
+; 2863 :   }
+; 2864 :   va_end (_ArgList);
+; 2865 : 
+; 2866 :   auto* out = new char [len + 1] { };
 
 	lea	edi, DWORD PTR [eax+1]
 	push	edi
@@ -24656,7 +24790,7 @@ $LN3@SK_FormatS:
 	xor	esi, esi
 $LN4@SK_FormatS:
 
-; 2850 :     len = vsprintf (out, _Format, _ArgList);
+; 2870 :     len = vsprintf (out, _Format, _ArgList);
 
 	lea	eax, DWORD PTR __Format$[ebp+4]
 	push	eax
@@ -24675,7 +24809,7 @@ $LN4@SK_FormatS:
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2850 :     len = vsprintf (out, _Format, _ArgList);
+; 2870 :     len = vsprintf (out, _Format, _ArgList);
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -24718,20 +24852,20 @@ $LL31@SK_FormatS:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2856 :   delete [] out;
+; 2876 :   delete [] out;
 
 	push	esi
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 
-; 2857 : 
-; 2858 :   return str_out;
+; 2877 : 
+; 2878 :   return str_out;
 
 	mov	eax, edi
 	pop	edi
 	pop	esi
 
-; 2859 : }
+; 2879 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -25521,7 +25655,7 @@ $T9 = 8							; size = 4
 _wszDLL$ = 8						; size = 4
 ?SK_RestartGame@@YAXPB_W@Z PROC				; SK_RestartGame
 
-; 2703 : {
+; 2723 : {
 
 	npad	2
 	push	ebp
@@ -25534,7 +25668,7 @@ _wszDLL$ = 8						; size = 4
 	sub	esp, 3264				; 00000cc0H
 	push	esi
 
-; 2704 :   wchar_t wszShortPath [MAX_PATH + 2] = { };
+; 2724 :   wchar_t wszShortPath [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
@@ -25543,7 +25677,7 @@ _wszDLL$ = 8						; size = 4
 	push	eax
 	call	_memset
 
-; 2705 :   wchar_t wszFullname  [MAX_PATH + 2] = { };
+; 2725 :   wchar_t wszFullname  [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszFullname$[ebp]
@@ -25551,7 +25685,7 @@ _wszDLL$ = 8						; size = 4
 	push	eax
 	call	_memset
 
-; 2707 :   wcsncpy ( wszFullname, wszDLL != nullptr ?
+; 2727 :   wcsncpy ( wszFullname, wszDLL != nullptr ?
 
 	mov	esi, DWORD PTR _wszDLL$[ebp]
 	add	esp, 24					; 00000018H
@@ -25584,7 +25718,7 @@ $LN10@SK_Restart:
 $LN21@SK_Restart:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2707 :   wcsncpy ( wszFullname, wszDLL != nullptr ?
+; 2727 :   wcsncpy ( wszFullname, wszDLL != nullptr ?
 
 	push	260					; 00000104H
 	push	eax
@@ -25620,14 +25754,14 @@ $LN21@SK_Restart:
 $LN43@SK_Restart:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2712 :   SK_Generate8Dot3 (wszFullname);
+; 2732 :   SK_Generate8Dot3 (wszFullname);
 
 	lea	eax, DWORD PTR _wszFullname$[ebp]
 	push	eax
 	call	?SK_Generate8Dot3@@YA_NPB_W@Z		; SK_Generate8Dot3
 	add	esp, 4
 
-; 2713 :   wcscpy           (wszShortPath, wszFullname);
+; 2733 :   wcscpy           (wszShortPath, wszFullname);
 
 	xor	ecx, ecx
 $LL12@SK_Restart:
@@ -25637,8 +25771,8 @@ $LL12@SK_Restart:
 	test	ax, ax
 	jne	SHORT $LL12@SK_Restart
 
-; 2714 :  
-; 2715 :   if (SK_FileHasSpaces (wszFullname))
+; 2734 :  
+; 2735 :   if (SK_FileHasSpaces (wszFullname))
 
 	lea	eax, DWORD PTR _wszFullname$[ebp]
 	push	eax
@@ -25647,7 +25781,7 @@ $LL12@SK_Restart:
 	test	al, al
 	je	SHORT $LN2@SK_Restart
 
-; 2716 :     GetShortPathName   (wszFullname, wszShortPath, MAX_PATH  );
+; 2736 :     GetShortPathName   (wszFullname, wszShortPath, MAX_PATH  );
 
 	push	260					; 00000104H
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
@@ -25657,8 +25791,8 @@ $LL12@SK_Restart:
 	call	DWORD PTR __imp__GetShortPathNameW@12
 $LN2@SK_Restart:
 
-; 2717 :   
-; 2718 :   if (SK_FileHasSpaces (wszShortPath))
+; 2737 :   
+; 2738 :   if (SK_FileHasSpaces (wszShortPath))
 
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
 	push	eax
@@ -25667,13 +25801,13 @@ $LN2@SK_Restart:
 	test	al, al
 	je	$LN7@SK_Restart
 
-; 2719 :   {
-; 2720 :     if (wszDLL != nullptr)
+; 2739 :   {
+; 2740 :     if (wszDLL != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN4@SK_Restart
 
-; 2722 :       SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
+; 2742 :       SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
 
 	push	331840					; 00051040H
 	sub	esp, 24					; 00000018H
@@ -25684,7 +25818,7 @@ $LN2@SK_Restart:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2722 :       SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
+; 2742 :       SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
 
 	mov	ecx, esp
 	mov	DWORD PTR $T9[ebp], esp
@@ -25704,7 +25838,7 @@ $LN2@SK_Restart:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG298832
+	push	OFFSET $SG301361
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -25717,7 +25851,7 @@ $LN2@SK_Restart:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2722 :       SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
+; 2742 :       SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
 
 	sub	esp, 24					; 00000018H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -25743,7 +25877,7 @@ $LN2@SK_Restart:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG298833
+	push	OFFSET $SG301362
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -25756,7 +25890,7 @@ $LN2@SK_Restart:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2722 :       SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
+; 2742 :       SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	?SK_MessageBox@@YAHV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0I@Z ; SK_MessageBox
@@ -25764,26 +25898,26 @@ $LN2@SK_Restart:
 	jmp	$LN177@SK_Restart
 $LN4@SK_Restart:
 
-; 2723 :                       L"\r\n\r\n\t"
-; 2724 :                       L"This is a common problem for non-boot drives, please ensure that the drive your "
-; 2725 :                       L"game is installed to has 8.3 filename generation enabled and then re-install "
-; 2726 :                       L"the mod.",
-; 2727 :                         L"Cannot Automatically Restart Game Because of Bad File system Policy.",
-; 2728 :                           MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
-; 2729 :     }
-; 2730 : 
-; 2731 :     else if (SK_HasGlobalInjector ())
+; 2743 :                       L"\r\n\r\n\t"
+; 2744 :                       L"This is a common problem for non-boot drives, please ensure that the drive your "
+; 2745 :                       L"game is installed to has 8.3 filename generation enabled and then re-install "
+; 2746 :                       L"the mod.",
+; 2747 :                         L"Cannot Automatically Restart Game Because of Bad File system Policy.",
+; 2748 :                           MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
+; 2749 :     }
+; 2750 : 
+; 2751 :     else if (SK_HasGlobalInjector ())
 
 	call	?SK_HasGlobalInjector@@YG_NXZ		; SK_HasGlobalInjector
 	test	al, al
 	je	$LN177@SK_Restart
 
-; 2734 :         SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\SpecialK";
+; 2754 :         SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\SpecialK";
 
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG298835
+	push	OFFSET $SG301364
 	push	eax
 	lea	eax, DWORD PTR _global_dll$5[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
@@ -25797,7 +25931,7 @@ $LN4@SK_Restart:
 	mov	eax, DWORD PTR $T6[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2734 :         SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\SpecialK";
+; 2754 :         SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\SpecialK";
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -25846,7 +25980,7 @@ $LN121@SK_Restart:
 
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG298836
+	push	OFFSET $SG301365
 	lea	ecx, DWORD PTR _global_dll$5[ebp]
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -25872,7 +26006,7 @@ $LN121@SK_Restart:
 	lea	eax, DWORD PTR _global_dll$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2742 :                 wcsncpy ( wszFullname, global_dll.c_str (), MAX_PATH );
+; 2762 :                 wcsncpy ( wszFullname, global_dll.c_str (), MAX_PATH );
 
 	push	260					; 00000104H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -25882,7 +26016,7 @@ $LN121@SK_Restart:
 	cmovae	eax, DWORD PTR _global_dll$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2742 :                 wcsncpy ( wszFullname, global_dll.c_str (), MAX_PATH );
+; 2762 :                 wcsncpy ( wszFullname, global_dll.c_str (), MAX_PATH );
 
 	push	eax
 	lea	eax, DWORD PTR _wszFullname$[ebp]
@@ -25890,7 +26024,7 @@ $LN121@SK_Restart:
 	call	DWORD PTR __imp__wcsncpy
 	add	esp, 12					; 0000000cH
 
-; 2743 :       GetShortPathName   (wszFullname, wszShortPath,        MAX_PATH );
+; 2763 :       GetShortPathName   (wszFullname, wszShortPath,        MAX_PATH );
 
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
 	push	260					; 00000104H
@@ -25929,7 +26063,7 @@ $LN121@SK_Restart:
 $LN177@SK_Restart:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2746 :     if (SK_FileHasSpaces (wszShortPath))
+; 2766 :     if (SK_FileHasSpaces (wszShortPath))
 
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
 	push	eax
@@ -25938,23 +26072,23 @@ $LN177@SK_Restart:
 	test	al, al
 	je	SHORT $LN7@SK_Restart
 
-; 2747 :       ExitProcess (0x00);
+; 2767 :       ExitProcess (0x00);
 
 	push	0
 	call	DWORD PTR __imp__ExitProcess@4
 $LN208@SK_Restart:
 $LN7@SK_Restart:
 
-; 2748 :   }
-; 2749 : 
-; 2750 :   if (! SK_IsSuperSpecialK ())
+; 2768 :   }
+; 2769 : 
+; 2770 :   if (! SK_IsSuperSpecialK ())
 
 	call	?SK_IsSuperSpecialK@@YA_NXZ		; SK_IsSuperSpecialK
 	test	al, al
 	jne	$LN8@SK_Restart
 
-; 2751 :   {
-; 2752 :     wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
+; 2771 :   {
+; 2772 :     wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
 
 	push	2080					; 00000820H
 	lea	eax, DWORD PTR _wszRunDLLCmd$2[ebp]
@@ -25962,23 +26096,23 @@ $LN7@SK_Restart:
 	push	eax
 	call	_memset
 
-; 2753 : 
-; 2754 :     _swprintf ( wszRunDLLCmd,
+; 2773 : 
+; 2774 :     _swprintf ( wszRunDLLCmd,
 
 	call	?SK_GetFullyQualifiedApp@@YAPB_WXZ	; SK_GetFullyQualifiedApp
 	push	eax
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
 	push	eax
 	lea	eax, DWORD PTR _wszRunDLLCmd$2[ebp]
-	push	OFFSET $SG298839
+	push	OFFSET $SG301368
 	push	eax
 	call	__swprintf
 
-; 2755 :                  L"RunDll32.exe %s,RunDLL_RestartGame %s",
-; 2756 :                    wszShortPath,
-; 2757 :                      SK_GetFullyQualifiedApp () );
-; 2758 : 
-; 2759 :     STARTUPINFOW        sinfo = { };
+; 2775 :                  L"RunDll32.exe %s,RunDLL_RestartGame %s",
+; 2776 :                    wszShortPath,
+; 2777 :                      SK_GetFullyQualifiedApp () );
+; 2778 : 
+; 2779 :     STARTUPINFOW        sinfo = { };
 
 	push	68					; 00000044H
 	lea	eax, DWORD PTR _sinfo$3[ebp]
@@ -25987,14 +26121,14 @@ $LN7@SK_Restart:
 	call	_memset
 	add	esp, 40					; 00000028H
 
-; 2760 :     PROCESS_INFORMATION pinfo = { };
-; 2761 : 
-; 2762 :     sinfo.cb = sizeof STARTUPINFOW;
+; 2780 :     PROCESS_INFORMATION pinfo = { };
+; 2781 : 
+; 2782 :     sinfo.cb = sizeof STARTUPINFOW;
 
 	mov	DWORD PTR _sinfo$3[ebp], 68		; 00000044H
 
-; 2763 : 
-; 2764 :     CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
+; 2783 : 
+; 2784 :     CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
 
 	lea	eax, DWORD PTR _pinfo$4[ebp]
 	xorps	xmm0, xmm0
@@ -26014,31 +26148,31 @@ $LN7@SK_Restart:
 	push	0
 	call	DWORD PTR __imp__CreateProcessW@40
 
-; 2765 :                     FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
-; 2766 :                     &sinfo,  &pinfo );
-; 2767 : 
-; 2768 :     CloseHandle (pinfo.hThread);
+; 2785 :                     FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
+; 2786 :                     &sinfo,  &pinfo );
+; 2787 : 
+; 2788 :     CloseHandle (pinfo.hThread);
 
 	push	DWORD PTR _pinfo$4[ebp+4]
 	mov	esi, DWORD PTR __imp__CloseHandle@4
 	call	esi
 
-; 2769 :     CloseHandle (pinfo.hProcess);
+; 2789 :     CloseHandle (pinfo.hProcess);
 
 	push	DWORD PTR _pinfo$4[ebp]
 	call	esi
 $LN8@SK_Restart:
 
-; 2770 :   }
-; 2771 : 
-; 2772 :   TerminateProcess (GetCurrentProcess (), 0x00);
+; 2790 :   }
+; 2791 : 
+; 2792 :   TerminateProcess (GetCurrentProcess (), 0x00);
 
 	push	0
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	DWORD PTR __imp__TerminateProcess@8
 
-; 2773 : }
+; 2793 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -26089,7 +26223,7 @@ $T3 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ?SK_ElevateToAdmin@@YAXXZ PROC				; SK_ElevateToAdmin
 
-; 2777 : {
+; 2797 : {
 
 	npad	2
 	push	ebp
@@ -26100,16 +26234,16 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 2778 :   extern const wchar_t*
-; 2779 :   SK_GetFullyQualifiedApp (void);
-; 2780 : 
-; 2781 :   extern const wchar_t*
-; 2782 :   SK_GetHostPath (void);
-; 2783 : 
-; 2784 :   extern std::wstring
-; 2785 :   SK_GetModuleFullName (HMODULE hDll);
-; 2786 : 
-; 2787 :   wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
+; 2798 :   extern const wchar_t*
+; 2799 :   SK_GetFullyQualifiedApp (void);
+; 2800 : 
+; 2801 :   extern const wchar_t*
+; 2802 :   SK_GetHostPath (void);
+; 2803 : 
+; 2804 :   extern std::wstring
+; 2805 :   SK_GetModuleFullName (HMODULE hDll);
+; 2806 : 
+; 2807 :   wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
 
 	lea	eax, DWORD PTR _wszRunDLLCmd$[ebp]
 	sub	esp, 3244				; 00000cacH
@@ -26118,7 +26252,7 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	call	_memset
 
-; 2788 :   wchar_t wszShortPath [MAX_PATH + 2] = { };
+; 2808 :   wchar_t wszShortPath [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
@@ -26126,7 +26260,7 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	call	_memset
 
-; 2789 :   wchar_t wszFullname  [MAX_PATH + 2] = { };
+; 2809 :   wchar_t wszFullname  [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszFullname$[ebp]
@@ -26135,7 +26269,7 @@ __$EHRec$ = -12						; size = 12
 	call	_memset
 	add	esp, 36					; 00000024H
 
-; 2791 :   wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH );
+; 2811 :   wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH );
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -26160,7 +26294,7 @@ __$EHRec$ = -12						; size = 12
 $LN23@SK_Elevate:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2791 :   wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH );
+; 2811 :   wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH );
 
 	push	260					; 00000104H
 	push	eax
@@ -26174,7 +26308,7 @@ $LN23@SK_Elevate:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2791 :   wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH );
+; 2811 :   wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH );
 
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -26221,7 +26355,7 @@ $LN32@SK_Elevate:
 	mov	WORD PTR $T2[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2793 :   SK_Generate8Dot3 (wszFullname);
+; 2813 :   SK_Generate8Dot3 (wszFullname);
 
 	lea	eax, DWORD PTR _wszFullname$[ebp]
 	push	eax
@@ -26232,12 +26366,12 @@ $LN32@SK_Elevate:
 	mov	DWORD PTR $T2[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2793 :   SK_Generate8Dot3 (wszFullname);
+; 2813 :   SK_Generate8Dot3 (wszFullname);
 
 	call	?SK_Generate8Dot3@@YA_NPB_W@Z		; SK_Generate8Dot3
 	add	esp, 4
 
-; 2794 :   wcscpy (wszShortPath, wszFullname);
+; 2814 :   wcscpy (wszShortPath, wszFullname);
 
 	xor	ecx, ecx
 	npad	8
@@ -26248,8 +26382,8 @@ $LL5@SK_Elevate:
 	test	ax, ax
 	jne	SHORT $LL5@SK_Elevate
 
-; 2795 :  
-; 2796 :   if (SK_FileHasSpaces (wszFullname))
+; 2815 :  
+; 2816 :   if (SK_FileHasSpaces (wszFullname))
 
 	lea	eax, DWORD PTR _wszFullname$[ebp]
 	push	eax
@@ -26258,7 +26392,7 @@ $LL5@SK_Elevate:
 	test	al, al
 	je	SHORT $LN2@SK_Elevate
 
-; 2797 :     GetShortPathName   (wszFullname, wszShortPath, MAX_PATH );
+; 2817 :     GetShortPathName   (wszFullname, wszShortPath, MAX_PATH );
 
 	push	260					; 00000104H
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
@@ -26268,8 +26402,8 @@ $LL5@SK_Elevate:
 	call	DWORD PTR __imp__GetShortPathNameW@12
 $LN2@SK_Elevate:
 
-; 2798 :   
-; 2799 :   if (SK_FileHasSpaces (wszShortPath))
+; 2818 :   
+; 2819 :   if (SK_FileHasSpaces (wszShortPath))
 
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
 	push	eax
@@ -26278,55 +26412,55 @@ $LN2@SK_Elevate:
 	test	al, al
 	je	SHORT $LN3@SK_Elevate
 
-; 2800 :   {
-; 2801 :     SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
+; 2820 :   {
+; 2821 :     SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
 
 	push	331840					; 00051040H
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
 	mov	DWORD PTR $T3[ebp], esp
-	push	OFFSET $SG298862
+	push	OFFSET $SG301391
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	sub	esp, 24					; 00000018H
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	mov	ecx, esp
-	push	OFFSET $SG298863
+	push	OFFSET $SG301392
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	?SK_MessageBox@@YAHV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@0I@Z ; SK_MessageBox
 	add	esp, 52					; 00000034H
 
-; 2802 :                     L"\r\n\r\n\t"
-; 2803 :                     L"This is a common problem for non-boot drives, please ensure that the drive your "
-; 2804 :                     L"game is installed to has 8.3 filename generation enabled and then re-install "
-; 2805 :                     L"the mod.",
-; 2806 :                       L"Cannot Elevate To Admin Because of Bad File system Policy.",
-; 2807 :                         MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
-; 2808 :     ExitProcess   (0x00);
+; 2822 :                     L"\r\n\r\n\t"
+; 2823 :                     L"This is a common problem for non-boot drives, please ensure that the drive your "
+; 2824 :                     L"game is installed to has 8.3 filename generation enabled and then re-install "
+; 2825 :                     L"the mod.",
+; 2826 :                       L"Cannot Elevate To Admin Because of Bad File system Policy.",
+; 2827 :                         MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
+; 2828 :     ExitProcess   (0x00);
 
 	push	0
 	call	DWORD PTR __imp__ExitProcess@4
 $LN63@SK_Elevate:
 $LN3@SK_Elevate:
 
-; 2809 :   }
-; 2810 : 
-; 2811 :   _swprintf ( wszRunDLLCmd,
+; 2829 :   }
+; 2830 : 
+; 2831 :   _swprintf ( wszRunDLLCmd,
 
 	call	?SK_GetFullyQualifiedApp@@YAPB_WXZ	; SK_GetFullyQualifiedApp
 	push	eax
 	lea	eax, DWORD PTR _wszShortPath$[ebp]
 	push	eax
 	lea	eax, DWORD PTR _wszRunDLLCmd$[ebp]
-	push	OFFSET $SG298864
+	push	OFFSET $SG301393
 	push	eax
 	call	__swprintf
 
-; 2812 :                L"RunDll32.exe %s,RunDLL_ElevateMe %s",
-; 2813 :                  wszShortPath,
-; 2814 :                    SK_GetFullyQualifiedApp () );
-; 2815 : 
-; 2816 :   STARTUPINFOW        sinfo = { };
+; 2832 :                L"RunDll32.exe %s,RunDLL_ElevateMe %s",
+; 2833 :                  wszShortPath,
+; 2834 :                    SK_GetFullyQualifiedApp () );
+; 2835 : 
+; 2836 :   STARTUPINFOW        sinfo = { };
 
 	push	68					; 00000044H
 	lea	eax, DWORD PTR _sinfo$[ebp]
@@ -26335,14 +26469,14 @@ $LN3@SK_Elevate:
 	call	_memset
 	add	esp, 28					; 0000001cH
 
-; 2817 :   PROCESS_INFORMATION pinfo = { };
-; 2818 : 
-; 2819 :   sinfo.cb = sizeof STARTUPINFOW;
+; 2837 :   PROCESS_INFORMATION pinfo = { };
+; 2838 : 
+; 2839 :   sinfo.cb = sizeof STARTUPINFOW;
 
 	mov	DWORD PTR _sinfo$[ebp], 68		; 00000044H
 
-; 2820 : 
-; 2821 :   CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
+; 2840 : 
+; 2841 :   CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
 
 	lea	eax, DWORD PTR _pinfo$[ebp]
 	xorps	xmm0, xmm0
@@ -26362,28 +26496,28 @@ $LN3@SK_Elevate:
 	push	0
 	call	DWORD PTR __imp__CreateProcessW@40
 
-; 2822 :                   FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
-; 2823 :                   &sinfo,  &pinfo );
-; 2824 : 
-; 2825 :   CloseHandle (pinfo.hThread);
+; 2842 :                   FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
+; 2843 :                   &sinfo,  &pinfo );
+; 2844 : 
+; 2845 :   CloseHandle (pinfo.hThread);
 
 	push	DWORD PTR _pinfo$[ebp+4]
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 2826 :   CloseHandle (pinfo.hProcess);
+; 2846 :   CloseHandle (pinfo.hProcess);
 
 	push	DWORD PTR _pinfo$[ebp]
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 2827 : 
-; 2828 :   TerminateProcess    (GetCurrentProcess (), 0x00);
+; 2847 : 
+; 2848 :   TerminateProcess    (GetCurrentProcess (), 0x00);
 
 	push	0
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	DWORD PTR __imp__TerminateProcess@8
 
-; 2829 : }
+; 2849 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -26413,7 +26547,7 @@ _Elevation$2 = -8					; size = 4
 _hToken$ = -4						; size = 4
 ?SK_IsAdmin@@YA_NXZ PROC				; SK_IsAdmin
 
-; 342  : {
+; 359  : {
 
 	npad	2
 	push	ebp
@@ -26421,7 +26555,7 @@ _hToken$ = -4						; size = 4
 	sub	esp, 12					; 0000000cH
 	push	ebx
 
-; 346  :   if ( OpenProcessToken ( GetCurrentProcess (),
+; 363  :   if ( OpenProcessToken ( GetCurrentProcess (),
 
 	lea	eax, DWORD PTR _hToken$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
@@ -26431,7 +26565,7 @@ _hToken$ = -4						; size = 4
 	mov	DWORD PTR _hToken$[ebp], 0
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 346  :   if ( OpenProcessToken ( GetCurrentProcess (),
+; 363  :   if ( OpenProcessToken ( GetCurrentProcess (),
 
 	push	eax
 	push	8
@@ -26442,16 +26576,16 @@ _hToken$ = -4						; size = 4
 	test	eax, eax
 	je	SHORT $LN3@SK_IsAdmin
 
-; 347  :                             TOKEN_QUERY,
-; 348  :                               &hToken.m_h )
-; 349  :      )
-; 350  :   {
-; 351  :     TOKEN_ELEVATION Elevation = { };
-; 352  : 
-; 353  :     DWORD cbSize =
-; 354  :       sizeof TOKEN_ELEVATION;
-; 355  : 
-; 356  :     if ( GetTokenInformation ( hToken,
+; 364  :                             TOKEN_QUERY,
+; 365  :                               &hToken.m_h )
+; 366  :      )
+; 367  :   {
+; 368  :     TOKEN_ELEVATION Elevation = { };
+; 369  : 
+; 370  :     DWORD cbSize =
+; 371  :       sizeof TOKEN_ELEVATION;
+; 372  : 
+; 373  :     if ( GetTokenInformation ( hToken,
 
 	lea	eax, DWORD PTR _cbSize$1[ebp]
 	mov	DWORD PTR _Elevation$2[ebp], 0
@@ -26466,13 +26600,13 @@ _hToken$ = -4						; size = 4
 	test	eax, eax
 	je	SHORT $LN3@SK_IsAdmin
 
-; 357  :                                  TokenElevation,
-; 358  :                                    &Elevation,
-; 359  :                                      sizeof (Elevation),
-; 360  :                                        &cbSize )
-; 361  :        )
-; 362  :     {
-; 363  :       bRet =
+; 374  :                                  TokenElevation,
+; 375  :                                    &Elevation,
+; 376  :                                      sizeof (Elevation),
+; 377  :                                        &cbSize )
+; 378  :        )
+; 379  :     {
+; 380  :       bRet =
 
 	cmp	DWORD PTR _Elevation$2[ebp], 0
 	setne	bl
@@ -26492,12 +26626,12 @@ $LN3@SK_IsAdmin:
 $LN17@SK_IsAdmin:
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 368  :   return bRet;
+; 385  :   return bRet;
 
 	mov	al, bl
 	pop	ebx
 
-; 369  : }
+; 386  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -27040,7 +27174,7 @@ _wszEvaluateMe$ = 12					; size = 4
 
 	mov	ecx, esi
 	push	13					; 0000000dH
-	push	OFFSET $SG183301
+	push	OFFSET $SG183304
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -27230,14 +27364,14 @@ _wszPath$ = 8						; size = 4
 _wszPattern$ = 12					; size = 4
 ?SK_DeleteTemporaryFiles@@YAIPB_W0@Z PROC		; SK_DeleteTemporaryFiles
 
-; 2457 : {
+; 2477 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 2676				; 00000a74H
 
-; 2458 :   WIN32_FIND_DATA fd     = {      };
+; 2478 :   WIN32_FIND_DATA fd     = {      };
 
 	lea	eax, DWORD PTR _fd$[ebp]
 	push	ebx
@@ -27248,11 +27382,11 @@ _wszPattern$ = 12					; size = 4
 	push	eax
 	call	_memset
 
-; 2459 :   HANDLE          hFind  = INVALID_HANDLE_VALUE;
-; 2460 :   size_t          files  =   0UL;
-; 2461 :   LARGE_INTEGER   liSize = { 0ULL };
-; 2462 : 
-; 2463 :   wchar_t wszFindPattern [MAX_PATH * 2] = { };
+; 2479 :   HANDLE          hFind  = INVALID_HANDLE_VALUE;
+; 2480 :   size_t          files  =   0UL;
+; 2481 :   LARGE_INTEGER   liSize = { 0ULL };
+; 2482 : 
+; 2483 :   wchar_t wszFindPattern [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	xor	esi, esi
@@ -27261,8 +27395,8 @@ _wszPattern$ = 12					; size = 4
 	push	eax
 	call	_memset
 
-; 2464 : 
-; 2465 :   lstrcatW (wszFindPattern, wszPath);
+; 2484 : 
+; 2485 :   lstrcatW (wszFindPattern, wszPath);
 
 	mov	edi, DWORD PTR __imp__lstrcatW@8
 	lea	eax, DWORD PTR _wszFindPattern$[ebp]
@@ -27271,22 +27405,22 @@ _wszPattern$ = 12					; size = 4
 	push	eax
 	call	edi
 
-; 2466 :   lstrcatW (wszFindPattern, L"\\");
+; 2486 :   lstrcatW (wszFindPattern, L"\\");
 
-	push	OFFSET $SG298727
+	push	OFFSET $SG301256
 	lea	eax, DWORD PTR _wszFindPattern$[ebp]
 	push	eax
 	call	edi
 
-; 2467 :   lstrcatW (wszFindPattern, wszPattern);
+; 2487 :   lstrcatW (wszFindPattern, wszPattern);
 
 	push	DWORD PTR _wszPattern$[ebp]
 	lea	eax, DWORD PTR _wszFindPattern$[ebp]
 	push	eax
 	call	edi
 
-; 2468 : 
-; 2469 :   hFind = FindFirstFileW (wszFindPattern, &fd);
+; 2488 : 
+; 2489 :   hFind = FindFirstFileW (wszFindPattern, &fd);
 
 	lea	eax, DWORD PTR _fd$[ebp]
 	push	eax
@@ -27295,23 +27429,23 @@ _wszPattern$ = 12					; size = 4
 	call	DWORD PTR __imp__FindFirstFileW@8
 	mov	ebx, eax
 
-; 2470 : 
-; 2471 :   if (hFind != INVALID_HANDLE_VALUE)
+; 2490 : 
+; 2491 :   if (hFind != INVALID_HANDLE_VALUE)
 
 	cmp	ebx, -1
 	je	$LN12@SK_DeleteT
 
-; 2472 :   {
-; 2473 :     dll_log.LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ", wszPath );
+; 2492 :   {
+; 2493 :     dll_log.LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ", wszPath );
 
 	push	DWORD PTR _wszPath$[ebp]
-	push	OFFSET $SG298729
+	push	OFFSET $SG301258
 	push	1
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 
-; 2474 : 
-; 2475 :     wchar_t wszFullPath [MAX_PATH * 2 + 1] = { };
+; 2494 : 
+; 2495 :     wchar_t wszFullPath [MAX_PATH * 2 + 1] = { };
 
 	push	1042					; 00000412H
 	lea	eax, DWORD PTR _wszFullPath$1[ebp]
@@ -27322,18 +27456,18 @@ _wszPattern$ = 12					; size = 4
 	npad	4
 $LL4@SK_DeleteT:
 
-; 2476 : 
-; 2477 :     do
-; 2478 :     {
-; 2479 :       if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
+; 2496 : 
+; 2497 :     do
+; 2498 :     {
+; 2499 :       if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
 
 	cmp	DWORD PTR _fd$[ebp], -1
 	je	SHORT $LN2@SK_DeleteT
 
-; 2480 :       {
-; 2481 :         *wszFullPath = L'\0';
-; 2482 : 
-; 2483 :         lstrcatW (wszFullPath, wszPath);
+; 2500 :       {
+; 2501 :         *wszFullPath = L'\0';
+; 2502 : 
+; 2503 :         lstrcatW (wszFullPath, wszPath);
 
 	push	DWORD PTR _wszPath$[ebp]
 	xor	eax, eax
@@ -27342,14 +27476,14 @@ $LL4@SK_DeleteT:
 	push	eax
 	call	edi
 
-; 2484 :         lstrcatW (wszFullPath, L"\\");
+; 2504 :         lstrcatW (wszFullPath, L"\\");
 
-	push	OFFSET $SG298731
+	push	OFFSET $SG301260
 	lea	eax, DWORD PTR _wszFullPath$1[ebp]
 	push	eax
 	call	edi
 
-; 2485 :         lstrcatW (wszFullPath, fd.cFileName);
+; 2505 :         lstrcatW (wszFullPath, fd.cFileName);
 
 	lea	eax, DWORD PTR _fd$[ebp+44]
 	push	eax
@@ -27357,8 +27491,8 @@ $LL4@SK_DeleteT:
 	push	eax
 	call	edi
 
-; 2486 : 
-; 2487 :         if (DeleteFileW (wszFullPath))
+; 2506 : 
+; 2507 :         if (DeleteFileW (wszFullPath))
 
 	lea	eax, DWORD PTR _wszFullPath$1[ebp]
 	push	eax
@@ -27366,13 +27500,13 @@ $LL4@SK_DeleteT:
 	test	eax, eax
 	je	SHORT $LN2@SK_DeleteT
 
-; 2488 :           ++files;
+; 2508 :           ++files;
 
 	inc	esi
 $LN2@SK_DeleteT:
 
-; 2489 :       }
-; 2490 :     } while (FindNextFileW (hFind, &fd) != 0);
+; 2509 :       }
+; 2510 :     } while (FindNextFileW (hFind, &fd) != 0);
 
 	lea	eax, DWORD PTR _fd$[ebp]
 	push	eax
@@ -27381,33 +27515,33 @@ $LN2@SK_DeleteT:
 	test	eax, eax
 	jne	SHORT $LL4@SK_DeleteT
 
-; 2491 : 
-; 2492 :     dll_log.LogEx ( false, L"%zu files deleted\n", files);
+; 2511 : 
+; 2512 :     dll_log.LogEx ( false, L"%zu files deleted\n", files);
 
 	push	esi
-	push	OFFSET $SG298733
+	push	OFFSET $SG301262
 	push	eax
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 2493 : 
-; 2494 :     FindClose (hFind);
+; 2513 : 
+; 2514 :     FindClose (hFind);
 
 	push	ebx
 	call	DWORD PTR __imp__FindClose@4
 $LN12@SK_DeleteT:
 
-; 2495 :   }
-; 2496 : 
-; 2497 :   return files;
+; 2515 :   }
+; 2516 : 
+; 2517 :   return files;
 
 	pop	edi
 	mov	eax, esi
 	pop	esi
 	pop	ebx
 
-; 2498 : }
+; 2518 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -27662,7 +27796,7 @@ _len$3 = -4						; size = 4
 ___$ReturnUdt$ = 8					; size = 4
 ?SK_GetRTSSInstallDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; SK_GetRTSSInstallDir
 
-; 1174 : {
+; 1191 : {
 
 	npad	2
 	push	ebp
@@ -27671,19 +27805,19 @@ ___$ReturnUdt$ = 8					; size = 4
 	push	esi
 	push	edi
 
-; 1175 :   PROCESSENTRY32 pe32 =
-; 1176 :     FindProcessByName (L"RTSS.exe");
+; 1192 :   PROCESSENTRY32 pe32 =
+; 1193 :     FindProcessByName (L"RTSS.exe");
 
 	lea	eax, DWORD PTR $T1[ebp]
 	mov	DWORD PTR $T2[ebp], 0
-	push	OFFSET $SG185439
+	push	OFFSET $SG185451
 	push	eax
 	call	?FindProcessByName@@YA?AUtagPROCESSENTRY32W@@PB_W@Z ; FindProcessByName
 	mov	esi, eax
 	lea	edi, DWORD PTR _pe32$[ebp]
 
-; 1177 : 
-; 1178 :   wchar_t wszPath [MAX_PATH] = { };
+; 1194 : 
+; 1195 :   wchar_t wszPath [MAX_PATH] = { };
 
 	push	520					; 00000208H
 	lea	eax, DWORD PTR _wszPath$[ebp]
@@ -27698,19 +27832,19 @@ ___$ReturnUdt$ = 8					; size = 4
 
 	mov	edi, DWORD PTR __imp__wcsstr
 	lea	eax, DWORD PTR _pe32$[ebp+36]
-	push	OFFSET $SG185441
+	push	OFFSET $SG185453
 	push	eax
 	call	edi
 	add	esp, 28					; 0000001cH
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1180 :   if (wcsstr (pe32.szExeFile, L"RTSS.exe"))
+; 1197 :   if (wcsstr (pe32.szExeFile, L"RTSS.exe"))
 
 	test	eax, eax
 	je	SHORT $LN20@SK_GetRTSS
 
-; 1181 :   {
-; 1182 :     CHandle hProcess (
+; 1198 :   {
+; 1199 :     CHandle hProcess (
 
 	push	DWORD PTR _pe32$[ebp+8]
 	push	0
@@ -27723,11 +27857,11 @@ ___$ReturnUdt$ = 8					; size = 4
 	mov	esi, eax
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1186 :     DWORD len = MAX_PATH;
+; 1203 :     DWORD len = MAX_PATH;
 
 	mov	DWORD PTR _len$3[ebp], 260		; 00000104H
 
-; 1187 :     QueryFullProcessImageName (hProcess, 0, wszPath, &len);
+; 1204 :     QueryFullProcessImageName (hProcess, 0, wszPath, &len);
 
 	lea	eax, DWORD PTR _len$3[ebp]
 	push	eax
@@ -27741,18 +27875,18 @@ ___$ReturnUdt$ = 8					; size = 4
 ; 553  :         return const_cast<wchar_t*>(wcsstr(static_cast<wchar_t const*>(_String), _SubStr));
 
 	lea	eax, DWORD PTR _wszPath$[ebp]
-	push	OFFSET $SG185442
+	push	OFFSET $SG185454
 	push	eax
 	call	edi
 	add	esp, 8
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1192 :     if (wszRTSS != nullptr)
+; 1209 :     if (wszRTSS != nullptr)
 
 	test	eax, eax
 	je	SHORT $LN3@SK_GetRTSS
 
-; 1193 :       *wszRTSS = L'\0';
+; 1210 :       *wszRTSS = L'\0';
 
 	xor	ecx, ecx
 	mov	WORD PTR [eax], cx
@@ -27831,12 +27965,12 @@ $LL46@SK_GetRTSS:
 	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 1196 :   return wszPath;
+; 1213 :   return wszPath;
 
 	mov	eax, esi
 	pop	esi
 
-; 1197 : }
+; 1214 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -27924,7 +28058,7 @@ ___$ReturnUdt$ = 8					; size = 4
 
 	mov	ecx, esi
 	push	6
-	push	OFFSET $SG183196
+	push	OFFSET $SG183199
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -28153,7 +28287,7 @@ ___$ReturnUdt$ = 8					; size = 4
 
 	mov	ecx, esi
 	push	6
-	push	OFFSET $SG183183
+	push	OFFSET $SG183186
 
 ; 3597 : 		_My_data._Mysize = 0;
 
@@ -28493,13 +28627,13 @@ _TEXT	SEGMENT
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2269 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+; 2289 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
 
 	test	eax, eax
 	jne	SHORT $LN6@SK_GetBlac
 
-; 2270 :   {
-; 2271 :     lstrcatW (host_proc.wszBlacklist, SK_GetHostPath ());
+; 2290 :   {
+; 2291 :     lstrcatW (host_proc.wszBlacklist, SK_GetHostPath ());
 
 	push	esi
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
@@ -28508,21 +28642,21 @@ _TEXT	SEGMENT
 	push	OFFSET ?host_proc@@3Usk_host_process_s@@A+3120
 	call	esi
 
-; 2272 :     lstrcatW (host_proc.wszBlacklist, L"\\SpecialK.deny.");
+; 2292 :     lstrcatW (host_proc.wszBlacklist, L"\\SpecialK.deny.");
 
-	push	OFFSET $SG298646
+	push	OFFSET $SG301175
 	push	OFFSET ?host_proc@@3Usk_host_process_s@@A+3120
 	call	esi
 
-; 2273 :     lstrcatW (host_proc.wszBlacklist, SK_GetHostApp  ());
+; 2293 :     lstrcatW (host_proc.wszBlacklist, SK_GetHostApp  ());
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
 	push	OFFSET ?host_proc@@3Usk_host_process_s@@A+3120
 	call	esi
 
-; 2274 : 
-; 2275 :     SK_PathRemoveExtension (host_proc.wszBlacklist);
+; 2294 : 
+; 2295 :     SK_PathRemoveExtension (host_proc.wszBlacklist);
 
 	push	OFFSET ?host_proc@@3Usk_host_process_s@@A+3120
 	call	?SK_PathRemoveExtension@@YAXPA_W@Z	; SK_PathRemoveExtension
@@ -28530,13 +28664,13 @@ _TEXT	SEGMENT
 	pop	esi
 $LN6@SK_GetBlac:
 
-; 2276 :   }
-; 2277 : 
-; 2278 :   return host_proc.wszBlacklist;
+; 2296 :   }
+; 2297 : 
+; 2298 :   return host_proc.wszBlacklist;
 
 	mov	eax, OFFSET ?host_proc@@3Usk_host_process_s@@A+3120
 
-; 2279 : }
+; 2299 : }
 
 	ret	0
 ?SK_GetBlacklistFilename@@YAPB_WXZ ENDP			; SK_GetBlacklistFilename
@@ -28550,7 +28684,7 @@ _wszProcessName$1 = -1044				; size = 1040
 _dwProcessSize$2 = -4					; size = 4
 ?SK_GetHostPath@@YAPB_WXZ PROC				; SK_GetHostPath
 
-; 2369 : {
+; 2389 : {
 
 	npad	2
 	push	ebp
@@ -28566,12 +28700,12 @@ _dwProcessSize$2 = -4					; size = 4
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2373 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+; 2393 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
 
 	test	eax, eax
 	jne	$LN25@SK_GetHost
 
-; 2376 :     wchar_t wszProcessName [MAX_PATH * 2] = { };
+; 2396 :     wchar_t wszProcessName [MAX_PATH * 2] = { };
 
 	push	esi
 	push	1040					; 00000410H
@@ -28582,14 +28716,14 @@ _dwProcessSize$2 = -4					; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 2377 : 
-; 2378 :     HANDLE hProc =
-; 2379 :       GetCurrentProcess ();
+; 2397 : 
+; 2398 :     HANDLE hProc =
+; 2399 :       GetCurrentProcess ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 
-; 2380 : 
-; 2381 :     QueryFullProcessImageName (
+; 2400 : 
+; 2401 :     QueryFullProcessImageName (
 
 	lea	ecx, DWORD PTR _dwProcessSize$2[ebp]
 	push	ecx
@@ -28599,47 +28733,47 @@ _dwProcessSize$2 = -4					; size = 4
 	push	eax
 	call	DWORD PTR __imp__QueryFullProcessImageNameW@16
 
-; 2382 :       hProc,
-; 2383 :         0,
-; 2384 :           wszProcessName,
-; 2385 :             &dwProcessSize );
-; 2386 : 
-; 2387 :     int      len           = lstrlenW (wszProcessName);
+; 2402 :       hProc,
+; 2403 :         0,
+; 2404 :           wszProcessName,
+; 2405 :             &dwProcessSize );
+; 2406 : 
+; 2407 :     int      len           = lstrlenW (wszProcessName);
 
 	lea	eax, DWORD PTR _wszProcessName$1[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrlenW@4
 	mov	esi, eax
 
-; 2388 :     wchar_t* pwszShortName =           wszProcessName;
+; 2408 :     wchar_t* pwszShortName =           wszProcessName;
 
 	lea	eax, DWORD PTR _wszProcessName$1[ebp]
 
-; 2389 : 
-; 2390 :     for (int i = 0; i < len; i++)
+; 2409 : 
+; 2410 :     for (int i = 0; i < len; i++)
 
 	test	esi, esi
 	jle	SHORT $LN11@SK_GetHost
 
-; 2374 :   {
-; 2375 :     DWORD   dwProcessSize = MAX_PATH * 2;
+; 2394 :   {
+; 2395 :     DWORD   dwProcessSize = MAX_PATH * 2;
 
 	push	edi
 	mov	edi, DWORD PTR __imp__CharNextW@4
 	npad	6
 $LL4@SK_GetHost:
 
-; 2391 :       pwszShortName = CharNextW (pwszShortName);
+; 2411 :       pwszShortName = CharNextW (pwszShortName);
 
 	push	eax
 	call	edi
 	sub	esi, 1
 	jne	SHORT $LL4@SK_GetHost
 
-; 2392 : 
-; 2393 :     wchar_t* wszFirstSep = nullptr;
-; 2394 : 
-; 2395 :     while (  pwszShortName > wszProcessName )
+; 2412 : 
+; 2413 :     wchar_t* wszFirstSep = nullptr;
+; 2414 : 
+; 2415 :     while (  pwszShortName > wszProcessName )
 
 	lea	ecx, DWORD PTR _wszProcessName$1[ebp]
 	pop	edi
@@ -28649,25 +28783,25 @@ $LL4@SK_GetHost:
 	npad	7
 $LL5@SK_GetHost:
 
-; 2396 :     {
-; 2397 :       wchar_t* wszPrev =
-; 2398 :         CharPrevW (wszProcessName, pwszShortName);
+; 2416 :     {
+; 2417 :       wchar_t* wszPrev =
+; 2418 :         CharPrevW (wszProcessName, pwszShortName);
 
 	push	eax
 	lea	eax, DWORD PTR _wszProcessName$1[ebp]
 	push	eax
 	call	esi
 
-; 2399 : 
-; 2400 :       if (wszPrev < wszProcessName)
+; 2419 : 
+; 2420 :       if (wszPrev < wszProcessName)
 
 	lea	ecx, DWORD PTR _wszProcessName$1[ebp]
 	cmp	eax, ecx
 	jb	SHORT $LN11@SK_GetHost
 
-; 2401 :         break;
-; 2402 : 
-; 2403 :       if (*wszPrev == L'\\' || *wszPrev == L'/')
+; 2421 :         break;
+; 2422 : 
+; 2423 :       if (*wszPrev == L'\\' || *wszPrev == L'/')
 
 	movzx	ecx, WORD PTR [eax]
 	cmp	ecx, 92					; 0000005cH
@@ -28675,39 +28809,39 @@ $LL5@SK_GetHost:
 	cmp	ecx, 47					; 0000002fH
 	je	SHORT $LN18@SK_GetHost
 
-; 2392 : 
-; 2393 :     wchar_t* wszFirstSep = nullptr;
-; 2394 : 
-; 2395 :     while (  pwszShortName > wszProcessName )
+; 2412 : 
+; 2413 :     wchar_t* wszFirstSep = nullptr;
+; 2414 : 
+; 2415 :     while (  pwszShortName > wszProcessName )
 
 	lea	ecx, DWORD PTR _wszProcessName$1[ebp]
 	cmp	eax, ecx
 	ja	SHORT $LL5@SK_GetHost
 
-; 2401 :         break;
-; 2402 : 
-; 2403 :       if (*wszPrev == L'\\' || *wszPrev == L'/')
+; 2421 :         break;
+; 2422 : 
+; 2423 :       if (*wszPrev == L'\\' || *wszPrev == L'/')
 
 	jmp	SHORT $LN11@SK_GetHost
 $LN18@SK_GetHost:
 
-; 2404 :       {                              // Leave the trailing separator
-; 2405 :         wszFirstSep = wszPrev; 
-; 2406 :         break;
-; 2407 :       }
-; 2408 : 
-; 2409 :       pwszShortName = wszPrev;
-; 2410 :     }
-; 2411 : 
-; 2412 :     if (wszFirstSep != nullptr)
-; 2413 :        *wszFirstSep  = L'\0';
+; 2424 :       {                              // Leave the trailing separator
+; 2425 :         wszFirstSep = wszPrev; 
+; 2426 :         break;
+; 2427 :       }
+; 2428 : 
+; 2429 :       pwszShortName = wszPrev;
+; 2430 :     }
+; 2431 : 
+; 2432 :     if (wszFirstSep != nullptr)
+; 2433 :        *wszFirstSep  = L'\0';
 
 	xor	ecx, ecx
 	mov	WORD PTR [eax], cx
 $LN11@SK_GetHost:
 
-; 2414 : 
-; 2415 :     lstrcpynW (
+; 2434 : 
+; 2435 :     lstrcpynW (
 
 	push	519					; 00000207H
 	lea	eax, DWORD PTR _wszProcessName$1[ebp]
@@ -28717,17 +28851,17 @@ $LN11@SK_GetHost:
 	pop	esi
 $LN25@SK_GetHost:
 
-; 2416 :       host_proc.wszPath,
-; 2417 :         wszProcessName,
-; 2418 :           MAX_PATH * 2 - 1
-; 2419 :     );
-; 2420 :   }
-; 2421 : 
-; 2422 :   return host_proc.wszPath;
+; 2436 :       host_proc.wszPath,
+; 2437 :         wszProcessName,
+; 2438 :           MAX_PATH * 2 - 1
+; 2439 :     );
+; 2440 :   }
+; 2441 : 
+; 2442 :   return host_proc.wszPath;
 
 	mov	eax, OFFSET ?host_proc@@3Usk_host_process_s@@A+1040
 
-; 2423 : }
+; 2443 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -28743,7 +28877,7 @@ _wszProcessName$1 = -1044				; size = 1040
 _dwProcessSize$2 = -4					; size = 4
 ?SK_GetHostApp@@YAPB_WXZ PROC				; SK_GetHostApp
 
-; 2283 : {
+; 2303 : {
 
 	npad	2
 	push	ebp
@@ -28759,12 +28893,12 @@ _dwProcessSize$2 = -4					; size = 4
 	lock	 cmpxchg DWORD PTR [edx], ecx
 ; File c:\users\andon\source\repos\specialk\src\utility.cpp
 
-; 2287 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+; 2307 :   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
 
 	test	eax, eax
 	jne	$LN22@SK_GetHost
 
-; 2290 :     wchar_t wszProcessName [ MAX_PATH * 2 ] = { };
+; 2310 :     wchar_t wszProcessName [ MAX_PATH * 2 ] = { };
 
 	push	esi
 	push	edi
@@ -28776,14 +28910,14 @@ _dwProcessSize$2 = -4					; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 2291 : 
-; 2292 :     HANDLE hProc =
-; 2293 :       GetCurrentProcess ();
+; 2311 : 
+; 2312 :     HANDLE hProc =
+; 2313 :       GetCurrentProcess ();
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 
-; 2294 : 
-; 2295 :     QueryFullProcessImageName (
+; 2314 : 
+; 2315 :     QueryFullProcessImageName (
 
 	lea	ecx, DWORD PTR _dwProcessSize$2[ebp]
 	push	ecx
@@ -28793,37 +28927,37 @@ _dwProcessSize$2 = -4					; size = 4
 	push	eax
 	call	DWORD PTR __imp__QueryFullProcessImageNameW@16
 
-; 2296 :       hProc,
-; 2297 :         0,
-; 2298 :           wszProcessName,
-; 2299 :             &dwProcessSize );
-; 2300 : 
-; 2301 :     int      len           = lstrlenW (wszProcessName);
+; 2316 :       hProc,
+; 2317 :         0,
+; 2318 :           wszProcessName,
+; 2319 :             &dwProcessSize );
+; 2320 : 
+; 2321 :     int      len           = lstrlenW (wszProcessName);
 
 	lea	eax, DWORD PTR _wszProcessName$1[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrlenW@4
 	mov	edi, eax
 
-; 2302 :     wchar_t* pwszShortName =           wszProcessName;
+; 2322 :     wchar_t* pwszShortName =           wszProcessName;
 
 	lea	esi, DWORD PTR _wszProcessName$1[ebp]
 
-; 2303 : 
-; 2304 :     for (int i = 0; i < len; i++)
+; 2323 : 
+; 2324 :     for (int i = 0; i < len; i++)
 
 	test	edi, edi
 	jle	SHORT $LN23@SK_GetHost
 
-; 2288 :   {
-; 2289 :     DWORD   dwProcessSize =  MAX_PATH * 2;
+; 2308 :   {
+; 2309 :     DWORD   dwProcessSize =  MAX_PATH * 2;
 
 	push	ebx
 	mov	ebx, DWORD PTR __imp__CharNextW@4
 	npad	5
 $LL4@SK_GetHost:
 
-; 2305 :       pwszShortName = CharNextW (pwszShortName);
+; 2325 :       pwszShortName = CharNextW (pwszShortName);
 
 	push	esi
 	call	ebx
@@ -28831,8 +28965,8 @@ $LL4@SK_GetHost:
 	sub	edi, 1
 	jne	SHORT $LL4@SK_GetHost
 
-; 2306 : 
-; 2307 :     while (  pwszShortName > wszProcessName )
+; 2326 : 
+; 2327 :     while (  pwszShortName > wszProcessName )
 
 	lea	eax, DWORD PTR _wszProcessName$1[ebp]
 	pop	ebx
@@ -28842,25 +28976,25 @@ $LL4@SK_GetHost:
 	npad	5
 $LL5@SK_GetHost:
 
-; 2308 :     {
-; 2309 :       wchar_t* wszPrev =
-; 2310 :         CharPrevW (wszProcessName, pwszShortName);
+; 2328 :     {
+; 2329 :       wchar_t* wszPrev =
+; 2330 :         CharPrevW (wszProcessName, pwszShortName);
 
 	push	esi
 	lea	eax, DWORD PTR _wszProcessName$1[ebp]
 	push	eax
 	call	edi
 
-; 2311 : 
-; 2312 :       if (wszPrev < wszProcessName)
+; 2331 : 
+; 2332 :       if (wszPrev < wszProcessName)
 
 	lea	ecx, DWORD PTR _wszProcessName$1[ebp]
 	cmp	eax, ecx
 	jb	SHORT $LN23@SK_GetHost
 
-; 2313 :         break;
-; 2314 : 
-; 2315 :       if (*wszPrev != L'\\' && *wszPrev != L'/')
+; 2333 :         break;
+; 2334 : 
+; 2335 :       if (*wszPrev != L'\\' && *wszPrev != L'/')
 
 	movzx	ecx, WORD PTR [eax]
 	cmp	ecx, 92					; 0000005cH
@@ -28868,8 +29002,8 @@ $LL5@SK_GetHost:
 	cmp	ecx, 47					; 0000002fH
 	je	SHORT $LN23@SK_GetHost
 
-; 2316 :       {
-; 2317 :         pwszShortName = wszPrev;
+; 2336 :       {
+; 2337 :         pwszShortName = wszPrev;
 
 	lea	ecx, DWORD PTR _wszProcessName$1[ebp]
 	mov	esi, eax
@@ -28877,13 +29011,13 @@ $LL5@SK_GetHost:
 	ja	SHORT $LL5@SK_GetHost
 $LN23@SK_GetHost:
 
-; 2318 :         continue;
-; 2319 :       }
-; 2320 : 
-; 2321 :       break;
-; 2322 :     }
-; 2323 : 
-; 2324 :     lstrcpynW (
+; 2338 :         continue;
+; 2339 :       }
+; 2340 : 
+; 2341 :       break;
+; 2342 :     }
+; 2343 : 
+; 2344 :     lstrcpynW (
 
 	push	519					; 00000207H
 	push	esi
@@ -28893,17 +29027,17 @@ $LN23@SK_GetHost:
 	pop	esi
 $LN22@SK_GetHost:
 
-; 2325 :       host_proc.wszApp,
-; 2326 :         pwszShortName,
-; 2327 :           MAX_PATH * 2 - 1
-; 2328 :     );
-; 2329 :   }
-; 2330 : 
-; 2331 :   return host_proc.wszApp;
+; 2345 :       host_proc.wszApp,
+; 2346 :         pwszShortName,
+; 2347 :           MAX_PATH * 2 - 1
+; 2348 :     );
+; 2349 :   }
+; 2350 : 
+; 2351 :   return host_proc.wszApp;
 
 	mov	eax, OFFSET ?host_proc@@3Usk_host_process_s@@A ; host_proc
 
-; 2332 : }
+; 2352 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -38419,8 +38553,6 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 3064 : }
-
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
 _TEXT	ENDS
@@ -38431,7 +38563,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 3064 : }
+; 3084 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

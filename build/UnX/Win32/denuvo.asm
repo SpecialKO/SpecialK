@@ -10,13 +10,13 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG136553 DB	'%', 00H, 'w', 00H, 's', 00H, '\', 00H, 'u', 00H, 's', 00H
+$SG136555 DB	'%', 00H, 'w', 00H, 's', 00H, '\', 00H, 'u', 00H, 's', 00H
 	DB	'e', 00H, 'r', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'a', 00H, '\'
 	DB	00H, '%', 00H, 'u', 00H, '\', 00H, '%', 00H, 'u', 00H, '\', 00H
 	DB	00H, 00H
-$SG136554 DB	'%', 00H, 'w', 00H, 's', 00H, '*', 00H, 00H, 00H
+$SG136556 DB	'%', 00H, 'w', 00H, 's', 00H, '*', 00H, 00H, 00H
 	ORG $+2
-$SG136558 DB	'.', 00H, 00H, 00H
+$SG136560 DB	'.', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	?wcsstr@@YAPA_WPA_WPB_W@Z			; wcsstr
 PUBLIC	??0CSteamID@@QAE@XZ				; CSteamID::CSteamID
@@ -7090,7 +7090,7 @@ $LL266@SK_Denuvo_:
 	push	DWORD PTR _usr_id$[ebp]
 	push	eax
 	lea	eax, DWORD PTR _wszInstallPath$[ebp]
-	push	OFFSET $SG136553
+	push	OFFSET $SG136555
 	push	eax
 	call	esi
 
@@ -7103,7 +7103,7 @@ $LL266@SK_Denuvo_:
 	lea	eax, DWORD PTR _wszInstallPath$[ebp]
 	push	eax
 	lea	eax, DWORD PTR _wszSearchPath$[ebp]
-	push	OFFSET $SG136554
+	push	OFFSET $SG136556
 	push	eax
 	call	esi
 	add	esp, 68					; 00000044H
@@ -7164,7 +7164,7 @@ $LL267@SK_Denuvo_:
 ; 553  :         return const_cast<wchar_t*>(wcsstr(static_cast<wchar_t const*>(_String), _SubStr));
 
 	lea	eax, DWORD PTR _fd$[ebp+44]
-	push	OFFSET $SG136558
+	push	OFFSET $SG136560
 	push	eax
 	call	DWORD PTR __imp__wcsstr
 	add	esp, 8

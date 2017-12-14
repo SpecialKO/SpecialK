@@ -17,10 +17,10 @@ _BSS	SEGMENT
 ?crc_init@@3_NA DB 01H DUP (?)				; crc_init
 _BSS	ENDS
 CONST	SEGMENT
-$SG147297 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
+$SG147302 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
 	DB	't', 00H, '_', 00H, 00H, 00H
 	ORG $+6
-$SG147302 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
+$SG147307 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H, 'a', 00H
 	DB	'n', 00H, 'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'o', 00H, 'p'
@@ -28,14 +28,14 @@ $SG147302 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'h', 00H, 'i', 00H, 'v', 00H, 'e', 00H, ' ', 00H, 'f', 00H, 'i'
 	DB	00H, 'l', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	00H, 00H
-$SG147311 DB	'\', 00H, 00H, 00H
-$SG147304 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
+$SG147316 DB	'\', 00H, 00H, 00H
+$SG147309 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, 'E', 00H, 'x', 00H, 't', 00H, 'r', 00H, 'a', 00H, 'c', 00H
 	DB	't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'f', 00H, 'i'
 	DB	00H, 'l', 00H, 'e', 00H, ' ', 00H, '(', 00H, '''', 00H, '%', 00H
 	DB	's', 00H, '''', 00H, ')', 00H, 00H, 00H
-$SG147306 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
+$SG147311 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'e', 00H, 'x', 00H, 't'
@@ -44,9 +44,9 @@ $SG147306 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	00H, 'l', 00H, 'e', 00H, ' ', 00H, '(', 00H, '''', 00H, '%', 00H
 	DB	's', 00H, '''', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG147314 DB	'.', 00H, 'o', 00H, 'l', 00H, 'd', 00H, 00H, 00H
+$SG147319 DB	'.', 00H, 'o', 00H, 'l', 00H, 'd', 00H, 00H, 00H
 	ORG $+2
-$SG147318 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
+$SG147323 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'o', 00H, 'p', 00H, 'e'
@@ -54,7 +54,7 @@ $SG147318 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	':', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, '''', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG147323 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
+$SG147328 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'C', 00H, 'a', 00H
 	DB	'n', 00H, 'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'o', 00H, 'p'
@@ -62,10 +62,10 @@ $SG147323 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'h', 00H, 'i', 00H, 'v', 00H, 'e', 00H, ' ', 00H, 'f', 00H, 'i'
 	DB	00H, 'l', 00H, 'e', 00H, ':', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	00H, 00H
-$SG147329 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
+$SG147334 DB	'd', 00H, 'e', 00H, 'f', 00H, 'a', 00H, 'u', 00H, 'l', 00H
 	DB	't', 00H, '_', 00H, 00H, 00H
 	ORG $+2
-$SG147325 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
+$SG147330 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, 'E', 00H, 'x', 00H, 't', 00H, 'r', 00H, 'a', 00H, 'c', 00H
 	DB	't', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'c', 00H, 'o'
@@ -73,7 +73,7 @@ $SG147325 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, ' ', 00H, '(', 00H, '''', 00H, '%'
 	DB	00H, 's', 00H, '''', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG147327 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
+$SG147332 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'e', 00H, 'x', 00H, 't'
@@ -82,12 +82,12 @@ $SG147327 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	00H, 'n', 00H, 'f', 00H, 'i', 00H, 'g', 00H, ' ', 00H, 'f', 00H
 	DB	'i', 00H, 'l', 00H, 'e', 00H, ' ', 00H, '(', 00H, '''', 00H, '%'
 	DB	00H, 's', 00H, '''', 00H, ')', 00H, 00H, 00H
-$SG147331 DB	'_', 00H, 00H, 00H
-$SG147333 DB	'.', 00H, 'o', 00H, 'l', 00H, 'd', 00H, 00H, 00H
+$SG147336 DB	'_', 00H, 00H, 00H
+$SG147338 DB	'.', 00H, 'o', 00H, 'l', 00H, 'd', 00H, 00H, 00H
 	ORG $+2
-$SG147334 DB	'.', 00H, 'n', 00H, 'e', 00H, 'w', 00H, 00H, 00H
+$SG147339 DB	'.', 00H, 'n', 00H, 'e', 00H, 'w', 00H, 00H, 00H
 	ORG $+6
-$SG147341 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
+$SG147346 DB	'[', 00H, 'A', 00H, 'u', 00H, 't', 00H, 'o', 00H, 'U', 00H
 	DB	'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H, ']', 00H, ' '
 	DB	00H, 'F', 00H, 'a', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'd', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'c', 00H, 'r', 00H, 'e'
@@ -5016,7 +5016,7 @@ $LN146@SK_Decompr:
 
 ; 143  :     if (! wcsstr (it->name.c_str (), L"default_"))
 
-	push	OFFSET $SG147297
+	push	OFFSET $SG147302
 	push	eax
 	call	DWORD PTR __imp__wcsstr
 	add	esp, 8
@@ -5637,7 +5637,7 @@ $LN586@SK_Decompr:
 ; 223  :     dll_log.Log ( L"[AutoUpdate] Extracting file ('%s')",
 
 	push	eax
-	push	OFFSET $SG147304
+	push	OFFSET $SG147309
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -5952,7 +5952,7 @@ $LN746@SK_Decompr:
 
 ; 257  :         lstrcatW (wszMovePath, L"\\");
 
-	push	OFFSET $SG147311
+	push	OFFSET $SG147316
 	lea	eax, DWORD PTR _wszMovePath$7[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrcatW@8
@@ -6014,7 +6014,7 @@ $LN27@SK_Decompr:
 ; 268  :       {
 ; 269  :         lstrcatW (wszMovePath, L".old");
 
-	push	OFFSET $SG147314
+	push	OFFSET $SG147319
 	lea	eax, DWORD PTR _wszMovePath$7[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrcatW@8
@@ -6255,7 +6255,7 @@ $LN28@SK_Decompr:
 
 	lea	eax, DWORD PTR _wszDestPath$5[ebp]
 	push	eax
-	push	OFFSET $SG147318
+	push	OFFSET $SG147323
 
 ; 315  :                       wszDestPath );
 ; 316  : 
@@ -6306,7 +6306,7 @@ $LN626@SK_Decompr:
 ; 232  :       dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
 
 	push	eax
-	push	OFFSET $SG147306
+	push	OFFSET $SG147311
 $LN1435@SK_Decompr:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -6344,7 +6344,7 @@ $LN869@SK_Decompr:
 ; 355  :     dll_log.Log ( L"[AutoUpdate] Extracting config file ('%s')",
 
 	push	eax
-	push	OFFSET $SG147325
+	push	OFFSET $SG147330
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -6751,7 +6751,7 @@ $LN1092@SK_Decompr:
 
 	mov	esi, DWORD PTR __imp__wcsstr
 	lea	eax, DWORD PTR _wszUserConfig$4[ebp]
-	push	OFFSET $SG147329
+	push	OFFSET $SG147334
 	push	eax
 	call	esi
 	add	esp, 8
@@ -6777,7 +6777,7 @@ $LN1092@SK_Decompr:
 
 ; 553  :         return const_cast<wchar_t*>(wcsstr(static_cast<wchar_t const*>(_String), _SubStr));
 
-	push	OFFSET $SG147331
+	push	OFFSET $SG147336
 	push	eax
 	call	esi
 ; File c:\users\andon\source\repos\specialk\src\update\archive.cpp
@@ -6822,7 +6822,7 @@ $LN36@SK_Decompr:
 
 ; 401  :     lstrcatW ( wszOldConfig, L".old"       );
 
-	push	OFFSET $SG147333
+	push	OFFSET $SG147338
 	lea	eax, DWORD PTR _wszOldConfig$2[ebp]
 	push	eax
 	call	esi
@@ -6838,7 +6838,7 @@ $LN36@SK_Decompr:
 
 ; 404  :     lstrcatW (wszNewConfig, L".new");
 
-	push	OFFSET $SG147334
+	push	OFFSET $SG147339
 	lea	eax, DWORD PTR _wszNewConfig$6[ebp]
 	push	eax
 	call	esi
@@ -7050,7 +7050,7 @@ $LN37@SK_Decompr:
 
 	lea	eax, DWORD PTR _wszNewConfig$6[ebp]
 	push	eax
-	push	OFFSET $SG147341
+	push	OFFSET $SG147346
 
 ; 458  :                       wszNewConfig );
 ; 459  : 
@@ -7101,7 +7101,7 @@ $LN909@SK_Decompr:
 ; 364  :       dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip config file ('%s')",
 
 	push	eax
-	push	OFFSET $SG147327
+	push	OFFSET $SG147332
 
 ; 365  :                       config_files [i].name.c_str () );
 ; 366  : 
@@ -7121,7 +7121,7 @@ $LN33@SK_Decompr:
 ; 340  :     dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
 
 	push	ebx
-	push	OFFSET $SG147323
+	push	OFFSET $SG147328
 
 ; 341  :                     wszArchive );
 ; 342  : 
@@ -7140,7 +7140,7 @@ $LN21@SK_Decompr:
 ; 208  :     dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
 
 	push	ebx
-	push	OFFSET $SG147302
+	push	OFFSET $SG147307
 $LN1434@SK_Decompr:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log

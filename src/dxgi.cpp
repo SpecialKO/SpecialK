@@ -489,7 +489,7 @@ void WaitForInitDXGI (void)
   }
 }
 
-unsigned int __stdcall HookDXGI (LPVOID user);
+DWORD __stdcall HookDXGI (LPVOID user);
 
 #define D3D_FEATURE_LEVEL_12_0 0xc000
 #define D3D_FEATURE_LEVEL_12_1 0xc100
@@ -884,13 +884,12 @@ SK_DXGI_BeginHooking (void)
   {
 #if 0
     HANDLE hHookInitDXGI =
-      (HANDLE)
-        _beginthreadex ( nullptr,
-                           0,
-                             HookDXGI,
-                               nullptr,
-                                 0x00,
-                                   nullptr );
+      CreateThread ( nullptr,
+                       0,
+                         HookDXGI,
+                           nullptr,
+                             0x00,
+                               nullptr );
 #else
     HookDXGI (nullptr);
 #endif
@@ -4643,6 +4642,40 @@ STDMETHODCALLTYPE EnumAdapters_Override (IDXGIFactory  *This,
   return ret;
 }
 
+HMODULE
+SK_D3D11_GetSystemDLL (void)
+{
+  static HMODULE hModSystemD3D11 = nullptr;
+
+  if (hModSystemD3D11 == nullptr)
+  {
+    wchar_t wszPath [MAX_PATH * 2] = { };
+    GetSystemDirectoryW (wszPath, MAX_PATH);
+               lstrcatW (wszPath, L"\\d3d11.dll");
+
+    hModSystemD3D11 = LoadLibraryW (wszPath);
+  }
+
+  return hModSystemD3D11;
+}
+
+HMODULE
+SK_D3D11_GetLocalDLL (void)
+{
+  static HMODULE hModLocalD3D11 = nullptr;
+
+  if (hModLocalD3D11 == nullptr)
+  {
+    wchar_t wszPath [MAX_PATH * 2] = { };
+    GetSystemDirectoryW (wszPath, MAX_PATH);
+               lstrcatW (wszPath, L"\\d3d11.dll");
+
+    hModLocalD3D11 = LoadLibraryW (L"d3d11.dll");
+  }
+
+  return hModLocalD3D11;
+}
+
 HRESULT
 STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
                                _Out_ void   **ppFactory)
@@ -4661,7 +4694,8 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
 
   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) &&
-       SK_GetCallingDLL () != GetModuleHandle (L"d3d11.dll") )
+     //SK_GetCallingDLL ()               != SK_D3D11_GetLocalDLL  ()                   &&
+       SK_GetCallingDLL ()               != SK_D3D11_GetSystemDLL () )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -4692,7 +4726,8 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
 
   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) &&
-       SK_GetCallingDLL () != GetModuleHandle (L"d3d11.dll") )
+     //SK_GetCallingDLL ()               != SK_D3D11_GetLocalDLL  ()                   &&
+       SK_GetCallingDLL ()               != SK_D3D11_GetSystemDLL () )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -4726,7 +4761,8 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
 
   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) &&
-       SK_GetCallingDLL () != GetModuleHandle (L"d3d11.dll") )
+     //SK_GetCallingDLL ()               != SK_D3D11_GetLocalDLL  ()                   &&
+       SK_GetCallingDLL ()               != SK_D3D11_GetSystemDLL () )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -5315,7 +5351,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
 #include <mmsystem.h>
 
-unsigned int
+DWORD
 __stdcall
 HookDXGI (LPVOID user)
 {
@@ -5421,7 +5457,8 @@ HookDXGI (LPVOID user)
   CComPtr <IDXGIAdapter> pAdapter = nullptr;
   CComPtr <IDXGIFactory> pFactory = nullptr;
   
-  if ( SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+  if ( pDevice != nullptr &&
+       SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
        SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
        SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
   {

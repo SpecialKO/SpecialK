@@ -16,7 +16,7 @@ _BSS	SEGMENT
 ?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA DD 01H DUP (?) ; RegisterDeviceNotificationA_Original
 _BSS	ENDS
 CONST	SEGMENT
-$SG128035 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
+$SG128041 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
 	DB	'0', 00H, '0', 00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0'
 	DB	00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
 	DB	'-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '-', 00H, '0'
@@ -24,24 +24,24 @@ $SG128035 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
 	DB	'0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '}', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG128036 DB	'RegisterDeviceNotificationW', 00H
-$SG128037 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG128042 DB	'RegisterDeviceNotificationW', 00H
+$SG128043 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG128038 DB	'RegisterDeviceNotificationA', 00H
-$SG128039 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG128044 DB	'RegisterDeviceNotificationA', 00H
+$SG128045 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG118839 DB	'RegisterDeviceNotificationW_Detour', 00H
+$SG118842 DB	'RegisterDeviceNotificationW_Detour', 00H
 	ORG $+5
-$SG118840 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118843 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+6
-$SG118844 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118847 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'i', 00H
 	DB	'x', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'Z', 00H, 'e'
@@ -54,16 +54,16 @@ $SG118844 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	00H, 'o', 00H, 't', 00H, 'i', 00H, 'f', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 'W', 00H, ' '
 	DB	00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, 00H, 00H
-$SG118859 DB	'RegisterDeviceNotificationA_Detour', 00H
+$SG118862 DB	'RegisterDeviceNotificationA_Detour', 00H
 	ORG $+5
-$SG118860 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118863 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+6
-$SG118864 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+$SG118867 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'F', 00H, 'i', 00H
 	DB	'x', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'Z', 00H, 'e'
@@ -163,8 +163,8 @@ _Flags$ = 16						; size = 4
 	jne	SHORT $LN14@RegisterDe
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@RegisterDe
-	push	OFFSET $SG118859
-	push	OFFSET $SG118860
+	push	OFFSET $SG118862
+	push	OFFSET $SG118863
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -224,7 +224,7 @@ $LL13@RegisterDe:
 	or	ebx, 4
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 1
 	jl	SHORT $LN6@RegisterDe
-	push	OFFSET $SG118864
+	push	OFFSET $SG118867
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -298,8 +298,8 @@ _Flags$ = 16						; size = 4
 	jne	SHORT $LN14@RegisterDe
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@RegisterDe
-	push	OFFSET $SG118839
-	push	OFFSET $SG118840
+	push	OFFSET $SG118842
+	push	OFFSET $SG118843
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -359,7 +359,7 @@ $LL13@RegisterDe:
 	or	ebx, 4
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 1
 	jl	SHORT $LN6@RegisterDe
-	push	OFFSET $SG118844
+	push	OFFSET $SG118847
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -486,7 +486,7 @@ _TEXT	SEGMENT
 ; 392  :   CLSIDFromString (L"{00000000-0000-0000-0000-000000000000}", &GUID_Zero);
 
 	push	OFFSET ?GUID_Zero@@3U_GUID@@A
-	push	OFFSET $SG128035
+	push	OFFSET $SG128041
 	call	DWORD PTR __imp__CLSIDFromString@8
 
 ; 393  : 
@@ -496,8 +496,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?RegisterDeviceNotificationW_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationW_Original
 	push	OFFSET ?RegisterDeviceNotificationW_Detour@@YGPAXPAX0K@Z ; RegisterDeviceNotificationW_Detour
-	push	OFFSET $SG128036
-	push	OFFSET $SG128037
+	push	OFFSET $SG128042
+	push	OFFSET $SG128043
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 396  :                              "RegisterDeviceNotificationW",
@@ -509,8 +509,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationA_Original
 	push	OFFSET ?RegisterDeviceNotificationA_Detour@@YGPAXPAX0K@Z ; RegisterDeviceNotificationA_Detour
-	push	OFFSET $SG128038
-	push	OFFSET $SG128039
+	push	OFFSET $SG128044
+	push	OFFSET $SG128045
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 401  :                              "RegisterDeviceNotificationA",

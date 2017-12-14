@@ -10,10 +10,11 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG143393 DB	' ', 00H, 00H, 00H
-$SG143394 DB	'.', 00H, 00H, 00H
-$SG143467 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 00H, 00H
-$SG143493 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
+$SG145434 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 00H, 00H
+$SG145436 DB	'c', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, '\', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG145462 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
 	DB	':', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
 ?IID_SK_Logger@@3U_GUID@@B DD 0a4bf1773H		; IID_SK_Logger
@@ -27,29 +28,34 @@ $SG143493 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
 	DB	023H
 	DB	0bdH
 	DB	06fH
-$SG143512 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
+$SG145481 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
 	DB	':', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG143513 DB	0aH, 00H, 00H, 00H
-$SG143535 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
+$SG145482 DB	0aH, 00H, 00H, 00H
+$SG145504 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
 	DB	':', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG143536 DB	0aH, 00H, 00H, 00H
-$SG143562 DB	'w', 00H, '+', 00H, 00H, 00H
+$SG145505 DB	0aH, 00H, 00H, 00H
+$SG145531 DB	'w', 00H, '+', 00H, 00H, 00H
 	ORG $+2
-$SG143575 DB	'[', 00H, ' ', 00H, '%', 00H, '-', 00H, '1', 00H, '8', 00H
+$SG145544 DB	'[', 00H, ' ', 00H, '%', 00H, '-', 00H, '1', 00H, '8', 00H
 	DB	's', 00H, ' ', 00H, '<', 00H, '%', 00H, '3', 00H, '0', 00H, 'h'
 	DB	00H, 's', 00H, '>', 00H, ',', 00H, ' ', 00H, 't', 00H, 'i', 00H
 	DB	'd', 00H, '=', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'x', 00H, ' ', 00H, ']', 00H, 00H, 00H
-	ORG $+4
-$SG143576 DB	'[', 00H, ' ', 00H, '%', 00H, '-', 00H, '2', 00H, '8', 00H
+$SG145552 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 00H, 00H
+$SG145545 DB	'[', 00H, ' ', 00H, '%', 00H, '-', 00H, '2', 00H, '8', 00H
 	DB	's', 00H, ',', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H, '%'
 	DB	00H, '0', 00H, '4', 00H, 'x', 00H, ' ', 00H, ']', 00H, 00H, 00H
+	ORG $+2
+$SG145357 DB	' ', 00H, 00H, 00H
+$SG145358 DB	'.', 00H, 00H, 00H
+$SG145407 DB	'c', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, '\', 00H
+	DB	00H, 00H
 CONST	ENDS
 PUBLIC	_IsEqualGUID
 PUBLIC	?_InterlockedIncrement@@YAKPCK@Z		; _InterlockedIncrement
@@ -72,6 +78,8 @@ PUBLIC	?deallocate@?$allocator@_W@std@@QAEXPA_WI@Z	; std::allocator<wchar_t>::de
 PUBLIC	?allocate@?$allocator@_W@std@@QAEPA_WI@Z	; std::allocator<wchar_t>::allocate
 PUBLIC	?max_size@?$allocator@_W@std@@QBEIXZ		; std::allocator<wchar_t>::max_size
 PUBLIC	?max_size@?$allocator_traits@V?$allocator@_W@std@@@std@@SAIABV?$allocator@_W@2@@Z ; std::allocator_traits<std::allocator<wchar_t> >::max_size
+PUBLIC	?select_on_container_copy_construction@?$allocator_traits@V?$allocator@_W@std@@@std@@SA?AV?$allocator@_W@2@ABV32@@Z ; std::allocator_traits<std::allocator<wchar_t> >::select_on_container_copy_construction
+PUBLIC	?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBE?AU12@U_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::select_on_container_copy_construction
 PUBLIC	??0?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@XZ ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> >
 PUBLIC	??0?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAU01@@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> >
 PUBLIC	?allocate@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEPA_WI@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::allocate
@@ -87,6 +95,7 @@ PUBLIC	??1?$_String_val@U?$_Simple_types@_W@std@@@std@@QAE@XZ ; std::_String_val
 PUBLIC	?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEPA_WXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myptr
 PUBLIC	?_Myptr@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEPB_WXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Myptr
 PUBLIC	??0?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@XZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >
+PUBLIC	?_Copy_alloc@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@@Z ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Copy_alloc
 PUBLIC	?_Orphan_all@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXXZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Orphan_all
 PUBLIC	?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEAAU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Getal
 PUBLIC	?_Getal@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QBEABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@XZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Getal
@@ -101,11 +110,14 @@ PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@
 PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QBEABV?$_String_val@U?$_Simple_types@_W@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Get_second
 PUBLIC	??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::~_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>
 PUBLIC	??1?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@XZ ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::~_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >
+PUBLIC	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@ABV01@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@$$QAV01@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	?_Assign_rv_contents_with_alloc_always_equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEX$$QAV12@U?$integral_constant@_N$00@2@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Assign_rv_contents_with_alloc_always_equal
+PUBLIC	?_Assign_lv_contents@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXABV12@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Assign_lv_contents
 PUBLIC	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+PUBLIC	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@ABV01@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
 PUBLIC	??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
 PUBLIC	??Y?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@ABV01@@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator+=
 PUBLIC	??Y?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator+=
@@ -122,6 +134,7 @@ PUBLIC	?c_str@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB
 PUBLIC	?size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::size
 PUBLIC	?max_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::max_size
 PUBLIC	?reserve@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::reserve
+PUBLIC	?empty@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NXZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::empty
 PUBLIC	?_Clamp_suffix_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIII@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Clamp_suffix_size
 PUBLIC	?_Copy@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Copy
 PUBLIC	?_Eos@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Eos
@@ -146,29 +159,34 @@ PUBLIC	?lock@iSK_Logger@@QAE_NXZ			; iSK_Logger::lock
 PUBLIC	?unlock@iSK_Logger@@QAE_NXZ			; iSK_Logger::unlock
 PUBLIC	??_GiSK_Logger@@UAEPAXI@Z			; iSK_Logger::`scalar deleting destructor'
 PUBLIC	?SK_CreateLog@@YGPAUiSK_Logger@@QB_W@Z		; SK_CreateLog
+PUBLIC	?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z ; SK_Log_GetPath
 PUBLIC	?SK_SummarizeCaller@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@Z ; SK_SummarizeCaller
 PUBLIC	?SK_Timestamp@@YAGQA_W@Z			; SK_Timestamp
 PUBLIC	?SK_FlushLog@@YAHPAUiSK_Logger@@@Z		; SK_FlushLog
 PUBLIC	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??$__vcrt_va_start_verify_argument_type@QBD@@YAXXZ ; __vcrt_va_start_verify_argument_type<char const * const>
+PUBLIC	??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
+PUBLIC	??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ; std::move<std::_Wrap_alloc<std::allocator<wchar_t> > &>
+PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > ><std::_Wrap_alloc<std::allocator<wchar_t> >,void>
+PUBLIC	??$move@AAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YA$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z ; std::move<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > &>
+PUBLIC	??$?0V?$allocator@_W@std@@@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAV?$allocator@_W@1@@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> ><std::allocator<wchar_t> >
+PUBLIC	??$_Pocca@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@ABU10@@Z ; std::_Pocca<std::_Wrap_alloc<std::allocator<wchar_t> > >
 PUBLIC	??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><>
 PUBLIC	??$addressof@PA_W@std@@YAPAPA_WAAPA_W@Z		; std::addressof<wchar_t *>
 PUBLIC	??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::destroy<wchar_t *>
-PUBLIC	??$move@AAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YA$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z ; std::move<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > &>
+PUBLIC	??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@_W@std@@@0@AAV10@@Z ; std::addressof<std::_String_val<std::_Simple_types<wchar_t> > >
 PUBLIC	??$_Unfancy@_W@std@@YAPA_WPA_W@Z		; std::_Unfancy<wchar_t>
-PUBLIC	??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
 PUBLIC	??$_Min_value@I@std@@YAABIABI0@Z		; std::_Min_value<unsigned int>
 PUBLIC	??$construct@PA_WAAPA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_WAAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
-PUBLIC	??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@_W@std@@@0@AAV10@@Z ; std::addressof<std::_String_val<std::_Simple_types<wchar_t> > >
+PUBLIC	??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >
+PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >
+PUBLIC	??$forward@V?$allocator@_W@std@@@std@@YA$$QAV?$allocator@_W@0@AAV10@@Z ; std::forward<std::allocator<wchar_t> >
+PUBLIC	??$_Pocca@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@ABU10@U?$integral_constant@_N$0A@@0@@Z ; std::_Pocca<std::_Wrap_alloc<std::allocator<wchar_t> > >
 PUBLIC	??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z ; std::allocator_traits<std::allocator<wchar_t> >::destroy<wchar_t *>
 PUBLIC	??$forward@AAPA_W@std@@YAAAPA_WAAPA_W@Z		; std::forward<wchar_t * &>
 PUBLIC	??$construct@PA_WAAPA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_WAAPA_W@Z ; std::allocator_traits<std::allocator<wchar_t> >::construct<wchar_t *,wchar_t * &>
-PUBLIC	??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ; std::move<std::_Wrap_alloc<std::allocator<wchar_t> > &>
-PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > ><std::_Wrap_alloc<std::allocator<wchar_t> >,void>
 PUBLIC	??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z ; std::allocator<wchar_t>::destroy<wchar_t *>
 PUBLIC	??$construct@PA_WAAPA_W@?$allocator@_W@std@@QAEXPAPA_WAAPA_W@Z ; std::allocator<wchar_t>::construct<wchar_t *,wchar_t * &>
-PUBLIC	??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >
-PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >
 PUBLIC	??_7iSK_Logger@@6B@				; iSK_Logger::`vftable'
 PUBLIC	??_C@_11LOCGONAA@?$AA?$AA@			; `string'
 PUBLIC	?dll_log@@3UiSK_Logger@@A			; dll_log
@@ -207,6 +225,7 @@ EXTRN	__snwprintf:PROC
 EXTRN	__imp__fclose:PROC
 EXTRN	__imp__fflush:PROC
 EXTRN	_vfprintf:PROC
+EXTRN	__imp__StrStrIW@8:PROC
 EXTRN	__imp_?_Xbad_alloc@std@@YAXXZ:PROC
 EXTRN	__imp_?_Xlength_error@std@@YAXPBD@Z:PROC
 EXTRN	__imp_?_Xout_of_range@std@@YAXPBD@Z:PROC
@@ -334,6 +353,17 @@ xdata$x	ENDS
 xdata$x	SEGMENT
 __unwindtable$?SK_CreateLog@@YGPAUiSK_Logger@@QB_W@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_CreateLog@@YGPAUiSK_Logger@@QB_W@Z$0
+__unwindtable$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z$0
+	DD	00H
+	DD	FLAT:__unwindfunclet$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z$1
+__ehfuncinfo$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z DD 019930522H
+	DD	02H
+	DD	FLAT:__unwindtable$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z
+	DD	2 DUP(00H)
+	DD	2 DUP(00H)
+	DD	00H
+	DD	01H
 __ehfuncinfo$?SK_CreateLog@@YGPAUiSK_Logger@@QB_W@Z DD 019930522H
 	DD	01H
 	DD	FLAT:__unwindtable$?SK_CreateLog@@YGPAUiSK_Logger@@QB_W@Z
@@ -369,63 +399,6 @@ xdata$x	ENDS
 CRT$XCU	SEGMENT
 ?budget_log$initializer$@@3P6AXXZA DD FLAT:??__Ebudget_log@@YAXXZ ; budget_log$initializer$
 CRT$XCU	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-;	COMDAT ??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z
-_TEXT	SEGMENT
-___formal$ = 8						; size = 1
-__Val1$ = 12						; size = 4
-??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >, COMDAT
-; _this$ = ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1595 : 		_Mysize(0),
-
-	mov	DWORD PTR [ecx+16], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 313  : 		}
-
-	mov	eax, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1596 : 		_Myres(0)
-
-	mov	DWORD PTR [ecx+20], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 313  : 		}
-
-	ret	8
-??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
-;	COMDAT ??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z
-_TEXT	SEGMENT
-__Arg$ = 8						; size = 4
-??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z PROC ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >, COMDAT
-
-; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1335 : 	return (static_cast<_Ty&&>(_Arg));
-
-	mov	eax, DWORD PTR __Arg$[ebp]
-
-; 1336 : 	}
-
-	pop	ebp
-	ret	0
-??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ENDP ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >
-_TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ;	COMDAT ??$construct@PA_WAAPA_W@?$allocator@_W@std@@QAEXPAPA_WAAPA_W@Z
@@ -470,54 +443,6 @@ __Ptr$ = 8						; size = 4
 
 	ret	4
 ??$destroy@PA_W@?$allocator@_W@std@@QAEXPAPA_W@Z ENDP	; std::allocator<wchar_t>::destroy<wchar_t *>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-;	COMDAT ??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z
-_TEXT	SEGMENT
-__Al$ = 8						; size = 4
-??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > ><std::_Wrap_alloc<std::allocator<wchar_t> >,void>, COMDAT
-; _this$ = ecx
-
-; 1595 : 		_Mysize(0),
-
-	mov	DWORD PTR [ecx+16], 0
-
-; 1705 : 		}
-
-	mov	eax, ecx
-
-; 1596 : 		_Myres(0)
-
-	mov	DWORD PTR [ecx+20], 0
-
-; 1705 : 		}
-
-	ret	4
-??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > ><std::_Wrap_alloc<std::allocator<wchar_t> >,void>
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
-;	COMDAT ??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z
-_TEXT	SEGMENT
-__Arg$ = 8						; size = 4
-??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z PROC ; std::move<std::_Wrap_alloc<std::allocator<wchar_t> > &>, COMDAT
-
-; 1350 : 	{	// forward _Arg as movable
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
-
-	mov	eax, DWORD PTR __Arg$[ebp]
-
-; 1352 : 	}
-
-	pop	ebp
-	ret	0
-??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ENDP ; std::move<std::_Wrap_alloc<std::allocator<wchar_t> > &>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -589,27 +514,98 @@ __Ptr$ = 12						; size = 4
 ??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z ENDP ; std::allocator_traits<std::allocator<wchar_t> >::destroy<wchar_t *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-;	COMDAT ??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@_W@std@@@0@AAV10@@Z
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Pocca@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@ABU10@U?$integral_constant@_N$0A@@0@@Z
 _TEXT	SEGMENT
-__Val$ = 8						; size = 4
-??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@_W@std@@@0@AAV10@@Z PROC ; std::addressof<std::_String_val<std::_Simple_types<wchar_t> > >, COMDAT
+___formal$ = 8						; size = 4
+___formal$ = 12						; size = 4
+___formal$ = 16						; size = 1
+??$_Pocca@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@ABU10@U?$integral_constant@_N$0A@@0@@Z PROC ; std::_Pocca<std::_Wrap_alloc<std::allocator<wchar_t> > >, COMDAT
 
-; 629  : 	{	// return address of _Val
+; 1139 : 	}
+
+	ret	0
+??$_Pocca@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@ABU10@U?$integral_constant@_N$0A@@0@@Z ENDP ; std::_Pocca<std::_Wrap_alloc<std::allocator<wchar_t> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@V?$allocator@_W@std@@@std@@YA$$QAV?$allocator@_W@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@V?$allocator@_W@std@@@std@@YA$$QAV?$allocator@_W@0@AAV10@@Z PROC ; std::forward<std::allocator<wchar_t> >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 630  : 	return (__builtin_addressof(_Val));
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
 
-	mov	eax, DWORD PTR __Val$[ebp]
+	mov	eax, DWORD PTR __Arg$[ebp]
 
-; 631  : 	}
+; 1336 : 	}
 
 	pop	ebp
 	ret	0
-??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@_W@std@@@0@AAV10@@Z ENDP ; std::addressof<std::_String_val<std::_Simple_types<wchar_t> > >
+??$forward@V?$allocator@_W@std@@@std@@YA$$QAV?$allocator@_W@0@AAV10@@Z ENDP ; std::forward<std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+;	COMDAT ??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z
+_TEXT	SEGMENT
+___formal$ = 8						; size = 1
+__Val1$ = 12						; size = 4
+??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z PROC ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >, COMDAT
+; _this$ = ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1595 : 		_Mysize(0),
+
+	mov	DWORD PTR [ecx+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 313  : 		}
+
+	mov	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1596 : 		_Myres(0)
+
+	mov	DWORD PTR [ecx+20], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 313  : 		}
+
+	ret	8
+??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z PROC ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >, COMDAT
+
+; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1335 : 	return (static_cast<_Ty&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1336 : 	}
+
+	pop	ebp
+	ret	0
+??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ENDP ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -674,29 +670,6 @@ __Right$ = 12						; size = 4
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-;	COMDAT ??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z
-_TEXT	SEGMENT
-__Val$ = 8						; size = 4
-??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z PROC ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >, COMDAT
-
-; 629  : 	{	// return address of _Val
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 630  : 	return (__builtin_addressof(_Val));
-
-	mov	eax, DWORD PTR __Val$[ebp]
-
-; 631  : 	}
-
-	pop	ebp
-	ret	0
-??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ENDP ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 ;	COMDAT ??$_Unfancy@_W@std@@YAPA_WPA_W@Z
 _TEXT	SEGMENT
 __Ptr$ = 8						; size = 4
@@ -719,27 +692,27 @@ __Ptr$ = 8						; size = 4
 ??$_Unfancy@_W@std@@YAPA_WPA_W@Z ENDP			; std::_Unfancy<wchar_t>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
-;	COMDAT ??$move@AAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YA$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@_W@std@@@0@AAV10@@Z
 _TEXT	SEGMENT
-__Arg$ = 8						; size = 4
-??$move@AAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YA$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z PROC ; std::move<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > &>, COMDAT
+__Val$ = 8						; size = 4
+??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@_W@std@@@0@AAV10@@Z PROC ; std::addressof<std::_String_val<std::_Simple_types<wchar_t> > >, COMDAT
 
-; 1350 : 	{	// forward _Arg as movable
+; 629  : 	{	// return address of _Val
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
+; 630  : 	return (__builtin_addressof(_Val));
 
-	mov	eax, DWORD PTR __Arg$[ebp]
+	mov	eax, DWORD PTR __Val$[ebp]
 
-; 1352 : 	}
+; 631  : 	}
 
 	pop	ebp
 	ret	0
-??$move@AAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YA$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z ENDP ; std::move<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > &>
+??$addressof@V?$_String_val@U?$_Simple_types@_W@std@@@std@@@std@@YAPAV?$_String_val@U?$_Simple_types@_W@std@@@0@AAV10@@Z ENDP ; std::addressof<std::_String_val<std::_Simple_types<wchar_t> > >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -810,6 +783,129 @@ ___formal$ = 8						; size = 1
 
 	ret	4
 ??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$_Pocca@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@ABU10@@Z
+_TEXT	SEGMENT
+__Left$ = 8						; size = 4
+__Right$ = 12						; size = 4
+??$_Pocca@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@ABU10@@Z PROC ; std::_Pocca<std::_Wrap_alloc<std::allocator<wchar_t> > >, COMDAT
+
+; 1144 : 	typename _Alty::propagate_on_container_copy_assignment _Tag;
+; 1145 : 	_Pocca(_Left, _Right, _Tag);
+; 1146 : 	}
+
+	ret	0
+??$_Pocca@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YAXAAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@ABU10@@Z ENDP ; std::_Pocca<std::_Wrap_alloc<std::allocator<wchar_t> > >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ??$?0V?$allocator@_W@std@@@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAV?$allocator@_W@1@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??$?0V?$allocator@_W@std@@@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAV?$allocator@_W@1@@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> ><std::allocator<wchar_t> >, COMDAT
+; _this$ = ecx
+
+; 1054 : 		}
+
+	mov	eax, ecx
+	ret	4
+??$?0V?$allocator@_W@std@@@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@$$QAV?$allocator@_W@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> ><std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$move@AAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YA$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$move@AAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YA$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z PROC ; std::move<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > &>, COMDAT
+
+; 1350 : 	{	// forward _Arg as movable
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1352 : 	}
+
+	pop	ebp
+	ret	0
+??$move@AAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YA$$QAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@AAV10@@Z ENDP ; std::move<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > ><std::_Wrap_alloc<std::allocator<wchar_t> >,void>, COMDAT
+; _this$ = ecx
+
+; 1595 : 		_Mysize(0),
+
+	mov	DWORD PTR [ecx+16], 0
+
+; 1705 : 		}
+
+	mov	eax, ecx
+
+; 1596 : 		_Myres(0)
+
+	mov	DWORD PTR [ecx+20], 0
+
+; 1705 : 		}
+
+	ret	4
+??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@X@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > ><std::_Wrap_alloc<std::allocator<wchar_t> >,void>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
+;	COMDAT ??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z
+_TEXT	SEGMENT
+__Arg$ = 8						; size = 4
+??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z PROC ; std::move<std::_Wrap_alloc<std::allocator<wchar_t> > &>, COMDAT
+
+; 1350 : 	{	// forward _Arg as movable
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1351 : 	return (static_cast<typename remove_reference<_Ty>::type&&>(_Arg));
+
+	mov	eax, DWORD PTR __Arg$[ebp]
+
+; 1352 : 	}
+
+	pop	ebp
+	ret	0
+??$move@AAU?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ENDP ; std::move<std::_Wrap_alloc<std::allocator<wchar_t> > &>
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+;	COMDAT ??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z
+_TEXT	SEGMENT
+__Val$ = 8						; size = 4
+??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z PROC ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >, COMDAT
+
+; 629  : 	{	// return address of _Val
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 630  : 	return (__builtin_addressof(_Val));
+
+	mov	eax, DWORD PTR __Val$[ebp]
+
+; 631  : 	}
+
+	pop	ebp
+	ret	0
+??$addressof@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@std@@YAPBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@ABV10@@Z ENDP ; std::addressof<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vadefs.h
@@ -1277,7 +1373,7 @@ text$di	SEGMENT
 	call	?AddRef@iSK_Logger@@UAGKXZ		; iSK_Logger::AddRef
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 99   : iSK_Logger dll_log, budget_log;
+; 100  : iSK_Logger dll_log, budget_log;
 
 	push	OFFSET ??__Fbudget_log@@YAXXZ		; `dynamic atexit destructor for 'budget_log''
 	call	_atexit
@@ -1471,7 +1567,7 @@ text$di	SEGMENT
 	call	?AddRef@iSK_Logger@@UAGKXZ		; iSK_Logger::AddRef
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 99   : iSK_Logger dll_log, budget_log;
+; 100  : iSK_Logger dll_log, budget_log;
 
 	push	OFFSET ??__Fdll_log@@YAXXZ		; `dynamic atexit destructor for 'dll_log''
 	call	_atexit
@@ -1485,39 +1581,39 @@ _TEXT	SEGMENT
 _pLog$ = 8						; size = 4
 ?SK_FlushLog@@YAHPAUiSK_Logger@@@Z PROC			; SK_FlushLog
 
-; 79   : {
+; 80   : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 80   : #if 1
-; 81   :   fflush (pLog->fLog);
+; 81   : #if 1
+; 82   :   fflush (pLog->fLog);
 
 	mov	eax, DWORD PTR _pLog$[ebp]
 	push	DWORD PTR [eax+4]
 	call	DWORD PTR __imp__fflush
 	add	esp, 4
 
-; 82   :   return TRUE;
+; 83   :   return TRUE;
 
 	mov	eax, 1
 
-; 83   : #else
-; 84   :   DWORD dwTime = timeGetTime ();
-; 85   : 
-; 86   :   if ( pLog->flush_freq == 00 ||
-; 87   :        pLog->last_flush <= dwTime - pLog->flush_freq )
-; 88   :   {
-; 89   :     fflush (pLog->fLog);
-; 90   :             pLog->last_flush = dwTime;
-; 91   : 
-; 92   :     return TRUE;
-; 93   :   }
-; 94   : 
-; 95   :   return FALSE;
-; 96   : #endif
-; 97   : }
+; 84   : #else
+; 85   :   DWORD dwTime = timeGetTime ();
+; 86   : 
+; 87   :   if ( pLog->flush_freq == 00 ||
+; 88   :        pLog->last_flush <= dwTime - pLog->flush_freq )
+; 89   :   {
+; 90   :     fflush (pLog->fLog);
+; 91   :             pLog->last_flush = dwTime;
+; 92   : 
+; 93   :     return TRUE;
+; 94   :   }
+; 95   : 
+; 96   :   return FALSE;
+; 97   : #endif
+; 98   : }
 
 	pop	ebp
 	ret	0
@@ -1532,7 +1628,7 @@ _stLogTime$ = -16					; size = 16
 _out$ = 8						; size = 4
 ?SK_Timestamp@@YAGQA_W@Z PROC				; SK_Timestamp
 
-; 38   : {
+; 39   : {
 
 	npad	2
 	push	ebp
@@ -1541,34 +1637,34 @@ _out$ = 8						; size = 4
 	push	esi
 	push	edi
 
-; 39   :   SYSTEMTIME stLogTime;
-; 40   : 
-; 41   : #if 0
-; 42   :   // Check for Windows 8 / Server 2012
-; 43   :   static bool __hasSystemTimePrecise =
-; 44   :     (LOBYTE (LOWORD (GetVersion ())) == 6  &&
-; 45   :      HIBYTE (LOWORD (GetVersion ())) >= 2) ||
-; 46   :      LOBYTE (LOWORD (GetVersion () > 6));
-; 47   : 
-; 48   :   // More accurate timestamp is available on Windows 6.2+
-; 49   :   if (__hasSystemTimePrecise)
-; 50   :   {
-; 51   :     FILETIME   ftLogTime;
-; 52   :     GetSystemTimePreciseAsFileTime (&ftLogTime);
-; 53   :     FileTimeToSystemTime           (&ftLogTime, &stLogTime);
-; 54   :   } else {
-; 55   : #endif
-; 56   :     GetLocalTime (&stLogTime);
+; 40   :   SYSTEMTIME stLogTime;
+; 41   : 
+; 42   : #if 0
+; 43   :   // Check for Windows 8 / Server 2012
+; 44   :   static bool __hasSystemTimePrecise =
+; 45   :     (LOBYTE (LOWORD (GetVersion ())) == 6  &&
+; 46   :      HIBYTE (LOWORD (GetVersion ())) >= 2) ||
+; 47   :      LOBYTE (LOWORD (GetVersion () > 6));
+; 48   : 
+; 49   :   // More accurate timestamp is available on Windows 6.2+
+; 50   :   if (__hasSystemTimePrecise)
+; 51   :   {
+; 52   :     FILETIME   ftLogTime;
+; 53   :     GetSystemTimePreciseAsFileTime (&ftLogTime);
+; 54   :     FileTimeToSystemTime           (&ftLogTime, &stLogTime);
+; 55   :   } else {
+; 56   : #endif
+; 57   :     GetLocalTime (&stLogTime);
 
 	lea	eax, DWORD PTR _stLogTime$[ebp]
 	push	eax
 	call	DWORD PTR __imp__GetLocalTime@4
 
-; 57   : #if 0
-; 58   :   }
-; 59   : #endif
-; 60   : 
-; 61   :   wchar_t date [64] = { };
+; 58   : #if 0
+; 59   :   }
+; 60   : #endif
+; 61   : 
+; 62   :   wchar_t date [64] = { };
 
 	push	128					; 00000080H
 	lea	eax, DWORD PTR _date$[ebp]
@@ -1576,7 +1672,7 @@ _out$ = 8						; size = 4
 	push	eax
 	call	_memset
 
-; 62   :   wchar_t time [64] = { };
+; 63   :   wchar_t time [64] = { };
 
 	push	128					; 00000080H
 	lea	eax, DWORD PTR _time$[ebp]
@@ -1585,8 +1681,8 @@ _out$ = 8						; size = 4
 	call	_memset
 	add	esp, 24					; 00000018H
 
-; 63   : 
-; 64   :   GetDateFormat (LOCALE_INVARIANT,DATE_SHORTDATE,   &stLogTime,nullptr,date,64);
+; 64   : 
+; 65   :   GetDateFormat (LOCALE_INVARIANT,DATE_SHORTDATE,   &stLogTime,nullptr,date,64);
 
 	lea	eax, DWORD PTR _date$[ebp]
 	push	64					; 00000040H
@@ -1598,7 +1694,7 @@ _out$ = 8						; size = 4
 	push	127					; 0000007fH
 	call	DWORD PTR __imp__GetDateFormatW@24
 
-; 65   :   GetTimeFormat (LOCALE_INVARIANT,TIME_NOTIMEMARKER,&stLogTime,nullptr,time,64);
+; 66   :   GetTimeFormat (LOCALE_INVARIANT,TIME_NOTIMEMARKER,&stLogTime,nullptr,time,64);
 
 	push	64					; 00000040H
 	lea	eax, DWORD PTR _time$[ebp]
@@ -1610,14 +1706,14 @@ _out$ = 8						; size = 4
 	push	127					; 0000007fH
 	call	DWORD PTR __imp__GetTimeFormatW@24
 
-; 66   : 
-; 67   :   out [0] = L'\0';
+; 67   : 
+; 68   :   out [0] = L'\0';
 
 	mov	edi, DWORD PTR _out$[ebp]
 	xor	eax, eax
 
-; 68   : 
-; 69   :   lstrcatW (out, date);
+; 69   : 
+; 70   :   lstrcatW (out, date);
 
 	mov	esi, DWORD PTR __imp__lstrcatW@8
 	mov	WORD PTR [edi], ax
@@ -1626,33 +1722,33 @@ _out$ = 8						; size = 4
 	push	edi
 	call	esi
 
-; 70   :   lstrcatW (out, L" ");
+; 71   :   lstrcatW (out, L" ");
 
-	push	OFFSET $SG143393
+	push	OFFSET $SG145357
 	push	edi
 	call	esi
 
-; 71   :   lstrcatW (out, time);
+; 72   :   lstrcatW (out, time);
 
 	lea	eax, DWORD PTR _time$[ebp]
 	push	eax
 	push	edi
 	call	esi
 
-; 72   :   lstrcatW (out, L".");
+; 73   :   lstrcatW (out, L".");
 
-	push	OFFSET $SG143394
+	push	OFFSET $SG145358
 	push	edi
 	call	esi
 
-; 73   : 
-; 74   :   return stLogTime.wMilliseconds;
+; 74   : 
+; 75   :   return stLogTime.wMilliseconds;
 
 	mov	ax, WORD PTR _stLogTime$[ebp+14]
 	pop	edi
 	pop	esi
 
-; 75   : }
+; 76   : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -1699,7 +1795,7 @@ ___$ReturnUdt$ = 8					; size = 4
 _lpReturnAddr$ = 12					; size = 4
 ?SK_SummarizeCaller@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@Z PROC ; SK_SummarizeCaller
 
-; 314  : {
+; 327  : {
 
 	npad	2
 	push	ebp
@@ -1707,7 +1803,7 @@ _lpReturnAddr$ = 12					; size = 4
 	sub	esp, 1588				; 00000634H
 	push	esi
 
-; 315  :   wchar_t wszSummary [ 256] = { };
+; 328  :   wchar_t wszSummary [ 256] = { };
 
 	push	512					; 00000200H
 	lea	eax, DWORD PTR _wszSummary$[ebp]
@@ -1716,8 +1812,8 @@ _lpReturnAddr$ = 12					; size = 4
 	push	eax
 	call	_memset
 
-; 316  : 
-; 317  :   char    szSymbol   [1024] = { };
+; 329  : 
+; 330  :   char    szSymbol   [1024] = { };
 
 	push	1024					; 00000400H
 	lea	eax, DWORD PTR _szSymbol$[ebp]
@@ -1725,9 +1821,9 @@ _lpReturnAddr$ = 12					; size = 4
 	push	eax
 	call	_memset
 
-; 318  :   ULONG   ulLen             = 1024;
-; 319  :     
-; 320  :   ulLen = SK_GetSymbolNameFromModuleAddr (
+; 331  :   ULONG   ulLen             = 1024;
+; 332  :     
+; 333  :   ulLen = SK_GetSymbolNameFromModuleAddr (
 
 	mov	esi, DWORD PTR _lpReturnAddr$[ebp]
 	lea	eax, DWORD PTR _szSymbol$[ebp]
@@ -1743,7 +1839,7 @@ _lpReturnAddr$ = 12					; size = 4
 	call	?SK_GetSymbolNameFromModuleAddr@@YAKPAUHINSTANCE__@@IPADK@Z ; SK_GetSymbolNameFromModuleAddr
 	add	esp, 16					; 00000010H
 
-; 328  :     _snwprintf ( wszSummary, 255,
+; 341  :     _snwprintf ( wszSummary, 255,
 
 	push	esi
 	test	eax, eax
@@ -1770,14 +1866,14 @@ _lpReturnAddr$ = 12					; size = 4
 $LN22@SK_Summari:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 328  :     _snwprintf ( wszSummary, 255,
+; 341  :     _snwprintf ( wszSummary, 255,
 
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
 	lea	eax, DWORD PTR _szSymbol$[ebp]
 	push	eax
 	push	esi
-	push	OFFSET $SG143575
+	push	OFFSET $SG145544
 	lea	eax, DWORD PTR _wszSummary$[ebp]
 	push	255					; 000000ffH
 	push	eax
@@ -1789,7 +1885,7 @@ $LN22@SK_Summari:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 328  :     _snwprintf ( wszSummary, 255,
+; 341  :     _snwprintf ( wszSummary, 255,
 
 	add	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -1819,12 +1915,12 @@ $LN22@SK_Summari:
 	push	DWORD PTR $T2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 337  :   else {
+; 350  :   else {
 
 	jmp	SHORT $LN132@SK_Summari
 $LN2@SK_Summari:
 
-; 338  :     _snwprintf ( wszSummary, 255,
+; 351  :     _snwprintf ( wszSummary, 255,
 
 	lea	eax, DWORD PTR $T1[ebp]
 	push	eax
@@ -1848,12 +1944,12 @@ $LN2@SK_Summari:
 $LN71@SK_Summari:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 338  :     _snwprintf ( wszSummary, 255,
+; 351  :     _snwprintf ( wszSummary, 255,
 
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
 	push	esi
-	push	OFFSET $SG143576
+	push	OFFSET $SG145545
 	lea	eax, DWORD PTR _wszSummary$[ebp]
 	push	255					; 000000ffH
 	push	eax
@@ -1865,7 +1961,7 @@ $LN71@SK_Summari:
 	mov	eax, DWORD PTR $T1[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 338  :     _snwprintf ( wszSummary, 255,
+; 351  :     _snwprintf ( wszSummary, 255,
 
 	add	esp, 20					; 00000014H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -1958,12 +2054,12 @@ $LL131@SK_Summari:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 346  :   return wszSummary;
+; 359  :   return wszSummary;
 
 	mov	eax, esi
 	pop	esi
 
-; 347  : }
+; 360  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -1972,13 +2068,286 @@ $LL131@SK_Summari:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+_TEXT	SEGMENT
+$T2 = -40						; size = 24
+$T3 = -16						; size = 4
+__$EHRec$ = -12						; size = 12
+___$ReturnUdt$ = 8					; size = 4
+_wszFileName$ = 12					; size = 4
+?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z PROC ; SK_Log_GetPath
+
+; 365  : {
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	-1
+	push	__ehhandler$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z
+	mov	eax, DWORD PTR fs:0
+	push	eax
+	mov	DWORD PTR fs:0, esp
+	sub	esp, 28					; 0000001cH
+	push	esi
+	push	edi
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	mov	DWORD PTR $T3[ebp], 0
+
+; 367  :     SK_GetConfigPath ();
+
+	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+
+; 367  :     SK_GetConfigPath ();
+
+	mov	edx, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	mov	ecx, edx
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	lea	edi, DWORD PTR [ecx+2]
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi], ax
+	npad	1
+$LL133@SK_Log_Get:
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	mov	ax, WORD PTR [ecx]
+	add	ecx, 2
+	test	ax, ax
+	jne	SHORT $LL133@SK_Log_Get
+	sub	ecx, edi
+	sar	ecx, 1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	ecx
+	push	edx
+	mov	ecx, esi
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+
+; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
+
+	push	5
+	push	OFFSET $SG145552
+	mov	ecx, esi
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+
+; 377  :   return full_name;
+
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	mov	DWORD PTR $T3[ebp], 1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
+
+	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T2[ebp+16], 0
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+	push	eax
+	push	esi
+	lea	ecx, DWORD PTR $T2[ebp]
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T2[ebp+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T2[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR $T2[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR $T2[ebp]
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+
+; 371  :   SK_CreateDirectories (
+
+	mov	DWORD PTR __$EHRec$[ebp+8], 1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	cmovae	eax, DWORD PTR $T2[ebp]
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+
+; 371  :   SK_CreateDirectories (
+
+	push	eax
+	call	?SK_CreateDirectories@@YG_NPB_W@Z	; SK_CreateDirectories
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T2[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+
+; 371  :   SK_CreateDirectories (
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN100@SK_Log_Get
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR $T2[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN100@SK_Log_Get:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	mov	edx, DWORD PTR _wszFileName$[ebp]
+	mov	ecx, edx
+	lea	edi, DWORD PTR [ecx+2]
+	npad	1
+$LL134@SK_Log_Get:
+	mov	ax, WORD PTR [ecx]
+	add	ecx, 2
+	test	ax, ax
+	jne	SHORT $LL134@SK_Log_Get
+	sub	ecx, edi
+	sar	ecx, 1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
+
+	push	ecx
+	push	edx
+	mov	ecx, esi
+	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+
+; 378  : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	eax, esi
+	pop	edi
+	pop	esi
+	mov	DWORD PTR fs:0, ecx
+	mov	esp, ebp
+	pop	ebp
+	ret	8
+_TEXT	ENDS
+text$x	SEGMENT
+__unwindfunclet$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z$0:
+	mov	eax, DWORD PTR $T3[ebp]
+	and	eax, 1
+	je	$LN4@SK_Log_Get
+	and	DWORD PTR $T3[ebp], -2			; fffffffeH
+	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+$LN4@SK_Log_Get:
+	ret	0
+__unwindfunclet$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z$1:
+	lea	ecx, DWORD PTR $T2[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__ehhandler$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z:
+	mov	eax, OFFSET __ehfuncinfo$?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z
+	jmp	___CxxFrameHandler3
+text$x	ENDS
+?SK_Log_GetPath@@YG?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PB_W@Z ENDP ; SK_Log_GetPath
+; Function compile flags: /Ogtp
+; File c:\users\andon\source\repos\specialk\src\log.cpp
 _TEXT	SEGMENT
 $T2 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 _wszName$ = 8						; size = 4
 ?SK_CreateLog@@YGPAUiSK_Logger@@QB_W@Z PROC		; SK_CreateLog
 
-; 301  : {
+; 314  : {
 
 	npad	2
 	push	ebp
@@ -1991,8 +2360,8 @@ _wszName$ = 8						; size = 4
 	push	ecx
 	push	esi
 
-; 302  :   auto* pLog =
-; 303  :     new iSK_Logger ();
+; 315  :   auto* pLog =
+; 316  :     new iSK_Logger ();
 
 	push	80					; 00000050H
 	call	??2@YAPAXI@Z				; operator new
@@ -2009,20 +2378,20 @@ $LN3@SK_CreateL:
 	xor	esi, esi
 $LN4@SK_CreateL:
 
-; 304  : 
-; 305  :   pLog->init   (wszName, L"w+");
+; 317  : 
+; 318  :   pLog->init   (wszName, L"w+");
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG143562
+	push	OFFSET $SG145531
 	push	DWORD PTR _wszName$[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	push	esi
 	call	DWORD PTR [eax+16]
 
-; 306  :   pLog->silent = false;
-; 307  : 
-; 308  :   return pLog;
-; 309  : }
+; 319  :   pLog->silent = false;
+; 320  : 
+; 321  :   return pLog;
+; 322  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -2187,7 +2556,7 @@ _this$ = 8						; size = 4
 __Format$ = 12						; size = 4
 ?Log@iSK_Logger@@UAAXQBDZZ PROC				; iSK_Logger::Log
 
-; 245  : {
+; 258  : {
 
 	npad	2
 	push	ebp
@@ -2195,7 +2564,7 @@ __Format$ = 12						; size = 4
 	sub	esp, 256				; 00000100H
 	push	esi
 
-; 246  :   if ((! initialized) || (! fLog) || silent)
+; 259  :   if ((! initialized) || (! fLog) || silent)
 
 	mov	esi, DWORD PTR _this$[ebp]
 	cmp	BYTE PTR [esi+33], 0
@@ -2205,11 +2574,11 @@ __Format$ = 12						; size = 4
 	cmp	BYTE PTR [esi+32], 0
 	jne	SHORT $LN3@Log
 
-; 247  :     return;
-; 248  : 
-; 249  :   wchar_t wszLogTime [128];
-; 250  : 
-; 251  :   UINT ms = SK_Timestamp (wszLogTime);
+; 260  :     return;
+; 261  : 
+; 262  :   wchar_t wszLogTime [128];
+; 263  : 
+; 264  :   UINT ms = SK_Timestamp (wszLogTime);
 
 	lea	eax, DWORD PTR _wszLogTime$[ebp]
 	push	edi
@@ -2229,25 +2598,25 @@ __Format$ = 12						; size = 4
 $LN6@Log:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 255  :   ++lines;
+; 268  :   ++lines;
 
 	inc	DWORD PTR [esi+36]
 
-; 256  : 
-; 257  :   fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
+; 269  : 
+; 270  :   fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
 
 	lea	eax, DWORD PTR _wszLogTime$[ebp]
 	push	edi
 	push	eax
-	push	OFFSET $SG143535
+	push	OFFSET $SG145504
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 
-; 258  : 
-; 259  :   va_list   _ArgList;
-; 260  :   va_start (_ArgList, _Format);
-; 261  :   {
-; 262  :     vfprintf (fLog, _Format, _ArgList);
+; 271  : 
+; 272  :   va_list   _ArgList;
+; 273  :   va_start (_ArgList, _Format);
+; 274  :   {
+; 275  :     vfprintf (fLog, _Format, _ArgList);
 
 	lea	eax, DWORD PTR __Format$[ebp+4]
 	push	eax
@@ -2255,12 +2624,12 @@ $LN6@Log:
 	push	DWORD PTR [esi+4]
 	call	_vfprintf
 
-; 263  :   }
-; 264  :   va_end   (_ArgList);
-; 265  : 
-; 266  :   fwprintf (fLog, L"\n");
+; 276  :   }
+; 277  :   va_end   (_ArgList);
+; 278  : 
+; 279  :   fwprintf (fLog, L"\n");
 
-	push	OFFSET $SG143536
+	push	OFFSET $SG145505
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 	add	esp, 36					; 00000024H
@@ -2277,7 +2646,7 @@ $LN6@Log:
 $LN9@Log:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 270  :   SK_FlushLog (this);
+; 283  :   SK_FlushLog (this);
 
 	push	esi
 	call	?SK_FlushLog@@YAHPAUiSK_Logger@@@Z	; SK_FlushLog
@@ -2285,7 +2654,7 @@ $LN9@Log:
 $LN3@Log:
 	pop	esi
 
-; 271  : }
+; 284  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -2304,7 +2673,7 @@ _this$ = 8						; size = 4
 __Format$ = 12						; size = 4
 ?Log@iSK_Logger@@UAAXQB_WZZ PROC			; iSK_Logger::Log
 
-; 213  : {
+; 226  : {
 
 	npad	2
 	push	ebp
@@ -2312,7 +2681,7 @@ __Format$ = 12						; size = 4
 	sub	esp, 256				; 00000100H
 	push	esi
 
-; 214  :   if ((! initialized) || (! fLog) || silent)
+; 227  :   if ((! initialized) || (! fLog) || silent)
 
 	mov	esi, DWORD PTR _this$[ebp]
 	cmp	BYTE PTR [esi+33], 0
@@ -2322,11 +2691,11 @@ __Format$ = 12						; size = 4
 	cmp	BYTE PTR [esi+32], 0
 	jne	SHORT $LN3@Log
 
-; 215  :     return;
-; 216  : 
-; 217  :   wchar_t wszLogTime [128];
-; 218  : 
-; 219  :   UINT ms = SK_Timestamp (wszLogTime);
+; 228  :     return;
+; 229  : 
+; 230  :   wchar_t wszLogTime [128];
+; 231  : 
+; 232  :   UINT ms = SK_Timestamp (wszLogTime);
 
 	lea	eax, DWORD PTR _wszLogTime$[ebp]
 	push	edi
@@ -2346,25 +2715,25 @@ __Format$ = 12						; size = 4
 $LN6@Log:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 223  :   ++lines;
+; 236  :   ++lines;
 
 	inc	DWORD PTR [esi+36]
 
-; 224  : 
-; 225  :   fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
+; 237  : 
+; 238  :   fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
 
 	lea	eax, DWORD PTR _wszLogTime$[ebp]
 	push	edi
 	push	eax
-	push	OFFSET $SG143512
+	push	OFFSET $SG145481
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 
-; 226  : 
-; 227  :   va_list   _ArgList;
-; 228  :   va_start (_ArgList, _Format);
-; 229  :   {
-; 230  :     vfwprintf (fLog, _Format, _ArgList);
+; 239  : 
+; 240  :   va_list   _ArgList;
+; 241  :   va_start (_ArgList, _Format);
+; 242  :   {
+; 243  :     vfwprintf (fLog, _Format, _ArgList);
 
 	lea	eax, DWORD PTR __Format$[ebp+4]
 	push	eax
@@ -2372,12 +2741,12 @@ $LN6@Log:
 	push	DWORD PTR [esi+4]
 	call	_vfwprintf
 
-; 231  :   }
-; 232  :   va_end   (_ArgList);
-; 233  : 
-; 234  :   fwprintf (fLog, L"\n");
+; 244  :   }
+; 245  :   va_end   (_ArgList);
+; 246  : 
+; 247  :   fwprintf (fLog, L"\n");
 
-	push	OFFSET $SG143513
+	push	OFFSET $SG145482
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 	add	esp, 36					; 00000024H
@@ -2394,7 +2763,7 @@ $LN6@Log:
 $LN9@Log:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 238  :   SK_FlushLog (this);
+; 251  :   SK_FlushLog (this);
 
 	push	esi
 	call	?SK_FlushLog@@YAHPAUiSK_Logger@@@Z	; SK_FlushLog
@@ -2402,7 +2771,7 @@ $LN9@Log:
 $LN3@Log:
 	pop	esi
 
-; 239  : }
+; 252  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -2424,7 +2793,7 @@ __Timestamp$ = 12					; size = 1
 __Format$ = 16						; size = 4
 ?LogEx@iSK_Logger@@UAAX_NQB_WZZ PROC			; iSK_Logger::LogEx
 
-; 176  : {
+; 189  : {
 
 	npad	2
 	push	ebp
@@ -2432,7 +2801,7 @@ __Format$ = 16						; size = 4
 	sub	esp, 256				; 00000100H
 	push	esi
 
-; 177  :   if ((! initialized) || (! fLog) || silent)
+; 190  :   if ((! initialized) || (! fLog) || silent)
 
 	mov	esi, DWORD PTR _this$[ebp]
 	cmp	BYTE PTR [esi+33], 0
@@ -2442,22 +2811,22 @@ __Format$ = 16						; size = 4
 	cmp	BYTE PTR [esi+32], 0
 	jne	$LN3@LogEx
 
-; 178  :     return;
-; 179  : 
-; 180  :   ++lines;
+; 191  :     return;
+; 192  : 
+; 193  :   ++lines;
 
 	inc	DWORD PTR [esi+36]
 
-; 181  : 
-; 182  :   if (_Timestamp)
+; 194  : 
+; 195  :   if (_Timestamp)
 
 	cmp	BYTE PTR __Timestamp$[ebp], 0
 	je	SHORT $LN4@LogEx
 
-; 183  :   {
-; 184  :     wchar_t wszLogTime [128];
-; 185  : 
-; 186  :     UINT ms = SK_Timestamp (wszLogTime);
+; 196  :   {
+; 197  :     wchar_t wszLogTime [128];
+; 198  : 
+; 199  :     UINT ms = SK_Timestamp (wszLogTime);
 
 	lea	eax, DWORD PTR _wszLogTime$1[ebp]
 	push	edi
@@ -2477,20 +2846,20 @@ __Format$ = 16						; size = 4
 $LN8@LogEx:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 189  :     fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
+; 202  :     fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
 
 	push	edi
 	lea	eax, DWORD PTR _wszLogTime$1[ebp]
 	push	eax
-	push	OFFSET $SG143493
+	push	OFFSET $SG145462
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 	add	esp, 16					; 00000010H
 	pop	edi
 
-; 190  :   }
-; 191  : 
-; 192  :   else
+; 203  :   }
+; 204  : 
+; 205  :   else
 
 	jmp	SHORT $LN11@LogEx
 $LN4@LogEx:
@@ -2506,7 +2875,7 @@ $LN4@LogEx:
 $LN11@LogEx:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 200  :     vfwprintf (fLog, _Format, _ArgList);
+; 213  :     vfwprintf (fLog, _Format, _ArgList);
 
 	lea	eax, DWORD PTR __Format$[ebp+4]
 	push	eax
@@ -2526,7 +2895,7 @@ $LN11@LogEx:
 $LN14@LogEx:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 206  :   SK_FlushLog (this);
+; 219  :   SK_FlushLog (this);
 
 	push	esi
 	call	?SK_FlushLog@@YAHPAUiSK_Logger@@@Z	; SK_FlushLog
@@ -2534,7 +2903,7 @@ $LN14@LogEx:
 $LN3@LogEx:
 	pop	esi
 
-; 207  : }
+; 220  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -2550,6 +2919,10 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -2561,7 +2934,7 @@ _full_name$1 = -24					; size = 24
 _this$ = 8						; size = 4
 ?close@iSK_Logger@@UAGXXZ PROC				; iSK_Logger::close
 
-; 104  : {
+; 105  : {
 
 	npad	2
 	push	ebp
@@ -2569,54 +2942,58 @@ _this$ = 8						; size = 4
 	sub	esp, 24					; 00000018H
 	push	esi
 
-; 105  :   if (initialized)
+; 106  :   if (initialized)
 
 	mov	esi, DWORD PTR _this$[ebp]
 	cmp	BYTE PTR [esi+33], 0
 	je	$LN2@close
 
-; 106  :     EnterCriticalSection (&log_mutex);
+; 107  :     EnterCriticalSection (&log_mutex);
 
-	push	edi
-	lea	edi, DWORD PTR [esi+40]
-	push	edi
+	push	ebx
+	lea	ebx, DWORD PTR [esi+40]
+	push	ebx
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 107  : 
-; 108  :   else
-; 109  :     return;
-; 110  : 
-; 111  :   if (fLog != nullptr)
+; 108  : 
+; 109  :   else
+; 110  :     return;
+; 111  : 
+; 112  :   if (fLog != nullptr)
 
 	mov	eax, DWORD PTR [esi+4]
 	test	eax, eax
 	je	SHORT $LN4@close
 
-; 112  :   {
-; 113  :     fflush (fLog);
+; 113  :   {
+; 114  :     fflush (fLog);
 
 	push	eax
 	call	DWORD PTR __imp__fflush
 
-; 114  :     fclose (fLog);
+; 115  :     fclose (fLog);
 
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__fclose
 	add	esp, 8
+
+; 116  :     fLog = nullptr;
+
+	mov	DWORD PTR [esi+4], 0
 $LN4@close:
 
-; 115  :   }
-; 116  : 
-; 117  :   if (lines == 0)
+; 117  :   }
+; 118  : 
+; 119  :   if (lines == 0)
 
 	cmp	DWORD PTR [esi+36], 0
-	jne	SHORT $LN59@close
+	jne	$LN121@close
 
-; 118  :   {
-; 119  :     std::wstring full_name =
-; 120  :       SK_GetConfigPath ();
+; 120  :   {
+; 121  :     std::wstring full_name =
+; 122  :       SK_GetConfigPath ();
 
-	push	ebx
+	push	edi
 	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
 	mov	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2643,13 +3020,14 @@ $LN4@close:
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
-	lea	ebx, DWORD PTR [ecx+2]
-$LL85@close:
+	lea	edi, DWORD PTR [ecx+2]
+	npad	3
+$LL147@close:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL85@close
-	sub	ecx, ebx
+	jne	SHORT $LL147@close
+	sub	ecx, edi
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -2666,16 +3044,62 @@ $LL85@close:
 	push	0
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 122  :     full_name += name;
+; 124  :     full_name += name;
 
-	lea	eax, DWORD PTR [esi+8]
+	lea	edi, DWORD PTR [esi+8]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2284 : 		return (append(_Right, 0, npos));
 
-	push	eax
+	push	edi
 	lea	ecx, DWORD PTR _full_name$1[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [edi+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN50@close
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR [edi]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	jmp	SHORT $LN51@close
+$LN50@close:
+	mov	eax, edi
+$LN51@close:
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+
+; 126  :     if (StrStrIW (name.c_str (), L"crash\\"))
+
+	push	OFFSET $SG145407
+	push	eax
+	call	DWORD PTR __imp__StrStrIW@8
+	test	eax, eax
+	je	SHORT $LN57@close
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2223 : 		if (this != _STD addressof(_Right))
+
+	lea	eax, DWORD PTR _full_name$1[ebp]
+	cmp	eax, edi
+	je	SHORT $LN57@close
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+	push	0
+	push	edi
+	mov	ecx, eax
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+$LN57@close:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
@@ -2687,7 +3111,7 @@ $LL85@close:
 	cmovae	eax, DWORD PTR _full_name$1[ebp]
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 124  :     DeleteFileW (full_name.c_str ());
+; 129  :     DeleteFileW (full_name.c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__DeleteFileW@4
@@ -2696,12 +3120,12 @@ $LL85@close:
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
 	mov	eax, DWORD PTR _full_name$1[ebp+20]
-	pop	ebx
+	pop	edi
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN59@close
+	jb	SHORT $LN121@close
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -2720,35 +3144,35 @@ $LL85@close:
 	push	DWORD PTR _full_name$1[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN59@close:
+$LN121@close:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 127  :   if (initialized)
+; 132  :   if (initialized)
 
 	cmp	BYTE PTR [esi+33], 0
-	je	SHORT $LN86@close
+	je	SHORT $LN148@close
 
-; 128  :   {
-; 129  :     initialized = false;
-; 130  :     silent      = true;
-; 131  : 
-; 132  :     LeaveCriticalSection  (&log_mutex);
+; 133  :   {
+; 134  :     initialized = false;
+; 135  :     silent      = true;
+; 136  : 
+; 137  :     LeaveCriticalSection  (&log_mutex);
 
-	push	edi
+	push	ebx
 	mov	WORD PTR [esi+32], 1
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 133  :     DeleteCriticalSection (&log_mutex);
+; 138  :     DeleteCriticalSection (&log_mutex);
 
-	push	edi
+	push	ebx
 	call	DWORD PTR __imp__DeleteCriticalSection@4
-$LN86@close:
-	pop	edi
+$LN148@close:
+	pop	ebx
 $LN2@close:
 	pop	esi
 
-; 134  :   }
-; 135  : }
+; 139  :   }
+; 140  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -2757,7 +3181,7 @@ $LN2@close:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2780,6 +3204,9 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\log.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2795,7 +3222,7 @@ _wszFileName$ = 12					; size = 4
 _wszMode$ = 16						; size = 4
 ?init@iSK_Logger@@UAG_NQB_W0@Z PROC			; iSK_Logger::init
 
-; 140  : {
+; 145  : {
 
 	npad	2
 	push	ebp
@@ -2803,23 +3230,38 @@ _wszMode$ = 16						; size = 4
 	sub	esp, 48					; 00000030H
 	push	esi
 
-; 141  :   if (initialized)
+; 146  :   if (initialized)
 
 	mov	esi, DWORD PTR _this$[ebp]
 	cmp	BYTE PTR [esi+33], 0
 	je	SHORT $LN2@init
 
-; 142  :     return true;
+; 147  :     return true;
 
 	mov	al, 1
 	pop	esi
 
-; 169  : }
+; 182  : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	12					; 0000000cH
 $LN2@init:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3092 : 		return (this->_Mysize() == 0);
+
+	cmp	DWORD PTR [esi+24], 0
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+
+; 149  :   if (name.empty ())
+
+	jne	SHORT $LN3@init
+
+; 150  :     lines = 0;
+
+	mov	DWORD PTR [esi+36], 0
+$LN3@init:
 	push	ebx
 	push	edi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -2828,22 +3270,12 @@ $LN2@init:
 
 	mov	edi, DWORD PTR _wszFileName$[ebp]
 	mov	ecx, edi
-; File c:\users\andon\source\repos\specialk\src\log.cpp
-
-; 144  :   lines = 0;
-
-	mov	DWORD PTR [esi+36], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 289  : 		return (_CSTD wcslen(_First));
-
 	lea	edx, DWORD PTR [ecx+2]
-	npad	4
-$LL143@init:
+$LL164@init:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL143@init
+	jne	SHORT $LL164@init
 	sub	ecx, edx
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2854,7 +3286,7 @@ $LL143@init:
 	push	edi
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 145  :   name  = wszFileName;
+; 152  :   name = wszFileName;
 
 	lea	ecx, DWORD PTR [esi+8]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2864,7 +3296,7 @@ $LL143@init:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 148  :     SK_GetConfigPath ();
+; 155  :     SK_GetConfigPath ();
 
 	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
 	mov	edx, eax
@@ -2893,12 +3325,12 @@ $LL143@init:
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	lea	ebx, DWORD PTR [ecx+2]
-	npad	7
-$LL144@init:
+	npad	5
+$LL165@init:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL144@init
+	jne	SHORT $LL165@init
 	sub	ecx, ebx
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2911,9 +3343,9 @@ $LL144@init:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 150  :   SK_CreateDirectories (
+; 157  :   SK_CreateDirectories (
 
-	push	OFFSET $SG143467
+	push	OFFSET $SG145434
 	lea	eax, DWORD PTR _full_name$[ebp]
 	push	eax
 	lea	eax, DWORD PTR $T1[ebp]
@@ -2928,16 +3360,16 @@ $LL144@init:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN51@init
+	jb	SHORT $LN65@init
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN51@init:
+$LN65@init:
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 150  :   SK_CreateDirectories (
+; 157  :   SK_CreateDirectories (
 
 	push	eax
 	call	?SK_CreateDirectories@@YG_NPB_W@Z	; SK_CreateDirectories
@@ -2950,7 +3382,7 @@ $LN51@init:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN61@init
+	jb	SHORT $LN75@init
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -2969,7 +3401,7 @@ $LN51@init:
 	push	DWORD PTR $T1[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN61@init:
+$LN75@init:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 289  : 		return (_CSTD wcslen(_First));
@@ -2977,11 +3409,11 @@ $LN61@init:
 	mov	ecx, edi
 	lea	edx, DWORD PTR [ecx+2]
 	npad	8
-$LL145@init:
+$LL166@init:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL145@init
+	jne	SHORT $LL166@init
 	sub	ecx, edx
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -2992,6 +3424,38 @@ $LL145@init:
 	push	edi
 	lea	ecx, DWORD PTR _full_name$[ebp]
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
+; File c:\users\andon\source\repos\specialk\src\log.cpp
+
+; 163  :   if (StrStrIW (wszFileName, L"crash\\"))
+
+	push	OFFSET $SG145436
+	push	edi
+	call	DWORD PTR __imp__StrStrIW@8
+	test	eax, eax
+	je	SHORT $LN4@init
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	mov	ecx, edi
+	lea	edx, DWORD PTR [ecx+2]
+	npad	2
+$LL167@init:
+	mov	ax, WORD PTR [ecx]
+	add	ecx, 2
+	test	ax, ax
+	jne	SHORT $LL167@init
+	sub	ecx, edx
+	sar	ecx, 1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	ecx
+	push	edi
+	lea	ecx, DWORD PTR _full_name$[ebp]
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+$LN4@init:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
@@ -3002,7 +3466,7 @@ $LL145@init:
 	lea	eax, DWORD PTR _full_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 156  :   fLog = _wfopen (full_name.c_str (), wszMode);
+; 168  :   fLog   = _wfopen (full_name.c_str (), wszMode);
 
 	push	DWORD PTR _wszMode$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -3012,52 +3476,54 @@ $LL145@init:
 	cmovae	eax, DWORD PTR _full_name$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 156  :   fLog = _wfopen (full_name.c_str (), wszMode);
+; 168  :   fLog   = _wfopen (full_name.c_str (), wszMode);
 
 	push	eax
 	call	DWORD PTR __imp___wfopen
 	add	esp, 8
 	mov	DWORD PTR [esi+4], eax
 
-; 157  : 
-; 158  :   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 250000);
+; 169  :   silent = false;
+; 170  : 
+; 171  :   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 250000);
 
 	lea	eax, DWORD PTR [esi+40]
+	mov	BYTE PTR [esi+32], 0
 	push	250000					; 0003d090H
 	push	eax
 	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 
-; 159  :    lockless = true;
+; 172  :    lockless = true;
 
 	mov	BYTE PTR [esi+76], 1
 
-; 160  : 
-; 161  :   if ((! bRet) || (fLog == nullptr))
+; 173  : 
+; 174  :   if ((! bRet) || (fLog == nullptr))
 
 	test	eax, eax
-	je	SHORT $LN4@init
+	je	SHORT $LN6@init
 	cmp	DWORD PTR [esi+4], 0
-	je	SHORT $LN4@init
+	je	SHORT $LN6@init
 
-; 164  :     return false;
-; 165  :   }
-; 166  : 
-; 167  :   initialized = true;
+; 177  :     return false;
+; 178  :   }
+; 179  : 
+; 180  :   initialized = true;
 
 	mov	BYTE PTR [esi+33], 1
 
-; 168  :   return initialized;
+; 181  :   return initialized;
 
 	mov	bl, 1
-	jmp	SHORT $LN6@init
-$LN4@init:
+	jmp	SHORT $LN8@init
+$LN6@init:
 
-; 162  :   {
-; 163  :     silent = true;
+; 175  :   {
+; 176  :     silent = true;
 
 	mov	BYTE PTR [esi+32], 1
 	xor	bl, bl
-$LN6@init:
+$LN8@init:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -3067,7 +3533,7 @@ $LN6@init:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN117@init
+	jb	SHORT $LN138@init
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -3086,17 +3552,17 @@ $LN6@init:
 	push	DWORD PTR _full_name$[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN117@init:
+$LN138@init:
 	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 168  :   return initialized;
+; 181  :   return initialized;
 
 	mov	al, bl
 	pop	ebx
 	pop	esi
 
-; 169  : }
+; 182  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -3111,7 +3577,7 @@ _TEXT	SEGMENT
 _this$ = 8						; size = 4
 ?Release@iSK_Logger@@UAGKXZ PROC			; iSK_Logger::Release
 
-; 294  : {
+; 307  : {
 
 	npad	2
 	push	ebp
@@ -3126,7 +3592,7 @@ _this$ = 8						; size = 4
 	dec	eax
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 296  : }
+; 309  : }
 
 	pop	ebp
 	ret	4
@@ -3140,7 +3606,7 @@ _TEXT	SEGMENT
 _this$ = 8						; size = 4
 ?AddRef@iSK_Logger@@UAGKXZ PROC				; iSK_Logger::AddRef
 
-; 288  : {
+; 301  : {
 
 	npad	2
 	push	ebp
@@ -3155,7 +3621,7 @@ _this$ = 8						; size = 4
 	inc	eax
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 290  : }
+; 303  : }
 
 	pop	ebp
 	ret	4
@@ -3171,7 +3637,7 @@ _riid$ = 12						; size = 4
 _ppvObj$ = 16						; size = 4
 ?QueryInterface@iSK_Logger@@UAGJABU_GUID@@PAPAX@Z PROC	; iSK_Logger::QueryInterface
 
-; 275  : {
+; 288  : {
 
 	npad	2
 	push	ebp
@@ -3194,37 +3660,37 @@ $LL7@QueryInter:
 	jae	SHORT $LL7@QueryInter
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
-; 278  :     AddRef ();
+; 291  :     AddRef ();
 
 	mov	esi, DWORD PTR _this$[ebp]
 	push	esi
 	mov	eax, DWORD PTR [esi]
 	call	DWORD PTR [eax+4]
 
-; 279  :     *ppvObj = this;
+; 292  :     *ppvObj = this;
 
 	mov	eax, DWORD PTR _ppvObj$[ebp]
 	mov	DWORD PTR [eax], esi
 
-; 280  :     return S_OK;
+; 293  :     return S_OK;
 
 	xor	eax, eax
 	pop	esi
 
-; 284  : }
+; 297  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN2@QueryInter:
 
-; 281  :   }
-; 282  : 
-; 283  :   return E_NOTIMPL;
+; 294  :   }
+; 295  : 
+; 296  :   return E_NOTIMPL;
 
 	mov	eax, -2147467263			; 80004001H
 	pop	esi
 
-; 284  : }
+; 297  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -4173,6 +4639,24 @@ __Size$ = 12						; size = 4
 	pop	ebp
 	ret	8
 ?_Clamp_suffix_size@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBEIII@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Clamp_suffix_size
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?empty@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NXZ
+_TEXT	SEGMENT
+?empty@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NXZ PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::empty, COMDAT
+; _this$ = ecx
+
+; 3091 : 		{	// test if sequence is empty
+
+	cmp	DWORD PTR [ecx+16], 0
+	sete	al
+
+; 3092 : 		return (this->_Mysize() == 0);
+; 3093 : 		}
+
+	ret	0
+?empty@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NXZ ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::empty
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6350,6 +6834,62 @@ $LL8@operator:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@ABV01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@ABV01@@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=, COMDAT
+; _this$ = ecx
+
+; 2222 : 		{	// assign _Right
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 2223 : 		if (this != _STD addressof(_Right))
+
+	mov	eax, DWORD PTR __Right$[ebp]
+	push	esi
+	mov	esi, ecx
+	cmp	esi, eax
+	je	SHORT $LN43@operator
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+	push	0
+	push	eax
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+$LN43@operator:
+
+; 2224 : 			{	// different, assign it
+; 2225 : #pragma warning(push)
+; 2226 : #pragma warning(disable: 4127)	// conditional expression is constant
+; 2227 : 			if (_Alty::propagate_on_container_copy_assignment::value
+; 2228 : 				&& this->_Getal() != _Right._Getal())
+; 2229 : 				{	// change allocator before copying
+; 2230 : 				_Tidy_deallocate();
+; 2231 : 				}
+; 2232 : #pragma warning(pop)
+; 2233 : 
+; 2234 : 			this->_Copy_alloc(_Right._Getal());
+; 2235 : 
+; 2236 : 			_Assign_lv_contents(_Right);
+; 2237 : 			}
+; 2238 : 
+; 2239 : 		return (*this);
+
+	mov	eax, esi
+	pop	esi
+
+; 2240 : 		}
+
+	pop	ebp
+	ret	4
+??4?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV01@ABV01@@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::operator=
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -6423,6 +6963,34 @@ $LN4@basic_stri:
 
 	ret	0
 ??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Assign_lv_contents@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXABV12@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+?_Assign_lv_contents@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXABV12@@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Assign_lv_contents, COMDAT
+; _this$ = ecx
+
+; 2172 : 		{	// assign by copying the data stored in _Right
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 2173 : 			// pre: *this is in a valid but unspecified state
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+	push	0
+	push	DWORD PTR __Right$[ebp]
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+
+; 2175 : 		}
+
+	pop	ebp
+	ret	4
+?_Assign_lv_contents@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEXABV12@@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Assign_lv_contents
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -6687,6 +7255,66 @@ _TEXT	SEGMENT
 ??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@ABV01@@Z
+_TEXT	SEGMENT
+__Right$ = 8						; size = 4
+??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@ABV01@@Z PROC ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >, COMDAT
+; _this$ = ecx
+
+; 1925 : 		{	// construct by copying _Right
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+	push	esi
+	mov	esi, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	push	-1
+	push	eax
+	push	DWORD PTR __Right$[ebp]
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR [esi+16], 0
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR [esi+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR [esi], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2174 : 		assign(_Right, 0, npos);
+
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+
+; 1926 : 		_Tidy_init();
+; 1927 : 		_Assign_lv_contents(_Right);
+; 1928 : 		}
+
+	mov	eax, esi
+	pop	esi
+	pop	ebp
+	ret	4
+??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@ABV01@@Z ENDP ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
 ;	COMDAT ??1?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@XZ
 _TEXT	SEGMENT
 ??1?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAE@XZ PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::~_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >, COMDAT
@@ -6890,6 +7518,20 @@ _TEXT	SEGMENT
 
 	ret	0
 ?_Orphan_all@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXXZ ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Orphan_all
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+;	COMDAT ?_Copy_alloc@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@@Z
+_TEXT	SEGMENT
+__Al$ = 8						; size = 4
+?_Copy_alloc@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@@Z PROC ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Copy_alloc, COMDAT
+; _this$ = ecx
+
+; 1709 : 		_Pocca(_Getal(), _Al);
+; 1710 : 		}
+
+	ret	4
+?_Copy_alloc@?$_String_alloc@U?$_String_base_types@_WV?$allocator@_W@std@@@std@@@std@@QAEXABU?$_Wrap_alloc@V?$allocator@_W@std@@@2@@Z ENDP ; std::_String_alloc<std::_String_base_types<wchar_t,std::allocator<wchar_t> > >::_Copy_alloc
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7215,6 +7857,55 @@ _TEXT	SEGMENT
 	mov	eax, ecx
 	ret	0
 ??0?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAE@XZ ENDP	; std::_Wrap_alloc<std::allocator<wchar_t> >::_Wrap_alloc<std::allocator<wchar_t> >
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBE?AU12@U_Nil@2@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+___formal$ = 12						; size = 1
+?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBE?AU12@U_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<wchar_t> >::select_on_container_copy_construction, COMDAT
+; _this$ = ecx
+
+; 1013 : 		{	// get allocator to use
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 1014 : 		return (_Mytraits::select_on_container_copy_construction(*this));
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 1015 : 		}
+
+	pop	ebp
+	ret	8
+?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QBE?AU12@U_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<wchar_t> >::select_on_container_copy_construction
+_TEXT	ENDS
+; Function compile flags: /Ogtp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+;	COMDAT ?select_on_container_copy_construction@?$allocator_traits@V?$allocator@_W@std@@@std@@SA?AV?$allocator@_W@2@ABV32@@Z
+_TEXT	SEGMENT
+___$ReturnUdt$ = 8					; size = 4
+__Al$ = 12						; size = 4
+?select_on_container_copy_construction@?$allocator_traits@V?$allocator@_W@std@@@std@@SA?AV?$allocator@_W@2@ABV32@@Z PROC ; std::allocator_traits<std::allocator<wchar_t> >::select_on_container_copy_construction, COMDAT
+
+; 975  : 		{	// get allocator to use
+
+	npad	2
+	push	ebp
+	mov	ebp, esp
+
+; 976  : 		return (_Al);
+
+	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+
+; 977  : 		}
+
+	pop	ebp
+	ret	0
+?select_on_container_copy_construction@?$allocator_traits@V?$allocator@_W@std@@@std@@SA?AV?$allocator@_W@2@ABV32@@Z ENDP ; std::allocator_traits<std::allocator<wchar_t> >::select_on_container_copy_construction
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0

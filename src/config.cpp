@@ -1088,6 +1088,7 @@ struct param_decl_s {
   games.emplace ( L"WOFF.exe",                               SK_GAME_ID::WorldOfFinalFantasy          );
   games.emplace ( L"StarOceanTheLastHope.exe",               SK_GAME_ID::StarOcean4                   );
   games.emplace ( L"LEGOMARVEL2_DX11.exe",                   SK_GAME_ID::LEGOMarvelSuperheroes2       );
+  games.emplace ( L"okami.exe",                              SK_GAME_ID::Okami                        );
 
   //
   // Application Compatibility Overrides

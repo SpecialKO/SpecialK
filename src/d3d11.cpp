@@ -629,6 +629,10 @@ SK_D3D11_RemoveUndesirableFlags (UINT& Flags)
   return original;
 }
 
+#include <SpecialK/import.h>
+
+volatile LONG __dxgi_plugins_loaded = FALSE;
+
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -645,6 +649,26 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
+  //extern volatile LONG  __dxgi_ready;
+  //if (! ReadAcquire (&__dxgi_ready))
+  {
+    if (! InterlockedCompareExchange (&__dxgi_plugins_loaded, 1, 0))
+    {
+      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+      {
+        // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+        SK_LoadPlugIns64 ();
+#else
+        SK_LoadPlugIns32 ();
+#endif
+      }
+
+      return D3D11CreateDeviceAndSwapChain_Detour (pAdapter, DriverType, Software, Flags, pFeatureLevels,
+                                                   FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+    }
+  }
+
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_11_1;
   ID3D11Device*     ret_device = nullptr;
@@ -839,6 +863,27 @@ D3D11CreateDevice_Detour (
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
 {
   DXGI_LOG_CALL_1 (L"D3D11CreateDevice            ", L"Flags=0x%x", Flags);
+
+  extern volatile LONG  __dxgi_ready;
+  if (! ReadAcquire (&__dxgi_ready))
+  {
+    if (! InterlockedCompareExchange (&__dxgi_plugins_loaded, 1, 0))
+    {
+      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+      {
+        // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+        SK_LoadPlugIns64 ();
+#else
+        SK_LoadPlugIns32 ();
+#endif
+      }
+
+      return D3D11CreateDeviceAndSwapChain_Detour (pAdapter, DriverType, Software, Flags, pFeatureLevels,
+                                                   FeatureLevels, SDKVersion, nullptr, nullptr, ppDevice, pFeatureLevel, ppImmediateContext);
+    }
+  }
+
 
   // Ansel is the purest form of evil known to man
   if (! ReadAcquire (&__d3d11_ready))
@@ -10923,11 +10968,11 @@ SK_D3D11_ClearShaderState (void)
 };
 
 void
-SK_D3D11_LoadShaderState (bool clear = true)
+SK_D3D11_LoadShaderStateEx (std::wstring name, bool clear)
 {
   auto wszShaderConfigFile =
-    SK_FormatStringW ( LR"(%s\d3d11_shaders.ini)",
-                         SK_GetConfigPath () );
+    SK_FormatStringW ( LR"(%s\%s)",
+                         SK_GetConfigPath (), name.c_str () );
 
   if (GetFileAttributesW (wszShaderConfigFile.c_str ()) == INVALID_FILE_ATTRIBUTES)
   {
@@ -11075,6 +11120,169 @@ SK_D3D11_LoadShaderState (bool clear = true)
         it.second.begin (),
           it.second.end ()
       );
+    }
+  }
+
+  SK_D3D11_EnableTracking = true;
+}
+
+void
+SK_D3D11_LoadShaderState (bool clear = true)
+{
+  SK_D3D11_LoadShaderStateEx (L"d3d11_shaders.ini", clear);
+}
+
+void
+SK_D3D11_UnloadShaderState (std::wstring name)
+{
+  auto wszShaderConfigFile =
+    SK_FormatStringW ( LR"(%s\%s)",
+                         SK_GetConfigPath (), name.c_str () );
+
+  if (GetFileAttributesW (wszShaderConfigFile.c_str ()) == INVALID_FILE_ATTRIBUTES)
+  {
+    // No shader config file, nothing to do here...
+    return;
+  }
+
+  std::unique_ptr <iSK_INI> d3d11_shaders_ini (
+    SK_CreateINI (wszShaderConfigFile.c_str ())
+  );
+
+  int shader_class = 0;
+
+  iSK_INI::_TSectionMap& sections =
+    d3d11_shaders_ini->get_sections ();
+
+  auto sec =
+    sections.begin ();
+
+  struct draw_state_s {
+    std::set <uint32_t>                       wireframe;
+    std::set <uint32_t>                       on_top;
+    std::set <uint32_t>                       disable;
+    std::map <uint32_t, std::set <uint32_t> > disable_if_texture;
+    std::set <uint32_t>                       trigger_reshade_before;
+    std::set <uint32_t>                       trigger_reshade_after;
+  } draw_states [7];
+
+  auto shader_class_idx = [](std::wstring name)
+  {
+         if (name == L"Vertex")   return 0;
+    else if (name == L"Pixel")    return 1;
+    else if (name == L"Geometry") return 2;
+    else if (name == L"Hull")     return 3;
+    else if (name == L"Domain")   return 4;
+    else if (name == L"Compute")  return 5;
+    else                          return 6;
+  };
+
+  while (sec != sections.end ())
+  {
+    if (std::wcsstr ((*sec).first.c_str (), L"DrawState."))
+    {
+      wchar_t wszClass [32] = { };
+
+      _snwscanf ((*sec).first.c_str (), 31, L"DrawState.%s", wszClass);
+
+      shader_class =
+        shader_class_idx (wszClass);
+
+      for ( auto it : (*sec).second.keys )
+      {
+        int                                 shader = 0;
+        swscanf (it.first.c_str (), L"%x", &shader);
+
+        wchar_t* wszState =
+          _wcsdup (it.second.c_str ());
+
+        wchar_t* wszBuf = nullptr;
+        wchar_t* wszTok =
+          std::wcstok (wszState, L",", &wszBuf);
+
+        while (wszTok)
+        {
+          if (! _wcsicmp (wszTok, L"Wireframe"))
+            draw_states [shader_class].wireframe.emplace (shader);
+          else if (! _wcsicmp (wszTok, L"OnTop"))
+            draw_states [shader_class].on_top.emplace (shader);
+          else if (! _wcsicmp (wszTok, L"Disable"))
+            draw_states [shader_class].disable.emplace (shader);
+          else if (! _wcsicmp (wszTok, L"TriggerReShade"))
+          {
+            draw_states [shader_class].trigger_reshade_before.emplace (shader);
+          }
+          else if (! _wcsicmp (wszTok, L"TriggerReShadeAfter"))
+          {
+            draw_states [shader_class].trigger_reshade_after.emplace (shader);
+          }
+          else if ( StrStrIW (wszTok, L"DisableIfTexture=") == wszTok &&
+                 std::wcslen (wszTok) >
+                         std::wcslen (L"DisableIfTexture=") ) // Skip the degenerate case
+          {
+            uint32_t                                  crc32c;
+            swscanf (wszTok, L"DisableIfTexture=%x", &crc32c);
+
+            draw_states [shader_class].disable_if_texture [shader].emplace (crc32c);
+          }
+
+          wszTok =
+            std::wcstok (nullptr, L",", &wszBuf);
+        }
+      }
+    }
+
+    ++sec;
+  }
+
+  for (int i = 0; i < 6; i++)
+  {
+    auto shader_record =
+      [&]
+      {
+        switch (i)
+        {
+          default:
+          case 0:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.vertex;
+          case 1:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.pixel;
+          case 2:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.geometry;
+          case 3:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.hull;
+          case 4:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.domain;
+          case 5:
+            return (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.compute;
+        }
+      };
+
+    for (auto it : draw_states [i].disable)
+      shader_record ()->blacklist.erase (it);
+
+    for (auto it : draw_states [i].wireframe)
+      shader_record ()->wireframe.erase (it);
+
+    for (auto it : draw_states [i].on_top)
+      shader_record ()->on_top.erase (it);
+
+    for (auto it : draw_states [i].trigger_reshade_before)
+    {
+      shader_record ()->trigger_reshade.before.erase (it);
+    }
+
+    for (auto it : draw_states [i].trigger_reshade_after)
+    {
+      shader_record ()->trigger_reshade.after.erase (it);
+    }
+
+    for ( auto it : draw_states [i].disable_if_texture )
+    {
+      for (auto it2 : it.second)
+      {
+        shader_record ()->blacklist_if_texture [it.first].erase (it2);
+      }
     }
   }
 
@@ -14145,6 +14353,8 @@ static const
       std::make_pair (L"CS",       (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.compute)
     };
 
+static std::unordered_set <std::wstring> loaded_configs;
+
 struct SK_D3D11_CommandBase
 {
   struct ShaderMods
@@ -14154,7 +14364,19 @@ struct SK_D3D11_CommandBase
     public:
       SK_ICommandResult execute (const char* szArgs) override 
       {
-        SK_D3D11_LoadShaderState (true);
+        if (strlen (szArgs) > 0)
+        {
+          std::wstring args =
+            SK_UTF8ToWideChar (szArgs);
+
+          SK_D3D11_LoadShaderStateEx (args, false);
+
+          if (loaded_configs.count (args))
+            loaded_configs.emplace (args);
+        }
+
+        else
+          SK_D3D11_LoadShaderState (true);
 
         return SK_ICommandResult ("D3D11.ShaderMods.Load", szArgs, "done", 1, nullptr, this);
       }
@@ -14162,6 +14384,56 @@ struct SK_D3D11_CommandBase
       const char* getHelp       (void)               override
       {
         return "(Re)Load d3d11_shaders.ini";
+      }
+    };
+
+    class Unload : public SK_ICommand
+    {
+    public:
+      SK_ICommandResult execute (const char* szArgs) override 
+      {
+        std::wstring args =
+          SK_UTF8ToWideChar (szArgs);
+
+        SK_D3D11_UnloadShaderState (args);
+
+        if (loaded_configs.count (args))
+          loaded_configs.erase (args);
+
+        return SK_ICommandResult ("D3D11.ShaderMods.Unload", szArgs, "done", 1, nullptr, this);
+      }
+
+      const char* getHelp       (void)               override
+      {
+        return "Unload <shader.ini>";
+      }
+    };
+
+    class ToggleConfig : public SK_ICommand
+    {
+    public:
+      SK_ICommandResult execute (const char* szArgs) override 
+      {
+        std::wstring args =
+          SK_UTF8ToWideChar (szArgs);
+
+        if (loaded_configs.count (args))
+        {
+          loaded_configs.erase (args);
+          SK_D3D11_UnloadShaderState (args);
+        }
+        else
+        {
+          loaded_configs.emplace (args);
+          SK_D3D11_LoadShaderStateEx (args, false);
+        }
+
+        return SK_ICommandResult ("D3D11.ShaderMods.ToggleConfig", szArgs, "done", 1, nullptr, this);
+      }
+
+      const char* getHelp       (void)               override
+      {
+        return "Load or Unload <shader.ini>";
       }
     };
 
@@ -14403,12 +14675,14 @@ struct SK_D3D11_CommandBase
 
   SK_D3D11_CommandBase (void)
   {
-    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Load",   new ShaderMods::Load   ());
-    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Store",  new ShaderMods::Store  ());
-    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Clear",  new ShaderMods::Clear  ());
-    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Set",    new ShaderMods::Set    ());
-    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Unset",  new ShaderMods::Unset  ());
-    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Toggle", new ShaderMods::Toggle ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Load",         new ShaderMods::Load         ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Unload",       new ShaderMods::Unload       ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.ToggleConfig", new ShaderMods::ToggleConfig ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Store",        new ShaderMods::Store        ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Clear",        new ShaderMods::Clear        ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Set",          new ShaderMods::Set          ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Unset",        new ShaderMods::Unset        ());
+    SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Toggle",       new ShaderMods::Toggle       ());
   }
 } SK_D3D11_Commands;
 

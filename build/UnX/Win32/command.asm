@@ -13,51 +13,51 @@ _BSS	SEGMENT
 ?cs_process_cmd@@3U_RTL_CRITICAL_SECTION@@A DB 018H DUP (?) ; cs_process_cmd
 _BSS	ENDS
 CONST	SEGMENT
-$SG135483 DB	00H
-$SG135545 DB	00H
-$SG135546 DB	00H
-$SG135547 DB	00H
-$SG135493 DB	'false', 00H
-$SG135593 DB	00H
-$SG135594 DB	00H
-$SG135494 DB	'0', 00H
+$SG135486 DB	00H
+$SG135548 DB	00H
+$SG135549 DB	00H
+$SG135550 DB	00H
+$SG135496 DB	'false', 00H
+$SG135596 DB	00H
+$SG135597 DB	00H
+$SG135497 DB	'0', 00H
 	ORG $+2
-$SG135495 DB	'off', 00H
-$SG135499 DB	'true', 00H
+$SG135498 DB	'off', 00H
+$SG135502 DB	'true', 00H
 	ORG $+3
-$SG135500 DB	'1', 00H
+$SG135503 DB	'1', 00H
 	ORG $+2
-$SG135501 DB	'on', 00H
+$SG135504 DB	'on', 00H
 	ORG $+1
-$SG135505 DB	'toggle', 00H
+$SG135508 DB	'toggle', 00H
 	ORG $+1
-$SG135506 DB	'~', 00H
+$SG135509 DB	'~', 00H
 	ORG $+2
-$SG135507 DB	'!', 00H
+$SG135510 DB	'!', 00H
 	ORG $+2
-$SG135514 DB	'++', 00H
+$SG135517 DB	'++', 00H
 	ORG $+1
-$SG135515 DB	'inc', 00H
-$SG135516 DB	'next', 00H
+$SG135518 DB	'inc', 00H
+$SG135519 DB	'next', 00H
 	ORG $+3
-$SG135520 DB	'--', 00H
+$SG135523 DB	'--', 00H
 	ORG $+1
-$SG135521 DB	'dec', 00H
-$SG135522 DB	'prev', 00H
+$SG135524 DB	'dec', 00H
+$SG135525 DB	'prev', 00H
 	ORG $+3
-$SG135529 DB	'++', 00H
+$SG135532 DB	'++', 00H
 	ORG $+1
-$SG135530 DB	'inc', 00H
-$SG135531 DB	'next', 00H
+$SG135533 DB	'inc', 00H
+$SG135534 DB	'next', 00H
 	ORG $+3
-$SG135535 DB	'--', 00H
+$SG135538 DB	'--', 00H
 	ORG $+1
-$SG135536 DB	'dec', 00H
-$SG135537 DB	'prev', 00H
+$SG135539 DB	'dec', 00H
+$SG135540 DB	'prev', 00H
 	ORG $+3
-$SG133521 DB	'source', 00H
+$SG133524 DB	'source', 00H
 	ORG $+1
-$SG135595 DB	'OUT OF MEMORY', 00H
+$SG135598 DB	'OUT OF MEMORY', 00H
 CONST	ENDS
 PUBLIC	??2@YAPAXIPAX@Z					; operator new
 PUBLIC	?compare@?$char_traits@D@std@@SAHQBD0I@Z	; std::char_traits<char>::compare
@@ -11916,30 +11916,30 @@ _TEXT	SEGMENT
 ?Leave@SK_AutoCriticalSection@@IAEXXZ PROC		; SK_AutoCriticalSection::Leave, COMDAT
 ; _this$ = ecx
 
-; 338  :   {
+; 339  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 339  :     if (acquired_ != false)
+; 340  :     if (acquired_ != false)
 
 	cmp	BYTE PTR [esi], 0
 	je	SHORT $LN4@Leave
 
-; 340  :       LeaveCriticalSection (cs_);
+; 341  :       LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 $LN4@Leave:
 
-; 341  : 
-; 342  :     acquired_ = false;
+; 342  : 
+; 343  :     acquired_ = false;
 
 	mov	BYTE PTR [esi], 0
 	pop	esi
 
-; 343  :   }
+; 344  :   }
 
 	ret	0
 ?Leave@SK_AutoCriticalSection@@IAEXXZ ENDP		; SK_AutoCriticalSection::Leave
@@ -11951,24 +11951,24 @@ _TEXT	SEGMENT
 ?Enter@SK_AutoCriticalSection@@IAEXXZ PROC		; SK_AutoCriticalSection::Enter, COMDAT
 ; _this$ = ecx
 
-; 331  :   {
+; 332  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 332  :     EnterCriticalSection (cs_);
+; 333  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 333  : 
-; 334  :     acquired_ = true;
+; 334  : 
+; 335  :     acquired_ = true;
 
 	mov	BYTE PTR [esi], 1
 	pop	esi
 
-; 335  :   }
+; 336  :   }
 
 	ret	0
 ?Enter@SK_AutoCriticalSection@@IAEXXZ ENDP		; SK_AutoCriticalSection::Enter
@@ -11980,13 +11980,13 @@ _TEXT	SEGMENT
 ?TryEnter@SK_AutoCriticalSection@@IAE_NXZ PROC		; SK_AutoCriticalSection::TryEnter, COMDAT
 ; _this$ = ecx
 
-; 326  :   {
+; 327  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 327  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
+; 328  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
 
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__TryEnterCriticalSection@4
@@ -11996,7 +11996,7 @@ _TEXT	SEGMENT
 	mov	BYTE PTR [esi], al
 	pop	esi
 
-; 328  :   }
+; 329  :   }
 
 	ret	0
 ?TryEnter@SK_AutoCriticalSection@@IAE_NXZ ENDP		; SK_AutoCriticalSection::TryEnter
@@ -12008,31 +12008,31 @@ _TEXT	SEGMENT
 ??1SK_AutoCriticalSection@@QAE@XZ PROC			; SK_AutoCriticalSection::~SK_AutoCriticalSection, COMDAT
 ; _this$ = ecx
 
-; 308  :   {
+; 309  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 339  :     if (acquired_ != false)
+; 340  :     if (acquired_ != false)
 
 	cmp	BYTE PTR [esi], 0
 	je	SHORT $LN6@SK_AutoCri
 
-; 340  :       LeaveCriticalSection (cs_);
+; 341  :       LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 $LN6@SK_AutoCri:
 
-; 341  : 
-; 342  :     acquired_ = false;
+; 342  : 
+; 343  :     acquired_ = false;
 
 	mov	BYTE PTR [esi], 0
 	pop	esi
 
-; 309  :     Leave ();
-; 310  :   }
+; 310  :     Leave ();
+; 311  :   }
 
 	ret	0
 ??1SK_AutoCriticalSection@@QAE@XZ ENDP			; SK_AutoCriticalSection::~SK_AutoCriticalSection
@@ -12046,51 +12046,51 @@ _try_only$ = 12						; size = 1
 ??0SK_AutoCriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@_N@Z PROC ; SK_AutoCriticalSection::SK_AutoCriticalSection, COMDAT
 ; _this$ = ecx
 
-; 294  :   SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
+; 295  :   SK_AutoCriticalSection ( CRITICAL_SECTION* pCS,
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 299  : 
-; 300  :     if (try_only)
+; 300  : 
+; 301  :     if (try_only)
 
 	cmp	BYTE PTR _try_only$[ebp], 0
 	mov	eax, DWORD PTR _pCS$[ebp]
 	push	esi
 	mov	esi, ecx
 
-; 327  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
+; 328  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
 
 	push	eax
 
-; 295  :                            bool              try_only = false )
-; 296  :   {
-; 297  :     acquired_ = false;
+; 296  :                            bool              try_only = false )
+; 297  :   {
+; 298  :     acquired_ = false;
 
 	mov	BYTE PTR [esi], 0
 
-; 298  :     cs_       = pCS;
+; 299  :     cs_       = pCS;
 
 	mov	DWORD PTR [esi+4], eax
 
-; 299  : 
-; 300  :     if (try_only)
+; 300  : 
+; 301  :     if (try_only)
 
 	je	SHORT $LN2@SK_AutoCri
 
-; 327  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
+; 328  :     return (acquired_ = (TryEnterCriticalSection (cs_) != FALSE));
 
 	call	DWORD PTR __imp__TryEnterCriticalSection@4
 	test	eax, eax
 	setne	al
 	mov	BYTE PTR [esi], al
 
-; 301  :       TryEnter ();
-; 302  :     else {
-; 303  :       Enter ();
-; 304  :     }
-; 305  :   }
+; 302  :       TryEnter ();
+; 303  :     else {
+; 304  :       Enter ();
+; 305  :     }
+; 306  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -12098,20 +12098,20 @@ _try_only$ = 12						; size = 1
 	ret	8
 $LN2@SK_AutoCri:
 
-; 332  :     EnterCriticalSection (cs_);
+; 333  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 333  : 
-; 334  :     acquired_ = true;
+; 334  : 
+; 335  :     acquired_ = true;
 
 	mov	BYTE PTR [esi], 1
 
-; 301  :       TryEnter ();
-; 302  :     else {
-; 303  :       Enter ();
-; 304  :     }
-; 305  :   }
+; 302  :       TryEnter ();
+; 303  :     else {
+; 304  :       Enter ();
+; 305  :     }
+; 306  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -26258,9 +26258,9 @@ $LN2@ProcessCom:
 	push	0
 	push	0
 	push	0
-	push	OFFSET $SG135593
-	push	OFFSET $SG135594
-	push	OFFSET $SG135595
+	push	OFFSET $SG135596
+	push	OFFSET $SG135597
+	push	OFFSET $SG135598
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	edi
@@ -26475,7 +26475,7 @@ _bool_val$11 = 15					; size = 1
 	push	esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 332  :     EnterCriticalSection (cs_);
+; 333  :     EnterCriticalSection (cs_);
 
 	push	OFFSET ?cs_process_cmd@@3U_RTL_CRITICAL_SECTION@@A
 ; File c:\users\andon\source\repos\specialk\src\command.cpp
@@ -26486,16 +26486,16 @@ _bool_val$11 = 15					; size = 1
 	mov	DWORD PTR $T3[ebp], 0
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 298  :     cs_       = pCS;
+; 299  :     cs_       = pCS;
 
 	mov	DWORD PTR _auto_cs$[ebp+4], OFFSET ?cs_process_cmd@@3U_RTL_CRITICAL_SECTION@@A
 
-; 332  :     EnterCriticalSection (cs_);
+; 333  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 333  : 
-; 334  :     acquired_ = true;
+; 334  : 
+; 335  :     acquired_ = true;
 
 	mov	BYTE PTR _auto_cs$[ebp], 1
 ; File c:\users\andon\source\repos\specialk\src\command.cpp
@@ -26695,7 +26695,7 @@ $LL972@ProcessCom:
 
 	test	edi, edi
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
-	mov	edx, OFFSET $SG135483
+	mov	edx, OFFSET $SG135486
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -26884,7 +26884,7 @@ $LN13@ProcessCom:
 
 ; 324  :           if (! (_stricmp (cmd_args.c_str (), "false") && _stricmp (cmd_args.c_str (), "0") &&
 
-	push	OFFSET $SG135493
+	push	OFFSET $SG135496
 	push	eax
 	mov	BYTE PTR _bool_val$11[ebp], 0
 	call	edi
@@ -26904,7 +26904,7 @@ $LN13@ProcessCom:
 
 ; 324  :           if (! (_stricmp (cmd_args.c_str (), "false") && _stricmp (cmd_args.c_str (), "0") &&
 
-	push	OFFSET $SG135494
+	push	OFFSET $SG135497
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -26932,7 +26932,7 @@ $LN13@ProcessCom:
 
 ; 324  :           if (! (_stricmp (cmd_args.c_str (), "false") && _stricmp (cmd_args.c_str (), "0") &&
 
-	push	OFFSET $SG135495
+	push	OFFSET $SG135498
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -26960,7 +26960,7 @@ $LN13@ProcessCom:
 
 ; 332  :           else if (! (_stricmp (cmd_args.c_str (), "true") && _stricmp (cmd_args.c_str (), "1") &&
 
-	push	OFFSET $SG135499
+	push	OFFSET $SG135502
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -26988,7 +26988,7 @@ $LN13@ProcessCom:
 
 ; 332  :           else if (! (_stricmp (cmd_args.c_str (), "true") && _stricmp (cmd_args.c_str (), "1") &&
 
-	push	OFFSET $SG135500
+	push	OFFSET $SG135503
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27016,7 +27016,7 @@ $LN13@ProcessCom:
 
 ; 332  :           else if (! (_stricmp (cmd_args.c_str (), "true") && _stricmp (cmd_args.c_str (), "1") &&
 
-	push	OFFSET $SG135501
+	push	OFFSET $SG135504
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27044,7 +27044,7 @@ $LN13@ProcessCom:
 
 ; 340  :           else if (! (_stricmp (cmd_args.c_str (), "toggle") && _stricmp (cmd_args.c_str (), "~") &&
 
-	push	OFFSET $SG135505
+	push	OFFSET $SG135508
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27072,7 +27072,7 @@ $LN13@ProcessCom:
 
 ; 340  :           else if (! (_stricmp (cmd_args.c_str (), "toggle") && _stricmp (cmd_args.c_str (), "~") &&
 
-	push	OFFSET $SG135506
+	push	OFFSET $SG135509
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27100,7 +27100,7 @@ $LN13@ProcessCom:
 
 ; 340  :           else if (! (_stricmp (cmd_args.c_str (), "toggle") && _stricmp (cmd_args.c_str (), "~") &&
 
-	push	OFFSET $SG135507
+	push	OFFSET $SG135510
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27225,7 +27225,7 @@ $LN16@ProcessCom:
 ; 362  :           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
 
 	mov	edi, DWORD PTR __imp___stricmp
-	push	OFFSET $SG135514
+	push	OFFSET $SG135517
 	mov	ebx, DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -27256,7 +27256,7 @@ $LN16@ProcessCom:
 
 ; 362  :           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
 
-	push	OFFSET $SG135515
+	push	OFFSET $SG135518
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27284,7 +27284,7 @@ $LN16@ProcessCom:
 
 ; 362  :           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
 
-	push	OFFSET $SG135516
+	push	OFFSET $SG135519
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27312,7 +27312,7 @@ $LN16@ProcessCom:
 
 ; 366  :           } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
 
-	push	OFFSET $SG135520
+	push	OFFSET $SG135523
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27340,7 +27340,7 @@ $LN16@ProcessCom:
 
 ; 366  :           } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
 
-	push	OFFSET $SG135521
+	push	OFFSET $SG135524
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27368,7 +27368,7 @@ $LN16@ProcessCom:
 
 ; 366  :           } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
 
-	push	OFFSET $SG135522
+	push	OFFSET $SG135525
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27490,7 +27490,7 @@ $LN28@ProcessCom:
 ; 385  :           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
 
 	mov	edi, DWORD PTR __imp___stricmp
-	push	OFFSET $SG135529
+	push	OFFSET $SG135532
 	movzx	ebx, WORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -27521,7 +27521,7 @@ $LN28@ProcessCom:
 
 ; 385  :           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
 
-	push	OFFSET $SG135530
+	push	OFFSET $SG135533
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27549,7 +27549,7 @@ $LN28@ProcessCom:
 
 ; 385  :           if (! (_stricmp (cmd_args.c_str (), "++") && _stricmp (cmd_args.c_str (), "inc") &&
 
-	push	OFFSET $SG135531
+	push	OFFSET $SG135534
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27577,7 +27577,7 @@ $LN28@ProcessCom:
 
 ; 389  :           } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
 
-	push	OFFSET $SG135535
+	push	OFFSET $SG135538
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27605,7 +27605,7 @@ $LN28@ProcessCom:
 
 ; 389  :           } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
 
-	push	OFFSET $SG135536
+	push	OFFSET $SG135539
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27633,7 +27633,7 @@ $LN28@ProcessCom:
 
 ; 389  :           } else if (! (_stricmp (cmd_args.c_str (), "--") && _stricmp (cmd_args.c_str (), "dec") &&
 
-	push	OFFSET $SG135537
+	push	OFFSET $SG135540
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -27995,7 +27995,7 @@ $LN14@ProcessCom:
 
 	push	0
 	push	0
-	push	OFFSET $SG135545
+	push	OFFSET $SG135548
 	push	ecx
 	push	eax
 	mov	ecx, esi
@@ -28078,7 +28078,7 @@ $LN881@ProcessCom:
 $LN911@ProcessCom:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 340  :       LeaveCriticalSection (cs_);
+; 341  :       LeaveCriticalSection (cs_);
 
 	push	OFFSET ?cs_process_cmd@@3U_RTL_CRITICAL_SECTION@@A
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -28097,7 +28097,7 @@ $LN911@ProcessCom:
 	mov	BYTE PTR _cmd_word$4[ebp], 0
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 340  :       LeaveCriticalSection (cs_);
+; 341  :       LeaveCriticalSection (cs_);
 
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 	pop	edi
@@ -28130,13 +28130,13 @@ $LN8@ProcessCom:
 	push	0
 	push	0
 	push	0
-	push	OFFSET $SG135546
-	push	OFFSET $SG135547
+	push	OFFSET $SG135549
+	push	OFFSET $SG135550
 	push	edx
 	call	??0SK_ICommandResult@@QAE@PBD00HPBUSK_IVariable@@PBUSK_ICommand@@@Z ; SK_ICommandResult::SK_ICommandResult
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 340  :       LeaveCriticalSection (cs_);
+; 341  :       LeaveCriticalSection (cs_);
 
 	push	OFFSET ?cs_process_cmd@@3U_RTL_CRITICAL_SECTION@@A
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -29374,7 +29374,7 @@ $LN4@SK_IComman:
 ; 157  :   AddCommand ("source", src);
 
 	push	eax
-	push	OFFSET $SG133521
+	push	OFFSET $SG133524
 	mov	ecx, esi
 	call	?AddCommand@SK_ICommandProcessor@@UAEPBUSK_ICommand@@PBDPAU2@@Z ; SK_ICommandProcessor::AddCommand
 

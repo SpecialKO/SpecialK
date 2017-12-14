@@ -14,16 +14,16 @@ _BSS	SEGMENT
 ?SteamAPI_ISteamClient_GetISteamRemoteStorage_Original@@3P6APAVISteamRemoteStorage@@PAVISteamClient@@HHPBD@ZA DD 01H DUP (?) ; SteamAPI_ISteamClient_GetISteamRemoteStorage_Original
 _BSS	ENDS
 CONST	SEGMENT
-$SG148527 DB	'SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour', 00H
-$SG148528 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
+$SG148533 DB	'SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour', 00H
+$SG148534 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ','
 	DB	00H, ' ', 00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 	ORG $+1
-$SG148532 DB	'STEAMREMOTESTORAGE_INTERFACE_VERSION012', 00H
-$SG148538 DB	'STEAMREMOTESTORAGE_INTERFACE_VERSION014', 00H
+$SG148538 DB	'STEAMREMOTESTORAGE_INTERFACE_VERSION012', 00H
+$SG148544 DB	'STEAMREMOTESTORAGE_INTERFACE_VERSION014', 00H
 	ORG $+4
-$SG148543 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
+$SG148549 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
 	DB	'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 's', 00H, 't', 00H, 'e'
 	DB	00H, 'd', 00H, ' ', 00H, 'u', 00H, 'n', 00H, 'e', 00H, 'x', 00H
 	DB	'p', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' '
@@ -32,15 +32,15 @@ $SG148543 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
 	DB	00H, 's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, '(', 00H
 	DB	'%', 00H, 'h', 00H, 's', 00H, ')', 00H, '!', 00H, 00H, 00H
 	ORG $+2
-$SG148571 DB	'SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage', 00H
+$SG148577 DB	'SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage', 00H
 	ORG $+3
-$SG148572 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
+$SG148578 DB	'[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 'h', 00H
 	DB	's', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ','
 	DB	00H, ' ', 00H, '%', 00H, 'h', 00H, 's', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG148576 DB	'STEAMREMOTESTORAGE_INTERFACE_VERSION012', 00H
-$SG148582 DB	'STEAMREMOTESTORAGE_INTERFACE_VERSION014', 00H
-$SG148587 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
+$SG148582 DB	'STEAMREMOTESTORAGE_INTERFACE_VERSION012', 00H
+$SG148588 DB	'STEAMREMOTESTORAGE_INTERFACE_VERSION014', 00H
+$SG148593 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'r', 00H
 	DB	'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H, 's', 00H, 't', 00H, 'e'
 	DB	00H, 'd', 00H, ' ', 00H, 'u', 00H, 'n', 00H, 'e', 00H, 'x', 00H
 	DB	'p', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' '
@@ -1511,6 +1511,8 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\steam\remote_storage.cpp
 
+; 777  : }
+
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
@@ -1620,8 +1622,6 @@ _<_Val_2>$ = 24						; size = 4
 	test	edx, edx
 	je	SHORT $LN54@Buynode
 ; File c:\users\andon\source\repos\specialk\src\steam\remote_storage.cpp
-
-; 777  : }
 
 	mov	ecx, DWORD PTR _<_Val_1>$[ebp]
 	mov	ecx, DWORD PTR [ecx]
@@ -5666,8 +5666,8 @@ _pchVersion$ = 20					; size = 4
 	mov	esi, DWORD PTR _pchVersion$[ebp]
 	je	SHORT $LN2@SK_SteamWr
 	push	esi
-	push	OFFSET $SG148571
-	push	OFFSET $SG148572
+	push	OFFSET $SG148577
+	push	OFFSET $SG148578
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -5700,7 +5700,7 @@ $LN2@SK_SteamWr:
 ; 729  :   {
 ; 730  :     if ((! lstrcmpA (pchVersion, STEAMREMOTESTORAGE_INTERFACE_VERSION_012)))
 
-	push	OFFSET $SG148576
+	push	OFFSET $SG148582
 	push	esi
 	call	DWORD PTR __imp__lstrcmpA@8
 	test	eax, eax
@@ -5911,7 +5911,7 @@ $LN4@SK_SteamWr:
 ; 745  : 
 ; 746  :     else if ((! lstrcmpA (pchVersion, STEAMREMOTESTORAGE_INTERFACE_VERSION_014)))
 
-	push	OFFSET $SG148582
+	push	OFFSET $SG148588
 	push	esi
 	call	DWORD PTR __imp__lstrcmpA@8
 	test	eax, eax
@@ -6045,7 +6045,7 @@ $LN8@SK_SteamWr:
 	cmp	BYTE PTR ?first@?BL@??SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage@@YAPAVISteamRemoteStorage@@PAVISteamClient@@HHPBD@Z@4_NA, 0
 	je	SHORT $LN12@SK_SteamWr
 	push	esi
-	push	OFFSET $SG148587
+	push	OFFSET $SG148593
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -6153,8 +6153,8 @@ _pchVersion$ = 20					; size = 4
 	mov	esi, DWORD PTR _pchVersion$[ebp]
 	je	SHORT $LN2@SteamAPI_I
 	push	esi
-	push	OFFSET $SG148527
-	push	OFFSET $SG148528
+	push	OFFSET $SG148533
+	push	OFFSET $SG148534
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -6188,7 +6188,7 @@ $LN2@SteamAPI_I:
 ; 663  :   {
 ; 664  :     if ((! lstrcmpA (pchVersion, STEAMREMOTESTORAGE_INTERFACE_VERSION_012)))
 
-	push	OFFSET $SG148532
+	push	OFFSET $SG148538
 	push	esi
 	call	DWORD PTR __imp__lstrcmpA@8
 	test	eax, eax
@@ -6399,7 +6399,7 @@ $LN4@SteamAPI_I:
 ; 679  : 
 ; 680  :     else if ((! lstrcmpA (pchVersion, STEAMREMOTESTORAGE_INTERFACE_VERSION_014)))
 
-	push	OFFSET $SG148538
+	push	OFFSET $SG148544
 	push	esi
 	call	DWORD PTR __imp__lstrcmpA@8
 	test	eax, eax
@@ -6533,7 +6533,7 @@ $LN8@SteamAPI_I:
 	cmp	BYTE PTR ?first@?BL@??SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour@@YAPAVISteamRemoteStorage@@PAVISteamClient@@HHPBD@Z@4_NA, 0
 	je	SHORT $LN12@SteamAPI_I
 	push	esi
-	push	OFFSET $SG148543
+	push	OFFSET $SG148549
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
