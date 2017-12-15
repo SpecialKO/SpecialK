@@ -51,14 +51,13 @@ $SG147676 DB	'%', 00H, '-', 00H, '2', 00H, '4', 00H, 'w', 00H, 's', 00H
 	DB	00H
 	ORG $+2
 $SG147677 DB	'%ws', 00H
+$SG149727 DB	'd', 00H, 'b', 00H, 'g', 00H, 'h', 00H, 'e', 00H, 'l', 00H
+	DB	'p', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 $SG147679 DB	0aH, 00H, 00H, 00H
 $SG147680 DB	0aH, 00H, 00H, 00H
-$SG149732 DB	'd', 00H, 'b', 00H, 'g', 00H, 'h', 00H, 'e', 00H, 'l', 00H
-	DB	'p', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG149745 DB	'SymRefreshModuleList', 00H
+$SG149739 DB	'SymRefreshModuleList', 00H
 	ORG $+3
-$SG149747 DB	'SymRefreshModuleList', 00H
-	ORG $+3
+$SG149768 DB	'StackWalk64', 00H
 $SG147725 DB	'IsDebuggerPresent', 00H
 	ORG $+2
 $SG147726 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
@@ -67,7 +66,6 @@ $SG147726 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	ORG $+2
 $SG147727 DB	'OutputDebugStringA', 00H
 	ORG $+1
-$SG149776 DB	'StackWalk64', 00H
 $SG147728 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
@@ -95,6 +93,8 @@ $SG147747 DB	'CONIN$', 00H
 	ORG $+1
 $SG147748 DB	'w', 00H
 	ORG $+2
+$SG149797 DB	'StackWalk', 00H
+	ORG $+2
 $SG147749 DB	'CONOUT$', 00H
 $SG147750 DB	'w', 00H
 	ORG $+2
@@ -105,29 +105,26 @@ $SG147753 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG149805 DB	'StackWalk', 00H
+$SG149810 DB	'SymSetOptions', 00H
 	ORG $+2
-$SG149818 DB	'SymSetOptions', 00H
-	ORG $+2
-$SG149833 DB	'SymGetModuleBase64', 00H
+$SG149825 DB	'SymGetModuleBase64', 00H
 	ORG $+1
-$SG149848 DB	'SymGetModuleBase', 00H
+$SG149840 DB	'SymGetModuleBase', 00H
 	ORG $+3
-$SG149867 DB	'SymGetLineFromAddr64', 00H
+$SG149859 DB	'SymGetLineFromAddr64', 00H
 	ORG $+3
-$SG149886 DB	'SymGetLineFromAddr', 00H
+$SG149878 DB	'SymGetLineFromAddr', 00H
 	ORG $+1
-$SG149903 DB	'SymInitialize', 00H
+$SG149895 DB	'SymInitialize', 00H
 	ORG $+2
-$SG149918 DB	'SymUnloadModule', 00H
-$SG149933 DB	'SymUnloadModule64', 00H
+$SG149910 DB	'SymUnloadModule', 00H
+$SG149925 DB	'SymUnloadModule64', 00H
 	ORG $+2
-$SG149952 DB	'SymFromAddr', 00H
-$SG149975 DB	'SymLoadModule', 00H
+$SG149944 DB	'SymFromAddr', 00H
+$SG149967 DB	'SymLoadModule', 00H
 	ORG $+2
-$SG149998 DB	'SymLoadModule64', 00H
+$SG149990 DB	'SymLoadModule64', 00H
 CONST	ENDS
-PUBLIC	?_InterlockedCompareExchange@@YAKPCKKK@Z	; _InterlockedCompareExchange
 PUBLIC	??0IUnknown@@QAE@XZ				; IUnknown::IUnknown
 PUBLIC	?Allow@Debugger@Diagnostics@SK@@YA_N_N@Z	; SK::Diagnostics::Debugger::Allow
 PUBLIC	?SpawnConsole@Debugger@Diagnostics@SK@@YAXXZ	; SK::Diagnostics::Debugger::SpawnConsole
@@ -262,13 +259,13 @@ EXTRN	__imp___invalid_parameter_noinfo_noreturn:PROC
 EXTRN	__imp__memmove:PROC
 EXTRN	__imp__strstr:PROC
 EXTRN	__imp__wcsstr:PROC
-EXTRN	__imp__wcsncpy:PROC
 EXTRN	__imp__OutputDebugStringW@4:PROC
-EXTRN	__imp__SleepEx@8:PROC
 EXTRN	__imp__GetCurrentProcess@0:PROC
 EXTRN	__imp__ExitProcess@4:PROC
 EXTRN	__imp__TerminateProcess@8:PROC
+EXTRN	__imp__GetSystemDirectoryW@8:PROC
 EXTRN	__imp__GetProcAddress@8:PROC
+EXTRN	__imp__LoadLibraryW@4:PROC
 EXTRN	__imp__FreeConsole@0:PROC
 EXTRN	__imp__AllocConsole@0:PROC
 EXTRN	__imp____acrt_iob_func:PROC
@@ -287,7 +284,6 @@ EXTRN	?LogEx@iSK_Logger@@UAAX_NQB_WZZ:PROC		; iSK_Logger::LogEx
 EXTRN	?Log@iSK_Logger@@UAAXQB_WZZ:PROC		; iSK_Logger::Log
 EXTRN	?Log@iSK_Logger@@UAAXQBDZZ:PROC			; iSK_Logger::Log
 EXTRN	??_EiSK_Logger@@UAEPAXI@Z:PROC			; iSK_Logger::`vector deleting destructor'
-EXTRN	?SK_GetSystemDirectory@@YAPB_WXZ:PROC		; SK_GetSystemDirectory
 EXTRN	?SK_GetCallerName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAX@Z:PROC ; SK_GetCallerName
 EXTRN	?SK_SelfDestruct@@YGXXZ:PROC			; SK_SelfDestruct
 EXTRN	__imp__PathAppendW@8:PROC
@@ -295,7 +291,6 @@ EXTRN	___CxxFrameHandler3:PROC
 EXTRN	_memcpy:PROC
 EXTRN	_memset:PROC
 EXTRN	__Init_thread_epoch:DWORD
-EXTRN	?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA:DWORD ; LoadLibraryW_Original
 EXTRN	??_7type_info@@6B@:QWORD			; type_info::`vftable'
 EXTRN	__tls_array:DWORD
 EXTRN	__tls_index:DWORD
@@ -303,13 +298,9 @@ EXTRN	__tls_index:DWORD
 _BSS	SEGMENT
 ?init@?1??SpawnConsole@Debugger@Diagnostics@SK@@YAXXZ@4JC DD 01H DUP (?) ; `SK::Diagnostics::Debugger::SpawnConsole'::`2'::init
 _BSS	ENDS
-;	COMDAT ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4RAU2@A
+;	COMDAT ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4PAU2@A
 _BSS	SEGMENT
-?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4RAU2@A DD 01H DUP (?) ; `SK_Debug_LoadHelper'::`2'::hModDbgHelp
-_BSS	ENDS
-;	COMDAT ?__init@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4KC
-_BSS	SEGMENT
-?__init@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4KC DD 01H DUP (?) ; `SK_Debug_LoadHelper'::`2'::__init
+?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4PAU2@A DD 01H DUP (?) ; `SK_Debug_LoadHelper'::`2'::hModDbgHelp
 _BSS	ENDS
 ;	COMDAT ?SymRefreshModuleList_Imp@?1??SymRefreshModuleList@@9@4@4P6GHPAX@ZA
 _BSS	SEGMENT
@@ -836,115 +827,61 @@ ___formal$ = 8						; size = 1
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
-; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
-; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 _TEXT	SEGMENT
-_wszSystemDbgHelp$1 = -1040				; size = 1040
+_wszSystemDbgHelp$ = -1040				; size = 1040
 ?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ PROC		; SK_Debug_LoadHelper
 
-; 254  : {
+; 255  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
+
+; 256  :   static HMODULE hModDbgHelp = nullptr;
+; 257  : 
+; 258  :   if (hModDbgHelp != nullptr)
+
+	mov	eax, DWORD PTR ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4PAU2@A
 	sub	esp, 1040				; 00000410H
-
-; 255  :   static volatile HMODULE hModDbgHelp = nullptr;
-; 256  : 
-; 257  :   if (hModDbgHelp != nullptr)
-
-	cmp	DWORD PTR ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4RAU2@A, 0
-	jne	$LN3@SK_Debug_L
-; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
-
-; 9003 :     return (unsigned long) _InterlockedCompareExchange((volatile long*) Destination, (long) Exchange, (long) Comperand);
-
-	mov	ecx, 1
-	mov	edx, OFFSET ?__init@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4KC
-	xor	eax, eax
-	lock	 cmpxchg DWORD PTR [edx], ecx
-; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
-
-; 262  :   if (! InterlockedCompareExchange (&__init, TRUE, FALSE))
-
 	test	eax, eax
-	jne	SHORT $LN9@SK_Debug_L
+	jne	SHORT $LN1@SK_Debug_L
 
-; 263  :   {
-; 264  :     wchar_t      wszSystemDbgHelp [MAX_PATH * 2] = { };
+; 259  :     return hModDbgHelp;
+; 260  : 
+; 261  :   wchar_t wszSystemDbgHelp [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	push	eax
-	lea	eax, DWORD PTR _wszSystemDbgHelp$1[ebp]
+	lea	eax, DWORD PTR _wszSystemDbgHelp$[ebp]
 	push	eax
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 265  :     wcsncpy     (wszSystemDbgHelp, SK_GetSystemDirectory (), MAX_PATH);
+; 262  : 
+; 263  :   GetSystemDirectory (wszSystemDbgHelp, MAX_PATH * 2 - 1);
 
-	push	260					; 00000104H
-	call	?SK_GetSystemDirectory@@YAPB_WXZ	; SK_GetSystemDirectory
+	lea	eax, DWORD PTR _wszSystemDbgHelp$[ebp]
+	push	519					; 00000207H
 	push	eax
-	lea	eax, DWORD PTR _wszSystemDbgHelp$1[ebp]
-	push	eax
-	call	DWORD PTR __imp__wcsncpy
-	add	esp, 12					; 0000000cH
+	call	DWORD PTR __imp__GetSystemDirectoryW@8
 
-; 266  :     PathAppendW (wszSystemDbgHelp, L"dbghelp.dll");
+; 264  :   PathAppendW (wszSystemDbgHelp, L"dbghelp.dll");
 
-	lea	eax, DWORD PTR _wszSystemDbgHelp$1[ebp]
-	push	OFFSET $SG149732
+	push	OFFSET $SG149727
+	lea	eax, DWORD PTR _wszSystemDbgHelp$[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathAppendW@8
 
-; 267  : 
-; 268  :     return ( hModDbgHelp =
+; 265  : 
+; 266  :   return (hModDbgHelp = LoadLibraryW (wszSystemDbgHelp));
 
-	lea	eax, DWORD PTR _wszSystemDbgHelp$1[ebp]
+	lea	eax, DWORD PTR _wszSystemDbgHelp$[ebp]
 	push	eax
-	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
-	mov	DWORD PTR ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4RAU2@A, eax
+	call	DWORD PTR __imp__LoadLibraryW@4
+	mov	DWORD PTR ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4PAU2@A, eax
+$LN1@SK_Debug_L:
 
-; 274  : 
-; 275  :   return hModDbgHelp;
-
-	mov	eax, DWORD PTR ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4RAU2@A
-
-; 276  : }
-
-	mov	esp, ebp
-	pop	ebp
-	ret	0
-$LN9@SK_Debug_L:
-
-; 269  :                LoadLibraryW_Original (wszSystemDbgHelp) );
-; 270  :   }
-; 271  : 
-; 272  :   while (! hModDbgHelp)
-
-	cmp	DWORD PTR ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4RAU2@A, 0
-	jne	SHORT $LN3@SK_Debug_L
-	push	esi
-	mov	esi, DWORD PTR __imp__SleepEx@8
-	npad	7
-$LL2@SK_Debug_L:
-
-; 273  :     SleepEx (1, FALSE);
-
-	push	0
-	push	1
-	call	esi
-	cmp	DWORD PTR ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4RAU2@A, 0
-	je	SHORT $LL2@SK_Debug_L
-	pop	esi
-$LN3@SK_Debug_L:
-
-; 274  : 
-; 275  :   return hModDbgHelp;
-
-	mov	eax, DWORD PTR ?hModDbgHelp@?1??SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ@4RAU2@A
-
-; 276  : }
+; 267  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -1106,9 +1043,9 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?DebugBreak_Detour@@YGXXZ PROC				; DebugBreak_Detour
 
-; 166  :   //if (config.debug.allow_break)
-; 167  :   //  return DebugBreak_Original ();
-; 168  : }
+; 167  :   //if (config.debug.allow_break)
+; 168  :   //  return DebugBreak_Original ();
+; 169  : }
 
 	ret	0
 ?DebugBreak_Detour@@YGXXZ ENDP				; DebugBreak_Detour
@@ -1118,22 +1055,22 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?IsDebuggerPresent_Detour@@YGHXZ PROC			; IsDebuggerPresent_Detour
 
-; 152  :   if (spoof_debugger)
+; 153  :   if (spoof_debugger)
 
 	cmp	BYTE PTR ?spoof_debugger@@3_NA, 0	; spoof_debugger
 	je	SHORT $LN2@IsDebugger
 
-; 153  :     return FALSE;
+; 154  :     return FALSE;
 
 	xor	eax, eax
 
-; 156  : }
+; 157  : }
 
 	ret	0
 $LN2@IsDebugger:
 
-; 154  : 
-; 155  :   return IsDebuggerPresent_Original ();
+; 155  : 
+; 156  :   return IsDebuggerPresent_Original ();
 
 	jmp	DWORD PTR ?IsDebuggerPresent_Original@@3P6GHXZA ; IsDebuggerPresent_Original
 ?IsDebuggerPresent_Detour@@YGHXZ ENDP			; IsDebuggerPresent_Detour
@@ -1156,13 +1093,13 @@ __$ReturnAddr$ = 4					; size = 4
 _lpOutputString$ = 8					; size = 4
 ?OutputDebugStringW_Detour@@YGXPB_W@Z PROC		; OutputDebugStringW_Detour
 
-; 129  : {
+; 130  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 130  :   game_debug.LogEx (true,   L"%-24ws:  %ws", SK_GetCallerName ().c_str (),
+; 131  :   game_debug.LogEx (true,   L"%-24ws:  %ws", SK_GetCallerName ().c_str (),
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	sub	esp, 24					; 00000018H
@@ -1189,7 +1126,7 @@ $LN18@OutputDebu:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 
-; 130  :   game_debug.LogEx (true,   L"%-24ws:  %ws", SK_GetCallerName ().c_str (),
+; 131  :   game_debug.LogEx (true,   L"%-24ws:  %ws", SK_GetCallerName ().c_str (),
 
 	mov	esi, DWORD PTR _lpOutputString$[ebp]
 	push	esi
@@ -1205,7 +1142,7 @@ $LN18@OutputDebu:
 	mov	eax, DWORD PTR $T1[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 
-; 130  :   game_debug.LogEx (true,   L"%-24ws:  %ws", SK_GetCallerName ().c_str (),
+; 131  :   game_debug.LogEx (true,   L"%-24ws:  %ws", SK_GetCallerName ().c_str (),
 
 	add	esp, 20					; 00000014H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -1238,7 +1175,7 @@ $LN18@OutputDebu:
 $LN28@OutputDebu:
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 
-; 132  :   fprintf          (stdout,  "%ws",          lpOutputString);
+; 133  :   fprintf          (stdout,  "%ws",          lpOutputString);
 
 	push	esi
 	push	OFFSET $SG147677
@@ -1248,8 +1185,8 @@ $LN28@OutputDebu:
 	push	eax
 	call	_fprintf
 
-; 133  : 
-; 134  :   if (! wcsstr (lpOutputString, L"\n"))
+; 134  : 
+; 135  :   if (! wcsstr (lpOutputString, L"\n"))
 
 	push	OFFSET $SG147679
 	push	esi
@@ -1259,7 +1196,7 @@ $LN28@OutputDebu:
 	test	eax, eax
 	jne	SHORT $LN2@OutputDebu
 
-; 135  :     game_debug.LogEx (false, L"\n");
+; 136  :     game_debug.LogEx (false, L"\n");
 
 	push	OFFSET $SG147680
 	push	eax
@@ -1268,12 +1205,12 @@ $LN28@OutputDebu:
 	add	esp, 12					; 0000000cH
 $LN2@OutputDebu:
 
-; 136  : 
-; 137  :   // NVIDIA's drivers do something weird, we cannot call the trampoline and
-; 138  :   //   must bail-out, or the NVIDIA streaming service will crash the game!~
-; 139  :   //
-; 140  :   //OutputDebugStringW_Original (lpOutputString);
-; 141  : }
+; 137  : 
+; 138  :   // NVIDIA's drivers do something weird, we cannot call the trampoline and
+; 139  :   //   must bail-out, or the NVIDIA streaming service will crash the game!~
+; 140  :   //
+; 141  :   //OutputDebugStringW_Original (lpOutputString);
+; 142  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -1298,13 +1235,13 @@ __$ReturnAddr$ = 4					; size = 4
 _lpOutputString$ = 8					; size = 4
 ?OutputDebugStringA_Detour@@YGXPBD@Z PROC		; OutputDebugStringA_Detour
 
-; 110  : {
+; 111  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 113  :   game_debug.LogEx (true,   L"%-24ws:  %hs", SK_GetCallerName ().c_str (),
+; 114  :   game_debug.LogEx (true,   L"%-24ws:  %hs", SK_GetCallerName ().c_str (),
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	sub	esp, 24					; 00000018H
@@ -1331,7 +1268,7 @@ $LN18@OutputDebu:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 
-; 113  :   game_debug.LogEx (true,   L"%-24ws:  %hs", SK_GetCallerName ().c_str (),
+; 114  :   game_debug.LogEx (true,   L"%-24ws:  %hs", SK_GetCallerName ().c_str (),
 
 	mov	esi, DWORD PTR _lpOutputString$[ebp]
 	push	esi
@@ -1347,7 +1284,7 @@ $LN18@OutputDebu:
 	mov	eax, DWORD PTR $T1[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 
-; 113  :   game_debug.LogEx (true,   L"%-24ws:  %hs", SK_GetCallerName ().c_str (),
+; 114  :   game_debug.LogEx (true,   L"%-24ws:  %hs", SK_GetCallerName ().c_str (),
 
 	add	esp, 20					; 00000014H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -1380,7 +1317,7 @@ $LN18@OutputDebu:
 $LN28@OutputDebu:
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 
-; 115  :   fprintf          (stdout,  "%s",           lpOutputString);
+; 116  :   fprintf          (stdout,  "%s",           lpOutputString);
 
 	push	esi
 	push	OFFSET $SG147668
@@ -1390,8 +1327,8 @@ $LN28@OutputDebu:
 	push	eax
 	call	_fprintf
 
-; 116  : 
-; 117  :   if (! strstr (lpOutputString, "\n"))
+; 117  : 
+; 118  :   if (! strstr (lpOutputString, "\n"))
 
 	push	OFFSET $SG147670
 	push	esi
@@ -1401,7 +1338,7 @@ $LN28@OutputDebu:
 	test	eax, eax
 	jne	SHORT $LN2@OutputDebu
 
-; 118  :     game_debug.LogEx (false, L"\n");
+; 119  :     game_debug.LogEx (false, L"\n");
 
 	push	OFFSET $SG147671
 	push	eax
@@ -1410,12 +1347,12 @@ $LN28@OutputDebu:
 	add	esp, 12					; 0000000cH
 $LN2@OutputDebu:
 
-; 119  : 
-; 120  :   // NVIDIA's drivers do something weird, we cannot call the trampoline and
-; 121  :   //   must bail-out, or the NVIDIA streaming service will crash the game!~
-; 122  :   //
-; 123  :   //OutputDebugStringA_Original (lpOutputString);
-; 124  : }
+; 120  : 
+; 121  :   // NVIDIA's drivers do something weird, we cannot call the trampoline and
+; 122  :   //   must bail-out, or the NVIDIA streaming service will crash the game!~
+; 123  :   //
+; 124  :   //OutputDebugStringA_Original (lpOutputString);
+; 125  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -1428,43 +1365,43 @@ _TEXT	SEGMENT
 _uExitCode$ = 8						; size = 4
 ?ExitProcess_Detour@@YGXI@Z PROC			; ExitProcess_Detour
 
-; 90   : {
+; 91   : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 91   :   // Since many, many games don't shutdown cleanly, let's unload ourself.
-; 92   :   SK_SelfDestruct      ();
+; 92   :   // Since many, many games don't shutdown cleanly, let's unload ourself.
+; 93   :   SK_SelfDestruct      ();
 
 	call	?SK_SelfDestruct@@YGXXZ			; SK_SelfDestruct
 
-; 93   : 
-; 94   :   if (ExitProcess_Original != nullptr)
+; 94   : 
+; 95   :   if (ExitProcess_Original != nullptr)
 
 	mov	eax, DWORD PTR ?ExitProcess_Original@@3P6GXI@ZA ; ExitProcess_Original
 	test	eax, eax
 	je	SHORT $LN2@ExitProces
 
-; 95   :   {
-; 96   :     ExitProcess_pfn callthrough = ExitProcess_Original;
-; 97   :     ExitProcess_Original        = nullptr;
+; 96   :   {
+; 97   :     ExitProcess_pfn callthrough = ExitProcess_Original;
+; 98   :     ExitProcess_Original        = nullptr;
 
 	mov	DWORD PTR ?ExitProcess_Original@@3P6GXI@ZA, 0 ; ExitProcess_Original
 
-; 103  : }
+; 104  : }
 
 	pop	ebp
 
-; 98   :     callthrough (uExitCode);
+; 99   :     callthrough (uExitCode);
 
 	jmp	eax
 $LN2@ExitProces:
 
-; 99   :   }
-; 100  : 
-; 101  :   else
-; 102  :     ExitProcess (uExitCode);
+; 100  :   }
+; 101  : 
+; 102  :   else
+; 103  :     ExitProcess (uExitCode);
 
 	push	DWORD PTR _uExitCode$[ebp]
 	call	DWORD PTR __imp__ExitProcess@4
@@ -1490,29 +1427,29 @@ _hProcess$ = 8						; size = 4
 _uExitCode$ = 12					; size = 4
 ?TerminateProcess_Detour@@YGHPAXI@Z PROC		; TerminateProcess_Detour
 
-; 73   : {
+; 74   : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 24					; 00000018H
 
-; 74   :   UNREFERENCED_PARAMETER (uExitCode);
-; 75   : 
-; 76   :   if (hProcess == GetCurrentProcess ())
+; 75   :   UNREFERENCED_PARAMETER (uExitCode);
+; 76   : 
+; 77   :   if (hProcess == GetCurrentProcess ())
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	mov	ecx, DWORD PTR _hProcess$[ebp]
 	cmp	ecx, eax
 	jne	SHORT $LN2@TerminateP
 
-; 77   :   {
-; 78   :     OutputDebugString ( L" *** BLOCKED TerminateProcess (...) ***\n\t" );
+; 78   :   {
+; 79   :     OutputDebugString ( L" *** BLOCKED TerminateProcess (...) ***\n\t" );
 
 	push	OFFSET $SG147656
 	call	DWORD PTR __imp__OutputDebugStringW@4
 
-; 79   :     OutputDebugString ( SK_GetCallerName ().c_str () );
+; 80   :     OutputDebugString ( SK_GetCallerName ().c_str () );
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	push	eax
@@ -1537,7 +1474,7 @@ _uExitCode$ = 12					; size = 4
 $LN19@TerminateP:
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 
-; 79   :     OutputDebugString ( SK_GetCallerName ().c_str () );
+; 80   :     OutputDebugString ( SK_GetCallerName ().c_str () );
 
 	push	eax
 	call	DWORD PTR __imp__OutputDebugStringW@4
@@ -1572,26 +1509,26 @@ $LN19@TerminateP:
 $LN28@TerminateP:
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 
-; 81   :     return FALSE;
+; 82   :     return FALSE;
 
 	xor	eax, eax
 
-; 85   : }
+; 86   : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	8
 $LN2@TerminateP:
 
-; 82   :   }
-; 83   : 
-; 84   :   return TerminateProcess_Original (hProcess, uExitCode);
+; 83   :   }
+; 84   : 
+; 85   :   return TerminateProcess_Original (hProcess, uExitCode);
 
 	push	DWORD PTR _uExitCode$[ebp]
 	push	ecx
 	call	DWORD PTR ?TerminateProcess_Original@@3P6GHPAXI@ZA ; TerminateProcess_Original
 
-; 85   : }
+; 86   : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -1604,18 +1541,18 @@ _TEXT	SEGMENT
 _uExitCode$ = 8						; size = 4
 ?SK_TerminateParentProcess@@YGHI@Z PROC			; SK_TerminateParentProcess
 
-; 54   : {
+; 55   : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 55   :   if (TerminateProcess_Original != nullptr)
+; 56   :   if (TerminateProcess_Original != nullptr)
 
 	cmp	DWORD PTR ?TerminateProcess_Original@@3P6GHPAXI@ZA, 0 ; TerminateProcess_Original
 
-; 56   :   {
-; 57   :     return
+; 57   :   {
+; 58   :     return
 
 	push	DWORD PTR _uExitCode$[ebp]
 	je	SHORT $LN2@SK_Termina
@@ -1623,31 +1560,31 @@ _uExitCode$ = 8						; size = 4
 	push	eax
 	call	DWORD PTR ?TerminateProcess_Original@@3P6GHPAXI@ZA ; TerminateProcess_Original
 
-; 65   :       TerminateProcess ( GetCurrentProcess (),
-; 66   :                            uExitCode );
-; 67   :   }
-; 68   : }
+; 66   :       TerminateProcess ( GetCurrentProcess (),
+; 67   :                            uExitCode );
+; 68   :   }
+; 69   : }
 
 	pop	ebp
 	ret	4
 $LN2@SK_Termina:
 
-; 58   :       TerminateProcess_Original ( GetCurrentProcess (),
-; 59   :                                     uExitCode );
-; 60   :   }
-; 61   : 
-; 62   :   else
-; 63   :   {
-; 64   :     return
+; 59   :       TerminateProcess_Original ( GetCurrentProcess (),
+; 60   :                                     uExitCode );
+; 61   :   }
+; 62   : 
+; 63   :   else
+; 64   :   {
+; 65   :     return
 
 	call	DWORD PTR __imp__GetCurrentProcess@0
 	push	eax
 	call	DWORD PTR __imp__TerminateProcess@8
 
-; 65   :       TerminateProcess ( GetCurrentProcess (),
-; 66   :                            uExitCode );
-; 67   :   }
-; 68   : }
+; 66   :       TerminateProcess ( GetCurrentProcess (),
+; 67   :                            uExitCode );
+; 68   :   }
+; 69   : }
 
 	pop	ebp
 	ret	4
@@ -1839,7 +1776,7 @@ text$di	SEGMENT
 	call	?AddRef@iSK_Logger@@UAGKXZ		; iSK_Logger::AddRef
 ; File c:\users\andon\source\repos\specialk\src\diagnostics\debug_utils.cpp
 
-; 42   : iSK_Logger game_debug;
+; 43   : iSK_Logger game_debug;
 
 	push	OFFSET ??__Fgame_debug@@YAXXZ		; `dynamic atexit destructor for 'game_debug''
 	call	_atexit
@@ -1858,20 +1795,20 @@ _BaseOfDll$ = 24					; size = 4
 _SizeOfDll$ = 28					; size = 4
 _SymLoadModule@24 PROC
 
-; 608  : {
+; 594  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 609  :   typedef DWORD (IMAGEAPI *SymLoadModule_pfn)( _In_     HANDLE hProcess,
-; 610  :                                                _In_opt_ HANDLE hFile,
-; 611  :                                                _In_opt_ PCSTR  ImageName,
-; 612  :                                                _In_opt_ PCSTR  ModuleName,
-; 613  :                                                _In_     DWORD  BaseOfDll,
-; 614  :                                                _In_     DWORD  SizeOfDll );
-; 615  : 
-; 616  :   static SymLoadModule_pfn SymLoadModule_Imp =
+; 595  :   typedef DWORD (IMAGEAPI *SymLoadModule_pfn)( _In_     HANDLE hProcess,
+; 596  :                                                _In_opt_ HANDLE hFile,
+; 597  :                                                _In_opt_ PCSTR  ImageName,
+; 598  :                                                _In_opt_ PCSTR  ModuleName,
+; 599  :                                                _In_     DWORD  BaseOfDll,
+; 600  :                                                _In_     DWORD  SizeOfDll );
+; 601  : 
+; 602  :   static SymLoadModule_pfn SymLoadModule_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -1881,43 +1818,43 @@ _SymLoadModule@24 PROC
 	jg	SHORT $LN6@SymLoadMod
 $LN2@SymLoadMod:
 
-; 619  : 
-; 620  :   if (SymLoadModule_Imp != nullptr)
+; 605  : 
+; 606  :   if (SymLoadModule_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymLoadModule_Imp@?1??SymLoadModule@@9@24@4P6GKPAX0PBD1KK@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymLoadMod
 
-; 626  : }
+; 612  : }
 
 	pop	ebp
 
-; 621  :   {
-; 622  :     return SymLoadModule_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll );
+; 607  :   {
+; 608  :     return SymLoadModule_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll );
 
 	jmp	eax
 $LN3@SymLoadMod:
 
-; 623  :   }
-; 624  : 
-; 625  :   return FALSE;
+; 609  :   }
+; 610  : 
+; 611  :   return FALSE;
 
 	xor	eax, eax
 
-; 626  : }
+; 612  : }
 
 	pop	ebp
 	ret	24					; 00000018H
 $LN6@SymLoadMod:
 
-; 609  :   typedef DWORD (IMAGEAPI *SymLoadModule_pfn)( _In_     HANDLE hProcess,
-; 610  :                                                _In_opt_ HANDLE hFile,
-; 611  :                                                _In_opt_ PCSTR  ImageName,
-; 612  :                                                _In_opt_ PCSTR  ModuleName,
-; 613  :                                                _In_     DWORD  BaseOfDll,
-; 614  :                                                _In_     DWORD  SizeOfDll );
-; 615  : 
-; 616  :   static SymLoadModule_pfn SymLoadModule_Imp =
+; 595  :   typedef DWORD (IMAGEAPI *SymLoadModule_pfn)( _In_     HANDLE hProcess,
+; 596  :                                                _In_opt_ HANDLE hFile,
+; 597  :                                                _In_opt_ PCSTR  ImageName,
+; 598  :                                                _In_opt_ PCSTR  ModuleName,
+; 599  :                                                _In_     DWORD  BaseOfDll,
+; 600  :                                                _In_     DWORD  SizeOfDll );
+; 601  : 
+; 602  :   static SymLoadModule_pfn SymLoadModule_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymLoadModule@@9@24@4HA
 	call	__Init_thread_header
@@ -1925,10 +1862,10 @@ $LN6@SymLoadMod:
 	cmp	DWORD PTR ?$TSS0@?1??SymLoadModule@@9@24@4HA, -1
 	jne	SHORT $LN2@SymLoadMod
 
-; 617  :     (SymLoadModule_pfn)
-; 618  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule" );
+; 603  :     (SymLoadModule_pfn)
+; 604  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule" );
 
-	push	OFFSET $SG149975
+	push	OFFSET $SG149967
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -1950,20 +1887,20 @@ _BaseOfDll$ = 24					; size = 8
 _SizeOfDll$ = 32					; size = 4
 _SymLoadModule64@28 PROC
 
-; 638  : {
+; 624  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 639  :   typedef DWORD64 (IMAGEAPI *SymLoadModule64_pfn)( _In_     HANDLE  hProcess,
-; 640  :                                                    _In_opt_ HANDLE  hFile,
-; 641  :                                                    _In_opt_ PCSTR   ImageName,
-; 642  :                                                    _In_opt_ PCSTR   ModuleName,
-; 643  :                                                    _In_     DWORD64 BaseOfDll,
-; 644  :                                                    _In_     DWORD   SizeOfDll );
-; 645  : 
-; 646  :   static SymLoadModule64_pfn SymLoadModule64_Imp =
+; 625  :   typedef DWORD64 (IMAGEAPI *SymLoadModule64_pfn)( _In_     HANDLE  hProcess,
+; 626  :                                                    _In_opt_ HANDLE  hFile,
+; 627  :                                                    _In_opt_ PCSTR   ImageName,
+; 628  :                                                    _In_opt_ PCSTR   ModuleName,
+; 629  :                                                    _In_     DWORD64 BaseOfDll,
+; 630  :                                                    _In_     DWORD   SizeOfDll );
+; 631  : 
+; 632  :   static SymLoadModule64_pfn SymLoadModule64_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -1973,15 +1910,15 @@ _SymLoadModule64@28 PROC
 	jg	SHORT $LN5@SymLoadMod
 $LN2@SymLoadMod:
 
-; 649  : 
-; 650  :   if (SymLoadModule64_Imp != nullptr)
+; 635  : 
+; 636  :   if (SymLoadModule64_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymLoadModule64_Imp@?1??SymLoadModule64@@9@28@4P6G_KPAX0PBD1_KK@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymLoadMod
 
-; 651  :   {
-; 652  :     return SymLoadModule64_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll );
+; 637  :   {
+; 638  :     return SymLoadModule64_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll );
 
 	push	DWORD PTR _SizeOfDll$[ebp]
 	push	DWORD PTR _BaseOfDll$[ebp+4]
@@ -1992,33 +1929,33 @@ $LN2@SymLoadMod:
 	push	DWORD PTR _hProcess$[ebp]
 	call	eax
 
-; 656  : }
+; 642  : }
 
 	pop	ebp
 	ret	28					; 0000001cH
 $LN3@SymLoadMod:
 
-; 653  :   }
-; 654  : 
-; 655  :   return FALSE;
+; 639  :   }
+; 640  : 
+; 641  :   return FALSE;
 
 	xor	eax, eax
 	xor	edx, edx
 
-; 656  : }
+; 642  : }
 
 	pop	ebp
 	ret	28					; 0000001cH
 $LN5@SymLoadMod:
 
-; 639  :   typedef DWORD64 (IMAGEAPI *SymLoadModule64_pfn)( _In_     HANDLE  hProcess,
-; 640  :                                                    _In_opt_ HANDLE  hFile,
-; 641  :                                                    _In_opt_ PCSTR   ImageName,
-; 642  :                                                    _In_opt_ PCSTR   ModuleName,
-; 643  :                                                    _In_     DWORD64 BaseOfDll,
-; 644  :                                                    _In_     DWORD   SizeOfDll );
-; 645  : 
-; 646  :   static SymLoadModule64_pfn SymLoadModule64_Imp =
+; 625  :   typedef DWORD64 (IMAGEAPI *SymLoadModule64_pfn)( _In_     HANDLE  hProcess,
+; 626  :                                                    _In_opt_ HANDLE  hFile,
+; 627  :                                                    _In_opt_ PCSTR   ImageName,
+; 628  :                                                    _In_opt_ PCSTR   ModuleName,
+; 629  :                                                    _In_     DWORD64 BaseOfDll,
+; 630  :                                                    _In_     DWORD   SizeOfDll );
+; 631  : 
+; 632  :   static SymLoadModule64_pfn SymLoadModule64_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymLoadModule64@@9@28@4HA
 	call	__Init_thread_header
@@ -2026,10 +1963,10 @@ $LN5@SymLoadMod:
 	cmp	DWORD PTR ?$TSS0@?1??SymLoadModule64@@9@28@4HA, -1
 	jne	SHORT $LN2@SymLoadMod
 
-; 647  :     (SymLoadModule64_pfn)
-; 648  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule64" );
+; 633  :     (SymLoadModule64_pfn)
+; 634  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule64" );
 
-	push	OFFSET $SG149998
+	push	OFFSET $SG149990
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2046,69 +1983,54 @@ _TEXT	SEGMENT
 _hProcess$ = 8						; size = 4
 _SymRefreshModuleList@4 PROC
 
-; 283  : {
+; 274  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 284  :   typedef BOOL (IMAGEAPI *SymRefreshModuleList_pfn)(HANDLE hProcess);
-; 285  : 
-; 286  :   static SymRefreshModuleList_pfn SymRefreshModuleList_Imp =
+; 275  :   typedef BOOL (IMAGEAPI *SymRefreshModuleList_pfn)(HANDLE hProcess);
+; 276  : 
+; 277  :   static SymRefreshModuleList_pfn SymRefreshModuleList_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
 	mov	ecx, DWORD PTR [eax+ecx*4]
 	mov	eax, DWORD PTR ?$TSS0@?1??SymRefreshModuleList@@9@4@4HA
 	cmp	eax, DWORD PTR __Init_thread_epoch[ecx]
-	jg	SHORT $LN7@SymRefresh
+	jg	SHORT $LN6@SymRefresh
 $LN2@SymRefresh:
 
-; 289  : 
-; 290  :   if (SymRefreshModuleList_Imp == nullptr)
+; 280  : 
+; 281  :   if (SymRefreshModuleList_Imp != nullptr)
 
-	cmp	DWORD PTR ?SymRefreshModuleList_Imp@?1??SymRefreshModuleList@@9@4@4P6GHPAX@ZA, 0
-	jne	SHORT $LN4@SymRefresh
-
-; 291  :     SymRefreshModuleList_Imp =
-
-	push	OFFSET $SG149747
-	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
-	push	eax
-	call	DWORD PTR __imp__GetProcAddress@8
-	mov	DWORD PTR ?SymRefreshModuleList_Imp@?1??SymRefreshModuleList@@9@4@4P6GHPAX@ZA, eax
-
-; 292  :         (SymRefreshModuleList_pfn)
-; 293  :           GetProcAddress ( SK_Debug_LoadHelper (), "SymRefreshModuleList" );
-; 294  : 
-; 295  :   if (! SymRefreshModuleList_Imp)
-
+	mov	eax, DWORD PTR ?SymRefreshModuleList_Imp@?1??SymRefreshModuleList@@9@4@4P6GHPAX@ZA
 	test	eax, eax
-	jne	SHORT $LN4@SymRefresh
+	je	SHORT $LN3@SymRefresh
 
-; 299  : }
+; 285  : }
 
 	pop	ebp
 
-; 296  :     return SymRefreshModuleList_Imp (hProcess);
+; 282  :     return SymRefreshModuleList_Imp (hProcess);
 
 	jmp	eax
-$LN4@SymRefresh:
+$LN3@SymRefresh:
 
-; 297  : 
-; 298  :   return FALSE;
+; 283  : 
+; 284  :   return FALSE;
 
 	xor	eax, eax
 
-; 299  : }
+; 285  : }
 
 	pop	ebp
 	ret	4
-$LN7@SymRefresh:
+$LN6@SymRefresh:
 
-; 284  :   typedef BOOL (IMAGEAPI *SymRefreshModuleList_pfn)(HANDLE hProcess);
-; 285  : 
-; 286  :   static SymRefreshModuleList_pfn SymRefreshModuleList_Imp =
+; 275  :   typedef BOOL (IMAGEAPI *SymRefreshModuleList_pfn)(HANDLE hProcess);
+; 276  : 
+; 277  :   static SymRefreshModuleList_pfn SymRefreshModuleList_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymRefreshModuleList@@9@4@4HA
 	call	__Init_thread_header
@@ -2116,10 +2038,10 @@ $LN7@SymRefresh:
 	cmp	DWORD PTR ?$TSS0@?1??SymRefreshModuleList@@9@4@4HA, -1
 	jne	SHORT $LN2@SymRefresh
 
-; 287  :     (SymRefreshModuleList_pfn)
-; 288  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymRefreshModuleList" );
+; 278  :     (SymRefreshModuleList_pfn)
+; 279  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymRefreshModuleList" );
 
-	push	OFFSET $SG149745
+	push	OFFSET $SG149739
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2139,18 +2061,18 @@ _Displacement$ = 20					; size = 4
 _Symbol$ = 24						; size = 4
 _SymFromAddr@20 PROC
 
-; 579  : {
+; 565  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 580  :   typedef BOOL (IMAGEAPI *SymFromAddr_pfn)( _In_      HANDLE       hProcess,
-; 581  :                                             _In_      DWORD64      Address,
-; 582  :                                             _Out_opt_ PDWORD64     Displacement,
-; 583  :                                             _Inout_   PSYMBOL_INFO Symbol );
-; 584  : 
-; 585  :   static SymFromAddr_pfn SymFromAddr_Imp =
+; 566  :   typedef BOOL (IMAGEAPI *SymFromAddr_pfn)( _In_      HANDLE       hProcess,
+; 567  :                                             _In_      DWORD64      Address,
+; 568  :                                             _Out_opt_ PDWORD64     Displacement,
+; 569  :                                             _Inout_   PSYMBOL_INFO Symbol );
+; 570  : 
+; 571  :   static SymFromAddr_pfn SymFromAddr_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2160,15 +2082,15 @@ _SymFromAddr@20 PROC
 	jg	SHORT $LN5@SymFromAdd
 $LN2@SymFromAdd:
 
-; 588  : 
-; 589  :   if (SymFromAddr_Imp != nullptr)
+; 574  : 
+; 575  :   if (SymFromAddr_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymFromAddr_Imp@?1??SymFromAddr@@9@20@4P6GHPAX_KPA_KPAU_SYMBOL_INFO@@@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymFromAdd
 
-; 590  :   {
-; 591  :     return SymFromAddr_Imp ( hProcess, Address, Displacement, Symbol );
+; 576  :   {
+; 577  :     return SymFromAddr_Imp ( hProcess, Address, Displacement, Symbol );
 
 	push	DWORD PTR _Symbol$[ebp]
 	push	DWORD PTR _Displacement$[ebp]
@@ -2177,30 +2099,30 @@ $LN2@SymFromAdd:
 	push	DWORD PTR _hProcess$[ebp]
 	call	eax
 
-; 595  : }
+; 581  : }
 
 	pop	ebp
 	ret	20					; 00000014H
 $LN3@SymFromAdd:
 
-; 592  :   }
-; 593  : 
-; 594  :   return FALSE;
+; 578  :   }
+; 579  : 
+; 580  :   return FALSE;
 
 	xor	eax, eax
 
-; 595  : }
+; 581  : }
 
 	pop	ebp
 	ret	20					; 00000014H
 $LN5@SymFromAdd:
 
-; 580  :   typedef BOOL (IMAGEAPI *SymFromAddr_pfn)( _In_      HANDLE       hProcess,
-; 581  :                                             _In_      DWORD64      Address,
-; 582  :                                             _Out_opt_ PDWORD64     Displacement,
-; 583  :                                             _Inout_   PSYMBOL_INFO Symbol );
-; 584  : 
-; 585  :   static SymFromAddr_pfn SymFromAddr_Imp =
+; 566  :   typedef BOOL (IMAGEAPI *SymFromAddr_pfn)( _In_      HANDLE       hProcess,
+; 567  :                                             _In_      DWORD64      Address,
+; 568  :                                             _Out_opt_ PDWORD64     Displacement,
+; 569  :                                             _Inout_   PSYMBOL_INFO Symbol );
+; 570  : 
+; 571  :   static SymFromAddr_pfn SymFromAddr_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymFromAddr@@9@20@4HA
 	call	__Init_thread_header
@@ -2208,10 +2130,10 @@ $LN5@SymFromAdd:
 	cmp	DWORD PTR ?$TSS0@?1??SymFromAddr@@9@20@4HA, -1
 	jne	SHORT $LN2@SymFromAdd
 
-; 586  :     (SymFromAddr_pfn)
-; 587  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymFromAddr" );
+; 572  :     (SymFromAddr_pfn)
+; 573  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymFromAddr" );
 
-	push	OFFSET $SG149952
+	push	OFFSET $SG149944
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2229,17 +2151,17 @@ _hProcess$ = 8						; size = 4
 _BaseOfDll$ = 12					; size = 4
 _SymUnloadModule@8 PROC
 
-; 530  : {
+; 516  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 531  :   typedef BOOL (IMAGEAPI *SymUnloadModule_pfn)( _In_ HANDLE hProcess,
-; 532  :                                                 _In_ DWORD  BaseOfDll );
-; 533  : 
-; 534  : 
-; 535  :   static SymUnloadModule_pfn SymUnloadModule_Imp =
+; 517  :   typedef BOOL (IMAGEAPI *SymUnloadModule_pfn)( _In_ HANDLE hProcess,
+; 518  :                                                 _In_ DWORD  BaseOfDll );
+; 519  : 
+; 520  : 
+; 521  :   static SymUnloadModule_pfn SymUnloadModule_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2249,40 +2171,40 @@ _SymUnloadModule@8 PROC
 	jg	SHORT $LN6@SymUnloadM
 $LN2@SymUnloadM:
 
-; 538  : 
-; 539  :   if (SymUnloadModule_Imp != nullptr)
+; 524  : 
+; 525  :   if (SymUnloadModule_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymUnloadModule_Imp@?1??SymUnloadModule@@9@8@4P6GHPAXK@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymUnloadM
 
-; 545  : }
+; 531  : }
 
 	pop	ebp
 
-; 540  :   {
-; 541  :     return SymUnloadModule_Imp ( hProcess, BaseOfDll );
+; 526  :   {
+; 527  :     return SymUnloadModule_Imp ( hProcess, BaseOfDll );
 
 	jmp	eax
 $LN3@SymUnloadM:
 
-; 542  :   }
-; 543  : 
-; 544  :   return FALSE;
+; 528  :   }
+; 529  : 
+; 530  :   return FALSE;
 
 	xor	eax, eax
 
-; 545  : }
+; 531  : }
 
 	pop	ebp
 	ret	8
 $LN6@SymUnloadM:
 
-; 531  :   typedef BOOL (IMAGEAPI *SymUnloadModule_pfn)( _In_ HANDLE hProcess,
-; 532  :                                                 _In_ DWORD  BaseOfDll );
-; 533  : 
-; 534  : 
-; 535  :   static SymUnloadModule_pfn SymUnloadModule_Imp =
+; 517  :   typedef BOOL (IMAGEAPI *SymUnloadModule_pfn)( _In_ HANDLE hProcess,
+; 518  :                                                 _In_ DWORD  BaseOfDll );
+; 519  : 
+; 520  : 
+; 521  :   static SymUnloadModule_pfn SymUnloadModule_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymUnloadModule@@9@8@4HA
 	call	__Init_thread_header
@@ -2290,10 +2212,10 @@ $LN6@SymUnloadM:
 	cmp	DWORD PTR ?$TSS0@?1??SymUnloadModule@@9@8@4HA, -1
 	jne	SHORT $LN2@SymUnloadM
 
-; 536  :     (SymUnloadModule_pfn)
-; 537  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymUnloadModule" );
+; 522  :     (SymUnloadModule_pfn)
+; 523  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymUnloadModule" );
 
-	push	OFFSET $SG149918
+	push	OFFSET $SG149910
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2311,17 +2233,17 @@ _hProcess$ = 8						; size = 4
 _BaseOfDll$ = 12					; size = 8
 _SymUnloadModule64@12 PROC
 
-; 553  : {
+; 539  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 554  :   typedef BOOL (IMAGEAPI *SymUnloadModule64_pfn)( _In_ HANDLE  hProcess,
-; 555  :                                                   _In_ DWORD64 BaseOfDll );
-; 556  : 
-; 557  : 
-; 558  :   static SymUnloadModule64_pfn SymUnloadModule64_Imp =
+; 540  :   typedef BOOL (IMAGEAPI *SymUnloadModule64_pfn)( _In_ HANDLE  hProcess,
+; 541  :                                                   _In_ DWORD64 BaseOfDll );
+; 542  : 
+; 543  : 
+; 544  :   static SymUnloadModule64_pfn SymUnloadModule64_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2331,44 +2253,44 @@ _SymUnloadModule64@12 PROC
 	jg	SHORT $LN5@SymUnloadM
 $LN2@SymUnloadM:
 
-; 561  : 
-; 562  :   if (SymUnloadModule64_Imp != nullptr)
+; 547  : 
+; 548  :   if (SymUnloadModule64_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymUnloadModule64_Imp@?1??SymUnloadModule64@@9@12@4P6GHPAX_K@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymUnloadM
 
-; 563  :   {
-; 564  :     return SymUnloadModule64_Imp ( hProcess, BaseOfDll );
+; 549  :   {
+; 550  :     return SymUnloadModule64_Imp ( hProcess, BaseOfDll );
 
 	push	DWORD PTR _BaseOfDll$[ebp+4]
 	push	DWORD PTR _BaseOfDll$[ebp]
 	push	DWORD PTR _hProcess$[ebp]
 	call	eax
 
-; 568  : }
+; 554  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN3@SymUnloadM:
 
-; 565  :   }
-; 566  : 
-; 567  :   return FALSE;
+; 551  :   }
+; 552  : 
+; 553  :   return FALSE;
 
 	xor	eax, eax
 
-; 568  : }
+; 554  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN5@SymUnloadM:
 
-; 554  :   typedef BOOL (IMAGEAPI *SymUnloadModule64_pfn)( _In_ HANDLE  hProcess,
-; 555  :                                                   _In_ DWORD64 BaseOfDll );
-; 556  : 
-; 557  : 
-; 558  :   static SymUnloadModule64_pfn SymUnloadModule64_Imp =
+; 540  :   typedef BOOL (IMAGEAPI *SymUnloadModule64_pfn)( _In_ HANDLE  hProcess,
+; 541  :                                                   _In_ DWORD64 BaseOfDll );
+; 542  : 
+; 543  : 
+; 544  :   static SymUnloadModule64_pfn SymUnloadModule64_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymUnloadModule64@@9@12@4HA
 	call	__Init_thread_header
@@ -2376,10 +2298,10 @@ $LN5@SymUnloadM:
 	cmp	DWORD PTR ?$TSS0@?1??SymUnloadModule64@@9@12@4HA, -1
 	jne	SHORT $LN2@SymUnloadM
 
-; 559  :     (SymUnloadModule64_pfn)
-; 560  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymUnloadModule64" );
+; 545  :     (SymUnloadModule64_pfn)
+; 546  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymUnloadModule64" );
 
-	push	OFFSET $SG149933
+	push	OFFSET $SG149925
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2398,18 +2320,18 @@ _UserSearchPath$ = 12					; size = 4
 _fInvadeProcess$ = 16					; size = 4
 _SymInitialize@12 PROC
 
-; 505  : {
+; 491  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 506  :   typedef BOOL (IMAGEAPI *SymInitialize_pfn)( _In_     HANDLE hProcess,
-; 507  :                                               _In_opt_ PCSTR  UserSearchPath,
-; 508  :                                               _In_     BOOL   fInvadeProcess );
-; 509  : 
-; 510  : 
-; 511  :   static SymInitialize_pfn SymInitialize_Imp =
+; 492  :   typedef BOOL (IMAGEAPI *SymInitialize_pfn)( _In_     HANDLE hProcess,
+; 493  :                                               _In_opt_ PCSTR  UserSearchPath,
+; 494  :                                               _In_     BOOL   fInvadeProcess );
+; 495  : 
+; 496  : 
+; 497  :   static SymInitialize_pfn SymInitialize_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2419,41 +2341,41 @@ _SymInitialize@12 PROC
 	jg	SHORT $LN6@SymInitial
 $LN2@SymInitial:
 
-; 514  : 
-; 515  :   if (SymInitialize_Imp != nullptr)
+; 500  : 
+; 501  :   if (SymInitialize_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymInitialize_Imp@?1??SymInitialize@@9@12@4P6GHPAXPBDH@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymInitial
 
-; 521  : }
+; 507  : }
 
 	pop	ebp
 
-; 516  :   {
-; 517  :     return SymInitialize_Imp ( hProcess, UserSearchPath, fInvadeProcess );
+; 502  :   {
+; 503  :     return SymInitialize_Imp ( hProcess, UserSearchPath, fInvadeProcess );
 
 	jmp	eax
 $LN3@SymInitial:
 
-; 518  :   }
-; 519  : 
-; 520  :   return FALSE;
+; 504  :   }
+; 505  : 
+; 506  :   return FALSE;
 
 	xor	eax, eax
 
-; 521  : }
+; 507  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN6@SymInitial:
 
-; 506  :   typedef BOOL (IMAGEAPI *SymInitialize_pfn)( _In_     HANDLE hProcess,
-; 507  :                                               _In_opt_ PCSTR  UserSearchPath,
-; 508  :                                               _In_     BOOL   fInvadeProcess );
-; 509  : 
-; 510  : 
-; 511  :   static SymInitialize_pfn SymInitialize_Imp =
+; 492  :   typedef BOOL (IMAGEAPI *SymInitialize_pfn)( _In_     HANDLE hProcess,
+; 493  :                                               _In_opt_ PCSTR  UserSearchPath,
+; 494  :                                               _In_     BOOL   fInvadeProcess );
+; 495  : 
+; 496  : 
+; 497  :   static SymInitialize_pfn SymInitialize_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymInitialize@@9@12@4HA
 	call	__Init_thread_header
@@ -2461,10 +2383,10 @@ $LN6@SymInitial:
 	cmp	DWORD PTR ?$TSS0@?1??SymInitialize@@9@12@4HA, -1
 	jne	SHORT $LN2@SymInitial
 
-; 512  :     (SymInitialize_pfn)
-; 513  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymInitialize" );
+; 498  :     (SymInitialize_pfn)
+; 499  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymInitialize" );
 
-	push	OFFSET $SG149903
+	push	OFFSET $SG149895
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2484,18 +2406,18 @@ _pdwDisplacement$ = 16					; size = 4
 _Line$ = 20						; size = 4
 _SymGetLineFromAddr@16 PROC
 
-; 479  : {
+; 465  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 480  :   typedef BOOL (IMAGEAPI *SymGetLineFromAddr_pfn)(_In_  HANDLE         hProcess,
-; 481  :                                                   _In_  DWORD          dwAddr,
-; 482  :                                                   _Out_ PDWORD         pdwDisplacement,
-; 483  :                                                   _Out_ PIMAGEHLP_LINE Line);
-; 484  : 
-; 485  :   static SymGetLineFromAddr_pfn SymGetLineFromAddr_Imp =
+; 466  :   typedef BOOL (IMAGEAPI *SymGetLineFromAddr_pfn)(_In_  HANDLE         hProcess,
+; 467  :                                                   _In_  DWORD          dwAddr,
+; 468  :                                                   _Out_ PDWORD         pdwDisplacement,
+; 469  :                                                   _Out_ PIMAGEHLP_LINE Line);
+; 470  : 
+; 471  :   static SymGetLineFromAddr_pfn SymGetLineFromAddr_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2505,41 +2427,41 @@ _SymGetLineFromAddr@16 PROC
 	jg	SHORT $LN6@SymGetLine
 $LN2@SymGetLine:
 
-; 488  : 
-; 489  :   if (SymGetLineFromAddr_Imp != nullptr)
+; 474  : 
+; 475  :   if (SymGetLineFromAddr_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymGetLineFromAddr_Imp@?1??SymGetLineFromAddr@@9@16@4P6GHPAXKPAKPAU_IMAGEHLP_LINE@@@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymGetLine
 
-; 495  : }
+; 481  : }
 
 	pop	ebp
 
-; 490  :   {
-; 491  :     return SymGetLineFromAddr_Imp ( hProcess, dwAddr, pdwDisplacement, Line );
+; 476  :   {
+; 477  :     return SymGetLineFromAddr_Imp ( hProcess, dwAddr, pdwDisplacement, Line );
 
 	jmp	eax
 $LN3@SymGetLine:
 
-; 492  :   }
-; 493  : 
-; 494  :   return FALSE;
+; 478  :   }
+; 479  : 
+; 480  :   return FALSE;
 
 	xor	eax, eax
 
-; 495  : }
+; 481  : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN6@SymGetLine:
 
-; 480  :   typedef BOOL (IMAGEAPI *SymGetLineFromAddr_pfn)(_In_  HANDLE         hProcess,
-; 481  :                                                   _In_  DWORD          dwAddr,
-; 482  :                                                   _Out_ PDWORD         pdwDisplacement,
-; 483  :                                                   _Out_ PIMAGEHLP_LINE Line);
-; 484  : 
-; 485  :   static SymGetLineFromAddr_pfn SymGetLineFromAddr_Imp =
+; 466  :   typedef BOOL (IMAGEAPI *SymGetLineFromAddr_pfn)(_In_  HANDLE         hProcess,
+; 467  :                                                   _In_  DWORD          dwAddr,
+; 468  :                                                   _Out_ PDWORD         pdwDisplacement,
+; 469  :                                                   _Out_ PIMAGEHLP_LINE Line);
+; 470  : 
+; 471  :   static SymGetLineFromAddr_pfn SymGetLineFromAddr_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymGetLineFromAddr@@9@16@4HA
 	call	__Init_thread_header
@@ -2547,10 +2469,10 @@ $LN6@SymGetLine:
 	cmp	DWORD PTR ?$TSS0@?1??SymGetLineFromAddr@@9@16@4HA, -1
 	jne	SHORT $LN2@SymGetLine
 
-; 486  :     (SymGetLineFromAddr_pfn)
-; 487  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetLineFromAddr" );
+; 472  :     (SymGetLineFromAddr_pfn)
+; 473  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetLineFromAddr" );
 
-	push	OFFSET $SG149886
+	push	OFFSET $SG149878
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2570,19 +2492,19 @@ _pdwDisplacement$ = 20					; size = 4
 _Line64$ = 24						; size = 4
 _SymGetLineFromAddr64@20 PROC
 
-; 452  : {
+; 438  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 453  :   typedef BOOL (IMAGEAPI *SymGetLineFromAddr64_pfn)(_In_  HANDLE           hProcess,
-; 454  :                                                     _In_  DWORD64          qwAddr,
-; 455  :                                                     _Out_ PDWORD           pdwDisplacement,
-; 456  :                                                     _Out_ PIMAGEHLP_LINE64 Line64);
-; 457  : 
-; 458  : 
-; 459  :   static SymGetLineFromAddr64_pfn SymGetLineFromAddr64_Imp =
+; 439  :   typedef BOOL (IMAGEAPI *SymGetLineFromAddr64_pfn)(_In_  HANDLE           hProcess,
+; 440  :                                                     _In_  DWORD64          qwAddr,
+; 441  :                                                     _Out_ PDWORD           pdwDisplacement,
+; 442  :                                                     _Out_ PIMAGEHLP_LINE64 Line64);
+; 443  : 
+; 444  : 
+; 445  :   static SymGetLineFromAddr64_pfn SymGetLineFromAddr64_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2592,15 +2514,15 @@ _SymGetLineFromAddr64@20 PROC
 	jg	SHORT $LN5@SymGetLine
 $LN2@SymGetLine:
 
-; 462  : 
-; 463  :   if (SymGetLineFromAddr64_Imp != nullptr)
+; 448  : 
+; 449  :   if (SymGetLineFromAddr64_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymGetLineFromAddr64_Imp@?1??SymGetLineFromAddr64@@9@20@4P6GHPAX_KPAKPAU_IMAGEHLP_LINE64@@@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymGetLine
 
-; 464  :   {
-; 465  :     return SymGetLineFromAddr64_Imp ( hProcess, qwAddr, pdwDisplacement, Line64 );
+; 450  :   {
+; 451  :     return SymGetLineFromAddr64_Imp ( hProcess, qwAddr, pdwDisplacement, Line64 );
 
 	push	DWORD PTR _Line64$[ebp]
 	push	DWORD PTR _pdwDisplacement$[ebp]
@@ -2609,31 +2531,31 @@ $LN2@SymGetLine:
 	push	DWORD PTR _hProcess$[ebp]
 	call	eax
 
-; 469  : }
+; 455  : }
 
 	pop	ebp
 	ret	20					; 00000014H
 $LN3@SymGetLine:
 
-; 466  :   }
-; 467  : 
-; 468  :   return FALSE;
+; 452  :   }
+; 453  : 
+; 454  :   return FALSE;
 
 	xor	eax, eax
 
-; 469  : }
+; 455  : }
 
 	pop	ebp
 	ret	20					; 00000014H
 $LN5@SymGetLine:
 
-; 453  :   typedef BOOL (IMAGEAPI *SymGetLineFromAddr64_pfn)(_In_  HANDLE           hProcess,
-; 454  :                                                     _In_  DWORD64          qwAddr,
-; 455  :                                                     _Out_ PDWORD           pdwDisplacement,
-; 456  :                                                     _Out_ PIMAGEHLP_LINE64 Line64);
-; 457  : 
-; 458  : 
-; 459  :   static SymGetLineFromAddr64_pfn SymGetLineFromAddr64_Imp =
+; 439  :   typedef BOOL (IMAGEAPI *SymGetLineFromAddr64_pfn)(_In_  HANDLE           hProcess,
+; 440  :                                                     _In_  DWORD64          qwAddr,
+; 441  :                                                     _Out_ PDWORD           pdwDisplacement,
+; 442  :                                                     _Out_ PIMAGEHLP_LINE64 Line64);
+; 443  : 
+; 444  : 
+; 445  :   static SymGetLineFromAddr64_pfn SymGetLineFromAddr64_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymGetLineFromAddr64@@9@20@4HA
 	call	__Init_thread_header
@@ -2641,10 +2563,10 @@ $LN5@SymGetLine:
 	cmp	DWORD PTR ?$TSS0@?1??SymGetLineFromAddr64@@9@20@4HA, -1
 	jne	SHORT $LN2@SymGetLine
 
-; 460  :     (SymGetLineFromAddr64_pfn)
-; 461  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetLineFromAddr64" );
+; 446  :     (SymGetLineFromAddr64_pfn)
+; 447  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetLineFromAddr64" );
 
-	push	OFFSET $SG149867
+	push	OFFSET $SG149859
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2662,16 +2584,16 @@ _hProcess$ = 8						; size = 4
 _dwAddr$ = 12						; size = 4
 _SymGetModuleBase@8 PROC
 
-; 427  : {
+; 413  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 428  :   typedef DWORD (IMAGEAPI *SymGetModuleBase_pfn)(_In_ HANDLE  hProcess,
-; 429  :                                                  _In_ DWORD   dwAddr);
-; 430  : 
-; 431  :   static SymGetModuleBase_pfn SymGetModuleBase_Imp =
+; 414  :   typedef DWORD (IMAGEAPI *SymGetModuleBase_pfn)(_In_ HANDLE  hProcess,
+; 415  :                                                  _In_ DWORD   dwAddr);
+; 416  : 
+; 417  :   static SymGetModuleBase_pfn SymGetModuleBase_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2681,39 +2603,39 @@ _SymGetModuleBase@8 PROC
 	jg	SHORT $LN6@SymGetModu
 $LN2@SymGetModu:
 
-; 434  : 
-; 435  :   if (SymGetModuleBase_Imp != nullptr)
+; 420  : 
+; 421  :   if (SymGetModuleBase_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymGetModuleBase_Imp@?1??SymGetModuleBase@@9@8@4P6GKPAXK@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymGetModu
 
-; 441  : }
+; 427  : }
 
 	pop	ebp
 
-; 436  :   {
-; 437  :     return SymGetModuleBase_Imp ( hProcess, dwAddr );
+; 422  :   {
+; 423  :     return SymGetModuleBase_Imp ( hProcess, dwAddr );
 
 	jmp	eax
 $LN3@SymGetModu:
 
-; 438  :   }
-; 439  : 
-; 440  :   return 0x0;
+; 424  :   }
+; 425  : 
+; 426  :   return 0x0;
 
 	xor	eax, eax
 
-; 441  : }
+; 427  : }
 
 	pop	ebp
 	ret	8
 $LN6@SymGetModu:
 
-; 428  :   typedef DWORD (IMAGEAPI *SymGetModuleBase_pfn)(_In_ HANDLE  hProcess,
-; 429  :                                                  _In_ DWORD   dwAddr);
-; 430  : 
-; 431  :   static SymGetModuleBase_pfn SymGetModuleBase_Imp =
+; 414  :   typedef DWORD (IMAGEAPI *SymGetModuleBase_pfn)(_In_ HANDLE  hProcess,
+; 415  :                                                  _In_ DWORD   dwAddr);
+; 416  : 
+; 417  :   static SymGetModuleBase_pfn SymGetModuleBase_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymGetModuleBase@@9@8@4HA
 	call	__Init_thread_header
@@ -2721,10 +2643,10 @@ $LN6@SymGetModu:
 	cmp	DWORD PTR ?$TSS0@?1??SymGetModuleBase@@9@8@4HA, -1
 	jne	SHORT $LN2@SymGetModu
 
-; 432  :     (SymGetModuleBase_pfn)
-; 433  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetModuleBase" );
+; 418  :     (SymGetModuleBase_pfn)
+; 419  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetModuleBase" );
 
-	push	OFFSET $SG149848
+	push	OFFSET $SG149840
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2742,16 +2664,16 @@ _hProcess$ = 8						; size = 4
 _qwAddr$ = 12						; size = 8
 _SymGetModuleBase64@12 PROC
 
-; 405  : {
+; 391  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 406  :   typedef DWORD64 (IMAGEAPI *SymGetModuleBase64_pfn)(_In_ HANDLE  hProcess,
-; 407  :                                                      _In_ DWORD64 qwAddr);
-; 408  : 
-; 409  :   static SymGetModuleBase64_pfn SymGetModuleBase64_Imp =
+; 392  :   typedef DWORD64 (IMAGEAPI *SymGetModuleBase64_pfn)(_In_ HANDLE  hProcess,
+; 393  :                                                      _In_ DWORD64 qwAddr);
+; 394  : 
+; 395  :   static SymGetModuleBase64_pfn SymGetModuleBase64_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2761,44 +2683,44 @@ _SymGetModuleBase64@12 PROC
 	jg	SHORT $LN5@SymGetModu
 $LN2@SymGetModu:
 
-; 412  : 
-; 413  :   if (SymGetModuleBase64_Imp != nullptr)
+; 398  : 
+; 399  :   if (SymGetModuleBase64_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymGetModuleBase64_Imp@?1??SymGetModuleBase64@@9@12@4P6G_KPAX_K@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymGetModu
 
-; 414  :   {
-; 415  :     return SymGetModuleBase64_Imp ( hProcess, qwAddr );
+; 400  :   {
+; 401  :     return SymGetModuleBase64_Imp ( hProcess, qwAddr );
 
 	push	DWORD PTR _qwAddr$[ebp+4]
 	push	DWORD PTR _qwAddr$[ebp]
 	push	DWORD PTR _hProcess$[ebp]
 	call	eax
 
-; 419  : }
+; 405  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN3@SymGetModu:
 
-; 416  :   }
-; 417  : 
-; 418  :   return 0x0;
+; 402  :   }
+; 403  : 
+; 404  :   return 0x0;
 
 	xor	eax, eax
 	xor	edx, edx
 
-; 419  : }
+; 405  : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN5@SymGetModu:
 
-; 406  :   typedef DWORD64 (IMAGEAPI *SymGetModuleBase64_pfn)(_In_ HANDLE  hProcess,
-; 407  :                                                      _In_ DWORD64 qwAddr);
-; 408  : 
-; 409  :   static SymGetModuleBase64_pfn SymGetModuleBase64_Imp =
+; 392  :   typedef DWORD64 (IMAGEAPI *SymGetModuleBase64_pfn)(_In_ HANDLE  hProcess,
+; 393  :                                                      _In_ DWORD64 qwAddr);
+; 394  : 
+; 395  :   static SymGetModuleBase64_pfn SymGetModuleBase64_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymGetModuleBase64@@9@12@4HA
 	call	__Init_thread_header
@@ -2806,10 +2728,10 @@ $LN5@SymGetModu:
 	cmp	DWORD PTR ?$TSS0@?1??SymGetModuleBase64@@9@12@4HA, -1
 	jne	SHORT $LN2@SymGetModu
 
-; 410  :     (SymGetModuleBase64_pfn)
-; 411  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetModuleBase64" );
+; 396  :     (SymGetModuleBase64_pfn)
+; 397  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetModuleBase64" );
 
-	push	OFFSET $SG149833
+	push	OFFSET $SG149825
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2826,15 +2748,15 @@ _TEXT	SEGMENT
 _SymOptions$ = 8					; size = 4
 _SymSetOptions@4 PROC
 
-; 383  : {
+; 369  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 384  :   typedef DWORD (IMAGEAPI *SymSetOptions_pfn)(_In_ DWORD SymOptions);
-; 385  : 
-; 386  :   static SymSetOptions_pfn SymSetOptions_Imp =
+; 370  :   typedef DWORD (IMAGEAPI *SymSetOptions_pfn)(_In_ DWORD SymOptions);
+; 371  : 
+; 372  :   static SymSetOptions_pfn SymSetOptions_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2844,38 +2766,38 @@ _SymSetOptions@4 PROC
 	jg	SHORT $LN6@SymSetOpti
 $LN2@SymSetOpti:
 
-; 389  : 
-; 390  :   if (SymSetOptions_Imp != nullptr)
+; 375  : 
+; 376  :   if (SymSetOptions_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?SymSetOptions_Imp@?1??SymSetOptions@@9@4@4P6GKK@ZA
 	test	eax, eax
 	je	SHORT $LN3@SymSetOpti
 
-; 396  : }
+; 382  : }
 
 	pop	ebp
 
-; 391  :   {
-; 392  :     return SymSetOptions_Imp ( SymOptions );
+; 377  :   {
+; 378  :     return SymSetOptions_Imp ( SymOptions );
 
 	jmp	eax
 $LN3@SymSetOpti:
 
-; 393  :   }
-; 394  : 
-; 395  :   return 0x0;
+; 379  :   }
+; 380  : 
+; 381  :   return 0x0;
 
 	xor	eax, eax
 
-; 396  : }
+; 382  : }
 
 	pop	ebp
 	ret	4
 $LN6@SymSetOpti:
 
-; 384  :   typedef DWORD (IMAGEAPI *SymSetOptions_pfn)(_In_ DWORD SymOptions);
-; 385  : 
-; 386  :   static SymSetOptions_pfn SymSetOptions_Imp =
+; 370  :   typedef DWORD (IMAGEAPI *SymSetOptions_pfn)(_In_ DWORD SymOptions);
+; 371  : 
+; 372  :   static SymSetOptions_pfn SymSetOptions_Imp =
 
 	push	OFFSET ?$TSS0@?1??SymSetOptions@@9@4@4HA
 	call	__Init_thread_header
@@ -2883,10 +2805,10 @@ $LN6@SymSetOpti:
 	cmp	DWORD PTR ?$TSS0@?1??SymSetOptions@@9@4@4HA, -1
 	jne	SHORT $LN2@SymSetOpti
 
-; 387  :     (SymSetOptions_pfn)
-; 388  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymSetOptions" );
+; 373  :     (SymSetOptions_pfn)
+; 374  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymSetOptions" );
 
-	push	OFFSET $SG149818
+	push	OFFSET $SG149810
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2911,23 +2833,23 @@ _GetModuleBaseRoutine$ = 36				; size = 4
 _TranslateAddress$ = 40					; size = 4
 _StackWalk@36 PROC
 
-; 352  : {
+; 338  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 353  :   typedef BOOL (IMAGEAPI *StackWalk_pfn)(_In_     DWORD                          MachineType,
-; 354  :                                          _In_     HANDLE                         hProcess,
-; 355  :                                          _In_     HANDLE                         hThread,
-; 356  :                                          _Inout_  LPSTACKFRAME                   StackFrame,
-; 357  :                                          _Inout_  PVOID                          ContextRecord,
-; 358  :                                          _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE   ReadMemoryRoutine,
-; 359  :                                          _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE FunctionTableAccessRoutine,
-; 360  :                                          _In_opt_ PGET_MODULE_BASE_ROUTINE       GetModuleBaseRoutine,
-; 361  :                                          _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress);
-; 362  : 
-; 363  :   static StackWalk_pfn StackWalk_Imp =
+; 339  :   typedef BOOL (IMAGEAPI *StackWalk_pfn)(_In_     DWORD                          MachineType,
+; 340  :                                          _In_     HANDLE                         hProcess,
+; 341  :                                          _In_     HANDLE                         hThread,
+; 342  :                                          _Inout_  LPSTACKFRAME                   StackFrame,
+; 343  :                                          _Inout_  PVOID                          ContextRecord,
+; 344  :                                          _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE   ReadMemoryRoutine,
+; 345  :                                          _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE FunctionTableAccessRoutine,
+; 346  :                                          _In_opt_ PGET_MODULE_BASE_ROUTINE       GetModuleBaseRoutine,
+; 347  :                                          _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress);
+; 348  : 
+; 349  :   static StackWalk_pfn StackWalk_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -2937,48 +2859,48 @@ _StackWalk@36 PROC
 	jg	SHORT $LN6@StackWalk
 $LN2@StackWalk:
 
-; 366  : 
-; 367  :   if (StackWalk_Imp != nullptr)
+; 352  : 
+; 353  :   if (StackWalk_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?StackWalk_Imp@?1??StackWalk@@9@36@4P6GHKPAX0PAU_tagSTACKFRAME@@0P6GH0K0KPAK@ZP6GPAX0K@ZP6GK0K@ZP6GK00PAU_tagADDRESS@@@Z@ZA
 	test	eax, eax
 	je	SHORT $LN3@StackWalk
 
-; 375  : }
+; 361  : }
 
 	pop	ebp
 
-; 368  :   {
-; 369  :     return StackWalk_Imp ( MachineType, hProcess, hThread, StackFrame, ContextRecord,
+; 354  :   {
+; 355  :     return StackWalk_Imp ( MachineType, hProcess, hThread, StackFrame, ContextRecord,
 
 	jmp	eax
 $LN3@StackWalk:
 
-; 370  :                              ReadMemoryRoutine, FunctionTableAccessRoutine, GetModuleBaseRoutine,
-; 371  :                              TranslateAddress );
-; 372  :   }
-; 373  : 
-; 374  :   return FALSE;
+; 356  :                              ReadMemoryRoutine, FunctionTableAccessRoutine, GetModuleBaseRoutine,
+; 357  :                              TranslateAddress );
+; 358  :   }
+; 359  : 
+; 360  :   return FALSE;
 
 	xor	eax, eax
 
-; 375  : }
+; 361  : }
 
 	pop	ebp
 	ret	36					; 00000024H
 $LN6@StackWalk:
 
-; 353  :   typedef BOOL (IMAGEAPI *StackWalk_pfn)(_In_     DWORD                          MachineType,
-; 354  :                                          _In_     HANDLE                         hProcess,
-; 355  :                                          _In_     HANDLE                         hThread,
-; 356  :                                          _Inout_  LPSTACKFRAME                   StackFrame,
-; 357  :                                          _Inout_  PVOID                          ContextRecord,
-; 358  :                                          _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE   ReadMemoryRoutine,
-; 359  :                                          _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE FunctionTableAccessRoutine,
-; 360  :                                          _In_opt_ PGET_MODULE_BASE_ROUTINE       GetModuleBaseRoutine,
-; 361  :                                          _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress);
-; 362  : 
-; 363  :   static StackWalk_pfn StackWalk_Imp =
+; 339  :   typedef BOOL (IMAGEAPI *StackWalk_pfn)(_In_     DWORD                          MachineType,
+; 340  :                                          _In_     HANDLE                         hProcess,
+; 341  :                                          _In_     HANDLE                         hThread,
+; 342  :                                          _Inout_  LPSTACKFRAME                   StackFrame,
+; 343  :                                          _Inout_  PVOID                          ContextRecord,
+; 344  :                                          _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE   ReadMemoryRoutine,
+; 345  :                                          _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE FunctionTableAccessRoutine,
+; 346  :                                          _In_opt_ PGET_MODULE_BASE_ROUTINE       GetModuleBaseRoutine,
+; 347  :                                          _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress);
+; 348  : 
+; 349  :   static StackWalk_pfn StackWalk_Imp =
 
 	push	OFFSET ?$TSS0@?1??StackWalk@@9@36@4HA
 	call	__Init_thread_header
@@ -2986,10 +2908,10 @@ $LN6@StackWalk:
 	cmp	DWORD PTR ?$TSS0@?1??StackWalk@@9@36@4HA, -1
 	jne	SHORT $LN2@StackWalk
 
-; 364  :     (StackWalk_pfn)
-; 365  :       GetProcAddress ( SK_Debug_LoadHelper (), "StackWalk" );
+; 350  :     (StackWalk_pfn)
+; 351  :       GetProcAddress ( SK_Debug_LoadHelper (), "StackWalk" );
 
-	push	OFFSET $SG149805
+	push	OFFSET $SG149797
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -3014,23 +2936,23 @@ _GetModuleBaseRoutine$ = 36				; size = 4
 _TranslateAddress$ = 40					; size = 4
 _StackWalk64@36 PROC
 
-; 314  : {
+; 300  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 315  :   typedef BOOL (IMAGEAPI *StackWalk64_pfn)(_In_ DWORD MachineType,
-; 316  :                                            _In_ HANDLE hProcess,
-; 317  :                                            _In_ HANDLE hThread,
-; 318  :                                            _Inout_ LPSTACKFRAME64 StackFrame,
-; 319  :                                            _Inout_ PVOID ContextRecord,
-; 320  :                                            _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
-; 321  :                                            _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
-; 322  :                                            _In_opt_ PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
-; 323  :                                            _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
-; 324  : 
-; 325  :   static StackWalk64_pfn StackWalk64_Imp =
+; 301  :   typedef BOOL (IMAGEAPI *StackWalk64_pfn)(_In_ DWORD MachineType,
+; 302  :                                            _In_ HANDLE hProcess,
+; 303  :                                            _In_ HANDLE hThread,
+; 304  :                                            _Inout_ LPSTACKFRAME64 StackFrame,
+; 305  :                                            _Inout_ PVOID ContextRecord,
+; 306  :                                            _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
+; 307  :                                            _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
+; 308  :                                            _In_opt_ PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
+; 309  :                                            _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
+; 310  : 
+; 311  :   static StackWalk64_pfn StackWalk64_Imp =
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -3040,48 +2962,48 @@ _StackWalk64@36 PROC
 	jg	SHORT $LN6@StackWalk6
 $LN2@StackWalk6:
 
-; 328  : 
-; 329  :   if (StackWalk64_Imp != nullptr)
+; 314  : 
+; 315  :   if (StackWalk64_Imp != nullptr)
 
 	mov	eax, DWORD PTR ?StackWalk64_Imp@?1??StackWalk64@@9@36@4P6GHKPAX0PAU_tagSTACKFRAME64@@0P6GH0_K0KPAK@ZP6GPAX02@ZP6G_K02@ZP6G_K00PAU_tagADDRESS64@@@Z@ZA
 	test	eax, eax
 	je	SHORT $LN3@StackWalk6
 
-; 337  : }
+; 323  : }
 
 	pop	ebp
 
-; 330  :   {
-; 331  :     return StackWalk64_Imp ( MachineType, hProcess, hThread, StackFrame, ContextRecord,
+; 316  :   {
+; 317  :     return StackWalk64_Imp ( MachineType, hProcess, hThread, StackFrame, ContextRecord,
 
 	jmp	eax
 $LN3@StackWalk6:
 
-; 332  :                              ReadMemoryRoutine, FunctionTableAccessRoutine, GetModuleBaseRoutine,
-; 333  :                              TranslateAddress );
-; 334  :   }
-; 335  : 
-; 336  :   return FALSE;
+; 318  :                              ReadMemoryRoutine, FunctionTableAccessRoutine, GetModuleBaseRoutine,
+; 319  :                              TranslateAddress );
+; 320  :   }
+; 321  : 
+; 322  :   return FALSE;
 
 	xor	eax, eax
 
-; 337  : }
+; 323  : }
 
 	pop	ebp
 	ret	36					; 00000024H
 $LN6@StackWalk6:
 
-; 315  :   typedef BOOL (IMAGEAPI *StackWalk64_pfn)(_In_ DWORD MachineType,
-; 316  :                                            _In_ HANDLE hProcess,
-; 317  :                                            _In_ HANDLE hThread,
-; 318  :                                            _Inout_ LPSTACKFRAME64 StackFrame,
-; 319  :                                            _Inout_ PVOID ContextRecord,
-; 320  :                                            _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
-; 321  :                                            _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
-; 322  :                                            _In_opt_ PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
-; 323  :                                            _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
-; 324  : 
-; 325  :   static StackWalk64_pfn StackWalk64_Imp =
+; 301  :   typedef BOOL (IMAGEAPI *StackWalk64_pfn)(_In_ DWORD MachineType,
+; 302  :                                            _In_ HANDLE hProcess,
+; 303  :                                            _In_ HANDLE hThread,
+; 304  :                                            _Inout_ LPSTACKFRAME64 StackFrame,
+; 305  :                                            _Inout_ PVOID ContextRecord,
+; 306  :                                            _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
+; 307  :                                            _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
+; 308  :                                            _In_opt_ PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
+; 309  :                                            _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
+; 310  : 
+; 311  :   static StackWalk64_pfn StackWalk64_Imp =
 
 	push	OFFSET ?$TSS0@?1??StackWalk64@@9@36@4HA
 	call	__Init_thread_header
@@ -3089,10 +3011,10 @@ $LN6@StackWalk6:
 	cmp	DWORD PTR ?$TSS0@?1??StackWalk64@@9@36@4HA, -1
 	jne	SHORT $LN2@StackWalk6
 
-; 326  :     (StackWalk64_pfn)
-; 327  :       GetProcAddress ( SK_Debug_LoadHelper (), "StackWalk64" );
+; 312  :     (StackWalk64_pfn)
+; 313  :       GetProcAddress ( SK_Debug_LoadHelper (), "StackWalk64" );
 
-	push	OFFSET $SG149776
+	push	OFFSET $SG149768
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -6593,35 +6515,35 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_IsDebuggerPresent@@YGHXZ PROC			; SK_IsDebuggerPresent
 
-; 233  :   if (IsDebuggerPresent_Original == nullptr)
+; 234  :   if (IsDebuggerPresent_Original == nullptr)
 
 	mov	eax, DWORD PTR ?IsDebuggerPresent_Original@@3P6GHXZA ; IsDebuggerPresent_Original
 	test	eax, eax
 	jne	SHORT $LN5@SK_IsDebug
 
-; 234  :   {
-; 235  :     SK::Diagnostics::Debugger::Allow (); // DONTCARE, just init
+; 235  :   {
+; 236  :     SK::Diagnostics::Debugger::Allow (); // DONTCARE, just init
 
 	push	1
 	call	?Allow@Debugger@Diagnostics@SK@@YA_N_N@Z ; SK::Diagnostics::Debugger::Allow
 
-; 236  :   }
-; 237  : 
-; 238  :   if (IsDebuggerPresent_Original)
+; 237  :   }
+; 238  : 
+; 239  :   if (IsDebuggerPresent_Original)
 
 	mov	eax, DWORD PTR ?IsDebuggerPresent_Original@@3P6GHXZA ; IsDebuggerPresent_Original
 	add	esp, 4
 	test	eax, eax
 	jne	SHORT $LN5@SK_IsDebug
 
-; 240  : 
-; 241  :   return FALSE;
-; 242  : }
+; 241  : 
+; 242  :   return FALSE;
+; 243  : }
 
 	ret	0
 $LN5@SK_IsDebug:
 
-; 239  :     return IsDebuggerPresent_Original ();
+; 240  :     return IsDebuggerPresent_Original ();
 
 	jmp	eax
 ?SK_IsDebuggerPresent@@YGHXZ ENDP			; SK_IsDebuggerPresent
@@ -6631,7 +6553,7 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?CloseConsole@Debugger@Diagnostics@SK@@YAHXZ PROC	; SK::Diagnostics::Debugger::CloseConsole
 
-; 226  :   return FreeConsole ();
+; 227  :   return FreeConsole ();
 
 	jmp	DWORD PTR __imp__FreeConsole@0
 ?CloseConsole@Debugger@Diagnostics@SK@@YAHXZ ENDP	; SK::Diagnostics::Debugger::CloseConsole
@@ -6641,14 +6563,14 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SpawnConsole@Debugger@Diagnostics@SK@@YAXXZ PROC	; SK::Diagnostics::Debugger::SpawnConsole
 
-; 206  :   AllocConsole ();
+; 207  :   AllocConsole ();
 
 	call	DWORD PTR __imp__AllocConsole@0
 
-; 207  : 
-; 208  :   static volatile LONG init = FALSE;
-; 209  : 
-; 210  :   if (! InterlockedCompareExchange (&init, 1, 0))
+; 208  : 
+; 209  :   static volatile LONG init = FALSE;
+; 210  : 
+; 211  :   if (! InterlockedCompareExchange (&init, 1, 0))
 
 	mov	ecx, 1
 	mov	edx, OFFSET ?init@?1??SpawnConsole@Debugger@Diagnostics@SK@@YAXXZ@4JC
@@ -6657,8 +6579,8 @@ _TEXT	SEGMENT
 	test	eax, eax
 	jne	SHORT $LN2@SpawnConso
 
-; 211  :   {
-; 212  :     freopen ("CONIN$",  "r", stdin);
+; 212  :   {
+; 213  :     freopen ("CONIN$",  "r", stdin);
 
 	push	esi
 	push	edi
@@ -6671,7 +6593,7 @@ _TEXT	SEGMENT
 	push	OFFSET $SG147747
 	call	esi
 
-; 213  :     freopen ("CONOUT$", "w", stdout);
+; 214  :     freopen ("CONOUT$", "w", stdout);
 
 	push	1
 	call	edi
@@ -6680,7 +6602,7 @@ _TEXT	SEGMENT
 	push	OFFSET $SG147749
 	call	esi
 
-; 214  :     freopen ("CONOUT$", "w", stderr);
+; 215  :     freopen ("CONOUT$", "w", stderr);
 
 	push	2
 	call	edi
@@ -6690,8 +6612,8 @@ _TEXT	SEGMENT
 	call	esi
 	add	esp, 48					; 00000030H
 
-; 215  : 
-; 216  :     SK_CreateDLLHook2 (      L"kernel32.dll",
+; 216  : 
+; 217  :     SK_CreateDLLHook2 (      L"kernel32.dll",
 
 	push	0
 	push	OFFSET ?TerminateProcess_Original@@3P6GHPAXI@ZA ; TerminateProcess_Original
@@ -6703,11 +6625,11 @@ _TEXT	SEGMENT
 	pop	esi
 $LN2@SpawnConso:
 
-; 217  :                               "TerminateProcess",
-; 218  :                                TerminateProcess_Detour,
-; 219  :       static_cast_p2p <void> (&TerminateProcess_Original) );
-; 220  :   }
-; 221  : }
+; 218  :                               "TerminateProcess",
+; 219  :                                TerminateProcess_Detour,
+; 220  :       static_cast_p2p <void> (&TerminateProcess_Original) );
+; 221  :   }
+; 222  : }
 
 	ret	0
 ?SpawnConsole@Debugger@Diagnostics@SK@@YAXXZ ENDP	; SK::Diagnostics::Debugger::SpawnConsole
@@ -6718,14 +6640,14 @@ _TEXT	SEGMENT
 _bAllow$ = 8						; size = 1
 ?Allow@Debugger@Diagnostics@SK@@YA_N_N@Z PROC		; SK::Diagnostics::Debugger::Allow
 
-; 172  : {
+; 173  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ebx
 
-; 173  :   SK_CreateDLLHook2 (      L"kernel32.dll",
+; 174  :   SK_CreateDLLHook2 (      L"kernel32.dll",
 
 	push	0
 	push	OFFSET ?IsDebuggerPresent_Original@@3P6GHXZA ; IsDebuggerPresent_Original
@@ -6734,16 +6656,16 @@ _bAllow$ = 8						; size = 1
 	push	OFFSET $SG147726
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 174  :                             "IsDebuggerPresent",
-; 175  :                              IsDebuggerPresent_Detour,
-; 176  :     static_cast_p2p <void> (&IsDebuggerPresent_Original) );
-; 177  : 
-; 178  :   spoof_debugger = bAllow;
+; 175  :                             "IsDebuggerPresent",
+; 176  :                              IsDebuggerPresent_Detour,
+; 177  :     static_cast_p2p <void> (&IsDebuggerPresent_Original) );
+; 178  : 
+; 179  :   spoof_debugger = bAllow;
 
 	mov	bl, BYTE PTR _bAllow$[ebp]
 
-; 179  : 
-; 180  :   SK_CreateDLLHook2 (      L"kernel32.dll",
+; 180  : 
+; 181  :   SK_CreateDLLHook2 (      L"kernel32.dll",
 
 	push	0
 	push	OFFSET ?OutputDebugStringA_Original@@3P6GXPBD@ZA ; OutputDebugStringA_Original
@@ -6753,11 +6675,11 @@ _bAllow$ = 8						; size = 1
 	mov	BYTE PTR ?spoof_debugger@@3_NA, bl	; spoof_debugger
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 181  :                             "OutputDebugStringA",
-; 182  :                              OutputDebugStringA_Detour,
-; 183  :     static_cast_p2p <void> (&OutputDebugStringA_Original) );
-; 184  : 
-; 185  :   SK_CreateDLLHook2 (      L"kernel32.dll",
+; 182  :                             "OutputDebugStringA",
+; 183  :                              OutputDebugStringA_Detour,
+; 184  :     static_cast_p2p <void> (&OutputDebugStringA_Original) );
+; 185  : 
+; 186  :   SK_CreateDLLHook2 (      L"kernel32.dll",
 
 	push	0
 	push	OFFSET ?OutputDebugStringW_Original@@3P6GXPB_W@ZA ; OutputDebugStringW_Original
@@ -6766,11 +6688,11 @@ _bAllow$ = 8						; size = 1
 	push	OFFSET $SG147730
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 186  :                             "OutputDebugStringW",
-; 187  :                              OutputDebugStringW_Detour,
-; 188  :     static_cast_p2p <void> (&OutputDebugStringW_Original) );
-; 189  : 
-; 190  :   SK_CreateDLLHook2 (      L"kernel32.dll",
+; 187  :                             "OutputDebugStringW",
+; 188  :                              OutputDebugStringW_Detour,
+; 189  :     static_cast_p2p <void> (&OutputDebugStringW_Original) );
+; 190  : 
+; 191  :   SK_CreateDLLHook2 (      L"kernel32.dll",
 
 	push	0
 	push	OFFSET ?ExitProcess_Original@@3P6GXI@ZA	; ExitProcess_Original
@@ -6779,11 +6701,11 @@ _bAllow$ = 8						; size = 1
 	push	OFFSET $SG147732
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 191  :                             "ExitProcess",
-; 192  :                              ExitProcess_Detour,
-; 193  :     static_cast_p2p <void> (&ExitProcess_Original) );
-; 194  : 
-; 195  :   SK_CreateDLLHook2 (      L"kernel32.dll",
+; 192  :                             "ExitProcess",
+; 193  :                              ExitProcess_Detour,
+; 194  :     static_cast_p2p <void> (&ExitProcess_Original) );
+; 195  : 
+; 196  :   SK_CreateDLLHook2 (      L"kernel32.dll",
 
 	push	0
 	push	OFFSET ?DebugBreak_Original@@3P6GXXZA	; DebugBreak_Original
@@ -6792,16 +6714,16 @@ _bAllow$ = 8						; size = 1
 	push	OFFSET $SG147734
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 196  :                             "DebugBreak",
-; 197  :                              DebugBreak_Detour,
-; 198  :     static_cast_p2p <void> (&DebugBreak_Original) );
-; 199  : 
-; 200  :   return bAllow;
+; 197  :                             "DebugBreak",
+; 198  :                              DebugBreak_Detour,
+; 199  :     static_cast_p2p <void> (&DebugBreak_Original) );
+; 200  : 
+; 201  :   return bAllow;
 
 	mov	al, bl
 	pop	ebx
 
-; 201  : }
+; 202  : }
 
 	pop	ebp
 	ret	0
@@ -6815,33 +6737,5 @@ _TEXT	SEGMENT
 	mov	eax, ecx
 	ret	0
 ??0IUnknown@@QAE@XZ ENDP				; IUnknown::IUnknown
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
-;	COMDAT ?_InterlockedCompareExchange@@YAKPCKKK@Z
-_TEXT	SEGMENT
-_Destination$ = 8					; size = 4
-_Exchange$ = 12						; size = 4
-_Comperand$ = 16					; size = 4
-?_InterlockedCompareExchange@@YAKPCKKK@Z PROC		; _InterlockedCompareExchange, COMDAT
-
-; 9002 : {
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 9003 :     return (unsigned long) _InterlockedCompareExchange((volatile long*) Destination, (long) Exchange, (long) Comperand);
-
-	mov	edx, DWORD PTR _Exchange$[ebp]
-	mov	ecx, DWORD PTR _Destination$[ebp]
-	mov	eax, DWORD PTR _Comperand$[ebp]
-	lock	 cmpxchg DWORD PTR [ecx], edx
-
-; 9004 : }
-
-	pop	ebp
-	ret	0
-?_InterlockedCompareExchange@@YAKPCKKK@Z ENDP		; _InterlockedCompareExchange
 _TEXT	ENDS
 END

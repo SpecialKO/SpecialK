@@ -1,12 +1,13 @@
 0.8.54
 
+ + Added support for plug-in loads from a game's global injection profile directory
  + Improved texture memory stats in custom ReShade
   * Rendertargets are distinguishable from actual texture files by their color
   * Added active / total count to the texture summary
 
  + Added D3D11.ShaderMods.Unload and ToggleConfig commands to load/unload shader
      setting INI files.
- + Added fullscreen mode restoration on alt+tab if force fullscreen is enabled
+ + Added fullscreen mode restoration on Alt+Tab if force fullscreen is enabled
 
 
 0.8.53

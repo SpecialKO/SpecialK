@@ -28,6 +28,8 @@
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/config.h>
+#include <SpecialK/core.h>
 
 const std::wstring SK_IMPORT_EARLY         = L"Early";
 const std::wstring SK_IMPORT_PLUGIN        = L"PlugIn";
@@ -87,6 +89,28 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
 
   return false;
 }
+
+auto
+SK_LoadImportModule = [&](import_s& import)
+{
+  if (config.system.central_repository)
+  {
+    wchar_t wszProfilePlugIn [MAX_PATH * 2] = { };
+    wcsncpy (wszProfilePlugIn, SK_GetConfigPath (), MAX_PATH);
+    PathAppendW (wszProfilePlugIn, import.filename->get_value_str ().c_str ());
+
+    import.hLibrary = LoadLibraryW_Original (
+      wszProfilePlugIn
+    );
+  }
+
+  if (import.hLibrary == nullptr)
+  {
+    import.hLibrary = LoadLibraryW_Original (
+      import.filename->get_value_str ().c_str ()
+    );
+  }
+};
 
 HMODULE
 SK_InitPlugIn64 (HMODULE hLibrary)
@@ -171,9 +195,7 @@ SK_LoadEarlyImports64 (void)
 
             if (! blacklisted)
             {
-              import.hLibrary = LoadLibraryW_Original (
-                import.filename->get_value_str ().c_str ()
-              );
+              SK_LoadImportModule (import);
 
               if (import.hLibrary != nullptr)
               {
@@ -258,9 +280,7 @@ SK_LoadPlugIns64 (void)
 
             if (! blacklisted)
             {
-              import.hLibrary = LoadLibraryW_Original (
-                import.filename->get_value_str ().c_str ()
-              );
+              SK_LoadImportModule (import);
 
               if (import.hLibrary != nullptr)
               {
@@ -346,9 +366,7 @@ SK_LoadLateImports64 (void)
 
             if (! blacklisted)
             {
-              import.hLibrary = LoadLibraryW_Original (
-                import.filename->get_value_str ().c_str ()
-              );
+              SK_LoadImportModule (import);
 
               if (import.hLibrary != nullptr)
               {
@@ -426,9 +444,7 @@ SK_LoadLazyImports64 (void)
 
             if (! blacklisted)
             {
-              import.hLibrary = LoadLibraryW_Original (
-                import.filename->get_value_str ().c_str ()
-              );
+              SK_LoadImportModule (import);
 
               if (import.hLibrary != nullptr)
               {
@@ -552,9 +568,7 @@ SK_LoadEarlyImports32 (void)
 
             if (! blacklisted)
             {
-              import.hLibrary = LoadLibraryW_Original (
-                import.filename->get_value_str ().c_str ()
-              );
+              SK_LoadImportModule (import);
 
               if (import.hLibrary != nullptr)
               {
@@ -640,9 +654,7 @@ SK_LoadPlugIns32 (void)
 
             if (! blacklisted)
             {
-              import.hLibrary = LoadLibraryW_Original (
-                import.filename->get_value_str ().c_str ()
-              );
+              SK_LoadImportModule (import);
 
               if (import.hLibrary != nullptr)
               {
@@ -728,9 +740,7 @@ SK_LoadLateImports32 (void)
 
             if (! blacklisted)
             {
-              import.hLibrary = LoadLibraryW_Original (
-                import.filename->get_value_str ().c_str ()
-                );
+              SK_LoadImportModule (import);
 
               if (import.hLibrary != nullptr)
               {
@@ -808,9 +818,7 @@ SK_LoadLazyImports32 (void)
 
             if (! blacklisted)
             {
-              import.hLibrary = LoadLibraryW_Original (
-                import.filename->get_value_str ().c_str ()
-                );
+              SK_LoadImportModule (import);
 
               if (import.hLibrary != nullptr)
               {

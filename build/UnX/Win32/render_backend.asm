@@ -378,7 +378,7 @@ $SG293250 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
 	DB	00H, 'd', 00H, 'l', 00H, 'l', 00H, ')', 00H, ' ', 00H, ']', 00H
 	DB	' ', 00H, '<', 00H, '!', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG293262 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
+$SG293261 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
 	DB	'e', 00H, 't', 00H, 'e', 00H, 'c', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'D', 00H
 	DB	'e', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'i', 00H, 'n', 00H, 'g'
@@ -396,7 +396,7 @@ $SG239091 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 $SG238386 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG293265 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
+$SG293264 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
 	DB	'e', 00H, 't', 00H, 'e', 00H, 'c', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '<', 00H, '!', 00H, '>', 00H, ' ', 00H, '[', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'B', 00H, 'o', 00H, 'o'
@@ -410,7 +410,7 @@ $SG238433 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG293274 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
+$SG293273 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
 	DB	'e', 00H, 't', 00H, 'e', 00H, 'c', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'D', 00H
 	DB	'e', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'i', 00H, 'n', 00H, 'g'
@@ -437,7 +437,7 @@ $SG293274 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
 $SG238480 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG293278 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
+$SG293277 DB	'[', 00H, 'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'D', 00H
 	DB	'e', 00H, 't', 00H, 'e', 00H, 'c', 00H, 't', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '<', 00H, '!', 00H, '>', 00H, ' ', 00H, '[', 00H
 	DB	' ', 00H, 'B', 00H, 'o', 00H, 'o', 00H, 't', 00H, 's', 00H, 't'
@@ -677,7 +677,6 @@ EXTRN	?SK_D3D9_InitShaderModTools@@YAXXZ:PROC		; SK_D3D9_InitShaderModTools
 EXTRN	?SK_D3D9_PreHook@@YAXXZ:PROC			; SK_D3D9_PreHook
 EXTRN	?SK_DXGI_PreHook@@YAXXZ:PROC			; SK_DXGI_PreHook
 EXTRN	___CxxFrameHandler3:PROC
-EXTRN	?SK_D3D11_init_tid@@3JC:DWORD			; SK_D3D11_init_tid
 EXTRN	?nv_hardware@NVAPI@sk@@3_NA:BYTE		; sk::NVAPI::nv_hardware
 EXTRN	?config@@3Usk_config_t@@A:BYTE			; config
 EXTRN	?backend_dll@@3PAUHINSTANCE__@@A:DWORD		; backend_dll
@@ -3788,7 +3787,7 @@ $LL2@SK_BootOpe:
 
 	call	esi
 	push	eax
-	push	OFFSET $SG293274
+	push	OFFSET $SG293273
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3844,7 +3843,7 @@ $LN15@SK_BootOpe:
 ; 286  : 
 ; 287  :   dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
-	push	OFFSET $SG293278
+	push	OFFSET $SG293277
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -3882,42 +3881,27 @@ $LN1@SK_BootOpe:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\render_backend.cpp
-; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
-; File c:\users\andon\source\repos\specialk\src\render_backend.cpp
 ; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
 ; File c:\users\andon\source\repos\specialk\src\render_backend.cpp
 _TEXT	SEGMENT
 ?SK_BootDXGI@@YAXXZ PROC				; SK_BootDXGI
 
-; 219  :   while (backend_dll == nullptr && ReadAcquire (&SK_D3D11_init_tid) != static_cast <LONG> (GetCurrentThreadId ()))
+; 219  :   while (backend_dll == nullptr)
 
 	cmp	DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A, 0 ; backend_dll
 	push	esi
-	jne	SHORT $LN16@SK_BootDXG
-	push	ebx
-	mov	ebx, DWORD PTR __imp__SleepEx@8
+	jne	SHORT $LN3@SK_BootDXG
+	mov	esi, DWORD PTR __imp__GetCurrentThreadId@0
 	push	edi
-	mov	edi, DWORD PTR __imp__GetCurrentThreadId@0
+	mov	edi, DWORD PTR __imp__SleepEx@8
 $LL2@SK_BootDXG:
-; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
-
-; 8063 :     Value = *Source;
-
-	mov	esi, DWORD PTR ?SK_D3D11_init_tid@@3JC	; SK_D3D11_init_tid
-; File c:\users\andon\source\repos\specialk\src\render_backend.cpp
-
-; 219  :   while (backend_dll == nullptr && ReadAcquire (&SK_D3D11_init_tid) != static_cast <LONG> (GetCurrentThreadId ()))
-
-	call	edi
-	cmp	esi, eax
-	je	SHORT $LN17@SK_BootDXG
 
 ; 220  :   {
 ; 221  :     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());
 
-	call	edi
+	call	esi
 	push	eax
-	push	OFFSET $SG293262
+	push	OFFSET $SG293261
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3926,13 +3910,11 @@ $LL2@SK_BootDXG:
 
 	push	1
 	push	500					; 000001f4H
-	call	ebx
+	call	edi
 	cmp	DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A, 0 ; backend_dll
 	je	SHORT $LL2@SK_BootDXG
-$LN17@SK_BootDXG:
 	pop	edi
-	pop	ebx
-$LN16@SK_BootDXG:
+$LN3@SK_BootDXG:
 ; File c:\program files (x86)\windows kits\8.1\include\um\winbase.h
 
 ; 9003 :     return (unsigned long) _InterlockedCompareExchange((volatile long*) Destination, (long) Exchange, (long) Comperand);
@@ -3973,7 +3955,7 @@ $LN16@SK_BootDXG:
 ; 244  : 
 ; 245  :   dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
-	push	OFFSET $SG293265
+	push	OFFSET $SG293264
 	cmove	ecx, esi
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	mov	BYTE PTR ?config@@3Usk_config_t@@A+817, cl
@@ -5619,8 +5601,6 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
-
-; 570  : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
