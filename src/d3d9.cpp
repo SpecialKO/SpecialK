@@ -875,6 +875,10 @@ SK_HookD3D9 (void)
     }
   }
 
+  extern bool __SK_bypass;
+  if (__SK_bypass)
+    return;
+
   HookD3D9            (nullptr);
   SK_ApplyQueuedHooks (       );
 

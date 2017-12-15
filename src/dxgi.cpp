@@ -64,6 +64,7 @@
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log.Log ((x)); logged = true; } }
 
+  extern bool __SK_bypass;
 volatile LONG SK_D3D11_init_tid  = 0;
 volatile LONG SK_D3D11_ansel_tid = 0;
 
@@ -485,6 +486,9 @@ void WaitForInitDXGI (void)
 
   while (! ReadAcquire (&__dxgi_ready))
   {
+    if (__SK_bypass && backend_dll != nullptr)
+      return;
+
     MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 }
@@ -4649,11 +4653,12 @@ SK_D3D11_GetSystemDLL (void)
 
   if (hModSystemD3D11 == nullptr)
   {
-    wchar_t wszPath [MAX_PATH * 2] = { };
-    GetSystemDirectoryW (wszPath, MAX_PATH);
-               lstrcatW (wszPath, L"\\d3d11.dll");
+    wchar_t   wszPath [MAX_PATH * 2] = { };
+    wcsncpy  (wszPath, SK_GetSystemDirectory (), MAX_PATH);
+    lstrcatW (wszPath, L"\\d3d11.dll");
 
-    hModSystemD3D11 = LoadLibraryW (wszPath);
+    hModSystemD3D11 =
+      LoadLibraryW_Original (wszPath);
   }
 
   return hModSystemD3D11;
@@ -4666,11 +4671,8 @@ SK_D3D11_GetLocalDLL (void)
 
   if (hModLocalD3D11 == nullptr)
   {
-    wchar_t wszPath [MAX_PATH * 2] = { };
-    GetSystemDirectoryW (wszPath, MAX_PATH);
-               lstrcatW (wszPath, L"\\d3d11.dll");
-
-    hModLocalD3D11 = LoadLibraryW (L"d3d11.dll");
+    hModLocalD3D11 =
+      LoadLibraryW_Original (L"d3d11.dll");
   }
 
   return hModLocalD3D11;
@@ -4694,8 +4696,9 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
 
   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) &&
-     //SK_GetCallingDLL ()               != SK_D3D11_GetLocalDLL  ()                   &&
-       SK_GetCallingDLL ()               != SK_D3D11_GetSystemDLL () )
+       //SK_GetCallingDLL ()               != SK_D3D11_GetLocalDLL  ()                   &&
+       SK_GetCallingDLL ()               != SK_D3D11_GetSystemDLL ()                   &&
+       SK_GetCallingDLL ()               != SK_GetDLL             () || __SK_bypass )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -4726,8 +4729,9 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
 
   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) &&
-     //SK_GetCallingDLL ()               != SK_D3D11_GetLocalDLL  ()                   &&
-       SK_GetCallingDLL ()               != SK_D3D11_GetSystemDLL () )
+       //SK_GetCallingDLL ()               != SK_D3D11_GetLocalDLL  ()                   &&
+       SK_GetCallingDLL ()               != SK_D3D11_GetSystemDLL ()                   &&
+       SK_GetCallingDLL ()               != SK_GetDLL () || __SK_bypass )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -4761,8 +4765,10 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
 
   if ( ReadAcquire (&SK_D3D11_init_tid)  != static_cast <LONG> (GetCurrentThreadId ()) &&
        ReadAcquire (&SK_D3D11_ansel_tid) != static_cast <LONG> (GetCurrentThreadId ()) &&
-     //SK_GetCallingDLL ()               != SK_D3D11_GetLocalDLL  ()                   &&
-       SK_GetCallingDLL ()               != SK_D3D11_GetSystemDLL () )
+       //SK_GetCallingDLL ()               != SK_D3D11_GetLocalDLL  ()                   &&
+       SK_GetCallingDLL ()               != SK_D3D11_GetSystemDLL ()                   &&
+       SK_GetCallingDLL ()               != SK_GetDLL             () ||
+       __SK_bypass )
     WaitForInitDXGI ();
 
   SK_DXGI_factory_init = true;
@@ -4928,6 +4934,12 @@ SK_HookDXGI (void)
     SK_DXGI_factory_init = true;
   }
 
+  if (__SK_bypass)
+  {
+    InterlockedExchange (&__dxgi_ready, TRUE);
+    return;
+  }
+
   SK_D3D11_InitTextures ();
   SK_D3D11_Init         ();
   SK_D3D12_Init         ();
@@ -4946,8 +4958,7 @@ SK_HookDXGI (void)
 
   SK_DXGI_BeginHooking ();
 
-  while (! ReadAcquire (&__dxgi_ready))
-    SleepEx (100UL, TRUE);
+  WaitForInitDXGI ();
 }
 
 static std::queue <DWORD> old_threads;
@@ -4958,10 +4969,7 @@ dxgi_init_callback (finish_pfn finish)
 {
   if (! SK_IsHostAppSKIM ())
   {
-    SK_BootDXGI ();
-
-    while (! ReadAcquire (&__dxgi_ready))
-      MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
+    WaitForInitDXGI ();
   }
 
   finish ();
@@ -5383,7 +5391,7 @@ HookDXGI (LPVOID user)
 
   if (ReadAcquire (&__dxgi_ready))
   {
-    //WaitForInit ();
+    WaitForInit ();
     return 0;
   }
 

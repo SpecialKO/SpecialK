@@ -18,28 +18,28 @@ _BSS	SEGMENT
 ?pConsole@SK_Console@@2PAV1@A DD 01H DUP (?)		; SK_Console::pConsole
 _BSS	ENDS
 CONST	SEGMENT
-$SG184346 DB	00H
-$SG184347 DB	00H
-$SG184381 DB	00H
-$SG184389 DB	00H
-$SG184386 DB	'-', 00H
+$SG184356 DB	00H
+$SG184357 DB	00H
+$SG184391 DB	00H
+$SG184399 DB	00H
+$SG184396 DB	'-', 00H
 	ORG $+2
-$SG184388 DB	0aH, 00H
+$SG184398 DB	0aH, 00H
 	ORG $+2
-$SG184390 DB	'SpecialK Console', 00H
+$SG184400 DB	'SpecialK Console', 00H
 	ORG $+3
-$SG184400 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
+$SG184410 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
 	DB	'P', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'n', 00H, 'y', 00H, '.'
 	DB	00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG184411 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
+$SG184421 DB	'P', 00H, 'r', 00H, 'e', 00H, 't', 00H, 't', 00H, 'y', 00H
 	DB	'P', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'n', 00H, 'y', 00H, '.'
 	DB	00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG187981 DB	' ', 00H
+$SG187991 DB	' ', 00H
 	ORG $+2
-$SG187986 DB	':  ', 00H
-$SG187987 DB	' ', 00H
+$SG187996 DB	':  ', 00H
+$SG187997 DB	' ', 00H
 CONST	ENDS
 PUBLIC	?_Hash_seq@std@@YAIPBEI@Z			; std::_Hash_seq
 PUBLIC	??R?$_Bitwise_hash@I@std@@QBEIABI@Z		; std::_Bitwise_hash<unsigned int>::operator()
@@ -7070,7 +7070,7 @@ $LL283@SK_HandleC:
 ; 376  :         if (len > 0 && strspn (text+1, " ") != len)
 
 	je	$LN285@SK_HandleC
-	push	OFFSET $SG187981
+	push	OFFSET $SG187991
 	push	ebx
 	call	DWORD PTR __imp__strspn
 	add	esp, 8
@@ -7177,11 +7177,11 @@ $LN41@SK_HandleC:
 
 ; 403  :           result_str = result.getWord () + std::string (" ")   +
 
-	push	OFFSET $SG187986
+	push	OFFSET $SG187996
 	lea	ecx, DWORD PTR $T2[ebp]
 	call	??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@QBD@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
 	mov	esi, eax
-	push	OFFSET $SG187987
+	push	OFFSET $SG187997
 	lea	ecx, DWORD PTR $T3[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	call	??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@QBD@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
@@ -14320,7 +14320,7 @@ $LN5@End:
 
 ; 149  :     GetModuleHandle (L"PrettyPrinny.dll");
 
-	push	OFFSET $SG184411
+	push	OFFSET $SG184421
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	OFFSET ?$TSS0@?1??End@SK_Console@@QAEXXZ@4HA
 	mov	DWORD PTR ?hModPPrinny@?1??End@SK_Console@@QAEXXZ@4PAUHINSTANCE__@@A, eax
@@ -14398,7 +14398,7 @@ $LN5@Start:
 
 ; 131  :     GetModuleHandle (L"PrettyPrinny.dll");
 
-	push	OFFSET $SG184400
+	push	OFFSET $SG184410
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	OFFSET ?$TSS0@?1??Start@SK_Console@@QAEXXZ@4HA
 	mov	DWORD PTR ?hModPPrinny@?1??Start@SK_Console@@QAEXXZ@4PAUHINSTANCE__@@A, eax
@@ -14476,7 +14476,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG184381
+	push	OFFSET $SG184391
 	lea	ecx, DWORD PTR _output$[ebp]
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -14593,7 +14593,7 @@ $LN5@Draw:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG184386
+	push	OFFSET $SG184396
 	lea	ecx, DWORD PTR _output$[ebp]
 	call	?append@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::append
 $LN6@Draw:
@@ -14609,7 +14609,7 @@ $LN6@Draw:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG184388
+	push	OFFSET $SG184398
 	lea	ecx, DWORD PTR _output$[ebp]
 	call	?append@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::append
 
@@ -14640,7 +14640,7 @@ $LN3@Draw:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG184389
+	push	OFFSET $SG184399
 	lea	ecx, DWORD PTR _output$[ebp]
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 $LN4@Draw:
@@ -14711,7 +14711,7 @@ $LN4@Draw:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG184390
+	push	OFFSET $SG184400
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 517  : 		_Left = _Right;
@@ -14942,7 +14942,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG184346
+	push	OFFSET $SG184356
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
 
@@ -14973,7 +14973,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	0
-	push	OFFSET $SG184347
+	push	OFFSET $SG184357
 	lea	ecx, DWORD PTR [esi+4360]
 ; File c:\users\andon\source\repos\specialk\src\console.cpp
 

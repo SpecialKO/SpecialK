@@ -884,7 +884,7 @@ DllMain ( HMODULE hModule,
 
 
       // Setup unhooked function pointers
-      SK_PreInitLoadLibrary ( );
+      SK_PreInitLoadLibrary ();
 
 
 

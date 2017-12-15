@@ -877,6 +877,11 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
 
   if (active && state_changed)
   {
+    // Engage fullscreen
+    if (config.display.force_fullscreen)
+      SK_GetCurrentRenderBackend ().requestFullscreenMode (true);
+
+
     if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
     {
       if (! game_window.cursor_visible)
@@ -3792,6 +3797,12 @@ LRESULT CALLBACK CallWndProc(
     case WM_SYSCOMMAND:
       if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+      if ( (wParam & 0xfff0) == SC_SCREENSAVE ||
+           (wParam & 0xfff0) == SC_MONITORPOWER )
+      {
+        if (config.window.disable_screensaver)
+          return 0;
+      }
       break;
 
     case WM_MOUSEACTIVATE: 
@@ -4161,6 +4172,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_SYSCOMMAND:
       if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
         return 0;
+      if ( (wParam & 0xfff0) == SC_SCREENSAVE ||
+           (wParam & 0xfff0) == SC_MONITORPOWER )
+      {
+        if (config.window.disable_screensaver)
+          return 0;
+      }
       break;
 
     // Ignore (and physically remove) this event from the message queue if background_render = true
@@ -4551,6 +4568,25 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   switch (uMsg)
   {
+    case WM_QUIT:
+    case WM_CLOSE:
+      if (SK_GetCurrentGameID () == SK_GAME_ID::Okami)
+      {
+        if (config.input.keyboard.catch_alt_f4)
+        {
+          extern bool SK_ImGui_WantExit;
+                      SK_ImGui_WantExit = true;
+        }
+
+        else
+        {
+          ExitProcess (0x00);
+        }
+
+        return 0; // Alt+F4 is broken, use Special K's function instead.
+      }
+      break;
+
     case WM_SYSCOMMAND:
     {
       if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu

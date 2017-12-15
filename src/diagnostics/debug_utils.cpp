@@ -37,6 +37,7 @@
 
 #define _NO_CVCONST_H
 #define _IMAGEHLP_SOURCE_
+//#pragma comment (lib, "dbghelp.lib")
 #include <dbghelp.h>
 
 iSK_Logger game_debug;

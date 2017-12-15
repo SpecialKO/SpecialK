@@ -10,12 +10,12 @@ INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
 CONST	SEGMENT
-$SG145434 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 00H, 00H
-$SG145436 DB	'c', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, '\', 00H
+$SG145417 DB	'c', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, '\', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG145462 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
-	DB	':', 00H, ' ', 00H, 00H, 00H
+$SG145444 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 00H, 00H
+$SG145446 DB	'c', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, '\', 00H
+	DB	00H, 00H
 	ORG $+2
 ?IID_SK_Logger@@3U_GUID@@B DD 0a4bf1773H		; IID_SK_Logger
 	DW	0caabH
@@ -28,23 +28,26 @@ $SG145462 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
 	DB	023H
 	DB	0bdH
 	DB	06fH
-$SG145481 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
+$SG145472 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
 	DB	':', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG145482 DB	0aH, 00H, 00H, 00H
-$SG145504 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
+$SG145491 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
 	DB	':', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG145505 DB	0aH, 00H, 00H, 00H
-$SG145531 DB	'w', 00H, '+', 00H, 00H, 00H
+$SG145492 DB	0aH, 00H, 00H, 00H
+$SG145514 DB	'%', 00H, 's', 00H, '%', 00H, '0', 00H, '3', 00H, 'u', 00H
+	DB	':', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG145544 DB	'[', 00H, ' ', 00H, '%', 00H, '-', 00H, '1', 00H, '8', 00H
+$SG145515 DB	0aH, 00H, 00H, 00H
+$SG145541 DB	'w', 00H, '+', 00H, 00H, 00H
+	ORG $+2
+$SG145554 DB	'[', 00H, ' ', 00H, '%', 00H, '-', 00H, '1', 00H, '8', 00H
 	DB	's', 00H, ' ', 00H, '<', 00H, '%', 00H, '3', 00H, '0', 00H, 'h'
 	DB	00H, 's', 00H, '>', 00H, ',', 00H, ' ', 00H, 't', 00H, 'i', 00H
 	DB	'd', 00H, '=', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4'
 	DB	00H, 'x', 00H, ' ', 00H, ']', 00H, 00H, 00H
-$SG145552 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 00H, 00H
-$SG145545 DB	'[', 00H, ' ', 00H, '%', 00H, '-', 00H, '2', 00H, '8', 00H
+$SG145562 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '\', 00H, 00H, 00H
+$SG145555 DB	'[', 00H, ' ', 00H, '%', 00H, '-', 00H, '2', 00H, '8', 00H
 	DB	's', 00H, ',', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' '
@@ -52,10 +55,8 @@ $SG145545 DB	'[', 00H, ' ', 00H, '%', 00H, '-', 00H, '2', 00H, '8', 00H
 	DB	't', 00H, 'i', 00H, 'd', 00H, '=', 00H, '0', 00H, 'x', 00H, '%'
 	DB	00H, '0', 00H, '4', 00H, 'x', 00H, ' ', 00H, ']', 00H, 00H, 00H
 	ORG $+2
-$SG145357 DB	' ', 00H, 00H, 00H
-$SG145358 DB	'.', 00H, 00H, 00H
-$SG145407 DB	'c', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, '\', 00H
-	DB	00H, 00H
+$SG145367 DB	' ', 00H, 00H, 00H
+$SG145368 DB	'.', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	_IsEqualGUID
 PUBLIC	?_InterlockedIncrement@@YAKPCK@Z		; _InterlockedIncrement
@@ -1724,7 +1725,7 @@ _out$ = 8						; size = 4
 
 ; 71   :   lstrcatW (out, L" ");
 
-	push	OFFSET $SG145357
+	push	OFFSET $SG145367
 	push	edi
 	call	esi
 
@@ -1737,7 +1738,7 @@ _out$ = 8						; size = 4
 
 ; 73   :   lstrcatW (out, L".");
 
-	push	OFFSET $SG145358
+	push	OFFSET $SG145368
 	push	edi
 	call	esi
 
@@ -1873,7 +1874,7 @@ $LN22@SK_Summari:
 	lea	eax, DWORD PTR _szSymbol$[ebp]
 	push	eax
 	push	esi
-	push	OFFSET $SG145544
+	push	OFFSET $SG145554
 	lea	eax, DWORD PTR _wszSummary$[ebp]
 	push	255					; 000000ffH
 	push	eax
@@ -1949,7 +1950,7 @@ $LN71@SK_Summari:
 	call	DWORD PTR __imp__GetCurrentThreadId@0
 	push	eax
 	push	esi
-	push	OFFSET $SG145545
+	push	OFFSET $SG145555
 	lea	eax, DWORD PTR _wszSummary$[ebp]
 	push	255					; 000000ffH
 	push	eax
@@ -2179,7 +2180,7 @@ $LL133@SK_Log_Get:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	5
-	push	OFFSET $SG145552
+	push	OFFSET $SG145562
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\log.cpp
 
@@ -2382,7 +2383,7 @@ $LN4@SK_CreateL:
 ; 318  :   pLog->init   (wszName, L"w+");
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG145531
+	push	OFFSET $SG145541
 	push	DWORD PTR _wszName$[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	push	esi
@@ -2608,7 +2609,7 @@ $LN6@Log:
 	lea	eax, DWORD PTR _wszLogTime$[ebp]
 	push	edi
 	push	eax
-	push	OFFSET $SG145504
+	push	OFFSET $SG145514
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 
@@ -2629,7 +2630,7 @@ $LN6@Log:
 ; 278  : 
 ; 279  :   fwprintf (fLog, L"\n");
 
-	push	OFFSET $SG145505
+	push	OFFSET $SG145515
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 	add	esp, 36					; 00000024H
@@ -2725,7 +2726,7 @@ $LN6@Log:
 	lea	eax, DWORD PTR _wszLogTime$[ebp]
 	push	edi
 	push	eax
-	push	OFFSET $SG145481
+	push	OFFSET $SG145491
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 
@@ -2746,7 +2747,7 @@ $LN6@Log:
 ; 246  : 
 ; 247  :   fwprintf (fLog, L"\n");
 
-	push	OFFSET $SG145482
+	push	OFFSET $SG145492
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 	add	esp, 36					; 00000024H
@@ -2851,7 +2852,7 @@ $LN8@LogEx:
 	push	edi
 	lea	eax, DWORD PTR _wszLogTime$1[ebp]
 	push	eax
-	push	OFFSET $SG145462
+	push	OFFSET $SG145472
 	push	DWORD PTR [esi+4]
 	call	_fwprintf
 	add	esp, 16					; 00000010H
@@ -3079,7 +3080,7 @@ $LN51@close:
 
 ; 126  :     if (StrStrIW (name.c_str (), L"crash\\"))
 
-	push	OFFSET $SG145407
+	push	OFFSET $SG145417
 	push	eax
 	call	DWORD PTR __imp__StrStrIW@8
 	test	eax, eax
@@ -3345,7 +3346,7 @@ $LL165@init:
 
 ; 157  :   SK_CreateDirectories (
 
-	push	OFFSET $SG145434
+	push	OFFSET $SG145444
 	lea	eax, DWORD PTR _full_name$[ebp]
 	push	eax
 	lea	eax, DWORD PTR $T1[ebp]
@@ -3428,7 +3429,7 @@ $LL166@init:
 
 ; 163  :   if (StrStrIW (wszFileName, L"crash\\"))
 
-	push	OFFSET $SG145436
+	push	OFFSET $SG145446
 	push	edi
 	call	DWORD PTR __imp__StrStrIW@8
 	test	eax, eax

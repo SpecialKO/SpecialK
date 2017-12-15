@@ -227,19 +227,9 @@ SK_LoadRealGL (void)
 {
   wchar_t wszBackendDLL [MAX_PATH + 2] = { };
 
-  if (! SK_IsInjected ()) {
-#ifdef _WIN64
-    GetSystemDirectory (wszBackendDLL, MAX_PATH);
-#else
-    BOOL bWOW64;
-    ::IsWow64Process (GetCurrentProcess (), &bWOW64);
-
-    if (bWOW64)
-      GetSystemWow64Directory (wszBackendDLL, MAX_PATH);
-    else
-      GetSystemDirectory (wszBackendDLL, MAX_PATH);
-#endif
-
+  if (! SK_IsInjected ())
+  {
+    wcsncpy  (wszBackendDLL, SK_GetSystemDirectory (), MAX_PATH);
     lstrcatW (wszBackendDLL, L"\\");
   }
 

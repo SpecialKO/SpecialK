@@ -330,27 +330,47 @@ SK_FullCopy (std::wstring from, std::wstring to)
 
 //BOOL TakeOwnership (LPTSTR lpszOwnFile);
 
+BOOL
+SK_File_SetAttribs (std::wstring file, DWORD dwAttribs)
+{
+  return
+    SetFileAttributesW (
+      file.c_str (),
+         dwAttribs );
+}
+
+BOOL
+SK_File_ApplyAttribMask (std::wstring file, DWORD dwAttribMask, bool clear)
+{
+  DWORD dwFileMask =
+    GetFileAttributesW (file.c_str ());
+
+  if (clear)
+    dwAttribMask = ( dwFileMask & ~dwAttribMask );
+
+  else
+    dwAttribMask = ( dwFileMask |  dwAttribMask );
+
+  return SK_File_SetAttribs (file, dwAttribMask);
+}
+
+BOOL
+SK_File_SetHidden (std::wstring file, bool hide)
+{
+  return SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_HIDDEN, (! hide));
+}
+
+BOOL
+SK_File_SetTemporary (std::wstring file, bool temp)
+{
+  return SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_TEMPORARY, (! temp));
+}
+
+
 void
 SK_SetNormalFileAttribs (std::wstring file)
 {
-  SetFileAttributes (file.c_str (), FILE_ATTRIBUTE_NORMAL);
-}
-
-void
-SK_File_SetHidden (std::wstring file, bool hide)
-{
-  DWORD dwMask =
-    GetFileAttributesW (file.c_str ());
-
-  if (hide)
-    dwMask |= FILE_ATTRIBUTE_HIDDEN;
-
-  else
-    dwMask &= ~FILE_ATTRIBUTE_HIDDEN;
-
-  SetFileAttributesW (
-    file.c_str (),
-       dwMask );
+  SK_File_SetAttribs (file, FILE_ATTRIBUTE_NORMAL);
 }
 
 
@@ -2464,6 +2484,11 @@ SK_GetSystemDirectory (void)
     else
       GetSystemDirectory      (host_proc.wszSystemDir, MAX_PATH);
 #endif
+  }
+
+  else
+  {
+    while (*host_proc.wszSystemDir == L'\0') SleepEx (1, FALSE);
   }
 
   return host_proc.wszSystemDir;

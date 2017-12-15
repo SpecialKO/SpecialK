@@ -195,35 +195,35 @@ _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG231519			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG231529			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG231517		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG231527		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG231515		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG231525		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG231513		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG231523		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG231511		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG231521		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG231509		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG231519		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG231507		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG231517		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG231505		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG231515		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -260,124 +260,124 @@ _IID_IRegistrar DD 044ec053bH
 	DB	0d3H
 CONST	ENDS
 CONST	SEGMENT
-$SG220163 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220173 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG220210 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220220 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 	ORG $+1
-$SG231505 DB	'S', 00H, 00H, 00H
-$SG231507 DB	'M', 00H, 00H, 00H
-$SG231509 DB	'D', 00H, 00H, 00H
-$SG231511 DB	'B', 00H, 00H, 00H
-$SG231513 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG231515 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG231515 DB	'S', 00H, 00H, 00H
+$SG231517 DB	'M', 00H, 00H, 00H
+$SG231519 DB	'D', 00H, 00H, 00H
+$SG231521 DB	'B', 00H, 00H, 00H
+$SG231523 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG231525 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG231517 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG231527 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG231519 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG231529 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG220257 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220267 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG220304 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220314 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG220351 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220361 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG220398 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220408 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG220445 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220455 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG220492 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220502 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG220497 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220507 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG220544 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220554 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG220591 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220601 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG220638 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220648 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
 	DB	00H, 00H, 00H
-$SG219622 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219632 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
 	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG219693 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219703 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG219740 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219750 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG219787 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219797 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
 	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG219834 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219844 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG219881 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219891 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG255733 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG255743 DB	'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'3', 00H, 'D', 00H, 'C', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, '8', 00H, 00H, 00H
-$SG255734 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
+$SG255744 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '8', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	' ', 00H, '(', 00H, '%', 00H, 'l', 00H, 'u', 00H, ')', 00H, ' '
 	DB	00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG232195 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG232196 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG232197 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+$SG232205 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG232206 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG232207 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
 	DB	's', 00H, 00H, 00H
 	ORG $+2
-$SG232198 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+$SG232208 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
 	DB	'p', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG232199 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+$SG232209 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
 	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG232200 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+$SG232210 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG232201 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+$SG232211 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG232202 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG232203 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+$SG232212 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG232213 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
 	DB	'T', 00H, 'Y', 00H, 00H, 00H
 	ORG $+2
-$SG232204 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+$SG232214 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG232205 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG232215 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG255758 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG255768 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG232206 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG232216 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG255764 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG255774 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG255759 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
+$SG255769 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '8', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'I', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r'
@@ -385,10 +385,10 @@ $SG255759 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
 	DB	'r', 00H, 'e', 00H, 'a', 00H, 't', 00H, 'e', 00H, '8', 00H, '.'
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H, '.', 00H
 	DB	00H, 00H
-$SG255768 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG255778 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG255760 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
+$SG255770 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '8', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
@@ -396,23 +396,23 @@ $SG255760 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
 	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
 	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
 	DB	00H, 00H
-$SG255765 DB	'Direct3DCreate8', 00H
-$SG219928 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG255775 DB	'Direct3DCreate8', 00H
+$SG219938 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG255766 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
+$SG255776 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '8', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
 	DB	'c', 00H, 't', 00H, '3', 00H, 'D', 00H, 'C', 00H, 'r', 00H, 'e'
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, '8', 00H, ':', 00H, ' ', 00H
 	DB	' ', 00H, ' ', 00H, '%', 00H, 'p', 00H, 'h', 00H, 00H, 00H
-$SG255770 DB	'Direct3DCreate8', 00H
-$SG255771 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG255780 DB	'Direct3DCreate8', 00H
+$SG255781 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG255773 DB	'Direct3DCreate8', 00H
-$SG255774 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
+$SG255783 DB	'Direct3DCreate8', 00H
+$SG255784 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
 	DB	'D', 00H, '8', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 'r', 00H, 'e', 00H
 	DB	'c', 00H, 't', 00H, '3', 00H, 'D', 00H, 'C', 00H, 'r', 00H, 'e'
@@ -421,26 +421,26 @@ $SG255774 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'D', 00H, '3', 00H
 	DB	00H, ' ', 00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'e', 00H
 	DB	'd', 00H, ' ', 00H, '}', 00H, 00H, 00H
 	ORG $+2
-$SG255775 DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'S', 00H, 'u', 00H
+$SG255785 DB	'A', 00H, 'P', 00H, 'I', 00H, ' ', 00H, 'S', 00H, 'u', 00H
 	DB	'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, ' ', 00H, 'P'
 	DB	00H, 'l', 00H, 'u', 00H, 'g', 00H, '-', 00H, 'I', 00H, 'n', 00H
 	DB	00H, 00H
-$SG255788 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
+$SG255798 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
 	ORG $+2
-$SG255792 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
+$SG255802 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
 	ORG $+2
-$SG219975 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG219985 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG220022 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220032 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG220069 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220079 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG220116 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG220126 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 CONST	ENDS
@@ -1472,7 +1472,7 @@ __$EHRec$ = -12						; size = 12
 	mov	esi, DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A ; backend_dll
 	jmp	SHORT $LN10@SK_HookD3D
 $LN9@SK_HookD3D:
-	push	OFFSET $SG255758
+	push	OFFSET $SG255768
 	call	edi
 	mov	esi, eax
 $LN10@SK_HookD3D:
@@ -1481,13 +1481,13 @@ $LN10@SK_HookD3D:
 ; 107  : 
 ; 108  :   dll_log.Log (L"[   D3D8   ] Importing Direct3DCreate8.......");
 
-	push	OFFSET $SG255759
+	push	OFFSET $SG255769
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
 ; 109  :   dll_log.Log (L"[   D3D8   ] ================================");
 
-	push	OFFSET $SG255760
+	push	OFFSET $SG255770
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -1520,7 +1520,7 @@ $LN31@SK_HookD3D:
 
 ; 111  :   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d8.dll"))
 
-	push	OFFSET $SG255764
+	push	OFFSET $SG255774
 	push	eax
 	call	DWORD PTR __imp___wcsicmp
 	add	esp, 8
@@ -1568,12 +1568,12 @@ $LN41@SK_HookD3D:
 ; 112  :   {
 ; 113  :     dll_log.Log (L"[   D3D8   ]   Direct3DCreate8:   %ph",
 
-	push	OFFSET $SG255765
+	push	OFFSET $SG255775
 	push	esi
 	call	DWORD PTR __imp__GetProcAddress@8
 	push	eax
 	mov	DWORD PTR ?Direct3DCreate8_Import@@3P6GPAUIUnknown@@I@ZA, eax ; Direct3DCreate8_Import
-	push	OFFSET $SG255766
+	push	OFFSET $SG255776
 	jmp	SHORT $LN157@SK_HookD3D
 $LN3@SK_HookD3D:
 
@@ -1593,7 +1593,7 @@ $LN3@SK_HookD3D:
 ; 123  :     const bool bProxy =
 ; 124  :       ( GetModuleHandle (L"d3d8.dll") != hBackend );
 
-	push	OFFSET $SG255768
+	push	OFFSET $SG255778
 	call	edi
 
 ; 125  : 
@@ -1604,8 +1604,8 @@ $LN3@SK_HookD3D:
 	push	OFFSET ?Direct3DCreate8_Import@@3P6GPAUIUnknown@@I@ZA ; Direct3DCreate8_Import
 	push	OFFSET ?Direct3DCreate8@@YGPAUIUnknown@@I@Z ; Direct3DCreate8
 	cmp	eax, esi
-	push	OFFSET $SG255770
-	push	OFFSET $SG255771
+	push	OFFSET $SG255780
+	push	OFFSET $SG255781
 	setne	bl
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	test	eax, eax
@@ -1625,7 +1625,7 @@ $LN3@SK_HookD3D:
 ; 135  :       {
 ; 136  :         (Direct3DCreate8_Import) =  \
 
-	push	OFFSET $SG255773
+	push	OFFSET $SG255783
 	push	esi
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?Direct3DCreate8_Import@@3P6GPAUIUnknown@@I@ZA, eax ; Direct3DCreate8_Import
@@ -1642,7 +1642,7 @@ $LN7@SK_HookD3D:
 ; 142  :       dll_log.Log (L"[   D3D8   ]   Direct3DCreate8:   %p  { Hooked }",
 
 	push	eax
-	push	OFFSET $SG255774
+	push	OFFSET $SG255784
 $LN157@SK_HookD3D:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -1687,7 +1687,7 @@ $LN158@SK_HookD3D:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	19					; 00000013H
-	push	OFFSET $SG255775
+	push	OFFSET $SG255785
 ; File c:\users\andon\source\repos\specialk\src\d3d8.cpp
 
 ; 149  :   dgvoodoo_d3d8->name         = L"API Support Plug-In";
@@ -1934,8 +1934,8 @@ $LN19@Direct3DCr:
 
 	push	eax
 	push	DWORD PTR _SDKVersion$[ebp]
-	push	OFFSET $SG255733
-	push	OFFSET $SG255734
+	push	OFFSET $SG255743
+	push	OFFSET $SG255744
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -7481,7 +7481,7 @@ _TEXT	SEGMENT
 
 ; 189  :   return SK_ShutdownCore (L"d3d8");
 
-	push	OFFSET $SG255792
+	push	OFFSET $SG255802
 	call	?SK_ShutdownCore@@YG_NPB_W@Z		; SK_ShutdownCore
 
 ; 190  : }
@@ -7497,7 +7497,7 @@ _TEXT	SEGMENT
 ; 181  :   const bool ret = SK_StartupCore (L"d3d8", d3d8_init_callback);
 
 	push	OFFSET ?d3d8_init_callback@@YGXP6GXXZ@Z	; d3d8_init_callback
-	push	OFFSET $SG255788
+	push	OFFSET $SG255798
 	call	?SK_StartupCore@@YG_NPB_WPAX@Z		; SK_StartupCore
 
 ; 182  : 

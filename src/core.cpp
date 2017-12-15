@@ -778,6 +778,7 @@ CheckVersionThread (LPVOID user);
 volatile LONG   SK_bypass_dialog_tid    =     0;
 volatile LONG   SK_bypass_dialog_active = FALSE;
 volatile LONG __SK_Init                 = FALSE;
+         bool __SK_bypass               = false;
 
 void
 __stdcall
@@ -1393,20 +1394,18 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   bool skim =
     rundll_invoked || SK_IsSuperSpecialK () || __SK_RunDLL_Bypass;
 
-  static bool bypass  = false;
-              bypass |= skim;
+  __SK_bypass |= skim;
 
   // Injection Compatibility Menu
-  if ( (! bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
-                     (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
+  if ( (! __SK_bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
+                          (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
   {
-    bypass = true;
+    __SK_bypass = true;
 
     SK_BypassInject ();
 
-    bypass = false;
-
-    return true;
+    //bypass = false;
+    //return true;
   }
 
   else
@@ -1513,13 +1512,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
 
-
-  if (bypass)
-    goto BACKEND_INIT;
-
-
-
-
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
@@ -1528,6 +1520,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 
   SK::Diagnostics::CrashHandler::InitSyms ();
+
 
 
   if (config.steam.preload_overlay)
@@ -1543,6 +1536,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
   SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
+
+
+  if (__SK_bypass)
+    goto BACKEND_INIT;
 
 
   if (config.compatibility.init_while_suspended)
@@ -1629,20 +1626,8 @@ BACKEND_INIT:
 #endif
 
 
-  wchar_t wszBackendDLL [MAX_PATH + 2] = { };
-#ifdef _WIN64
-  GetSystemDirectory (wszBackendDLL, MAX_PATH);
-#else
-  HANDLE hProc = GetCurrentProcess ();
-
-  BOOL   bWOW64;
-  ::IsWow64Process (hProc, &bWOW64);
-
-  if (bWOW64)
-    GetSystemWow64Directory (wszBackendDLL, MAX_PATH);
-  else
-    GetSystemDirectory (wszBackendDLL, MAX_PATH);
-#endif
+  wchar_t  wszBackendDLL [MAX_PATH + 2] = { };
+  wcsncpy (wszBackendDLL, SK_GetSystemDirectory (), MAX_PATH);
 
   wchar_t wszWorkDir   [MAX_PATH + 2] = { };
   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
@@ -1754,17 +1739,20 @@ BACKEND_INIT:
 #else
   init_mutex->unlock ();
 
-  init_tids = SK_SuspendAllOtherThreads ();
+  if (! __SK_bypass)
+  {
+    init_tids = SK_SuspendAllOtherThreads ();
 
-  InterlockedExchangePointer (
-    (LPVOID *)&hInitThread,
-      CreateThread ( nullptr,
-                       0,
-                         DllThread,
-                           &init_,
-                             0x00,
-                               nullptr )
-  ); // Avoid the temptation to wait on this thread
+    InterlockedExchangePointer (
+      (LPVOID *)&hInitThread,
+        CreateThread ( nullptr,
+                         0,
+                           DllThread,
+                             &init_,
+                               0x00,
+                                 nullptr )
+    ); // Avoid the temptation to wait on this thread
+  }
 #endif
 
   return true;
@@ -1802,6 +1790,9 @@ SK_Win32_CreateDummyWindow (void)
 
   if (RegisterClassW (&wc) || GetClassInfo (SK_GetDLL (), L"Special K Dummy Window Class", &wc_existing))
   {
+    if (! CreateWindowExW_Original)
+      SK_HookWinAPI ();
+
     HWND hWnd =
       CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class",
                                      L"Special K Dummy Window",

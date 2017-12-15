@@ -213,9 +213,9 @@ BlacklistLibrary (const _T* lpFileName)
 #endif
   if (StrStrI (lpFileName, SK_TEXT ("RTSSHooks")))
   {
-    WaitForInit ();
-  
-    while (SK_GetFramesDrawn () < 1) SleepEx (75, FALSE);
+    //WaitForInit ();
+    //
+    //while (SK_GetFramesDrawn () < 1) SleepEx (75, FALSE);
   }
 
 
@@ -369,7 +369,16 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 #undef lstrcat
 #undef GetModuleHandleEx
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  static wchar_t wszDbgHelp [MAX_PATH * 2] = { };
+
+  if (! *wszDbgHelp)
+  {
+    wcsncpy     (wszDbgHelp, SK_GetSystemDirectory (), MAX_PATH);
+    PathAppendW (wszDbgHelp, L"dbghelp.dll");
+  }
+
+  if (GetModuleHandle (wszDbgHelp))
+    SymRefreshModuleList (GetCurrentProcess ());
 
   static StrStrI_pfn            StrStrI =
     (StrStrI_pfn)
@@ -401,10 +410,16 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW  : 
                                                             (GetModuleHandleEx_pfn) &GetModuleHandleExA  );
 
+  // It's impossible to log this if we're loading the DLL necessary to log this...
+  if (StrStrI (lpFileName, SK_TEXT("dbghelp")))
+  {
+    return;
+  }
+
   wchar_t  wszModName [MAX_PATH] = { };
   wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
 
-  if (! SK_LoadLibrary_SILENCE)
+  if ((! SK_LoadLibrary_SILENCE) && GetModuleHandle (wszDbgHelp))
   {    
     char  szSymbol [1024] = { };
     ULONG ulLen  =  1024;

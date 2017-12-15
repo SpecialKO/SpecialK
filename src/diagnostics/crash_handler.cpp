@@ -110,8 +110,9 @@ CrashHandler::Init (void)
   {
     crash_log.flush_freq = 0;
     crash_log.lockless   = true;
-    crash_log.init    (           L"logs/crash.log",  L"w");
-    SK_File_SetHidden (SK_Log_GetPath (L"crash.log"), true);
+    crash_log.init       (           L"logs/crash.log",  L"w");
+    SK_File_SetHidden    (SK_Log_GetPath (L"crash.log"), true);
+    SK_File_SetTemporary (SK_Log_GetPath (L"crash.log"), true);
   }
 
   SK_CreateDLLHook  (       L"kernel32.dll",
@@ -234,7 +235,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   {
     TerminateProcess (GetCurrentProcess (), (UINT)-1);
   }
-
 
   bool scaleform = false;
 
@@ -717,31 +717,37 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
           if (! StrStrIW (wszOrigPath, L"installer.log"))
           {
+            iSK_Logger*       log_file = nullptr;
+
             if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
             {
-              dll_log.close ();
+              log_file = &dll_log;
             }
 
             else if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
             {
-              steam_log.close ();
+              log_file = &steam_log;
+            }
+
+            else if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
+            {
+              log_file = &crash_log;
             }
 
             else if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
             {
-              game_debug.close ();
+              log_file = &game_debug;
             }
 
             else if (tex_log.name.find (fd.cFileName) != std::wstring::npos)
             {
-              tex_log.close ();
+              log_file = &tex_log;
             }
 
             else if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
             {
-              budget_log.close ();
+              log_file = &budget_log;
             }
-
 
             // There's a small chance that we may crash prior to loading CEGUI's DLLs, in which case
             //   trying to grab a static reference to the Logger Singleton would blow stuff up.
@@ -766,48 +772,36 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                   ),
                     true
                 );
-
-              DeleteFileW (wszLogFile);
             }
 
             else
             {
-              SK_FullCopy (wszOrigPath, wszDestPath);
-
               ++files;
 
-              if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
+              if (log_file != nullptr && log_file->fLog)
               {
-                dll_log.init  (wszDestPath, L"a");
+                log_file->lockless = false;
+                fflush (log_file->fLog);
+                log_file->lock   ();
+                fclose (log_file->fLog);
               }
 
-              else if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
-              {
-                SK_SetNormalFileAttribs (wszDestPath);
-              }
+              SK_SetNormalFileAttribs  (wszOrigPath);
+              SK_FullCopy              (wszOrigPath, wszDestPath);
 
-              else if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
+              if (log_file != nullptr && log_file->fLog)
               {
-                steam_log.init (wszDestPath, L"a");
-              }
-
-              else if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
-              {
-                game_debug.init  (wszDestPath, L"a");
-              }
-
-              else if (tex_log.name.find (fd.cFileName) != std::wstring::npos)
-              {
-                tex_log.init  (wszDestPath, L"a");
-              }
-
-              else if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
-              {
-                budget_log.init  (wszDestPath, L"a");
+                log_file->name = wszDestPath;
+                log_file->fLog = _wfopen (log_file->name.c_str (), L"a");
+                log_file->unlock ();
               }
             }
+          }
 
-            DeleteFileW (wszOrigPath);
+          if (! DeleteFileW (wszOrigPath))
+          {
+            SK_File_SetHidden    (wszOrigPath, true);
+            SK_File_SetTemporary (wszOrigPath, true);
           }
         }
       } while (FindNextFileW (hFind, &fd) != 0);
@@ -822,8 +816,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                       SND_MEMORY );
 
     crash_log.silent = true;
-    crash_log.lines  = 0;
-
+    crash_log.lines++;
 
     // Shutdown the module gracefully
     SK_SelfDestruct ();

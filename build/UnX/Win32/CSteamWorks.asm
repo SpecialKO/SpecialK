@@ -16,71 +16,71 @@ _BSS	SEGMENT
 ?InitSafe_Original@@3P6A_NXZA DD 01H DUP (?)		; InitSafe_Original
 _BSS	ENDS
 CONST	SEGMENT
-$SG270500 DB	'InitSafe', 00H
+$SG270510 DB	'InitSafe', 00H
 	ORG $+3
-$SG270502 DB	'GetHSteamUser_', 00H
+$SG270512 DB	'GetHSteamUser_', 00H
 	ORG $+1
-$SG270504 DB	'GetHSteamPipe_', 00H
+$SG270514 DB	'GetHSteamPipe_', 00H
 	ORG $+1
-$SG270505 DB	'IsSteamRunning', 00H
+$SG270515 DB	'IsSteamRunning', 00H
 	ORG $+1
-$SG270507 DB	'SteamClient_', 00H
+$SG270517 DB	'SteamClient_', 00H
 	ORG $+7
-$SG270509 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
+$SG270519 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'a'
 	DB	00H, 'd', 00H, ' ', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'H', 00H
 	DB	'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'U', 00H, 's'
 	DB	00H, 'e', 00H, 'r', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H
 	DB	'.', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG270511 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
+$SG270521 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'a'
 	DB	00H, 'd', 00H, ' ', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'H', 00H
 	DB	'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'P', 00H, 'i'
 	DB	00H, 'p', 00H, 'e', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H
 	DB	'.', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG270513 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
+$SG270523 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'a'
 	DB	00H, 'd', 00H, ' ', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H
 	DB	'm', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H, 't'
 	DB	00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H
 	DB	00H, 00H
 	ORG $+6
-$SG270515 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
+$SG270525 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'a'
 	DB	00H, 'd', 00H, ' ', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H
 	DB	's', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'C', 00H, 'a', 00H, 'l'
 	DB	00H, 'l', 00H, 'b', 00H, 'a', 00H, 'c', 00H, 'k', 00H, ' ', 00H
 	DB	'(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, 00H, 00H
 	ORG $+4
-$SG270517 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
+$SG270527 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'a'
 	DB	00H, 'd', 00H, ' ', 00H, 'U', 00H, 'n', 00H, 'r', 00H, 'e', 00H
 	DB	'g', 00H, 'i', 00H, 's', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, 'b', 00H, 'a', 00H, 'c', 00H
 	DB	'k', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')'
 	DB	00H, 00H, 00H
-$SG270519 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
+$SG270529 DB	'C', 00H, 'o', 00H, 'u', 00H, 'l', 00H, 'd', 00H, ' ', 00H
 	DB	'n', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'a'
 	DB	00H, 'd', 00H, ' ', 00H, 'R', 00H, 'u', 00H, 'n', 00H, 'C', 00H
 	DB	'a', 00H, 'l', 00H, 'l', 00H, 'b', 00H, 'a', 00H, 'c', 00H, 'k'
 	DB	00H, 's', 00H, ' ', 00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H
 	DB	')', 00H, 00H, 00H
-$SG270522 DB	'SteamUser018', 00H
+$SG270532 DB	'SteamUser018', 00H
 	ORG $+3
-$SG270524 DB	'SteamUser018', 00H
+$SG270534 DB	'SteamUser018', 00H
 	ORG $+7
-$SG270525 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
+$SG270535 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'U', 00H, 's', 00H, 'e'
 	DB	00H, 'r', 00H, ' ', 00H, 'N', 00H, 'O', 00H, 'T', 00H, ' ', 00H
 	DB	'F', 00H, 'O', 00H, 'U', 00H, 'N', 00H, 'D', 00H, ' ', 00H, 'f'
 	DB	00H, 'o', 00H, 'r', 00H, ' ', 00H, 'v', 00H, 'e', 00H, 'r', 00H
 	DB	's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, '%', 00H, 'h'
 	DB	00H, 's', 00H, ' ', 00H, '<', 00H, '<', 00H, 00H, 00H
-$SG270526 DB	'SteamFriends015', 00H
-$SG270528 DB	'SteamFriends015', 00H
-$SG270529 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
+$SG270536 DB	'SteamFriends015', 00H
+$SG270538 DB	'SteamFriends015', 00H
+$SG270539 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'F', 00H, 'r', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 'd', 00H, 's', 00H, ' ', 00H, 'N', 00H
 	DB	'O', 00H, 'T', 00H, ' ', 00H, 'F', 00H, 'O', 00H, 'U', 00H, 'N'
@@ -89,9 +89,9 @@ $SG270529 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	00H, ' ', 00H, '%', 00H, 'h', 00H, 's', 00H, ' ', 00H, '<', 00H
 	DB	'<', 00H, 00H, 00H
 	ORG $+2
-$SG270530 DB	'STEAMUSERSTATS_INTERFACE_VERSION011', 00H
-$SG270532 DB	'STEAMUSERSTATS_INTERFACE_VERSION011', 00H
-$SG270533 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
+$SG270540 DB	'STEAMUSERSTATS_INTERFACE_VERSION011', 00H
+$SG270542 DB	'STEAMUSERSTATS_INTERFACE_VERSION011', 00H
+$SG270543 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'U', 00H, 's', 00H, 'e'
 	DB	00H, 'r', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H, 's', 00H
 	DB	' ', 00H, 'N', 00H, 'O', 00H, 'T', 00H, ' ', 00H, 'F', 00H, 'O'
@@ -100,22 +100,22 @@ $SG270533 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	00H, 'o', 00H, 'n', 00H, ' ', 00H, '%', 00H, 'h', 00H, 's', 00H
 	DB	' ', 00H, '<', 00H, '<', 00H, 00H, 00H
 	ORG $+2
-$SG270534 DB	'STEAMAPPS_INTERFACE_VERSION008', 00H
+$SG270544 DB	'STEAMAPPS_INTERFACE_VERSION008', 00H
 	ORG $+1
-$SG270536 DB	'STEAMAPPS_INTERFACE_VERSION008', 00H
+$SG270546 DB	'STEAMAPPS_INTERFACE_VERSION008', 00H
 	ORG $+5
-$SG270537 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
+$SG270547 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'A', 00H, 'p', 00H, 'p'
 	DB	00H, 's', 00H, ' ', 00H, 'N', 00H, 'O', 00H, 'T', 00H, ' ', 00H
 	DB	'F', 00H, 'O', 00H, 'U', 00H, 'N', 00H, 'D', 00H, ' ', 00H, 'f'
 	DB	00H, 'o', 00H, 'r', 00H, ' ', 00H, 'v', 00H, 'e', 00H, 'r', 00H
 	DB	's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, '%', 00H, 'h'
 	DB	00H, 's', 00H, ' ', 00H, '<', 00H, '<', 00H, 00H, 00H
-$SG270538 DB	'SteamUtils007', 00H
+$SG270548 DB	'SteamUtils007', 00H
 	ORG $+2
-$SG270540 DB	'SteamUtils007', 00H
+$SG270550 DB	'SteamUtils007', 00H
 	ORG $+2
-$SG270541 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
+$SG270551 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'U', 00H, 't', 00H, 'i'
 	DB	00H, 'l', 00H, 's', 00H, ' ', 00H, 'N', 00H, 'O', 00H, 'T', 00H
 	DB	' ', 00H, 'F', 00H, 'O', 00H, 'U', 00H, 'N', 00H, 'D', 00H, ' '
@@ -123,11 +123,11 @@ $SG270541 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	'r', 00H, 's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, '%'
 	DB	00H, 'h', 00H, 's', 00H, ' ', 00H, '<', 00H, '<', 00H, 00H, 00H
 	ORG $+2
-$SG270542 DB	'STEAMSCREENSHOTS_INTERFACE_VERSION002', 00H
+$SG270552 DB	'STEAMSCREENSHOTS_INTERFACE_VERSION002', 00H
 	ORG $+2
-$SG270544 DB	'STEAMSCREENSHOTS_INTERFACE_VERSION002', 00H
+$SG270554 DB	'STEAMSCREENSHOTS_INTERFACE_VERSION002', 00H
 	ORG $+6
-$SG270545 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
+$SG270555 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'S', 00H, 'c', 00H, 'r'
 	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, 's', 00H, 'h', 00H, 'o', 00H
 	DB	't', 00H, 's', 00H, ' ', 00H, 'N', 00H, 'O', 00H, 'T', 00H, ' '
@@ -136,11 +136,11 @@ $SG270545 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	00H, 's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, '%', 00H
 	DB	'h', 00H, 's', 00H, ' ', 00H, '<', 00H, '<', 00H, 00H, 00H
 	ORG $+2
-$SG270546 DB	'STEAMSCREENSHOTS_INTERFACE_VERSION001', 00H
+$SG270556 DB	'STEAMSCREENSHOTS_INTERFACE_VERSION001', 00H
 	ORG $+2
-$SG270547 DB	'STEAMSCREENSHOTS_INTERFACE_VERSION001', 00H
+$SG270557 DB	'STEAMSCREENSHOTS_INTERFACE_VERSION001', 00H
 	ORG $+2
-$SG270548 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
+$SG270558 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'S', 00H, 'c', 00H, 'r'
 	DB	00H, 'e', 00H, 'e', 00H, 'n', 00H, 's', 00H, 'h', 00H, 'o', 00H
 	DB	't', 00H, 's', 00H, ' ', 00H, 'N', 00H, 'O', 00H, 'T', 00H, ' '
@@ -149,9 +149,9 @@ $SG270548 DB	' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'I', 00H, 'S', 00H
 	DB	00H, 's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, '%', 00H
 	DB	'h', 00H, 's', 00H, ' ', 00H, '<', 00H, '<', 00H, 00H, 00H
 	ORG $+2
-$SG270549 DB	'SteamController005', 00H
+$SG270559 DB	'SteamController005', 00H
 	ORG $+5
-$SG270562 DB	'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
+$SG270572 DB	'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'i', 00H, 'z', 00H, 'i', 00H, 'n', 00H, 'g', 00H, ' '
 	DB	00H, 'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'W', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, ' ', 00H, 'B'
@@ -159,17 +159,17 @@ $SG270562 DB	'I', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H
 	DB	' ', 00H, ' ', 00H, '<', 00H, '<', 00H, ' ', 00H, '%', 00H, 's'
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, 00H, 00H
 	ORG $+2
-$SG270563 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
+$SG270573 DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	'-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '(', 00H, 'I'
 	DB	00H, 'n', 00H, 'i', 00H, 't', 00H, 'S', 00H, 'a', 00H, 'f', 00H
 	DB	'e', 00H, ')', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-'
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H, '-', 00H
 	DB	0aH, 00H, 00H, 00H
-$SG270565 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+$SG270575 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+4
-$SG270568 DB	'-', 00H, '-', 00H, '-', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG270578 DB	'-', 00H, '-', 00H, '-', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'i', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'z'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 's', 00H, 'h', 00H, 'e'
@@ -179,7 +179,7 @@ $SG270568 DB	'-', 00H, '-', 00H, '-', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	' ', 00H, '%', 00H, 'l', 00H, 'u', 00H, ']', 00H, ')', 00H, ' '
 	DB	00H, '-', 00H, '-', 00H, '-', 00H, 0aH, 00H, 0aH, 00H, 00H, 00H
 	ORG $+4
-$SG270606 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+$SG270616 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, ' ', 00H, 'w', 00H, 'a', 00H, 's', 00H
 	DB	' ', 00H, 'l', 00H, 'o', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'd'
@@ -187,21 +187,21 @@ $SG270606 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, '.', 00H, '.', 00H, '.', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG270607 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+$SG270617 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG270609 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'w', 00H
+$SG270619 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'w', 00H
 	DB	'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'n', 00H, 'e'
 	DB	00H, 't', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG270611 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+$SG270621 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG270613 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG270623 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'a', 00H, 'p', 00H, 'i', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
 	DB	00H, 00H, 00H
 	ORG $+4
-$SG270616 DB	' ', 00H, '>', 00H, '>', 00H, '>', 00H, ' ', 00H, 'L', 00H
+$SG270626 DB	' ', 00H, '>', 00H, '>', 00H, '>', 00H, ' ', 00H, 'L', 00H
 	DB	'o', 00H, 'c', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' '
 	DB	00H, 'a', 00H, ' ', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 'l', 00H
 	DB	' ', 00H, 's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_'
@@ -209,41 +209,41 @@ $SG270616 DB	' ', 00H, '>', 00H, '>', 00H, '>', 00H, ' ', 00H, 'L', 00H
 	DB	'L', 00H, ':', 00H, ' ', 00H, '''', 00H, '%', 00H, 's', 00H, ''''
 	DB	00H, '.', 00H, '.', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG270617 DB	'SteamAPI_InitSafe', 00H
+$SG270627 DB	'SteamAPI_InitSafe', 00H
 	ORG $+2
-$SG270618 DB	'SteamAPI_Init', 00H
+$SG270628 DB	'SteamAPI_Init', 00H
 	ORG $+2
-$SG270619 DB	'SteamAPI_RegisterCallback', 00H
+$SG270629 DB	'SteamAPI_RegisterCallback', 00H
 	ORG $+2
-$SG270620 DB	'SteamAPI_UnregisterCallback', 00H
-$SG270621 DB	'InitSafe', 00H
-	ORG $+3
-$SG270622 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
-	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
-	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG270623 DB	'Init', 00H
-	ORG $+3
-$SG270624 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
-	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
-	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG270625 DB	'Shutdown', 00H
-	ORG $+3
-$SG270626 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
-	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
-	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG270627 DB	'RegisterCallback', 00H
-	ORG $+3
-$SG270628 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
-	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
-	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG270629 DB	'UnregisterCallback', 00H
-	ORG $+1
-$SG270630 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
-	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
-	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG270631 DB	'RunCallbacks', 00H
+$SG270630 DB	'SteamAPI_UnregisterCallback', 00H
+$SG270631 DB	'InitSafe', 00H
 	ORG $+3
 $SG270632 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
+	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG270633 DB	'Init', 00H
+	ORG $+3
+$SG270634 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
+	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG270635 DB	'Shutdown', 00H
+	ORG $+3
+$SG270636 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
+	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG270637 DB	'RegisterCallback', 00H
+	ORG $+3
+$SG270638 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
+	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG270639 DB	'UnregisterCallback', 00H
+	ORG $+1
+$SG270640 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
+	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG270641 DB	'RunCallbacks', 00H
+	ORG $+3
+$SG270642 DB	'C', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'w', 00H, 'o', 00H, 'r', 00H, 'k', 00H, 's', 00H, '.', 00H, 'd'
 	DB	00H, 'l', 00H, 'l', 00H, 00H, 00H
 CONST	ENDS
@@ -625,7 +625,7 @@ $LN25@InitSafe_D:
 ; 274  :     steam_log.Log ( L"Initializing CSteamWorks Backend  << %s >>",
 
 	push	eax
-	push	OFFSET $SG270562
+	push	OFFSET $SG270572
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -670,7 +670,7 @@ $LN34@InitSafe_D:
 
 ; 276  :     steam_log.Log (L"-----------(InitSafe)-----------\n");
 
-	push	OFFSET $SG270563
+	push	OFFSET $SG270573
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -695,7 +695,7 @@ $LN3@InitSafe_D:
 ; 283  :     HMODULE hSteamAPI =
 ; 284  :       LoadLibraryW_Original (L"CSteamworks.dll");
 
-	push	OFFSET $SG270565
+	push	OFFSET $SG270575
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 
 ; 285  : 
@@ -725,7 +725,7 @@ $LN6@InitSafe_D:
 	mov	eax, DWORD PTR ?init_tries@?1??InitSafe_Detour@@YA_NXZ@4HA
 	inc	eax
 	push	eax
-	push	OFFSET $SG270568
+	push	OFFSET $SG270578
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -822,7 +822,7 @@ _hSteamDLL$ = 8						; size = 4
 ; 59   :   {
 ; 60   :     SteamAPI_InitSafe =
 
-	push	OFFSET $SG270500
+	push	OFFSET $SG270510
 	push	edi
 	call	ebx
 	mov	DWORD PTR _SteamAPI_InitSafe, eax
@@ -842,7 +842,7 @@ $LN3@InitCSteam:
 ; 68   :   {
 ; 69   :     SteamAPI_GetHSteamUser =
 
-	push	OFFSET $SG270502
+	push	OFFSET $SG270512
 	push	edi
 	call	ebx
 	mov	DWORD PTR _SteamAPI_GetHSteamUser, eax
@@ -862,7 +862,7 @@ $LN4@InitCSteam:
 ; 77   :   {
 ; 78   :     SteamAPI_GetHSteamPipe =
 
-	push	OFFSET $SG270504
+	push	OFFSET $SG270514
 	push	edi
 	call	ebx
 	mov	DWORD PTR _SteamAPI_GetHSteamPipe, eax
@@ -876,7 +876,7 @@ $LN5@InitCSteam:
 ; 84   : 
 ; 85   :   SteamAPI_IsSteamRunning =
 
-	push	OFFSET $SG270505
+	push	OFFSET $SG270515
 	push	edi
 	call	ebx
 
@@ -894,7 +894,7 @@ $LN5@InitCSteam:
 ; 92   :   {
 ; 93   :     SteamClient =
 
-	push	OFFSET $SG270507
+	push	OFFSET $SG270517
 	push	edi
 	call	ebx
 	mov	DWORD PTR _SteamClient, eax
@@ -919,7 +919,7 @@ $LN6@InitCSteam:
 ; 103  :   {
 ; 104  :     steam_log.Log (L"Could not load GetHSteamUser (...)");
 
-	push	OFFSET $SG270509
+	push	OFFSET $SG270519
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -939,7 +939,7 @@ $LN7@InitCSteam:
 ; 109  :   {
 ; 110  :     steam_log.Log (L"Could not load GetHSteamPipe (...)");
 
-	push	OFFSET $SG270511
+	push	OFFSET $SG270521
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -959,7 +959,7 @@ $LN8@InitCSteam:
 ; 115  :   {
 ; 116  :     steam_log.Log (L"Could not load SteamClient (...)");
 
-	push	OFFSET $SG270513
+	push	OFFSET $SG270523
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -979,7 +979,7 @@ $LN9@InitCSteam:
 ; 121  :   {
 ; 122  :     steam_log.Log (L"Could not load RegisterCallback (...)");
 
-	push	OFFSET $SG270515
+	push	OFFSET $SG270525
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -999,7 +999,7 @@ $LN10@InitCSteam:
 ; 127  :   {
 ; 128  :     steam_log.Log (L"Could not load UnregisterCallback (...)");
 
-	push	OFFSET $SG270517
+	push	OFFSET $SG270527
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -1019,7 +1019,7 @@ $LN11@InitCSteam:
 ; 133  :   {
 ; 134  :     steam_log.Log (L"Could not load RunCallbacks (...)");
 
-	push	OFFSET $SG270519
+	push	OFFSET $SG270529
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -1075,7 +1075,7 @@ $LN12@InitCSteam:
 ; 149  :   user_ =
 
 	mov	eax, DWORD PTR [ecx]
-	push	OFFSET $SG270522
+	push	OFFSET $SG270532
 	push	edx
 	push	DWORD PTR [esi+92]
 	call	DWORD PTR [eax+20]
@@ -1095,8 +1095,8 @@ $LN12@InitCSteam:
 ; 157  :   {
 ; 158  :     steam_log.Log ( L" >> ISteamUser NOT FOUND for version %hs <<",
 
-	push	OFFSET $SG270524
-	push	OFFSET $SG270525
+	push	OFFSET $SG270534
+	push	OFFSET $SG270535
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -1119,7 +1119,7 @@ $LN15@InitCSteam:
 ; 163  :   friends_ =
 
 	mov	ecx, DWORD PTR [esi+96]
-	push	OFFSET $SG270526
+	push	OFFSET $SG270536
 	push	DWORD PTR [esi+88]
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [esi+92]
@@ -1140,8 +1140,8 @@ $LN15@InitCSteam:
 ; 171  :   {
 ; 172  :     steam_log.Log ( L" >> ISteamFriends NOT FOUND for version %hs <<",
 
-	push	OFFSET $SG270528
-	push	OFFSET $SG270529
+	push	OFFSET $SG270538
+	push	OFFSET $SG270539
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -1163,7 +1163,7 @@ $LN16@InitCSteam:
 ; 177  :   user_stats_ =
 
 	mov	ecx, DWORD PTR [esi+96]
-	push	OFFSET $SG270530
+	push	OFFSET $SG270540
 	push	DWORD PTR [esi+88]
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [esi+92]
@@ -1184,8 +1184,8 @@ $LN16@InitCSteam:
 ; 185  :   {
 ; 186  :     steam_log.Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
 
-	push	OFFSET $SG270532
-	push	OFFSET $SG270533
+	push	OFFSET $SG270542
+	push	OFFSET $SG270543
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -1207,7 +1207,7 @@ $LN17@InitCSteam:
 ; 191  :   apps_ =
 
 	mov	ecx, DWORD PTR [esi+96]
-	push	OFFSET $SG270534
+	push	OFFSET $SG270544
 	push	DWORD PTR [esi+88]
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [esi+92]
@@ -1228,8 +1228,8 @@ $LN17@InitCSteam:
 ; 199  :   {
 ; 200  :     steam_log.Log ( L" >> ISteamApps NOT FOUND for version %hs <<",
 
-	push	OFFSET $SG270536
-	push	OFFSET $SG270537
+	push	OFFSET $SG270546
+	push	OFFSET $SG270547
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -1251,7 +1251,7 @@ $LN18@InitCSteam:
 ; 205  :   utils_ =
 
 	mov	ecx, DWORD PTR [esi+96]
-	push	OFFSET $SG270538
+	push	OFFSET $SG270548
 	push	DWORD PTR [esi+88]
 	mov	eax, DWORD PTR [ecx]
 	call	DWORD PTR [eax+36]
@@ -1268,8 +1268,8 @@ $LN18@InitCSteam:
 ; 210  :   {
 ; 211  :     steam_log.Log ( L" >> ISteamUtils NOT FOUND for version %hs <<",
 
-	push	OFFSET $SG270540
-	push	OFFSET $SG270541
+	push	OFFSET $SG270550
+	push	OFFSET $SG270551
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -1291,7 +1291,7 @@ $LN19@InitCSteam:
 ; 216  :   screenshots_ =
 
 	mov	ecx, DWORD PTR [esi+96]
-	push	OFFSET $SG270542
+	push	OFFSET $SG270552
 	push	DWORD PTR [esi+88]
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [esi+92]
@@ -1310,8 +1310,8 @@ $LN19@InitCSteam:
 ; 222  :   {
 ; 223  :     steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
 
-	push	OFFSET $SG270544
-	push	OFFSET $SG270545
+	push	OFFSET $SG270554
+	push	OFFSET $SG270555
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
@@ -1322,7 +1322,7 @@ $LN19@InitCSteam:
 	mov	ecx, DWORD PTR [esi+96]
 	add	esp, 12					; 0000000cH
 	mov	eax, DWORD PTR [ecx]
-	push	OFFSET $SG270546
+	push	OFFSET $SG270556
 	push	DWORD PTR [esi+88]
 	push	DWORD PTR [esi+92]
 	call	DWORD PTR [eax+72]
@@ -1333,8 +1333,8 @@ $LN19@InitCSteam:
 ; 230  : 
 ; 231  :     steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
 
-	push	OFFSET $SG270547
-	push	OFFSET $SG270548
+	push	OFFSET $SG270557
+	push	OFFSET $SG270558
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	mov	DWORD PTR [esi+120], eax
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -1350,7 +1350,7 @@ $LN20@InitCSteam:
 ; 238  :   controller_ =
 
 	mov	ecx, DWORD PTR [esi+96]
-	push	OFFSET $SG270549
+	push	OFFSET $SG270559
 	push	DWORD PTR [esi+88]
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [esi+92]
@@ -1433,7 +1433,7 @@ _wszModName$ = -524					; size = 524
 ; 356  :   steam_log.Log (L"CSteamworks.dll was loaded, hooking...");
 
 	push	esi
-	push	OFFSET $SG270606
+	push	OFFSET $SG270616
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -1442,7 +1442,7 @@ _wszModName$ = -524					; size = 524
 ; 358  :   // Get the full path to the module's file.
 ; 359  :   HMODULE hMod = GetModuleHandle (L"CSteamworks.dll");
 
-	push	OFFSET $SG270607
+	push	OFFSET $SG270617
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	esi, eax
 
@@ -1451,7 +1451,7 @@ _wszModName$ = -524					; size = 524
 
 	test	esi, esi
 	jne	SHORT $LN5@SK_HookCSt
-	push	OFFSET $SG270609
+	push	OFFSET $SG270619
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	esi, eax
 $LN5@SK_HookCSt:
@@ -1485,7 +1485,7 @@ $LN5@SK_HookCSt:
 ; 370  :     wchar_t* dll_path =
 ; 371  :       StrStrIW (wszModName, L"CSteamworks.dll");
 
-	push	OFFSET $SG270611
+	push	OFFSET $SG270621
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	DWORD PTR __imp__StrStrIW@8
@@ -1508,7 +1508,7 @@ $LN7@SK_HookCSt:
 ; 378  : #else
 ; 379  :     lstrcatW (wszModName, L"steam_api.dll");
 
-	push	OFFSET $SG270613
+	push	OFFSET $SG270623
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrcatW@8
@@ -1528,7 +1528,7 @@ $LN7@SK_HookCSt:
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	je	SHORT $LN8@SK_HookCSt
 	push	eax
-	push	OFFSET $SG270616
+	push	OFFSET $SG270626
 	push	OFFSET ?steam_log@@3UiSK_Logger@@A	; steam_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -1568,7 +1568,7 @@ $LN8@SK_HookCSt:
 	push	OFFSET _SteamAPI_InitSafe
 	push	OFFSET _SteamAPI_InitSafe_Original
 	push	OFFSET _SteamAPI_InitSafe_Detour
-	push	OFFSET $SG270617
+	push	OFFSET $SG270627
 	push	eax
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
@@ -1582,7 +1582,7 @@ $LN8@SK_HookCSt:
 	push	OFFSET _SteamAPI_Init
 	push	OFFSET _SteamAPI_Init_Original
 	push	OFFSET _SteamAPI_Init_Detour
-	push	OFFSET $SG270618
+	push	OFFSET $SG270628
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
@@ -1597,7 +1597,7 @@ $LN8@SK_HookCSt:
 	push	OFFSET _SteamAPI_RegisterCallback
 	push	OFFSET _SteamAPI_RegisterCallback_Original
 	push	OFFSET _SteamAPI_RegisterCallback_Detour
-	push	OFFSET $SG270619
+	push	OFFSET $SG270629
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
@@ -1612,7 +1612,7 @@ $LN8@SK_HookCSt:
 	push	OFFSET _SteamAPI_UnregisterCallback
 	push	OFFSET _SteamAPI_UnregisterCallback_Original
 	push	OFFSET _SteamAPI_UnregisterCallback_Detour
-	push	OFFSET $SG270620
+	push	OFFSET $SG270630
 	lea	eax, DWORD PTR _wszModName$[ebp]
 	push	eax
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
@@ -1627,8 +1627,8 @@ $LN8@SK_HookCSt:
 	push	0
 	push	OFFSET ?InitSafe_Original@@3P6A_NXZA	; InitSafe_Original
 	push	OFFSET ?InitSafe_Detour@@YA_NXZ		; InitSafe_Detour
-	push	OFFSET $SG270621
-	push	OFFSET $SG270622
+	push	OFFSET $SG270631
+	push	OFFSET $SG270632
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 421  :                          "InitSafe",
@@ -1640,8 +1640,8 @@ $LN8@SK_HookCSt:
 	push	0
 	push	OFFSET _SteamAPI_Init_Original
 	push	OFFSET _SteamAPI_Init_Detour
-	push	OFFSET $SG270623
-	push	OFFSET $SG270624
+	push	OFFSET $SG270633
+	push	OFFSET $SG270634
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 426  :                          "Init",
@@ -1653,8 +1653,8 @@ $LN8@SK_HookCSt:
 	push	0
 	push	OFFSET _SteamAPI_Shutdown_Original
 	push	OFFSET _SteamAPI_Shutdown_Detour
-	push	OFFSET $SG270625
-	push	OFFSET $SG270626
+	push	OFFSET $SG270635
+	push	OFFSET $SG270636
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 431  :                           "Shutdown",
@@ -1666,8 +1666,8 @@ $LN8@SK_HookCSt:
 	push	OFFSET _SteamAPI_RegisterCallback
 	push	OFFSET _SteamAPI_RegisterCallback_Original
 	push	OFFSET _SteamAPI_RegisterCallback_Detour
-	push	OFFSET $SG270627
-	push	OFFSET $SG270628
+	push	OFFSET $SG270637
+	push	OFFSET $SG270638
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 436  :                          "RegisterCallback",
@@ -1680,8 +1680,8 @@ $LN8@SK_HookCSt:
 	push	OFFSET _SteamAPI_UnregisterCallback
 	push	OFFSET _SteamAPI_UnregisterCallback_Original
 	push	OFFSET _SteamAPI_UnregisterCallback_Detour
-	push	OFFSET $SG270629
-	push	OFFSET $SG270630
+	push	OFFSET $SG270639
+	push	OFFSET $SG270640
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 442  :                          "UnregisterCallback",
@@ -1694,8 +1694,8 @@ $LN8@SK_HookCSt:
 	push	OFFSET _SteamAPI_RunCallbacks
 	push	OFFSET _SteamAPI_RunCallbacks_Original
 	push	OFFSET _SteamAPI_RunCallbacks_Detour
-	push	OFFSET $SG270631
-	push	OFFSET $SG270632
+	push	OFFSET $SG270641
+	push	OFFSET $SG270642
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 448  :                          "RunCallbacks",

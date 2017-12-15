@@ -1,6 +1,17 @@
+0.8.54
+
+ + Improved texture memory stats in custom ReShade
+  * Rendertargets are distinguishable from actual texture files by their color
+  * Added active / total count to the texture summary
+
+ + Added D3D11.ShaderMods.Unload and ToggleConfig commands to load/unload shader
+     setting INI files.
+ + Added fullscreen mode restoration on alt+tab if force fullscreen is enabled
+
+
 0.8.53
 
- (.6): Fixed CEGUI to support Unicode file paths for log files
+ (.6):  Fixed CEGUI to support Unicode file paths for log files
 
    >> Configuration for some Steam games may be reset because profile names with
         non-Latin characters will be stored in a different location.
