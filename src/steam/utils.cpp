@@ -10,7 +10,8 @@
 class ISteamUtils;
 class IWrapSteamUtils;
 
-std::unordered_map <ISteamUtils*, IWrapSteamUtils*>   SK_SteamWrapper_remap_utils;
+#include <concurrent_unordered_map.h>
+concurrency::concurrent_unordered_map <ISteamUtils*, IWrapSteamUtils*>   SK_SteamWrapper_remap_utils;
 
 class IWrapSteamUtils : public ISteamUtils
 {

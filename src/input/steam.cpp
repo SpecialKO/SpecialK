@@ -4,7 +4,8 @@
 
 sk_input_api_context_s SK_Steam_Backend;
 
-std::unordered_map <ISteamController*, IWrapSteamController*>  SK_SteamWrapper_remap_controller;
+#include <concurrent_unordered_map.h>
+concurrency::concurrent_unordered_map <ISteamController*, IWrapSteamController*>  SK_SteamWrapper_remap_controller;
 
 using SteamAPI_ISteamClient_GetISteamController_pfn = ISteamController* (S_CALLTYPE *)(
   ISteamClient *This,
@@ -31,6 +32,8 @@ SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
                                                            hSteamUser,
                                                              hSteamPipe,
                                                                pchVersion );
+
+  return pController;
 
   if (pController != nullptr)
   {
@@ -94,17 +97,17 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
   {
     auto *pController =
       reinterpret_cast <ISteamController *> ( pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion) );
-
+  
     if (pController != nullptr)
     {
       if (SK_SteamWrapper_remap_controller.count (pController))
         return dynamic_cast <ISteamController *> ( SK_SteamWrapper_remap_controller [pController] );
-
+  
       else
       {
         SK_SteamWrapper_remap_controller [pController] =
           new IWrapSteamController (pController);
-
+  
         return dynamic_cast <ISteamController *> ( SK_SteamWrapper_remap_controller [pController] );
       }
     }

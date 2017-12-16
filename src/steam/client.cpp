@@ -20,11 +20,13 @@ class IWrapSteamRemoteStorage;
 class ISteamClient;
 class IWrapSteamClient;
 
-extern std::unordered_map <ISteamUser*,          IWrapSteamUser*>          SK_SteamWrapper_remap_user;
-extern std::unordered_map <ISteamUtils*,         IWrapSteamUtils*>         SK_SteamWrapper_remap_utils;
-extern std::unordered_map <ISteamController*,    IWrapSteamController*>    SK_SteamWrapper_remap_controller;
-extern std::unordered_map <ISteamRemoteStorage*, IWrapSteamRemoteStorage*> SK_SteamWrapper_remap_remotestorage;
-       std::unordered_map <ISteamClient*,        IWrapSteamClient*>        SK_SteamWrapper_remap_client;
+#include <concurrent_unordered_map.h>
+
+extern concurrency::concurrent_unordered_map <ISteamUser*,          IWrapSteamUser*>          SK_SteamWrapper_remap_user;
+extern concurrency::concurrent_unordered_map <ISteamUtils*,         IWrapSteamUtils*>         SK_SteamWrapper_remap_utils;
+extern concurrency::concurrent_unordered_map <ISteamController*,    IWrapSteamController*>    SK_SteamWrapper_remap_controller;
+extern concurrency::concurrent_unordered_map <ISteamRemoteStorage*, IWrapSteamRemoteStorage*> SK_SteamWrapper_remap_remotestorage;
+       concurrency::concurrent_unordered_map <ISteamClient*,        IWrapSteamClient*>        SK_SteamWrapper_remap_client;
 
 
 extern
@@ -73,10 +75,16 @@ public:
                                                  HSteamPipe  hSteamPipe,
                                            const char       *pchVersion ) override
   {
+#if 1
     return SK_SteamWrapper_WrappedClient_GetISteamUser ( pRealClient,
                                                            hSteamUser,
                                                              hSteamPipe,
                                                                pchVersion );
+#else
+    return pRealClient->GetISteamUser ( hSteamUser,
+                                          hSteamPipe,
+                                            pchVersion );
+#endif
   }
 
 
@@ -89,9 +97,15 @@ public:
     return pRealClient->GetISteamFriends            (hSteamUser, hSteamPipe, pchVersion);                                                        }
   virtual ISteamUtils              *GetISteamUtils               (HSteamPipe hSteamPipe, const char *pchVersion)                        override
   {
+#if 1
     return SK_SteamWrapper_WrappedClient_GetISteamUtils ( pRealClient,
                                                             hSteamPipe,
-                                                              pchVersion );                                                                      }
+                                                              pchVersion );                                                                      
+#else
+    return pRealClient->GetISteamUtils ( hSteamPipe,
+                                           pchVersion );
+#endif
+}
   virtual ISteamMatchmaking        *GetISteamMatchmaking         (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
     return pRealClient->GetISteamMatchmaking        (hSteamUser, hSteamPipe, pchVersion);                                                        }
   virtual ISteamMatchmakingServers *GetISteamMatchmakingServers  (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
@@ -107,10 +121,17 @@ public:
   virtual ISteamNetworking         *GetISteamNetworking          (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
     return pRealClient->GetISteamNetworking         (hSteamUser, hSteamPipe, pchVersion);                                                        }
   virtual ISteamRemoteStorage      *GetISteamRemoteStorage       (HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion) override {
+#if 1
     return SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage ( pRealClient,
                                                                     hSteamuser,
                                                                       hSteamPipe,
-                                                                        pchVersion );                                                            }
+                                                                        pchVersion );
+#else
+    return pRealClient->GetISteamRemoteStorage ( hSteamuser,
+                                                   hSteamPipe,
+                                                     pchVersion );
+#endif
+}
   virtual ISteamScreenshots        *GetISteamScreenshots         (HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion) override {
     return pRealClient->GetISteamScreenshots        (hSteamuser, hSteamPipe, pchVersion);                                                        }
   virtual void                      RunFrame                     (void)                                                                 override {
@@ -129,7 +150,12 @@ public:
 
 
   virtual ISteamController         *GetISteamController          (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
-    return SK_SteamWrapper_WrappedClient_GetISteamController (pRealClient, hSteamUser, hSteamPipe, pchVersion);                                  }
+#if 0
+    return pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion);
+#else
+    return SK_SteamWrapper_WrappedClient_GetISteamController (pRealClient, hSteamUser, hSteamPipe, pchVersion);
+#endif
+                                                                                                                                                 }
 
 
 

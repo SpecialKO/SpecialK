@@ -175,21 +175,19 @@ SK_Steam_PreHookCore (void)
 {
   static volatile LONG init = FALSE;
 
-  if (ReadAcquire (&init))
+  if (InterlockedCompareExchange (&init, TRUE, FALSE))
     return TRUE;
 
-  InterlockedExchange (&init, TRUE);
-
-  //LoadLibraryW_Original (L"team")
-
   const wchar_t* wszSteamLib =
-#ifdef _WIN32
-    L"steam_api.dll";
-#elif (defined _WIN64)
+#ifdef _WIN64
     L"steam_api64.dll";
+#else
+    L"steam_api.dll";
 #endif
 
-  if (GetProcAddress (LoadLibraryW (wszSteamLib), "SteamInternal_CreateInterface"))
+  if ( GetProcAddress (
+         LoadLibraryW_Original (wszSteamLib),
+           "SteamInternal_CreateInterface" ) )
   {
     bool
     SK_Steam_HookController (void);
@@ -204,21 +202,24 @@ SK_Steam_PreHookCore (void)
                                   "SteamAPI_ISteamClient_GetISteamUtils",
                                    SteamAPI_ISteamClient_GetISteamUtils_Detour,
           static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamUtils_Original) );
-
+    
     SK_CreateDLLHook2 (          wszSteamLib,
                                   "SteamAPI_ISteamClient_GetISteamController",
                                    SteamAPI_ISteamClient_GetISteamController_Detour,
           static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamController_Original) );
-
+    
     SK_CreateDLLHook2 (          wszSteamLib,
                                   "SteamAPI_ISteamClient_GetISteamRemoteStorage",
                                    SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour,
           static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamRemoteStorage_Original) );
 
-    SK_CreateDLLHook2 (          wszSteamLib,
-                                  "SteamInternal_CreateInterface",
-                                   SteamInternal_CreateInterface_Detour,
-          static_cast_p2p <void> (&SteamInternal_CreateInterface_Original) );
+    if (SK_GetCurrentGameID () != SK_GAME_ID::Okami)
+    {
+      SK_CreateDLLHook2 (          wszSteamLib,
+                                    "SteamInternal_CreateInterface",
+                                     SteamInternal_CreateInterface_Detour,
+            static_cast_p2p <void> (&SteamInternal_CreateInterface_Original) );
+    }
 
     SK_CreateDLLHook2 (          wszSteamLib,
                                   "SteamClient",
@@ -4225,136 +4226,154 @@ SK_Steam_PiratesAhoy2 (void)
   return SK_Steam_PiratesAhoy ();
 }
 
-
 void
 SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
                                         bool                 bFailed )
 {
-  
-  EResult result =
-    bFailed ?  k_EResultFileNotFound :
+  pParam->m_eResult =
+    bFailed ? k_EResultFileNotFound :
               pParam->m_eResult;
 
+  FileDetailsResult_t *pCopy =
+    new FileDetailsResult_t (*pParam);
 
-  auto HandleResult =
-    [&](const wchar_t* wszFileName)
+  //
+  // Hashing Denuvo games can take a very long time, and we do not need
+  //   the result immediately... so do not destroy the game's performance
+  //     by blocking at startup!
+  //
+  CreateThread (nullptr, 0, [](LPVOID user) ->
+    DWORD
     {
-      char         szSHA1 [21] = { };
-      SK_SHA1_Hash SHA1;
+      FileDetailsResult_t *pParam =
+        (FileDetailsResult_t *)user;
 
-      memcpy (SHA1.hash, pParam->m_FileSHA, 20);
-      SHA1.toCString (szSHA1);
-
-      switch (result)
-      {
-        case k_EResultOK:
+      auto HandleResult =
+        [&](const wchar_t* wszFileName)
         {
+          SK_SHA1_Hash SHA1;
+               memcpy (SHA1.hash, pParam->m_FileSHA, 20);
+    
+          switch (pParam->m_eResult)
+          {
+            case k_EResultOK:
+            {
 // TODO: Begin renaming File utility API;
 //
 //         Some legacy names must remain since these functions are
 //           DLL exported.
 //
 #define SK_File_GetSize SK_GetFileSize
-
-          uint64_t size =
-            SK_File_GetSize (wszFileName);
-
-          SK_SHA1_Hash file_hash =
-            SK_File_GetSHA1 (wszFileName);
-
-          if (size == pParam->m_ulFileSize && file_hash == SHA1)
-          {
-            steam_log.Log ( L"> SteamAPI Application File Verification:  "
-                            L" Match  ( File: %ws,\n"
-L"                                                                              SHA1: %20hs,\n"
-L"                                                                              Size: %lu bytes )",
-                              wszFileName, szSHA1, pParam->m_ulFileSize );
+    
+              uint64_t size =
+                SK_File_GetSize (wszFileName);
+    
+              SK_SHA1_Hash file_hash =
+                SK_File_GetSHA1 (wszFileName);
+    
+              char            szSHA1 [21] = { };
+              SHA1.toCString (szSHA1);
+    
+              if (size == pParam->m_ulFileSize && file_hash == SHA1)
+              {
+                steam_log.Log ( L"> SteamAPI Application File Verification:  "
+                                L" Match  ( File: %ws,\n"
+    L"                                                                              SHA1: %20hs,\n"
+    L"                                                                              Size: %lu bytes )",
+                                  wszFileName, szSHA1, pParam->m_ulFileSize );
+              }
+    
+              else if (size != 0)
+              {
+                if (size != pParam->m_ulFileSize)
+                {
+                  steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                                  L" Size Mismatch ( File: %ws,\n"
+    L"                                                                              Expected SHA1: %20hs,\n"
+    L"                                                                              Expected Size: %lu bytes,\n"
+    L"                                                                                Actual Size: %lu bytes )",
+                                    wszFileName,
+                                      szSHA1,
+                                       pParam->m_ulFileSize, size );
+    
+                  dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                                L" Size Mismatch ( File: %ws,\n"
+    L"                                                                              Expected SHA1: %20hs,\n"
+    L"                                                                              Expected Size: %lu bytes,\n"
+    L"                                                                                Actual Size: %lu bytes )",
+                                    wszFileName,
+                                      szSHA1,
+                                       pParam->m_ulFileSize, size );
+                }
+    
+                else if (file_hash != SHA1)
+                {
+                  char                 szFileSHA1 [21] = { };
+                  file_hash.toCString (szFileSHA1);
+    
+                  steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                                  L" SHA1 Mismatch ( File: %ws,\n"
+    L"                                                                              Expected SHA1: %20hs,\n"
+    L"                                                                                Actual SHA1: %20hs,\n"
+    L"                                                                                       Size: %lu bytes )",
+                                    wszFileName,
+                                      szSHA1, szFileSHA1,
+                                       pParam->m_ulFileSize );
+    
+                  dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                                L" SHA1 Mismatch ( File: %ws,\n"
+    L"                                                                              Expected SHA1: %20hs,\n"
+    L"                                                                                Actual SHA1: %20hs,\n"
+    L"                                                                                       Size: %lu bytes )",
+                                    wszFileName,
+                                      szSHA1, szFileSHA1,
+                                       pParam->m_ulFileSize );
+                }
+    
+                if (validation_pass == SK_Steam_FileSigPass_e::SteamAPI)
+                {
+                  verdict |= ~( k_ECheckFileSignatureInvalidSignature );
+                  decided  =    true;
+                }
+              }
+            } break;
+    
+            default:
+            {
+              steam_log.Log ( L"> SteamAPI File Verification:                "
+                              L" UNKNOWN STATUS (%lu) :: '%ws'",
+                                pParam->m_eResult, wszFileName );
+            } break;
           }
+        };
 
-          else if (size != 0)
-          {
-            if (size != pParam->m_ulFileSize)
-            {
-              steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
-                              L" Size Mismatch ( File: %ws,\n"
-L"                                                                              Expected SHA1: %20hs,\n"
-L"                                                                              Expected Size: %lu bytes,\n"
-L"                                                                                Actual Size: %lu bytes )",
-                                wszFileName,
-                                  szSHA1,
-                                   pParam->m_ulFileSize, size );
-
-              dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
-                            L" Size Mismatch ( File: %ws,\n"
-L"                                                                              Expected SHA1: %20hs,\n"
-L"                                                                              Expected Size: %lu bytes,\n"
-L"                                                                                Actual Size: %lu bytes )",
-                                wszFileName,
-                                  szSHA1,
-                                   pParam->m_ulFileSize, size );
-            }
-
-            else if (file_hash != SHA1)
-            {
-              char szFileSHA1 [21] = { };
-              file_hash.toCString (szFileSHA1);
-
-              steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
-                              L" SHA1 Mismatch ( File: %ws,\n"
-L"                                                                              Expected SHA1: %20hs,\n"
-L"                                                                                Actual SHA1: %20hs,\n"
-L"                                                                                       Size: %lu bytes )",
-                                wszFileName,
-                                  szSHA1, szFileSHA1,
-                                   pParam->m_ulFileSize );
-
-              dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
-                            L" SHA1 Mismatch ( File: %ws,\n"
-L"                                                                              Expected SHA1: %20hs,\n"
-L"                                                                                Actual SHA1: %20hs,\n"
-L"                                                                                       Size: %lu bytes )",
-                                wszFileName,
-                                  szSHA1, szFileSHA1,
-                                   pParam->m_ulFileSize );
-            }
-
-            if (validation_pass == SK_Steam_FileSigPass_e::SteamAPI)
-            {
-              verdict |= ~( k_ECheckFileSignatureInvalidSignature );
-              decided  =    true;
-            }
-          }
-        } break;
-
-        default:
+      switch (validation_pass)
+      {
+        case SK_Steam_FileSigPass_e::Executable:
         {
-          steam_log.Log ( L"> SteamAPI File Verification:                "
-                          L" UNKNOWN STATUS (%lu) :: '%ws'",
-                            result, wszFileName );
+          HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
+    
+          validation_pass = SK_Steam_FileSigPass_e::SteamAPI;
+          InterlockedExchange (&hAsyncSigCheck, 0);
+        } break;
+    
+        case SK_Steam_FileSigPass_e::SteamAPI:
+        {
+          HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
+    
+          validation_pass = SK_Steam_FileSigPass_e::Done;
+          InterlockedExchange (&hAsyncSigCheck, 0);
         } break;
       }
-    };
 
+      delete pParam;
 
-  switch (validation_pass)
-  {
-    case SK_Steam_FileSigPass_e::Executable:
-    {
-      HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
+      CloseHandle (GetCurrentThread ());
 
-      validation_pass = SK_Steam_FileSigPass_e::SteamAPI;
-      InterlockedExchange (&hAsyncSigCheck, 0);
-    } break;
-
-    case SK_Steam_FileSigPass_e::SteamAPI:
-    {
-      HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
-
-      validation_pass = SK_Steam_FileSigPass_e::Done;
-      InterlockedExchange (&hAsyncSigCheck, 0);
-    } break;
-  }
-
+      return 0;
+    }, pCopy,
+    0x00,
+  nullptr );
 
   get_file_details.Cancel ();
 }

@@ -10,7 +10,8 @@
 class ISteamRemoteStorage;
 class IWrapSteamRemoteStorage;
 
-std::unordered_map <ISteamRemoteStorage*, IWrapSteamRemoteStorage*>   SK_SteamWrapper_remap_remotestorage;
+#include <concurrent_unordered_map.h>
+concurrency::concurrent_unordered_map <ISteamRemoteStorage*, IWrapSteamRemoteStorage*>   SK_SteamWrapper_remap_remotestorage;
 
 class IWrapSteamRemoteStorage012 : public ISteamRemoteStorage
 {

@@ -13,7 +13,8 @@ class IWrapSteamClient;
 class ISteamUser;
 class IWrapSteamUser;
 
-std::unordered_map <ISteamUser*, IWrapSteamUser*>   SK_SteamWrapper_remap_user;
+#include <concurrent_unordered_map.h>
+concurrency::concurrent_unordered_map <ISteamUser*, IWrapSteamUser*>   SK_SteamWrapper_remap_user;
 
 int __SK_SteamUser_BLoggedOn =
   static_cast <int> (SK_SteamUser_LoggedOn_e::Unknown);
