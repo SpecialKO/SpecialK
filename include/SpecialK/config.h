@@ -433,7 +433,7 @@ struct sk_config_t
     bool    persistent_drag     = false;
     bool    drag_lock           = false; // NOT SAVED IN INI
     bool    fullscreen          = false;
-    int     always_on_top       = -1;
+    int     always_on_top       = 0;
     bool    disable_screensaver = false;
     struct {
       struct {

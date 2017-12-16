@@ -1,5 +1,17 @@
 0.8.54
 
+ (.3): custom_<SpecialK|dxgi|d3d9|dinput8|OpenGL32>.ini is now supported
+
+  >> If this INI file is present (using the appropriate DLL name), any values in
+       it will override the game's config.
+
+       These values are not stored at exit, and remain even if/after a mod update
+         overwrites your base INI file. Use this feature sparingly, for stuff you
+           don't need to re-configure (i.e. mouse behavior, macros, etc.)
+
+ + Added WaitForVBLANK option to D3D11 Swapchain settings
+ + Changing D3D11 Swapchain latency in the control panel takes effect immediately
+
  + Added support for plug-in loads from a game's global injection profile directory
  + Improved texture memory stats in custom ReShade
   * Rendertargets are distinguishable from actual texture files by their color
@@ -12,7 +24,7 @@
 
 0.8.53
 
- (.6):  Fixed CEGUI to support Unicode file paths for log files
+ (.6): Fixed CEGUI to support Unicode file paths for log files
 
    >> Configuration for some Steam games may be reset because profile names with
         non-Latin characters will be stored in a different location.

@@ -34,4 +34,8 @@
   SW: Fallback  |   2013 - 2014   Max Vysokikh               |  non-SSE4.2/AMD
   HW:  SSE4.2   |   2016          Mark Adler, Robert Vazan   |   ~15x Speedup
                 |                                            |
+  Naive  SHA1   |           SpecialK/sha1.{h|cpp}            |
+ =============  +  ========================================  |  ==============
+  SW: Plain C   |   2013 - 2016   Steve Reid                 |  Optimized for
+                |   2016 - 2018   Andon M. Coleman           |  Block Devices
 -------------------------------------------------------------------------------

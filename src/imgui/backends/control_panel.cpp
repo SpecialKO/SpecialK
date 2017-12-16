@@ -2444,124 +2444,203 @@ SK_ImGui_ControlPanel (void)
 
 
 #ifdef _WIN64
-    if (SK_GetCurrentGameID () == SK_GAME_ID::GalGun_Double_Peace)
+    switch (SK_GetCurrentGameID ())
     {
-      if (ImGui::CollapsingHeader ("Gal*Gun: Double Peace", ImGuiTreeNodeFlags_DefaultOpen))
+      case SK_GAME_ID::Okami:
       {
-        static bool emperor_has_no_clothes = false;
-
-        ImGui::TreePush ("");
-
-        if (ImGui::Checkbox ("The emperor of Japan has no clothes", &emperor_has_no_clothes))
+        if (ImGui::CollapsingHeader (u8"OKAMI HD / 大神 絶景版", ImGuiTreeNodeFlags_DefaultOpen))
         {
-          const uint32_t ps_primary = 0x9b826e8a;
-          const uint32_t vs_outline = 0x2e1993cf;
+          bool motion_blur, bloom,
+               smoke,       grain,
+               HUD;
 
-          if (emperor_has_no_clothes)
+          motion_blur = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x06ef081f));
+          bloom       = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x939da69c));
+          smoke       = (! SK_D3D11_Shaders.vertex.blacklist.count (0xbe4b62c2));
+          grain       = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x37bda3e5));
+
+          HUD         = (SK_D3D11_Shaders.pixel.blacklist_if_texture [0xec31f12f].empty ());
+
+          ImGui::TreePush ("");
+
+          bool changed = false;
+
+          ImGui::BeginGroup ();
+
+          if (ImGui::Checkbox ("Motion Blur", &motion_blur))
           {
-            SK::D3D9::Shaders.vertex.blacklist.emplace (vs_outline);
-            SK::D3D9::Shaders.pixel.blacklist.emplace  (ps_primary);
+            changed = true;
+
+            SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 06ef081f Disable");
           }
 
-          else
+          if (ImGui::Checkbox ("Smoke", &smoke))
           {
-            SK::D3D9::Shaders.vertex.blacklist.erase (vs_outline);
-            SK::D3D9::Shaders.pixel.blacklist.erase  (ps_primary);
+            changed = true;
+
+            SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Vertex be4b62c2 Disable");
           }
+
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+
+          if (ImGui::Checkbox ("Bloom", &bloom))
+          {
+            changed = true;
+
+            SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 939da69c Disable");
+            SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel fa2af8ba Disable");
+            SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel c75b0341 Disable");
+          }
+
+          if (ImGui::Checkbox ("Grain", &grain))
+          {
+            changed = true;
+
+            SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 37bda3e5 Disable");
+          }
+
+          ImGui::EndGroup ();
+          ImGui::SameLine ();
+
+          if (ImGui::Checkbox ("HUD", &HUD))
+          {
+            changed = true;
+
+            SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.ToggleConfig d3d11_shaders-nohud.ini");
+          }
+
+          if (changed)
+          {
+            extern void
+            SK_D3D11_StoreShaderState (void);
+            SK_D3D11_StoreShaderState ();
+          }
+
+          ImGui::TreePop ();
         }
+      } break;
 
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ( emperor_has_no_clothes ? "And neither do the girls in this game!" :
-                                                       "But the prudes in this game do." );
-
-        ImGui::TreePop ();
-      }
-    }
-
-    if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4)
-    {
-      if (ImGui::CollapsingHeader ("STAR OCEAN - THE LAST HOPE - 4K & Full HD Remaster", ImGuiTreeNodeFlags_DefaultOpen))
+      case SK_GAME_ID::GalGun_Double_Peace:
       {
-        ImGui::TreePush ("");
-
-        extern float SK_SO4_MouseScale;
-        ImGui::SliderFloat ("Mouselook Deadzone Compensation", &SK_SO4_MouseScale, 2.0f, 33.333f);
-
-        if (ImGui::IsItemHovered ())
+        if (ImGui::CollapsingHeader ("Gal*Gun: Double Peace", ImGuiTreeNodeFlags_DefaultOpen))
         {
-          ImGui::SetTooltip ("Reduces mouse deadzone, but may cause Windows to draw the system cursor if set too high.");
+          static bool emperor_has_no_clothes = false;
+
+          ImGui::TreePush ("");
+
+          if (ImGui::Checkbox ("The emperor of Japan has no clothes", &emperor_has_no_clothes))
+          {
+            const uint32_t ps_primary = 0x9b826e8a;
+            const uint32_t vs_outline = 0x2e1993cf;
+
+            if (emperor_has_no_clothes)
+            {
+              SK::D3D9::Shaders.vertex.blacklist.emplace (vs_outline);
+              SK::D3D9::Shaders.pixel.blacklist.emplace  (ps_primary);
+            }
+
+            else
+            {
+              SK::D3D9::Shaders.vertex.blacklist.erase (vs_outline);
+              SK::D3D9::Shaders.pixel.blacklist.erase  (ps_primary);
+            }
+          }
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ( emperor_has_no_clothes ? "And neither do the girls in this game!" :
+                                                         "But the prudes in this game do." );
+
+          ImGui::TreePop ();
         }
+      } break;
 
-        ImGui::TreePop  (  );
-      }
-    }
-
-    if (SK_GetCurrentGameID () == SK_GAME_ID::LifeIsStrange_BeforeTheStorm)
-    {
-      if (ImGui::CollapsingHeader ("Life is Strange: Before the Storm", ImGuiTreeNodeFlags_DefaultOpen))
+      case SK_GAME_ID::StarOcean4:
       {
-        static bool evil          = false;
-        static bool even_stranger = false;
-        static bool wired         = false;
-
-        const uint32_t vs_eyes = 0x223ccf2d;
-        const uint32_t ps_face = 0xbde11248;
-        const uint32_t ps_skin = 0xa79e425c;
-
-        ImGui::TreePush ("");
-
-        if (ImGui::Checkbox ("Life is Wired", &wired))
+        if (ImGui::CollapsingHeader ("STAR OCEAN - THE LAST HOPE - 4K & Full HD Remaster", ImGuiTreeNodeFlags_DefaultOpen))
         {
-          if (wired)
-          {
-            SK_D3D11_Shaders.pixel.wireframe.emplace (ps_skin);
-            SK_D3D11_Shaders.pixel.wireframe.emplace (ps_face);
-          }
-        
-          else
-          {
-            SK_D3D11_Shaders.pixel.wireframe.erase (ps_skin);
-            SK_D3D11_Shaders.pixel.wireframe.erase (ps_face);
-          }
-        }
-        
-        if (ImGui::Checkbox ("Life is Evil", &evil))
-        {
-          if (evil)
-          {
-            SK_D3D11_Shaders.vertex.blacklist.emplace (vs_eyes);
-          }
-        
-          else
-          {
-            SK_D3D11_Shaders.vertex.blacklist.erase (vs_eyes);
-          }
-        }
-        
-        if (ImGui::Checkbox ("Life is Even Stranger", &even_stranger))
-        {
-          if (even_stranger)
-          {
-            SK_D3D11_Shaders.pixel.blacklist.emplace (ps_face);
-            SK_D3D11_Shaders.pixel.blacklist.emplace (ps_skin);
-          }
-        
-          else
-          {
-            SK_D3D11_Shaders.pixel.blacklist.erase (ps_face);
-            SK_D3D11_Shaders.pixel.blacklist.erase (ps_skin);
-          }
-        }
+          ImGui::TreePush ("");
 
-        //bool enable = evil || even_stranger || wired;
-        //
-        //extern void
-        //SK_D3D11_EnableTracking (bool state);
-        //SK_D3D11_EnableTracking (enable || show_shader_mod_dlg);
+          extern float SK_SO4_MouseScale;
+          ImGui::SliderFloat ("Mouselook Deadzone Compensation", &SK_SO4_MouseScale, 2.0f, 33.333f);
 
-        ImGui::TreePop ();
-      }
-    }
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Reduces mouse deadzone, but may cause Windows to draw the system cursor if set too high.");
+          }
+
+          ImGui::TreePop  (  );
+        }
+      } break;
+
+      case SK_GAME_ID::LifeIsStrange_BeforeTheStorm:
+      {
+        if (ImGui::CollapsingHeader ("Life is Strange: Before the Storm", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+          static bool evil          = false;
+          static bool even_stranger = false;
+          static bool wired         = false;
+
+          const uint32_t vs_eyes = 0x223ccf2d;
+          const uint32_t ps_face = 0xbde11248;
+          const uint32_t ps_skin = 0xa79e425c;
+
+          ImGui::TreePush ("");
+
+          if (ImGui::Checkbox ("Life is Wired", &wired))
+          {
+            if (wired)
+            {
+              SK_D3D11_Shaders.pixel.wireframe.emplace (ps_skin);
+              SK_D3D11_Shaders.pixel.wireframe.emplace (ps_face);
+            }
+          
+            else
+            {
+              SK_D3D11_Shaders.pixel.wireframe.erase (ps_skin);
+              SK_D3D11_Shaders.pixel.wireframe.erase (ps_face);
+            }
+          }
+          
+          if (ImGui::Checkbox ("Life is Evil", &evil))
+          {
+            if (evil)
+            {
+              SK_D3D11_Shaders.vertex.blacklist.emplace (vs_eyes);
+            }
+          
+            else
+            {
+              SK_D3D11_Shaders.vertex.blacklist.erase (vs_eyes);
+            }
+          }
+          
+          if (ImGui::Checkbox ("Life is Even Stranger", &even_stranger))
+          {
+            if (even_stranger)
+            {
+              SK_D3D11_Shaders.pixel.blacklist.emplace (ps_face);
+              SK_D3D11_Shaders.pixel.blacklist.emplace (ps_skin);
+            }
+          
+            else
+            {
+              SK_D3D11_Shaders.pixel.blacklist.erase (ps_face);
+              SK_D3D11_Shaders.pixel.blacklist.erase (ps_skin);
+            }
+          }
+
+          //bool enable = evil || even_stranger || wired;
+          //
+          //extern void
+          //SK_D3D11_EnableTracking (bool state);
+          //SK_D3D11_EnableTracking (enable || show_shader_mod_dlg);
+
+          ImGui::TreePop ();
+        }
+      } break;
+    };
 #endif
 
 
@@ -2987,13 +3066,36 @@ SK_ImGui_ControlPanel (void)
         config.render.framerate.present_interval =
           std::max (-1, std::min (4, config.render.framerate.present_interval));
 
-        ImGui::InputInt ("BackBuffer Count",       &config.render.framerate.buffer_count);
+        if (ImGui::InputInt ("BackBuffer Count",       &config.render.framerate.buffer_count))
+        {
+          // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
+          PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)ImGui::GetIO ().DisplaySize.x,
+                                                                                  (LONG)ImGui::GetIO ().DisplaySize.y ) );
+        }
 
         // Clamp to [-1,oo)
         if (config.render.framerate.buffer_count < -1)
           config.render.framerate.buffer_count = -1;
 
-        ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit);
+        if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
+        {
+          if (config.render.framerate.pre_render_limit < -1)
+            config.render.framerate.pre_render_limit = -1;
+
+          else if (config.render.framerate.pre_render_limit > config.render.framerate.buffer_count + 1)
+            config.render.framerate.pre_render_limit = config.render.framerate.buffer_count + 1;
+
+          void
+          SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain =
+                                   (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain );
+
+          SK_DXGI_UpdateLatencies ();
+        }
+
+        if ((! config.render.framerate.flip_discard) || config.render.framerate.swapchain_wait == 0)
+        {
+          ImGui::Checkbox ("Wait for VBLANK", &config.render.framerate.wait_for_vblank);
+        }
 
         if (config.render.framerate.flip_discard)
         {

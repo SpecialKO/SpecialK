@@ -321,10 +321,10 @@ bool
 SK_Steam_HookController (void)
 {
   const wchar_t* wszSteamLib =
-#ifdef _WIN32
-    L"steam_api.dll";
-#elif (defined _WIN64)
+#ifdef _WIN64
     L"steam_api64.dll";
+#else
+    L"steam_api.dll";
 #endif
     
   SK_CreateDLLHook2 (       wszSteamLib,

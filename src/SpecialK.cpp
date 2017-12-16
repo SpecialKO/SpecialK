@@ -928,6 +928,13 @@ DllMain ( HMODULE hModule,
         );
 
       SK_Init_MinHook        ();
+
+      void SK_Steam_InitCommandConsoleVariables (void);
+           SK_Steam_InitCommandConsoleVariables ();
+
+      void SK_TestSteamImports (HMODULE hMod);
+           SK_TestSteamImports (GetModuleHandle (nullptr));
+
       SK_InitCompatBlacklist ();
 
       BOOL bRet = SK_Attach (SK_GetDLLRole ());

@@ -90,6 +90,7 @@ interface iSK_INI : public IUnknown
                                                   wchar_t const* const _Format,
                                                                        ... );
   STDMETHOD_ (const wchar_t*,  get_filename)    (THIS) const;
+  STDMETHOD_ (bool,            import_file)     (const wchar_t* fname);
 
 protected:
 private:

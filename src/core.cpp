@@ -788,15 +788,6 @@ SK_InitCore (const wchar_t* backend, void* callback)
 
   wcscpy (SK_Backend, backend);
 
-
-  BOOL
-  SK_Steam_PreHookCore (void);
-
-  if (config.steam.spoof_BLoggedOn)
-  {
-    SK_Steam_PreHookCore ();
-  }
-
   using finish_pfn   = void (WINAPI *)  (void);
   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
 
@@ -1545,6 +1536,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
 
 
+  BOOL
+  SK_Steam_PreHookCore (void);
+
+  //if (config.steam.spoof_BLoggedOn)
+  //{
+    SK_Steam_PreHookCore ();
+  //}
+
+
   if (__SK_bypass)
     goto BACKEND_INIT;
 
@@ -1601,10 +1601,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       }
     }
   }
-
-  SK_Steam_InitCommandConsoleVariables ();
-  SK_TestSteamImports                  (GetModuleHandle (nullptr));
-
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 

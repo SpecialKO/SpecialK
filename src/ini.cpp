@@ -68,7 +68,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
   sections.clear ();
 
-  // We skip a few bytes (Unicode BOM) in crertain cirumstances, so this is the
+  // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
   //   actual pointer we need to free...
   wchar_t* alloc = nullptr;
 
@@ -87,7 +87,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     wszData = new wchar_t [size + 2] { };
     alloc   = wszData;
 
-    fread (wszData, size, 1, fINI);
+    fread  (wszData, size, 1, fINI);
+    fflush (fINI);
+    fclose (fINI);
 
     // First, consider Unicode
     // UTF16-LE  (All is well in the world)
@@ -153,8 +155,6 @@ iSK_INI::iSK_INI (const wchar_t* filename)
                         wszName );
         wszData = nullptr;
 
-        fclose (fINI);
-
         delete [] string;
 
         return;
@@ -182,9 +182,6 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 //    delete [] alloc;
 //    wszData = nullptr;
     // Why not? It would make re-parsing safer
-
-    fflush (fINI);
-    fclose (fINI);
   }
 
   else
@@ -302,6 +299,12 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
           key = CharNextW (l);
             k = key;
 
+          if (l == end)
+          {
+            l = CharNextW (l);
+            k = end;
+          }
+
           auto*    val_str = new wchar_t [l - value + 1] { };
           size_t   val_len = wcrlen          (value, l);
           wcsncpy (val_str,                   value, val_len);
@@ -322,7 +325,7 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
 
           delete [] val_str;
 
-          l = end;
+          l = end + 1;
         }
       }
 
@@ -928,6 +931,124 @@ const wchar_t*
 iSK_INI::get_filename (void) const
 {
   return wszName;
+}
+
+bool
+iSK_INI::import_file (const wchar_t* fname)
+{
+  // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
+  //   actual pointer we need to free...
+  wchar_t *alloc         = nullptr;
+  wchar_t *wszImportName =
+    new wchar_t [wcslen (fname) + 2] { };
+
+  FILE    *fImportINI    = nullptr;
+
+  wcscpy (wszImportName, fname);
+
+  TRY_FILE_IO (_wfsopen (fname, L"rbS", _SH_DENYNO), fname, fImportINI);
+
+  if (fImportINI != nullptr)
+  {
+    auto size =
+      static_cast <long> (SK_GetFileSize (fname));
+
+    wchar_t *wszImportData = new wchar_t [size + 2] { };
+                   alloc   = wszImportData;
+
+    fread (wszImportData, size, 1, fImportINI);
+
+    fflush (fImportINI);
+    fclose (fImportINI);
+
+    // First, consider Unicode
+    // UTF16-LE  (All is well in the world)
+    if (*wszImportData == 0xFEFF)
+    {
+      ++wszImportData; // Skip the BOM
+    }
+
+    // UTF16-BE  (Somehow we are swapped)
+    else if (*wszImportData == 0xFFFE)
+    {
+      dll_log.Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
+                    L"file ('%s'), attempting to recover...",
+                      wszImportName );
+
+      wchar_t* wszSwapMe = wszImportData;
+
+      for (int i = 0; i < size; i += 2)
+      {
+        *wszSwapMe++ =
+           _byteswap_ushort (*wszSwapMe);
+      }
+
+      ++wszImportData; // Skip the BOM
+    }
+
+    // Something else, if it's ANSI or UTF-8, let's hope Windows can figure
+    //   out what to do...
+    else
+    {
+      // Skip the silly UTF8 BOM if it is present
+      bool utf8 = (reinterpret_cast <unsigned char *> (wszImportData)) [0] == 0xEF &&
+                  (reinterpret_cast <unsigned char *> (wszImportData)) [1] == 0xBB &&
+                  (reinterpret_cast <unsigned char *> (wszImportData)) [2] == 0xBF;
+
+      const uintptr_t offset =
+        utf8 ? 3 : 0;
+
+      const int       real_size  =
+        size - static_cast <int> (offset);
+
+      char*           start_addr =
+      (reinterpret_cast <char *> (wszImportData)) + offset;
+
+      auto*           string =
+        new char [real_size];
+
+      memcpy (string, start_addr, real_size);
+
+      delete [] wszImportData;
+
+      int converted_size =
+        MultiByteToWideChar ( CP_UTF8, 0, string, real_size, nullptr, 0 );
+
+      if (! converted_size)
+      {
+        dll_log.Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
+                      L".ini file ('%s') to UTF-16, aborting!",
+                        wszImportName );
+        wszImportData = nullptr;
+
+        delete [] string;
+
+        return false;
+      }
+
+      wszImportData =
+        new wchar_t [converted_size + 1] { };
+
+      MultiByteToWideChar ( CP_UTF8, 0, string, real_size, wszImportData, converted_size );
+
+      //dll_log.Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
+                      //wszImportName );
+
+      delete [] string;
+
+      // No Byte-Order Marker
+      alloc = wszImportData;
+    }
+
+    import (wszImportData);
+
+    delete [] alloc;
+    wszImportData = nullptr;
+
+    return true;
+  }
+
+  return false;
 }
 
 iSK_INI*

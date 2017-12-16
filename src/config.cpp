@@ -463,12 +463,26 @@ SK_LoadConfigEx (std::wstring name, bool create)
 {
   // Load INI File
   std::wstring full_name;
-  std::wstring osd_config, achievement_config, macro_config;
+  std::wstring custom_name; // User may have custom prefs
 
+  std::wstring osd_config, achievement_config, macro_config;
 
   full_name = SK_GetConfigPath () +
                 name              +
                   L".ini";
+
+  std::wstring undecorated_name = name;
+
+  if (undecorated_name.find (L"default_") != std::wstring::npos)
+  {
+    undecorated_name.erase ( undecorated_name.find (L"default_"),
+                             std::wstring (L"default_").length () );
+  }
+
+  custom_name = std::wstring   (SK_GetConfigPath ()) +
+                  std::wstring (L"custom_")          +
+                    undecorated_name                 +
+                      L".ini";
 
   if (create)
     SK_CreateDirectories (full_name.c_str ());
@@ -503,7 +517,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini =
       SK_CreateINI (full_name.c_str ());
 
-    empty    = dll_ini->get_sections ().empty ();
+    empty = dll_ini->get_sections ().empty ();
 
     SK_CreateDirectories (osd_config.c_str ());
 
@@ -878,6 +892,13 @@ struct param_decl_s {
   extern std::unordered_multimap <uint32_t, SK_KeyCommand> SK_KeyboardMacros;
 
   SK_KeyboardMacros.clear   ();
+
+
+
+  if (GetFileAttributesW (custom_name.c_str ()) != INVALID_FILE_ATTRIBUTES)
+  {
+    dll_ini->import_file (custom_name.c_str ());
+  }
 
 
   while (sec != sections.end ())
@@ -1401,7 +1422,6 @@ struct param_decl_s {
   }
 
   init = true; }
-
 
 
   //
@@ -3268,15 +3288,15 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
   std::wstring name ( getAppNameFromID      (uiAppID) );
 
   // Non-trivial name = custom path, remove the old-style <program.exe>
-  if (name != L"")
+  if (! name.empty ())
   {
-    std::wstring         original_dir (path);
+    std::wstring original_dir (path.c_str ());
 
     size_t       pos                     = 0;
     std::wstring host_app (SK_GetHostApp ());
 
     if ((pos = path.find (SK_GetHostApp (), pos)) != std::wstring::npos)
-      path.replace (pos, host_app.length (), L"");
+      path.replace (pos, host_app.length (), L"\0");
 
     name.erase ( std::remove_if ( name.begin (),
                                   name.end   (),
@@ -3306,7 +3326,7 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
     for (auto it = name.rbegin (); it != name.rend (); it++)
     {
       if (isspace (*it) || (! isprint (*it)))
-        *it = L'\0';
+        name.erase (*it);
 
       else
         break;
@@ -3319,9 +3339,17 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
 
     SK_StripTrailingSlashesW (path.data ());
 
-    MoveFileExW ( original_dir.c_str (),
-                    path.c_str       (),
-                      MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
+    DWORD dwAttribs = 
+      GetFileAttributesW (original_dir.c_str ());
+
+    if ( GetFileAttributesW (path.c_str ()) == INVALID_FILE_ATTRIBUTES &&
+                                  dwAttribs != INVALID_FILE_ATTRIBUTES && 
+                                ( dwAttribs & FILE_ATTRIBUTE_DIRECTORY ) )
+    {
+      MoveFileExW ( original_dir.c_str (),
+                      path.c_str       (),
+                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
+    }
   }
 
   return path.c_str ();

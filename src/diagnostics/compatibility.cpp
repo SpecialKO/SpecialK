@@ -177,14 +177,16 @@ BlacklistLibrary (const _T* lpFileName)
 #ifdef _WIN64
   if (StrStrI (lpFileName, SK_TEXT("action_x64")))
   {
-    WaitForInit      ();
-    WaitForInputIdle (GetCurrentProcess (), 16);
+    WaitForInit ();
+  
+    while (SK_GetFramesDrawn () < 2) SleepEx (75, FALSE);
   }
 #else
   if (StrStrI (lpFileName, SK_TEXT("action_x86")))
   {
-    WaitForInit      ();
-    WaitForInputIdle (GetCurrentProcess (), 16);
+    WaitForInit ();
+  
+    while (SK_GetFramesDrawn () < 2) SleepEx (75, FALSE);
   }
 #endif
   //else if (StrStrI (lpFileName, SK_TEXT("rxcore")) || StrStrI (lpFileName, SK_TEXT("nvinject")) || StrStrI (lpFileName, SK_TEXT("detoured")) || StrStrI (lpFileName, SK_TEXT("rxinput")))
@@ -213,9 +215,9 @@ BlacklistLibrary (const _T* lpFileName)
 #endif
   if (StrStrI (lpFileName, SK_TEXT ("RTSSHooks")))
   {
-    //WaitForInit ();
-    //
-    //while (SK_GetFramesDrawn () < 1) SleepEx (75, FALSE);
+    WaitForInit ();
+  
+    while (SK_GetFramesDrawn () < 2) SleepEx (75, FALSE);
   }
 
 

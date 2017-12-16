@@ -805,8 +805,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
     if (pFeatureLevel != nullptr)
       *pFeatureLevel   = ret_level;
-
-    return res;
   }
 
   else

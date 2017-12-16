@@ -3850,6 +3850,44 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
 
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
 
+void
+SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain)
+{
+  if (! pSwapChain)
+    return;
+
+  const uint32_t max_latency =
+    config.render.framerate.pre_render_limit;
+
+  CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
+
+  if ( SUCCEEDED ( pSwapChain->QueryInterface <IDXGISwapChain2> (&pSwapChain2) 
+                 )
+     )
+  {
+    if (max_latency < 16 && max_latency > 0)
+    {
+      dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
+      pSwapChain2->SetMaximumFrameLatency (max_latency);
+    }
+  }
+
+  if (max_latency < 16 && max_latency > 0)
+  {
+    CComPtr <IDXGIDevice1> pDevice1 = nullptr;
+
+    if (SUCCEEDED ( pSwapChain->GetDevice (
+                       IID_PPV_ARGS (&pDevice1)
+                                          )
+                  )
+       )
+    {
+      dll_log.Log (L"[   DXGI   ] Setting Device    Frame Latency: %lu", max_latency);
+      pDevice1->SetMaximumFrameLatency (max_latency);
+    }
+  }
+}
+
 __forceinline
 void
 SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
@@ -3879,42 +3917,22 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,
     //pDesc->BufferDesc.Width, pDesc->BufferDesc.Height, pDesc->BufferDesc.Format, pDesc->Flags);
 
-  const uint32_t max_latency = config.render.framerate.pre_render_limit;
+  SK_DXGI_UpdateLatencies (*ppSwapChain);
 
   CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
 
-  if ( bFlipMode && bWait &&
-       SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) )
-      )
+  if ( SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) 
+                 )
+     )
   {
-    if (max_latency < 16)
+    if (bFlipMode && bWait)
     {
-      dll_log.Log (L"[   DXGI   ] Setting Swapchain Frame Latency: %lu", max_latency);
-      pSwapChain2->SetMaximumFrameLatency (max_latency);
-    }
+      HANDLE hWait =
+        pSwapChain2->GetFrameLatencyWaitableObject ();
 
-    HANDLE hWait =
-      pSwapChain2->GetFrameLatencyWaitableObject ();
-
-    WaitForSingleObjectEx ( hWait,
-                              500,//config.render.framerate.swapchain_wait,
-                                TRUE );
-  }
-
-  {
-    if (max_latency != -1)
-    {
-      CComPtr <IDXGIDevice1> pDevice1 = nullptr;
-
-      if (SUCCEEDED ( (*ppSwapChain)->GetDevice (
-                         IID_PPV_ARGS (&pDevice1)
-                      )
-                    )
-         )
-      {
-        dll_log.Log (L"[   DXGI   ] Setting Device Frame Latency: %lu", max_latency);
-        pDevice1->SetMaximumFrameLatency (max_latency);
-      }
+      WaitForSingleObjectEx ( hWait,
+                                config.render.framerate.swapchain_wait,
+                                  TRUE );
     }
   }
 
@@ -5242,7 +5260,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
   if (InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    //WaitForInitDXGI ();
+    WaitForInitDXGI ();
     return;
   }
 
