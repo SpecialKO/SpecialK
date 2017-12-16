@@ -1758,6 +1758,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\plugin\reshade.h" />
     <ClInclude Include="include\SpecialK\render_backend.h" />
     <ClInclude Include="include\SpecialK\resource.h" />
+    <ClInclude Include="include\SpecialK\sha1.h" />
     <ClInclude Include="include\SpecialK\sound.h" />
     <ClInclude Include="include\SpecialK\stdafx.h" />
     <ClInclude Include="include\SpecialK\steam_api.h" />
@@ -2156,6 +2157,7 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
+    <ClCompile Include="src\sha1.cpp" />
     <ClCompile Include="src\sound.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>

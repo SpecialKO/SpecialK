@@ -29,6 +29,8 @@
 #include <string>
 #include <mutex>
 
+#include <SpecialK/sha1.h>
+
 interface iSK_INI;
 
 using HANDLE = void *;
@@ -209,11 +211,20 @@ SK_wcsrep ( const wchar_t*   wszIn,
 
 using SK_HashProgressCallback_pfn = void (__stdcall *)(uint64_t current, uint64_t total);
 
-uint64_t __stdcall SK_GetFileSize   ( const wchar_t* wszFile );
-uint32_t __stdcall SK_GetFileCRC32  ( const wchar_t* wszFile,
-                         SK_HashProgressCallback_pfn callback = nullptr );
-uint32_t __stdcall SK_GetFileCRC32C ( const wchar_t* wszFile,
-                         SK_HashProgressCallback_pfn callback = nullptr );
+uint64_t     __stdcall SK_GetFileSize     ( const wchar_t* wszFile );
+uint32_t     __stdcall SK_GetFileCRC32    ( const wchar_t* wszFile,
+                             SK_HashProgressCallback_pfn callback = nullptr );
+uint32_t     __stdcall SK_GetFileCRC32C   ( const wchar_t* wszFile,
+                             SK_HashProgressCallback_pfn callback = nullptr );
+
+SK_SHA1_Hash __stdcall SK_File_GetSHA1     ( const wchar_t* wszFile,
+                             SK_HashProgressCallback_pfn callback = nullptr );
+bool         __stdcall SK_File_GetSHA1StrA ( const char* szFile,
+                                                   char*  szOut,
+                             SK_HashProgressCallback_pfn callback = nullptr );
+bool         __stdcall SK_File_GetSHA1StrW ( const wchar_t* wszFile,
+                                                   wchar_t* wszOut,
+                             SK_HashProgressCallback_pfn callback = nullptr );
 
 
 const wchar_t*

@@ -1431,6 +1431,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     // For the global injector, when not started by SKIM, check its version
     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
       CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
+
+    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+    {
+      // Do this from the startup thread so that there's no race if an app tries to
+      //   use D3D11.dll while our child thread is working.
+      SK_D3D11_Init ();
+    }
   }
 
   // Don't let Steam prevent me from attaching a debugger at startup

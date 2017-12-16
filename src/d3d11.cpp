@@ -67,6 +67,9 @@ SK_Thread_HybridSpinlock cs_shader_cs   (0x9000);
 SK_Thread_HybridSpinlock cs_mmio        (0x7f7f);
 SK_Thread_HybridSpinlock cs_render_view (0xdddd);
 
+LPVOID pfnD3D11CreateDevice             = nullptr;
+LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
+
 HMODULE SK::DXGI::hModD3D11 = nullptr;
 
 SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11 = { };
@@ -649,26 +652,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
-  //extern volatile LONG  __dxgi_ready;
-  //if (! ReadAcquire (&__dxgi_ready))
-  {
-    if (! InterlockedCompareExchange (&__dxgi_plugins_loaded, 1, 0))
-    {
-      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-      {
-        // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-        SK_LoadPlugIns64 ();
-#else
-        SK_LoadPlugIns32 ();
-#endif
-      }
-
-      return D3D11CreateDeviceAndSwapChain_Detour (pAdapter, DriverType, Software, Flags, pFeatureLevels,
-                                                   FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
-    }
-  }
-
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_11_1;
   ID3D11Device*     ret_device = nullptr;
@@ -785,20 +768,64 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   HRESULT res;
 
-  DXGI_CALL (res, 
-    D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
-                                             DriverType,
-                                               Software,
-                                                 Flags,
-                                                   pFeatureLevels,
-                                                     FeatureLevels,
-                                                       SDKVersion,
-                                                         swap_chain_desc,
-                                                           ppSwapChain,
-                                                             &ret_device,
-                                                               &ret_level,
-                                                                 ppImmediateContext )
-            );
+
+  extern volatile LONG  __dxgi_ready;
+  static volatile LONG  __done_once = FALSE;
+  if ((! ReadAcquire (&__dxgi_ready)) && (! InterlockedCompareExchange (&__done_once, 1, 0)))
+  {
+    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+    {
+      // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+      SK_LoadPlugIns64 ();
+#else
+      SK_LoadPlugIns32 ();
+#endif
+    }
+
+    // Go through the original function now that plug-ins are loaded,
+    //   but this branch will be skipped the second time through.
+    DXGI_CALL (res, 
+      ((D3D11CreateDeviceAndSwapChain_pfn)pfnD3D11CreateDeviceAndSwapChain) ( pAdapter,
+                                               DriverType,
+                                                 Software,
+                                                   Flags,
+                                                     pFeatureLevels,
+                                                       FeatureLevels,
+                                                         SDKVersion,
+                                                           swap_chain_desc,
+                                                             ppSwapChain,
+                                                               &ret_device,
+                                                                 &ret_level,
+                                                                   ppImmediateContext )
+              );
+
+    if (ppDevice != nullptr)
+      *ppDevice   = ret_device;
+
+    if (pFeatureLevel != nullptr)
+      *pFeatureLevel   = ret_level;
+
+    return res;
+  }
+
+  else
+  {
+    DXGI_CALL (res, 
+      D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
+                                               DriverType,
+                                                 Software,
+                                                   Flags,
+                                                     pFeatureLevels,
+                                                       FeatureLevels,
+                                                         SDKVersion,
+                                                           swap_chain_desc,
+                                                             ppSwapChain,
+                                                               &ret_device,
+                                                                 &ret_level,
+                                                                   ppImmediateContext )
+              );
+  }
 
   if (SUCCEEDED (res))
   {
@@ -864,47 +891,25 @@ D3D11CreateDevice_Detour (
 {
   DXGI_LOG_CALL_1 (L"D3D11CreateDevice            ", L"Flags=0x%x", Flags);
 
-  extern volatile LONG  __dxgi_ready;
-  if (! ReadAcquire (&__dxgi_ready))
-  {
-    if (! InterlockedCompareExchange (&__dxgi_plugins_loaded, 1, 0))
-    {
-      if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-      {
-        // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-        SK_LoadPlugIns64 ();
-#else
-        SK_LoadPlugIns32 ();
-#endif
-      }
-
-      return D3D11CreateDeviceAndSwapChain_Detour (pAdapter, DriverType, Software, Flags, pFeatureLevels,
-                                                   FeatureLevels, SDKVersion, nullptr, nullptr, ppDevice, pFeatureLevel, ppImmediateContext);
-    }
-  }
-
-
   // Ansel is the purest form of evil known to man
   if (! ReadAcquire (&__d3d11_ready))
   {
     if (SK_GetCallerName () == L"NvCamera64.dll")
+    {
       InterlockedExchange (&SK_D3D11_ansel_tid, GetCurrentThreadId ());
 
-    return
-      D3D11CreateDevice_Import ( pAdapter, DriverType, Software, Flags,
-                                   pFeatureLevels, FeatureLevels, SDKVersion,
-                                     ppDevice, pFeatureLevel, ppImmediateContext );
+      return
+        D3D11CreateDevice_Import ( pAdapter, DriverType, Software, Flags,
+                                     pFeatureLevels, FeatureLevels, SDKVersion,
+                                       ppDevice, pFeatureLevel, ppImmediateContext );
+    }
   }
 
-  else
-  {
-    return
-      D3D11CreateDeviceAndSwapChain_Detour ( pAdapter, DriverType, Software, Flags,
-                                               pFeatureLevels, FeatureLevels, SDKVersion,
-                                                 nullptr, nullptr, ppDevice, pFeatureLevel,
-                                                   ppImmediateContext );
-  }
+  return
+    D3D11CreateDeviceAndSwapChain_Detour ( pAdapter, DriverType, Software, Flags,
+                                             pFeatureLevels, FeatureLevels, SDKVersion,
+                                               nullptr, nullptr, ppDevice, pFeatureLevel,
+                                                 ppImmediateContext );
 }
 
 
@@ -5073,11 +5078,6 @@ D3D11_RSSetViewports_Override (
 #endif
   D3D11_RSSetViewports_Original (This, NumViewports, pViewports);
 }
-
-
-LPVOID pfnD3D11CreateDevice             = nullptr;
-LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
-
 
 CRITICAL_SECTION tex_cs     = { };
 CRITICAL_SECTION hash_cs    = { };

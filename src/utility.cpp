@@ -2014,8 +2014,26 @@ enum sk_hash_algo {
   //
   SK_CRC32C     = 0x2,
 
-  SK_NUM_HASHES = 2
+  // SHA1
+  SK_SHA1       = 0x4,
+
+  SK_NUM_HASHES = 3
 };
+
+#include <SpecialK/sha1.h>
+
+SK_SHA1_Hash
+SK_GetFileHash_SHA1 (       sk_hash_algo                 algorithm,
+                      const wchar_t                     *wszFile,
+                            SK_HashProgressCallback_pfn  callback = nullptr )
+{
+  SK_SHA1_Hash out;
+
+  SHA1_File (wszFile, (char *)out.hash, callback);
+
+  return out;
+}
+
 
 uint32_t
 __stdcall
@@ -2119,6 +2137,55 @@ SK_GetFileCRC32C (const wchar_t* wszFile, SK_HashProgressCallback_pfn callback)
 
   return SK_GetFileHash_32 (SK_CRC32C, wszFile, callback);
 }
+
+SK_SHA1_Hash
+__stdcall
+SK_File_GetSHA1 (const wchar_t* wszFile, SK_HashProgressCallback_pfn callback)
+{
+  return SK_GetFileHash_SHA1 (SK_SHA1, wszFile, callback);
+}
+
+
+bool
+__stdcall
+SK_File_GetSHA1StrA ( const char*                        szFile,
+                            char*                        szOut,
+                            SK_HashProgressCallback_pfn    callback )
+{
+  SK_SHA1_Hash sha1_hash;
+
+  bool bRet =
+    SHA1_File ( SK_UTF8ToWideChar (szFile).c_str (), (char *)sha1_hash.hash, callback );
+
+  if (bRet)
+    sha1_hash.toCString (szOut);
+
+  return bRet;
+}
+
+bool
+__stdcall
+SK_File_GetSHA1StrW ( const wchar_t*                     wszFile,
+                            wchar_t*                     wszOut,
+                            SK_HashProgressCallback_pfn     callback )
+{
+  SK_SHA1_Hash sha1_hash;
+
+  bool bRet =
+    SHA1_File ( wszFile, (char *)sha1_hash.hash, callback );
+
+  if (bRet)
+  {
+    char szOut [21] = { };
+    sha1_hash.toCString (szOut);
+
+    wcsncpy (wszOut, SK_UTF8ToWideChar (szOut).c_str (), 20);
+  }
+
+  return bRet;
+}
+
+
 
 #if 0
 void
@@ -2484,11 +2551,6 @@ SK_GetSystemDirectory (void)
     else
       GetSystemDirectory      (host_proc.wszSystemDir, MAX_PATH);
 #endif
-  }
-
-  else
-  {
-    while (*host_proc.wszSystemDir == L'\0') SleepEx (1, FALSE);
   }
 
   return host_proc.wszSystemDir;

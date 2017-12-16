@@ -4225,6 +4225,7 @@ SK_Steam_PiratesAhoy2 (void)
   return SK_Steam_PiratesAhoy ();
 }
 
+
 void
 SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
                                         bool                 bFailed )
@@ -4238,20 +4239,30 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
   auto HandleResult =
     [&](const wchar_t* wszFileName)
     {
-      char   szSHA1 [21] = { };
-      char* pszSHA1      = szSHA1;
+      char         szSHA1 [21] = { };
+      SK_SHA1_Hash SHA1;
 
-      for (int i = 20; i >= 0; i--)
-        sprintf (pszSHA1++, "%x", (uint8_t)pParam->m_FileSHA [i]);
+      memcpy (SHA1.hash, pParam->m_FileSHA, 20);
+      SHA1.toCString (szSHA1);
 
       switch (result)
       {
         case k_EResultOK:
         {
-          uint64_t size =
-            SK_GetFileSize (wszFileName);
+// TODO: Begin renaming File utility API;
+//
+//         Some legacy names must remain since these functions are
+//           DLL exported.
+//
+#define SK_File_GetSize SK_GetFileSize
 
-          if (size == pParam->m_ulFileSize)
+          uint64_t size =
+            SK_File_GetSize (wszFileName);
+
+          SK_SHA1_Hash file_hash =
+            SK_File_GetSHA1 (wszFileName);
+
+          if (size == pParam->m_ulFileSize && file_hash == SHA1)
           {
             steam_log.Log ( L"> SteamAPI Application File Verification:  "
                             L" Match  ( File: %ws,\n"
@@ -4262,21 +4273,50 @@ L"                                                                              
 
           else if (size != 0)
           {
-            steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
-                            L" Size Mismatch ( File: %ws,\n"
-L"                                                                              SHA1: %20hs,\n"
-L"                                                                              Size: %lu bytes )",
-                              wszFileName,
-                                szSHA1,
-                                 pParam->m_ulFileSize );
+            if (size != pParam->m_ulFileSize)
+            {
+              steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                              L" Size Mismatch ( File: %ws,\n"
+L"                                                                              Expected SHA1: %20hs,\n"
+L"                                                                              Expected Size: %lu bytes,\n"
+L"                                                                                Actual Size: %lu bytes )",
+                                wszFileName,
+                                  szSHA1,
+                                   pParam->m_ulFileSize, size );
 
-            dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
-                          L" Size Mismatch ( File: %ws,\n"
-L"                                                                              SHA1: %20hs,\n"
-L"                                                                              Size: %lu bytes )",
-                              wszFileName,
-                                szSHA1,
-                                 pParam->m_ulFileSize );
+              dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                            L" Size Mismatch ( File: %ws,\n"
+L"                                                                              Expected SHA1: %20hs,\n"
+L"                                                                              Expected Size: %lu bytes,\n"
+L"                                                                                Actual Size: %lu bytes )",
+                                wszFileName,
+                                  szSHA1,
+                                   pParam->m_ulFileSize, size );
+            }
+
+            else if (file_hash != SHA1)
+            {
+              char szFileSHA1 [21] = { };
+              file_hash.toCString (szFileSHA1);
+
+              steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                              L" SHA1 Mismatch ( File: %ws,\n"
+L"                                                                              Expected SHA1: %20hs,\n"
+L"                                                                                Actual SHA1: %20hs,\n"
+L"                                                                                       Size: %lu bytes )",
+                                wszFileName,
+                                  szSHA1, szFileSHA1,
+                                   pParam->m_ulFileSize );
+
+              dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                            L" SHA1 Mismatch ( File: %ws,\n"
+L"                                                                              Expected SHA1: %20hs,\n"
+L"                                                                                Actual SHA1: %20hs,\n"
+L"                                                                                       Size: %lu bytes )",
+                                wszFileName,
+                                  szSHA1, szFileSHA1,
+                                   pParam->m_ulFileSize );
+            }
 
             if (validation_pass == SK_Steam_FileSigPass_e::SteamAPI)
             {

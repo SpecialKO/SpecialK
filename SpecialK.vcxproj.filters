@@ -420,6 +420,9 @@
     <ClInclude Include="include\SpecialK\plugin\reshade.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\sha1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -669,6 +672,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\lego_marvel2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sha1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
