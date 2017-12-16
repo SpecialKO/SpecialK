@@ -819,24 +819,30 @@ const int        AlwaysOnTop = 1;
 
 auto ActivateWindow =[&](HWND hWnd, bool active = false)
 {
-  if (config.window.always_on_top == PreventAlwaysOnTop)
-  {
-    SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost true");
-    SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost false");
-  }
-
-  else if (config.window.always_on_top == AlwaysOnTop)
-  {
-    SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost false");
-    SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost true");
-  }
-
-
   bool state_changed =
     (wm_dispatch.active_windows [hWnd] != active && hWnd == game_window.hWnd);//game_window.active != active);
 
   if (hWnd == game_window.hWnd)
     game_window.active = active;
+
+
+
+  // If forcing fullscreen, don't screw with window layering.
+  if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+  {
+    if (config.window.always_on_top == PreventAlwaysOnTop)
+    {
+      if (GetForegroundWindow () != SK_GetGameWindow ())
+        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost false");
+    }
+
+    else if (config.window.always_on_top == AlwaysOnTop)
+    {
+      if (GetForegroundWindow () != SK_GetGameWindow ())
+        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost true");
+    }
+  }
+
 
 
   if (state_changed)
@@ -878,8 +884,10 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
   if (active && state_changed)
   {
     // Engage fullscreen
-    if (config.display.force_fullscreen)
+    if ( config.display.force_fullscreen )
+    {
       SK_GetCurrentRenderBackend ().requestFullscreenMode (true);
+    }
 
 
     if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
@@ -943,7 +951,7 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
     ClipCursor_Original (nullptr);
   }
 
-  if (state_changed)
+  if (state_changed && hWnd == game_window.hWnd)
     SK_ImGui_Cursor.activateWindow (active);
 
   wm_dispatch.active_windows [hWnd] = active;
@@ -4641,23 +4649,52 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if (uMsg == WM_NCACTIVATE || uMsg == WM_ACTIVATEAPP)
       {
-        if (wParam != FALSE)
+        if (uMsg != WM_NCACTIVATE)
         {
-          if (last_active == false)
-            SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
-                        L"Window Mgr" );
+          if (wParam != FALSE)
+          {
+            if (last_active == false)
+              SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
+                          L"Window Mgr" );
 
-          ActivateWindow (hWnd, true);
+            ActivateWindow (hWnd, true);
+          }
+
+          else
+          {
+            if (last_active == true)
+              SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+                          L"Window Mgr" );
+
+            ActivateWindow (hWnd, false);
+
+            // We must fully consume one of these messages or audio will stop playing
+            //   when the game loses focus, so do not simply pass this through to the
+            //     default window procedure.
+            if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+                    config.window.background_render
+               )
+            {
+              game_window.CallProc (
+                hWnd,
+                  uMsg,
+                    TRUE,
+                      reinterpret_cast <LPARAM> (hWnd) );
+
+              return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+            }
+
+            SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+          }
         }
-
-        else
+        else// if (wParam == FALSE)
         {
           if (last_active == true)
             SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
                         L"Window Mgr" );
-
-          ActivateWindow (hWnd, false);
-
+        
+          //ActivateWindow (hWnd, false);
+        
           // We must fully consume one of these messages or audio will stop playing
           //   when the game loses focus, so do not simply pass this through to the
           //     default window procedure.
@@ -4670,10 +4707,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                 uMsg,
                   TRUE,
                     reinterpret_cast <LPARAM> (hWnd) );
-
+        
             return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
           }
-
+        
           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
         }
       }
@@ -4692,7 +4729,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             activate = reinterpret_cast <HWND> (lParam) != game_window.hWnd;
             source   = LOWORD (wParam) == 1 ? L"(WM_ACTIVATE [ WA_ACTIVE ])" :
                                               L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
-            ActivateWindow (hWnd, activate);
+            ActivateWindow ((HWND)lParam, true);
           } break;
 
           case WA_INACTIVE:
@@ -4700,7 +4737,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             activate = ( lParam                           == 0                ) ||
                        ( reinterpret_cast <HWND> (lParam) == game_window.hWnd );
             source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
-            ActivateWindow (hWnd, activate);
+            ActivateWindow ((HWND)lParam, false);
           } break;
         }
 
