@@ -49,16 +49,14 @@ SK_SYS_GetVersionPath (void)
   if (! SK_IsInjected ())
   {
     if (! config.system.central_repository)
-      return std::wstring (SK_GetRootPath ()) + L"Version\\";
+      return std::wstring (SK_GetRootPath ())   + std::wstring (L"Version\\");
     else
-      return std::wstring (std::wstring (SK_GetConfigPath ()) + L"Version\\");
+      return std::wstring (SK_GetConfigPath ()) + std::wstring (L"Version\\");
   }
 
   else
   {
-    std::wstring path  = SK_GetDocumentsDir ();
-                 path += L"\\My Mods\\SpecialK\\Version\\";
-          return path;
+    return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\Version\\");
   }
 }
 
@@ -72,9 +70,7 @@ SK_SYS_GetInstallPath (void)
 
   else
   {
-    std::wstring path  = SK_GetDocumentsDir ();
-                 path += L"\\My Mods\\SpecialK\\";
-          return path;
+    return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\");
   }
 }
 
@@ -163,7 +159,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   //TSFix_Res/... (PlugIns/TSFix/Resources/...)
 
 
-  lstrcatW (wszInstallFile, SK_Version_GetInstallIniPath ().c_str ());
+  lstrcatW           (wszInstallFile, SK_Version_GetInstallIniPath ().c_str ());
   PathRemoveFileSpec (wszInstallFile);
 
   SK_CreateDirectories (wszInstallFile);

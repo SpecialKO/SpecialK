@@ -915,39 +915,38 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 
     *wszIn = L'\0';
 
-    std::string ver_dir   =
-      SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
+    std::wstring ver_dir   =
+      SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
 
     const DWORD dwAttribs =
-      GetFileAttributesA (ver_dir.c_str ());
+      GetFileAttributesW (ver_dir.c_str ());
 
-    if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-          CreateDirectoryA (ver_dir.c_str (), nullptr) )
+    lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+    PathRemoveFileSpecW  (wszIn);
+    PathAppendW          (wszIn, L"Version\\installed.ini");
+
+    if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
+         ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+           CreateDirectoryW (ver_dir.c_str (), nullptr) ) )
     {
-      lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-      PathRemoveFileSpecW  (wszIn);
-
-      lstrcatW (wszIn, L"\\Version\\installed.ini");
-
       *wszOut = L'\0';
 
-      lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-      lstrcatW (wszOut, L"\\installed.ini");
+      lstrcatW    (wszOut, ver_dir.c_str ());
+      PathAppendW (wszOut, L"installed.ini");
 
       DeleteFileW (       wszOut);
       CopyFile    (wszIn, wszOut, FALSE);
 
       *wszIn = L'\0';
 
-      lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+      lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
       PathRemoveFileSpecW  (wszIn);
-
-      lstrcatW (wszIn, L"\\Version\\repository.ini");
+      PathAppendW          (wszIn, L"Version\\repository.ini");
 
       *wszOut = L'\0';
 
-      lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-      lstrcatW (wszOut, L"\\repository.ini");
+      lstrcatW    (wszOut, ver_dir.c_str ());
+      PathAppendW (wszOut, L"repository.ini");
 
       DeleteFileW (       wszOut);
       CopyFile    (wszIn, wszOut, FALSE);
@@ -962,10 +961,10 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 bool
 SK_Inject_SwitchToRenderWrapper (void)
 {
-  wchar_t wszIn [MAX_PATH * 2] = { };
+  wchar_t   wszIn [MAX_PATH * 2] = { };
   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
-  wchar_t wszOut [MAX_PATH * 2] = { };
+  wchar_t   wszOut [MAX_PATH * 2] = { };
   lstrcatW (wszOut, SK_GetHostPath ());
 
   switch (SK_GetCurrentRenderBackend ().api)
@@ -1063,39 +1062,38 @@ SK_Inject_SwitchToRenderWrapper (void)
 
     *wszIn = L'\0';
 
-    std::string ver_dir   =
-      SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
+    std::wstring ver_dir   =
+      SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
 
     const DWORD dwAttribs =
-      GetFileAttributesA (ver_dir.c_str ());
+      GetFileAttributesW (ver_dir.c_str ());
 
-    if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-          CreateDirectoryA (ver_dir.c_str (), nullptr) )
+    lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+    PathRemoveFileSpecW  (wszIn);
+    PathAppendW          (wszIn, L"Version\\installed.ini");
+
+    if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
+         ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
+           CreateDirectoryW (ver_dir.c_str (), nullptr) ) )
     {
-      lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-      PathRemoveFileSpecW  (wszIn);
-
-      lstrcatW (wszIn, L"\\Version\\installed.ini");
-
       *wszOut = L'\0';
 
-      lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-      lstrcatW (wszOut, L"\\installed.ini");
+      lstrcatW    (wszOut, ver_dir.c_str ());
+      PathAppendW (wszOut, L"installed.ini");
 
       DeleteFileW (       wszOut);
       CopyFile    (wszIn, wszOut, FALSE);
 
       *wszIn = L'\0';
 
-      lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+      lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
       PathRemoveFileSpecW  (wszIn);
-
-      lstrcatW (wszIn, L"\\Version\\repository.ini");
+      PathAppendW          (wszIn, L"Version\\repository.ini");
 
       *wszOut = L'\0';
 
-      lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-      lstrcatW (wszOut, L"\\repository.ini");
+      lstrcatW    (wszOut, ver_dir.c_str ());
+      PathAppendW (wszOut, L"repository.ini");
 
       DeleteFileW (       wszOut);
       CopyFile    (wszIn, wszOut, FALSE);
